@@ -1,7 +1,8 @@
+
 {
-  "name": "Fast Search Card",
-  "content_in_root": false,
-  "filename": "fast-search-card.js",
-  "country": ["DE"],
-  "homeassistant": "2021.3.0"
+    "name": "Fast Search Card",
+    "content_in_root": false,
+    "filename": "fast-search-card.js",
+    "render_readme": true,
+    "homeassistant": "2023.0.0"
 }
