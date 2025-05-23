@@ -1,7 +1,11 @@
+
+
 {
-  "name": "Fast Search Card",
-  "hacs": "1.6.0",
-  "domains": ["light", "switch", "climate", "cover", "fan", "sensor"],
-  "iot_class": "Local Push",
-  "homeassistant": "2021.3.0"
+    "name": "Fast Search Card",
+    "content_in_root": false,
+    "filename": "fast-search-card.js",
+    "render_readme": true,
+    "homeassistant": "2023.0.0",
+    "hide_default_branch": true,
+    "domains": ["lovelace"]
 }
