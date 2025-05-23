@@ -1,0 +1,7 @@
+{
+  "name": "Fast Search Card",
+  "hacs": "1.6.0",
+  "domains": ["light", "switch", "climate", "cover", "fan", "sensor"],
+  "iot_class": "Local Push",
+  "homeassistant": "2021.3.0"
+}
