@@ -52,6 +52,42 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     gap: 10px;
                     margin-bottom: 12px;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .view-toggle {
+                    display: flex;
+                    background: white;
+                    border-radius: 8px;
+                    border: 1px solid #ddd;
+                    overflow: hidden;
+                }
+
+                .view-toggle-btn {
+                    background: none;
+                    border: none;
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #666;
+                    transition: all 0.2s;
+                    position: relative;
+                }
+
+                .view-toggle-btn:hover {
+                    background: #f5f5f5;
+                }
+
+                .view-toggle-btn.active {
+                    background: #007aff;
+                    color: white;
+                }
+
+                .view-toggle-btn + .view-toggle-btn {
+                    border-left: 1px solid #ddd;
                 }
 
                 .search-type-dropdown {
@@ -237,6 +273,152 @@ class FastSearchCard extends HTMLElement {
                     overflow-y: auto;
                 }
 
+                /* Grid View Styles */
+                .grid-container {
+                    padding: 20px;
+                }
+
+                .grid-scroll {
+                    display: flex;
+                    gap: 16px;
+                    overflow-x: auto;
+                    padding: 4px 0 20px 0;
+                    scrollbar-width: none;
+                    -ms-overflow-style: none;
+                }
+
+                .grid-scroll::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .grid-item {
+                    background: #f8f9fa;
+                    border: 1px solid #e9ecef;
+                    border-radius: 12px;
+                    padding: 16px;
+                    min-width: 140px;
+                    max-width: 180px;
+                    flex-shrink: 0;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    position: relative;
+                    height: 120px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                }
+
+                .grid-item:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                }
+
+                .grid-item.active {
+                    border: 2px solid #007aff;
+                    background: rgba(0, 122, 255, 0.05);
+                }
+
+                .grid-item-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 8px;
+                }
+
+                .grid-item-icon {
+                    font-size: 24px;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+
+                .grid-item-actions {
+                    display: flex;
+                    gap: 4px;
+                }
+
+                .grid-action-button {
+                    padding: 4px 6px;
+                    background: white;
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    font-size: 10px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    color: #666;
+                    min-width: 20px;
+                    text-align: center;
+                }
+
+                .grid-action-button:hover {
+                    background: #f5f5f5;
+                    border-color: #ccc;
+                }
+
+                .grid-action-button.primary {
+                    background: #007aff;
+                    color: white;
+                    border-color: #007aff;
+                }
+
+                .grid-action-button.primary:hover {
+                    background: #0056b3;
+                    border-color: #0056b3;
+                }
+
+                .grid-item-info {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-end;
+                }
+
+                .grid-item-name {
+                    font-weight: 500;
+                    font-size: 14px;
+                    color: #333;
+                    line-height: 1.2;
+                    margin-bottom: 4px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                .grid-item-state {
+                    font-size: 12px;
+                    color: #666;
+                    line-height: 1.1;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                .grid-room-group {
+                    margin-bottom: 32px;
+                }
+
+                .grid-room-header {
+                    font-weight: 600;
+                    font-size: 14px;
+                    color: #495057;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 16px;
+                    padding: 0 4px;
+                }
+
+                @media (max-width: 768px) {
+                    .grid-item {
+                        min-width: 120px;
+                        max-width: 150px;
+                    }
+                }
+
+                /* List View Styles */
+
                 .room-group {
                     margin-bottom: 24px;
                 }
@@ -368,6 +550,19 @@ class FastSearchCard extends HTMLElement {
                             <option value="scripts">📜 Skripte</option>
                             <option value="scenes">🎭 Szenen</option>
                         </select>
+                        
+                        <div class="view-toggle">
+                            <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                                </svg>
+                            </button>
+                            <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="search-container-inner">
@@ -403,6 +598,7 @@ class FastSearchCard extends HTMLElement {
         this.selectedRooms = new Set();
         this.selectedType = '';
         this.isInitialized = false; // Flag für Initialisierung
+        this.currentView = 'list'; // Neue Property für View-Mode
         
         // Definitionen für verschiedene Suchtypen
         this.searchTypeConfigs = {
@@ -497,6 +693,10 @@ class FastSearchCard extends HTMLElement {
         this.searchInput.addEventListener('input', () => this.applyFilters());
         this.searchTypeDropdown.addEventListener('change', () => this.onSearchTypeChange());
         
+        // View Toggle Event Listeners
+        this.shadowRoot.getElementById('listViewBtn').addEventListener('click', () => this.setView('list'));
+        this.shadowRoot.getElementById('gridViewBtn').addEventListener('click', () => this.setView('grid'));
+        
         this.setupChipFilters();
         this.updateSearchUI();
     }
@@ -508,6 +708,20 @@ class FastSearchCard extends HTMLElement {
         this.isInitialized = false; // Reset bei Typ-Änderung
         this.updateSearchUI();
         this.updateItems();
+    }
+
+    setView(viewType) {
+        this.currentView = viewType;
+        
+        // Toggle button states
+        const listBtn = this.shadowRoot.getElementById('listViewBtn');
+        const gridBtn = this.shadowRoot.getElementById('gridViewBtn');
+        
+        listBtn.classList.toggle('active', viewType === 'list');
+        gridBtn.classList.toggle('active', viewType === 'grid');
+        
+        // Re-apply filters to refresh display
+        this.applyFilters();
     }
 
     updateSearchUI() {
@@ -961,7 +1175,11 @@ class FastSearchCard extends HTMLElement {
             return;
         }
 
-        this.displayItems(filteredItems);
+        if (this.currentView === 'grid') {
+            this.displayItemsGrid(filteredItems);
+        } else {
+            this.displayItemsList(filteredItems);
+        }
     }
 
     showNoResults(message) {
@@ -972,7 +1190,7 @@ class FastSearchCard extends HTMLElement {
         this.resultsContainer.innerHTML = `<div class="config-error">${message}</div>`;
     }
 
-    displayItems(itemList) {
+    displayItemsList(itemList) {
         this.resultsContainer.innerHTML = '';
         
         const sortedItems = itemList.sort((a, b) => {
@@ -1000,7 +1218,7 @@ class FastSearchCard extends HTMLElement {
             roomGroup.appendChild(roomHeader);
             
             itemsByRoom[room].forEach(item => {
-                const itemElement = this.createItemElement(item);
+                const itemElement = this.createListItemElement(item);
                 roomGroup.appendChild(itemElement);
             });
             
@@ -1008,16 +1226,134 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    createItemElement(item) {
+    displayItemsGrid(itemList) {
+        this.resultsContainer.innerHTML = '';
+        
+        const sortedItems = itemList.sort((a, b) => {
+            if (a.room !== b.room) {
+                return a.room.localeCompare(b.room);
+            }
+            return a.name.localeCompare(b.name);
+        });
+        
+        const itemsByRoom = {};
+        sortedItems.forEach(item => {
+            if (!itemsByRoom[item.room]) {
+                itemsByRoom[item.room] = [];
+            }
+            itemsByRoom[item.room].push(item);
+        });
+        
+        const gridContainer = document.createElement('div');
+        gridContainer.className = 'grid-container';
+        
+        Object.keys(itemsByRoom).forEach(room => {
+            const roomGroup = document.createElement('div');
+            roomGroup.className = 'grid-room-group';
+            
+            const roomHeader = document.createElement('div');
+            roomHeader.className = 'grid-room-header';
+            roomHeader.textContent = room;
+            roomGroup.appendChild(roomHeader);
+            
+            const gridScroll = document.createElement('div');
+            gridScroll.className = 'grid-scroll';
+            
+            itemsByRoom[room].forEach(item => {
+                const itemElement = this.createGridItemElement(item);
+                gridScroll.appendChild(itemElement);
+            });
+            
+            roomGroup.appendChild(gridScroll);
+            gridContainer.appendChild(roomGroup);
+        });
+        
+        this.resultsContainer.appendChild(gridContainer);
+    }
+
+    createListItemElement(item) {
         const element = document.createElement('div');
         element.className = 'item';
         element.innerHTML = this.getItemHTML(item);
         
-        element.addEventListener('click', () => {
-            this.handleItemClick(item);
+        element.addEventListener('click', (e) => {
+            this.handleItemClick(item, e);
         });
         
         return element;
+    }
+
+    createGridItemElement(item) {
+        const element = document.createElement('div');
+        element.className = 'grid-item';
+        
+        // Check if item should be highlighted as active
+        const isActive = this.isItemActive(item);
+        if (isActive) {
+            element.classList.add('active');
+        }
+        
+        element.innerHTML = this.getGridItemHTML(item);
+        
+        element.addEventListener('click', (e) => {
+            this.handleItemClick(item, e);
+        });
+        
+        return element;
+    }
+
+    isItemActive(item) {
+        // Logic to determine if item should be highlighted
+        switch (item.itemType) {
+            case 'entity':
+                return ['light', 'switch', 'fan', 'media_player'].includes(item.type) && item.state === 'on';
+            case 'automation':
+                return item.state === 'on';
+            default:
+                return false;
+        }
+    }
+
+    getGridItemHTML(item) {
+        const stateText = this.getStateText(item);
+        const actionButtons = this.getGridActionButtons(item);
+        
+        return `
+            <div class="grid-item-header">
+                <div class="grid-item-icon">${item.icon}</div>
+                <div class="grid-item-actions">${actionButtons}</div>
+            </div>
+            <div class="grid-item-info">
+                <div class="grid-item-name">${item.name}</div>
+                <div class="grid-item-state">${stateText}</div>
+            </div>
+        `;
+    }
+
+    getGridActionButtons(item) {
+        switch (item.itemType) {
+            case 'automation':
+                const toggleSymbol = item.state === 'on' ? '⏸' : '▶';
+                const triggerButton = `<div class="grid-action-button primary" data-action="trigger">🚀</div>`;
+                const toggleButton = `<div class="grid-action-button" data-action="toggle">${toggleSymbol}</div>`;
+                return `${triggerButton}${toggleButton}`;
+                
+            case 'script':
+                return `<div class="grid-action-button primary" data-action="run">▶</div>`;
+                
+            case 'scene':
+                return `<div class="grid-action-button primary" data-action="activate">🎬</div>`;
+                
+            case 'entity':
+                if (['light', 'switch', 'fan'].includes(item.type)) {
+                    const toggleSymbol = item.state === 'on' ? '⏸' : '▶';
+                    return `<div class="grid-action-button primary" data-action="toggle">${toggleSymbol}</div>`;
+                }
+                return '';
+                
+            default:
+                return '';
+        }
     }
 
     getItemHTML(item) {
@@ -1061,11 +1397,11 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    handleItemClick(item) {
+    handleItemClick(item, event) {
         // Event delegation für Action Buttons
         event.stopPropagation();
         
-        if (event.target.classList.contains('action-button')) {
+        if (event.target.classList.contains('action-button') || event.target.classList.contains('grid-action-button')) {
             const action = event.target.getAttribute('data-action');
             this.executeAction(item, action);
             return;
