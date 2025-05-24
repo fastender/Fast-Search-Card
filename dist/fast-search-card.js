@@ -760,148 +760,7 @@ class FastSearchCard extends HTMLElement {
         this.config.entities.forEach(entityConfig => {
             if (!entityConfig.entity) {
                 console.warn('Entität ohne entity-ID gefunden:', entityConfig);
-                return;
-            }
-
-            const entityId = entityConfig.entity;
-            const state = this._hass.states[entityId];
-            
-            if (!state) {
-                console.warn(`Entität ${entityId} nicht in Home Assistant gefunden`);
-                return;
-            }
-
-            const domain = entityId.split('.')[0];
-            
-            const device = {
-                id: entityId,
-                name: entityConfig.title || entityConfig.name || state.attributes.friendly_name || entityId,
-                type: domain,
-                category: entityConfig.category || this.mapDomainToCategory(domain),
-                room: entityConfig.area || entityConfig.room || state.attributes.room || 'Unbekannt',
-                state: state.state,
-                attributes: state.attributes,
-                icon: entityConfig.icon || this.getDeviceIcon(domain, state),
-                config: entityConfig,
-                itemType: 'entity'
-            };
-
-            this.addDomainSpecificAttributes(device, domain, state);
-            this.allItems.push(device);
-        });
-    }
-
-    loadAllEntities() {
-        Object.keys(this._hass.states).forEach(entityId => {
-            const state = this._hass.states[entityId];
-            const domain = entityId.split('.')[0];
-            
-            if (['automation', 'script', 'scene', 'zone', 'person'].includes(domain)) return;
-            
-            const device = {
-                id: entityId,
-                name: state.attributes.friendly_name || entityId,
-                type: domain,
-                category: this.mapDomainToCategory(domain),
-                room: state.attributes.room || 'Unbekannt',
-                state: state.state,
-                attributes: state.attributes,
-                icon: this.getDeviceIcon(domain, state),
-                itemType: 'entity'
-            };
-
-            this.addDomainSpecificAttributes(device, domain, state);
-            this.allItems.push(device);
-        });
-    }
-
-    loadAutomations() {
-        Object.keys(this._hass.states).forEach(entityId => {
-            if (!entityId.startsWith('automation.')) return;
-            
-            const state = this._hass.states[entityId];
-            const lastTriggered = state.attributes.last_triggered;
-            const isRecentlyTriggered = lastTriggered && (Date.now() - new Date(lastTriggered).getTime()) < 24 * 60 * 60 * 1000;
-            
-            const automation = {
-                id: entityId,
-                name: state.attributes.friendly_name || entityId.replace('automation.', ''),
-                type: 'automation',
-                category: state.state === 'on' ? 'active' : 'inactive',
-                room: state.attributes.room || 'System',
-                state: state.state,
-                attributes: state.attributes,
-                icon: state.state === 'on' ? '🤖' : '⏸️',
-                description: `Zuletzt ausgelöst: ${lastTriggered ? new Date(lastTriggered).toLocaleString('de-DE') : 'Nie'}`,
-                itemType: 'automation',
-                lastTriggered: lastTriggered
-            };
-
-            if (isRecentlyTriggered) {
-                automation.category = 'triggered';
-                automation.icon = '🔥';
-            }
-
-            this.allItems.push(automation);
-        });
-    }
-
-    loadScripts() {
-        Object.keys(this._hass.states).forEach(entityId => {
-            if (!entityId.startsWith('script.')) return;
-            
-            const state = this._hass.states[entityId];
-            const lastTriggered = state.attributes.last_triggered;
-            
-            const script = {
-                id: entityId,
-                name: state.attributes.friendly_name || entityId.replace('script.', ''),
-                type: 'script',
-                category: this.categorizeScript(entityId, state),
-                room: state.attributes.room || 'System',
-                state: state.state,
-                attributes: state.attributes,
-                icon: this.getScriptIcon(entityId, state),
-                description: `Zuletzt ausgeführt: ${lastTriggered ? new Date(lastTriggered).toLocaleString('de-DE') : 'Nie'}`,
-                itemType: 'script',
-                lastTriggered: lastTriggered
-            };
-
-            this.allItems.push(script);
-        });
-    }
-
-    loadScenes() {
-        Object.keys(this._hass.states).forEach(entityId => {
-            if (!entityId.startsWith('scene.')) return;
-            
-            const state = this._hass.states[entityId];
-            
-            const scene = {
-                id: entityId,
-                name: state.attributes.friendly_name || entityId.replace('scene.', ''),
-                type: 'scene',
-                category: this.categorizeScene(entityId, state),
-                room: state.attributes.room || 'System',
-                state: 'verfügbar',
-                attributes: state.attributes,
-                icon: this.getSceneIcon(entityId, state),
-                description: state.attributes.entity_id ? `${state.attributes.entity_id.length} Entitäten` : '',
-                itemType: 'scene'
-            };
-
-            this.allItems.push(scene);
-        });
-    }
-
-    categorizeScript(entityId, state) {
-        const name = entityId.toLowerCase();
-        if (name.includes('light') || name.includes('lamp')) return 'lighting';
-        if (name.includes('climate') || name.includes('heating')) return 'climate';
-        if (name.includes('security') || name.includes('alarm')) return 'security';
-        if (name.includes('media') || name.includes('music')) return 'media';
-        if (name.includes('clean') || name.includes('maintenance')) return 'maintenance';
-        return 'other';
+                return 'other';
     }
 
     categorizeScene(entityId, state) {
@@ -1557,7 +1416,148 @@ window.customCards.push({
 });
 
 console.info(
-    `%c FAST-SEARCH-CARD %c v3.1.0 `,
+    `%c FAST-SEARCH-CARD %c v3.0.0 `,
     'color: orange; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: dimgray'
-); '
+);;
+            }
+
+            const entityId = entityConfig.entity;
+            const state = this._hass.states[entityId];
+            
+            if (!state) {
+                console.warn(`Entität ${entityId} nicht in Home Assistant gefunden`);
+                return;
+            }
+
+            const domain = entityId.split('.')[0];
+            
+            const device = {
+                id: entityId,
+                name: entityConfig.title || entityConfig.name || state.attributes.friendly_name || entityId,
+                type: domain,
+                category: entityConfig.category || this.mapDomainToCategory(domain),
+                room: entityConfig.area || entityConfig.room || state.attributes.room || 'Unbekannt',
+                state: state.state,
+                attributes: state.attributes,
+                icon: entityConfig.icon || this.getDeviceIcon(domain, state),
+                config: entityConfig,
+                itemType: 'entity'
+            };
+
+            this.addDomainSpecificAttributes(device, domain, state);
+            this.allItems.push(device);
+        });
+    }
+
+    loadAllEntities() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            const state = this._hass.states[entityId];
+            const domain = entityId.split('.')[0];
+            
+            if (['automation', 'script', 'scene', 'zone', 'person'].includes(domain)) return;
+            
+            const device = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId,
+                type: domain,
+                category: this.mapDomainToCategory(domain),
+                room: state.attributes.room || 'Unbekannt',
+                state: state.state,
+                attributes: state.attributes,
+                icon: this.getDeviceIcon(domain, state),
+                itemType: 'entity'
+            };
+
+            this.addDomainSpecificAttributes(device, domain, state);
+            this.allItems.push(device);
+        });
+    }
+
+    loadAutomations() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (!entityId.startsWith('automation.')) return;
+            
+            const state = this._hass.states[entityId];
+            const lastTriggered = state.attributes.last_triggered;
+            const isRecentlyTriggered = lastTriggered && (Date.now() - new Date(lastTriggered).getTime()) < 24 * 60 * 60 * 1000;
+            
+            const automation = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId.replace('automation.', ''),
+                type: 'automation',
+                category: state.state === 'on' ? 'active' : 'inactive',
+                room: state.attributes.room || 'System',
+                state: state.state,
+                attributes: state.attributes,
+                icon: state.state === 'on' ? '🤖' : '⏸️',
+                description: `Zuletzt ausgelöst: ${lastTriggered ? new Date(lastTriggered).toLocaleString('de-DE') : 'Nie'}`,
+                itemType: 'automation',
+                lastTriggered: lastTriggered
+            };
+
+            if (isRecentlyTriggered) {
+                automation.category = 'triggered';
+                automation.icon = '🔥';
+            }
+
+            this.allItems.push(automation);
+        });
+    }
+
+    loadScripts() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (!entityId.startsWith('script.')) return;
+            
+            const state = this._hass.states[entityId];
+            const lastTriggered = state.attributes.last_triggered;
+            
+            const script = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId.replace('script.', ''),
+                type: 'script',
+                category: this.categorizeScript(entityId, state),
+                room: state.attributes.room || 'System',
+                state: state.state,
+                attributes: state.attributes,
+                icon: this.getScriptIcon(entityId, state),
+                description: `Zuletzt ausgeführt: ${lastTriggered ? new Date(lastTriggered).toLocaleString('de-DE') : 'Nie'}`,
+                itemType: 'script',
+                lastTriggered: lastTriggered
+            };
+
+            this.allItems.push(script);
+        });
+    }
+
+    loadScenes() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (!entityId.startsWith('scene.')) return;
+            
+            const state = this._hass.states[entityId];
+            
+            const scene = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId.replace('scene.', ''),
+                type: 'scene',
+                category: this.categorizeScene(entityId, state),
+                room: state.attributes.room || 'System',
+                state: 'verfügbar',
+                attributes: state.attributes,
+                icon: this.getSceneIcon(entityId, state),
+                description: state.attributes.entity_id ? `${state.attributes.entity_id.length} Entitäten` : '',
+                itemType: 'scene'
+            };
+
+            this.allItems.push(scene);
+        });
+    }
+
+    categorizeScript(entityId, state) {
+        const name = entityId.toLowerCase();
+        if (name.includes('light') || name.includes('lamp')) return 'lighting';
+        if (name.includes('climate') || name.includes('heating')) return 'climate';
+        if (name.includes('security') || name.includes('alarm')) return 'security';
+        if (name.includes('media') || name.includes('music')) return 'media';
+        if (name.includes('clean') || name.includes('maintenance')) return 'maintenance';
+        return
