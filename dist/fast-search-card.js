@@ -413,7 +413,7 @@ class FastSearchCard extends HTMLElement {
 
                 .grid-scroll-container {
                     position: relative;
-                    overflow: hidden;
+                    overflow-x: auto;
                 }
 
                 .grid-items {
