@@ -412,26 +412,23 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .grid-scroll-container {
-                    overflow-x: auto;
-                    scroll-snap-type: x mandatory;
-                    -webkit-overflow-scrolling: touch;
-                }
-
-                .grid-scroll-container::-webkit-scrollbar {
-                    display: none;
+                    position: relative;
+                    overflow: hidden;
                 }
 
                 .grid-items {
-                    display: inline-grid;
-                    grid-auto-flow: column;
-                    grid-auto-rows: minmax(0, 1fr);
-                    grid-template-rows: 1fr;
+                    display: flex;
                     gap: 16px;
+                    overflow-x: auto;
+                    padding: 4px;
+                    scroll-behavior: smooth;
+                    scrollbar-width: none;
+                    -ms-overflow-style: none;
                 }
 
-                .grid-items > * {
-                    scroll-snap-align: start;
-                }               
+                .grid-items::-webkit-scrollbar {
+                    display: none;
+                }
 
                 .grid-item {
                     flex: 0 0 calc(50% - 8px);
@@ -1107,20 +1104,28 @@ class FastSearchCard extends HTMLElement {
     handleRoomChipClick(chip) {
         const value = chip.getAttribute('data-value');
         
-        // 1. Alten Zustand zurücksetzen:
-        this.selectedRooms.clear();
-        const allChips = this.shadowRoot.querySelectorAll('#roomChipsInSearch .room-chip-small');
-        allChips.forEach(c => c.classList.remove('active'));
-        
-        // 2. Angeclickten Chip aktivieren:
-        chip.classList.add('active');
-        
-        // 3. Nur diesen einen Raum merken (bei "Alle" bleibt selectedRooms leer)
-        if (value !== '') {
-            this.selectedRooms.add(value);
+        if (value === '') {
+            this.selectedRooms.clear();
+            const chips = this.shadowRoot.querySelectorAll('#roomChipsInSearch .room-chip-small');
+            chips.forEach(chip => chip.classList.remove('active'));
+            chip.classList.add('active');
+        } else {
+            const alleChip = this.shadowRoot.querySelector('#roomChipsInSearch .room-chip-small[data-value=""]');
+            alleChip.classList.remove('active');
+            
+            if (this.selectedRooms.has(value)) {
+                this.selectedRooms.delete(value);
+                chip.classList.remove('active');
+            } else {
+                this.selectedRooms.add(value);
+                chip.classList.add('active');
+            }
+            
+            if (this.selectedRooms.size === 0) {
+                alleChip.classList.add('active');
+            }
         }
         
-        // 4. Filter neu anwenden
         this.applyFilters();
     }
 
