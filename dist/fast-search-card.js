@@ -1005,7 +1005,8 @@ class FastSearchCard extends HTMLElement {
                 if (this.currentView === 'grid') {
                     this.updateGridItemStates();
                 } else {
-                    this.applyFilters();
+                    // Bei Listen-Ansicht: Auch nur Zustände aktualisieren, keine Animation
+                    this.updateListItemStates();
                 }
             }
         } catch (error) {
@@ -1298,6 +1299,32 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
+    // Neue Methode: Optimierte Listen-Aktualisierung
+    updateListItemStates() {
+        if (this.currentView !== 'list') return;
+        
+        // Nur die Zustände der vorhandenen Listen-Items aktualisieren
+        const listItems = this.shadowRoot.querySelectorAll('.item');
+        listItems.forEach(listElement => {
+            const itemId = listElement.getAttribute('data-item-id');
+            const item = this.allItems.find(i => i.id === itemId);
+            
+            if (item) {
+                // Zustandstext aktualisieren
+                const stateElement = listElement.querySelector('.item-state');
+                if (stateElement) {
+                    stateElement.textContent = this.getStateText(item);
+                }
+                
+                // Action-Buttons aktualisieren
+                const actionsElement = listElement.querySelector('.action-buttons');
+                if (actionsElement) {
+                    actionsElement.innerHTML = this.getActionButtons(item).replace('<div class="action-buttons">', '').replace('</div>', '');
+                }
+            }
+        });
+    }
+
     setupRoomChips(rooms) {
         const roomChips = this.shadowRoot.getElementById('roomChipsInSearch');
         
@@ -1563,6 +1590,7 @@ class FastSearchCard extends HTMLElement {
     createListItemElement(item, animate = false) {
         const element = document.createElement('div');
         element.className = animate ? 'item fade-in' : 'item';
+        element.setAttribute('data-item-id', item.id); // ID für spätere Updates
         element.innerHTML = this.getItemHTML(item);
         
         element.addEventListener('click', (e) => {
