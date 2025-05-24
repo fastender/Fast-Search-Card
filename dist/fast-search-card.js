@@ -741,6 +741,314 @@ class FastSearchCard extends HTMLElement {
                     background: #0056b3;
                     border-color: #0056b3;
                 }
+
+                .more-info-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(8px);
+                    z-index: 1000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                    padding: 20px;
+                    box-sizing: border-box;
+                }
+    
+                .more-info-overlay.active {
+                    opacity: 1;
+                    visibility: visible;
+                }
+    
+                .more-info-dialog {
+                    background: white;
+                    border-radius: 16px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    max-width: 500px;
+                    width: 100%;
+                    max-height: 80vh;
+                    overflow: hidden;
+                    transform: scale(0.9) translateY(20px);
+                    transition: all 0.3s ease;
+                    position: relative;
+                }
+    
+                .more-info-overlay.active .more-info-dialog {
+                    transform: scale(1) translateY(0);
+                }
+    
+                .more-info-header {
+                    background: linear-gradient(135deg, #007aff, #0056b3);
+                    color: white;
+                    padding: 24px;
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                }
+    
+                .more-info-close {
+                    position: absolute;
+                    top: 16px;
+                    right: 16px;
+                    background: rgba(255, 255, 255, 0.2);
+                    border: none;
+                    border-radius: 50%;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-size: 18px;
+                }
+    
+                .more-info-close:hover {
+                    background: rgba(255, 255, 255, 0.3);
+                    transform: scale(1.1);
+                }
+    
+                .more-info-icon {
+                    font-size: 32px;
+                    background: rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
+                    width: 60px;
+                    height: 60px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+    
+                .more-info-title {
+                    flex: 1;
+                }
+    
+                .more-info-name {
+                    font-size: 20px;
+                    font-weight: 600;
+                    margin: 0;
+                    line-height: 1.2;
+                }
+    
+                .more-info-type {
+                    font-size: 14px;
+                    opacity: 0.8;
+                    margin: 4px 0 0 0;
+                }
+    
+                .more-info-content {
+                    padding: 0;
+                    max-height: calc(80vh - 120px);
+                    overflow-y: auto;
+                }
+    
+                .more-info-section {
+                    padding: 24px;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+    
+                .more-info-section:last-child {
+                    border-bottom: none;
+                }
+    
+                .section-title {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #333;
+                    margin: 0 0 16px 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+    
+                .state-display {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    margin-bottom: 20px;
+                }
+    
+                .state-value {
+                    font-size: 28px;
+                    font-weight: 700;
+                    color: #007aff;
+                    flex: 1;
+                }
+    
+                .state-unit {
+                    font-size: 16px;
+                    color: #666;
+                    font-weight: 400;
+                }
+    
+                .state-badge {
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+    
+                .state-badge.on {
+                    background: #e3f2fd;
+                    color: #1976d2;
+                }
+    
+                .state-badge.off {
+                    background: #f5f5f5;
+                    color: #666;
+                }
+    
+                .attribute-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 16px;
+                }
+    
+                .attribute-item {
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 16px;
+                    border-left: 4px solid #007aff;
+                }
+    
+                .attribute-label {
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: #666;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 4px;
+                }
+    
+                .attribute-value {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #333;
+                    word-break: break-word;
+                }
+    
+                .control-section {
+                    display: flex;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                }
+    
+                .control-button {
+                    flex: 1;
+                    min-width: 120px;
+                    padding: 12px 20px;
+                    background: #007aff;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+    
+                .control-button:hover {
+                    background: #0056b3;
+                    transform: translateY(-1px);
+                }
+    
+                .control-button.secondary {
+                    background: #f8f9fa;
+                    color: #666;
+                    border: 1px solid #ddd;
+                }
+    
+                .control-button.secondary:hover {
+                    background: #e9ecef;
+                    color: #333;
+                }
+    
+                .slider-control {
+                    margin-top: 16px;
+                }
+    
+                .slider-label {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 8px;
+                    font-size: 14px;
+                    color: #666;
+                }
+    
+                .slider {
+                    width: 100%;
+                    height: 6px;
+                    border-radius: 3px;
+                    background: #ddd;
+                    outline: none;
+                    appearance: none;
+                    cursor: pointer;
+                }
+    
+                .slider::-webkit-slider-thumb {
+                    appearance: none;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background: #007aff;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+                }
+    
+                .slider::-moz-range-thumb {
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background: #007aff;
+                    cursor: pointer;
+                    border: none;
+                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+                }
+    
+                @media (max-width: 768px) {
+                    .more-info-overlay {
+                        padding: 10px;
+                    }
+                    
+                    .more-info-dialog {
+                        max-height: 90vh;
+                    }
+                    
+                    .more-info-header {
+                        padding: 20px;
+                    }
+                    
+                    .more-info-section {
+                        padding: 20px;
+                    }
+                    
+                    .attribute-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .control-section {
+                        flex-direction: column;
+                    }
+                    
+                    .control-button {
+                        min-width: auto;
+                    }
+                }
             </style>
             
             <div class="search-container">
@@ -1730,13 +2038,13 @@ class FastSearchCard extends HTMLElement {
     }
 
     executeAction(item, action) {
-        if (!this._hass) return;
+        if (!this._hass) return Promise.resolve();        
         
         // Loading state für den Button anzeigen
         const button = event.target;
         const originalText = button.innerHTML;
         button.innerHTML = this.showLoadingDots(originalText.length > 2 ? '⏳' : originalText);
-        button.disabled = true;
+        button.disabled = true;        
         
         // Action ausführen
         let serviceCall;
@@ -1761,7 +2069,76 @@ class FastSearchCard extends HTMLElement {
             case 'activate':
                 serviceCall = this._hass.callService('scene', 'turn_on', { entity_id: item.id });
                 break;
+                
+            // Erweiterte Actions für More-Info Dialog
+            case 'open':
+                serviceCall = this._hass.callService('cover', 'open_cover', { entity_id: item.id });
+                break;
+                
+            case 'close':
+                serviceCall = this._hass.callService('cover', 'close_cover', { entity_id: item.id });
+                break;
+                
+            case 'stop':
+                serviceCall = this._hass.callService('cover', 'stop_cover', { entity_id: item.id });
+                break;
+                
+            case 'play_pause':
+                serviceCall = this._hass.callService('media_player', 'media_play_pause', { entity_id: item.id });
+                break;
+                
+            case 'previous':
+                serviceCall = this._hass.callService('media_player', 'media_previous_track', { entity_id: item.id });
+                break;
+                
+            case 'next':
+                serviceCall = this._hass.callService('media_player', 'media_next_track', { entity_id: item.id });
+                break;
+                
+            case 'heat':
+                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
+                    entity_id: item.id, 
+                    hvac_mode: 'heat' 
+                });
+                break;
+                
+            case 'cool':
+                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
+                    entity_id: item.id, 
+                    hvac_mode: 'cool' 
+                });
+                break;
+                
+            case 'off':
+                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
+                    entity_id: item.id, 
+                    hvac_mode: 'off' 
+                });
+                break;  
         }
+
+        if (serviceCall) {
+            return serviceCall.then(() => {
+                // Loading state nach kurzer Zeit entfernen
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }, 1000);
+            }).catch((error) => {
+                console.error('Service call failed:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+        
+        // Fallback wenn kein Service Call
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 1000);
+        
+        return Promise.resolve();
+    }
         
         // Loading state nach kurzer Zeit entfernen
         setTimeout(() => {
