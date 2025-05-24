@@ -268,14 +268,65 @@ class FastSearchCard extends HTMLElement {
                     line-height: 1;
                 }
 
+                /* Eingangs-Animationen */
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                @keyframes fadeInStagger {
+                    from {
+                        opacity: 0;
+                        transform: translateY(15px) scale(0.9);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+
+                @keyframes scaleIn {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.8);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                }
+
+                @keyframes slideInFromBottom {
+                    from {
+                        opacity: 0;
+                        transform: translateY(30px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                /* Animation für Suchergebnisse */
                 .results-container {
                     max-height: 600px;
                     overflow-y: auto;
                 }
 
+                .results-container.loading {
+                    animation: slideInFromBottom 0.4s ease-out;
+                }
+
                 /* Grid View Styles */
                 .grid-container {
                     padding: 20px;
+                    animation: slideInFromBottom 0.4s ease-out;
                 }
 
                 .grid-scroll {
@@ -307,7 +358,23 @@ class FastSearchCard extends HTMLElement {
                     flex-direction: column;
                     justify-content: space-between;
                     will-change: transform, box-shadow;
+                    
+                    /* Stagger Animation */
+                    opacity: 0;
+                    animation: fadeInStagger 0.5s ease-out forwards;
                 }
+
+                /* Stagger-Delays für Grid-Items */
+                .grid-item:nth-child(1) { animation-delay: 0.1s; }
+                .grid-item:nth-child(2) { animation-delay: 0.15s; }
+                .grid-item:nth-child(3) { animation-delay: 0.2s; }
+                .grid-item:nth-child(4) { animation-delay: 0.25s; }
+                .grid-item:nth-child(5) { animation-delay: 0.3s; }
+                .grid-item:nth-child(6) { animation-delay: 0.35s; }
+                .grid-item:nth-child(7) { animation-delay: 0.4s; }
+                .grid-item:nth-child(8) { animation-delay: 0.45s; }
+                .grid-item:nth-child(9) { animation-delay: 0.5s; }
+                .grid-item:nth-child(10) { animation-delay: 0.55s; }
 
                 .grid-item:hover {
                     transform: translateY(-4px);
@@ -1078,7 +1145,7 @@ class FastSearchCard extends HTMLElement {
         const existingRoomValues = Array.from(roomChips.querySelectorAll('.room-chip-small'))
             .map(chip => chip.getAttribute('data-value'));
         
-        rooms.forEach(room => {
+        rooms.forEach((room, index) => {
             if (!existingRoomValues.includes(room)) {
                 const chip = document.createElement('div');
                 chip.className = 'room-chip-small';
@@ -1089,6 +1156,9 @@ class FastSearchCard extends HTMLElement {
                 if (currentActiveRooms.includes(room)) {
                     chip.classList.add('active');
                 }
+                
+                // Stagger-Animation für neue Room-Chips
+                chip.style.animationDelay = `${index * 0.05}s`;
                 
                 roomChips.appendChild(chip);
             }
@@ -1136,6 +1206,9 @@ class FastSearchCard extends HTMLElement {
                         <div class="chip-count">${stats}</div>
                     </div>
                 `;
+                
+                // Stagger-Animation für neue Chips
+                chip.style.animationDelay = `${categories.indexOf(category) * 0.1}s`;
                 
                 categoryChips.appendChild(chip);
             }
@@ -1218,6 +1291,14 @@ class FastSearchCard extends HTMLElement {
             this.showNoResults('Keine Ergebnisse gefunden');
             return;
         }
+
+        // Animation für Container beim Wechsel
+        this.resultsContainer.classList.add('loading');
+        
+        // Animation-Klasse nach kurzer Zeit entfernen
+        setTimeout(() => {
+            this.resultsContainer.classList.remove('loading');
+        }, 400);
 
         if (this.currentView === 'grid') {
             this.displayItemsGrid(filteredItems);
