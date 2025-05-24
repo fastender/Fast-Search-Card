@@ -2,6 +2,7 @@ class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        this.gridScrollPositions = {};
     }
 
     setConfig(config) {
@@ -20,6 +21,7 @@ class FastSearchCard extends HTMLElement {
 
     set hass(hass) {
         this._hass = hass;
+        this.storeGridScrollPositions();
         this.updateItems();
     }
 
@@ -699,6 +701,7 @@ class FastSearchCard extends HTMLElement {
         this.selectedRooms.clear();
         this.selectedType = '';
         this.updateSearchUI();
+        this.storeGridScrollPositions();
         this.updateItems();
     }
 
@@ -715,15 +718,26 @@ class FastSearchCard extends HTMLElement {
     }
 
     switchView(view) {
+        this.storeGridScrollPositions();
         this.currentView = view;
-        
+
         // Update button states
         this.shadowRoot.querySelectorAll('.view-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.view === view);
         });
-        
+
         // Re-render current results
         this.applyFilters();
+    }
+
+    storeGridScrollPositions() {
+        if (!this.shadowRoot) return;
+        this.shadowRoot.querySelectorAll('.grid-items').forEach(el => {
+            const room = el.dataset.room;
+            if (room) {
+                this.gridScrollPositions[room] = el.scrollLeft;
+            }
+        });
     }
 
     updateItems() {
@@ -1094,6 +1108,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     applyFilters() {
+        this.storeGridScrollPositions();
         const query = this.searchInput.value.toLowerCase().trim();
         
         let filteredItems = this.allItems.filter(item => {
@@ -1161,6 +1176,10 @@ class FastSearchCard extends HTMLElement {
             
             const gridItems = document.createElement('div');
             gridItems.className = 'grid-items';
+            gridItems.dataset.room = room;
+            gridItems.addEventListener('scroll', () => {
+                this.gridScrollPositions[room] = gridItems.scrollLeft;
+            });
 
             itemsByRoom[room].forEach(item => {
                 const gridItem = this.createGridItem(item);
@@ -1168,6 +1187,9 @@ class FastSearchCard extends HTMLElement {
             });
 
             roomSection.appendChild(gridItems);
+            if (this.gridScrollPositions && this.gridScrollPositions[room]) {
+                gridItems.scrollLeft = this.gridScrollPositions[room];
+            }
             gridContainer.appendChild(roomSection);
         });
         
