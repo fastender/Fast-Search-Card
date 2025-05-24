@@ -20,7 +20,7 @@ class FastSearchCard extends HTMLElement {
 
     set hass(hass) {
         this._hass = hass;
-        this.updateDevices();
+        this.updateItems();
     }
 
     render() {
@@ -46,6 +46,39 @@ class FastSearchCard extends HTMLElement {
                 .search-container-inner {
                     position: relative;
                     margin-bottom: 20px;
+                }
+
+                .search-header {
+                    display: flex;
+                    gap: 10px;
+                    margin-bottom: 12px;
+                }
+
+                .search-type-dropdown {
+                    background: white;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    font-size: 14px;
+                    color: #666;
+                    cursor: pointer;
+                    min-width: 120px;
+                    appearance: none;
+                    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                    background-position: right 8px center;
+                    background-repeat: no-repeat;
+                    background-size: 16px;
+                    padding-right: 32px;
+                }
+
+                .search-type-dropdown:focus {
+                    outline: 2px solid #007aff;
+                    border-color: #007aff;
+                }
+
+                .search-input-container {
+                    position: relative;
+                    flex: 1;
                 }
 
                 .search-input {
@@ -219,7 +252,7 @@ class FastSearchCard extends HTMLElement {
                     letter-spacing: 0.5px;
                 }
 
-                .device-item {
+                .item {
                     padding: 16px 20px;
                     border-bottom: 1px solid #f0f0f0;
                     display: flex;
@@ -230,19 +263,19 @@ class FastSearchCard extends HTMLElement {
                     cursor: pointer;
                 }
 
-                .device-item:hover {
+                .item:hover {
                     background-color: #fafafa;
                 }
 
-                .device-item:last-child {
+                .item:last-child {
                     border-bottom: none;
                 }
 
-                .room-group:last-child .device-item:last-child {
+                .room-group:last-child .item:last-child {
                     border-bottom: none;
                 }
 
-                .device-icon {
+                .item-icon {
                     font-size: 24px;
                     width: 40px;
                     height: 40px;
@@ -252,22 +285,28 @@ class FastSearchCard extends HTMLElement {
                     flex-shrink: 0;
                 }
 
-                .device-info {
+                .item-info {
                     flex: 1;
                     display: flex;
                     flex-direction: column;
                     gap: 2px;
                 }
 
-                .device-name {
+                .item-name {
                     font-weight: 500;
                     font-size: 16px;
                     color: #333;
                 }
 
-                .device-state {
+                .item-state {
                     font-size: 14px;
                     color: #888;
+                }
+
+                .item-description {
+                    font-size: 12px;
+                    color: #aaa;
+                    margin-top: 2px;
                 }
 
                 .no-results {
@@ -285,19 +324,64 @@ class FastSearchCard extends HTMLElement {
                     color: #856404;
                     margin: 10px;
                 }
+
+                .action-buttons {
+                    display: flex;
+                    gap: 8px;
+                    margin-left: auto;
+                }
+
+                .action-button {
+                    padding: 6px 12px;
+                    background: #f8f9fa;
+                    border: 1px solid #e9ecef;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    color: #666;
+                }
+
+                .action-button:hover {
+                    background: #e9ecef;
+                    color: #333;
+                }
+
+                .action-button.primary {
+                    background: #007aff;
+                    color: white;
+                    border-color: #007aff;
+                }
+
+                .action-button.primary:hover {
+                    background: #0056b3;
+                    border-color: #0056b3;
+                }
             </style>
             
             <div class="search-container">
                 <div class="search-section">
+                    <div class="search-header">
+                        <select class="search-type-dropdown" id="searchTypeDropdown">
+                            <option value="entities">🏠 Geräte</option>
+                            <option value="automations">🤖 Automationen</option>
+                            <option value="scripts">📜 Skripte</option>
+                            <option value="scenes">🎭 Szenen</option>
+                        </select>
+                    </div>
+                    
                     <div class="search-container-inner">
-                        <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
-                        <div class="room-chips-in-search" id="roomChipsInSearch">
-                            <div class="room-chip-small active" data-value="">Alle</div>
+                        <div class="search-input-container">
+                            <input type="text" class="search-input" placeholder="Suchen..." id="searchInput">
+                            <div class="room-chips-in-search" id="roomChipsInSearch">
+                                <div class="room-chip-small active" data-value="">Alle</div>
+                            </div>
                         </div>
                     </div>
+                    
                     <div class="filter-section">
                         <div class="filter-row">
-                            <div class="filter-label">Kategorien</div>
+                            <div class="filter-label" id="filterLabel">Kategorien</div>
                             <div class="filter-scroll" id="typeFilterChips">
                                 <div class="filter-chip all active" data-value="">Alle</div>
                             </div>
@@ -305,7 +389,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
                 <div class="results-container" id="resultsContainer">
-                    <div class="no-results" id="noResults">Geben Sie einen Suchbegriff ein...</div>
+                    <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                 </div>
             </div>
         `;
@@ -314,69 +398,162 @@ class FastSearchCard extends HTMLElement {
     }
 
     initializeCard() {
-        this.devices = [];
+        this.allItems = [];
+        this.currentSearchType = 'entities';
         this.selectedRooms = new Set();
         this.selectedType = '';
         
-        // Erweiterte Kategorie-Namen für Anzeige
-        this.categoryNames = {
-            'lights': 'Lichter',
-            'climate': 'Klima', 
-            'switches': 'Schalter',
-            'covers': 'Rollos',
-            'fans': 'Ventilatoren',
-            'sensors': 'Sensoren',
-            'media': 'Medien',
-            'security': 'Sicherheit',
-            'other': 'Sonstiges'
-        };
-
-        // Icons für Kategorien
-        this.categoryIcons = {
-            'lights': '💡',
-            'climate': '🌡️',
-            'switches': '🔌',
-            'covers': '🪟',
-            'fans': '🌀',
-            'sensors': '📊',
-            'media': '📺',
-            'security': '🔒',
-            'other': '📱'
+        // Definitionen für verschiedene Suchtypen
+        this.searchTypeConfigs = {
+            entities: {
+                placeholder: 'Gerät suchen...',
+                filterLabel: 'Kategorien',
+                categoryNames: {
+                    'lights': 'Lichter',
+                    'climate': 'Klima', 
+                    'switches': 'Schalter',
+                    'covers': 'Rollos',
+                    'fans': 'Ventilatoren',
+                    'sensors': 'Sensoren',
+                    'media': 'Medien',
+                    'security': 'Sicherheit',
+                    'other': 'Sonstiges'
+                },
+                categoryIcons: {
+                    'lights': '💡',
+                    'climate': '🌡️',
+                    'switches': '🔌',
+                    'covers': '🪟',
+                    'fans': '🌀',
+                    'sensors': '📊',
+                    'media': '📺',
+                    'security': '🔒',
+                    'other': '📱'
+                }
+            },
+            automations: {
+                placeholder: 'Automation suchen...',
+                filterLabel: 'Status',
+                categoryNames: {
+                    'active': 'Aktiv',
+                    'inactive': 'Inaktiv',
+                    'triggered': 'Kürzlich ausgelöst'
+                },
+                categoryIcons: {
+                    'active': '✅',
+                    'inactive': '❌',
+                    'triggered': '🔥'
+                }
+            },
+            scripts: {
+                placeholder: 'Skript suchen...',
+                filterLabel: 'Kategorie',
+                categoryNames: {
+                    'lighting': 'Beleuchtung',
+                    'climate': 'Klima',
+                    'security': 'Sicherheit',
+                    'media': 'Medien',
+                    'maintenance': 'Wartung',
+                    'other': 'Sonstiges'
+                },
+                categoryIcons: {
+                    'lighting': '💡',
+                    'climate': '🌡️',
+                    'security': '🔒',
+                    'media': '📺',
+                    'maintenance': '🔧',
+                    'other': '📜'
+                }
+            },
+            scenes: {
+                placeholder: 'Szene suchen...',
+                filterLabel: 'Bereich',
+                categoryNames: {
+                    'morning': 'Morgen',
+                    'evening': 'Abend',
+                    'night': 'Nacht',
+                    'entertainment': 'Unterhaltung',
+                    'security': 'Sicherheit',
+                    'other': 'Sonstiges'
+                },
+                categoryIcons: {
+                    'morning': '🌅',
+                    'evening': '🌆',
+                    'night': '🌙',
+                    'entertainment': '🎬',
+                    'security': '🔒',
+                    'other': '🎭'
+                }
+            }
         };
 
         this.searchInput = this.shadowRoot.getElementById('searchInput');
+        this.searchTypeDropdown = this.shadowRoot.getElementById('searchTypeDropdown');
         this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
         this.noResults = this.shadowRoot.getElementById('noResults');
+        this.filterLabel = this.shadowRoot.getElementById('filterLabel');
 
         this.searchInput.addEventListener('input', () => this.applyFilters());
+        this.searchTypeDropdown.addEventListener('change', () => this.onSearchTypeChange());
         
         this.setupChipFilters();
+        this.updateSearchUI();
     }
 
-    updateDevices() {
+    onSearchTypeChange() {
+        this.currentSearchType = this.searchTypeDropdown.value;
+        this.selectedRooms.clear();
+        this.selectedType = '';
+        this.updateSearchUI();
+        this.updateItems();
+    }
+
+    updateSearchUI() {
+        const config = this.searchTypeConfigs[this.currentSearchType];
+        this.searchInput.placeholder = config.placeholder;
+        this.filterLabel.textContent = config.filterLabel;
+        
+        // Room chips zurücksetzen
+        this.setupRoomChips([]);
+        
+        // Filter chips zurücksetzen
+        this.setupCategoryChips([]);
+    }
+
+    updateItems() {
         if (!this._hass) return;
 
         try {
-            this.devices = [];
+            this.allItems = [];
             
-            if (this.useManualEntities) {
-                // Manuelle Entitäten-Konfiguration verwenden
-                this.loadManualEntities();
-            } else {
-                // Automatisches Laden aller verfügbaren Entitäten (wie vorher)
-                this.loadAllEntities();
+            switch (this.currentSearchType) {
+                case 'entities':
+                    if (this.useManualEntities) {
+                        this.loadManualEntities();
+                    } else {
+                        this.loadAllEntities();
+                    }
+                    break;
+                case 'automations':
+                    this.loadAutomations();
+                    break;
+                case 'scripts':
+                    this.loadScripts();
+                    break;
+                case 'scenes':
+                    this.loadScenes();
+                    break;
             }
 
             this.initializeFilters();
         } catch (error) {
-            console.error('Fehler beim Laden der Geräte:', error);
-            this.showConfigError('Fehler beim Laden der Geräte: ' + error.message);
+            console.error('Fehler beim Laden der Items:', error);
+            this.showConfigError('Fehler beim Laden: ' + error.message);
         }
     }
 
     loadManualEntities() {
         this.config.entities.forEach(entityConfig => {
-            // Validierung der Entitätskonfiguration
             if (!entityConfig.entity) {
                 console.warn('Entität ohne entity-ID gefunden:', entityConfig);
                 return;
@@ -401,24 +578,21 @@ class FastSearchCard extends HTMLElement {
                 state: state.state,
                 attributes: state.attributes,
                 icon: entityConfig.icon || this.getDeviceIcon(domain, state),
-                config: entityConfig // Originalkonfiguration beibehalten
+                config: entityConfig,
+                itemType: 'entity'
             };
 
-            // Spezifische Attribute je nach Domain hinzufügen
             this.addDomainSpecificAttributes(device, domain, state);
-            
-            this.devices.push(device);
+            this.allItems.push(device);
         });
     }
 
     loadAllEntities() {
-        // Originale Logik für automatisches Laden
         Object.keys(this._hass.states).forEach(entityId => {
             const state = this._hass.states[entityId];
             const domain = entityId.split('.')[0];
             
-            // Skip unwanted domains
-            if (['automation', 'script', 'zone', 'person'].includes(domain)) return;
+            if (['automation', 'script', 'scene', 'zone', 'person'].includes(domain)) return;
             
             const device = {
                 id: entityId,
@@ -428,12 +602,122 @@ class FastSearchCard extends HTMLElement {
                 room: state.attributes.room || 'Unbekannt',
                 state: state.state,
                 attributes: state.attributes,
-                icon: this.getDeviceIcon(domain, state)
+                icon: this.getDeviceIcon(domain, state),
+                itemType: 'entity'
             };
 
             this.addDomainSpecificAttributes(device, domain, state);
-            this.devices.push(device);
+            this.allItems.push(device);
         });
+    }
+
+    loadAutomations() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (!entityId.startsWith('automation.')) return;
+            
+            const state = this._hass.states[entityId];
+            const lastTriggered = state.attributes.last_triggered;
+            const isRecentlyTriggered = lastTriggered && (Date.now() - new Date(lastTriggered).getTime()) < 24 * 60 * 60 * 1000;
+            
+            const automation = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId.replace('automation.', ''),
+                type: 'automation',
+                category: state.state === 'on' ? 'active' : 'inactive',
+                room: state.attributes.room || 'System',
+                state: state.state,
+                attributes: state.attributes,
+                icon: state.state === 'on' ? '🤖' : '⏸️',
+                description: `Zuletzt ausgelöst: ${lastTriggered ? new Date(lastTriggered).toLocaleString('de-DE') : 'Nie'}`,
+                itemType: 'automation',
+                lastTriggered: lastTriggered
+            };
+
+            if (isRecentlyTriggered) {
+                automation.category = 'triggered';
+                automation.icon = '🔥';
+            }
+
+            this.allItems.push(automation);
+        });
+    }
+
+    loadScripts() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (!entityId.startsWith('script.')) return;
+            
+            const state = this._hass.states[entityId];
+            const lastTriggered = state.attributes.last_triggered;
+            
+            const script = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId.replace('script.', ''),
+                type: 'script',
+                category: this.categorizeScript(entityId, state),
+                room: state.attributes.room || 'System',
+                state: state.state,
+                attributes: state.attributes,
+                icon: this.getScriptIcon(entityId, state),
+                description: `Zuletzt ausgeführt: ${lastTriggered ? new Date(lastTriggered).toLocaleString('de-DE') : 'Nie'}`,
+                itemType: 'script',
+                lastTriggered: lastTriggered
+            };
+
+            this.allItems.push(script);
+        });
+    }
+
+    loadScenes() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (!entityId.startsWith('scene.')) return;
+            
+            const state = this._hass.states[entityId];
+            
+            const scene = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId.replace('scene.', ''),
+                type: 'scene',
+                category: this.categorizeScene(entityId, state),
+                room: state.attributes.room || 'System',
+                state: 'verfügbar',
+                attributes: state.attributes,
+                icon: this.getSceneIcon(entityId, state),
+                description: state.attributes.entity_id ? `${state.attributes.entity_id.length} Entitäten` : '',
+                itemType: 'scene'
+            };
+
+            this.allItems.push(scene);
+        });
+    }
+
+    categorizeScript(entityId, state) {
+        const name = entityId.toLowerCase();
+        if (name.includes('light') || name.includes('lamp')) return 'lighting';
+        if (name.includes('climate') || name.includes('heating')) return 'climate';
+        if (name.includes('security') || name.includes('alarm')) return 'security';
+        if (name.includes('media') || name.includes('music')) return 'media';
+        if (name.includes('clean') || name.includes('maintenance')) return 'maintenance';
+        return 'other';
+    }
+
+    categorizeScene(entityId, state) {
+        const name = entityId.toLowerCase();
+        if (name.includes('morning') || name.includes('wake')) return 'morning';
+        if (name.includes('evening') || name.includes('sunset')) return 'evening';
+        if (name.includes('night') || name.includes('sleep')) return 'night';
+        if (name.includes('movie') || name.includes('entertainment')) return 'entertainment';
+        if (name.includes('security') || name.includes('away')) return 'security';
+        return 'other';
+    }
+
+    getScriptIcon(entityId, state) {
+        const category = this.categorizeScript(entityId, state);
+        return this.searchTypeConfigs.scripts.categoryIcons[category] || '📜';
+    }
+
+    getSceneIcon(entityId, state) {
+        const category = this.categorizeScene(entityId, state);
+        return this.searchTypeConfigs.scenes.categoryIcons[category] || '🎭';
     }
 
     mapDomainToCategory(domain) {
@@ -495,12 +779,10 @@ class FastSearchCard extends HTMLElement {
     }
 
     initializeFilters() {
-        // Bereiche/Räume initialisieren
-        const rooms = [...new Set(this.devices.map(d => d.room))].sort();
+        const rooms = [...new Set(this.allItems.map(d => d.room))].sort();
         this.setupRoomChips(rooms);
         
-        // Kategorien initialisieren
-        const categories = [...new Set(this.devices.map(d => d.category))].sort();
+        const categories = [...new Set(this.allItems.map(d => d.category))].sort();
         this.setupCategoryChips(categories);
 
         this.applyFilters();
@@ -509,11 +791,9 @@ class FastSearchCard extends HTMLElement {
     setupRoomChips(rooms) {
         const roomChips = this.shadowRoot.getElementById('roomChipsInSearch');
         
-        // Vorhandene Chips löschen (außer "Alle")
         const existingChips = roomChips.querySelectorAll('.room-chip-small:not([data-value=""])');
         existingChips.forEach(chip => chip.remove());
         
-        // Neue Raum-Chips hinzufügen
         rooms.forEach(room => {
             const chip = document.createElement('div');
             chip.className = 'room-chip-small';
@@ -526,23 +806,23 @@ class FastSearchCard extends HTMLElement {
     setupCategoryChips(categories) {
         const categoryChips = this.shadowRoot.getElementById('typeFilterChips');
         
-        // Vorhandene Chips löschen (außer "Alle")
         const existingChips = categoryChips.querySelectorAll('.filter-chip:not([data-value=""])');
         existingChips.forEach(chip => chip.remove());
         
-        // Neue Kategorie-Chips hinzufügen
+        const config = this.searchTypeConfigs[this.currentSearchType];
+        
         categories.forEach(category => {
             const chip = document.createElement('div');
             chip.className = 'filter-chip';
             chip.setAttribute('data-value', category);
             
             const stats = this.getCategoryStats(category);
-            const icon = this.categoryIcons[category] || '📱';
+            const icon = config.categoryIcons[category] || '📱';
             
             chip.innerHTML = `
                 <div class="chip-icon">${icon}</div>
                 <div class="chip-content">
-                    <div class="chip-type-name">${this.categoryNames[category] || category}</div>
+                    <div class="chip-type-name">${config.categoryNames[category] || category}</div>
                     <div class="chip-count">${stats}</div>
                 </div>
             `;
@@ -552,14 +832,12 @@ class FastSearchCard extends HTMLElement {
     }
 
     setupChipFilters() {
-        // Raum-Filter (Mehrfachauswahl)
         this.shadowRoot.getElementById('roomChipsInSearch').addEventListener('click', (e) => {
             if (e.target.classList.contains('room-chip-small')) {
                 this.handleRoomChipClick(e.target);
             }
         });
 
-        // Kategorie-Filter
         this.shadowRoot.getElementById('typeFilterChips').addEventListener('click', (e) => {
             let chip = e.target;
             if (!chip.classList.contains('filter-chip')) {
@@ -576,13 +854,11 @@ class FastSearchCard extends HTMLElement {
         const value = chip.getAttribute('data-value');
         
         if (value === '') {
-            // "Alle" wurde geklickt
             this.selectedRooms.clear();
             const chips = this.shadowRoot.querySelectorAll('#roomChipsInSearch .room-chip-small');
             chips.forEach(chip => chip.classList.remove('active'));
             chip.classList.add('active');
         } else {
-            // Spezifischer Raum wurde geklickt
             const alleChip = this.shadowRoot.querySelector('#roomChipsInSearch .room-chip-small[data-value=""]');
             alleChip.classList.remove('active');
             
@@ -594,7 +870,6 @@ class FastSearchCard extends HTMLElement {
                 chip.classList.add('active');
             }
             
-            // Wenn keine Räume selektiert, "Alle" aktivieren
             if (this.selectedRooms.size === 0) {
                 alleChip.classList.add('active');
             }
@@ -615,29 +890,25 @@ class FastSearchCard extends HTMLElement {
     applyFilters() {
         const query = this.searchInput.value.toLowerCase().trim();
         
-        let filteredDevices = this.devices.filter(device => {
-            // Textsuche
+        let filteredItems = this.allItems.filter(item => {
             const matchesSearch = !query || 
-                device.name.toLowerCase().includes(query) ||
-                device.type.toLowerCase().includes(query) ||
-                device.room.toLowerCase().includes(query) ||
-                device.category.toLowerCase().includes(query);
+                item.name.toLowerCase().includes(query) ||
+                item.type.toLowerCase().includes(query) ||
+                item.room.toLowerCase().includes(query) ||
+                item.category.toLowerCase().includes(query);
             
-            // Raum-Filter
-            const matchesRoom = this.selectedRooms.size === 0 || this.selectedRooms.has(device.room);
-            
-            // Kategorie-Filter
-            const matchesType = !this.selectedType || device.category === this.selectedType;
+            const matchesRoom = this.selectedRooms.size === 0 || this.selectedRooms.has(item.room);
+            const matchesType = !this.selectedType || item.category === this.selectedType;
             
             return matchesSearch && matchesRoom && matchesType;
         });
 
-        if (filteredDevices.length === 0) {
-            this.showNoResults('Keine Geräte gefunden');
+        if (filteredItems.length === 0) {
+            this.showNoResults('Keine Ergebnisse gefunden');
             return;
         }
 
-        this.displayDevices(filteredDevices);
+        this.displayItems(filteredItems);
     }
 
     showNoResults(message) {
@@ -648,28 +919,25 @@ class FastSearchCard extends HTMLElement {
         this.resultsContainer.innerHTML = `<div class="config-error">${message}</div>`;
     }
 
-    displayDevices(deviceList) {
+    displayItems(itemList) {
         this.resultsContainer.innerHTML = '';
         
-        // Nach Raum und dann nach Name sortieren
-        const sortedDevices = deviceList.sort((a, b) => {
+        const sortedItems = itemList.sort((a, b) => {
             if (a.room !== b.room) {
                 return a.room.localeCompare(b.room);
             }
             return a.name.localeCompare(b.name);
         });
         
-        // Nach Räumen gruppieren
-        const devicesByRoom = {};
-        sortedDevices.forEach(device => {
-            if (!devicesByRoom[device.room]) {
-                devicesByRoom[device.room] = [];
+        const itemsByRoom = {};
+        sortedItems.forEach(item => {
+            if (!itemsByRoom[item.room]) {
+                itemsByRoom[item.room] = [];
             }
-            devicesByRoom[device.room].push(device);
+            itemsByRoom[item.room].push(item);
         });
         
-        // Raum-Gruppen erstellen
-        Object.keys(devicesByRoom).forEach(room => {
+        Object.keys(itemsByRoom).forEach(room => {
             const roomGroup = document.createElement('div');
             roomGroup.className = 'room-group';
             
@@ -678,65 +946,148 @@ class FastSearchCard extends HTMLElement {
             roomHeader.textContent = room;
             roomGroup.appendChild(roomHeader);
             
-            devicesByRoom[room].forEach(device => {
-                const deviceElement = this.createDeviceElement(device);
-                roomGroup.appendChild(deviceElement);
+            itemsByRoom[room].forEach(item => {
+                const itemElement = this.createItemElement(item);
+                roomGroup.appendChild(itemElement);
             });
             
             this.resultsContainer.appendChild(roomGroup);
         });
     }
 
-    createDeviceElement(device) {
+    createItemElement(item) {
         const element = document.createElement('div');
-        element.className = 'device-item';
-        element.innerHTML = this.getDeviceHTML(device);
+        element.className = 'item';
+        element.innerHTML = this.getItemHTML(item);
         
-        // Click-Handler für Geräteinteraktion
         element.addEventListener('click', () => {
-            this.toggleDevice(device);
+            this.handleItemClick(item);
         });
         
         return element;
     }
 
-    getDeviceHTML(device) {
-        const stateText = this.getStateText(device);
+    getItemHTML(item) {
+        const stateText = this.getStateText(item);
+        const actionButtons = this.getActionButtons(item);
         
         return `
-            <div class="device-icon">${device.icon}</div>
-            <div class="device-info">
-                <div class="device-name">${device.name}</div>
-                <div class="device-state">${stateText}</div>
+            <div class="item-icon">${item.icon}</div>
+            <div class="item-info">
+                <div class="item-name">${item.name}</div>
+                <div class="item-state">${stateText}</div>
+                ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
             </div>
+            ${actionButtons}
         `;
     }
 
-    toggleDevice(device) {
-        if (!this._hass) return;
-        
-        const domain = device.type;
-        const entityId = device.id;
-        
-        // Standard Toggle-Services für verschiedene Domains
-        const serviceMap = {
-            'light': 'light.toggle',
-            'switch': 'switch.toggle',
-            'fan': 'fan.toggle',
-            'media_player': 'media_player.media_play_pause',
-            'cover': device.state === 'open' ? 'cover.close_cover' : 'cover.open_cover'
-        };
-        
-        const service = serviceMap[domain];
-        if (service) {
-            const [serviceDomain, serviceAction] = service.split('.');
-            this._hass.callService(serviceDomain, serviceAction, {
-                entity_id: entityId
-            });
+    getActionButtons(item) {
+        switch (item.itemType) {
+            case 'automation':
+                const toggleText = item.state === 'on' ? 'Deaktivieren' : 'Aktivieren';
+                const triggerButton = `<div class="action-button primary" data-action="trigger">Ausführen</div>`;
+                const toggleButton = `<div class="action-button" data-action="toggle">${toggleText}</div>`;
+                return `<div class="action-buttons">${triggerButton}${toggleButton}</div>`;
+                
+            case 'script':
+                return `<div class="action-buttons"><div class="action-button primary" data-action="run">Ausführen</div></div>`;
+                
+            case 'scene':
+                return `<div class="action-buttons"><div class="action-button primary" data-action="activate">Aktivieren</div></div>`;
+                
+            case 'entity':
+                if (['light', 'switch', 'fan'].includes(item.type)) {
+                    const toggleText = item.state === 'on' ? 'Aus' : 'Ein';
+                    return `<div class="action-buttons"><div class="action-button primary" data-action="toggle">${toggleText}</div></div>`;
+                }
+                return '';
+                
+            default:
+                return '';
         }
     }
 
-    getStateText(device) {
+    handleItemClick(item) {
+        // Event delegation für Action Buttons
+        event.stopPropagation();
+        
+        if (event.target.classList.contains('action-button')) {
+            const action = event.target.getAttribute('data-action');
+            this.executeAction(item, action);
+            return;
+        }
+        
+        // Standard-Aktion beim Klick auf das Item
+        this.executeDefaultAction(item);
+    }
+
+    executeAction(item, action) {
+        if (!this._hass) return;
+        
+        switch (action) {
+            case 'toggle':
+                if (item.itemType === 'automation') {
+                    this._hass.callService('automation', 'toggle', { entity_id: item.id });
+                } else {
+                    const domain = item.type;
+                    this._hass.callService(domain, 'toggle', { entity_id: item.id });
+                }
+                break;
+                
+            case 'trigger':
+                this._hass.callService('automation', 'trigger', { entity_id: item.id });
+                break;
+                
+            case 'run':
+                this._hass.callService('script', 'turn_on', { entity_id: item.id });
+                break;
+                
+            case 'activate':
+                this._hass.callService('scene', 'turn_on', { entity_id: item.id });
+                break;
+        }
+    }
+
+    executeDefaultAction(item) {
+        switch (item.itemType) {
+            case 'automation':
+                this.executeAction(item, 'trigger');
+                break;
+            case 'script':
+                this.executeAction(item, 'run');
+                break;
+            case 'scene':
+                this.executeAction(item, 'activate');
+                break;
+            case 'entity':
+                if (['light', 'switch', 'fan', 'media_player'].includes(item.type)) {
+                    this.executeAction(item, 'toggle');
+                }
+                break;
+        }
+    }
+
+    getStateText(item) {
+        switch (item.itemType) {
+            case 'automation':
+                return item.state === 'on' ? 'Aktiv' : 'Inaktiv';
+                
+            case 'script':
+                return item.state === 'on' ? 'Läuft...' : 'Bereit';
+                
+            case 'scene':
+                return 'Bereit zur Aktivierung';
+                
+            case 'entity':
+                return this.getEntityStateText(item);
+                
+            default:
+                return item.state;
+        }
+    }
+
+    getEntityStateText(device) {
         switch (device.type) {
             case 'light':
                 return device.state === 'on' ? `Ein • ${device.brightness || 0}% Helligkeit` : 'Aus';
@@ -761,39 +1112,63 @@ class FastSearchCard extends HTMLElement {
     }
 
     getCategoryStats(category) {
-        const devicesOfCategory = this.devices.filter(d => d.category === category);
-        const total = devicesOfCategory.length;
+        const itemsOfCategory = this.allItems.filter(d => d.category === category);
+        const total = itemsOfCategory.length;
         
+        switch (this.currentSearchType) {
+            case 'entities':
+                return this.getEntityCategoryStats(category, itemsOfCategory);
+                
+            case 'automations':
+                if (category === 'active') {
+                    return `${total} Aktiv`;
+                } else if (category === 'inactive') {
+                    return `${total} Inaktiv`;
+                } else if (category === 'triggered') {
+                    return `${total} Kürzlich`;
+                }
+                return `${total} Items`;
+                
+            case 'scripts':
+            case 'scenes':
+                return `${total} Verfügbar`;
+                
+            default:
+                return `${total} Items`;
+        }
+    }
+
+    getEntityCategoryStats(category, itemsOfCategory) {
         switch (category) {
             case 'lights':
-                const lightsOn = devicesOfCategory.filter(d => d.state === 'on').length;
+                const lightsOn = itemsOfCategory.filter(d => d.state === 'on').length;
                 return `${lightsOn} An`;
                 
             case 'switches':
-                const switchesOn = devicesOfCategory.filter(d => d.state === 'on').length;
+                const switchesOn = itemsOfCategory.filter(d => d.state === 'on').length;
                 return `${switchesOn} Ein`;
                 
             case 'covers':
-                const coversOpen = devicesOfCategory.filter(d => d.state === 'open').length;
+                const coversOpen = itemsOfCategory.filter(d => d.state === 'open').length;
                 return `${coversOpen} Offen`;
                 
             case 'climate':
-                const climateOn = devicesOfCategory.filter(d => d.state === 'heat' || d.state === 'cool').length;
+                const climateOn = itemsOfCategory.filter(d => d.state === 'heat' || d.state === 'cool').length;
                 return `${climateOn} Aktiv`;
                 
             case 'fans':
-                const fansOn = devicesOfCategory.filter(d => d.state === 'on').length;
+                const fansOn = itemsOfCategory.filter(d => d.state === 'on').length;
                 return `${fansOn} An`;
                 
             case 'media':
-                const mediaPlaying = devicesOfCategory.filter(d => d.state === 'playing').length;
+                const mediaPlaying = itemsOfCategory.filter(d => d.state === 'playing').length;
                 return `${mediaPlaying} Aktiv`;
                 
             case 'sensors':
-                return `${total} Sensoren`;
+                return `${itemsOfCategory.length} Sensoren`;
                 
             default:
-                return `${total} Geräte`;
+                return `${itemsOfCategory.length} Geräte`;
         }
     }
 
@@ -807,7 +1182,7 @@ class FastSearchCard extends HTMLElement {
 
     static getStubConfig() {
         return {
-            title: "Geräte suchen",
+            title: "Suchen",
             show_unavailable: false,
             entities: [
                 {
@@ -823,16 +1198,15 @@ class FastSearchCard extends HTMLElement {
 
 customElements.define('fast-search-card', FastSearchCard);
 
-// Tell Home Assistant about this card
 window.customCards = window.customCards || [];
 window.customCards.push({
     type: 'fast-search-card',
     name: 'Fast Search Card',
-    description: 'Eine moderne Suchkarte für Home Assistant mit individueller Entitätskonfiguration'
+    description: 'Eine universelle Suchkarte für Home Assistant - Geräte, Automationen, Skripte und Szenen'
 });
 
 console.info(
-    `%c FAST-SEARCH-CARD %c v2.0.0 `,
+    `%c FAST-SEARCH-CARD %c v3.0.0 `,
     'color: orange; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: dimgray'
 );
