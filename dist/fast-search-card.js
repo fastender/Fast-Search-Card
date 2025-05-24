@@ -768,6 +768,7 @@ class FastSearchCard extends HTMLElement {
         });
         
         // Re-render current results
+        this.resultsContainer.innerHTML = '';
         this.applyFilters();
     }
 
