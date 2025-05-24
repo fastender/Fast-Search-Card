@@ -1061,11 +1061,23 @@ class FastSearchCard extends HTMLElement {
     setupCategoryChips(categories) {
         const categoryChips = this.shadowRoot.getElementById('typeFilterChips');
         
-        // Aktuellen Zustand speichern
-        const activeChip = categoryChips.querySelector('.filter-chip.active');
-        const currentActiveCategory = activeChip ? activeChip.getAttribute('data-value') : '';
+        // Bei Typ-Wechsel alle Chips außer "Alle" entfernen
+        if (!this.isInitialized) {
+            const existingChips = categoryChips.querySelectorAll('.filter-chip:not([data-value=""])');
+            existingChips.forEach(chip => chip.remove());
+            
+            // "Alle" Chip wieder aktivieren
+            const alleChip = categoryChips.querySelector('.filter-chip[data-value=""]');
+            if (alleChip) {
+                alleChip.classList.add('active');
+            }
+        } else {
+            // Bei Updates: Aktuellen Zustand speichern
+            const activeChip = categoryChips.querySelector('.filter-chip.active');
+            const currentActiveCategory = activeChip ? activeChip.getAttribute('data-value') : '';
+        }
         
-        // Nur neue Chips hinzufügen, vorhandene nicht entfernen
+        // Vorhandene Kategorien ermitteln
         const existingCategoryValues = Array.from(categoryChips.querySelectorAll('.filter-chip'))
             .map(chip => chip.getAttribute('data-value'));
         
@@ -1087,11 +1099,6 @@ class FastSearchCard extends HTMLElement {
                         <div class="chip-count">${stats}</div>
                     </div>
                 `;
-                
-                // Zustand wiederherstellen
-                if (currentActiveCategory === category) {
-                    chip.classList.add('active');
-                }
                 
                 categoryChips.appendChild(chip);
             }
