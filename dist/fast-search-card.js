@@ -52,35 +52,6 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     gap: 10px;
                     margin-bottom: 12px;
-                    align-items: center;
-                }
-
-                .view-toggle {
-                    display: flex;
-                    background: white;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    overflow: hidden;
-                    margin-left: auto;
-                }
-
-                .view-toggle-btn {
-                    padding: 8px 12px;
-                    background: transparent;
-                    border: none;
-                    cursor: pointer;
-                    font-size: 16px;
-                    transition: all 0.2s;
-                    color: #666;
-                }
-
-                .view-toggle-btn.active {
-                    background: #007aff;
-                    color: white;
-                }
-
-                .view-toggle-btn:hover:not(.active) {
-                    background: #f5f5f5;
                 }
 
                 .search-type-dropdown {
@@ -98,6 +69,34 @@ class FastSearchCard extends HTMLElement {
                     background-repeat: no-repeat;
                     background-size: 16px;
                     padding-right: 32px;
+                }
+
+                .view-toggle {
+                    display: flex;
+                    background: white;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    margin-left: auto;
+                }
+
+                .view-toggle button {
+                    background: none;
+                    border: none;
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                    color: #666;
+                }
+
+                .view-toggle button.active {
+                    background: #007aff;
+                    color: white;
+                }
+
+                .view-toggle button:hover:not(.active) {
+                    background: #f5f5f5;
                 }
 
                 .search-type-dropdown:focus {
@@ -266,11 +265,12 @@ class FastSearchCard extends HTMLElement {
                     overflow-y: auto;
                 }
 
-                .room-group {
+                /* Listen-Ansicht Styles */
+                .list-view .room-group {
                     margin-bottom: 24px;
                 }
 
-                .room-header {
+                .list-view .room-header {
                     padding: 12px 20px;
                     background: #f8f9fa;
                     border-bottom: 1px solid #e9ecef;
@@ -281,7 +281,7 @@ class FastSearchCard extends HTMLElement {
                     letter-spacing: 0.5px;
                 }
 
-                .item {
+                .list-view .item {
                     padding: 16px 20px;
                     border-bottom: 1px solid #f0f0f0;
                     display: flex;
@@ -292,19 +292,19 @@ class FastSearchCard extends HTMLElement {
                     cursor: pointer;
                 }
 
-                .item:hover {
+                .list-view .item:hover {
                     background-color: #fafafa;
                 }
 
-                .item:last-child {
+                .list-view .item:last-child {
                     border-bottom: none;
                 }
 
-                .room-group:last-child .item:last-child {
+                .list-view .room-group:last-child .item:last-child {
                     border-bottom: none;
                 }
 
-                .item-icon {
+                .list-view .item-icon {
                     font-size: 24px;
                     width: 40px;
                     height: 40px;
@@ -314,28 +314,164 @@ class FastSearchCard extends HTMLElement {
                     flex-shrink: 0;
                 }
 
-                .item-info {
+                .list-view .item-info {
                     flex: 1;
                     display: flex;
                     flex-direction: column;
                     gap: 2px;
                 }
 
-                .item-name {
+                .list-view .item-name {
                     font-weight: 500;
                     font-size: 16px;
                     color: #333;
                 }
 
-                .item-state {
+                .list-view .item-state {
                     font-size: 14px;
                     color: #888;
                 }
 
-                .item-description {
+                .list-view .item-description {
                     font-size: 12px;
                     color: #aaa;
                     margin-top: 2px;
+                }
+
+                /* Grid-Ansicht Styles */
+                .grid-view .room-group {
+                    margin-bottom: 24px;
+                }
+
+                .grid-view .room-header {
+                    padding: 12px 20px;
+                    background: #f8f9fa;
+                    border-bottom: 1px solid #e9ecef;
+                    font-weight: 600;
+                    font-size: 14px;
+                    color: #495057;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .grid-container {
+                    position: relative;
+                    overflow: hidden;
+                    padding: 20px;
+                }
+
+                .grid-scroll {
+                    display: flex;
+                    gap: 16px;
+                    overflow-x: auto;
+                    scroll-snap-type: x mandatory;
+                    scrollbar-width: none;
+                    -ms-overflow-style: none;
+                    padding-bottom: 10px;
+                }
+
+                .grid-scroll::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .grid-item {
+                    min-width: calc(50% - 8px);
+                    max-width: calc(50% - 8px);
+                    aspect-ratio: 1;
+                    background: white;
+                    border-radius: 16px;
+                    border: 1px solid #e9ecef;
+                    padding: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    scroll-snap-align: start;
+                    flex-shrink: 0;
+                    position: relative;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                }
+
+                .grid-item:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+                    border-color: #007aff;
+                }
+
+                .grid-item.active {
+                    background: #007aff;
+                    color: white;
+                    border-color: #007aff;
+                }
+
+                .grid-item-icon {
+                    font-size: 32px;
+                    margin-bottom: 8px;
+                }
+
+                .grid-item.active .grid-item-icon {
+                    filter: brightness(0) invert(1);
+                }
+
+                .grid-item-name {
+                    font-weight: 600;
+                    font-size: 14px;
+                    text-align: center;
+                    margin-bottom: 4px;
+                    line-height: 1.2;
+                    overflow: hidden;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                }
+
+                .grid-item-state {
+                    font-size: 12px;
+                    opacity: 0.8;
+                    text-align: center;
+                    line-height: 1.2;
+                }
+
+                .grid-item.active .grid-item-state {
+                    opacity: 0.9;
+                }
+
+                .grid-action-button {
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 12px;
+                    background: rgba(0,0,0,0.1);
+                    border: none;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    font-size: 12px;
+                    transition: all 0.2s;
+                    opacity: 0;
+                }
+
+                .grid-item:hover .grid-action-button {
+                    opacity: 1;
+                }
+
+                .grid-action-button:hover {
+                    background: rgba(0,0,0,0.2);
+                    transform: scale(1.1);
+                }
+
+                .grid-item.active .grid-action-button {
+                    background: rgba(255,255,255,0.2);
+                    opacity: 1;
+                }
+
+                .grid-item.active .grid-action-button:hover {
+                    background: rgba(255,255,255,0.3);
                 }
 
                 .no-results {
@@ -387,203 +523,18 @@ class FastSearchCard extends HTMLElement {
                     border-color: #0056b3;
                 }
 
-                /* Grid View Styles */
-                .grid-container {
-                    padding: 20px;
-                }
-
-                .grid-room-group {
-                    margin-bottom: 32px;
-                }
-
-                .grid-room-header {
-                    font-weight: 600;
-                    font-size: 16px;
-                    color: #333;
-                    margin-bottom: 16px;
-                    padding-left: 4px;
-                }
-
-                .grid-scroll-container {
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .grid-items {
-                    display: flex;
-                    gap: 16px;
-                    transition: transform 0.3s ease;
-                    padding: 4px;
-                }
-
-                .grid-item {
-                    min-width: calc(50% - 8px);
-                    max-width: calc(50% - 8px);
-                    background: white;
-                    border: 1px solid #e9ecef;
-                    border-radius: 16px;
-                    padding: 20px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    text-align: center;
-                    position: relative;
-                    flex-shrink: 0;
-                }
-
-                .grid-item:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-                    border-color: #007aff;
-                }
-
-                .grid-item-icon {
-                    font-size: 36px;
-                    margin-bottom: 12px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 60px;
-                    height: 60px;
-                    background: #f8f9fa;
-                    border-radius: 50%;
-                }
-
-                .grid-item-name {
-                    font-weight: 600;
-                    font-size: 14px;
-                    color: #333;
-                    margin-bottom: 6px;
-                    line-height: 1.3;
-                    word-break: break-word;
-                }
-
-                .grid-item-state {
-                    font-size: 12px;
-                    color: #888;
-                    margin-bottom: 8px;
-                }
-
-                .grid-item-description {
-                    font-size: 10px;
-                    color: #aaa;
-                    margin-bottom: 12px;
-                    line-height: 1.2;
-                }
-
-                .grid-action-buttons {
-                    display: flex;
-                    gap: 6px;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                    margin-top: auto;
-                }
-
-                .grid-action-button {
-                    padding: 4px 8px;
-                    background: #f8f9fa;
-                    border: 1px solid #e9ecef;
-                    border-radius: 6px;
-                    font-size: 10px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    color: #666;
-                    white-space: nowrap;
-                }
-
-                .grid-action-button:hover {
-                    background: #e9ecef;
-                    color: #333;
-                }
-
-                .grid-action-button.primary {
-                    background: #007aff;
-                    color: white;
-                    border-color: #007aff;
-                }
-
-                .grid-action-button.primary:hover {
-                    background: #0056b3;
-                    border-color: #0056b3;
-                }
-
-                .grid-nav-button {
-                    position: absolute;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    background: rgba(255,255,255,0.9);
-                    border: 1px solid #ddd;
-                    border-radius: 50%;
-                    width: 40px;
-                    height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    z-index: 10;
-                    font-size: 18px;
-                    color: #666;
-                }
-
-                .grid-nav-button:hover {
-                    background: white;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                    color: #333;
-                }
-
-                .grid-nav-button.disabled {
-                    opacity: 0.3;
-                    cursor: not-allowed;
-                    pointer-events: none;
-                }
-
-                .grid-nav-button.prev {
-                    left: -20px;
-                }
-
-                .grid-nav-button.next {
-                    right: -20px;
-                }
-
-                .grid-dots {
-                    display: flex;
-                    justify-content: center;
-                    gap: 8px;
-                    margin-top: 16px;
-                }
-
-                .grid-dot {
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background: #ddd;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-
-                .grid-dot.active {
-                    background: #007aff;
-                    transform: scale(1.2);
-                }
-
-                @media (max-width: 600px) {
+                /* Responsive Design für Grid */
+                @media (min-width: 480px) {
                     .grid-item {
-                        min-width: calc(100% - 8px);
-                        max-width: calc(100% - 8px);
+                        min-width: calc(33.333% - 11px);
+                        max-width: calc(33.333% - 11px);
                     }
-                    
-                    .search-header {
-                        flex-direction: column;
-                        gap: 12px;
-                    }
-                    
-                    .view-toggle {
-                        margin-left: 0;
-                        align-self: flex-start;
+                }
+
+                @media (min-width: 768px) {
+                    .grid-item {
+                        min-width: calc(25% - 12px);
+                        max-width: calc(25% - 12px);
                     }
                 }
             </style>
@@ -597,9 +548,10 @@ class FastSearchCard extends HTMLElement {
                             <option value="scripts">📜 Skripte</option>
                             <option value="scenes">🎭 Szenen</option>
                         </select>
+                        
                         <div class="view-toggle">
-                            <button class="view-toggle-btn active" data-view="list">📋</button>
-                            <button class="view-toggle-btn" data-view="grid">⊞</button>
+                            <button id="listViewBtn" class="active">📋 Liste</button>
+                            <button id="gridViewBtn">⚏ Raster</button>
                         </div>
                     </div>
                     
@@ -621,7 +573,7 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     </div>
                 </div>
-                <div class="results-container" id="resultsContainer">
+                <div class="results-container list-view" id="resultsContainer">
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                 </div>
             </div>
@@ -633,10 +585,9 @@ class FastSearchCard extends HTMLElement {
     initializeCard() {
         this.allItems = [];
         this.currentSearchType = 'entities';
-        this.currentView = 'list'; // 'list' or 'grid'
         this.selectedRooms = new Set();
         this.selectedType = '';
-        this.gridPositions = {}; // Track scroll positions for each room in grid view
+        this.currentView = 'list'; // 'list' oder 'grid'
         
         // Definitionen für verschiedene Suchtypen
         this.searchTypeConfigs = {
@@ -727,48 +678,38 @@ class FastSearchCard extends HTMLElement {
         this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
         this.noResults = this.shadowRoot.getElementById('noResults');
         this.filterLabel = this.shadowRoot.getElementById('filterLabel');
+        this.listViewBtn = this.shadowRoot.getElementById('listViewBtn');
+        this.gridViewBtn = this.shadowRoot.getElementById('gridViewBtn');
 
         this.searchInput.addEventListener('input', () => this.applyFilters());
         this.searchTypeDropdown.addEventListener('change', () => this.onSearchTypeChange());
+        this.listViewBtn.addEventListener('click', () => this.switchView('list'));
+        this.gridViewBtn.addEventListener('click', () => this.switchView('grid'));
         
         this.setupChipFilters();
-        this.setupViewToggle();
         this.updateSearchUI();
     }
 
-    setupViewToggle() {
-        const viewToggleButtons = this.shadowRoot.querySelectorAll('.view-toggle-btn');
-        
-        viewToggleButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const view = btn.getAttribute('data-view');
-                this.switchView(view);
-            });
-        });
-    }
-
     switchView(view) {
-        if (this.currentView === view) return;
-        
         this.currentView = view;
         
-        // Update active button
-        const buttons = this.shadowRoot.querySelectorAll('.view-toggle-btn');
-        buttons.forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-view') === view);
-        });
+        // Button States aktualisieren
+        this.listViewBtn.classList.toggle('active', view === 'list');
+        this.gridViewBtn.classList.toggle('active', view === 'grid');
         
-        // Re-render results in new view
+        // Container Klasse aktualisieren
+        this.resultsContainer.className = `results-container ${view}-view`;
+        
+        // Ergebnisse neu rendern
         this.applyFilters();
     }
+
     onSearchTypeChange() {
         this.currentSearchType = this.searchTypeDropdown.value;
         this.selectedRooms.clear();
         this.selectedType = '';
-        this.gridPositions = {}; // Reset grid positions
         this.updateSearchUI();
         this.updateItems();
-    }
     }
 
     updateSearchUI() {
@@ -819,148 +760,7 @@ class FastSearchCard extends HTMLElement {
         this.config.entities.forEach(entityConfig => {
             if (!entityConfig.entity) {
                 console.warn('Entität ohne entity-ID gefunden:', entityConfig);
-                return;
-            }
-
-            const entityId = entityConfig.entity;
-            const state = this._hass.states[entityId];
-            
-            if (!state) {
-                console.warn(`Entität ${entityId} nicht in Home Assistant gefunden`);
-                return;
-            }
-
-            const domain = entityId.split('.')[0];
-            
-            const device = {
-                id: entityId,
-                name: entityConfig.title || entityConfig.name || state.attributes.friendly_name || entityId,
-                type: domain,
-                category: entityConfig.category || this.mapDomainToCategory(domain),
-                room: entityConfig.area || entityConfig.room || state.attributes.room || 'Unbekannt',
-                state: state.state,
-                attributes: state.attributes,
-                icon: entityConfig.icon || this.getDeviceIcon(domain, state),
-                config: entityConfig,
-                itemType: 'entity'
-            };
-
-            this.addDomainSpecificAttributes(device, domain, state);
-            this.allItems.push(device);
-        });
-    }
-
-    loadAllEntities() {
-        Object.keys(this._hass.states).forEach(entityId => {
-            const state = this._hass.states[entityId];
-            const domain = entityId.split('.')[0];
-            
-            if (['automation', 'script', 'scene', 'zone', 'person'].includes(domain)) return;
-            
-            const device = {
-                id: entityId,
-                name: state.attributes.friendly_name || entityId,
-                type: domain,
-                category: this.mapDomainToCategory(domain),
-                room: state.attributes.room || 'Unbekannt',
-                state: state.state,
-                attributes: state.attributes,
-                icon: this.getDeviceIcon(domain, state),
-                itemType: 'entity'
-            };
-
-            this.addDomainSpecificAttributes(device, domain, state);
-            this.allItems.push(device);
-        });
-    }
-
-    loadAutomations() {
-        Object.keys(this._hass.states).forEach(entityId => {
-            if (!entityId.startsWith('automation.')) return;
-            
-            const state = this._hass.states[entityId];
-            const lastTriggered = state.attributes.last_triggered;
-            const isRecentlyTriggered = lastTriggered && (Date.now() - new Date(lastTriggered).getTime()) < 24 * 60 * 60 * 1000;
-            
-            const automation = {
-                id: entityId,
-                name: state.attributes.friendly_name || entityId.replace('automation.', ''),
-                type: 'automation',
-                category: state.state === 'on' ? 'active' : 'inactive',
-                room: state.attributes.room || 'System',
-                state: state.state,
-                attributes: state.attributes,
-                icon: state.state === 'on' ? '🤖' : '⏸️',
-                description: `Zuletzt ausgelöst: ${lastTriggered ? new Date(lastTriggered).toLocaleString('de-DE') : 'Nie'}`,
-                itemType: 'automation',
-                lastTriggered: lastTriggered
-            };
-
-            if (isRecentlyTriggered) {
-                automation.category = 'triggered';
-                automation.icon = '🔥';
-            }
-
-            this.allItems.push(automation);
-        });
-    }
-
-    loadScripts() {
-        Object.keys(this._hass.states).forEach(entityId => {
-            if (!entityId.startsWith('script.')) return;
-            
-            const state = this._hass.states[entityId];
-            const lastTriggered = state.attributes.last_triggered;
-            
-            const script = {
-                id: entityId,
-                name: state.attributes.friendly_name || entityId.replace('script.', ''),
-                type: 'script',
-                category: this.categorizeScript(entityId, state),
-                room: state.attributes.room || 'System',
-                state: state.state,
-                attributes: state.attributes,
-                icon: this.getScriptIcon(entityId, state),
-                description: `Zuletzt ausgeführt: ${lastTriggered ? new Date(lastTriggered).toLocaleString('de-DE') : 'Nie'}`,
-                itemType: 'script',
-                lastTriggered: lastTriggered
-            };
-
-            this.allItems.push(script);
-        });
-    }
-
-    loadScenes() {
-        Object.keys(this._hass.states).forEach(entityId => {
-            if (!entityId.startsWith('scene.')) return;
-            
-            const state = this._hass.states[entityId];
-            
-            const scene = {
-                id: entityId,
-                name: state.attributes.friendly_name || entityId.replace('scene.', ''),
-                type: 'scene',
-                category: this.categorizeScene(entityId, state),
-                room: state.attributes.room || 'System',
-                state: 'verfügbar',
-                attributes: state.attributes,
-                icon: this.getSceneIcon(entityId, state),
-                description: state.attributes.entity_id ? `${state.attributes.entity_id.length} Entitäten` : '',
-                itemType: 'scene'
-            };
-
-            this.allItems.push(scene);
-        });
-    }
-
-    categorizeScript(entityId, state) {
-        const name = entityId.toLowerCase();
-        if (name.includes('light') || name.includes('lamp')) return 'lighting';
-        if (name.includes('climate') || name.includes('heating')) return 'climate';
-        if (name.includes('security') || name.includes('alarm')) return 'security';
-        if (name.includes('media') || name.includes('music')) return 'media';
-        if (name.includes('clean') || name.includes('maintenance')) return 'maintenance';
-        return 'other';
+                return 'other';
     }
 
     categorizeScene(entityId, state) {
@@ -1224,7 +1024,6 @@ class FastSearchCard extends HTMLElement {
 
     displayItemsGrid(itemList) {
         this.resultsContainer.innerHTML = '';
-        this.resultsContainer.className = 'results-container grid-container';
         
         const sortedItems = itemList.sort((a, b) => {
             if (a.room !== b.room) {
@@ -1242,175 +1041,29 @@ class FastSearchCard extends HTMLElement {
         });
         
         Object.keys(itemsByRoom).forEach(room => {
-            this.createGridRoomGroup(room, itemsByRoom[room]);
+            const roomGroup = document.createElement('div');
+            roomGroup.className = 'room-group';
+            
+            const roomHeader = document.createElement('div');
+            roomHeader.className = 'room-header';
+            roomHeader.textContent = room;
+            roomGroup.appendChild(roomHeader);
+            
+            const gridContainer = document.createElement('div');
+            gridContainer.className = 'grid-container';
+            
+            const gridScroll = document.createElement('div');
+            gridScroll.className = 'grid-scroll';
+            
+            itemsByRoom[room].forEach(item => {
+                const itemElement = this.createGridItemElement(item);
+                gridScroll.appendChild(itemElement);
+            });
+            
+            gridContainer.appendChild(gridScroll);
+            roomGroup.appendChild(gridContainer);
+            this.resultsContainer.appendChild(roomGroup);
         });
-    }
-
-    createGridRoomGroup(roomName, items) {
-        const roomGroup = document.createElement('div');
-        roomGroup.className = 'grid-room-group';
-        
-        const roomHeader = document.createElement('div');
-        roomHeader.className = 'grid-room-header';
-        roomHeader.textContent = roomName;
-        roomGroup.appendChild(roomHeader);
-        
-        const scrollContainer = document.createElement('div');
-        scrollContainer.className = 'grid-scroll-container';
-        
-        const itemsContainer = document.createElement('div');
-        itemsContainer.className = 'grid-items';
-        itemsContainer.setAttribute('data-room', roomName);
-        
-        items.forEach(item => {
-            const gridItem = this.createGridItemElement(item);
-            itemsContainer.appendChild(gridItem);
-        });
-        
-        scrollContainer.appendChild(itemsContainer);
-        
-        // Add navigation if more than 2 items
-        if (items.length > 2) {
-            this.addGridNavigation(scrollContainer, roomName, items.length);
-        }
-        
-        roomGroup.appendChild(scrollContainer);
-        this.resultsContainer.appendChild(roomGroup);
-        
-        // Initialize position tracking
-        if (!this.gridPositions[roomName]) {
-            this.gridPositions[roomName] = 0;
-        }
-    }
-
-    addGridNavigation(container, roomName, totalItems) {
-        const itemsPerPage = window.innerWidth <= 600 ? 1 : 2;
-        const maxPosition = Math.max(0, totalItems - itemsPerPage);
-        
-        const prevBtn = document.createElement('button');
-        prevBtn.className = 'grid-nav-button prev';
-        prevBtn.innerHTML = '‹';
-        prevBtn.addEventListener('click', () => this.navigateGrid(roomName, -1));
-        
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'grid-nav-button next';
-        nextBtn.innerHTML = '›';
-        nextBtn.addEventListener('click', () => this.navigateGrid(roomName, 1));
-        
-        container.appendChild(prevBtn);
-        container.appendChild(nextBtn);
-        
-        // Add dots navigation
-        if (maxPosition > 0) {
-            const dotsContainer = document.createElement('div');
-            dotsContainer.className = 'grid-dots';
-            
-            for (let i = 0; i <= maxPosition; i++) {
-                const dot = document.createElement('div');
-                dot.className = 'grid-dot';
-                if (i === 0) dot.classList.add('active');
-                dot.addEventListener('click', () => this.navigateGridTo(roomName, i));
-                dotsContainer.appendChild(dot);
-            }
-            
-            container.appendChild(dotsContainer);
-        }
-        
-        // Setup touch/swipe events
-        this.setupSwipeEvents(container, roomName);
-        
-        this.updateGridNavigation(roomName);
-    }
-
-    navigateGrid(roomName, direction) {
-        const itemsPerPage = window.innerWidth <= 600 ? 1 : 2;
-        const currentPos = this.gridPositions[roomName] || 0;
-        const itemsContainer = this.shadowRoot.querySelector(`[data-room="${roomName}"]`);
-        const totalItems = itemsContainer.children.length;
-        const maxPosition = Math.max(0, totalItems - itemsPerPage);
-        
-        const newPos = Math.max(0, Math.min(maxPosition, currentPos + direction));
-        this.navigateGridTo(roomName, newPos);
-    }
-
-    navigateGridTo(roomName, position) {
-        this.gridPositions[roomName] = position;
-        const itemsContainer = this.shadowRoot.querySelector(`[data-room="${roomName}"]`);
-        const itemWidth = itemsContainer.children[0].offsetWidth + 16; // item width + gap
-        
-        itemsContainer.style.transform = `translateX(-${position * itemWidth}px)`;
-        
-        this.updateGridNavigation(roomName);
-    }
-
-    updateGridNavigation(roomName) {
-        const container = this.shadowRoot.querySelector(`[data-room="${roomName}"]`).parentElement;
-        const itemsPerPage = window.innerWidth <= 600 ? 1 : 2;
-        const totalItems = this.shadowRoot.querySelector(`[data-room="${roomName}"]`).children.length;
-        const maxPosition = Math.max(0, totalItems - itemsPerPage);
-        const currentPos = this.gridPositions[roomName] || 0;
-        
-        const prevBtn = container.querySelector('.prev');
-        const nextBtn = container.querySelector('.next');
-        const dots = container.querySelectorAll('.grid-dot');
-        
-        if (prevBtn) {
-            prevBtn.classList.toggle('disabled', currentPos === 0);
-        }
-        
-        if (nextBtn) {
-            nextBtn.classList.toggle('disabled', currentPos >= maxPosition);
-        }
-        
-        dots.forEach((dot, index) => {
-            dot.classList.toggle('active', index === currentPos);
-        });
-    }
-
-    setupSwipeEvents(container, roomName) {
-        let startX = 0;
-        let isDragging = false;
-        
-        const itemsContainer = container.querySelector('.grid-items');
-        
-        const onStart = (e) => {
-            startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-            isDragging = true;
-            container.style.cursor = 'grabbing';
-        };
-        
-        const onMove = (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-        };
-        
-        const onEnd = (e) => {
-            if (!isDragging) return;
-            isDragging = false;
-            container.style.cursor = '';
-            
-            const endX = e.type.includes('mouse') ? e.clientX : e.changedTouches[0].clientX;
-            const diffX = startX - endX;
-            
-            if (Math.abs(diffX) > 50) { // Minimum swipe distance
-                if (diffX > 0) {
-                    this.navigateGrid(roomName, 1); // Swipe left - next
-                } else {
-                    this.navigateGrid(roomName, -1); // Swipe right - prev
-                }
-            }
-        };
-        
-        // Mouse events
-        itemsContainer.addEventListener('mousedown', onStart);
-        itemsContainer.addEventListener('mousemove', onMove);
-        itemsContainer.addEventListener('mouseup', onEnd);
-        itemsContainer.addEventListener('mouseleave', onEnd);
-        
-        // Touch events
-        itemsContainer.addEventListener('touchstart', onStart, { passive: false });
-        itemsContainer.addEventListener('touchmove', onMove, { passive: false });
-        itemsContainer.addEventListener('touchend', onEnd);
     }
 
     createListItemElement(item) {
@@ -1428,6 +1081,13 @@ class FastSearchCard extends HTMLElement {
     createGridItemElement(item) {
         const element = document.createElement('div');
         element.className = 'grid-item';
+        
+        // Active state für eingeschaltete Geräte
+        const isActive = this.isItemActive(item);
+        if (isActive) {
+            element.classList.add('active');
+        }
+        
         element.innerHTML = this.getGridItemHTML(item);
         
         element.addEventListener('click', (e) => {
@@ -1437,9 +1097,22 @@ class FastSearchCard extends HTMLElement {
         return element;
     }
 
+    isItemActive(item) {
+        switch (item.itemType) {
+            case 'entity':
+                return ['on', 'playing', 'open'].includes(item.state);
+            case 'automation':
+                return item.state === 'on';
+            case 'script':
+                return item.state === 'on';
+            default:
+                return false;
+        }
+    }
+
     getListItemHTML(item) {
         const stateText = this.getStateText(item);
-        const actionButtons = this.getActionButtons(item, 'list');
+        const actionButtons = this.getActionButtons(item);
         
         return `
             <div class="item-icon">${item.icon}</div>
@@ -1453,39 +1126,90 @@ class FastSearchCard extends HTMLElement {
     }
 
     getGridItemHTML(item) {
-        const stateText = this.getStateText(item);
-        const actionButtons = this.getActionButtons(item, 'grid');
+        const stateText = this.getGridStateText(item);
+        const actionButton = this.getGridActionButton(item);
         
         return `
             <div class="grid-item-icon">${item.icon}</div>
             <div class="grid-item-name">${item.name}</div>
             <div class="grid-item-state">${stateText}</div>
-            ${item.description ? `<div class="grid-item-description">${item.description}</div>` : ''}
-            ${actionButtons}
+            ${actionButton}
         `;
     }
 
-    getActionButtons(item, viewType) {
-        const buttonClass = viewType === 'grid' ? 'grid-action-button' : 'action-button';
-        const containerClass = viewType === 'grid' ? 'grid-action-buttons' : 'action-buttons';
-        
+    getGridActionButton(item) {
+        switch (item.itemType) {
+            case 'automation':
+                return `<button class="grid-action-button" data-action="trigger">▶</button>`;
+            case 'script':
+                return `<button class="grid-action-button" data-action="run">▶</button>`;
+            case 'scene':
+                return `<button class="grid-action-button" data-action="activate">▶</button>`;
+            case 'entity':
+                if (['light', 'switch', 'fan'].includes(item.type)) {
+                    const icon = item.state === 'on' ? '⏸' : '▶';
+                    return `<button class="grid-action-button" data-action="toggle">${icon}</button>`;
+                }
+                return '';
+            default:
+                return '';
+        }
+    }
+
+    getGridStateText(item) {
+        switch (item.itemType) {
+            case 'automation':
+                return item.state === 'on' ? 'Aktiv' : 'Inaktiv';
+            case 'script':
+                return item.state === 'on' ? 'Läuft' : 'Bereit';
+            case 'scene':
+                return 'Bereit';
+            case 'entity':
+                return this.getEntityGridStateText(item);
+            default:
+                return item.state;
+        }
+    }
+
+    getEntityGridStateText(device) {
+        switch (device.type) {
+            case 'light':
+                return device.state === 'on' ? `${device.brightness || 0}%` : 'Aus';
+            case 'climate':
+                return `${device.current_temperature || '--'}°C`;
+            case 'switch':
+                return device.state === 'on' ? 'Ein' : 'Aus';
+            case 'cover':
+                return `${device.position || 0}%`;
+            case 'fan':
+                return device.state === 'on' ? `${device.speed}/${device.max_speed}` : 'Aus';
+            case 'media_player':
+                return device.state === 'playing' ? 'Spielt' : device.state === 'paused' ? 'Pausiert' : 'Aus';
+            case 'sensor':
+                return device.state + (device.attributes.unit_of_measurement || '');
+            default:
+                return device.state;
+        }
+    }
+
+    getActionButtons(item) {
         switch (item.itemType) {
             case 'automation':
                 const toggleText = item.state === 'on' ? 'Deaktivieren' : 'Aktivieren';
-                const triggerButton = `<div class="${buttonClass} primary" data-action="trigger">Ausführen</div>`;
-                const toggleButton = `<div class="${buttonClass}" data-action="toggle">${toggleText}</div>`;
-                return `<div class="${containerClass}">${triggerButton}${toggleButton}</div>`;
+                const triggerButton = `<div class="action-button primary" data-action="trigger">Ausführen</div>`;
+                const toggleButton = `<div class="action-button" data-action="toggle">${toggleText}</div>`;
+                return `<div class="action-buttons">${triggerButton}${toggleButton}</div>`;
                 
             case 'script':
-                return `<div class="${containerClass}"><div class="${buttonClass} primary" data-action="run">Ausführen</div></div>`;
+                return `<div class="action-buttons"><div class="action-button primary" data-action="run">Ausführen</div></div>`;
                 
             case 'scene':
-                return `<div class="${containerClass}"><div class="${buttonClass} primary" data-action="activate">Aktivieren</div></div>`;
+                return `<div class="action-buttons"><div class="action-button primary" data-action="activate">Aktivieren</div></div>`;
                 
             case 'entity':
                 if (['light', 'switch', 'fan'].includes(item.type)) {
                     const toggleText = item.state === 'on' ? 'Aus' : 'Ein';
-                    return `<div class="${containerClass}"><div class="${buttonClass} primary" data-action="toggle">${toggleText}</div></div>`;
+                    return `<div class="action-buttons"><div class="action-button primary" data-action="toggle">${toggleText}</div></div>`;
                 }
                 return '';
                 
@@ -1495,6 +1219,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     handleItemClick(item, event) {
+        // Event delegation für Action Buttons
         event.stopPropagation();
         
         if (event.target.classList.contains('action-button') || event.target.classList.contains('grid-action-button')) {
@@ -1694,4 +1419,145 @@ console.info(
     `%c FAST-SEARCH-CARD %c v3.0.0 `,
     'color: orange; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: dimgray'
-);
+);;
+            }
+
+            const entityId = entityConfig.entity;
+            const state = this._hass.states[entityId];
+            
+            if (!state) {
+                console.warn(`Entität ${entityId} nicht in Home Assistant gefunden`);
+                return;
+            }
+
+            const domain = entityId.split('.')[0];
+            
+            const device = {
+                id: entityId,
+                name: entityConfig.title || entityConfig.name || state.attributes.friendly_name || entityId,
+                type: domain,
+                category: entityConfig.category || this.mapDomainToCategory(domain),
+                room: entityConfig.area || entityConfig.room || state.attributes.room || 'Unbekannt',
+                state: state.state,
+                attributes: state.attributes,
+                icon: entityConfig.icon || this.getDeviceIcon(domain, state),
+                config: entityConfig,
+                itemType: 'entity'
+            };
+
+            this.addDomainSpecificAttributes(device, domain, state);
+            this.allItems.push(device);
+        });
+    }
+
+    loadAllEntities() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            const state = this._hass.states[entityId];
+            const domain = entityId.split('.')[0];
+            
+            if (['automation', 'script', 'scene', 'zone', 'person'].includes(domain)) return;
+            
+            const device = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId,
+                type: domain,
+                category: this.mapDomainToCategory(domain),
+                room: state.attributes.room || 'Unbekannt',
+                state: state.state,
+                attributes: state.attributes,
+                icon: this.getDeviceIcon(domain, state),
+                itemType: 'entity'
+            };
+
+            this.addDomainSpecificAttributes(device, domain, state);
+            this.allItems.push(device);
+        });
+    }
+
+    loadAutomations() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (!entityId.startsWith('automation.')) return;
+            
+            const state = this._hass.states[entityId];
+            const lastTriggered = state.attributes.last_triggered;
+            const isRecentlyTriggered = lastTriggered && (Date.now() - new Date(lastTriggered).getTime()) < 24 * 60 * 60 * 1000;
+            
+            const automation = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId.replace('automation.', ''),
+                type: 'automation',
+                category: state.state === 'on' ? 'active' : 'inactive',
+                room: state.attributes.room || 'System',
+                state: state.state,
+                attributes: state.attributes,
+                icon: state.state === 'on' ? '🤖' : '⏸️',
+                description: `Zuletzt ausgelöst: ${lastTriggered ? new Date(lastTriggered).toLocaleString('de-DE') : 'Nie'}`,
+                itemType: 'automation',
+                lastTriggered: lastTriggered
+            };
+
+            if (isRecentlyTriggered) {
+                automation.category = 'triggered';
+                automation.icon = '🔥';
+            }
+
+            this.allItems.push(automation);
+        });
+    }
+
+    loadScripts() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (!entityId.startsWith('script.')) return;
+            
+            const state = this._hass.states[entityId];
+            const lastTriggered = state.attributes.last_triggered;
+            
+            const script = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId.replace('script.', ''),
+                type: 'script',
+                category: this.categorizeScript(entityId, state),
+                room: state.attributes.room || 'System',
+                state: state.state,
+                attributes: state.attributes,
+                icon: this.getScriptIcon(entityId, state),
+                description: `Zuletzt ausgeführt: ${lastTriggered ? new Date(lastTriggered).toLocaleString('de-DE') : 'Nie'}`,
+                itemType: 'script',
+                lastTriggered: lastTriggered
+            };
+
+            this.allItems.push(script);
+        });
+    }
+
+    loadScenes() {
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (!entityId.startsWith('scene.')) return;
+            
+            const state = this._hass.states[entityId];
+            
+            const scene = {
+                id: entityId,
+                name: state.attributes.friendly_name || entityId.replace('scene.', ''),
+                type: 'scene',
+                category: this.categorizeScene(entityId, state),
+                room: state.attributes.room || 'System',
+                state: 'verfügbar',
+                attributes: state.attributes,
+                icon: this.getSceneIcon(entityId, state),
+                description: state.attributes.entity_id ? `${state.attributes.entity_id.length} Entitäten` : '',
+                itemType: 'scene'
+            };
+
+            this.allItems.push(scene);
+        });
+    }
+
+    categorizeScript(entityId, state) {
+        const name = entityId.toLowerCase();
+        if (name.includes('light') || name.includes('lamp')) return 'lighting';
+        if (name.includes('climate') || name.includes('heating')) return 'climate';
+        if (name.includes('security') || name.includes('alarm')) return 'security';
+        if (name.includes('media') || name.includes('music')) return 'media';
+        if (name.includes('clean') || name.includes('maintenance')) return 'maintenance';
+        return
