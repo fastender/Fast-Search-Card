@@ -402,6 +402,7 @@ class FastSearchCard extends HTMLElement {
         this.currentSearchType = 'entities';
         this.selectedRooms = new Set();
         this.selectedType = '';
+        this.isInitialized = false; // Flag für Initialisierung
         
         // Definitionen für verschiedene Suchtypen
         this.searchTypeConfigs = {
@@ -504,6 +505,7 @@ class FastSearchCard extends HTMLElement {
         this.currentSearchType = this.searchTypeDropdown.value;
         this.selectedRooms.clear();
         this.selectedType = '';
+        this.isInitialized = false; // Reset bei Typ-Änderung
         this.updateSearchUI();
         this.updateItems();
     }
@@ -545,7 +547,15 @@ class FastSearchCard extends HTMLElement {
                     break;
             }
 
-            this.initializeFilters();
+            // Nur Filter initialisieren, wenn noch nicht geschehen oder Typ geändert wurde
+            if (!this.isInitialized) {
+                this.initializeFilters();
+                this.isInitialized = true;
+            } else {
+                // Nur die Kategorie-Chips aktualisieren (für Stats), Filter-Zustand beibehalten
+                this.updateCategoryStats();
+                this.applyFilters();
+            }
         } catch (error) {
             console.error('Fehler beim Laden der Items:', error);
             this.showConfigError('Fehler beim Laden: ' + error.message);
@@ -788,46 +798,89 @@ class FastSearchCard extends HTMLElement {
         this.applyFilters();
     }
 
+    // Neue Methode: Aktualisiert nur die Statistiken ohne Filter-Zustand zu ändern
+    updateCategoryStats() {
+        const categories = [...new Set(this.allItems.map(d => d.category))].sort();
+        const config = this.searchTypeConfigs[this.currentSearchType];
+        
+        // Nur die Stats der vorhandenen Chips aktualisieren
+        categories.forEach(category => {
+            const chip = this.shadowRoot.querySelector(`#typeFilterChips .filter-chip[data-value="${category}"]`);
+            if (chip) {
+                const stats = this.getCategoryStats(category);
+                const countElement = chip.querySelector('.chip-count');
+                if (countElement) {
+                    countElement.textContent = stats;
+                }
+            }
+        });
+    }
+
     setupRoomChips(rooms) {
         const roomChips = this.shadowRoot.getElementById('roomChipsInSearch');
         
-        const existingChips = roomChips.querySelectorAll('.room-chip-small:not([data-value=""])');
-        existingChips.forEach(chip => chip.remove());
+        // Aktuellen Zustand speichern
+        const currentActiveRooms = Array.from(roomChips.querySelectorAll('.room-chip-small.active'))
+            .map(chip => chip.getAttribute('data-value'));
+        
+        // Nur neue Chips hinzufügen, vorhandene nicht entfernen
+        const existingRoomValues = Array.from(roomChips.querySelectorAll('.room-chip-small'))
+            .map(chip => chip.getAttribute('data-value'));
         
         rooms.forEach(room => {
-            const chip = document.createElement('div');
-            chip.className = 'room-chip-small';
-            chip.setAttribute('data-value', room);
-            chip.textContent = room;
-            roomChips.appendChild(chip);
+            if (!existingRoomValues.includes(room)) {
+                const chip = document.createElement('div');
+                chip.className = 'room-chip-small';
+                chip.setAttribute('data-value', room);
+                chip.textContent = room;
+                
+                // Zustand wiederherstellen
+                if (currentActiveRooms.includes(room)) {
+                    chip.classList.add('active');
+                }
+                
+                roomChips.appendChild(chip);
+            }
         });
     }
 
     setupCategoryChips(categories) {
         const categoryChips = this.shadowRoot.getElementById('typeFilterChips');
         
-        const existingChips = categoryChips.querySelectorAll('.filter-chip:not([data-value=""])');
-        existingChips.forEach(chip => chip.remove());
+        // Aktuellen Zustand speichern
+        const activeChip = categoryChips.querySelector('.filter-chip.active');
+        const currentActiveCategory = activeChip ? activeChip.getAttribute('data-value') : '';
+        
+        // Nur neue Chips hinzufügen, vorhandene nicht entfernen
+        const existingCategoryValues = Array.from(categoryChips.querySelectorAll('.filter-chip'))
+            .map(chip => chip.getAttribute('data-value'));
         
         const config = this.searchTypeConfigs[this.currentSearchType];
         
         categories.forEach(category => {
-            const chip = document.createElement('div');
-            chip.className = 'filter-chip';
-            chip.setAttribute('data-value', category);
-            
-            const stats = this.getCategoryStats(category);
-            const icon = config.categoryIcons[category] || '📱';
-            
-            chip.innerHTML = `
-                <div class="chip-icon">${icon}</div>
-                <div class="chip-content">
-                    <div class="chip-type-name">${config.categoryNames[category] || category}</div>
-                    <div class="chip-count">${stats}</div>
-                </div>
-            `;
-            
-            categoryChips.appendChild(chip);
+            if (!existingCategoryValues.includes(category)) {
+                const chip = document.createElement('div');
+                chip.className = 'filter-chip';
+                chip.setAttribute('data-value', category);
+                
+                const stats = this.getCategoryStats(category);
+                const icon = config.categoryIcons[category] || '📱';
+                
+                chip.innerHTML = `
+                    <div class="chip-icon">${icon}</div>
+                    <div class="chip-content">
+                        <div class="chip-type-name">${config.categoryNames[category] || category}</div>
+                        <div class="chip-count">${stats}</div>
+                    </div>
+                `;
+                
+                // Zustand wiederherstellen
+                if (currentActiveCategory === category) {
+                    chip.classList.add('active');
+                }
+                
+                categoryChips.appendChild(chip);
+            }
         });
     }
 
