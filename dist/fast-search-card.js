@@ -2,6 +2,7 @@ class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        this.gridScrollPositions = {};
     }
 
     setConfig(config) {
@@ -20,6 +21,7 @@ class FastSearchCard extends HTMLElement {
 
     set hass(hass) {
         this._hass = hass;
+        this.storeGridScrollPositions();
         this.updateItems();
     }
 
@@ -699,6 +701,7 @@ class FastSearchCard extends HTMLElement {
         this.selectedRooms.clear();
         this.selectedType = '';
         this.updateSearchUI();
+        this.storeGridScrollPositions();
         this.updateItems();
     }
 
@@ -724,6 +727,17 @@ class FastSearchCard extends HTMLElement {
 
         // Re-render current results
         this.applyFilters();
+    }
+
+    storeGridScrollPositions() {
+        this.gridScrollPositions = {};
+        if (!this.shadowRoot) return;
+        this.shadowRoot.querySelectorAll('.grid-items').forEach(el => {
+            const room = el.dataset.room;
+            if (room) {
+                this.gridScrollPositions[room] = el.scrollLeft;
+            }
+        });
     }
 
     updateItems() {
@@ -1094,6 +1108,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     applyFilters() {
+        this.storeGridScrollPositions();
         const query = this.searchInput.value.toLowerCase().trim();
         
         let filteredItems = this.allItems.filter(item => {
@@ -1169,6 +1184,9 @@ class FastSearchCard extends HTMLElement {
             });
 
             roomSection.appendChild(gridItems);
+            if (this.gridScrollPositions && this.gridScrollPositions[room]) {
+                gridItems.scrollLeft = this.gridScrollPositions[room];
+            }
             gridContainer.appendChild(roomSection);
         });
         
