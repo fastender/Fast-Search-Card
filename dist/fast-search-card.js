@@ -29,6 +29,10 @@ class FastSearchCard extends HTMLElement {
                 :host {
                     display: block;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    
+                    /* Card fade-in beim Laden */
+                    opacity: 0;
+                    animation: cardFadeIn 0.6s ease-out 0.2s forwards;
                 }
 
                 .search-container {
@@ -126,11 +130,57 @@ class FastSearchCard extends HTMLElement {
                     background: white;
                     border-radius: 8px;
                     box-sizing: border-box;
+                    transition: all 0.3s ease;
+                    position: relative;
+                }
+
+                .search-input:focus {
+                    animation: elasticFocus 0.3s ease-out;
+                    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
                 }
 
                 .search-input::placeholder {
                     color: #999;
                 }
+
+                /* Typing indicator */
+                .search-input.typing::after {
+                    content: '';
+                    position: absolute;
+                    right: 20px;
+                    top: 50%;
+                    width: 4px;
+                    height: 4px;
+                    background: #007aff;
+                    border-radius: 50%;
+                    animation: typing 1.5s infinite;
+                }
+
+                .typing-indicator {
+                    position: absolute;
+                    right: 20px;
+                    top: 20px;
+                    display: flex;
+                    gap: 3px;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+
+                .typing-indicator.active {
+                    opacity: 1;
+                }
+
+                .typing-dot {
+                    width: 4px;
+                    height: 4px;
+                    background: #007aff;
+                    border-radius: 50%;
+                    animation: typing 1.5s infinite;
+                }
+
+                .typing-dot:nth-child(1) { animation-delay: 0s; }
+                .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+                .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
                 .room-chips-in-search {
                     position: absolute;
@@ -310,6 +360,69 @@ class FastSearchCard extends HTMLElement {
                     to {
                         opacity: 1;
                         transform: translateY(0);
+                    }
+                }
+
+                /* Card fade-in Animation */
+                @keyframes cardFadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(40px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                /* Typing indicator */
+                @keyframes typing {
+                    0%, 60%, 100% {
+                        transform: translateY(0);
+                        opacity: 0.4;
+                    }
+                    30% {
+                        transform: translateY(-10px);
+                        opacity: 1;
+                    }
+                }
+
+                /* Loading dots */
+                @keyframes loadingDots {
+                    0%, 20% {
+                        opacity: 0;
+                        transform: scale(0.8);
+                    }
+                    50% {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                    100% {
+                        opacity: 0;
+                        transform: scale(0.8);
+                    }
+                }
+
+                /* Elastic focus */
+                @keyframes elasticFocus {
+                    0% {
+                        transform: scale(1);
+                    }
+                    50% {
+                        transform: scale(1.02);
+                    }
+                    100% {
+                        transform: scale(1);
+                    }
+                }
+
+                /* Hover glow */
+                @keyframes hoverGlow {
+                    0% {
+                        box-shadow: 0 0 0 rgba(0, 122, 255, 0);
+                    }
+                    100% {
+                        box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
                     }
                 }
 
@@ -566,6 +679,25 @@ class FastSearchCard extends HTMLElement {
                     font-style: italic;
                 }
 
+                /* Loading dots component */
+                .loading-dots {
+                    display: inline-flex;
+                    gap: 4px;
+                    margin-left: 8px;
+                }
+
+                .loading-dot {
+                    width: 4px;
+                    height: 4px;
+                    background: #007aff;
+                    border-radius: 50%;
+                    animation: loadingDots 1.4s infinite;
+                }
+
+                .loading-dot:nth-child(1) { animation-delay: 0s; }
+                .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+                .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
                 .config-error {
                     padding: 20px;
                     background: #fff3cd;
@@ -636,6 +768,11 @@ class FastSearchCard extends HTMLElement {
                     <div class="search-container-inner">
                         <div class="search-input-container">
                             <input type="text" class="search-input" placeholder="Suchen..." id="searchInput">
+                            <div class="typing-indicator" id="typingIndicator">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
                             <div class="room-chips-in-search" id="roomChipsInSearch">
                                 <div class="room-chip-small active" data-value="">Alle</div>
                             </div>
@@ -757,8 +894,9 @@ class FastSearchCard extends HTMLElement {
         this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
         this.noResults = this.shadowRoot.getElementById('noResults');
         this.filterLabel = this.shadowRoot.getElementById('filterLabel');
+        this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
 
-        this.searchInput.addEventListener('input', () => this.applyFilters());
+        this.searchInput.addEventListener('input', () => this.handleSearchInput());
         this.searchTypeDropdown.addEventListener('change', () => this.onSearchTypeChange());
         
         // View Toggle Event Listeners
@@ -790,6 +928,30 @@ class FastSearchCard extends HTMLElement {
         
         // Re-apply filters to refresh display
         this.applyFilters();
+    }
+
+    handleSearchInput() {
+        // Typing indicator anzeigen
+        this.showTypingIndicator();
+        
+        // Debounce für bessere Performance
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+            this.applyFilters();
+            this.hideTypingIndicator();
+        }, 300);
+    }
+
+    showTypingIndicator() {
+        this.typingIndicator.classList.add('active');
+    }
+
+    hideTypingIndicator() {
+        this.typingIndicator.classList.remove('active');
+    }
+
+    showLoadingDots(text) {
+        return `${text}<span class="loading-dots"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span>`;
     }
 
     updateSearchUI() {
@@ -1540,28 +1702,42 @@ class FastSearchCard extends HTMLElement {
     executeAction(item, action) {
         if (!this._hass) return;
         
+        // Loading state für den Button anzeigen
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = this.showLoadingDots(originalText.length > 2 ? '⏳' : originalText);
+        button.disabled = true;
+        
+        // Action ausführen
+        let serviceCall;
         switch (action) {
             case 'toggle':
                 if (item.itemType === 'automation') {
-                    this._hass.callService('automation', 'toggle', { entity_id: item.id });
+                    serviceCall = this._hass.callService('automation', 'toggle', { entity_id: item.id });
                 } else {
                     const domain = item.type;
-                    this._hass.callService(domain, 'toggle', { entity_id: item.id });
+                    serviceCall = this._hass.callService(domain, 'toggle', { entity_id: item.id });
                 }
                 break;
                 
             case 'trigger':
-                this._hass.callService('automation', 'trigger', { entity_id: item.id });
+                serviceCall = this._hass.callService('automation', 'trigger', { entity_id: item.id });
                 break;
                 
             case 'run':
-                this._hass.callService('script', 'turn_on', { entity_id: item.id });
+                serviceCall = this._hass.callService('script', 'turn_on', { entity_id: item.id });
                 break;
                 
             case 'activate':
-                this._hass.callService('scene', 'turn_on', { entity_id: item.id });
+                serviceCall = this._hass.callService('scene', 'turn_on', { entity_id: item.id });
                 break;
         }
+        
+        // Loading state nach kurzer Zeit entfernen
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 1000);
     }
 
     executeDefaultAction(item) {
