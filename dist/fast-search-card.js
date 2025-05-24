@@ -2,7 +2,6 @@ class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this.gridScrollPositions = {};
     }
 
     setConfig(config) {
@@ -21,7 +20,6 @@ class FastSearchCard extends HTMLElement {
 
     set hass(hass) {
         this._hass = hass;
-        this.storeGridScrollPositions();
         this.updateItems();
     }
 
@@ -413,6 +411,10 @@ class FastSearchCard extends HTMLElement {
                     padding: 0 4px;
                 }
 
+                .grid-scroll-container {
+                    position: relative;
+                    overflow: hidden;
+                }
 
                 .grid-items {
                     display: flex;
@@ -526,6 +528,47 @@ class FastSearchCard extends HTMLElement {
                 .grid-item.state-playing {
                     background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
                     border-color: #f59e0b;
+                }
+
+                /* Scroll indicators */
+                .scroll-indicator {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 32px;
+                    height: 32px;
+                    background: white;
+                    border-radius: 50%;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    z-index: 10;
+                    transition: all 0.2s;
+                }
+
+                .scroll-indicator:hover {
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                }
+
+                .scroll-indicator.left {
+                    left: -16px;
+                }
+
+                .scroll-indicator.right {
+                    right: -16px;
+                }
+
+                .scroll-indicator.hidden {
+                    opacity: 0;
+                    pointer-events: none;
+                }
+
+                .scroll-indicator svg {
+                    width: 16px;
+                    height: 16px;
+                    stroke: #666;
                 }
             </style>
             
@@ -701,7 +744,6 @@ class FastSearchCard extends HTMLElement {
         this.selectedRooms.clear();
         this.selectedType = '';
         this.updateSearchUI();
-        this.storeGridScrollPositions();
         this.updateItems();
     }
 
@@ -719,25 +761,14 @@ class FastSearchCard extends HTMLElement {
 
     switchView(view) {
         this.currentView = view;
-
+        
         // Update button states
         this.shadowRoot.querySelectorAll('.view-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.view === view);
         });
-
+        
         // Re-render current results
         this.applyFilters();
-    }
-
-    storeGridScrollPositions() {
-        this.gridScrollPositions = {};
-        if (!this.shadowRoot) return;
-        this.shadowRoot.querySelectorAll('.grid-items').forEach(el => {
-            const room = el.dataset.room;
-            if (room) {
-                this.gridScrollPositions[room] = el.scrollLeft;
-            }
-        });
     }
 
     updateItems() {
@@ -1108,7 +1139,6 @@ class FastSearchCard extends HTMLElement {
     }
 
     applyFilters() {
-        this.storeGridScrollPositions();
         const query = this.searchInput.value.toLowerCase().trim();
         
         let filteredItems = this.allItems.filter(item => {
@@ -1174,19 +1204,32 @@ class FastSearchCard extends HTMLElement {
             roomHeader.textContent = room;
             roomSection.appendChild(roomHeader);
             
+            const scrollContainer = document.createElement('div');
+            scrollContainer.className = 'grid-scroll-container';
+            
             const gridItems = document.createElement('div');
             gridItems.className = 'grid-items';
-            gridItems.dataset.room = room;
-
+            
             itemsByRoom[room].forEach(item => {
                 const gridItem = this.createGridItem(item);
                 gridItems.appendChild(gridItem);
             });
-
-            roomSection.appendChild(gridItems);
-            if (this.gridScrollPositions && this.gridScrollPositions[room]) {
-                gridItems.scrollLeft = this.gridScrollPositions[room];
+            
+            scrollContainer.appendChild(gridItems);
+            
+            // Add scroll indicators if needed
+            if (itemsByRoom[room].length > 2) {
+                const leftIndicator = this.createScrollIndicator('left');
+                const rightIndicator = this.createScrollIndicator('right');
+                
+                scrollContainer.appendChild(leftIndicator);
+                scrollContainer.appendChild(rightIndicator);
+                
+                // Setup scroll behavior
+                this.setupScrollBehavior(gridItems, leftIndicator, rightIndicator);
             }
+            
+            roomSection.appendChild(scrollContainer);
             gridContainer.appendChild(roomSection);
         });
         
@@ -1265,6 +1308,45 @@ class FastSearchCard extends HTMLElement {
         return buttons;
     }
 
+    createScrollIndicator(direction) {
+        const indicator = document.createElement('div');
+        indicator.className = `scroll-indicator ${direction}`;
+        indicator.innerHTML = direction === 'left' 
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+        
+        return indicator;
+    }
+
+    setupScrollBehavior(scrollContainer, leftIndicator, rightIndicator) {
+        const checkScroll = () => {
+            const scrollLeft = scrollContainer.scrollLeft;
+            const scrollWidth = scrollContainer.scrollWidth;
+            const clientWidth = scrollContainer.clientWidth;
+            
+            leftIndicator.classList.toggle('hidden', scrollLeft <= 0);
+            rightIndicator.classList.toggle('hidden', scrollLeft >= scrollWidth - clientWidth - 10);
+        };
+        
+        // Initial check
+        checkScroll();
+        
+        // Check on scroll
+        scrollContainer.addEventListener('scroll', checkScroll);
+        
+        // Scroll buttons functionality
+        leftIndicator.addEventListener('click', () => {
+            scrollContainer.scrollBy({ left: -clientWidth / 2, behavior: 'smooth' });
+        });
+        
+        rightIndicator.addEventListener('click', () => {
+            scrollContainer.scrollBy({ left: clientWidth / 2, behavior: 'smooth' });
+        });
+        
+        // Check on resize
+        const resizeObserver = new ResizeObserver(() => checkScroll());
+        resizeObserver.observe(scrollContainer);
+    }
 
     displayItems(itemList) {
         this.resultsContainer.innerHTML = '';
@@ -1307,8 +1389,8 @@ class FastSearchCard extends HTMLElement {
         element.className = 'item';
         element.innerHTML = this.getItemHTML(item);
         
-        element.addEventListener('click', e => {
-            this.handleItemClick(item, e);
+        element.addEventListener('click', () => {
+            this.handleItemClick(item);
         });
         
         return element;
@@ -1355,10 +1437,10 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    handleItemClick(item, event) {
+    handleItemClick(item) {
         // Event delegation für Action Buttons
         event.stopPropagation();
-
+        
         if (event.target.classList.contains('action-button')) {
             const action = event.target.getAttribute('data-action');
             this.executeAction(item, action);
