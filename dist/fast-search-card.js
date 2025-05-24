@@ -412,23 +412,26 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .grid-scroll-container {
-                    position: relative;
-                    overflow: hidden;
+                    overflow-x: auto;
+                    scroll-snap-type: x mandatory;
+                    -webkit-overflow-scrolling: touch;
+                }
+
+                .grid-scroll-container::-webkit-scrollbar {
+                    display: none;
                 }
 
                 .grid-items {
-                    display: flex;
+                    display: inline-grid;
+                    grid-auto-flow: column;
+                    grid-auto-rows: minmax(0, 1fr);
+                    grid-template-rows: repeat(2, auto);
                     gap: 16px;
-                    overflow-x: auto;
-                    padding: 4px;
-                    scroll-behavior: smooth;
-                    scrollbar-width: none;
-                    -ms-overflow-style: none;
                 }
 
-                .grid-items::-webkit-scrollbar {
-                    display: none;
-                }
+                .grid-items > * {
+                    scroll-snap-align: start;
+                }               
 
                 .grid-item {
                     flex: 0 0 calc(50% - 8px);
