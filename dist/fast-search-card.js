@@ -471,23 +471,25 @@ class FastSearchCard extends HTMLElement {
                     flex-direction: column;
                     justify-content: space-between;
                     will-change: transform, box-shadow;
-                    
-                    /* Stagger Animation */
+                }
+
+                /* Animation nur für neue Grid-Items beim ersten Laden */
+                .grid-item.fade-in {
                     opacity: 0;
                     animation: fadeInStagger 0.5s ease-out forwards;
                 }
 
-                /* Stagger-Delays für Grid-Items */
-                .grid-item:nth-child(1) { animation-delay: 0.1s; }
-                .grid-item:nth-child(2) { animation-delay: 0.15s; }
-                .grid-item:nth-child(3) { animation-delay: 0.2s; }
-                .grid-item:nth-child(4) { animation-delay: 0.25s; }
-                .grid-item:nth-child(5) { animation-delay: 0.3s; }
-                .grid-item:nth-child(6) { animation-delay: 0.35s; }
-                .grid-item:nth-child(7) { animation-delay: 0.4s; }
-                .grid-item:nth-child(8) { animation-delay: 0.45s; }
-                .grid-item:nth-child(9) { animation-delay: 0.5s; }
-                .grid-item:nth-child(10) { animation-delay: 0.55s; }
+                /* Stagger-Delays für Grid-Items - nur bei fade-in Klasse */
+                .grid-item.fade-in:nth-child(1) { animation-delay: 0.1s; }
+                .grid-item.fade-in:nth-child(2) { animation-delay: 0.15s; }
+                .grid-item.fade-in:nth-child(3) { animation-delay: 0.2s; }
+                .grid-item.fade-in:nth-child(4) { animation-delay: 0.25s; }
+                .grid-item.fade-in:nth-child(5) { animation-delay: 0.3s; }
+                .grid-item.fade-in:nth-child(6) { animation-delay: 0.35s; }
+                .grid-item.fade-in:nth-child(7) { animation-delay: 0.4s; }
+                .grid-item.fade-in:nth-child(8) { animation-delay: 0.45s; }
+                .grid-item.fade-in:nth-child(9) { animation-delay: 0.5s; }
+                .grid-item.fade-in:nth-child(10) { animation-delay: 0.55s; }
 
                 .grid-item:hover {
                     transform: translateY(-4px);
@@ -1505,7 +1507,7 @@ class FastSearchCard extends HTMLElement {
             roomGroup.appendChild(roomHeader);
             
             itemsByRoom[room].forEach(item => {
-                const itemElement = this.createListItemElement(item);
+                const itemElement = this.createListItemElement(item, true); // true = animate
                 roomGroup.appendChild(itemElement);
             });
             
@@ -1547,7 +1549,7 @@ class FastSearchCard extends HTMLElement {
             gridScroll.className = 'grid-scroll';
             
             itemsByRoom[room].forEach(item => {
-                const itemElement = this.createGridItemElement(item);
+                const itemElement = this.createGridItemElement(item, true); // true = animate
                 gridScroll.appendChild(itemElement);
             });
             
@@ -1558,9 +1560,9 @@ class FastSearchCard extends HTMLElement {
         this.resultsContainer.appendChild(gridContainer);
     }
 
-    createListItemElement(item) {
+    createListItemElement(item, animate = false) {
         const element = document.createElement('div');
-        element.className = 'item';
+        element.className = animate ? 'item fade-in' : 'item';
         element.innerHTML = this.getItemHTML(item);
         
         element.addEventListener('click', (e) => {
@@ -1570,9 +1572,9 @@ class FastSearchCard extends HTMLElement {
         return element;
     }
 
-    createGridItemElement(item) {
+    createGridItemElement(item, animate = false) {
         const element = document.createElement('div');
-        element.className = 'grid-item';
+        element.className = animate ? 'grid-item fade-in' : 'grid-item';
         element.setAttribute('data-item-id', item.id); // ID für spätere Updates
         
         // Check if item should be highlighted as active
