@@ -306,6 +306,7 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
+                    will-change: transform, box-shadow;
                 }
 
                 .grid-item:hover {
@@ -768,7 +769,13 @@ class FastSearchCard extends HTMLElement {
             } else {
                 // Nur die Kategorie-Chips aktualisieren (für Stats), Filter-Zustand beibehalten
                 this.updateCategoryStats();
-                this.applyFilters();
+                
+                // Bei Grid-Ansicht: Nur Zustände aktualisieren, keine komplette Neuerstellung
+                if (this.currentView === 'grid') {
+                    this.updateGridItemStates();
+                } else {
+                    this.applyFilters();
+                }
             }
         } catch (error) {
             console.error('Fehler beim Laden der Items:', error);
@@ -1025,6 +1032,36 @@ class FastSearchCard extends HTMLElement {
                 const countElement = chip.querySelector('.chip-count');
                 if (countElement) {
                     countElement.textContent = stats;
+                }
+            }
+        });
+    }
+
+    // Optimierte Grid-Aktualisierung - verhindert unnötige DOM-Manipulationen
+    updateGridItemStates() {
+        if (this.currentView !== 'grid') return;
+        
+        // Nur die Zustände der vorhandenen Grid-Items aktualisieren
+        const gridItems = this.shadowRoot.querySelectorAll('.grid-item');
+        gridItems.forEach(gridElement => {
+            const itemId = gridElement.getAttribute('data-item-id');
+            const item = this.allItems.find(i => i.id === itemId);
+            
+            if (item) {
+                // Aktiv-Zustand aktualisieren
+                const isActive = this.isItemActive(item);
+                gridElement.classList.toggle('active', isActive);
+                
+                // Zustandstext aktualisieren
+                const stateElement = gridElement.querySelector('.grid-item-state');
+                if (stateElement) {
+                    stateElement.textContent = this.getStateText(item);
+                }
+                
+                // Action-Buttons aktualisieren
+                const actionsElement = gridElement.querySelector('.grid-item-actions');
+                if (actionsElement) {
+                    actionsElement.innerHTML = this.getGridActionButtons(item);
                 }
             }
         });
@@ -1293,6 +1330,7 @@ class FastSearchCard extends HTMLElement {
     createGridItemElement(item) {
         const element = document.createElement('div');
         element.className = 'grid-item';
+        element.setAttribute('data-item-id', item.id); // ID für spätere Updates
         
         // Check if item should be highlighted as active
         const isActive = this.isItemActive(item);
