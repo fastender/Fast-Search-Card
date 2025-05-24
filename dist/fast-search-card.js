@@ -1333,7 +1333,34 @@ class FastSearchCard extends HTMLElement {
         
         // Check on scroll
         scrollContainer.addEventListener('scroll', checkScroll);
+
+        // Drag-to-scroll
+        let isDown = false;
+        let startX;
+        let scrollLeft;
         
+        scrollContainer.addEventListener('mousedown', e => {
+            isDown = true;
+            startX = e.pageX - scrollContainer.offsetLeft;
+            scrollLeft = scrollContainer.scrollLeft;
+            scrollContainer.classList.add('active');  // optional: für Cursor-Styling
+        });
+        scrollContainer.addEventListener('mouseleave', () => {
+            isDown = false;
+            scrollContainer.classList.remove('active');
+        });
+        scrollContainer.addEventListener('mouseup', () => {
+            isDown = false;
+            scrollContainer.classList.remove('active');
+        });
+        scrollContainer.addEventListener('mousemove', e => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - scrollContainer.offsetLeft;
+            const walk = (x - startX) * 1; // Faktor 1 = normale Geschwindigkeit
+            scrollContainer.scrollLeft = scrollLeft - walk;
+        });
+
         // Scroll buttons functionality
         leftIndicator.addEventListener('click', () => {
             scrollContainer.scrollBy({ left: -clientWidth / 2, behavior: 'smooth' });
