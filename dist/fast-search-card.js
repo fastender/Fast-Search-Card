@@ -1389,8 +1389,8 @@ class FastSearchCard extends HTMLElement {
         element.className = 'item';
         element.innerHTML = this.getItemHTML(item);
         
-        element.addEventListener('click', () => {
-            this.handleItemClick(item);
+        element.addEventListener('click', e => {
+            this.handleItemClick(item, e);
         });
         
         return element;
@@ -1437,10 +1437,10 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    handleItemClick(item) {
+    handleItemClick(item, event) {
         // Event delegation für Action Buttons
         event.stopPropagation();
-        
+
         if (event.target.classList.contains('action-button')) {
             const action = event.target.getAttribute('data-action');
             this.executeAction(item, action);
