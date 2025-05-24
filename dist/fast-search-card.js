@@ -1175,7 +1175,6 @@ class FastSearchCard extends HTMLElement {
     }
 
     displayGridItems(itemList) {
-        this.resultsContainer.innerHTML = '';
         
         const sortedItems = itemList.sort((a, b) => {
             if (a.room !== b.room) {
