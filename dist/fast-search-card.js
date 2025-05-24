@@ -425,7 +425,7 @@ class FastSearchCard extends HTMLElement {
                     display: inline-grid;
                     grid-auto-flow: column;
                     grid-auto-rows: minmax(0, 1fr);
-                    grid-template-rows: repeat(2, auto);
+                    grid-template-rows: 1fr;
                     gap: 16px;
                 }
 
