@@ -2,23 +2,30 @@ class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        this.updateDebouncer = null;
+        this.selectedItems = new Set();
+        this.keyboardSelectedIndex = -1;
+        this.favorites = new Set(JSON.parse(localStorage.getItem('fast-search-favorites') || '[]'));
     }
 
     setConfig(config) {
-        this.config = config;
+        this.config = {
+            title: "Suchen",
+            show_unavailable: false,
+            enable_favorites: true,
+            enable_keyboard_nav: true,
+            enable_multi_select: true,
+            default_view: 'list',
+            items_per_row: 4,
+            show_room_headers: true,
+            animation_speed: 'normal',
+            ...config
+        };
         
         // Validierung der Konfiguration
         if (!config) {
             throw new Error('Konfiguration ist erforderlich');
         }
-        
-        // More-Info Dialog Konfiguration
-        this.moreInfoConfig = {
-            showAttributes: config.show_attributes !== false, // Standard: true
-            showControls: config.show_controls !== false,     // Standard: true
-            showHistory: config.show_history === true,        // Standard: false
-            customActions: config.custom_actions || []        // Benutzerdefinierte Aktionen
-        };
         
         // Entities können entweder als Array oder automatisch geladen werden
         this.useManualEntities = config.entities && Array.isArray(config.entities);
@@ -43,11 +50,25 @@ class FastSearchCard extends HTMLElement {
                     animation: cardFadeIn 0.6s ease-out 0.2s forwards;
                 }
 
+                /* Animation speed variants */
+                :host([animation-speed="fast"]) * {
+                    animation-duration: 0.2s !important;
+                }
+                
+                :host([animation-speed="slow"]) * {
+                    animation-duration: 1s !important;
+                }
+                
+                :host([animation-speed="none"]) * {
+                    animation: none !important;
+                }
+
                 .search-container {
                     background: white;
                     border-radius: 12px;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
                     overflow: hidden;
+                    position: relative;
                 }
 
                 .search-section {
@@ -65,6 +86,18 @@ class FastSearchCard extends HTMLElement {
                     gap: 10px;
                     margin-bottom: 12px;
                     justify-content: space-between;
+                    align-items: center;
+                }
+
+                .header-left {
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                }
+
+                .header-right {
+                    display: flex;
+                    gap: 10px;
                     align-items: center;
                 }
 
@@ -100,6 +133,26 @@ class FastSearchCard extends HTMLElement {
 
                 .view-toggle-btn + .view-toggle-btn {
                     border-left: 1px solid #ddd;
+                }
+
+                .favorites-toggle {
+                    background: white;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    color: #666;
+                    transition: all 0.2s;
+                }
+
+                .favorites-toggle:hover {
+                    background: #f5f5f5;
+                }
+
+                .favorites-toggle.active {
+                    background: #ffd700;
+                    color: #333;
+                    border-color: #ffd700;
                 }
 
                 .search-type-dropdown {
@@ -151,19 +204,19 @@ class FastSearchCard extends HTMLElement {
                     color: #999;
                 }
 
-                /* Typing indicator */
-                .search-input.typing::after {
-                    content: '';
-                    position: absolute;
-                    right: 20px;
-                    top: 50%;
-                    width: 4px;
-                    height: 4px;
-                    background: #007aff;
-                    border-radius: 50%;
-                    animation: typing 1.5s infinite;
+                /* Keyboard navigation highlight */
+                .keyboard-selected {
+                    outline: 2px solid #007aff !important;
+                    outline-offset: 2px;
                 }
 
+                /* Multi-select highlight */
+                .multi-selected {
+                    background: rgba(0, 122, 255, 0.1) !important;
+                    border-color: #007aff !important;
+                }
+
+                /* Typing indicator */
                 .typing-indicator {
                     position: absolute;
                     right: 20px;
@@ -326,7 +379,39 @@ class FastSearchCard extends HTMLElement {
                     line-height: 1;
                 }
 
-                /* Eingangs-Animationen */
+                /* Batch Actions Bar */
+                .batch-actions {
+                    position: fixed;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #333;
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 25px;
+                    display: flex;
+                    gap: 15px;
+                    align-items: center;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    animation: slideUp 0.3s ease-out;
+                    z-index: 1000;
+                }
+
+                .batch-actions button {
+                    background: rgba(255,255,255,0.2);
+                    border: none;
+                    color: white;
+                    padding: 6px 16px;
+                    border-radius: 15px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+
+                .batch-actions button:hover {
+                    background: rgba(255,255,255,0.3);
+                }
+
+                /* Animations */
                 @keyframes fadeInUp {
                     from {
                         opacity: 0;
@@ -349,15 +434,59 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
-                @keyframes scaleIn {
+                @keyframes slideUp {
+                    from {
+                        transform: translateX(-50%) translateY(100px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(-50%) translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes cardFadeIn {
                     from {
                         opacity: 0;
-                        transform: scale(0.8);
+                        transform: translateY(40px);
                     }
                     to {
                         opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                @keyframes typing {
+                    0%, 60%, 100% {
+                        transform: translateY(0);
+                        opacity: 0.4;
+                    }
+                    30% {
+                        transform: translateY(-10px);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes elasticFocus {
+                    0% {
                         transform: scale(1);
                     }
+                    50% {
+                        transform: scale(1.02);
+                    }
+                    100% {
+                        transform: scale(1);
+                    }
+                }
+
+                /* Results container */
+                .results-container {
+                    max-height: 600px;
+                    overflow-y: auto;
+                }
+
+                .results-container.loading {
+                    animation: slideInFromBottom 0.4s ease-out;
                 }
 
                 @keyframes slideInFromBottom {
@@ -371,79 +500,6 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
-                /* Card fade-in Animation */
-                @keyframes cardFadeIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(40px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-
-                /* Typing indicator */
-                @keyframes typing {
-                    0%, 60%, 100% {
-                        transform: translateY(0);
-                        opacity: 0.4;
-                    }
-                    30% {
-                        transform: translateY(-10px);
-                        opacity: 1;
-                    }
-                }
-
-                /* Loading dots */
-                @keyframes loadingDots {
-                    0%, 20% {
-                        opacity: 0;
-                        transform: scale(0.8);
-                    }
-                    50% {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                    100% {
-                        opacity: 0;
-                        transform: scale(0.8);
-                    }
-                }
-
-                /* Elastic focus */
-                @keyframes elasticFocus {
-                    0% {
-                        transform: scale(1);
-                    }
-                    50% {
-                        transform: scale(1.02);
-                    }
-                    100% {
-                        transform: scale(1);
-                    }
-                }
-
-                /* Hover glow */
-                @keyframes hoverGlow {
-                    0% {
-                        box-shadow: 0 0 0 rgba(0, 122, 255, 0);
-                    }
-                    100% {
-                        box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
-                    }
-                }
-
-                /* Animation für Suchergebnisse */
-                .results-container {
-                    max-height: 600px;
-                    overflow-y: auto;
-                }
-
-                .results-container.loading {
-                    animation: slideInFromBottom 0.4s ease-out;
-                }
-
                 /* Grid View Styles */
                 .grid-container {
                     padding: 20px;
@@ -451,16 +507,10 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .grid-scroll {
-                    display: flex;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
                     gap: 16px;
-                    overflow-x: auto;
                     padding: 4px 0 20px 0;
-                    scrollbar-width: none;
-                    -ms-overflow-style: none;
-                }
-
-                .grid-scroll::-webkit-scrollbar {
-                    display: none;
                 }
 
                 .grid-item {
@@ -468,36 +518,27 @@ class FastSearchCard extends HTMLElement {
                     border: 1px solid #e9ecef;
                     border-radius: 12px;
                     padding: 16px;
-                    min-width: 140px;
-                    max-width: 180px;
-                    flex-shrink: 0;
                     cursor: pointer;
                     transition: all 0.3s ease;
                     position: relative;
-                    height: 120px;
+                    height: 140px;
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
                     will-change: transform, box-shadow;
                 }
 
-                /* Animation nur für neue Grid-Items beim ersten Laden */
                 .grid-item.fade-in {
                     opacity: 0;
                     animation: fadeInStagger 0.5s ease-out forwards;
                 }
 
-                /* Stagger-Delays für Grid-Items - nur bei fade-in Klasse */
                 .grid-item.fade-in:nth-child(1) { animation-delay: 0.1s; }
                 .grid-item.fade-in:nth-child(2) { animation-delay: 0.15s; }
                 .grid-item.fade-in:nth-child(3) { animation-delay: 0.2s; }
                 .grid-item.fade-in:nth-child(4) { animation-delay: 0.25s; }
                 .grid-item.fade-in:nth-child(5) { animation-delay: 0.3s; }
                 .grid-item.fade-in:nth-child(6) { animation-delay: 0.35s; }
-                .grid-item.fade-in:nth-child(7) { animation-delay: 0.4s; }
-                .grid-item.fade-in:nth-child(8) { animation-delay: 0.45s; }
-                .grid-item.fade-in:nth-child(9) { animation-delay: 0.5s; }
-                .grid-item.fade-in:nth-child(10) { animation-delay: 0.55s; }
 
                 .grid-item:hover {
                     transform: translateY(-4px);
@@ -524,6 +565,21 @@ class FastSearchCard extends HTMLElement {
                     align-items: center;
                     justify-content: center;
                     flex-shrink: 0;
+                }
+
+                .grid-item-favorite {
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    opacity: 0.7;
+                    transition: all 0.2s;
+                }
+
+                .grid-item-favorite:hover {
+                    opacity: 1;
+                    transform: scale(1.2);
                 }
 
                 .grid-item-actions {
@@ -587,6 +643,29 @@ class FastSearchCard extends HTMLElement {
                     white-space: nowrap;
                 }
 
+                .grid-item-trend {
+                    font-size: 10px;
+                    color: #666;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    margin-top: 4px;
+                }
+
+                .trend-up { color: #ff4444; }
+                .trend-down { color: #44ff44; }
+                .trend-stable { color: #666; }
+
+                .grid-item-media {
+                    font-size: 10px;
+                    color: #999;
+                    font-style: italic;
+                    margin-top: 4px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
                 .grid-room-group {
                     margin-bottom: 32px;
                 }
@@ -601,15 +680,7 @@ class FastSearchCard extends HTMLElement {
                     padding: 0 4px;
                 }
 
-                @media (max-width: 768px) {
-                    .grid-item {
-                        min-width: 120px;
-                        max-width: 150px;
-                    }
-                }
-
                 /* List View Styles */
-
                 .room-group {
                     margin-bottom: 24px;
                 }
@@ -634,6 +705,7 @@ class FastSearchCard extends HTMLElement {
                     transition: background-color 0.2s;
                     margin-left: 0;
                     cursor: pointer;
+                    position: relative;
                 }
 
                 .item:hover {
@@ -644,8 +716,19 @@ class FastSearchCard extends HTMLElement {
                     border-bottom: none;
                 }
 
-                .room-group:last-child .item:last-child {
-                    border-bottom: none;
+                .item-favorite {
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    opacity: 0.7;
+                    transition: all 0.2s;
+                }
+
+                .item-favorite:hover {
+                    opacity: 1;
+                    transform: scale(1.2);
                 }
 
                 .item-icon {
@@ -689,25 +772,6 @@ class FastSearchCard extends HTMLElement {
                     font-style: italic;
                 }
 
-                /* Loading dots component */
-                .loading-dots {
-                    display: inline-flex;
-                    gap: 4px;
-                    margin-left: 8px;
-                }
-
-                .loading-dot {
-                    width: 4px;
-                    height: 4px;
-                    background: #007aff;
-                    border-radius: 50%;
-                    animation: loadingDots 1.4s infinite;
-                }
-
-                .loading-dot:nth-child(1) { animation-delay: 0s; }
-                .loading-dot:nth-child(2) { animation-delay: 0.2s; }
-                .loading-dot:nth-child(3) { animation-delay: 0.4s; }
-
                 .config-error {
                     padding: 20px;
                     background: #fff3cd;
@@ -750,312 +814,9 @@ class FastSearchCard extends HTMLElement {
                     border-color: #0056b3;
                 }
 
-                /* More-Info Dialog Styles */
-                .more-info-overlay {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 0.7);
-                    backdrop-filter: blur(8px);
-                    z-index: 1000;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: all 0.3s ease;
-                    padding: 20px;
-                    box-sizing: border-box;
-                }
-
-                .more-info-overlay.active {
-                    opacity: 1;
-                    visibility: visible;
-                }
-
-                .more-info-dialog {
-                    background: white;
-                    border-radius: 16px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                    max-width: 500px;
-                    width: 100%;
-                    max-height: 80vh;
-                    overflow: hidden;
-                    transform: scale(0.9) translateY(20px);
-                    transition: all 0.3s ease;
-                    position: relative;
-                }
-
-                .more-info-overlay.active .more-info-dialog {
-                    transform: scale(1) translateY(0);
-                }
-
-                .more-info-header {
-                    background: linear-gradient(135deg, #007aff, #0056b3);
-                    color: white;
-                    padding: 24px;
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                    gap: 16px;
-                }
-
-                .more-info-close {
-                    position: absolute;
-                    top: 16px;
-                    right: 16px;
-                    background: rgba(255, 255, 255, 0.2);
-                    border: none;
-                    border-radius: 50%;
-                    width: 32px;
-                    height: 32px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    font-size: 18px;
-                }
-
-                .more-info-close:hover {
-                    background: rgba(255, 255, 255, 0.3);
-                    transform: scale(1.1);
-                }
-
-                .more-info-icon {
-                    font-size: 32px;
-                    background: rgba(255, 255, 255, 0.2);
-                    border-radius: 12px;
-                    width: 60px;
-                    height: 60px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                }
-
-                .more-info-title {
-                    flex: 1;
-                }
-
-                .more-info-name {
-                    font-size: 20px;
-                    font-weight: 600;
-                    margin: 0;
-                    line-height: 1.2;
-                }
-
-                .more-info-type {
-                    font-size: 14px;
-                    opacity: 0.8;
-                    margin: 4px 0 0 0;
-                }
-
-                .more-info-content {
-                    padding: 0;
-                    max-height: calc(80vh - 120px);
-                    overflow-y: auto;
-                }
-
-                .more-info-section {
-                    padding: 24px;
-                    border-bottom: 1px solid #f0f0f0;
-                }
-
-                .more-info-section:last-child {
-                    border-bottom: none;
-                }
-
-                .section-title {
-                    font-size: 16px;
-                    font-weight: 600;
-                    color: #333;
-                    margin: 0 0 16px 0;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-
-                .state-display {
-                    display: flex;
-                    align-items: center;
-                    gap: 16px;
-                    margin-bottom: 20px;
-                }
-
-                .state-value {
-                    font-size: 28px;
-                    font-weight: 700;
-                    color: #007aff;
-                    flex: 1;
-                }
-
-                .state-unit {
-                    font-size: 16px;
-                    color: #666;
-                    font-weight: 400;
-                }
-
-                .state-badge {
-                    padding: 6px 12px;
-                    border-radius: 20px;
-                    font-size: 12px;
-                    font-weight: 500;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-
-                .state-badge.on {
-                    background: #e3f2fd;
-                    color: #1976d2;
-                }
-
-                .state-badge.off {
-                    background: #f5f5f5;
-                    color: #666;
-                }
-
-                .attribute-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 16px;
-                }
-
-                .attribute-item {
-                    background: #f8f9fa;
-                    border-radius: 8px;
-                    padding: 16px;
-                    border-left: 4px solid #007aff;
-                }
-
-                .attribute-label {
-                    font-size: 12px;
-                    font-weight: 500;
-                    color: #666;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    margin-bottom: 4px;
-                }
-
-                .attribute-value {
-                    font-size: 16px;
-                    font-weight: 600;
-                    color: #333;
-                    word-break: break-word;
-                }
-
-                .control-section {
-                    display: flex;
-                    gap: 12px;
-                    flex-wrap: wrap;
-                }
-
-                .control-button {
-                    flex: 1;
-                    min-width: 120px;
-                    padding: 12px 20px;
-                    background: #007aff;
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                }
-
-                .control-button:hover {
-                    background: #0056b3;
-                    transform: translateY(-1px);
-                }
-
-                .control-button.secondary {
-                    background: #f8f9fa;
-                    color: #666;
-                    border: 1px solid #ddd;
-                }
-
-                .control-button.secondary:hover {
-                    background: #e9ecef;
-                    color: #333;
-                }
-
-                .slider-control {
-                    margin-top: 16px;
-                }
-
-                .slider-label {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 8px;
-                    font-size: 14px;
-                    color: #666;
-                }
-
-                .slider {
-                    width: 100%;
-                    height: 6px;
-                    border-radius: 3px;
-                    background: #ddd;
-                    outline: none;
-                    appearance: none;
-                    cursor: pointer;
-                }
-
-                .slider::-webkit-slider-thumb {
-                    appearance: none;
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 50%;
-                    background: #007aff;
-                    cursor: pointer;
-                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
-                }
-
-                .slider::-moz-range-thumb {
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 50%;
-                    background: #007aff;
-                    cursor: pointer;
-                    border: none;
-                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
-                }
-
                 @media (max-width: 768px) {
-                    .more-info-overlay {
-                        padding: 10px;
-                    }
-                    
-                    .more-info-dialog {
-                        max-height: 90vh;
-                    }
-                    
-                    .more-info-header {
-                        padding: 20px;
-                    }
-                    
-                    .more-info-section {
-                        padding: 20px;
-                    }
-                    
-                    .attribute-grid {
-                        grid-template-columns: 1fr;
-                    }
-                    
-                    .control-section {
-                        flex-direction: column;
-                    }
-                    
-                    .control-button {
-                        min-width: auto;
+                    .grid-scroll {
+                        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                     }
                 }
             </style>
@@ -1063,24 +824,34 @@ class FastSearchCard extends HTMLElement {
             <div class="search-container">
                 <div class="search-section">
                     <div class="search-header">
-                        <select class="search-type-dropdown" id="searchTypeDropdown">
-                            <option value="entities">🏠 Geräte</option>
-                            <option value="automations">🤖 Automationen</option>
-                            <option value="scripts">📜 Skripte</option>
-                            <option value="scenes">🎭 Szenen</option>
-                        </select>
+                        <div class="header-left">
+                            <select class="search-type-dropdown" id="searchTypeDropdown">
+                                <option value="entities">🏠 Geräte</option>
+                                <option value="automations">🤖 Automationen</option>
+                                <option value="scripts">📜 Skripte</option>
+                                <option value="scenes">🎭 Szenen</option>
+                            </select>
+                        </div>
                         
-                        <div class="view-toggle">
-                            <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-                                </svg>
-                            </button>
-                            <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
-                                </svg>
-                            </button>
+                        <div class="header-right">
+                            ${this.config?.enable_favorites !== false ? `
+                                <button class="favorites-toggle" id="favoritesToggle" title="Nur Favoriten anzeigen">
+                                    ⭐
+                                </button>
+                            ` : ''}
+                            
+                            <div class="view-toggle">
+                                <button class="view-toggle-btn ${this.config?.default_view !== 'grid' ? 'active' : ''}" id="listViewBtn" data-view="list">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                                    </svg>
+                                </button>
+                                <button class="view-toggle-btn ${this.config?.default_view === 'grid' ? 'active' : ''}" id="gridViewBtn" data-view="grid">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -1110,6 +881,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="results-container" id="resultsContainer">
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                 </div>
+                <div id="batchActionsContainer"></div>
             </div>
         `;
 
@@ -1121,8 +893,12 @@ class FastSearchCard extends HTMLElement {
         this.currentSearchType = 'entities';
         this.selectedRooms = new Set();
         this.selectedType = '';
-        this.isInitialized = false; // Flag für Initialisierung
-        this.currentView = 'list'; // Neue Property für View-Mode
+        this.isInitialized = false;
+        this.currentView = this.config?.default_view || 'list';
+        this.showFavoritesOnly = false;
+        
+        // Set animation speed
+        this.setAttribute('animation-speed', this.config?.animation_speed || 'normal');
         
         // Definitionen für verschiedene Suchtypen
         this.searchTypeConfigs = {
@@ -1214,6 +990,7 @@ class FastSearchCard extends HTMLElement {
         this.noResults = this.shadowRoot.getElementById('noResults');
         this.filterLabel = this.shadowRoot.getElementById('filterLabel');
         this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
+        this.batchActionsContainer = this.shadowRoot.getElementById('batchActionsContainer');
 
         this.searchInput.addEventListener('input', () => this.handleSearchInput());
         this.searchTypeDropdown.addEventListener('change', () => this.onSearchTypeChange());
@@ -1222,22 +999,145 @@ class FastSearchCard extends HTMLElement {
         this.shadowRoot.getElementById('listViewBtn').addEventListener('click', () => this.setView('list'));
         this.shadowRoot.getElementById('gridViewBtn').addEventListener('click', () => this.setView('grid'));
         
-        // Keyboard Event Listener für ESC-Taste
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.shadowRoot.querySelector('.more-info-overlay.active')) {
-                this.closeMoreInfo();
-            }
-        });
+        // Favorites Toggle
+        const favoritesToggle = this.shadowRoot.getElementById('favoritesToggle');
+        if (favoritesToggle) {
+            favoritesToggle.addEventListener('click', () => this.toggleFavorites());
+        }
+        
+        // Keyboard Navigation
+        if (this.config?.enable_keyboard_nav !== false) {
+            this.setupKeyboardNavigation();
+        }
+        
+        // Multi-select
+        if (this.config?.enable_multi_select) {
+            this.setupMultiSelect();
+        }
         
         this.setupChipFilters();
         this.updateSearchUI();
+    }
+
+    setupKeyboardNavigation() {
+        this.searchInput.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    this.navigateResults(1);
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    this.navigateResults(-1);
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    this.executeSelectedItem();
+                    break;
+                case 'Escape':
+                    this.searchInput.value = '';
+                    this.applyFilters();
+                    break;
+            }
+        });
+    }
+
+    navigateResults(direction) {
+        const items = this.shadowRoot.querySelectorAll('.item, .grid-item');
+        const currentIndex = Array.from(items).findIndex(item => 
+            item.classList.contains('keyboard-selected')
+        );
+        
+        items.forEach(item => item.classList.remove('keyboard-selected'));
+        
+        let newIndex = currentIndex + direction;
+        if (newIndex < 0) newIndex = items.length - 1;
+        if (newIndex >= items.length) newIndex = 0;
+        
+        items[newIndex]?.classList.add('keyboard-selected');
+        items[newIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        this.keyboardSelectedIndex = newIndex;
+    }
+
+    executeSelectedItem() {
+        const selectedElement = this.shadowRoot.querySelector('.keyboard-selected');
+        if (selectedElement) {
+            const itemId = selectedElement.getAttribute('data-item-id');
+            const item = this.allItems.find(i => i.id === itemId);
+            if (item) {
+                this.executeDefaultAction(item);
+            }
+        }
+    }
+
+    setupMultiSelect() {
+        this.shadowRoot.addEventListener('click', (e) => {
+            const itemElement = e.target.closest('.item, .grid-item');
+            if (itemElement && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                const itemId = itemElement.getAttribute('data-item-id');
+                this.toggleItemSelection(itemId, itemElement);
+            }
+        });
+    }
+
+    toggleItemSelection(itemId, element) {
+        if (this.selectedItems.has(itemId)) {
+            this.selectedItems.delete(itemId);
+            element.classList.remove('multi-selected');
+        } else {
+            this.selectedItems.add(itemId);
+            element.classList.add('multi-selected');
+        }
+        
+        this.updateBatchActions();
+    }
+
+    updateBatchActions() {
+        if (this.selectedItems.size > 0) {
+            this.batchActionsContainer.innerHTML = `
+                <div class="batch-actions">
+                    <span>${this.selectedItems.size} ausgewählt</span>
+                    <button onclick="this.getRootNode().host.batchToggle()">Alle umschalten</button>
+                    <button onclick="this.getRootNode().host.clearSelection()">Auswahl aufheben</button>
+                </div>
+            `;
+        } else {
+            this.batchActionsContainer.innerHTML = '';
+        }
+    }
+
+    batchToggle() {
+        this.selectedItems.forEach(itemId => {
+            const item = this.allItems.find(i => i.id === itemId);
+            if (item && ['light', 'switch', 'fan', 'automation'].includes(item.type)) {
+                this.executeAction(item, 'toggle');
+            }
+        });
+        this.clearSelection();
+    }
+
+    clearSelection() {
+        this.selectedItems.clear();
+        this.shadowRoot.querySelectorAll('.multi-selected').forEach(el => {
+            el.classList.remove('multi-selected');
+        });
+        this.updateBatchActions();
+    }
+
+    toggleFavorites() {
+        this.showFavoritesOnly = !this.showFavoritesOnly;
+        const favoritesToggle = this.shadowRoot.getElementById('favoritesToggle');
+        favoritesToggle.classList.toggle('active', this.showFavoritesOnly);
+        this.applyFilters();
     }
 
     onSearchTypeChange() {
         this.currentSearchType = this.searchTypeDropdown.value;
         this.selectedRooms.clear();
         this.selectedType = '';
-        this.isInitialized = false; // Reset bei Typ-Änderung
+        this.isInitialized = false;
         this.updateSearchUI();
         this.updateItems();
     }
@@ -1276,10 +1176,6 @@ class FastSearchCard extends HTMLElement {
         this.typingIndicator.classList.remove('active');
     }
 
-    showLoadingDots(text) {
-        return `${text}<span class="loading-dots"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span>`;
-    }
-
     updateSearchUI() {
         const config = this.searchTypeConfigs[this.currentSearchType];
         this.searchInput.placeholder = config.placeholder;
@@ -1295,6 +1191,17 @@ class FastSearchCard extends HTMLElement {
     updateItems() {
         if (!this._hass) return;
 
+        // Debounced update
+        if (this.updateDebouncer) {
+            clearTimeout(this.updateDebouncer);
+        }
+        
+        this.updateDebouncer = setTimeout(() => {
+            this._performUpdate();
+        }, 100);
+    }
+
+    _performUpdate() {
         try {
             this.allItems = [];
             
@@ -1317,6 +1224,9 @@ class FastSearchCard extends HTMLElement {
                     break;
             }
 
+            // Add trend data for sensors
+            this.addTrendData();
+
             // Nur Filter initialisieren, wenn noch nicht geschehen oder Typ geändert wurde
             if (!this.isInitialized) {
                 this.initializeFilters();
@@ -1337,6 +1247,29 @@ class FastSearchCard extends HTMLElement {
             console.error('Fehler beim Laden der Items:', error);
             this.showConfigError('Fehler beim Laden: ' + error.message);
         }
+    }
+
+    addTrendData() {
+        // Simulate trend data for temperature sensors
+        this.allItems.forEach(item => {
+            if (item.type === 'sensor' && item.attributes.device_class === 'temperature') {
+                // Store previous value (in real implementation, this would come from history)
+                if (!item.previousValue) {
+                    item.previousValue = parseFloat(item.state);
+                }
+                
+                const currentValue = parseFloat(item.state);
+                const diff = currentValue - item.previousValue;
+                
+                if (diff > 0.5) {
+                    item.trend = 'up';
+                } else if (diff < -0.5) {
+                    item.trend = 'down';
+                } else {
+                    item.trend = 'stable';
+                }
+            }
+        });
     }
 
     loadManualEntities() {
@@ -1575,12 +1508,10 @@ class FastSearchCard extends HTMLElement {
         this.applyFilters();
     }
 
-    // Neue Methode: Aktualisiert nur die Statistiken ohne Filter-Zustand zu ändern
     updateCategoryStats() {
         const categories = [...new Set(this.allItems.map(d => d.category))].sort();
         const config = this.searchTypeConfigs[this.currentSearchType];
         
-        // Nur die Stats der vorhandenen Chips aktualisieren
         categories.forEach(category => {
             const chip = this.shadowRoot.querySelector(`#typeFilterChips .filter-chip[data-value="${category}"]`);
             if (chip) {
@@ -1593,54 +1524,51 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    // Optimierte Grid-Aktualisierung - verhindert unnötige DOM-Manipulationen
     updateGridItemStates() {
         if (this.currentView !== 'grid') return;
         
-        // Nur die Zustände der vorhandenen Grid-Items aktualisieren
         const gridItems = this.shadowRoot.querySelectorAll('.grid-item');
         gridItems.forEach(gridElement => {
             const itemId = gridElement.getAttribute('data-item-id');
             const item = this.allItems.find(i => i.id === itemId);
             
             if (item) {
-                // Aktiv-Zustand aktualisieren
                 const isActive = this.isItemActive(item);
                 gridElement.classList.toggle('active', isActive);
                 
-                // Zustandstext aktualisieren
                 const stateElement = gridElement.querySelector('.grid-item-state');
                 if (stateElement) {
                     stateElement.textContent = this.getStateText(item);
                 }
                 
-                // Action-Buttons aktualisieren
                 const actionsElement = gridElement.querySelector('.grid-item-actions');
                 if (actionsElement) {
                     actionsElement.innerHTML = this.getGridActionButtons(item);
+                }
+                
+                // Update trend if exists
+                const trendElement = gridElement.querySelector('.grid-item-trend');
+                if (trendElement && item.trend) {
+                    trendElement.innerHTML = this.getTrendIndicator(item);
                 }
             }
         });
     }
 
-    // Neue Methode: Optimierte Listen-Aktualisierung
     updateListItemStates() {
         if (this.currentView !== 'list') return;
         
-        // Nur die Zustände der vorhandenen Listen-Items aktualisieren
         const listItems = this.shadowRoot.querySelectorAll('.item');
         listItems.forEach(listElement => {
             const itemId = listElement.getAttribute('data-item-id');
             const item = this.allItems.find(i => i.id === itemId);
             
             if (item) {
-                // Zustandstext aktualisieren
                 const stateElement = listElement.querySelector('.item-state');
                 if (stateElement) {
                     stateElement.textContent = this.getStateText(item);
                 }
                 
-                // Action-Buttons aktualisieren
                 const actionsElement = listElement.querySelector('.action-buttons');
                 if (actionsElement) {
                     actionsElement.innerHTML = this.getActionButtons(item).replace('<div class="action-buttons">', '').replace('</div>', '');
@@ -1652,11 +1580,9 @@ class FastSearchCard extends HTMLElement {
     setupRoomChips(rooms) {
         const roomChips = this.shadowRoot.getElementById('roomChipsInSearch');
         
-        // Aktuellen Zustand speichern
         const currentActiveRooms = Array.from(roomChips.querySelectorAll('.room-chip-small.active'))
             .map(chip => chip.getAttribute('data-value'));
         
-        // Nur neue Chips hinzufügen, vorhandene nicht entfernen
         const existingRoomValues = Array.from(roomChips.querySelectorAll('.room-chip-small'))
             .map(chip => chip.getAttribute('data-value'));
         
@@ -1667,12 +1593,10 @@ class FastSearchCard extends HTMLElement {
                 chip.setAttribute('data-value', room);
                 chip.textContent = room;
                 
-                // Zustand wiederherstellen
                 if (currentActiveRooms.includes(room)) {
                     chip.classList.add('active');
                 }
                 
-                // Stagger-Animation für neue Room-Chips
                 chip.style.animationDelay = `${index * 0.05}s`;
                 
                 roomChips.appendChild(chip);
@@ -1683,23 +1607,16 @@ class FastSearchCard extends HTMLElement {
     setupCategoryChips(categories) {
         const categoryChips = this.shadowRoot.getElementById('typeFilterChips');
         
-        // Bei Typ-Wechsel alle Chips außer "Alle" entfernen
         if (!this.isInitialized) {
             const existingChips = categoryChips.querySelectorAll('.filter-chip:not([data-value=""])');
             existingChips.forEach(chip => chip.remove());
             
-            // "Alle" Chip wieder aktivieren
             const alleChip = categoryChips.querySelector('.filter-chip[data-value=""]');
             if (alleChip) {
                 alleChip.classList.add('active');
             }
-        } else {
-            // Bei Updates: Aktuellen Zustand speichern
-            const activeChip = categoryChips.querySelector('.filter-chip.active');
-            const currentActiveCategory = activeChip ? activeChip.getAttribute('data-value') : '';
         }
         
-        // Vorhandene Kategorien ermitteln
         const existingCategoryValues = Array.from(categoryChips.querySelectorAll('.filter-chip'))
             .map(chip => chip.getAttribute('data-value'));
         
@@ -1722,7 +1639,6 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 `;
                 
-                // Stagger-Animation für neue Chips
                 chip.style.animationDelay = `${categories.indexOf(category) * 0.1}s`;
                 
                 categoryChips.appendChild(chip);
@@ -1786,31 +1702,46 @@ class FastSearchCard extends HTMLElement {
         this.applyFilters();
     }
 
+    searchItems(items, query) {
+        if (!query) return items;
+        
+        const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0);
+        
+        return items.filter(item => {
+            const searchableText = [
+                item.name,
+                item.room,
+                item.type,
+                item.category,
+                item.state,
+                item.description || ''
+            ].join(' ').toLowerCase();
+            
+            return searchTerms.every(term => searchableText.includes(term));
+        });
+    }
+
     applyFilters() {
         const query = this.searchInput.value.toLowerCase().trim();
         
         let filteredItems = this.allItems.filter(item => {
-            const matchesSearch = !query || 
-                item.name.toLowerCase().includes(query) ||
-                item.type.toLowerCase().includes(query) ||
-                item.room.toLowerCase().includes(query) ||
-                item.category.toLowerCase().includes(query);
-            
             const matchesRoom = this.selectedRooms.size === 0 || this.selectedRooms.has(item.room);
             const matchesType = !this.selectedType || item.category === this.selectedType;
+            const matchesFavorite = !this.showFavoritesOnly || this.favorites.has(item.id);
             
-            return matchesSearch && matchesRoom && matchesType;
+            return matchesRoom && matchesType && matchesFavorite;
         });
+        
+        // Apply fuzzy search
+        filteredItems = this.searchItems(filteredItems, query);
 
         if (filteredItems.length === 0) {
             this.showNoResults('Keine Ergebnisse gefunden');
             return;
         }
 
-        // Animation für Container beim Wechsel
         this.resultsContainer.classList.add('loading');
         
-        // Animation-Klasse nach kurzer Zeit entfernen
         setTimeout(() => {
             this.resultsContainer.classList.remove('loading');
         }, 400);
@@ -1849,20 +1780,27 @@ class FastSearchCard extends HTMLElement {
         });
         
         Object.keys(itemsByRoom).forEach(room => {
-            const roomGroup = document.createElement('div');
-            roomGroup.className = 'room-group';
-            
-            const roomHeader = document.createElement('div');
-            roomHeader.className = 'room-header';
-            roomHeader.textContent = room;
-            roomGroup.appendChild(roomHeader);
-            
-            itemsByRoom[room].forEach(item => {
-                const itemElement = this.createListItemElement(item, true); // true = animate
-                roomGroup.appendChild(itemElement);
-            });
-            
-            this.resultsContainer.appendChild(roomGroup);
+            if (!this.config?.show_room_headers === false) {
+                const roomGroup = document.createElement('div');
+                roomGroup.className = 'room-group';
+                
+                const roomHeader = document.createElement('div');
+                roomHeader.className = 'room-header';
+                roomHeader.textContent = room;
+                roomGroup.appendChild(roomHeader);
+                
+                itemsByRoom[room].forEach(item => {
+                    const itemElement = this.createListItemElement(item, true);
+                    roomGroup.appendChild(itemElement);
+                });
+                
+                this.resultsContainer.appendChild(roomGroup);
+            } else {
+                itemsByRoom[room].forEach(item => {
+                    const itemElement = this.createListItemElement(item, true);
+                    this.resultsContainer.appendChild(itemElement);
+                });
+            }
         });
     }
 
@@ -1891,16 +1829,21 @@ class FastSearchCard extends HTMLElement {
             const roomGroup = document.createElement('div');
             roomGroup.className = 'grid-room-group';
             
-            const roomHeader = document.createElement('div');
-            roomHeader.className = 'grid-room-header';
-            roomHeader.textContent = room;
-            roomGroup.appendChild(roomHeader);
+            if (this.config?.show_room_headers !== false) {
+                const roomHeader = document.createElement('div');
+                roomHeader.className = 'grid-room-header';
+                roomHeader.textContent = room;
+                roomGroup.appendChild(roomHeader);
+            }
             
             const gridScroll = document.createElement('div');
             gridScroll.className = 'grid-scroll';
+            if (this.config?.items_per_row) {
+                gridScroll.style.gridTemplateColumns = `repeat(${this.config.items_per_row}, 1fr)`;
+            }
             
             itemsByRoom[room].forEach(item => {
-                const itemElement = this.createGridItemElement(item, true); // true = animate
+                const itemElement = this.createGridItemElement(item, true);
                 gridScroll.appendChild(itemElement);
             });
             
@@ -1914,7 +1857,7 @@ class FastSearchCard extends HTMLElement {
     createListItemElement(item, animate = false) {
         const element = document.createElement('div');
         element.className = animate ? 'item fade-in' : 'item';
-        element.setAttribute('data-item-id', item.id); // ID für spätere Updates
+        element.setAttribute('data-item-id', item.id);
         element.innerHTML = this.getItemHTML(item);
         
         element.addEventListener('click', (e) => {
@@ -1927,9 +1870,8 @@ class FastSearchCard extends HTMLElement {
     createGridItemElement(item, animate = false) {
         const element = document.createElement('div');
         element.className = animate ? 'grid-item fade-in' : 'grid-item';
-        element.setAttribute('data-item-id', item.id); // ID für spätere Updates
+        element.setAttribute('data-item-id', item.id);
         
-        // Check if item should be highlighted as active
         const isActive = this.isItemActive(item);
         if (isActive) {
             element.classList.add('active');
@@ -1945,7 +1887,6 @@ class FastSearchCard extends HTMLElement {
     }
 
     isItemActive(item) {
-        // Logic to determine if item should be highlighted
         switch (item.itemType) {
             case 'entity':
                 return ['light', 'switch', 'fan', 'media_player'].includes(item.type) && item.state === 'on';
@@ -1956,18 +1897,76 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+    isFavorite(itemId) {
+        return this.favorites.has(itemId);
+    }
+
+    toggleFavorite(itemId) {
+        if (this.favorites.has(itemId)) {
+            this.favorites.delete(itemId);
+        } else {
+            this.favorites.add(itemId);
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('fast-search-favorites', JSON.stringify([...this.favorites]));
+        
+        // Update UI
+        this.applyFilters();
+    }
+
+    getTrendIndicator(item) {
+        if (!item.trend) return '';
+        
+        const icons = {
+            up: '↑',
+            down: '↓',
+            stable: '→'
+        };
+        
+        const classes = {
+            up: 'trend-up',
+            down: 'trend-down',
+            stable: 'trend-stable'
+        };
+        
+        return `<span class="${classes[item.trend]}">${icons[item.trend]} ${item.state}${item.attributes.unit_of_measurement || ''}</span>`;
+    }
+
+    getAdditionalInfo(item) {
+        switch (item.type) {
+            case 'sensor':
+                if (item.attributes.device_class === 'temperature' && item.trend) {
+                    return `<div class="grid-item-trend">${this.getTrendIndicator(item)}</div>`;
+                }
+                break;
+            case 'media_player':
+                if (item.media_title) {
+                    return `<div class="grid-item-media">${item.media_title}</div>`;
+                }
+                break;
+        }
+        return '';
+    }
+
     getGridItemHTML(item) {
         const stateText = this.getStateText(item);
         const actionButtons = this.getGridActionButtons(item);
+        const favoriteIcon = this.isFavorite(item.id) ? '⭐' : '☆';
+        const additionalInfo = this.getAdditionalInfo(item);
         
         return `
             <div class="grid-item-header">
                 <div class="grid-item-icon">${item.icon}</div>
+                ${this.config?.enable_favorites !== false ? 
+                    `<div class="grid-item-favorite" onclick="event.stopPropagation(); this.getRootNode().host.toggleFavorite('${item.id}')">${favoriteIcon}</div>` 
+                    : ''}
                 <div class="grid-item-actions">${actionButtons}</div>
             </div>
             <div class="grid-item-info">
                 <div class="grid-item-name">${item.name}</div>
                 <div class="grid-item-state">${stateText}</div>
+                ${additionalInfo}
             </div>
         `;
     }
@@ -2001,8 +2000,12 @@ class FastSearchCard extends HTMLElement {
     getItemHTML(item) {
         const stateText = this.getStateText(item);
         const actionButtons = this.getActionButtons(item);
+        const favoriteIcon = this.isFavorite(item.id) ? '⭐' : '☆';
         
         return `
+            ${this.config?.enable_favorites !== false ? 
+                `<div class="item-favorite" onclick="event.stopPropagation(); this.getRootNode().host.toggleFavorite('${item.id}')">${favoriteIcon}</div>` 
+                : ''}
             <div class="item-icon">${item.icon}</div>
             <div class="item-info">
                 <div class="item-name">${item.name}</div>
@@ -2039,8 +2042,6 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    // INDIVIDUELLES MORE-INFO DIALOG
-
     handleItemClick(item, event) {
         event.stopPropagation();
         
@@ -2050,573 +2051,26 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // Individuelles More-Info Dialog öffnen
-        this.openCustomMoreInfo(item);
-    }
-
-    openCustomMoreInfo(item) {
-        this.createMoreInfoDialog(item);
-    }
-
-    createMoreInfoDialog(item) {
-        // Vorhandenes Dialog entfernen
-        const existingOverlay = this.shadowRoot.querySelector('.more-info-overlay');
-        if (existingOverlay) {
-            existingOverlay.remove();
+        // Multi-select handling
+        if (this.config?.enable_multi_select && (event.ctrlKey || event.metaKey)) {
+            const itemElement = event.currentTarget;
+            const itemId = item.id;
+            this.toggleItemSelection(itemId, itemElement);
+            return;
         }
         
-        const overlay = document.createElement('div');
-        overlay.className = 'more-info-overlay';
-        overlay.innerHTML = this.getMoreInfoHTML(item);
-        
-        // Event Listeners
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                this.closeMoreInfo();
-            }
-        });
-        
-        const closeBtn = overlay.querySelector('.more-info-close');
-        closeBtn.addEventListener('click', () => this.closeMoreInfo());
-        
-        // Control Buttons
-        this.setupMoreInfoControls(overlay, item);
-        
-        // Dialog anzeigen
-        this.shadowRoot.appendChild(overlay);
-        
-        // Animation starten
-        requestAnimationFrame(() => {
-            overlay.classList.add('active');
-        });
+        // Standard action
+        this.executeDefaultAction(item);
     }
 
-    getMoreInfoHTML(item) {
-        const stateInfo = this.getStateInfo(item);
-        const controls = this.getControlsHTML(item);
-        const attributes = this.getAttributesHTML(item);
-        
-        return `
-            <div class="more-info-dialog">
-                <div class="more-info-header">
-                    <div class="more-info-icon">${item.icon}</div>
-                    <div class="more-info-title">
-                        <h2 class="more-info-name">${item.name}</h2>
-                        <p class="more-info-type">${this.getTypeDisplayName(item)} • ${item.room}</p>
-                    </div>
-                    <button class="more-info-close">×</button>
-                </div>
-                
-                <div class="more-info-content">
-                    ${stateInfo}
-                    ${controls}
-                    ${attributes}
-                </div>
-            </div>
-        `;
-    }
-
-    getStateInfo(item) {
-        const stateClass = ['on', 'playing', 'open', 'active'].includes(item.state) ? 'on' : 'off';
-        const stateText = this.getDetailedStateText(item);
-        
-        return `
-            <div class="more-info-section">
-                <h3 class="section-title">🔍 Aktueller Status</h3>
-                <div class="state-display">
-                    <div class="state-value">
-                        ${stateText.value}
-                        ${stateText.unit ? `<span class="state-unit">${stateText.unit}</span>` : ''}
-                    </div>
-                    <div class="state-badge ${stateClass}">${stateText.status}</div>
-                </div>
-            </div>
-        `;
-    }
-
-    getControlsHTML(item) {
-        if (item.itemType !== 'entity') {
-            return this.getNonEntityControls(item);
-        }
-        
-        switch (item.type) {
-            case 'light':
-                return this.getLightControls(item);
-            case 'climate':
-                return this.getClimateControls(item);
-            case 'cover':
-                return this.getCoverControls(item);
-            case 'media_player':
-                return this.getMediaControls(item);
-            case 'switch':
-            case 'fan':
-                return this.getBasicControls(item);
-            default:
-                return '';
-        }
-    }
-
-    getLightControls(item) {
-        const brightness = item.brightness || 0;
-        const isOn = item.state === 'on';
-        
-        return `
-            <div class="more-info-section">
-                <h3 class="section-title">💡 Steuerung</h3>
-                <div class="control-section">
-                    <button class="control-button" data-action="toggle">
-                        ${isOn ? '💡 Ausschalten' : '🔆 Einschalten'}
-                    </button>
-                </div>
-                ${isOn ? `
-                    <div class="slider-control">
-                        <div class="slider-label">
-                            <span>Helligkeit</span>
-                            <span>${brightness}%</span>
-                        </div>
-                        <input type="range" class="slider" data-control="brightness" 
-                               min="1" max="100" value="${brightness}">
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    }
-
-    getClimateControls(item) {
-        const currentTemp = item.current_temperature || '--';
-        const targetTemp = item.target_temperature || 20;
-        
-        return `
-            <div class="more-info-section">
-                <h3 class="section-title">🌡️ Temperaturregelung</h3>
-                <div class="slider-control">
-                    <div class="slider-label">
-                        <span>Zieltemperatur</span>
-                        <span>${targetTemp}°C</span>
-                    </div>
-                    <input type="range" class="slider" data-control="temperature" 
-                           min="10" max="30" step="0.5" value="${targetTemp}">
-                </div>
-                <div class="control-section" style="margin-top: 16px;">
-                    <button class="control-button secondary" data-action="heat">🔥 Heizen</button>
-                    <button class="control-button secondary" data-action="cool">❄️ Kühlen</button>
-                    <button class="control-button secondary" data-action="off">⏹️ Aus</button>
-                </div>
-            </div>
-        `;
-    }
-
-    getCoverControls(item) {
-        const position = item.position || 0;
-        
-        return `
-            <div class="more-info-section">
-                <h3 class="section-title">🪟 Rollladensteuerung</h3>
-                <div class="control-section">
-                    <button class="control-button" data-action="open">⬆️ Öffnen</button>
-                    <button class="control-button secondary" data-action="stop">⏹️ Stopp</button>
-                    <button class="control-button" data-action="close">⬇️ Schließen</button>
-                </div>
-                <div class="slider-control">
-                    <div class="slider-label">
-                        <span>Position</span>
-                        <span>${position}%</span>
-                    </div>
-                    <input type="range" class="slider" data-control="position" 
-                           min="0" max="100" value="${position}">
-                </div>
-            </div>
-        `;
-    }
-
-    getMediaControls(item) {
-        const volume = item.volume || 0;
-        const isPlaying = item.state === 'playing';
-        
-        return `
-            <div class="more-info-section">
-                <h3 class="section-title">📺 Mediensteuerung</h3>
-                <div class="control-section">
-                    <button class="control-button" data-action="play_pause">
-                        ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
-                    </button>
-                    <button class="control-button secondary" data-action="previous">⏮️</button>
-                    <button class="control-button secondary" data-action="next">⏭️</button>
-                </div>
-                <div class="slider-control">
-                    <div class="slider-label">
-                        <span>Lautstärke</span>
-                        <span>${volume}%</span>
-                    </div>
-                    <input type="range" class="slider" data-control="volume" 
-                           min="0" max="100" value="${volume}">
-                </div>
-            </div>
-        `;
-    }
-
-    getBasicControls(item) {
-        const isOn = item.state === 'on';
-        
-        return `
-            <div class="more-info-section">
-                <h3 class="section-title">🔌 Steuerung</h3>
-                <div class="control-section">
-                    <button class="control-button" data-action="toggle">
-                        ${isOn ? '⏹️ Ausschalten' : '▶️ Einschalten'}
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    getNonEntityControls(item) {
-        switch (item.itemType) {
-            case 'automation':
-                return `
-                    <div class="more-info-section">
-                        <h3 class="section-title">🤖 Automation Steuerung</h3>
-                        <div class="control-section">
-                            <button class="control-button" data-action="trigger">🚀 Jetzt ausführen</button>
-                            <button class="control-button secondary" data-action="toggle">
-                                ${item.state === 'on' ? '⏸️ Deaktivieren' : '▶️ Aktivieren'}
-                            </button>
-                        </div>
-                    </div>
-                `;
-            case 'script':
-                return `
-                    <div class="more-info-section">
-                        <h3 class="section-title">📜 Skript Steuerung</h3>
-                        <div class="control-section">
-                            <button class="control-button" data-action="run">▶️ Skript ausführen</button>
-                        </div>
-                    </div>
-                `;
-            case 'scene':
-                return `
-                    <div class="more-info-section">
-                        <h3 class="section-title">🎭 Szene Steuerung</h3>
-                        <div class="control-section">
-                            <button class="control-button" data-action="activate">🎬 Szene aktivieren</button>
-                        </div>
-                    </div>
-                `;
-            default:
-                return '';
-        }
-    }
-
-    getAttributesHTML(item) {
-        const importantAttributes = this.getImportantAttributes(item);
-        
-        if (importantAttributes.length === 0) return '';
-        
-        const attributeItems = importantAttributes.map(attr => `
-            <div class="attribute-item">
-                <div class="attribute-label">${attr.label}</div>
-                <div class="attribute-value">${attr.value}</div>
-            </div>
-        `).join('');
-        
-        return `
-            <div class="more-info-section">
-                <h3 class="section-title">📊 Details</h3>
-                <div class="attribute-grid">
-                    ${attributeItems}
-                </div>
-            </div>
-        `;
-    }
-
-    getImportantAttributes(item) {
-        const attributes = [];
-        
-        // Allgemeine Attribute
-        attributes.push({
-            label: 'Entity ID',
-            value: item.id
-        });
-        
-        if (item.attributes.last_changed) {
-            attributes.push({
-                label: 'Zuletzt geändert',
-                value: new Date(item.attributes.last_changed).toLocaleString('de-DE')
-            });
-        }
-        
-        // Spezifische Attribute je nach Typ
-        switch (item.type) {
-            case 'light':
-                if (item.attributes.color_temp) {
-                    attributes.push({
-                        label: 'Farbtemperatur',
-                        value: `${item.attributes.color_temp} mired`
-                    });
-                }
-                if (item.attributes.rgb_color) {
-                    attributes.push({
-                        label: 'RGB Farbe',
-                        value: `rgb(${item.attributes.rgb_color.join(', ')})`
-                    });
-                }
-                break;
-                
-            case 'sensor':
-                if (item.attributes.device_class) {
-                    attributes.push({
-                        label: 'Sensor Typ',
-                        value: item.attributes.device_class
-                    });
-                }
-                break;
-                
-            case 'media_player':
-                if (item.attributes.media_title) {
-                    attributes.push({
-                        label: 'Aktueller Titel',
-                        value: item.attributes.media_title
-                    });
-                }
-                if (item.attributes.media_artist) {
-                    attributes.push({
-                        label: 'Künstler',
-                        value: item.attributes.media_artist
-                    });
-                }
-                break;
-        }
-        
-        return attributes;
-    }
-
-    setupMoreInfoControls(overlay, item) {
-        // Control Buttons
-        const controlButtons = overlay.querySelectorAll('[data-action]');
-        controlButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const action = button.getAttribute('data-action');
-                this.executeMoreInfoAction(item, action, button);
-            });
-        });
-        
-        // Sliders
-        const sliders = overlay.querySelectorAll('[data-control]');
-        sliders.forEach(slider => {
-            slider.addEventListener('input', (e) => {
-                this.handleSliderChange(item, slider.getAttribute('data-control'), e.target.value);
-            });
-        });
-    }
-
-    executeMoreInfoAction(item, action, button) {
-        // Visual Feedback
-        const originalText = button.innerHTML;
-        button.innerHTML = '⏳ Wird ausgeführt...';
-        button.disabled = true;
-        
-        // Action ausführen
-        this.executeAction(item, action).then(() => {
-            // Button zurücksetzen
-            setTimeout(() => {
-                button.innerHTML = originalText;
-                button.disabled = false;
-                
-                // Dialog-Inhalt aktualisieren
-                this.updateMoreInfoContent(item);
-            }, 1000);
-        });
-    }
-
-    handleSliderChange(item, control, value) {
+    executeAction(item, action, buttonElement) {
         if (!this._hass) return;
         
-        let serviceData = { entity_id: item.id };
+        // Show loading state
+        const originalText = buttonElement.innerHTML;
+        buttonElement.innerHTML = '⏳';
+        buttonElement.disabled = true;
         
-        switch (control) {
-            case 'brightness':
-                serviceData.brightness_pct = parseInt(value);
-                this._hass.callService('light', 'turn_on', serviceData);
-                break;
-                
-            case 'temperature':
-                serviceData.temperature = parseFloat(value);
-                this._hass.callService('climate', 'set_temperature', serviceData);
-                break;
-                
-            case 'position':
-                serviceData.position = parseInt(value);
-                this._hass.callService('cover', 'set_cover_position', serviceData);
-                break;
-                
-            case 'volume':
-                serviceData.volume_level = parseInt(value) / 100;
-                this._hass.callService('media_player', 'volume_set', serviceData);
-                break;
-        }
-        
-        // Label aktualisieren
-        const slider = this.shadowRoot.querySelector(`[data-control="${control}"]`);
-        const label = slider.parentNode.querySelector('.slider-label span:last-child');
-        if (label) {
-            const unit = control === 'temperature' ? '°C' : control === 'volume' || control === 'brightness' || control === 'position' ? '%' : '';
-            label.textContent = value + unit;
-        }
-    }
-
-    updateMoreInfoContent(item) {
-        // Aktuelle Item-Daten aktualisieren
-        const currentState = this._hass.states[item.id];
-        if (currentState) {
-            Object.assign(item, {
-                state: currentState.state,
-                attributes: currentState.attributes
-            });
-            
-            // Spezifische Attribute neu berechnen
-            const domain = item.id.split('.')[0];
-            this.addDomainSpecificAttributes(item, domain, currentState);
-        }
-        
-        // Dialog-Inhalt neu erstellen
-        const dialog = this.shadowRoot.querySelector('.more-info-dialog .more-info-content');
-        if (dialog) {
-            const stateInfo = this.getStateInfo(item);
-            const controls = this.getControlsHTML(item);
-            const attributes = this.getAttributesHTML(item);
-            
-            dialog.innerHTML = stateInfo + controls + attributes;
-            this.setupMoreInfoControls(this.shadowRoot.querySelector('.more-info-overlay'), item);
-        }
-    }
-
-    closeMoreInfo() {
-        const overlay = this.shadowRoot.querySelector('.more-info-overlay');
-        if (overlay) {
-            overlay.classList.remove('active');
-            setTimeout(() => {
-                overlay.remove();
-            }, 300);
-        }
-    }
-
-    getDetailedStateText(item) {
-        switch (item.itemType) {
-            case 'entity':
-                return this.getEntityDetailedState(item);
-            case 'automation':
-                return {
-                    value: item.state === 'on' ? 'Aktiv' : 'Inaktiv',
-                    status: item.state === 'on' ? 'Läuft' : 'Pausiert',
-                    unit: ''
-                };
-            case 'script':
-                return {
-                    value: item.state === 'on' ? 'Läuft' : 'Bereit',
-                    status: item.state === 'on' ? 'Aktiv' : 'Wartend',
-                    unit: ''
-                };
-            case 'scene':
-                return {
-                    value: 'Verfügbar',
-                    status: 'Bereit',
-                    unit: ''
-                };
-            default:
-                return {
-                    value: item.state,
-                    status: 'Unbekannt',
-                    unit: ''
-                };
-        }
-    }
-
-    getEntityDetailedState(item) {
-        switch (item.type) {
-            case 'light':
-                if (item.state === 'on') {
-                    return {
-                        value: item.brightness || 0,
-                        unit: '%',
-                        status: 'An'
-                    };
-                }
-                return { value: 'Aus', status: 'Aus', unit: '' };
-                
-            case 'climate':
-                return {
-                    value: item.current_temperature || '--',
-                    unit: '°C',
-                    status: `Ziel: ${item.target_temperature || '--'}°C`
-                };
-                
-            case 'sensor':
-                return {
-                    value: item.state,
-                    unit: item.attributes.unit_of_measurement || '',
-                    status: 'Sensor'
-                };
-                
-            case 'media_player':
-                if (item.state === 'playing') {
-                    return {
-                        value: 'Spielt',
-                        status: item.media_title || 'Unbekannt',
-                        unit: ''
-                    };
-                }
-                return {
-                    value: item.state === 'paused' ? 'Pausiert' : 'Aus',
-                    status: 'Bereit',
-                    unit: ''
-                };
-                
-            default:
-                return {
-                    value: item.state,
-                    status: item.state === 'on' ? 'An' : 'Aus',
-                    unit: ''
-                };
-        }
-    }
-
-    getTypeDisplayName(item) {
-        const typeMap = {
-            'entity': {
-                'light': 'Licht',
-                'switch': 'Schalter',
-                'climate': 'Klimaanlage',
-                'cover': 'Rolladen',
-                'fan': 'Ventilator',
-                'sensor': 'Sensor',
-                'media_player': 'Media Player'
-            },
-            'automation': 'Automation',
-            'script': 'Skript',
-            'scene': 'Szene'
-        };
-        
-        if (item.itemType === 'entity') {
-            return typeMap.entity[item.type] || item.type;
-        }
-        
-        return typeMap[item.itemType] || item.itemType;
-    }
-
-    // ENDE MORE-INFO DIALOG
-
-    executeAction(item, action, buttonElement = null) {
-        if (!this._hass) return Promise.resolve();
-        
-        // Loading state für den Button anzeigen (falls Button übergeben wird)
-        let originalText = '';
-        if (buttonElement) {
-            originalText = buttonElement.innerHTML;
-            buttonElement.innerHTML = this.showLoadingDots(originalText.length > 2 ? '⏳' : originalText);
-            buttonElement.disabled = true;
-        }
-        
-        // Action ausführen
         let serviceCall;
         switch (action) {
             case 'toggle':
@@ -2639,82 +2093,32 @@ class FastSearchCard extends HTMLElement {
             case 'activate':
                 serviceCall = this._hass.callService('scene', 'turn_on', { entity_id: item.id });
                 break;
-                
-            // Erweiterte Actions für More-Info Dialog
-            case 'open':
-                serviceCall = this._hass.callService('cover', 'open_cover', { entity_id: item.id });
-                break;
-                
-            case 'close':
-                serviceCall = this._hass.callService('cover', 'close_cover', { entity_id: item.id });
-                break;
-                
-            case 'stop':
-                serviceCall = this._hass.callService('cover', 'stop_cover', { entity_id: item.id });
-                break;
-                
-            case 'play_pause':
-                serviceCall = this._hass.callService('media_player', 'media_play_pause', { entity_id: item.id });
-                break;
-                
-            case 'previous':
-                serviceCall = this._hass.callService('media_player', 'media_previous_track', { entity_id: item.id });
-                break;
-                
-            case 'next':
-                serviceCall = this._hass.callService('media_player', 'media_next_track', { entity_id: item.id });
-                break;
-                
-            case 'heat':
-                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
-                    entity_id: item.id, 
-                    hvac_mode: 'heat' 
-                });
-                break;
-                
-            case 'cool':
-                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
-                    entity_id: item.id, 
-                    hvac_mode: 'cool' 
-                });
-                break;
-                
-            case 'off':
-                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
-                    entity_id: item.id, 
-                    hvac_mode: 'off' 
-                });
-                break;
         }
         
-        // Promise zurückgeben für More-Info Dialog
-        if (serviceCall) {
-            return serviceCall.then(() => {
-                // Loading state nach kurzer Zeit entfernen
-                if (buttonElement) {
-                    setTimeout(() => {
-                        buttonElement.innerHTML = originalText;
-                        buttonElement.disabled = false;
-                    }, 1000);
+        // Restore button after delay
+        setTimeout(() => {
+            buttonElement.innerHTML = originalText;
+            buttonElement.disabled = false;
+        }, 1000);
+    }
+
+    executeDefaultAction(item) {
+        switch (item.itemType) {
+            case 'automation':
+                this.executeAction(item, 'trigger', { innerHTML: '', disabled: false });
+                break;
+            case 'script':
+                this.executeAction(item, 'run', { innerHTML: '', disabled: false });
+                break;
+            case 'scene':
+                this.executeAction(item, 'activate', { innerHTML: '', disabled: false });
+                break;
+            case 'entity':
+                if (['light', 'switch', 'fan', 'media_player'].includes(item.type)) {
+                    this.executeAction(item, 'toggle', { innerHTML: '', disabled: false });
                 }
-            }).catch((error) => {
-                console.error('Service call failed:', error);
-                if (buttonElement) {
-                    buttonElement.innerHTML = originalText;
-                    buttonElement.disabled = false;
-                }
-            });
+                break;
         }
-        
-        // Fallback wenn kein Service Call
-        if (buttonElement) {
-            setTimeout(() => {
-                buttonElement.innerHTML = originalText;
-                buttonElement.disabled = false;
-            }, 1000);
-        }
-        
-        return Promise.resolve();
     }
 
     getStateText(item) {
@@ -2833,10 +2237,13 @@ class FastSearchCard extends HTMLElement {
         return {
             title: "Suchen",
             show_unavailable: false,
-            show_attributes: true,
-            show_controls: true,
-            show_history: false,
-            custom_actions: [],
+            enable_favorites: true,
+            enable_keyboard_nav: true,
+            enable_multi_select: true,
+            default_view: 'list',
+            items_per_row: 4,
+            show_room_headers: true,
+            animation_speed: 'normal',
             entities: [
                 {
                     entity: "light.wohnzimmer_decke",
@@ -2854,12 +2261,12 @@ customElements.define('fast-search-card', FastSearchCard);
 window.customCards = window.customCards || [];
 window.customCards.push({
     type: 'fast-search-card',
-    name: 'Fast Search Card',
-    description: 'Eine universelle Suchkarte für Home Assistant - Geräte, Automationen, Skripte und Szenen mit individuellem More-Info Dialog'
+    name: 'Fast Search Card - Enhanced',
+    description: 'Eine erweiterte universelle Suchkarte für Home Assistant mit Favoriten, Keyboard-Navigation und Multi-Select'
 });
 
 console.info(
-    `%c FAST-SEARCH-CARD %c v3.1.0 `,
+    `%c FAST-SEARCH-CARD-ENHANCED %c v4.0.0 `,
     'color: orange; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: dimgray'
 );
