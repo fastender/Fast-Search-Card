@@ -12,6 +12,14 @@ class FastSearchCard extends HTMLElement {
             throw new Error('Konfiguration ist erforderlich');
         }
         
+        // More-Info Dialog Konfiguration
+        this.moreInfoConfig = {
+            showAttributes: config.show_attributes !== false, // Standard: true
+            showControls: config.show_controls !== false,     // Standard: true
+            showHistory: config.show_history === true,        // Standard: false
+            customActions: config.custom_actions || []        // Benutzerdefinierte Aktionen
+        };
+        
         // Entities können entweder als Array oder automatisch geladen werden
         this.useManualEntities = config.entities && Array.isArray(config.entities);
         
@@ -741,6 +749,315 @@ class FastSearchCard extends HTMLElement {
                     background: #0056b3;
                     border-color: #0056b3;
                 }
+
+                /* More-Info Dialog Styles */
+                .more-info-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(8px);
+                    z-index: 1000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                    padding: 20px;
+                    box-sizing: border-box;
+                }
+
+                .more-info-overlay.active {
+                    opacity: 1;
+                    visibility: visible;
+                }
+
+                .more-info-dialog {
+                    background: white;
+                    border-radius: 16px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    max-width: 500px;
+                    width: 100%;
+                    max-height: 80vh;
+                    overflow: hidden;
+                    transform: scale(0.9) translateY(20px);
+                    transition: all 0.3s ease;
+                    position: relative;
+                }
+
+                .more-info-overlay.active .more-info-dialog {
+                    transform: scale(1) translateY(0);
+                }
+
+                .more-info-header {
+                    background: linear-gradient(135deg, #007aff, #0056b3);
+                    color: white;
+                    padding: 24px;
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                }
+
+                .more-info-close {
+                    position: absolute;
+                    top: 16px;
+                    right: 16px;
+                    background: rgba(255, 255, 255, 0.2);
+                    border: none;
+                    border-radius: 50%;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-size: 18px;
+                }
+
+                .more-info-close:hover {
+                    background: rgba(255, 255, 255, 0.3);
+                    transform: scale(1.1);
+                }
+
+                .more-info-icon {
+                    font-size: 32px;
+                    background: rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
+                    width: 60px;
+                    height: 60px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+
+                .more-info-title {
+                    flex: 1;
+                }
+
+                .more-info-name {
+                    font-size: 20px;
+                    font-weight: 600;
+                    margin: 0;
+                    line-height: 1.2;
+                }
+
+                .more-info-type {
+                    font-size: 14px;
+                    opacity: 0.8;
+                    margin: 4px 0 0 0;
+                }
+
+                .more-info-content {
+                    padding: 0;
+                    max-height: calc(80vh - 120px);
+                    overflow-y: auto;
+                }
+
+                .more-info-section {
+                    padding: 24px;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+
+                .more-info-section:last-child {
+                    border-bottom: none;
+                }
+
+                .section-title {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #333;
+                    margin: 0 0 16px 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .state-display {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    margin-bottom: 20px;
+                }
+
+                .state-value {
+                    font-size: 28px;
+                    font-weight: 700;
+                    color: #007aff;
+                    flex: 1;
+                }
+
+                .state-unit {
+                    font-size: 16px;
+                    color: #666;
+                    font-weight: 400;
+                }
+
+                .state-badge {
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .state-badge.on {
+                    background: #e3f2fd;
+                    color: #1976d2;
+                }
+
+                .state-badge.off {
+                    background: #f5f5f5;
+                    color: #666;
+                }
+
+                .attribute-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 16px;
+                }
+
+                .attribute-item {
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 16px;
+                    border-left: 4px solid #007aff;
+                }
+
+                .attribute-label {
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: #666;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 4px;
+                }
+
+                .attribute-value {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #333;
+                    word-break: break-word;
+                }
+
+                .control-section {
+                    display: flex;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                }
+
+                .control-button {
+                    flex: 1;
+                    min-width: 120px;
+                    padding: 12px 20px;
+                    background: #007aff;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+
+                .control-button:hover {
+                    background: #0056b3;
+                    transform: translateY(-1px);
+                }
+
+                .control-button.secondary {
+                    background: #f8f9fa;
+                    color: #666;
+                    border: 1px solid #ddd;
+                }
+
+                .control-button.secondary:hover {
+                    background: #e9ecef;
+                    color: #333;
+                }
+
+                .slider-control {
+                    margin-top: 16px;
+                }
+
+                .slider-label {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 8px;
+                    font-size: 14px;
+                    color: #666;
+                }
+
+                .slider {
+                    width: 100%;
+                    height: 6px;
+                    border-radius: 3px;
+                    background: #ddd;
+                    outline: none;
+                    appearance: none;
+                    cursor: pointer;
+                }
+
+                .slider::-webkit-slider-thumb {
+                    appearance: none;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background: #007aff;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+                }
+
+                .slider::-moz-range-thumb {
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background: #007aff;
+                    cursor: pointer;
+                    border: none;
+                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+                }
+
+                @media (max-width: 768px) {
+                    .more-info-overlay {
+                        padding: 10px;
+                    }
+                    
+                    .more-info-dialog {
+                        max-height: 90vh;
+                    }
+                    
+                    .more-info-header {
+                        padding: 20px;
+                    }
+                    
+                    .more-info-section {
+                        padding: 20px;
+                    }
+                    
+                    .attribute-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .control-section {
+                        flex-direction: column;
+                    }
+                    
+                    .control-button {
+                        min-width: auto;
+                    }
+                }
             </style>
             
             <div class="search-container">
@@ -904,6 +1221,13 @@ class FastSearchCard extends HTMLElement {
         // View Toggle Event Listeners
         this.shadowRoot.getElementById('listViewBtn').addEventListener('click', () => this.setView('list'));
         this.shadowRoot.getElementById('gridViewBtn').addEventListener('click', () => this.setView('grid'));
+        
+        // Keyboard Event Listener für ESC-Taste
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.shadowRoot.querySelector('.more-info-overlay.active')) {
+                this.closeMoreInfo();
+            }
+        });
         
         this.setupChipFilters();
         this.updateSearchUI();
@@ -1715,8 +2039,9 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+    // INDIVIDUELLES MORE-INFO DIALOG
+
     handleItemClick(item, event) {
-        // Event delegation für Action Buttons
         event.stopPropagation();
         
         if (event.target.classList.contains('action-button') || event.target.classList.contains('grid-action-button')) {
@@ -1725,12 +2050,563 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // Standard-Aktion beim Klick auf das Item
-        this.executeDefaultAction(item);
+        // Individuelles More-Info Dialog öffnen
+        this.openCustomMoreInfo(item);
     }
 
-    executeAction(item, action) {
+    openCustomMoreInfo(item) {
+        this.createMoreInfoDialog(item);
+    }
+
+    createMoreInfoDialog(item) {
+        // Vorhandenes Dialog entfernen
+        const existingOverlay = this.shadowRoot.querySelector('.more-info-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'more-info-overlay';
+        overlay.innerHTML = this.getMoreInfoHTML(item);
+        
+        // Event Listeners
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                this.closeMoreInfo();
+            }
+        });
+        
+        const closeBtn = overlay.querySelector('.more-info-close');
+        closeBtn.addEventListener('click', () => this.closeMoreInfo());
+        
+        // Control Buttons
+        this.setupMoreInfoControls(overlay, item);
+        
+        // Dialog anzeigen
+        this.shadowRoot.appendChild(overlay);
+        
+        // Animation starten
+        requestAnimationFrame(() => {
+            overlay.classList.add('active');
+        });
+    }
+
+    getMoreInfoHTML(item) {
+        const stateInfo = this.getStateInfo(item);
+        const controls = this.getControlsHTML(item);
+        const attributes = this.getAttributesHTML(item);
+        
+        return `
+            <div class="more-info-dialog">
+                <div class="more-info-header">
+                    <div class="more-info-icon">${item.icon}</div>
+                    <div class="more-info-title">
+                        <h2 class="more-info-name">${item.name}</h2>
+                        <p class="more-info-type">${this.getTypeDisplayName(item)} • ${item.room}</p>
+                    </div>
+                    <button class="more-info-close">×</button>
+                </div>
+                
+                <div class="more-info-content">
+                    ${stateInfo}
+                    ${controls}
+                    ${attributes}
+                </div>
+            </div>
+        `;
+    }
+
+    getStateInfo(item) {
+        const stateClass = ['on', 'playing', 'open', 'active'].includes(item.state) ? 'on' : 'off';
+        const stateText = this.getDetailedStateText(item);
+        
+        return `
+            <div class="more-info-section">
+                <h3 class="section-title">🔍 Aktueller Status</h3>
+                <div class="state-display">
+                    <div class="state-value">
+                        ${stateText.value}
+                        ${stateText.unit ? `<span class="state-unit">${stateText.unit}</span>` : ''}
+                    </div>
+                    <div class="state-badge ${stateClass}">${stateText.status}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    getControlsHTML(item) {
+        if (item.itemType !== 'entity') {
+            return this.getNonEntityControls(item);
+        }
+        
+        switch (item.type) {
+            case 'light':
+                return this.getLightControls(item);
+            case 'climate':
+                return this.getClimateControls(item);
+            case 'cover':
+                return this.getCoverControls(item);
+            case 'media_player':
+                return this.getMediaControls(item);
+            case 'switch':
+            case 'fan':
+                return this.getBasicControls(item);
+            default:
+                return '';
+        }
+    }
+
+    getLightControls(item) {
+        const brightness = item.brightness || 0;
+        const isOn = item.state === 'on';
+        
+        return `
+            <div class="more-info-section">
+                <h3 class="section-title">💡 Steuerung</h3>
+                <div class="control-section">
+                    <button class="control-button" data-action="toggle">
+                        ${isOn ? '💡 Ausschalten' : '🔆 Einschalten'}
+                    </button>
+                </div>
+                ${isOn ? `
+                    <div class="slider-control">
+                        <div class="slider-label">
+                            <span>Helligkeit</span>
+                            <span>${brightness}%</span>
+                        </div>
+                        <input type="range" class="slider" data-control="brightness" 
+                               min="1" max="100" value="${brightness}">
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    getClimateControls(item) {
+        const currentTemp = item.current_temperature || '--';
+        const targetTemp = item.target_temperature || 20;
+        
+        return `
+            <div class="more-info-section">
+                <h3 class="section-title">🌡️ Temperaturregelung</h3>
+                <div class="slider-control">
+                    <div class="slider-label">
+                        <span>Zieltemperatur</span>
+                        <span>${targetTemp}°C</span>
+                    </div>
+                    <input type="range" class="slider" data-control="temperature" 
+                           min="10" max="30" step="0.5" value="${targetTemp}">
+                </div>
+                <div class="control-section" style="margin-top: 16px;">
+                    <button class="control-button secondary" data-action="heat">🔥 Heizen</button>
+                    <button class="control-button secondary" data-action="cool">❄️ Kühlen</button>
+                    <button class="control-button secondary" data-action="off">⏹️ Aus</button>
+                </div>
+            </div>
+        `;
+    }
+
+    getCoverControls(item) {
+        const position = item.position || 0;
+        
+        return `
+            <div class="more-info-section">
+                <h3 class="section-title">🪟 Rollladensteuerung</h3>
+                <div class="control-section">
+                    <button class="control-button" data-action="open">⬆️ Öffnen</button>
+                    <button class="control-button secondary" data-action="stop">⏹️ Stopp</button>
+                    <button class="control-button" data-action="close">⬇️ Schließen</button>
+                </div>
+                <div class="slider-control">
+                    <div class="slider-label">
+                        <span>Position</span>
+                        <span>${position}%</span>
+                    </div>
+                    <input type="range" class="slider" data-control="position" 
+                           min="0" max="100" value="${position}">
+                </div>
+            </div>
+        `;
+    }
+
+    getMediaControls(item) {
+        const volume = item.volume || 0;
+        const isPlaying = item.state === 'playing';
+        
+        return `
+            <div class="more-info-section">
+                <h3 class="section-title">📺 Mediensteuerung</h3>
+                <div class="control-section">
+                    <button class="control-button" data-action="play_pause">
+                        ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                    </button>
+                    <button class="control-button secondary" data-action="previous">⏮️</button>
+                    <button class="control-button secondary" data-action="next">⏭️</button>
+                </div>
+                <div class="slider-control">
+                    <div class="slider-label">
+                        <span>Lautstärke</span>
+                        <span>${volume}%</span>
+                    </div>
+                    <input type="range" class="slider" data-control="volume" 
+                           min="0" max="100" value="${volume}">
+                </div>
+            </div>
+        `;
+    }
+
+    getBasicControls(item) {
+        const isOn = item.state === 'on';
+        
+        return `
+            <div class="more-info-section">
+                <h3 class="section-title">🔌 Steuerung</h3>
+                <div class="control-section">
+                    <button class="control-button" data-action="toggle">
+                        ${isOn ? '⏹️ Ausschalten' : '▶️ Einschalten'}
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    getNonEntityControls(item) {
+        switch (item.itemType) {
+            case 'automation':
+                return `
+                    <div class="more-info-section">
+                        <h3 class="section-title">🤖 Automation Steuerung</h3>
+                        <div class="control-section">
+                            <button class="control-button" data-action="trigger">🚀 Jetzt ausführen</button>
+                            <button class="control-button secondary" data-action="toggle">
+                                ${item.state === 'on' ? '⏸️ Deaktivieren' : '▶️ Aktivieren'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            case 'script':
+                return `
+                    <div class="more-info-section">
+                        <h3 class="section-title">📜 Skript Steuerung</h3>
+                        <div class="control-section">
+                            <button class="control-button" data-action="run">▶️ Skript ausführen</button>
+                        </div>
+                    </div>
+                `;
+            case 'scene':
+                return `
+                    <div class="more-info-section">
+                        <h3 class="section-title">🎭 Szene Steuerung</h3>
+                        <div class="control-section">
+                            <button class="control-button" data-action="activate">🎬 Szene aktivieren</button>
+                        </div>
+                    </div>
+                `;
+            default:
+                return '';
+        }
+    }
+
+    getAttributesHTML(item) {
+        const importantAttributes = this.getImportantAttributes(item);
+        
+        if (importantAttributes.length === 0) return '';
+        
+        const attributeItems = importantAttributes.map(attr => `
+            <div class="attribute-item">
+                <div class="attribute-label">${attr.label}</div>
+                <div class="attribute-value">${attr.value}</div>
+            </div>
+        `).join('');
+        
+        return `
+            <div class="more-info-section">
+                <h3 class="section-title">📊 Details</h3>
+                <div class="attribute-grid">
+                    ${attributeItems}
+                </div>
+            </div>
+        `;
+    }
+
+    getImportantAttributes(item) {
+        const attributes = [];
+        
+        // Allgemeine Attribute
+        attributes.push({
+            label: 'Entity ID',
+            value: item.id
+        });
+        
+        if (item.attributes.last_changed) {
+            attributes.push({
+                label: 'Zuletzt geändert',
+                value: new Date(item.attributes.last_changed).toLocaleString('de-DE')
+            });
+        }
+        
+        // Spezifische Attribute je nach Typ
+        switch (item.type) {
+            case 'light':
+                if (item.attributes.color_temp) {
+                    attributes.push({
+                        label: 'Farbtemperatur',
+                        value: `${item.attributes.color_temp} mired`
+                    });
+                }
+                if (item.attributes.rgb_color) {
+                    attributes.push({
+                        label: 'RGB Farbe',
+                        value: `rgb(${item.attributes.rgb_color.join(', ')})`
+                    });
+                }
+                break;
+                
+            case 'sensor':
+                if (item.attributes.device_class) {
+                    attributes.push({
+                        label: 'Sensor Typ',
+                        value: item.attributes.device_class
+                    });
+                }
+                break;
+                
+            case 'media_player':
+                if (item.attributes.media_title) {
+                    attributes.push({
+                        label: 'Aktueller Titel',
+                        value: item.attributes.media_title
+                    });
+                }
+                if (item.attributes.media_artist) {
+                    attributes.push({
+                        label: 'Künstler',
+                        value: item.attributes.media_artist
+                    });
+                }
+                break;
+        }
+        
+        return attributes;
+    }
+
+    setupMoreInfoControls(overlay, item) {
+        // Control Buttons
+        const controlButtons = overlay.querySelectorAll('[data-action]');
+        controlButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const action = button.getAttribute('data-action');
+                this.executeMoreInfoAction(item, action, button);
+            });
+        });
+        
+        // Sliders
+        const sliders = overlay.querySelectorAll('[data-control]');
+        sliders.forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                this.handleSliderChange(item, slider.getAttribute('data-control'), e.target.value);
+            });
+        });
+    }
+
+    executeMoreInfoAction(item, action, button) {
+        // Visual Feedback
+        const originalText = button.innerHTML;
+        button.innerHTML = '⏳ Wird ausgeführt...';
+        button.disabled = true;
+        
+        // Action ausführen
+        this.executeAction(item, action).then(() => {
+            // Button zurücksetzen
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                
+                // Dialog-Inhalt aktualisieren
+                this.updateMoreInfoContent(item);
+            }, 1000);
+        });
+    }
+
+    handleSliderChange(item, control, value) {
         if (!this._hass) return;
+        
+        let serviceData = { entity_id: item.id };
+        
+        switch (control) {
+            case 'brightness':
+                serviceData.brightness_pct = parseInt(value);
+                this._hass.callService('light', 'turn_on', serviceData);
+                break;
+                
+            case 'temperature':
+                serviceData.temperature = parseFloat(value);
+                this._hass.callService('climate', 'set_temperature', serviceData);
+                break;
+                
+            case 'position':
+                serviceData.position = parseInt(value);
+                this._hass.callService('cover', 'set_cover_position', serviceData);
+                break;
+                
+            case 'volume':
+                serviceData.volume_level = parseInt(value) / 100;
+                this._hass.callService('media_player', 'volume_set', serviceData);
+                break;
+        }
+        
+        // Label aktualisieren
+        const slider = this.shadowRoot.querySelector(`[data-control="${control}"]`);
+        const label = slider.parentNode.querySelector('.slider-label span:last-child');
+        if (label) {
+            const unit = control === 'temperature' ? '°C' : control === 'volume' || control === 'brightness' || control === 'position' ? '%' : '';
+            label.textContent = value + unit;
+        }
+    }
+
+    updateMoreInfoContent(item) {
+        // Aktuelle Item-Daten aktualisieren
+        const currentState = this._hass.states[item.id];
+        if (currentState) {
+            Object.assign(item, {
+                state: currentState.state,
+                attributes: currentState.attributes
+            });
+            
+            // Spezifische Attribute neu berechnen
+            const domain = item.id.split('.')[0];
+            this.addDomainSpecificAttributes(item, domain, currentState);
+        }
+        
+        // Dialog-Inhalt neu erstellen
+        const dialog = this.shadowRoot.querySelector('.more-info-dialog .more-info-content');
+        if (dialog) {
+            const stateInfo = this.getStateInfo(item);
+            const controls = this.getControlsHTML(item);
+            const attributes = this.getAttributesHTML(item);
+            
+            dialog.innerHTML = stateInfo + controls + attributes;
+            this.setupMoreInfoControls(this.shadowRoot.querySelector('.more-info-overlay'), item);
+        }
+    }
+
+    closeMoreInfo() {
+        const overlay = this.shadowRoot.querySelector('.more-info-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                overlay.remove();
+            }, 300);
+        }
+    }
+
+    getDetailedStateText(item) {
+        switch (item.itemType) {
+            case 'entity':
+                return this.getEntityDetailedState(item);
+            case 'automation':
+                return {
+                    value: item.state === 'on' ? 'Aktiv' : 'Inaktiv',
+                    status: item.state === 'on' ? 'Läuft' : 'Pausiert',
+                    unit: ''
+                };
+            case 'script':
+                return {
+                    value: item.state === 'on' ? 'Läuft' : 'Bereit',
+                    status: item.state === 'on' ? 'Aktiv' : 'Wartend',
+                    unit: ''
+                };
+            case 'scene':
+                return {
+                    value: 'Verfügbar',
+                    status: 'Bereit',
+                    unit: ''
+                };
+            default:
+                return {
+                    value: item.state,
+                    status: 'Unbekannt',
+                    unit: ''
+                };
+        }
+    }
+
+    getEntityDetailedState(item) {
+        switch (item.type) {
+            case 'light':
+                if (item.state === 'on') {
+                    return {
+                        value: item.brightness || 0,
+                        unit: '%',
+                        status: 'An'
+                    };
+                }
+                return { value: 'Aus', status: 'Aus', unit: '' };
+                
+            case 'climate':
+                return {
+                    value: item.current_temperature || '--',
+                    unit: '°C',
+                    status: `Ziel: ${item.target_temperature || '--'}°C`
+                };
+                
+            case 'sensor':
+                return {
+                    value: item.state,
+                    unit: item.attributes.unit_of_measurement || '',
+                    status: 'Sensor'
+                };
+                
+            case 'media_player':
+                if (item.state === 'playing') {
+                    return {
+                        value: 'Spielt',
+                        status: item.media_title || 'Unbekannt',
+                        unit: ''
+                    };
+                }
+                return {
+                    value: item.state === 'paused' ? 'Pausiert' : 'Aus',
+                    status: 'Bereit',
+                    unit: ''
+                };
+                
+            default:
+                return {
+                    value: item.state,
+                    status: item.state === 'on' ? 'An' : 'Aus',
+                    unit: ''
+                };
+        }
+    }
+
+    getTypeDisplayName(item) {
+        const typeMap = {
+            'entity': {
+                'light': 'Licht',
+                'switch': 'Schalter',
+                'climate': 'Klimaanlage',
+                'cover': 'Rolladen',
+                'fan': 'Ventilator',
+                'sensor': 'Sensor',
+                'media_player': 'Media Player'
+            },
+            'automation': 'Automation',
+            'script': 'Skript',
+            'scene': 'Szene'
+        };
+        
+        if (item.itemType === 'entity') {
+            return typeMap.entity[item.type] || item.type;
+        }
+        
+        return typeMap[item.itemType] || item.itemType;
+    }
+
+    // ENDE MORE-INFO DIALOG
+
+    executeAction(item, action) {
+        if (!this._hass) return Promise.resolve();
         
         // Loading state für den Button anzeigen
         const button = event.target;
@@ -1761,32 +2637,76 @@ class FastSearchCard extends HTMLElement {
             case 'activate':
                 serviceCall = this._hass.callService('scene', 'turn_on', { entity_id: item.id });
                 break;
+                
+            // Erweiterte Actions für More-Info Dialog
+            case 'open':
+                serviceCall = this._hass.callService('cover', 'open_cover', { entity_id: item.id });
+                break;
+                
+            case 'close':
+                serviceCall = this._hass.callService('cover', 'close_cover', { entity_id: item.id });
+                break;
+                
+            case 'stop':
+                serviceCall = this._hass.callService('cover', 'stop_cover', { entity_id: item.id });
+                break;
+                
+            case 'play_pause':
+                serviceCall = this._hass.callService('media_player', 'media_play_pause', { entity_id: item.id });
+                break;
+                
+            case 'previous':
+                serviceCall = this._hass.callService('media_player', 'media_previous_track', { entity_id: item.id });
+                break;
+                
+            case 'next':
+                serviceCall = this._hass.callService('media_player', 'media_next_track', { entity_id: item.id });
+                break;
+                
+            case 'heat':
+                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
+                    entity_id: item.id, 
+                    hvac_mode: 'heat' 
+                });
+                break;
+                
+            case 'cool':
+                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
+                    entity_id: item.id, 
+                    hvac_mode: 'cool' 
+                });
+                break;
+                
+            case 'off':
+                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
+                    entity_id: item.id, 
+                    hvac_mode: 'off' 
+                });
+                break;
         }
         
-        // Loading state nach kurzer Zeit entfernen
+        // Promise zurückgeben für More-Info Dialog
+        if (serviceCall) {
+            return serviceCall.then(() => {
+                // Loading state nach kurzer Zeit entfernen
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }, 1000);
+            }).catch((error) => {
+                console.error('Service call failed:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+        
+        // Fallback wenn kein Service Call
         setTimeout(() => {
             button.innerHTML = originalText;
             button.disabled = false;
         }, 1000);
-    }
-
-    executeDefaultAction(item) {
-        switch (item.itemType) {
-            case 'automation':
-                this.executeAction(item, 'trigger');
-                break;
-            case 'script':
-                this.executeAction(item, 'run');
-                break;
-            case 'scene':
-                this.executeAction(item, 'activate');
-                break;
-            case 'entity':
-                if (['light', 'switch', 'fan', 'media_player'].includes(item.type)) {
-                    this.executeAction(item, 'toggle');
-                }
-                break;
-        }
+        
+        return Promise.resolve();
     }
 
     getStateText(item) {
@@ -1905,6 +2825,10 @@ class FastSearchCard extends HTMLElement {
         return {
             title: "Suchen",
             show_unavailable: false,
+            show_attributes: true,
+            show_controls: true,
+            show_history: false,
+            custom_actions: [],
             entities: [
                 {
                     entity: "light.wohnzimmer_decke",
@@ -1923,11 +2847,11 @@ window.customCards = window.customCards || [];
 window.customCards.push({
     type: 'fast-search-card',
     name: 'Fast Search Card',
-    description: 'Eine universelle Suchkarte für Home Assistant - Geräte, Automationen, Skripte und Szenen'
+    description: 'Eine universelle Suchkarte für Home Assistant - Geräte, Automationen, Skripte und Szenen mit individuellem More-Info Dialog'
 });
 
 console.info(
-    `%c FAST-SEARCH-CARD %c v3.0.0 `,
+    `%c FAST-SEARCH-CARD %c v3.1.0 `,
     'color: orange; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: dimgray'
 );
