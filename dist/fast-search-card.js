@@ -2046,7 +2046,7 @@ class FastSearchCard extends HTMLElement {
         
         if (event.target.classList.contains('action-button') || event.target.classList.contains('grid-action-button')) {
             const action = event.target.getAttribute('data-action');
-            this.executeAction(item, action);
+            this.executeAction(item, action, event.target);
             return;
         }
         
@@ -2605,14 +2605,16 @@ class FastSearchCard extends HTMLElement {
 
     // ENDE MORE-INFO DIALOG
 
-    executeAction(item, action) {
+    executeAction(item, action, buttonElement = null) {
         if (!this._hass) return Promise.resolve();
         
-        // Loading state für den Button anzeigen
-        const button = event.target;
-        const originalText = button.innerHTML;
-        button.innerHTML = this.showLoadingDots(originalText.length > 2 ? '⏳' : originalText);
-        button.disabled = true;
+        // Loading state für den Button anzeigen (falls Button übergeben wird)
+        let originalText = '';
+        if (buttonElement) {
+            originalText = buttonElement.innerHTML;
+            buttonElement.innerHTML = this.showLoadingDots(originalText.length > 2 ? '⏳' : originalText);
+            buttonElement.disabled = true;
+        }
         
         // Action ausführen
         let serviceCall;
@@ -2689,22 +2691,28 @@ class FastSearchCard extends HTMLElement {
         if (serviceCall) {
             return serviceCall.then(() => {
                 // Loading state nach kurzer Zeit entfernen
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.disabled = false;
-                }, 1000);
+                if (buttonElement) {
+                    setTimeout(() => {
+                        buttonElement.innerHTML = originalText;
+                        buttonElement.disabled = false;
+                    }, 1000);
+                }
             }).catch((error) => {
                 console.error('Service call failed:', error);
-                button.innerHTML = originalText;
-                button.disabled = false;
+                if (buttonElement) {
+                    buttonElement.innerHTML = originalText;
+                    buttonElement.disabled = false;
+                }
             });
         }
         
         // Fallback wenn kein Service Call
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }, 1000);
+        if (buttonElement) {
+            setTimeout(() => {
+                buttonElement.innerHTML = originalText;
+                buttonElement.disabled = false;
+            }, 1000);
+        }
         
         return Promise.resolve();
     }
