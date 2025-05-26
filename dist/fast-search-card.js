@@ -263,6 +263,206 @@ class FastSearchCard extends HTMLElement {
                     color: white;
                 }
 
+                
+                
+                
+                .filter-popup-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(8px);
+                    z-index: 2000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                    padding: 20px;
+                    box-sizing: border-box;
+                }
+                
+                .filter-popup-overlay.active {
+                    opacity: 1;
+                    visibility: visible;
+                }
+                
+                .filter-popup {
+                    background: white;
+                    border-radius: 16px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    max-width: 600px;
+                    width: 100%;
+                    max-height: 80vh;
+                    overflow: hidden;
+                    transform: scale(0.9) translateY(20px);
+                    transition: all 0.3s ease;
+                    position: relative;
+                }
+                
+                .filter-popup-overlay.active .filter-popup {
+                    transform: scale(1) translateY(0);
+                }
+                
+                .filter-popup-header {
+                    background: #f8f9fa;
+                    padding: 20px 24px;
+                    border-bottom: 1px solid #e9ecef;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+                
+                .filter-popup-title {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #333;
+                    margin: 0;
+                }
+                
+                .filter-popup-close {
+                    background: none;
+                    border: none;
+                    font-size: 24px;
+                    color: #666;
+                    cursor: pointer;
+                    padding: 4px;
+                    border-radius: 4px;
+                    transition: background 0.2s;
+                }
+                
+                .filter-popup-close:hover {
+                    background: rgba(0, 0, 0, 0.1);
+                }
+                
+                .filter-popup-content {
+                    padding: 24px;
+                    max-height: calc(80vh - 140px);
+                    overflow-y: auto;
+                }
+                
+                .filter-section {
+                    margin-bottom: 32px;
+                }
+                
+                .filter-section:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .filter-section-title {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #666;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin: 0 0 16px 0;
+                }
+                
+                .filter-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 12px;
+                }
+                
+                .filter-option {
+                    background: #f8f9fa;
+                    border: 2px solid #e9ecef;
+                    border-radius: 12px;
+                    padding: 16px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                
+                .filter-option:hover {
+                    background: #e9ecef;
+                    border-color: #dee2e6;
+                }
+                
+                .filter-option.selected {
+                    background: rgba(66, 133, 244, 0.1);
+                    border-color: #4285f4;
+                    color: #4285f4;
+                }
+                
+                .filter-option-icon {
+                    font-size: 20px;
+                    flex-shrink: 0;
+                }
+                
+                .filter-option-info {
+                    flex: 1;
+                }
+                
+                .filter-option-name {
+                    font-weight: 500;
+                    font-size: 14px;
+                    margin-bottom: 2px;
+                }
+                
+                .filter-option-count {
+                    font-size: 12px;
+                    color: #666;
+                }
+                
+                .filter-option.selected .filter-option-count {
+                    color: #4285f4;
+                }
+                
+                .filter-popup-footer {
+                    background: #f8f9fa;
+                    padding: 16px 24px;
+                    border-top: 1px solid #e9ecef;
+                    display: flex;
+                    gap: 12px;
+                    justify-content: flex-end;
+                }
+                
+                .filter-popup-button {
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                
+                .filter-popup-button.secondary {
+                    background: white;
+                    color: #666;
+                    border: 1px solid #ddd;
+                }
+                
+                .filter-popup-button.secondary:hover {
+                    background: #f5f5f5;
+                }
+                
+                .filter-popup-button.primary {
+                    background: #4285f4;
+                    color: white;
+                }
+                
+                .filter-popup-button.primary:hover {
+                    background: #3367d6;
+                }
+                
+                @media (max-width: 768px) {
+                    .filter-popup {
+                        margin: 10px;
+                        max-height: 90vh;
+                    }
+                    
+                    .filter-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }                
+
 
                 
 
