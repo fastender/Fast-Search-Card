@@ -222,7 +222,7 @@ class FastSearchCard extends HTMLElement {
                 .filters {
                     padding: 0 24px 24px 24px;
                     background: #f8f9fa;
-                    display: none; /* Standardmäßig versteckt */
+                    display: block; /* Immer sichtbar statt display: none */
                 }
                 
                 .filter-row {
@@ -2020,7 +2020,8 @@ getQuickStats(item) {
         this.currentView = 'list'; // Neue Property für View-Mode
     
         this.tempSelectedType = '';
-        this.tempSelectedRooms = new Set();        
+        this.tempSelectedRooms = new Set();  
+        this.tempSelectedMainCategory = this.currentSearchType;
         
         // Definitionen für verschiedene Suchtypen
         this.searchTypeConfigs = {
