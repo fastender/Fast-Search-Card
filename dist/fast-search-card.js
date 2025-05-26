@@ -3753,32 +3753,276 @@ getQuickStats(item) {
 
     
     toggleFilterMenu() {
-        const filtersSection = this.shadowRoot.querySelector('.filters');
-        const filterButton = this.shadowRoot.getElementById('filterButton');
+        this.openFilterPopup();
+    }
+    
+    openFilterPopup() {
+        this.createFilterPopup();
+    }
+    
+    createFilterPopup() {
+        // Vorhandenes Popup entfernen
+        const existingPopup = this.shadowRoot.querySelector('.filter-popup-overlay');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
         
-        if (filtersSection.style.display === 'none' || !filtersSection.style.display) {
-            // Filter anzeigen
-            filtersSection.style.display = 'block';
-            filterButton.classList.add('active');
+        const overlay = document.createElement('div');
+        overlay.className = 'filter-popup-overlay';
+        overlay.innerHTML = this.getFilterPopupHTML();
+        
+        // Event Listeners
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                this.closeFilterPopup();
+            }
+        });
+        
+        // Setup Event Listeners
+        this.setupFilterPopupListeners(overlay);
+        
+        // Popup anzeigen
+        this.shadowRoot.appendChild(overlay);
+        
+        // Animation starten
+        requestAnimationFrame(() => {
+            overlay.classList.add('active');
+        });
+    }
+    
+    getFilterPopupHTML() {
+        const categories = this.getFilterCategories();
+        const rooms = this.getFilterRooms();
+        
+        return `
+            <div class="filter-popup">
+                <div class="filter-popup-header">
+                    <h2 class="filter-popup-title">Filter & Suche</h2>
+                    <button class="filter-popup-close">×</button>
+                </div>
+                
+                <div class="filter-popup-content">
+                    <div class="filter-section">
+                        <h3 class="filter-section-title">Kategorien</h3>
+                        <div class="filter-grid" id="categoryFilterGrid">
+                            ${categories.map(cat => this.getCategoryOptionHTML(cat)).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <h3 class="filter-section-title">Räume</h3>
+                        <div class="filter-grid" id="roomFilterGrid">
+                            ${rooms.map(room => this.getRoomOptionHTML(room)).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-popup-footer">
+                    <button class="filter-popup-button secondary" id="resetFilters">Zurücksetzen</button>
+                    <button class="filter-popup-button primary" id="applyFilters">Anwenden</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    getFilterCategories() {
+        const config = this.searchTypeConfigs[this.currentSearchType];
+        const categories = [...new Set(this.allItems.map(d => d.category))].sort();
+        
+        return [
+            {
+                id: '',
+                name: 'Alle Geräte',
+                icon: '🏠',
+                count: this.allItems.length,
+                selected: this.selectedType === ''
+            },
+            ...categories.map(cat => ({
+                id: cat,
+                name: config.categoryNames[cat] || cat,
+                icon: config.categoryIcons[cat] || '📱',
+                count: this.allItems.filter(d => d.category === cat).length,
+                selected: this.selectedType === cat
+            }))
+        ];
+    }
+    
+    getFilterRooms() {
+        const rooms = [...new Set(this.allItems.map(d => d.room))].sort();
+        
+        return [
+            {
+                id: '',
+                name: 'Alle Räume',
+                icon: '🏠',
+                count: this.allItems.length,
+                selected: this.selectedRooms.size === 0
+            },
+            ...rooms.map(room => ({
+                id: room,
+                name: room,
+                icon: this.getRoomIcon(room),
+                count: this.allItems.filter(d => d.room === room).length,
+                selected: this.selectedRooms.has(room)
+            }))
+        ];
+    }
+    
+    getRoomIcon(roomName) {
+        const iconMap = {
+            'Wohnzimmer': '🛋️',
+            'Schlafzimmer': '🛏️',
+            'Küche': '🍳',
+            'Bad': '🚿',
+            'Badezimmer': '🛁',
+            'Kinderzimmer': '🧸',
+            'Arbeitszimmer': '💻',
+            'Büro': '💼',
+            'Flur': '🚪',
+            'Keller': '🏠',
+            'Dachboden': '🏠',
+            'Garage': '🚗',
+            'Garten': '🌱',
+            'Balkon': '🌿',
+            'Terrasse': '🌞'
+        };
+        return iconMap[roomName] || '🏠';
+    }
+    
+    getCategoryOptionHTML(category) {
+        return `
+            <div class="filter-option ${category.selected ? 'selected' : ''}" data-type="category" data-value="${category.id}">
+                <div class="filter-option-icon">${category.icon}</div>
+                <div class="filter-option-info">
+                    <div class="filter-option-name">${category.name}</div>
+                    <div class="filter-option-count">${category.count} Verfügbar</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    getRoomOptionHTML(room) {
+        return `
+            <div class="filter-option ${room.selected ? 'selected' : ''}" data-type="room" data-value="${room.id}">
+                <div class="filter-option-icon">${room.icon}</div>
+                <div class="filter-option-info">
+                    <div class="filter-option-name">${room.name}</div>
+                    <div class="filter-option-count">${room.count} Geräte</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    setupFilterPopupListeners(overlay) {
+        // Close Button
+        const closeBtn = overlay.querySelector('.filter-popup-close');
+        closeBtn.addEventListener('click', () => this.closeFilterPopup());
+        
+        // Filter Options
+        const filterOptions = overlay.querySelectorAll('.filter-option');
+        filterOptions.forEach(option => {
+            option.addEventListener('click', () => this.handleFilterOptionClick(option));
+        });
+        
+        // Footer Buttons
+        const resetBtn = overlay.querySelector('#resetFilters');
+        const applyBtn = overlay.querySelector('#applyFilters');
+        
+        resetBtn.addEventListener('click', () => this.resetFilters());
+        applyBtn.addEventListener('click', () => this.applyPopupFilters());
+    }
+    
+    handleFilterOptionClick(option) {
+        const type = option.getAttribute('data-type');
+        const value = option.getAttribute('data-value');
+        
+        if (type === 'category') {
+            // Alle Category-Optionen deselektieren
+            const categoryOptions = option.parentNode.querySelectorAll('.filter-option');
+            categoryOptions.forEach(opt => opt.classList.remove('selected'));
             
-            // Smooth slide-in Animation
-            filtersSection.style.opacity = '0';
-            filtersSection.style.transform = 'translateY(-10px)';
-            filtersSection.style.transition = 'all 0.3s ease';
+            // Gewählte Option aktivieren
+            option.classList.add('selected');
+            this.tempSelectedType = value;
             
-            requestAnimationFrame(() => {
-                filtersSection.style.opacity = '1';
-                filtersSection.style.transform = 'translateY(0)';
-            });
-        } else {
-            // Filter verstecken
-            filtersSection.style.transition = 'all 0.3s ease';
-            filtersSection.style.opacity = '0';
-            filtersSection.style.transform = 'translateY(-10px)';
-            filterButton.classList.remove('active');
-            
+        } else if (type === 'room') {
+            if (value === '') {
+                // "Alle Räume" gewählt
+                const roomOptions = option.parentNode.querySelectorAll('.filter-option');
+                roomOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                this.tempSelectedRooms = new Set();
+            } else {
+                // Spezifischen Raum gewählt
+                const alleRaumeOption = option.parentNode.querySelector('[data-value=""]');
+                alleRaumeOption.classList.remove('selected');
+                
+                option.classList.toggle('selected');
+                
+                if (!this.tempSelectedRooms) this.tempSelectedRooms = new Set();
+                
+                if (option.classList.contains('selected')) {
+                    this.tempSelectedRooms.add(value);
+                } else {
+                    this.tempSelectedRooms.delete(value);
+                }
+                
+                // Wenn keine Räume ausgewählt, "Alle Räume" aktivieren
+                if (this.tempSelectedRooms.size === 0) {
+                    alleRaumeOption.classList.add('selected');
+                }
+            }
+        }
+    }
+    
+    resetFilters() {
+        // UI zurücksetzen
+        const popup = this.shadowRoot.querySelector('.filter-popup');
+        const categoryOptions = popup.querySelectorAll('[data-type="category"]');
+        const roomOptions = popup.querySelectorAll('[data-type="room"]');
+        
+        categoryOptions.forEach(opt => opt.classList.remove('selected'));
+        roomOptions.forEach(opt => opt.classList.remove('selected'));
+        
+        // "Alle" Optionen aktivieren
+        popup.querySelector('[data-type="category"][data-value=""]').classList.add('selected');
+        popup.querySelector('[data-type="room"][data-value=""]').classList.add('selected');
+        
+        // Temp Variablen zurücksetzen
+        this.tempSelectedType = '';
+        this.tempSelectedRooms = new Set();
+    }
+    
+    applyPopupFilters() {
+        // Temp-Werte auf echte Filter übertragen
+        this.selectedType = this.tempSelectedType || '';
+        this.selectedRooms = this.tempSelectedRooms || new Set();
+        
+        // Popup schließen
+        this.closeFilterPopup();
+        
+        // Filter anwenden
+        this.applyFilters();
+        
+        // Chip-UI aktualisieren
+        this.updateChipStates();
+    }
+    
+    updateChipStates() {
+        // Category Chips aktualisieren
+        const categoryChips = this.shadowRoot.querySelectorAll('#typeFilterChips .filter-chip');
+        categoryChips.forEach(chip => {
+            const value = chip.getAttribute('data-value');
+            chip.classList.toggle('active', value === this.selectedType);
+        });
+    }
+    
+    closeFilterPopup() {
+        const overlay = this.shadowRoot.querySelector('.filter-popup-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
             setTimeout(() => {
-                filtersSection.style.display = 'none';
+                overlay.remove();
             }, 300);
         }
     }    
