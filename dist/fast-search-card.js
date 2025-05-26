@@ -3526,10 +3526,37 @@ getQuickStats(item) {
         }
     }
 
+    
     toggleFilterMenu() {
-        // TODO: Filter-Menu implementieren
-        console.log('Filter-Menu öffnen');
-    }
+        const filtersSection = this.shadowRoot.querySelector('.filters');
+        const filterButton = this.shadowRoot.getElementById('filterButton');
+        
+        if (filtersSection.style.display === 'none' || !filtersSection.style.display) {
+            // Filter anzeigen
+            filtersSection.style.display = 'block';
+            filterButton.classList.add('active');
+            
+            // Smooth slide-in Animation
+            filtersSection.style.opacity = '0';
+            filtersSection.style.transform = 'translateY(-10px)';
+            filtersSection.style.transition = 'all 0.3s ease';
+            
+            requestAnimationFrame(() => {
+                filtersSection.style.opacity = '1';
+                filtersSection.style.transform = 'translateY(0)';
+            });
+        } else {
+            // Filter verstecken
+            filtersSection.style.transition = 'all 0.3s ease';
+            filtersSection.style.opacity = '0';
+            filtersSection.style.transform = 'translateY(-10px)';
+            filterButton.classList.remove('active');
+            
+            setTimeout(() => {
+                filtersSection.style.display = 'none';
+            }, 300);
+        }
+    }    
     
     getCardSize() {
         return 3;
