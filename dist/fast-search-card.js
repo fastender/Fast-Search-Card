@@ -18,8 +18,7 @@ class FastSearchCard extends HTMLElement {
             showControls: config.show_controls !== false,     // Standard: true
             showHistory: config.show_history === true,        // Standard: false
             customActions: config.custom_actions || [],        // Benutzerdefinierte Aktionen
-            displayMode: config.more_info_mode || 'popup', // Neue Option: 'popup' oder 'replace'  
-            transitionType: config.transition_type || 'slide'  // NEUE ZEILE: 'slide' oder 'push'
+            displayMode: config.more_info_mode || 'popup' // Neue Option: 'popup' oder 'replace'  
         };
         
         // Entities können entweder als Array oder automatisch geladen werden
@@ -1541,7 +1540,6 @@ class FastSearchCard extends HTMLElement {
     switchToReplaceMode(item) {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-        const transitionType = this.moreInfoConfig.transitionType;
         
         // Replace-Content generieren ABER versteckt halten
         replaceContainer.innerHTML = this.getReplaceContentHTML(item);
@@ -1616,101 +1614,6 @@ class FastSearchCard extends HTMLElement {
             searchContainer.style.transition = '';
         }, 500);
     }        
-
-    animateSlideTransition(searchContainer, replaceContainer, direction) {
-        if (direction === 'in') {
-            // Replace initial verstecken (außerhalb des Viewports)
-            replaceContainer.style.transform = 'translateX(100%)';
-            replaceContainer.style.opacity = '0';
-            
-            // Suche raussliden
-            searchContainer.classList.add('slide-out-left');
-            
-            // Replace Animation starten NACH der Suche
-            setTimeout(() => {
-                replaceContainer.style.transform = 'translateX(0)';
-                replaceContainer.style.opacity = '1';
-                replaceContainer.style.transition = 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.3s ease';
-            }, 200); // Startet wenn Suche fast weg ist
-            
-            // Cleanup
-            setTimeout(() => {
-                searchContainer.style.display = 'none';
-                searchContainer.classList.remove('slide-out-left');
-                replaceContainer.style.transition = '';
-            }, 500);
-            
-        } else {
-            // Replace → Suche: Reverse Animation
-            replaceContainer.style.transition = 'transform 0.25s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.25s ease';
-            replaceContainer.style.transform = 'translateX(100%)';
-            replaceContainer.style.opacity = '0';
-            
-            // Suche wieder anzeigen
-            setTimeout(() => {
-                searchContainer.style.display = 'block';
-                searchContainer.classList.add('slide-in-left');
-            }, 100);
-            
-            // Cleanup
-            setTimeout(() => {
-                replaceContainer.classList.remove('active');
-                replaceContainer.innerHTML = '';
-                replaceContainer.style.transform = '';
-                replaceContainer.style.opacity = '';
-                replaceContainer.style.transition = '';
-                searchContainer.classList.remove('slide-in-left');
-            }, 350);
-        }
-    }        
-
-    animatePushTransition(searchContainer, replaceContainer, direction) {
-        if (direction === 'in') {
-            // Suche → Replace: Push Animation
-            searchContainer.classList.add('push-left');
-            replaceContainer.classList.add('push-in-left');
-            
-            // Nach Animation: Suche verstecken
-            setTimeout(() => {
-                searchContainer.style.display = 'none';
-                searchContainer.classList.remove('push-left');
-            }, 350);
-            
-        } else {
-            // Replace → Suche: Reverse Push Animation
-            searchContainer.style.display = 'block';
-            replaceContainer.classList.add('push-out-right');
-            searchContainer.classList.add('push-in-right');
-            
-            // Cleanup nach Animation
-            setTimeout(() => {
-                replaceContainer.classList.remove('active', 'push-out-right');
-                replaceContainer.innerHTML = '';
-                searchContainer.classList.remove('push-in-right');
-            }, 350);
-        }
-    }
-
-    // Cleanup-Methode für Animation-Klassen
-    cleanupAnimationClasses(element) {
-        const animationClasses = [
-            'slide-out-left', 'slide-in-left', 'slide-in-right', 'slide-out-right',
-            'push-left', 'push-in-right', 'push-in-left', 'push-out-right'
-        ];
-        animationClasses.forEach(cls => element.classList.remove(cls));
-    }
-
-    // Fallback für nicht unterstützte Transitions
-    handleTransitionEnd(searchContainer, replaceContainer, direction) {
-        // Cleanup aller Animation-Klassen
-        this.cleanupAnimationClasses(searchContainer);
-        this.cleanupAnimationClasses(replaceContainer);
-        
-        if (direction === 'out') {
-            replaceContainer.classList.remove('active');
-            replaceContainer.innerHTML = '';
-        }
-    }    
 
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
