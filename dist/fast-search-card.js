@@ -62,95 +62,90 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .search-header {
+                    padding: 24px;
+                    background: #f8f9fa;
                     display: flex;
-                    gap: 10px;
-                    margin-bottom: 12px;
-                    justify-content: space-between;
                     align-items: center;
+                    gap: 16px;
                 }
-
-                .view-toggle {
-                    display: flex;
-                    background: white;
-                    border-radius: 8px;
-                    border: 1px solid #ddd;
-                    overflow: hidden;
-                }
-
-                .view-toggle-btn {
-                    background: none;
+                
+                .filter-button {
+                    background: rgba(0, 0, 0, 0.08);
                     border: none;
-                    padding: 8px 12px;
-                    cursor: pointer;
+                    border-radius: 12px;
+                    width: 48px;
+                    height: 48px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    color: #666;
+                    cursor: pointer;
                     transition: all 0.2s;
-                    position: relative;
                 }
-
-                .view-toggle-btn:hover {
-                    background: #f5f5f5;
+                
+                .filter-button:hover {
+                    background: rgba(0, 0, 0, 0.12);
+                    transform: scale(1.05);
                 }
-
-                .view-toggle-btn.active {
-                    background: #007aff;
+                
+                .filter-button.active {
+                    background: #4285f4;
                     color: white;
                 }
-
-                .view-toggle-btn + .view-toggle-btn {
-                    border-left: 1px solid #ddd;
+                
+                .view-toggle {
+                    display: flex;
+                    gap: 4px;
                 }
-
-                .search-type-dropdown {
-                    background: white;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    padding: 8px 12px;
-                    font-size: 14px;
-                    color: #666;
+                
+                .view-toggle-btn {
+                    background: rgba(0, 0, 0, 0.08);
+                    border: none;
+                    border-radius: 12px;
+                    width: 48px;
+                    height: 48px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                     cursor: pointer;
-                    min-width: 120px;
-                    appearance: none;
-                    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-                    background-position: right 8px center;
-                    background-repeat: no-repeat;
-                    background-size: 16px;
-                    padding-right: 32px;
+                    transition: all 0.2s;
                 }
-
-                .search-type-dropdown:focus {
-                    outline: 2px solid #007aff;
-                    border-color: #007aff;
+                
+                .view-toggle-btn.active {
+                    background: #4285f4;
+                    color: white;
                 }
-
+                
+                .view-toggle-btn:hover:not(.active) {
+                    background: rgba(0, 0, 0, 0.12);
+                }
+                
                 .search-input-container {
                     position: relative;
                     flex: 1;
                 }
 
+
                 .search-input {
-                    width: 100%;
-                    padding: 15px 15px 60px 15px;
+                    flex: 1;
+                    padding: 14px 20px;
                     border: none;
-                    font-size: 18px;
-                    outline: none;
                     background: white;
-                    border-radius: 8px;
-                    box-sizing: border-box;
-                    transition: all 0.3s ease;
-                    position: relative;
+                    border-radius: 16px;
+                    font-size: 16px;
+                    outline: none;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    transition: all 0.2s;
                 }
-
+                
                 .search-input:focus {
-                    animation: elasticFocus 0.3s ease-out;
-                    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+                    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+                }
+                
+                .search-input::placeholder {
+                    color: #9aa0a6;
                 }
 
-                .search-input::placeholder {
-                    color: #999;
-                }
+                
 
                 /* Typing indicator */
                 .search-input.typing::after {
