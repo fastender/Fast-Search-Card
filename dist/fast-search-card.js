@@ -1413,11 +1413,349 @@ class FastSearchCard extends HTMLElement {
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                 </div>
             </div>
-        `;
 
+            <!-- More-Info Replace Mode -->
+            <div class="more-info-replace" id="moreInfoReplace">
+                <!-- Content wird dynamisch generiert -->
+            </div>
+        `;        
         this.initializeCard();
     }
 
+    switchToReplaceMode(item) {
+        const searchContainer = this.shadowRoot.querySelector('.search-container');
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        
+        // Suchcontainer verstecken
+        searchContainer.style.display = 'none';
+        
+        // Replace-Content generieren
+        replaceContainer.innerHTML = this.getReplaceContentHTML(item);
+        replaceContainer.classList.add('active');
+        
+        // Event Listeners für Replace-Mode
+        this.setupReplaceEventListeners(item);
+    }
+
+    switchBackToSearch() {
+        const searchContainer = this.shadowRoot.querySelector('.search-container');
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        
+        // Replace-Container verstecken
+        replaceContainer.classList.remove('active');
+        replaceContainer.innerHTML = '';
+        
+        // Suchcontainer wieder anzeigen
+        searchContainer.style.display = 'block';
+    }
+
+    getReplaceContentHTML(item) {
+        const breadcrumb = this.getBreadcrumbHTML(item);
+        const iconSection = this.getIconSectionHTML(item);
+        const detailsSection = this.getDetailsSectionHTML(item);
+        
+        return `
+            <div class="replace-header">
+                <button class="back-button" id="backToSearch">←</button>
+                <div class="breadcrumb">
+                    ${breadcrumb}
+                </div>
+            </div>
+            <div class="replace-content">
+                <div class="icon-section">
+                    ${iconSection}
+                </div>
+                <div class="details-section">
+                    ${detailsSection}
+                </div>
+            </div>
+        `;
+    }
+
+    getBreadcrumbHTML(item) {
+        const searchType = this.searchTypeConfigs[this.currentSearchType];
+        const categoryName = searchType.categoryNames[item.category] || item.category;
+        
+        return `
+            <div class="breadcrumb-path">Suche → ${item.room} → ${categoryName}</div>
+            <div class="breadcrumb-current">${item.name}</div>
+        `;
+    }
+
+    getIconSectionHTML(item) {
+        const stateInfo = this.getDetailedStateText(item);
+        const isActive = this.isItemActive(item);
+        const quickStats = this.getQuickStats(item);
+        
+        return `
+            <div class="device-icon-large">${item.icon}</div>
+            <div class="status-indicator-large ${isActive ? '' : 'off'}">${stateInfo.status}</div>
+            <div class="quick-stats">
+                ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
+            </div>
+        `;
+    }
+
+    getDetailsSectionHTML(item) {
+        const typeDisplayName = this.getTypeDisplayName(item);
+        const controls = this.getReplaceControlsHTML(item);
+        const attributes = this.getReplaceAttributesHTML(item);
+        
+        return `
+            <div class="entity-info">
+                <h2 class="entity-title-large">${item.name}</h2>
+                <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
+            </div>
+            ${controls}
+            ${attributes}
+        `;
+    }
+
+    setupReplaceEventListeners(item) {
+        // Back Button
+        const backButton = this.shadowRoot.getElementById('backToSearch');
+        backButton.addEventListener('click', () => this.switchBackToSearch());
+        
+        // Control Buttons
+        const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
+        controlButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const action = button.getAttribute('data-action');
+                this.executeReplaceAction(item, action, button);
+            });
+        });
+        
+        // Sliders
+        const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
+        sliders.forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
+            });
+        });
+    }
+
+getQuickStats(item) {
+        const stats = [];
+        
+        switch (item.itemType) {
+            case 'entity':
+                if (item.type === 'light' && item.state === 'on') {
+                    stats.push(`${item.brightness || 0}% Helligkeit`);
+                    if (item.attributes.color_temp) {
+                        const tempK = Math.round(1000000 / item.attributes.color_temp);
+                        stats.push(`${tempK}K Farbtemperatur`);
+                    }
+                } else if (item.type === 'climate') {
+                    stats.push(`${item.current_temperature || '--'}°C Ist-Temperatur`);
+                    stats.push(`${item.target_temperature || '--'}°C Soll-Temperatur`);
+                } else if (item.type === 'media_player' && item.state === 'playing') {
+                    if (item.media_title) stats.push(`♪ ${item.media_title}`);
+                    stats.push(`${item.volume || 0}% Lautstärke`);
+                } else if (item.type === 'cover') {
+                    stats.push(`${item.position || 0}% Position`);
+                }
+                break;
+                
+            case 'automation':
+                if (item.lastTriggered) {
+                    const lastDate = new Date(item.lastTriggered);
+                    stats.push(`Zuletzt: ${lastDate.toLocaleDateString('de-DE')}`);
+                }
+                stats.push(item.state === 'on' ? 'Automatisch aktiv' : 'Manuell deaktiviert');
+                break;
+                
+            case 'script':
+                if (item.lastTriggered) {
+                    const lastDate = new Date(item.lastTriggered);
+                    stats.push(`Zuletzt: ${lastDate.toLocaleDateString('de-DE')}`);
+                }
+                stats.push('Manuell ausführbar');
+                break;
+                
+            case 'scene':
+                if (item.attributes.entity_id) {
+                    stats.push(`${item.attributes.entity_id.length} Entitäten`);
+                }
+                stats.push('Szene bereit');
+                break;
+        }
+        
+        return stats;
+    }
+
+    getReplaceControlsHTML(item) {
+        if (item.itemType !== 'entity') {
+            return this.getNonEntityReplaceControls(item);
+        }
+        
+        switch (item.type) {
+            case 'light':
+                return this.getLightReplaceControls(item);
+            case 'climate':
+                return this.getClimateReplaceControls(item);
+            case 'cover':
+                return this.getCoverReplaceControls(item);
+            case 'media_player':
+                return this.getMediaReplaceControls(item);
+            case 'switch':
+            case 'fan':
+                return this.getBasicReplaceControls(item);
+            default:
+                return '';
+        }
+    }
+
+    getLightReplaceControls(item) {
+        const brightness = item.brightness || 0;
+        const isOn = item.state === 'on';
+        
+        return `
+            <div class="control-group-large">
+                <h3 class="control-title-large">💡 Steuerung</h3>
+                <div class="main-control-large">
+                    <button class="toggle-button-large ${isOn ? '' : 'off'}" data-action="toggle">
+                        ${isOn ? '🔆 Ausschalten' : '💡 Einschalten'}
+                    </button>
+                </div>
+                ${isOn ? `
+                    <div class="brightness-control-large">
+                        <div class="slider-label-large">
+                            <span>Helligkeit</span>
+                            <span class="value">${brightness}%</span>
+                        </div>
+                        <input type="range" class="slider-large" data-control="brightness" 
+                               min="1" max="100" value="${brightness}">
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    getBasicReplaceControls(item) {
+        const isOn = item.state === 'on';
+        
+        return `
+            <div class="control-group-large">
+                <h3 class="control-title-large">🔌 Steuerung</h3>
+                <div class="main-control-large">
+                    <button class="toggle-button-large ${isOn ? '' : 'off'}" data-action="toggle">
+                        ${isOn ? '⏹️ Ausschalten' : '▶️ Einschalten'}
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    getNonEntityReplaceControls(item) {
+        switch (item.itemType) {
+            case 'automation':
+                return `
+                    <div class="control-group-large">
+                        <h3 class="control-title-large">🤖 Automation Steuerung</h3>
+                        <div class="main-control-large">
+                            <button class="toggle-button-large" data-action="trigger">🚀 Jetzt ausführen</button>
+                        </div>
+                        <div class="main-control-large">
+                            <button class="toggle-button-large ${item.state === 'on' ? 'off' : ''}" data-action="toggle">
+                                ${item.state === 'on' ? '⏸️ Deaktivieren' : '▶️ Aktivieren'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            case 'script':
+                return `
+                    <div class="control-group-large">
+                        <h3 class="control-title-large">📜 Skript Steuerung</h3>
+                        <div class="main-control-large">
+                            <button class="toggle-button-large" data-action="run">▶️ Skript ausführen</button>
+                        </div>
+                    </div>
+                `;
+            case 'scene':
+                return `
+                    <div class="control-group-large">
+                        <h3 class="control-title-large">🎭 Szene Steuerung</h3>
+                        <div class="main-control-large">
+                            <button class="toggle-button-large" data-action="activate">🎬 Szene aktivieren</button>
+                        </div>
+                    </div>
+                `;
+            default:
+                return '';
+        }
+    }
+
+    getReplaceAttributesHTML(item) {
+        const importantAttributes = this.getImportantAttributes(item);
+        
+        if (importantAttributes.length === 0) return '';
+        
+        const attributeItems = importantAttributes.map(attr => `
+            <div class="attribute-item-large">
+                <div class="attribute-label-large">${attr.label}</div>
+                <div class="attribute-value-large">${attr.value}</div>
+            </div>
+        `).join('');
+        
+        return `
+            <div class="control-group-large">
+                <h3 class="control-title-large">📊 Details</h3>
+                <div class="attribute-grid-large">
+                    ${attributeItems}
+                </div>
+            </div>
+        `;
+    }
+
+    executeReplaceAction(item, action, button) {
+        // Visual Feedback
+        const originalText = button.innerHTML;
+        button.innerHTML = '⏳ Wird ausgeführt...';
+        button.disabled = true;
+        
+        // Action ausführen (nutzt bestehende executeAction Methode)
+        this.executeAction(item, action).then(() => {
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                
+                // Replace-Content aktualisieren
+                this.updateReplaceContent(item);
+            }, 1000);
+        });
+    }
+
+    handleReplaceSliderChange(item, control, value) {
+        this.handleSliderChange(item, control, value);
+        
+        // Label aktualisieren
+        const slider = this.shadowRoot.querySelector(`.more-info-replace [data-control="${control}"]`);
+        const label = slider.parentNode.querySelector('.slider-label-large .value');
+        if (label) {
+            const unit = control === 'temperature' ? '°C' : '%';
+            label.textContent = value + unit;
+        }
+    }
+
+    updateReplaceContent(item) {
+        // Item-Daten aktualisieren
+        const currentState = this._hass.states[item.id];
+        if (currentState) {
+            Object.assign(item, {
+                state: currentState.state,
+                attributes: currentState.attributes
+            });
+            
+            const domain = item.id.split('.')[0];
+            this.addDomainSpecificAttributes(item, domain, currentState);
+        }
+        
+        // Replace-Content neu generieren
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        replaceContainer.innerHTML = this.getReplaceContentHTML(item);
+        this.setupReplaceEventListeners(item);
+    }    
+    
     initializeCard() {
         this.allItems = [];
         this.currentSearchType = 'entities';
