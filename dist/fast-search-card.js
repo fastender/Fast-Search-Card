@@ -1541,29 +1541,35 @@ class FastSearchCard extends HTMLElement {
     switchToReplaceMode(item) {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-        
-        // Suchcontainer verstecken
-        searchContainer.style.display = 'none';
+        const transitionType = this.moreInfoConfig.transitionType;
         
         // Replace-Content generieren
         replaceContainer.innerHTML = this.getReplaceContentHTML(item);
         replaceContainer.classList.add('active');
         
+        // Animation basierend auf Transition-Typ
+        if (transitionType === 'push') {
+            this.animatePushTransition(searchContainer, replaceContainer, 'in');
+        } else {
+            this.animateSlideTransition(searchContainer, replaceContainer, 'in');
+        }
+        
         // Event Listeners für Replace-Mode
         this.setupReplaceEventListeners(item);
-    }
+    }    
 
     switchBackToSearch() {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        const transitionType = this.moreInfoConfig.transitionType;
         
-        // Replace-Container verstecken
-        replaceContainer.classList.remove('active');
-        replaceContainer.innerHTML = '';
-        
-        // Suchcontainer wieder anzeigen
-        searchContainer.style.display = 'block';
-    }
+        // Animation basierend auf Transition-Typ
+        if (transitionType === 'push') {
+            this.animatePushTransition(searchContainer, replaceContainer, 'out');
+        } else {
+            this.animateSlideTransition(searchContainer, replaceContainer, 'out');
+        }
+    }    
 
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
