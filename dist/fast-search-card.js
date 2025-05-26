@@ -51,11 +51,6 @@ class FastSearchCard extends HTMLElement {
                     overflow: hidden;
                 }
 
-                .search-section {
-                    background: #f8f9fa;
-                    padding: 20px 20px 0 20px;
-                }
-
                 .search-input-container {
                     flex: 1;
                     position: relative;
@@ -119,10 +114,6 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(0, 0, 0, 0.12);
                 }
                 
-                .search-input-container {
-                    position: relative;
-                    flex: 1;
-                }
 
 
                 .search-input {
@@ -1313,42 +1304,40 @@ class FastSearchCard extends HTMLElement {
                 
             </style>
             
+            
             <div class="search-container">
-                <div class="search-section">
-                    <div class="search-header">
-                        <button class="filter-button" id="filterButton">
+                <div class="search-header">
+                    <button class="filter-button" id="filterButton">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                        </svg>
+                    </button>
+                    
+                    <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
+                    
+                    <div class="view-toggle">
+                        <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
                             </svg>
                         </button>
-                        
-                        <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
-                        
-                        <div class="view-toggle">
-                            <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-                                </svg>
-                            </button>
-                            <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
-                                </svg>
-                            </button>
-                        </div>
+                        <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+                            </svg>
+                        </button>
                     </div>
-                    
-                    
-                    <div class="filters">
-                        <div class="filter-row" id="typeFilterChips">
-                            <button class="filter-chip">
-                                <span class="chip-icon">📋</span>
-                                <span class="chip-name">Alle</span>
-                            </button>
-                        </div>
-                    </div>
-
                 </div>
+                
+                <div class="filters">
+                    <div class="filter-row" id="typeFilterChips">
+                        <button class="filter-chip">
+                            <span class="chip-icon">📋</span>
+                            <span class="chip-name">Alle</span>
+                        </button>
+                    </div>
+                </div>
+            
                 <div class="results-container" id="resultsContainer">
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                 </div>
