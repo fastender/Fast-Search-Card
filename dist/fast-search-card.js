@@ -3829,27 +3829,42 @@ getQuickStats(item) {
         `;
     }
     
+    
     getFilterCategories() {
-        const config = this.searchTypeConfigs[this.currentSearchType];
-        const categories = [...new Set(this.allItems.map(d => d.category))].sort();
-        
-        return [
+        // Hauptkategorien: Geräte, Automationen, Skripte, Szenen
+        const mainCategories = [
             {
-                id: '',
+                id: 'entities',
                 name: 'Alle Geräte',
                 icon: '🏠',
-                count: this.allItems.length,
-                selected: this.selectedType === ''
+                count: this.allItems.filter(item => item.itemType === 'entity').length,
+                selected: this.currentSearchType === 'entities'
             },
-            ...categories.map(cat => ({
-                id: cat,
-                name: config.categoryNames[cat] || cat,
-                icon: config.categoryIcons[cat] || '📱',
-                count: this.allItems.filter(d => d.category === cat).length,
-                selected: this.selectedType === cat
-            }))
+            {
+                id: 'automations',
+                name: 'Automationen',
+                icon: '🤖',
+                count: this.allItems.filter(item => item.itemType === 'automation').length,
+                selected: this.currentSearchType === 'automations'
+            },
+            {
+                id: 'scripts',
+                name: 'Skripte',
+                icon: '📜',
+                count: this.allItems.filter(item => item.itemType === 'script').length,
+                selected: this.currentSearchType === 'scripts'
+            },
+            {
+                id: 'scenes',
+                name: 'Szenen',
+                icon: '🎭',
+                count: this.allItems.filter(item => item.itemType === 'scene').length,
+                selected: this.currentSearchType === 'scenes'
+            }
         ];
-    }
+        
+        return mainCategories;
+    }        
     
     getFilterRooms() {
         const rooms = [...new Set(this.allItems.map(d => d.room))].sort();
@@ -3936,6 +3951,7 @@ getQuickStats(item) {
         applyBtn.addEventListener('click', () => this.applyPopupFilters());
     }
     
+    
     handleFilterOptionClick(option) {
         const type = option.getAttribute('data-type');
         const value = option.getAttribute('data-value');
@@ -3947,7 +3963,7 @@ getQuickStats(item) {
             
             // Gewählte Option aktivieren
             option.classList.add('selected');
-            this.tempSelectedType = value;
+            this.tempSelectedMainCategory = value;
             
         } else if (type === 'room') {
             if (value === '') {
@@ -3977,8 +3993,9 @@ getQuickStats(item) {
                 }
             }
         }
-    }
+    }        
     
+
     resetFilters() {
         // UI zurücksetzen
         const popup = this.shadowRoot.querySelector('.filter-popup');
@@ -3988,18 +4005,33 @@ getQuickStats(item) {
         categoryOptions.forEach(opt => opt.classList.remove('selected'));
         roomOptions.forEach(opt => opt.classList.remove('selected'));
         
-        // "Alle" Optionen aktivieren
-        popup.querySelector('[data-type="category"][data-value=""]').classList.add('selected');
+        // Aktuelle Hauptkategorie als Standard setzen
+        const currentCategoryOption = popup.querySelector(`[data-type="category"][data-value="${this.currentSearchType}"]`);
+        if (currentCategoryOption) {
+            currentCategoryOption.classList.add('selected');
+        }
+        
+        // "Alle Räume" aktivieren
         popup.querySelector('[data-type="room"][data-value=""]').classList.add('selected');
         
         // Temp Variablen zurücksetzen
-        this.tempSelectedType = '';
+        this.tempSelectedMainCategory = this.currentSearchType;
         this.tempSelectedRooms = new Set();
     }
     
+
+
     applyPopupFilters() {
-        // Temp-Werte auf echte Filter übertragen
-        this.selectedType = this.tempSelectedType || '';
+        // Hauptkategorie wechseln falls geändert
+        if (this.tempSelectedMainCategory && this.tempSelectedMainCategory !== this.currentSearchType) {
+            this.currentSearchType = this.tempSelectedMainCategory;
+            this.selectedType = ''; // Unterkategorie zurücksetzen
+            this.isInitialized = false; // Neu initialisieren
+            this.updateSearchUI();
+            this.updateItems(); // Komplett neu laden
+        }
+        
+        // Räume übertragen
         this.selectedRooms = this.tempSelectedRooms || new Set();
         
         // Popup schließen
@@ -4007,10 +4039,7 @@ getQuickStats(item) {
         
         // Filter anwenden
         this.applyFilters();
-        
-        // Chip-UI aktualisieren
-        this.updateChipStates();
-    }
+    }        
     
     updateChipStates() {
         // Category Chips aktualisieren
