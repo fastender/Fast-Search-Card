@@ -1575,19 +1575,27 @@ class FastSearchCard extends HTMLElement {
         if (direction === 'in') {
             // Suche → Replace: Slide Animation
             searchContainer.classList.add('slide-out-left');
-            replaceContainer.classList.add('slide-in-right');
             
-            // Nach Animation: Suche verstecken
+            // Replace ERST anzeigen wenn Suche fast weg ist
+            setTimeout(() => {
+                replaceContainer.classList.add('slide-in-right');
+            }, 150); // Replace startet nach 150ms
+            
+            // Nach kompletter Animation: Suche verstecken
             setTimeout(() => {
                 searchContainer.style.display = 'none';
                 searchContainer.classList.remove('slide-out-left');
-            }, 300);
+            }, 450); // 300ms + 150ms Delay
             
         } else {
             // Replace → Suche: Reverse Slide Animation
-            searchContainer.style.display = 'block';
             replaceContainer.classList.add('slide-out-right');
-            searchContainer.classList.add('slide-in-left');
+            
+            // Suche ERST anzeigen wenn Replace fast weg ist  
+            setTimeout(() => {
+                searchContainer.style.display = 'block';
+                searchContainer.classList.add('slide-in-left');
+            }, 100);
             
             // Cleanup nach Animation
             setTimeout(() => {
@@ -1596,7 +1604,7 @@ class FastSearchCard extends HTMLElement {
                 searchContainer.classList.remove('slide-in-left');
             }, 350);
         }
-    }
+    }    
 
     animatePushTransition(searchContainer, replaceContainer, direction) {
         if (direction === 'in') {
