@@ -2741,12 +2741,12 @@ getQuickStats(item) {
             
             return matchesSearch && matchesRoom && matchesType;
         });
-
+    
         if (filteredItems.length === 0) {
             this.showNoResults('Keine Ergebnisse gefunden');
             return;
         }
-
+    
         // Animation für Container beim Wechsel
         this.resultsContainer.classList.add('loading');
         
@@ -2754,7 +2754,7 @@ getQuickStats(item) {
         setTimeout(() => {
             this.resultsContainer.classList.remove('loading');
         }, 400);
-
+    
         if (this.currentView === 'grid') {
             this.displayItemsGrid(filteredItems);
         } else {
