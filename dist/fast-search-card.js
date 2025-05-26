@@ -279,24 +279,6 @@ class FastSearchCard extends HTMLElement {
                     flex-shrink: 0;
                 }
 
-                .chip-content {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-
-                .chip-type-name {
-                    font-weight: 500;
-                    line-height: 1.2;
-                }
-
-                .chip-count {
-                    font-size: 11px;
-                    opacity: 0.8;
-                    margin-top: 2px;
-                    line-height: 1;
-                }
-
                 /* Eingangs-Animationen */
                 @keyframes fadeInUp {
                     from {
