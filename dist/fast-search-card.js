@@ -227,77 +227,52 @@ class FastSearchCard extends HTMLElement {
                     border-color: #007aff;
                 }
 
-                .filter-section {
-                    margin-bottom: 20px;
-                }
 
+                .filters {
+                    padding: 0 24px 24px 24px;
+                    background: #f8f9fa;
+                }
+                
                 .filter-row {
-                    margin-bottom: 12px;
-                    position: relative;
-                }
-
-                .filter-label {
-                    font-size: 12px;
-                    color: #666;
-                    margin-bottom: 8px;
-                    font-weight: 500;
-                }
-
-                .filter-scroll {
                     display: flex;
-                    gap: 8px;
+                    gap: 12px;
                     overflow-x: auto;
                     padding: 4px 0;
                     scrollbar-width: none;
                     -ms-overflow-style: none;
                 }
-
-                .filter-scroll::-webkit-scrollbar {
+                
+                .filter-row::-webkit-scrollbar {
                     display: none;
                 }
-
+                
                 .filter-chip {
-                    padding: 12px 16px;
-                    background: white;
-                    border: 1px solid #ddd;
+                    background: #e8eaed;
+                    border: none;
                     border-radius: 20px;
+                    padding: 12px 20px;
                     font-size: 14px;
-                    color: #666;
+                    color: #3c4043;
                     cursor: pointer;
                     white-space: nowrap;
-                    flex-shrink: 0;
-                    transition: all 0.2s;
-                    user-select: none;
                     display: flex;
-                    flex-direction: row;
                     align-items: center;
                     gap: 8px;
-                    text-align: left;
-                    min-width: 90px;
+                    transition: all 0.2s;
+                    font-weight: 500;
                 }
-
+                
                 .filter-chip:hover {
-                    background: #f5f5f5;
-                    border-color: #ccc;
+                    background: #dadce0;
                 }
-
+                
                 .filter-chip.active {
-                    background: #007aff;
-                    color: white;
-                    border-color: #007aff;
-                }
-
-                .filter-chip.all {
-                    background: #f8f9fa;
-                    border-color: #e9ecef;
-                    min-width: auto;
-                }
-
-                .filter-chip.all.active {
-                    background: #6c757d;
-                    border-color: #6c757d;
+                    background: #4285f4;
                     color: white;
                 }
+
+
+                
 
                 .chip-icon {
                     font-size: 18px;
@@ -1381,28 +1356,16 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     </div>
                     
-                    <div class="search-container-inner">
-                        <div class="search-input-container">
-                            <input type="text" class="search-input" placeholder="Suchen..." id="searchInput">
-                            <div class="typing-indicator" id="typingIndicator">
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
-                            </div>
-                            <div class="room-chips-in-search" id="roomChipsInSearch">
-                                <div class="room-chip-small active" data-value="">Alle</div>
-                            </div>
-                        </div>
-                    </div>
                     
-                    <div class="filter-section">
-                        <div class="filter-row">
-                            <div class="filter-label" id="filterLabel">Kategorien</div>
-                            <div class="filter-scroll" id="typeFilterChips">
-                                <div class="filter-chip all active" data-value="">Alle</div>
-                            </div>
+                    <div class="filters">
+                        <div class="filter-row" id="typeFilterChips">
+                            <button class="filter-chip">
+                                <span class="chip-icon">📋</span>
+                                <span class="chip-name">Alle</span>
+                            </button>
                         </div>
                     </div>
+
                 </div>
                 <div class="results-container" id="resultsContainer">
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
