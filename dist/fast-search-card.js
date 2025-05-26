@@ -2018,6 +2018,9 @@ getQuickStats(item) {
         this.selectedType = '';
         this.isInitialized = false; // Flag für Initialisierung
         this.currentView = 'list'; // Neue Property für View-Mode
+    
+        this.tempSelectedType = '';
+        this.tempSelectedRooms = new Set();        
         
         // Definitionen für verschiedene Suchtypen
         this.searchTypeConfigs = {
