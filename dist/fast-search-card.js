@@ -4045,7 +4045,6 @@ getQuickStats(item) {
     }
     
 
-
     applyPopupFilters() {
         // Hauptkategorie wechseln falls geändert
         if (this.tempSelectedMainCategory && this.tempSelectedMainCategory !== this.currentSearchType) {
@@ -4064,6 +4063,9 @@ getQuickStats(item) {
         
         // Filter anwenden
         this.applyFilters();
+        
+        // WICHTIG: Chip-UI aktualisieren für Unterkategorien
+        this.updateChipStates();
     }        
     
     updateChipStates() {
