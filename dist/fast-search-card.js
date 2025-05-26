@@ -1646,6 +1646,80 @@ getQuickStats(item) {
         `;
     }
 
+    getClimateReplaceControls(item) {
+        const currentTemp = item.current_temperature || '--';
+        const targetTemp = item.target_temperature || 20;
+        
+        return `
+            <div class="control-group-large">
+                <h3 class="control-title-large">🌡️ Temperaturregelung</h3>
+                <div class="slider-control-large">
+                    <div class="slider-label-large">
+                        <span>Zieltemperatur</span>
+                        <span class="value">${targetTemp}°C</span>
+                    </div>
+                    <input type="range" class="slider-large" data-control="temperature" 
+                           min="10" max="30" step="0.5" value="${targetTemp}">
+                </div>
+                <div class="main-control-large" style="margin-top: 16px;">
+                    <button class="toggle-button-large" data-action="heat">🔥 Heizen</button>
+                    <button class="toggle-button-large" data-action="cool">❄️ Kühlen</button>
+                    <button class="toggle-button-large off" data-action="off">⏹️ Aus</button>
+                </div>
+            </div>
+        `;
+    }
+
+    getCoverReplaceControls(item) {
+        const position = item.position || 0;
+        
+        return `
+            <div class="control-group-large">
+                <h3 class="control-title-large">🪟 Rollladensteuerung</h3>
+                <div class="main-control-large">
+                    <button class="toggle-button-large" data-action="open">⬆️ Öffnen</button>
+                    <button class="toggle-button-large off" data-action="stop">⏹️ Stopp</button>
+                    <button class="toggle-button-large" data-action="close">⬇️ Schließen</button>
+                </div>
+                <div class="slider-control-large">
+                    <div class="slider-label-large">
+                        <span>Position</span>
+                        <span class="value">${position}%</span>
+                    </div>
+                    <input type="range" class="slider-large" data-control="position" 
+                           min="0" max="100" value="${position}">
+                </div>
+            </div>
+        `;
+    }
+
+    getMediaReplaceControls(item) {
+        const volume = item.volume || 0;
+        const isPlaying = item.state === 'playing';
+        
+        return `
+            <div class="control-group-large">
+                <h3 class="control-title-large">📺 Mediensteuerung</h3>
+                <div class="main-control-large">
+                    <button class="toggle-button-large" data-action="play_pause">
+                        ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                    </button>
+                    <button class="toggle-button-large off" data-action="previous">⏮️</button>
+                    <button class="toggle-button-large off" data-action="next">⏭️</button>
+                </div>
+                <div class="slider-control-large">
+                    <div class="slider-label-large">
+                        <span>Lautstärke</span>
+                        <span class="value">${volume}%</span>
+                    </div>
+                    <input type="range" class="slider-large" data-control="volume" 
+                           min="0" max="100" value="${volume}">
+                </div>
+            </div>
+        `;
+    }
+    
+
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
             case 'automation':
