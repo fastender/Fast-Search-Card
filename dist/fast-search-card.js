@@ -1508,11 +1508,13 @@ class FastSearchCard extends HTMLElement {
             
             <div class="search-container">
                 <div class="search-header">
+
+
                     <button class="filter-button" id="filterButton">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                            <path d="M3 18h18v-2H3v2zM3 13h18v-2H3v2zM3 6v2h18V6H3z"/>
                         </svg>
-                    </button>
+                    </button>                    
                     
                     <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
                     
