@@ -2477,14 +2477,38 @@ getQuickStats(item) {
         this.applyFilters();
     }
 
+
+    
     handleCategoryChipClick(chip) {
+        const clickedValue = chip.getAttribute('data-value');
         const chips = this.shadowRoot.querySelectorAll('#typeFilterChips .filter-chip');
-        chips.forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
         
-        this.selectedType = chip.getAttribute('data-value');
+        // Wenn "Alle" geklickt wird
+        if (clickedValue === '') {
+            chips.forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            this.selectedType = '';
+            this.applyFilters();
+            return;
+        }
+        
+        // Wenn eine spezifische Kategorie geklickt wird
+        const alleChip = this.shadowRoot.querySelector('#typeFilterChips .filter-chip[data-value=""]');
+        
+        if (chip.classList.contains('active')) {
+            // Kategorie ist bereits aktiv -> deaktivieren und zu "Alle" wechseln
+            chip.classList.remove('active');
+            alleChip.classList.add('active');
+            this.selectedType = '';
+        } else {
+            // Kategorie aktivieren
+            chips.forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            this.selectedType = clickedValue;
+        }
+        
         this.applyFilters();
-    }
+    }    
 
     applyFilters() {
         const query = this.searchInput.value.toLowerCase().trim();
