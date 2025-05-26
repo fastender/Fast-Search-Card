@@ -1571,6 +1571,81 @@ class FastSearchCard extends HTMLElement {
         }
     }    
 
+    animateSlideTransition(searchContainer, replaceContainer, direction) {
+        if (direction === 'in') {
+            // Suche → Replace: Slide Animation
+            searchContainer.classList.add('slide-out-left');
+            replaceContainer.classList.add('slide-in-right');
+            
+            // Nach Animation: Suche verstecken
+            setTimeout(() => {
+                searchContainer.style.display = 'none';
+                searchContainer.classList.remove('slide-out-left');
+            }, 300);
+            
+        } else {
+            // Replace → Suche: Reverse Slide Animation
+            searchContainer.style.display = 'block';
+            replaceContainer.classList.add('slide-out-right');
+            searchContainer.classList.add('slide-in-left');
+            
+            // Cleanup nach Animation
+            setTimeout(() => {
+                replaceContainer.classList.remove('active', 'slide-out-right');
+                replaceContainer.innerHTML = '';
+                searchContainer.classList.remove('slide-in-left');
+            }, 350);
+        }
+    }
+
+    animatePushTransition(searchContainer, replaceContainer, direction) {
+        if (direction === 'in') {
+            // Suche → Replace: Push Animation
+            searchContainer.classList.add('push-left');
+            replaceContainer.classList.add('push-in-left');
+            
+            // Nach Animation: Suche verstecken
+            setTimeout(() => {
+                searchContainer.style.display = 'none';
+                searchContainer.classList.remove('push-left');
+            }, 350);
+            
+        } else {
+            // Replace → Suche: Reverse Push Animation
+            searchContainer.style.display = 'block';
+            replaceContainer.classList.add('push-out-right');
+            searchContainer.classList.add('push-in-right');
+            
+            // Cleanup nach Animation
+            setTimeout(() => {
+                replaceContainer.classList.remove('active', 'push-out-right');
+                replaceContainer.innerHTML = '';
+                searchContainer.classList.remove('push-in-right');
+            }, 350);
+        }
+    }
+
+    // Cleanup-Methode für Animation-Klassen
+    cleanupAnimationClasses(element) {
+        const animationClasses = [
+            'slide-out-left', 'slide-in-left', 'slide-in-right', 'slide-out-right',
+            'push-left', 'push-in-right', 'push-in-left', 'push-out-right'
+        ];
+        animationClasses.forEach(cls => element.classList.remove(cls));
+    }
+
+    // Fallback für nicht unterstützte Transitions
+    handleTransitionEnd(searchContainer, replaceContainer, direction) {
+        // Cleanup aller Animation-Klassen
+        this.cleanupAnimationClasses(searchContainer);
+        this.cleanupAnimationClasses(replaceContainer);
+        
+        if (direction === 'out') {
+            replaceContainer.classList.remove('active');
+            replaceContainer.innerHTML = '';
+        }
+    }    
+
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
         const iconSection = this.getIconSectionHTML(item);
