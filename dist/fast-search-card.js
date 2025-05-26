@@ -1977,7 +1977,6 @@ getQuickStats(item) {
     updateSearchUI() {
         const config = this.searchTypeConfigs[this.currentSearchType];
         this.searchInput.placeholder = config.placeholder;
-        this.filterLabel.textContent = config.filterLabel;
         
         // Room chips zurücksetzen
         this.setupRoomChips([]);
@@ -2344,7 +2343,10 @@ getQuickStats(item) {
     }
 
     setupRoomChips(rooms) {
-        const roomChips = this.shadowRoot.getElementById('roomChipsInSearch');
+        if (!this.shadowRoot.getElementById('roomChipsInSearch')) {
+            return; // Früh beenden wenn Element nicht existiert
+        }
+        const roomChips = this.shadowRoot.getElementById('roomChipsInSearch');        
         
         // Aktuellen Zustand speichern
         const currentActiveRooms = Array.from(roomChips.querySelectorAll('.room-chip-small.active'))
@@ -2425,12 +2427,16 @@ getQuickStats(item) {
     }
 
     setupChipFilters() {
-        this.shadowRoot.getElementById('roomChipsInSearch').addEventListener('click', (e) => {
-            if (e.target.classList.contains('room-chip-small')) {
-                this.handleRoomChipClick(e.target);
-            }
-        });
-
+        // Room chips Event Listener nur wenn Element existiert
+        const roomChipsElement = this.shadowRoot.getElementById('roomChipsInSearch');
+        if (roomChipsElement) {
+            roomChipsElement.addEventListener('click', (e) => {
+                if (e.target.classList.contains('room-chip-small')) {
+                    this.handleRoomChipClick(e.target);
+                }
+            });
+        }
+    
         this.shadowRoot.getElementById('typeFilterChips').addEventListener('click', (e) => {
             let chip = e.target;
             if (!chip.classList.contains('filter-chip')) {
