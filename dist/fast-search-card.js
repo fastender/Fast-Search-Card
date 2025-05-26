@@ -222,6 +222,7 @@ class FastSearchCard extends HTMLElement {
                 .filters {
                     padding: 0 24px 24px 24px;
                     background: #f8f9fa;
+                    display: none; /* Standardmäßig versteckt */
                 }
                 
                 .filter-row {
