@@ -56,10 +56,10 @@ class FastSearchCard extends HTMLElement {
                     padding: 20px 20px 0 20px;
                 }
 
-                .search-container-inner {
+                .search-input-container {
+                    flex: 1;
                     position: relative;
-                    margin-bottom: 20px;
-                }
+                }                
 
                 .search-header {
                     padding: 24px;
