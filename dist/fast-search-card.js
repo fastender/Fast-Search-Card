@@ -2690,10 +2690,15 @@ getQuickStats(item) {
             return;
         }
         
-        // Individuelles More-Info Dialog öffnen
+        // Prüfen welcher More-Info Modus konfiguriert ist
+        if (this.moreInfoConfig.displayMode === 'replace') {
+            this.switchToReplaceMode(item);
+            return;
+        }
+        
+        // Standard: Popup-Dialog öffnen
         this.openCustomMoreInfo(item);
-    }
-
+    }    
     openCustomMoreInfo(item) {
         this.createMoreInfoDialog(item);
     }
