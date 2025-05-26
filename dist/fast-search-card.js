@@ -4073,14 +4073,24 @@ getQuickStats(item) {
         this.updateChipStates();
     }        
     
+
     updateChipStates() {
         // Category Chips aktualisieren
         const categoryChips = this.shadowRoot.querySelectorAll('#typeFilterChips .filter-chip');
         categoryChips.forEach(chip => {
             const value = chip.getAttribute('data-value');
-            chip.classList.toggle('active', value === this.selectedType);
+            const isActive = value === this.selectedType;
+            chip.classList.toggle('active', isActive);
         });
-    }
+        
+        // Sicherstellen dass "Alle" aktiv ist wenn keine spezifische Kategorie gewählt
+        if (this.selectedType === '') {
+            const alleChip = this.shadowRoot.querySelector('#typeFilterChips .filter-chip[data-value=""]');
+            if (alleChip) {
+                alleChip.classList.add('active');
+            }
+        }
+    }    
     
     closeFilterPopup() {
         const overlay = this.shadowRoot.querySelector('.filter-popup-overlay');
