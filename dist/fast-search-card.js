@@ -3912,6 +3912,26 @@ getQuickStats(item) {
         };
         return iconMap[roomName] || '🏠';
     }
+
+    getAlleChipText() {
+        switch (this.currentSearchType) {
+            case 'entities': return 'Alle Geräte';
+            case 'automations': return 'Alle Automationen';
+            case 'scripts': return 'Alle Skripte';
+            case 'scenes': return 'Alle Szenen';
+            default: return 'Alle';
+        }
+    }
+    
+    getAlleChipIcon() {
+        switch (this.currentSearchType) {
+            case 'entities': return '🏠';
+            case 'automations': return '🤖';
+            case 'scripts': return '📜';
+            case 'scenes': return '🎭';
+            default: return '📋';
+        }
+    }    
     
     getCategoryOptionHTML(category) {
         return `
