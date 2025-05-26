@@ -1534,10 +1534,13 @@ class FastSearchCard extends HTMLElement {
                 
                 <div class="filters">
                     <div class="filter-row" id="typeFilterChips">
-                        <button class="filter-chip">
-                            <span class="chip-icon">📋</span>
-                            <span class="chip-name">Alle</span>
+
+
+                        <button class="filter-chip active" data-value="">
+                            <span class="chip-icon">🏠</span>
+                            <span class="chip-name">Alle Geräte</span>
                         </button>
+
                     </div>
                 </div>
             
