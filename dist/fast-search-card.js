@@ -1914,14 +1914,14 @@ getQuickStats(item) {
         };
 
         this.searchInput = this.shadowRoot.getElementById('searchInput');
-        this.searchTypeDropdown = this.shadowRoot.getElementById('searchTypeDropdown');
         this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
         this.noResults = this.shadowRoot.getElementById('noResults');
-        this.filterLabel = this.shadowRoot.getElementById('filterLabel');
+        this.filterButton = this.shadowRoot.getElementById('filterButton');
+
         this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
 
         this.searchInput.addEventListener('input', () => this.handleSearchInput());
-        this.searchTypeDropdown.addEventListener('change', () => this.onSearchTypeChange());
+        this.shadowRoot.getElementById('filterButton').addEventListener('click', () => this.toggleFilterMenu());
         
         // View Toggle Event Listeners
         this.shadowRoot.getElementById('listViewBtn').addEventListener('click', () => this.setView('list'));
@@ -3531,6 +3531,11 @@ getQuickStats(item) {
         }
     }
 
+    toggleFilterMenu() {
+        // TODO: Filter-Menu implementieren
+        console.log('Filter-Menu öffnen');
+    }
+    
     getCardSize() {
         return 3;
     }
