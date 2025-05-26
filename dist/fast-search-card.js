@@ -2474,7 +2474,8 @@ getQuickStats(item) {
         
         const categories = [...new Set(this.allItems.map(d => d.category))].sort();
         this.setupCategoryChips(categories);
-
+    
+        // WICHTIG: Filter direkt anwenden nach Setup
         this.applyFilters();
     }
 
