@@ -18,7 +18,8 @@ class FastSearchCard extends HTMLElement {
             showControls: config.show_controls !== false,     // Standard: true
             showHistory: config.show_history === true,        // Standard: false
             customActions: config.custom_actions || [],        // Benutzerdefinierte Aktionen
-            displayMode: config.more_info_mode || 'popup' // Neue Option: 'popup' oder 'replace'            
+            displayMode: config.more_info_mode || 'popup', // Neue Option: 'popup' oder 'replace'  
+            transitionType: config.transition_type || 'slide'  // NEUE ZEILE: 'slide' oder 'push'
         };
         
         // Entities können entweder als Array oder automatisch geladen werden
@@ -1359,6 +1360,121 @@ class FastSearchCard extends HTMLElement {
                     }
                 }                
 
+                /* Transition Animations für Replace Mode */
+                .search-container.slide-out-left {
+                    animation: slideOutLeft 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+                }
+
+                .search-container.slide-in-left {
+                    animation: slideInLeft 0.25s cubic-bezier(0.0, 0.0, 0.2, 1) 0.1s forwards;
+                }
+
+                .more-info-replace.slide-in-right {
+                    animation: slideInRight 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) 0.15s forwards;
+                }
+
+                .more-info-replace.slide-out-right {
+                    animation: slideOutRight 0.25s cubic-bezier(0.0, 0.0, 0.2, 1) forwards;
+                }
+
+                /* Push Transition */
+                .search-container.push-left {
+                    animation: pushLeft 0.35s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+                }
+
+                .search-container.push-in-right {
+                    animation: pushInRight 0.35s cubic-bezier(0.0, 0.0, 0.2, 1) forwards;
+                }
+
+                .more-info-replace.push-in-left {
+                    animation: pushInLeft 0.35s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+                }
+
+                .more-info-replace.push-out-right {
+                    animation: pushOutRight 0.35s cubic-bezier(0.0, 0.0, 0.2, 1) forwards;
+                }
+
+                /* Keyframes für Slide Transition */
+                @keyframes slideOutLeft {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(-100%);
+                        opacity: 0;
+                    }
+                }
+
+                @keyframes slideInLeft {
+                    from {
+                        transform: translateX(-100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes slideInRight {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes slideOutRight {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                }
+
+                /* Keyframes für Push Transition */
+                @keyframes pushLeft {
+                    from {
+                        transform: translateX(0);
+                    }
+                    to {
+                        transform: translateX(-100%);
+                    }
+                }
+
+                @keyframes pushInRight {
+                    from {
+                        transform: translateX(-100%);
+                    }
+                    to {
+                        transform: translateX(0);
+                    }
+                }
+
+                @keyframes pushInLeft {
+                    from {
+                        transform: translateX(100%);
+                    }
+                    to {
+                        transform: translateX(0);
+                    }
+                }
+
+                @keyframes pushOutRight {
+                    from {
+                        transform: translateX(0);
+                    }
+                    to {
+                        transform: translateX(100%);
+                    }
+                }
                 
             </style>
             
