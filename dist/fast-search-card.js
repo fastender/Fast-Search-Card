@@ -51,92 +51,106 @@ class FastSearchCard extends HTMLElement {
                     overflow: hidden;
                 }
 
-                .search-input-container {
-                    flex: 1;
+                .search-section {
+                    background: #f8f9fa;
+                    padding: 20px 20px 0 20px;
+                }
+
+                .search-container-inner {
                     position: relative;
-                }                
+                    margin-bottom: 20px;
+                }
 
                 .search-header {
-                    padding: 24px;
-                    background: #f8f9fa;
                     display: flex;
+                    gap: 10px;
+                    margin-bottom: 12px;
+                    justify-content: space-between;
                     align-items: center;
-                    gap: 16px;
                 }
-                
-                .filter-button {
-                    background: rgba(0, 0, 0, 0.08);
-                    border: none;
-                    border-radius: 12px;
-                    width: 48px;
-                    height: 48px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                
-                .filter-button:hover {
-                    background: rgba(0, 0, 0, 0.12);
-                    transform: scale(1.05);
-                }
-                
-                .filter-button.active {
-                    background: #4285f4;
-                    color: white;
-                }
-                
+
                 .view-toggle {
                     display: flex;
-                    gap: 4px;
+                    background: white;
+                    border-radius: 8px;
+                    border: 1px solid #ddd;
+                    overflow: hidden;
                 }
-                
+
                 .view-toggle-btn {
-                    background: rgba(0, 0, 0, 0.08);
+                    background: none;
                     border: none;
-                    border-radius: 12px;
-                    width: 48px;
-                    height: 48px;
+                    padding: 8px 12px;
+                    cursor: pointer;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    cursor: pointer;
+                    color: #666;
                     transition: all 0.2s;
+                    position: relative;
                 }
-                
+
+                .view-toggle-btn:hover {
+                    background: #f5f5f5;
+                }
+
                 .view-toggle-btn.active {
-                    background: #4285f4;
+                    background: #007aff;
                     color: white;
                 }
-                
-                .view-toggle-btn:hover:not(.active) {
-                    background: rgba(0, 0, 0, 0.12);
-                }
-                
 
+                .view-toggle-btn + .view-toggle-btn {
+                    border-left: 1px solid #ddd;
+                }
+
+                .search-type-dropdown {
+                    background: white;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    font-size: 14px;
+                    color: #666;
+                    cursor: pointer;
+                    min-width: 120px;
+                    appearance: none;
+                    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                    background-position: right 8px center;
+                    background-repeat: no-repeat;
+                    background-size: 16px;
+                    padding-right: 32px;
+                }
+
+                .search-type-dropdown:focus {
+                    outline: 2px solid #007aff;
+                    border-color: #007aff;
+                }
+
+                .search-input-container {
+                    position: relative;
+                    flex: 1;
+                }
 
                 .search-input {
-                    flex: 1;
-                    padding: 14px 20px;
+                    width: 100%;
+                    padding: 15px 15px 60px 15px;
                     border: none;
-                    background: white;
-                    border-radius: 16px;
-                    font-size: 16px;
+                    font-size: 18px;
                     outline: none;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-                    transition: all 0.2s;
-                }
-                
-                .search-input:focus {
-                    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
-                }
-                
-                .search-input::placeholder {
-                    color: #9aa0a6;
+                    background: white;
+                    border-radius: 8px;
+                    box-sizing: border-box;
+                    transition: all 0.3s ease;
+                    position: relative;
                 }
 
-                
+                .search-input:focus {
+                    animation: elasticFocus 0.3s ease-out;
+                    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+                }
+
+                .search-input::placeholder {
+                    color: #999;
+                }
 
                 /* Typing indicator */
                 .search-input.typing::after {
@@ -218,257 +232,99 @@ class FastSearchCard extends HTMLElement {
                     border-color: #007aff;
                 }
 
-
-                .filters {
-                    padding: 0 24px 24px 24px;
-                    background: #f8f9fa;
-                    display: block; /* Immer sichtbar statt display: none */
+                .filter-section {
+                    margin-bottom: 20px;
                 }
-                
+
                 .filter-row {
+                    margin-bottom: 12px;
+                    position: relative;
+                }
+
+                .filter-label {
+                    font-size: 12px;
+                    color: #666;
+                    margin-bottom: 8px;
+                    font-weight: 500;
+                }
+
+                .filter-scroll {
                     display: flex;
-                    gap: 12px;
+                    gap: 8px;
                     overflow-x: auto;
                     padding: 4px 0;
                     scrollbar-width: none;
                     -ms-overflow-style: none;
                 }
-                
-                .filter-row::-webkit-scrollbar {
+
+                .filter-scroll::-webkit-scrollbar {
                     display: none;
                 }
-                
+
                 .filter-chip {
-                    background: #e8eaed;
-                    border: none;
+                    padding: 12px 16px;
+                    background: white;
+                    border: 1px solid #ddd;
                     border-radius: 20px;
-                    padding: 12px 20px;
                     font-size: 14px;
-                    color: #3c4043;
+                    color: #666;
                     cursor: pointer;
                     white-space: nowrap;
+                    flex-shrink: 0;
+                    transition: all 0.2s;
+                    user-select: none;
                     display: flex;
+                    flex-direction: row;
                     align-items: center;
                     gap: 8px;
-                    transition: all 0.2s;
-                    font-weight: 500;
+                    text-align: left;
+                    min-width: 90px;
                 }
-                
+
                 .filter-chip:hover {
-                    background: #dadce0;
-                }
-                
-                .filter-chip.active {
-                    background: #4285f4;
-                    color: white;
-                }
-
-                
-                
-                
-                .filter-popup-overlay {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 0.7);
-                    backdrop-filter: blur(8px);
-                    z-index: 2000;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: all 0.3s ease;
-                    padding: 20px;
-                    box-sizing: border-box;
-                }
-                
-                .filter-popup-overlay.active {
-                    opacity: 1;
-                    visibility: visible;
-                }
-                
-                .filter-popup {
-                    background: white;
-                    border-radius: 16px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                    max-width: 600px;
-                    width: 100%;
-                    max-height: 80vh;
-                    overflow: hidden;
-                    transform: scale(0.9) translateY(20px);
-                    transition: all 0.3s ease;
-                    position: relative;
-                }
-                
-                .filter-popup-overlay.active .filter-popup {
-                    transform: scale(1) translateY(0);
-                }
-                
-                .filter-popup-header {
-                    background: #f8f9fa;
-                    padding: 20px 24px;
-                    border-bottom: 1px solid #e9ecef;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                }
-                
-                .filter-popup-title {
-                    font-size: 18px;
-                    font-weight: 600;
-                    color: #333;
-                    margin: 0;
-                }
-                
-                .filter-popup-close {
-                    background: none;
-                    border: none;
-                    font-size: 24px;
-                    color: #666;
-                    cursor: pointer;
-                    padding: 4px;
-                    border-radius: 4px;
-                    transition: background 0.2s;
-                }
-                
-                .filter-popup-close:hover {
-                    background: rgba(0, 0, 0, 0.1);
-                }
-                
-                .filter-popup-content {
-                    padding: 24px;
-                    max-height: calc(80vh - 140px);
-                    overflow-y: auto;
-                }
-                
-                .filter-section {
-                    margin-bottom: 32px;
-                }
-                
-                .filter-section:last-child {
-                    margin-bottom: 0;
-                }
-                
-                .filter-section-title {
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: #666;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    margin: 0 0 16px 0;
-                }
-                
-                .filter-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 12px;
-                }
-                
-                .filter-option {
-                    background: #f8f9fa;
-                    border: 2px solid #e9ecef;
-                    border-radius: 12px;
-                    padding: 16px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-                
-                .filter-option:hover {
-                    background: #e9ecef;
-                    border-color: #dee2e6;
-                }
-                
-                .filter-option.selected {
-                    background: rgba(66, 133, 244, 0.1);
-                    border-color: #4285f4;
-                    color: #4285f4;
-                }
-                
-                .filter-option-icon {
-                    font-size: 20px;
-                    flex-shrink: 0;
-                }
-                
-                .filter-option-info {
-                    flex: 1;
-                }
-                
-                .filter-option-name {
-                    font-weight: 500;
-                    font-size: 14px;
-                    margin-bottom: 2px;
-                }
-                
-                .filter-option-count {
-                    font-size: 12px;
-                    color: #666;
-                }
-                
-                .filter-option.selected .filter-option-count {
-                    color: #4285f4;
-                }
-                
-                .filter-popup-footer {
-                    background: #f8f9fa;
-                    padding: 16px 24px;
-                    border-top: 1px solid #e9ecef;
-                    display: flex;
-                    gap: 12px;
-                    justify-content: flex-end;
-                }
-                
-                .filter-popup-button {
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                
-                .filter-popup-button.secondary {
-                    background: white;
-                    color: #666;
-                    border: 1px solid #ddd;
-                }
-                
-                .filter-popup-button.secondary:hover {
                     background: #f5f5f5;
+                    border-color: #ccc;
                 }
-                
-                .filter-popup-button.primary {
-                    background: #4285f4;
+
+                .filter-chip.active {
+                    background: #007aff;
+                    color: white;
+                    border-color: #007aff;
+                }
+
+                .filter-chip.all {
+                    background: #f8f9fa;
+                    border-color: #e9ecef;
+                    min-width: auto;
+                }
+
+                .filter-chip.all.active {
+                    background: #6c757d;
+                    border-color: #6c757d;
                     color: white;
                 }
-                
-                .filter-popup-button.primary:hover {
-                    background: #3367d6;
-                }
-                
-                @media (max-width: 768px) {
-                    .filter-popup {
-                        margin: 10px;
-                        max-height: 90vh;
-                    }
-                    
-                    .filter-grid {
-                        grid-template-columns: 1fr;
-                    }
-                }                
-
-
-                
 
                 .chip-icon {
                     font-size: 18px;
                     flex-shrink: 0;
+                }
+
+                .chip-content {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+                .chip-type-name {
+                    font-weight: 500;
+                    line-height: 1.2;
+                }
+
+                .chip-count {
+                    font-size: 11px;
+                    opacity: 0.8;
+                    margin-top: 2px;
+                    line-height: 1;
                 }
 
                 /* Eingangs-Animationen */
@@ -1505,45 +1361,53 @@ class FastSearchCard extends HTMLElement {
                 
             </style>
             
-            
             <div class="search-container">
-                <div class="search-header">
-
-
-                    <button class="filter-button" id="filterButton">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M3 18h18v-2H3v2zM3 13h18v-2H3v2zM3 6v2h18V6H3z"/>
-                        </svg>
-                    </button>                    
+                <div class="search-section">
+                    <div class="search-header">
+                        <select class="search-type-dropdown" id="searchTypeDropdown">
+                            <option value="entities">🏠 Geräte</option>
+                            <option value="automations">🤖 Automationen</option>
+                            <option value="scripts">📜 Skripte</option>
+                            <option value="scenes">🎭 Szenen</option>
+                        </select>
+                        
+                        <div class="view-toggle">
+                            <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                                </svg>
+                            </button>
+                            <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                     
-                    <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
+                    <div class="search-container-inner">
+                        <div class="search-input-container">
+                            <input type="text" class="search-input" placeholder="Suchen..." id="searchInput">
+                            <div class="typing-indicator" id="typingIndicator">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                            <div class="room-chips-in-search" id="roomChipsInSearch">
+                                <div class="room-chip-small active" data-value="">Alle</div>
+                            </div>
+                        </div>
+                    </div>
                     
-                    <div class="view-toggle">
-                        <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-                            </svg>
-                        </button>
-                        <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
-                            </svg>
-                        </button>
+                    <div class="filter-section">
+                        <div class="filter-row">
+                            <div class="filter-label" id="filterLabel">Kategorien</div>
+                            <div class="filter-scroll" id="typeFilterChips">
+                                <div class="filter-chip all active" data-value="">Alle</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="filters">
-                    <div class="filter-row" id="typeFilterChips">
-
-
-                        <button class="filter-chip active" data-value="">
-                            <span class="chip-icon">🏠</span>
-                            <span class="chip-name">Alle Geräte</span>
-                        </button>
-
-                    </div>
-                </div>
-            
                 <div class="results-container" id="resultsContainer">
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                 </div>
@@ -2023,10 +1887,6 @@ getQuickStats(item) {
         this.selectedType = '';
         this.isInitialized = false; // Flag für Initialisierung
         this.currentView = 'list'; // Neue Property für View-Mode
-    
-        this.tempSelectedType = '';
-        this.tempSelectedRooms = new Set();  
-        this.tempSelectedMainCategory = this.currentSearchType;
         
         // Definitionen für verschiedene Suchtypen
         this.searchTypeConfigs = {
@@ -2113,14 +1973,14 @@ getQuickStats(item) {
         };
 
         this.searchInput = this.shadowRoot.getElementById('searchInput');
+        this.searchTypeDropdown = this.shadowRoot.getElementById('searchTypeDropdown');
         this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
         this.noResults = this.shadowRoot.getElementById('noResults');
-        this.filterButton = this.shadowRoot.getElementById('filterButton');
-
+        this.filterLabel = this.shadowRoot.getElementById('filterLabel');
         this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
 
         this.searchInput.addEventListener('input', () => this.handleSearchInput());
-        this.shadowRoot.getElementById('filterButton').addEventListener('click', () => this.toggleFilterMenu());
+        this.searchTypeDropdown.addEventListener('change', () => this.onSearchTypeChange());
         
         // View Toggle Event Listeners
         this.shadowRoot.getElementById('listViewBtn').addEventListener('click', () => this.setView('list'));
@@ -2187,6 +2047,7 @@ getQuickStats(item) {
     updateSearchUI() {
         const config = this.searchTypeConfigs[this.currentSearchType];
         this.searchInput.placeholder = config.placeholder;
+        this.filterLabel.textContent = config.filterLabel;
         
         // Room chips zurücksetzen
         this.setupRoomChips([]);
@@ -2474,8 +2335,7 @@ getQuickStats(item) {
         
         const categories = [...new Set(this.allItems.map(d => d.category))].sort();
         this.setupCategoryChips(categories);
-    
-        // WICHTIG: Filter direkt anwenden nach Setup
+
         this.applyFilters();
     }
 
@@ -2554,10 +2414,7 @@ getQuickStats(item) {
     }
 
     setupRoomChips(rooms) {
-        if (!this.shadowRoot.getElementById('roomChipsInSearch')) {
-            return; // Früh beenden wenn Element nicht existiert
-        }
-        const roomChips = this.shadowRoot.getElementById('roomChipsInSearch');        
+        const roomChips = this.shadowRoot.getElementById('roomChipsInSearch');
         
         // Aktuellen Zustand speichern
         const currentActiveRooms = Array.from(roomChips.querySelectorAll('.room-chip-small.active'))
@@ -2595,20 +2452,15 @@ getQuickStats(item) {
             const existingChips = categoryChips.querySelectorAll('.filter-chip:not([data-value=""])');
             existingChips.forEach(chip => chip.remove());
             
-            // "Alle" Chip aktualisieren mit korrektem Text und Icon
+            // "Alle" Chip wieder aktivieren
             const alleChip = categoryChips.querySelector('.filter-chip[data-value=""]');
             if (alleChip) {
                 alleChip.classList.add('active');
-                // Text je nach Hauptkategorie anpassen
-                const config = this.searchTypeConfigs[this.currentSearchType];
-                const alleText = this.getAlleChipText();
-                const alleIcon = this.getAlleChipIcon();
-                
-                alleChip.innerHTML = `
-                    <span class="chip-icon">${alleIcon}</span>
-                    <span class="chip-name">${alleText}</span>
-                `;
             }
+        } else {
+            // Bei Updates: Aktuellen Zustand speichern
+            const activeChip = categoryChips.querySelector('.filter-chip.active');
+            const currentActiveCategory = activeChip ? activeChip.getAttribute('data-value') : '';
         }
         
         // Vorhandene Kategorien ermitteln
@@ -2643,16 +2495,12 @@ getQuickStats(item) {
     }
 
     setupChipFilters() {
-        // Room chips Event Listener nur wenn Element existiert
-        const roomChipsElement = this.shadowRoot.getElementById('roomChipsInSearch');
-        if (roomChipsElement) {
-            roomChipsElement.addEventListener('click', (e) => {
-                if (e.target.classList.contains('room-chip-small')) {
-                    this.handleRoomChipClick(e.target);
-                }
-            });
-        }
-    
+        this.shadowRoot.getElementById('roomChipsInSearch').addEventListener('click', (e) => {
+            if (e.target.classList.contains('room-chip-small')) {
+                this.handleRoomChipClick(e.target);
+            }
+        });
+
         this.shadowRoot.getElementById('typeFilterChips').addEventListener('click', (e) => {
             let chip = e.target;
             if (!chip.classList.contains('filter-chip')) {
@@ -2693,38 +2541,14 @@ getQuickStats(item) {
         this.applyFilters();
     }
 
-
-    
     handleCategoryChipClick(chip) {
-        const clickedValue = chip.getAttribute('data-value');
         const chips = this.shadowRoot.querySelectorAll('#typeFilterChips .filter-chip');
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
         
-        // Wenn "Alle" geklickt wird
-        if (clickedValue === '') {
-            chips.forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            this.selectedType = '';
-            this.applyFilters();
-            return;
-        }
-        
-        // Wenn eine spezifische Kategorie geklickt wird
-        const alleChip = this.shadowRoot.querySelector('#typeFilterChips .filter-chip[data-value=""]');
-        
-        if (chip.classList.contains('active')) {
-            // Kategorie ist bereits aktiv -> deaktivieren und zu "Alle" wechseln
-            chip.classList.remove('active');
-            alleChip.classList.add('active');
-            this.selectedType = '';
-        } else {
-            // Kategorie aktivieren
-            chips.forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            this.selectedType = clickedValue;
-        }
-        
+        this.selectedType = chip.getAttribute('data-value');
         this.applyFilters();
-    }    
+    }
 
     applyFilters() {
         const query = this.searchInput.value.toLowerCase().trim();
@@ -2741,12 +2565,12 @@ getQuickStats(item) {
             
             return matchesSearch && matchesRoom && matchesType;
         });
-    
+
         if (filteredItems.length === 0) {
             this.showNoResults('Keine Ergebnisse gefunden');
             return;
         }
-    
+
         // Animation für Container beim Wechsel
         this.resultsContainer.classList.add('loading');
         
@@ -2754,7 +2578,7 @@ getQuickStats(item) {
         setTimeout(() => {
             this.resultsContainer.classList.remove('loading');
         }, 400);
-    
+
         if (this.currentView === 'grid') {
             this.displayItemsGrid(filteredItems);
         } else {
@@ -3766,343 +3590,6 @@ getQuickStats(item) {
         }
     }
 
-    
-    toggleFilterMenu() {
-        this.openFilterPopup();
-    }
-    
-    openFilterPopup() {
-        this.createFilterPopup();
-    }
-    
-    createFilterPopup() {
-        // Vorhandenes Popup entfernen
-        const existingPopup = this.shadowRoot.querySelector('.filter-popup-overlay');
-        if (existingPopup) {
-            existingPopup.remove();
-        }
-        
-        const overlay = document.createElement('div');
-        overlay.className = 'filter-popup-overlay';
-        overlay.innerHTML = this.getFilterPopupHTML();
-        
-        // Event Listeners
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                this.closeFilterPopup();
-            }
-        });
-        
-        // Setup Event Listeners
-        this.setupFilterPopupListeners(overlay);
-        
-        // Popup anzeigen
-        this.shadowRoot.appendChild(overlay);
-        
-        // Animation starten
-        requestAnimationFrame(() => {
-            overlay.classList.add('active');
-        });
-    }
-    
-    getFilterPopupHTML() {
-        const categories = this.getFilterCategories();
-        const rooms = this.getFilterRooms();
-        
-        return `
-            <div class="filter-popup">
-                <div class="filter-popup-header">
-                    <h2 class="filter-popup-title">Filter & Suche</h2>
-                    <button class="filter-popup-close">×</button>
-                </div>
-                
-                <div class="filter-popup-content">
-                    <div class="filter-section">
-                        <h3 class="filter-section-title">Kategorien</h3>
-                        <div class="filter-grid" id="categoryFilterGrid">
-                            ${categories.map(cat => this.getCategoryOptionHTML(cat)).join('')}
-                        </div>
-                    </div>
-                    
-                    <div class="filter-section">
-                        <h3 class="filter-section-title">Räume</h3>
-                        <div class="filter-grid" id="roomFilterGrid">
-                            ${rooms.map(room => this.getRoomOptionHTML(room)).join('')}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="filter-popup-footer">
-                    <button class="filter-popup-button secondary" id="resetFilters">Zurücksetzen</button>
-                    <button class="filter-popup-button primary" id="applyFilters">Anwenden</button>
-                </div>
-            </div>
-        `;
-    }
-    
-    
-    getFilterCategories() {
-        // Hauptkategorien: Geräte, Automationen, Skripte, Szenen
-        const mainCategories = [
-            {
-                id: 'entities',
-                name: 'Alle Geräte',
-                icon: '🏠',
-                count: this.allItems.filter(item => item.itemType === 'entity').length,
-                selected: this.currentSearchType === 'entities'
-            },
-            {
-                id: 'automations',
-                name: 'Automationen',
-                icon: '🤖',
-                count: this.allItems.filter(item => item.itemType === 'automation').length,
-                selected: this.currentSearchType === 'automations'
-            },
-            {
-                id: 'scripts',
-                name: 'Skripte',
-                icon: '📜',
-                count: this.allItems.filter(item => item.itemType === 'script').length,
-                selected: this.currentSearchType === 'scripts'
-            },
-            {
-                id: 'scenes',
-                name: 'Szenen',
-                icon: '🎭',
-                count: this.allItems.filter(item => item.itemType === 'scene').length,
-                selected: this.currentSearchType === 'scenes'
-            }
-        ];
-        
-        return mainCategories;
-    }        
-    
-    getFilterRooms() {
-        const rooms = [...new Set(this.allItems.map(d => d.room))].sort();
-        
-        return [
-            {
-                id: '',
-                name: 'Alle Räume',
-                icon: '🏠',
-                count: this.allItems.length,
-                selected: this.selectedRooms.size === 0
-            },
-            ...rooms.map(room => ({
-                id: room,
-                name: room,
-                icon: this.getRoomIcon(room),
-                count: this.allItems.filter(d => d.room === room).length,
-                selected: this.selectedRooms.has(room)
-            }))
-        ];
-    }
-    
-    getRoomIcon(roomName) {
-        const iconMap = {
-            'Wohnzimmer': '🛋️',
-            'Schlafzimmer': '🛏️',
-            'Küche': '🍳',
-            'Bad': '🚿',
-            'Badezimmer': '🛁',
-            'Kinderzimmer': '🧸',
-            'Arbeitszimmer': '💻',
-            'Büro': '💼',
-            'Flur': '🚪',
-            'Keller': '🏠',
-            'Dachboden': '🏠',
-            'Garage': '🚗',
-            'Garten': '🌱',
-            'Balkon': '🌿',
-            'Terrasse': '🌞'
-        };
-        return iconMap[roomName] || '🏠';
-    }
-
-    getAlleChipText() {
-        switch (this.currentSearchType) {
-            case 'entities': return 'Alle Geräte';
-            case 'automations': return 'Alle Automationen';
-            case 'scripts': return 'Alle Skripte';
-            case 'scenes': return 'Alle Szenen';
-            default: return 'Alle';
-        }
-    }
-    
-    getAlleChipIcon() {
-        switch (this.currentSearchType) {
-            case 'entities': return '🏠';
-            case 'automations': return '🤖';
-            case 'scripts': return '📜';
-            case 'scenes': return '🎭';
-            default: return '📋';
-        }
-    }    
-    
-    getCategoryOptionHTML(category) {
-        return `
-            <div class="filter-option ${category.selected ? 'selected' : ''}" data-type="category" data-value="${category.id}">
-                <div class="filter-option-icon">${category.icon}</div>
-                <div class="filter-option-info">
-                    <div class="filter-option-name">${category.name}</div>
-                    <div class="filter-option-count">${category.count} Verfügbar</div>
-                </div>
-            </div>
-        `;
-    }
-    
-    getRoomOptionHTML(room) {
-        return `
-            <div class="filter-option ${room.selected ? 'selected' : ''}" data-type="room" data-value="${room.id}">
-                <div class="filter-option-icon">${room.icon}</div>
-                <div class="filter-option-info">
-                    <div class="filter-option-name">${room.name}</div>
-                    <div class="filter-option-count">${room.count} Geräte</div>
-                </div>
-            </div>
-        `;
-    }
-    
-    setupFilterPopupListeners(overlay) {
-        // Close Button
-        const closeBtn = overlay.querySelector('.filter-popup-close');
-        closeBtn.addEventListener('click', () => this.closeFilterPopup());
-        
-        // Filter Options
-        const filterOptions = overlay.querySelectorAll('.filter-option');
-        filterOptions.forEach(option => {
-            option.addEventListener('click', () => this.handleFilterOptionClick(option));
-        });
-        
-        // Footer Buttons
-        const resetBtn = overlay.querySelector('#resetFilters');
-        const applyBtn = overlay.querySelector('#applyFilters');
-        
-        resetBtn.addEventListener('click', () => this.resetFilters());
-        applyBtn.addEventListener('click', () => this.applyPopupFilters());
-    }
-    
-    
-    handleFilterOptionClick(option) {
-        const type = option.getAttribute('data-type');
-        const value = option.getAttribute('data-value');
-        
-        if (type === 'category') {
-            // Alle Category-Optionen deselektieren
-            const categoryOptions = option.parentNode.querySelectorAll('.filter-option');
-            categoryOptions.forEach(opt => opt.classList.remove('selected'));
-            
-            // Gewählte Option aktivieren
-            option.classList.add('selected');
-            this.tempSelectedMainCategory = value;
-            
-        } else if (type === 'room') {
-            if (value === '') {
-                // "Alle Räume" gewählt
-                const roomOptions = option.parentNode.querySelectorAll('.filter-option');
-                roomOptions.forEach(opt => opt.classList.remove('selected'));
-                option.classList.add('selected');
-                this.tempSelectedRooms = new Set();
-            } else {
-                // Spezifischen Raum gewählt
-                const alleRaumeOption = option.parentNode.querySelector('[data-value=""]');
-                alleRaumeOption.classList.remove('selected');
-                
-                option.classList.toggle('selected');
-                
-                if (!this.tempSelectedRooms) this.tempSelectedRooms = new Set();
-                
-                if (option.classList.contains('selected')) {
-                    this.tempSelectedRooms.add(value);
-                } else {
-                    this.tempSelectedRooms.delete(value);
-                }
-                
-                // Wenn keine Räume ausgewählt, "Alle Räume" aktivieren
-                if (this.tempSelectedRooms.size === 0) {
-                    alleRaumeOption.classList.add('selected');
-                }
-            }
-        }
-    }        
-    
-
-    resetFilters() {
-        // UI zurücksetzen
-        const popup = this.shadowRoot.querySelector('.filter-popup');
-        const categoryOptions = popup.querySelectorAll('[data-type="category"]');
-        const roomOptions = popup.querySelectorAll('[data-type="room"]');
-        
-        categoryOptions.forEach(opt => opt.classList.remove('selected'));
-        roomOptions.forEach(opt => opt.classList.remove('selected'));
-        
-        // Aktuelle Hauptkategorie als Standard setzen
-        const currentCategoryOption = popup.querySelector(`[data-type="category"][data-value="${this.currentSearchType}"]`);
-        if (currentCategoryOption) {
-            currentCategoryOption.classList.add('selected');
-        }
-        
-        // "Alle Räume" aktivieren
-        popup.querySelector('[data-type="room"][data-value=""]').classList.add('selected');
-        
-        // Temp Variablen zurücksetzen
-        this.tempSelectedMainCategory = this.currentSearchType;
-        this.tempSelectedRooms = new Set();
-    }
-    
-
-    applyPopupFilters() {
-        // Hauptkategorie wechseln falls geändert
-        if (this.tempSelectedMainCategory && this.tempSelectedMainCategory !== this.currentSearchType) {
-            this.currentSearchType = this.tempSelectedMainCategory;
-            this.selectedType = ''; // Unterkategorie zurücksetzen
-            this.isInitialized = false; // Neu initialisieren
-            this.updateSearchUI();
-            this.updateItems(); // Komplett neu laden
-        }
-        
-        // Räume übertragen
-        this.selectedRooms = this.tempSelectedRooms || new Set();
-        
-        // Popup schließen
-        this.closeFilterPopup();
-        
-        // Filter anwenden
-        this.applyFilters();
-        
-        // WICHTIG: Chip-UI aktualisieren für Unterkategorien
-        this.updateChipStates();
-    }        
-    
-
-    updateChipStates() {
-        // Category Chips aktualisieren
-        const categoryChips = this.shadowRoot.querySelectorAll('#typeFilterChips .filter-chip');
-        categoryChips.forEach(chip => {
-            const value = chip.getAttribute('data-value');
-            const isActive = value === this.selectedType;
-            chip.classList.toggle('active', isActive);
-        });
-        
-        // Sicherstellen dass "Alle" aktiv ist wenn keine spezifische Kategorie gewählt
-        if (this.selectedType === '') {
-            const alleChip = this.shadowRoot.querySelector('#typeFilterChips .filter-chip[data-value=""]');
-            if (alleChip) {
-                alleChip.classList.add('active');
-            }
-        }
-    }    
-    
-    closeFilterPopup() {
-        const overlay = this.shadowRoot.querySelector('.filter-popup-overlay');
-        if (overlay) {
-            overlay.classList.remove('active');
-            setTimeout(() => {
-                overlay.remove();
-            }, 300);
-        }
-    }    
-    
     getCardSize() {
         return 3;
     }
