@@ -1554,51 +1554,54 @@ class FastSearchCard extends HTMLElement {
         replaceContainer.style.width = '100%';
         replaceContainer.style.opacity = '0';
         
-        // Suche nach links rausschieben
-        searchContainer.style.transition = 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)';
+        // Suche nach links rausschieben + fade-out
+        searchContainer.style.transition = 'transform 0.35s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.35s ease';
         searchContainer.style.transform = 'translateX(-100%)';
+        searchContainer.style.opacity = '0';
         
-        // Replace nach 200ms von rechts reinschieben
+        // Replace nach 250ms von rechts reinschieben + fade-in (GLEICHZEITIG)
         setTimeout(() => {
             replaceContainer.style.transition = 'left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.3s ease';
             replaceContainer.style.left = '0%';
             replaceContainer.style.opacity = '1';
-        }, 200);
+        }, 250);
         
         // Cleanup nach kompletter Animation
         setTimeout(() => {
             searchContainer.style.display = 'none';
             searchContainer.style.transform = '';
+            searchContainer.style.opacity = '';
             searchContainer.style.transition = '';
             replaceContainer.style.position = '';
             replaceContainer.style.transition = '';
-        }, 500);
+        }, 600);
         
         // Event Listeners für Replace-Mode
         this.setupReplaceEventListeners(item);
-    }    
-
+    }
 
     switchBackToSearch() {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
         
-        // Replace nach rechts rausschieben
-        replaceContainer.style.transition = 'left 0.25s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.25s ease';
+        // Replace nach rechts rausschieben + fade-out
+        replaceContainer.style.transition = 'left 0.3s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.3s ease';
         replaceContainer.style.left = '100%';
         replaceContainer.style.opacity = '0';
         
-        // Suche nach 100ms von links reinschieben
+        // Suche nach 200ms von links reinschieben + fade-in
         setTimeout(() => {
             searchContainer.style.display = 'block';
             searchContainer.style.transform = 'translateX(-100%)';
-            searchContainer.style.transition = 'transform 0.25s cubic-bezier(0.0, 0.0, 0.2, 1)';
+            searchContainer.style.opacity = '0';
+            searchContainer.style.transition = 'transform 0.3s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.3s ease';
             
             // Animation starten
             requestAnimationFrame(() => {
                 searchContainer.style.transform = 'translateX(0)';
+                searchContainer.style.opacity = '1';
             });
-        }, 100);
+        }, 200);
         
         // Cleanup
         setTimeout(() => {
@@ -1609,9 +1612,10 @@ class FastSearchCard extends HTMLElement {
             replaceContainer.style.position = '';
             replaceContainer.style.transition = '';
             searchContainer.style.transform = '';
+            searchContainer.style.opacity = '';
             searchContainer.style.transition = '';
-        }, 350);
-    }    
+        }, 500);
+    }        
 
     animateSlideTransition(searchContainer, replaceContainer, direction) {
         if (direction === 'in') {
