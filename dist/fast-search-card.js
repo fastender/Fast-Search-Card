@@ -2594,15 +2594,20 @@ getQuickStats(item) {
             const existingChips = categoryChips.querySelectorAll('.filter-chip:not([data-value=""])');
             existingChips.forEach(chip => chip.remove());
             
-            // "Alle" Chip wieder aktivieren
+            // "Alle" Chip aktualisieren mit korrektem Text und Icon
             const alleChip = categoryChips.querySelector('.filter-chip[data-value=""]');
             if (alleChip) {
                 alleChip.classList.add('active');
+                // Text je nach Hauptkategorie anpassen
+                const config = this.searchTypeConfigs[this.currentSearchType];
+                const alleText = this.getAlleChipText();
+                const alleIcon = this.getAlleChipIcon();
+                
+                alleChip.innerHTML = `
+                    <span class="chip-icon">${alleIcon}</span>
+                    <span class="chip-name">${alleText}</span>
+                `;
             }
-        } else {
-            // Bei Updates: Aktuellen Zustand speichern
-            const activeChip = categoryChips.querySelector('.filter-chip.active');
-            const currentActiveCategory = activeChip ? activeChip.getAttribute('data-value') : '';
         }
         
         // Vorhandene Kategorien ermitteln
