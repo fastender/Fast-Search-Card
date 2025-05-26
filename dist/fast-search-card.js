@@ -1573,38 +1573,50 @@ class FastSearchCard extends HTMLElement {
 
     animateSlideTransition(searchContainer, replaceContainer, direction) {
         if (direction === 'in') {
-            // Suche → Replace: Slide Animation
+            // Replace initial verstecken (außerhalb des Viewports)
+            replaceContainer.style.transform = 'translateX(100%)';
+            replaceContainer.style.opacity = '0';
+            
+            // Suche raussliden
             searchContainer.classList.add('slide-out-left');
             
-            // Replace ERST anzeigen wenn Suche fast weg ist
+            // Replace Animation starten NACH der Suche
             setTimeout(() => {
-                replaceContainer.classList.add('slide-in-right');
-            }, 150); // Replace startet nach 150ms
+                replaceContainer.style.transform = 'translateX(0)';
+                replaceContainer.style.opacity = '1';
+                replaceContainer.style.transition = 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.3s ease';
+            }, 200); // Startet wenn Suche fast weg ist
             
-            // Nach kompletter Animation: Suche verstecken
+            // Cleanup
             setTimeout(() => {
                 searchContainer.style.display = 'none';
                 searchContainer.classList.remove('slide-out-left');
-            }, 450); // 300ms + 150ms Delay
+                replaceContainer.style.transition = '';
+            }, 500);
             
         } else {
-            // Replace → Suche: Reverse Slide Animation
-            replaceContainer.classList.add('slide-out-right');
+            // Replace → Suche: Reverse Animation
+            replaceContainer.style.transition = 'transform 0.25s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.25s ease';
+            replaceContainer.style.transform = 'translateX(100%)';
+            replaceContainer.style.opacity = '0';
             
-            // Suche ERST anzeigen wenn Replace fast weg ist  
+            // Suche wieder anzeigen
             setTimeout(() => {
                 searchContainer.style.display = 'block';
                 searchContainer.classList.add('slide-in-left');
             }, 100);
             
-            // Cleanup nach Animation
+            // Cleanup
             setTimeout(() => {
-                replaceContainer.classList.remove('active', 'slide-out-right');
+                replaceContainer.classList.remove('active');
                 replaceContainer.innerHTML = '';
+                replaceContainer.style.transform = '';
+                replaceContainer.style.opacity = '';
+                replaceContainer.style.transition = '';
                 searchContainer.classList.remove('slide-in-left');
             }, 350);
         }
-    }    
+    }        
 
     animatePushTransition(searchContainer, replaceContainer, direction) {
         if (direction === 'in') {
