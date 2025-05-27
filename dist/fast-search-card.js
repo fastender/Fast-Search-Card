@@ -1299,8 +1299,213 @@ class FastSearchCard extends HTMLElement {
                 }                
 
 
-
-
+            
+                /* Filter Menu Overlay */
+                .filter-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.4);
+                    backdrop-filter: blur(4px);
+                    z-index: 1000;
+                    display: none;
+                    opacity: 0;
+                    transition: all 0.3s ease;
+                }
+                
+                .filter-overlay.active {
+                    display: flex;
+                    opacity: 1;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                    box-sizing: border-box;
+                }
+                
+                .filter-menu {
+                    background: white;
+                    border-radius: 16px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+                    max-width: 500px;
+                    width: 100%;
+                    max-height: 80vh;
+                    overflow: hidden;
+                    transform: scale(0.9);
+                    transition: all 0.3s ease;
+                }
+                
+                .filter-overlay.active .filter-menu {
+                    transform: scale(1);
+                }
+                
+                .filter-menu-header {
+                    padding: 24px;
+                    border-bottom: 1px solid #f1f3f4;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+                
+                .filter-menu-title {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #202124;
+                    margin: 0;
+                }
+                
+                .close-button {
+                    background: rgba(0, 0, 0, 0.08);
+                    border: none;
+                    border-radius: 50%;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    color: #5f6368;
+                }
+                
+                .close-button:hover {
+                    background: rgba(0, 0, 0, 0.12);
+                }
+                
+                .filter-menu-content {
+                    padding: 24px;
+                    max-height: calc(80vh - 160px);
+                    overflow-y: auto;
+                }
+                
+                .filter-section-menu {
+                    margin-bottom: 32px;
+                }
+                
+                .filter-section-menu:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .filter-section-title {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #5f6368;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 16px;
+                }
+                
+                .filter-options {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 12px;
+                }
+                
+                .filter-option {
+                    background: #f8f9fa;
+                    border: 2px solid transparent;
+                    border-radius: 12px;
+                    padding: 16px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                
+                .filter-option:hover {
+                    background: #e8eaed;
+                }
+                
+                .filter-option.selected {
+                    background: rgba(66, 133, 244, 0.1);
+                    border-color: #4285f4;
+                }
+                
+                .filter-option-icon {
+                    font-size: 20px;
+                    width: 32px;
+                    height: 32px;
+                    background: white;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+                
+                .filter-option-info {
+                    flex: 1;
+                }
+                
+                .filter-option-name {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #202124;
+                    margin-bottom: 2px;
+                }
+                
+                .filter-option-count {
+                    font-size: 12px;
+                    color: #5f6368;
+                }
+                
+                .filter-actions {
+                    padding: 16px 24px;
+                    border-top: 1px solid #f1f3f4;
+                    display: flex;
+                    gap: 12px;
+                    justify-content: flex-end;
+                }
+                
+                .filter-action-button {
+                    background: #f8f9fa;
+                    color: #5f6368;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 12px 24px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                
+                .filter-action-button:hover {
+                    background: #e8eaed;
+                }
+                
+                .filter-action-button.primary {
+                    background: #4285f4;
+                    color: white;
+                }
+                
+                .filter-action-button.primary:hover {
+                    background: #3367d6;
+                }
+                
+                /* Mobile Responsive */
+                @media (max-width: 768px) {
+                    .filter-overlay {
+                        padding: 10px;
+                    }
+                    
+                    .filter-menu {
+                        max-height: 90vh;
+                    }
+                    
+                    .filter-menu-header {
+                        padding: 20px;
+                    }
+                    
+                    .filter-menu-content {
+                        padding: 20px;
+                    }
+                    
+                    .filter-options {
+                        grid-template-columns: 1fr;
+                    }
+                }
 
 
                 
