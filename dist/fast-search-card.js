@@ -2587,17 +2587,17 @@ getQuickStats(item) {
         badge.classList.toggle('active', count > 0);
     }
     
-    
+
     getActiveFilterCount() {
         let count = 0;
         
         // Nicht-Standard Suchtyp
         if (this.currentSearchType !== 'entities') count++;
         
-        // Ausgewählte Räume
-        if (this.selectedRooms.size > 0) count++;
+        // Jeder ausgewählte Raum einzeln zählen
+        count += this.selectedRooms.size;
         
-        // Ausgewählte Kategorie  
+        // Ausgewählte Kategorie
         if (this.selectedType) count++;
         
         console.log('Filter Count Debug:', {
@@ -2605,11 +2605,10 @@ getQuickStats(item) {
             rooms: Array.from(this.selectedRooms),
             category: this.selectedType,
             totalCount: count
-        }); // ← DIESE ZEILE TEMPORÄR HINZUFÜGEN
+        });
         
         return count;
-    }
-    
+    }    
     
     updateActiveFilterTags() {
         const container = this.shadowRoot.getElementById('activeFilters');
