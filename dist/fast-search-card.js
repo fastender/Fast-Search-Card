@@ -2787,8 +2787,6 @@ getQuickStats(item) {
     }
 
     initializeFilters() {
-        const rooms = [...new Set(this.allItems.map(d => d.room))].sort();
-        this.setupRoomChips(rooms);
         
         const categories = [...new Set(this.allItems.map(d => d.category))].sort();
         this.setupCategoryChips(categories);
@@ -2870,36 +2868,13 @@ getQuickStats(item) {
         });
     }
 
+
+    
     setupRoomChips(rooms) {
-        const roomChips = this.shadowRoot.getElementById('roomChipsInSearch');
-        
-        // Aktuellen Zustand speichern
-        const currentActiveRooms = Array.from(roomChips.querySelectorAll('.room-chip-small.active'))
-            .map(chip => chip.getAttribute('data-value'));
-        
-        // Nur neue Chips hinzufügen, vorhandene nicht entfernen
-        const existingRoomValues = Array.from(roomChips.querySelectorAll('.room-chip-small'))
-            .map(chip => chip.getAttribute('data-value'));
-        
-        rooms.forEach((room, index) => {
-            if (!existingRoomValues.includes(room)) {
-                const chip = document.createElement('div');
-                chip.className = 'room-chip-small';
-                chip.setAttribute('data-value', room);
-                chip.textContent = room;
-                
-                // Zustand wiederherstellen
-                if (currentActiveRooms.includes(room)) {
-                    chip.classList.add('active');
-                }
-                
-                // Stagger-Animation für neue Room-Chips
-                chip.style.animationDelay = `${index * 0.05}s`;
-                
-                roomChips.appendChild(chip);
-            }
-        });
-    }
+        // Diese Methode wird nicht mehr verwendet, da Room-Chips jetzt im Filter-Overlay sind
+        // Leer lassen, damit keine Fehler auftreten
+        return;
+    }        
 
     setupCategoryChips(categories) {
         const categoryChips = this.shadowRoot.getElementById('typeFilterChips');
