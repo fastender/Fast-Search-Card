@@ -43,59 +43,52 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0;
                     animation: cardFadeIn 0.6s ease-out 0.2s forwards;
                 }
-
+                
                 .search-container {
                     background: white;
-                    border-radius: 12px;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                    border-radius: 20px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
                     overflow: hidden;
-                }
+                }                
 
                 .search-section {
                     background: #f8f9fa;
-                    padding: 20px 20px 0 20px;
+                    padding: 24px;
                 }
 
-                .search-container-inner {
-                    position: relative;
-                    margin-bottom: 20px;
-                }
 
                 .search-header {
                     display: flex;
-                    gap: 10px;
-                    margin-bottom: 12px;
-                    justify-content: space-between;
+                    gap: 16px;
                     align-items: center;
-                }
+                    justify-content: space-between;
+                }                
 
                 .view-toggle {
                     display: flex;
-                    background: white;
-                    border-radius: 8px;
-                    border: 1px solid #ddd;
-                    overflow: hidden;
+                    gap: 4px;
                 }
-
+                
                 .view-toggle-btn {
-                    background: none;
+                    background: rgba(0, 0, 0, 0.08);
                     border: none;
-                    padding: 8px 12px;
-                    cursor: pointer;
+                    border-radius: 12px;
+                    width: 48px;
+                    height: 48px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    color: #666;
+                    cursor: pointer;
                     transition: all 0.2s;
-                    position: relative;
+                    color: #5f6368;
                 }
-
-                .view-toggle-btn:hover {
-                    background: #f5f5f5;
+                
+                .view-toggle-btn:hover:not(.active) {
+                    background: rgba(0, 0, 0, 0.12);
                 }
-
+                
                 .view-toggle-btn.active {
-                    background: #007aff;
+                    background: #4285f4;
                     color: white;
                 }
 
@@ -103,53 +96,31 @@ class FastSearchCard extends HTMLElement {
                     border-left: 1px solid #ddd;
                 }
 
-                .search-type-dropdown {
-                    background: white;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    padding: 8px 12px;
-                    font-size: 14px;
-                    color: #666;
-                    cursor: pointer;
-                    min-width: 120px;
-                    appearance: none;
-                    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-                    background-position: right 8px center;
-                    background-repeat: no-repeat;
-                    background-size: 16px;
-                    padding-right: 32px;
-                }
-
-                .search-type-dropdown:focus {
-                    outline: 2px solid #007aff;
-                    border-color: #007aff;
-                }
 
                 .search-input-container {
-                    position: relative;
                     flex: 1;
+                    position: relative;
                 }
-
+                
                 .search-input {
                     width: 100%;
-                    padding: 15px 15px 60px 15px;
+                    padding: 14px 20px;
                     border: none;
-                    font-size: 18px;
-                    outline: none;
                     background: white;
-                    border-radius: 8px;
+                    border-radius: 16px;
+                    font-size: 16px;
+                    outline: none;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    transition: all 0.2s;
                     box-sizing: border-box;
-                    transition: all 0.3s ease;
-                    position: relative;
                 }
-
+                
                 .search-input:focus {
-                    animation: elasticFocus 0.3s ease-out;
-                    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+                    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
                 }
-
+                
                 .search-input::placeholder {
-                    color: #999;
+                    color: #9aa0a6;
                 }
 
                 /* Typing indicator */
@@ -191,124 +162,89 @@ class FastSearchCard extends HTMLElement {
                 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
                 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-                .room-chips-in-search {
-                    position: absolute;
-                    bottom: 12px;
-                    left: 15px;
-                    right: 15px;
-                    display: flex;
-                    gap: 6px;
-                    overflow-x: auto;
-                    padding: 2px 0;
-                    scrollbar-width: none;
-                    -ms-overflow-style: none;
-                }
-
-                .room-chips-in-search::-webkit-scrollbar {
-                    display: none;
-                }
-
-                .room-chip-small {
-                    padding: 4px 12px;
-                    background: #f8f9fa;
-                    border: 1px solid #e9ecef;
+                .filter-button {
+                    background: rgba(0, 0, 0, 0.08);
+                    border: none;
                     border-radius: 12px;
-                    font-size: 12px;
-                    color: #666;
+                    width: 48px;
+                    height: 48px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                     cursor: pointer;
-                    white-space: nowrap;
-                    flex-shrink: 0;
                     transition: all 0.2s;
-                    user-select: none;
+                    color: #5f6368;
                 }
-
-                .room-chip-small:hover {
-                    background: #e9ecef;
+                
+                .filter-button:hover {
+                    background: rgba(0, 0, 0, 0.12);
+                    transform: scale(1.05);
                 }
-
-                .room-chip-small.active {
-                    background: #007aff;
+                
+                .filter-button.active {
+                    background: #4285f4;
                     color: white;
-                    border-color: #007aff;
                 }
 
                 .filter-section {
-                    margin-bottom: 20px;
+                    padding: 0 24px 24px 24px;
+                    background: #f8f9fa;
                 }
 
                 .filter-row {
-                    margin-bottom: 12px;
-                    position: relative;
-                }
-
-                .filter-label {
-                    font-size: 12px;
-                    color: #666;
-                    margin-bottom: 8px;
-                    font-weight: 500;
-                }
-
-                .filter-scroll {
                     display: flex;
-                    gap: 8px;
+                    gap: 12px;
                     overflow-x: auto;
                     padding: 4px 0;
                     scrollbar-width: none;
                     -ms-overflow-style: none;
                 }
 
-                .filter-scroll::-webkit-scrollbar {
+                .filter-row::-webkit-scrollbar {
                     display: none;
                 }
 
                 .filter-chip {
-                    padding: 12px 16px;
-                    background: white;
-                    border: 1px solid #ddd;
+                    background: #e8eaed;
+                    border: none;
                     border-radius: 20px;
+                    padding: 12px 20px;
                     font-size: 14px;
-                    color: #666;
+                    color: #3c4043;
                     cursor: pointer;
                     white-space: nowrap;
-                    flex-shrink: 0;
-                    transition: all 0.2s;
-                    user-select: none;
                     display: flex;
-                    flex-direction: row;
                     align-items: center;
                     gap: 8px;
-                    text-align: left;
-                    min-width: 90px;
-                }
-
-                .filter-chip:hover {
-                    background: #f5f5f5;
-                    border-color: #ccc;
-                }
-
-                .filter-chip.active {
-                    background: #007aff;
-                    color: white;
-                    border-color: #007aff;
-                }
-
-                .filter-chip.all {
-                    background: #f8f9fa;
-                    border-color: #e9ecef;
-                    min-width: auto;
-                }
-
-                .filter-chip.all.active {
-                    background: #6c757d;
-                    border-color: #6c757d;
-                    color: white;
-                }
-
-                .chip-icon {
-                    font-size: 18px;
+                    transition: all 0.2s;
+                    font-weight: 500;
                     flex-shrink: 0;
                 }
-
+                
+                .filter-chip:hover {
+                    background: #dadce0;
+                }
+                
+                .filter-chip.active {
+                    background: #4285f4;
+                    color: white;
+                }
+                
+                .filter-chip.all {
+                    background: #f8f9fa;
+                    border: 1px solid #e8eaed;
+                }
+                
+                .filter-chip.all.active {
+                    background: #4285f4;
+                    border-color: #4285f4;
+                    color: white;
+                }
+                
+                .chip-icon {
+                    font-size: 16px;
+                }
+                
                 .chip-content {
                     display: flex;
                     flex-direction: column;
@@ -320,11 +256,14 @@ class FastSearchCard extends HTMLElement {
                     line-height: 1.2;
                 }
 
+                .chip-name {
+                    line-height: 1.2;
+                }
+                
                 .chip-count {
-                    font-size: 11px;
+                    font-size: 12px;
                     opacity: 0.8;
                     margin-top: 2px;
-                    line-height: 1;
                 }
 
                 /* Eingangs-Animationen */
@@ -1358,60 +1297,140 @@ class FastSearchCard extends HTMLElement {
                         padding: 20px;
                     }
                 }                
+
+
+
+
+
+
                 
             </style>
             
             <div class="search-container">
                 <div class="search-section">
                     <div class="search-header">
-                        <select class="search-type-dropdown" id="searchTypeDropdown">
-                            <option value="entities">🏠 Geräte</option>
-                            <option value="automations">🤖 Automationen</option>
-                            <option value="scripts">📜 Skripte</option>
-                            <option value="scenes">🎭 Szenen</option>
-                        </select>
+                        <button class="filter-button" id="filterButton">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                            </svg>
+                        </button>
                         
-                        <div class="view-toggle">
-                            <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-                                </svg>
-                            </button>
-                            <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="search-container-inner">
                         <div class="search-input-container">
-                            <input type="text" class="search-input" placeholder="Suchen..." id="searchInput">
+                            <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
                             <div class="typing-indicator" id="typingIndicator">
                                 <div class="typing-dot"></div>
                                 <div class="typing-dot"></div>
                                 <div class="typing-dot"></div>
                             </div>
-                            <div class="room-chips-in-search" id="roomChipsInSearch">
-                                <div class="room-chip-small active" data-value="">Alle</div>
-                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="filter-section">
-                        <div class="filter-row">
-                            <div class="filter-label" id="filterLabel">Kategorien</div>
-                            <div class="filter-scroll" id="typeFilterChips">
-                                <div class="filter-chip all active" data-value="">Alle</div>
-                            </div>
+                        
+                        <div class="view-toggle">
+                            <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                                </svg>
+                            </button>
+                            <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
+            
+                <div class="filter-section">
+                    <div class="filter-row" id="typeFilterChips">
+                        <div class="filter-chip all active" data-value="">
+                            <span class="chip-icon">📋</span>
+                            <span class="chip-name">Alle</span>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="results-container" id="resultsContainer">
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                 </div>
             </div>
+
+
+
+            <!-- Filter Overlay -->
+            <div class="filter-overlay" id="filterOverlay">
+                <div class="filter-menu">
+                    <div class="filter-menu-header">
+                        <h3 class="filter-menu-title">Filter & Suche</h3>
+                        <button class="close-button" id="closeFilterButton">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="filter-menu-content">
+                        <!-- Gerätekategorien -->
+                        <div class="filter-section-menu">
+                            <div class="filter-section-title">Kategorien</div>
+                            <div class="filter-options" id="categoryOptions">
+                                <div class="filter-option selected" data-type="entities">
+                                    <div class="filter-option-icon">🏠</div>
+                                    <div class="filter-option-info">
+                                        <div class="filter-option-name">Alle Geräte</div>
+                                        <div class="filter-option-count">-- Geräte</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="filter-option" data-type="automations">
+                                    <div class="filter-option-icon">🤖</div>
+                                    <div class="filter-option-info">
+                                        <div class="filter-option-name">Automationen</div>
+                                        <div class="filter-option-count">-- Verfügbar</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="filter-option" data-type="scripts">
+                                    <div class="filter-option-icon">📜</div>
+                                    <div class="filter-option-info">
+                                        <div class="filter-option-name">Skripte</div>
+                                        <div class="filter-option-count">-- Verfügbar</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="filter-option" data-type="scenes">
+                                    <div class="filter-option-icon">🎭</div>
+                                    <div class="filter-option-info">
+                                        <div class="filter-option-name">Szenen</div>
+                                        <div class="filter-option-count">-- Verfügbar</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Räume -->
+                        <div class="filter-section-menu">
+                            <div class="filter-section-title">Räume</div>
+                            <div class="filter-options" id="roomOptions">
+                                <div class="filter-option selected" data-room="">
+                                    <div class="filter-option-icon">🏠</div>
+                                    <div class="filter-option-info">
+                                        <div class="filter-option-name">Alle Räume</div>
+                                        <div class="filter-option-count">-- Räume</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button class="filter-action-button" id="resetFiltersButton">Zurücksetzen</button>
+                        <button class="filter-action-button primary" id="applyFiltersButton">Anwenden</button>
+                    </div>
+                </div>
+            </div>
+
+
+
+
 
             <!-- More-Info Replace Mode -->
             <div class="more-info-replace" id="moreInfoReplace">
