@@ -2197,14 +2197,35 @@ getQuickStats(item) {
         };
 
         this.searchInput = this.shadowRoot.getElementById('searchInput');
-        this.searchTypeDropdown = this.shadowRoot.getElementById('searchTypeDropdown');
+
+        this.filterButton = this.shadowRoot.getElementById('filterButton');
+        this.filterOverlay = this.shadowRoot.getElementById('filterOverlay');
+        
         this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
         this.noResults = this.shadowRoot.getElementById('noResults');
         this.filterLabel = this.shadowRoot.getElementById('filterLabel');
         this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
 
         this.searchInput.addEventListener('input', () => this.handleSearchInput());
-        this.searchTypeDropdown.addEventListener('change', () => this.onSearchTypeChange());
+
+        // Filter Button Event Listener
+        this.shadowRoot.getElementById('filterButton').addEventListener('click', () => this.toggleFilterMenu());
+        
+        // Close Filter Button Event Listener  
+        this.shadowRoot.getElementById('closeFilterButton').addEventListener('click', () => this.closeFilterMenu());
+        
+        // Filter Overlay Click (zum Schließen)
+        this.shadowRoot.getElementById('filterOverlay').addEventListener('click', (e) => {
+            if (e.target.id === 'filterOverlay') {
+                this.closeFilterMenu();
+            }
+        });
+        
+        // Filter Action Buttons
+        this.shadowRoot.getElementById('resetFiltersButton').addEventListener('click', () => this.resetFilters());
+        this.shadowRoot.getElementById('applyFiltersButton').addEventListener('click', () => this.applyFilterMenu());
+
+        
         
         // View Toggle Event Listeners
         this.shadowRoot.getElementById('listViewBtn').addEventListener('click', () => this.setView('list'));
@@ -2221,14 +2242,228 @@ getQuickStats(item) {
         this.updateSearchUI();
     }
 
+
     onSearchTypeChange() {
-        this.currentSearchType = this.searchTypeDropdown.value;
+        // currentSearchType wird jetzt über das Filter-Menu gesetzt
         this.selectedRooms.clear();
         this.selectedType = '';
         this.isInitialized = false; // Reset bei Typ-Änderung
         this.updateSearchUI();
         this.updateItems();
+    }    
+
+
+    toggleFilterMenu() {
+        const overlay = this.shadowRoot.getElementById('filterOverlay');
+        const button = this.shadowRoot.getElementById('filterButton');
+        
+        if (overlay.classList.contains('active')) {
+            this.closeFilterMenu();
+        } else {
+            this.openFilterMenu();
+            button.classList.add('active');
+        }
     }
+    
+    openFilterMenu() {
+        this.updateFilterMenuContent();
+        const overlay = this.shadowRoot.getElementById('filterOverlay');
+        overlay.classList.add('active');
+        
+        // ESC Key Listener hinzufügen
+        this.escKeyListener = (e) => {
+            if (e.key === 'Escape') {
+                this.closeFilterMenu();
+            }
+        };
+        document.addEventListener('keydown', this.escKeyListener);
+    }
+    
+    closeFilterMenu() {
+        const overlay = this.shadowRoot.getElementById('filterOverlay');
+        const button = this.shadowRoot.getElementById('filterButton');
+        
+        overlay.classList.remove('active');
+        button.classList.remove('active');
+        
+        // ESC Key Listener entfernen
+        if (this.escKeyListener) {
+            document.removeEventListener('keydown', this.escKeyListener);
+            this.escKeyListener = null;
+        }
+    }
+    
+    updateFilterMenuContent() {
+        // Kategorie-Optionen aktualisieren
+        this.updateCategoryOptions();
+        
+        // Raum-Optionen aktualisieren
+        this.updateRoomOptions();
+        
+        // Event Listeners für Filter-Optionen hinzufügen
+        this.setupFilterOptionListeners();
+    }
+    
+    updateCategoryOptions() {
+        const categoryOptions = this.shadowRoot.getElementById('categoryOptions');
+        const currentType = this.currentSearchType;
+        
+        // Aktuelle Auswahl markieren
+        categoryOptions.querySelectorAll('.filter-option').forEach(option => {
+            const type = option.getAttribute('data-type');
+            option.classList.toggle('selected', type === currentType);
+            
+            // Count aktualisieren (vereinfacht - können Sie später erweitern)
+            const countElement = option.querySelector('.filter-option-count');
+            if (type === currentType) {
+                countElement.textContent = `${this.allItems.length} Verfügbar`;
+            }
+        });
+    }
+    
+    updateRoomOptions() {
+        const roomOptions = this.shadowRoot.getElementById('roomOptions');
+        const rooms = [...new Set(this.allItems.map(item => item.room))].sort();
+        
+        // Bestehende Raum-Optionen entfernen (außer "Alle")
+        const existingRooms = roomOptions.querySelectorAll('.filter-option:not([data-room=""])');
+        existingRooms.forEach(room => room.remove());
+        
+        // Neue Raum-Optionen hinzufügen
+        rooms.forEach(room => {
+            const roomOption = document.createElement('div');
+            roomOption.className = 'filter-option';
+            roomOption.setAttribute('data-room', room);
+            
+            const roomIcon = this.getRoomIcon(room);
+            const roomCount = this.allItems.filter(item => item.room === room).length;
+            
+            roomOption.innerHTML = `
+                <div class="filter-option-icon">${roomIcon}</div>
+                <div class="filter-option-info">
+                    <div class="filter-option-name">${room}</div>
+                    <div class="filter-option-count">${roomCount} Geräte</div>
+                </div>
+            `;
+            
+            // Aktuelle Auswahl markieren
+            if (this.selectedRooms.has(room)) {
+                roomOption.classList.add('selected');
+            }
+            
+            roomOptions.appendChild(roomOption);
+        });
+        
+        // "Alle Räume" aktualisieren
+        const alleRooms = roomOptions.querySelector('[data-room=""]');
+        if (alleRooms) {
+            const countElement = alleRooms.querySelector('.filter-option-count');
+            countElement.textContent = `${rooms.length} Räume`;
+            
+            // "Alle" ist ausgewählt wenn keine spezifischen Räume gewählt sind
+            alleRooms.classList.toggle('selected', this.selectedRooms.size === 0);
+        }
+    }
+    
+    getRoomIcon(room) {
+        const roomIcons = {
+            'Wohnzimmer': '🛋️',
+            'Schlafzimmer': '🛏️',
+            'Küche': '🍳',
+            'Bad': '🚿',
+            'Badezimmer': '🚿',
+            'Flur': '🏃',
+            'Kinderzimmer': '👶',
+            'Arbeitszimmer': '💻',
+            'Büro': '💻',
+            'Esszimmer': '🍽️',
+            'Keller': '🏠',
+            'Garage': '🚗'
+        };
+        
+        return roomIcons[room] || '🏠';
+    }
+    
+    setupFilterOptionListeners() {
+        // Kategorie-Optionen
+        this.shadowRoot.querySelectorAll('#categoryOptions .filter-option').forEach(option => {
+            option.addEventListener('click', () => {
+                // Alle anderen deselektieren
+                this.shadowRoot.querySelectorAll('#categoryOptions .filter-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                // Diese Option selektieren
+                option.classList.add('selected');
+            });
+        });
+        
+        // Raum-Optionen
+        this.shadowRoot.querySelectorAll('#roomOptions .filter-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const isAlleOption = option.getAttribute('data-room') === '';
+                
+                if (isAlleOption) {
+                    // "Alle" wurde geklickt - alle anderen deselektieren
+                    this.shadowRoot.querySelectorAll('#roomOptions .filter-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    option.classList.add('selected');
+                } else {
+                    // Spezifischer Raum wurde geklickt
+                    const alleOption = this.shadowRoot.querySelector('#roomOptions .filter-option[data-room=""]');
+                    alleOption.classList.remove('selected');
+                    option.classList.toggle('selected');
+                    
+                    // Wenn keine Räume mehr selektiert sind, "Alle" wieder aktivieren
+                    const hasSelected = this.shadowRoot.querySelectorAll('#roomOptions .filter-option.selected').length > 0;
+                    if (!hasSelected) {
+                        alleOption.classList.add('selected');
+                    }
+                }
+            });
+        });
+    }
+    
+    resetFilters() {
+        // Alle Filter zurücksetzen
+        this.currentSearchType = 'entities';
+        this.selectedRooms.clear();
+        this.selectedType = '';
+        
+        // UI aktualisieren
+        this.updateFilterMenuContent();
+        this.updateSearchUI();
+        this.updateItems();
+    }
+ 
+    applyFilterMenu() {
+        // Gewählte Kategorie anwenden
+        const selectedCategory = this.shadowRoot.querySelector('#categoryOptions .filter-option.selected');
+        if (selectedCategory) {
+            const newType = selectedCategory.getAttribute('data-type');
+            if (newType !== this.currentSearchType) {
+                this.currentSearchType = newType;
+                this.onSearchTypeChange();
+            }
+        }
+        
+        // Gewählte Räume anwenden
+        const selectedRooms = this.shadowRoot.querySelectorAll('#roomOptions .filter-option.selected:not([data-room=""])');
+        this.selectedRooms.clear();
+        selectedRooms.forEach(room => {
+            const roomName = room.getAttribute('data-room');
+            if (roomName) {
+                this.selectedRooms.add(roomName);
+            }
+        });
+        
+        // Filter anwenden und Menu schließen
+        this.applyFilters();
+        this.closeFilterMenu();
+    }
+
+
+    
 
     setView(viewType) {
         this.currentView = viewType;
@@ -2702,13 +2937,15 @@ getQuickStats(item) {
                 const stats = this.getCategoryStats(category);
                 const icon = config.categoryIcons[category] || '📱';
                 
+
+
                 chip.innerHTML = `
-                    <div class="chip-icon">${icon}</div>
+                    <span class="chip-icon">${icon}</span>
                     <div class="chip-content">
-                        <div class="chip-type-name">${config.categoryNames[category] || category}</div>
-                        <div class="chip-count">${stats}</div>
+                        <span class="chip-name">${config.categoryNames[category] || category}</span>
+                        <span class="chip-count">${stats}</span>
                     </div>
-                `;
+                `;                
                 
                 // Stagger-Animation für neue Chips
                 chip.style.animationDelay = `${categories.indexOf(category) * 0.1}s`;
