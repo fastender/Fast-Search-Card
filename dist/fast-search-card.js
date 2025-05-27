@@ -221,9 +221,8 @@ class FastSearchCard extends HTMLElement {
 
                 
                 .active-filters {
-                    padding: 12px 24px 0 24px;
+                    padding: 8px 24px 0 24px;
                     background: #f8f9fa;
-                    border-bottom: 1px solid #e9ecef;
                 }
                 
                 .active-filters-container {
@@ -2591,24 +2590,16 @@ getQuickStats(item) {
     getActiveFilterCount() {
         let count = 0;
         
-        // Nicht-Standard Suchtyp
-        if (this.currentSearchType !== 'entities') count++;
-        
-        // Jeder ausgewählte Raum einzeln zählen
+        // Nur ausgewählte Räume zählen
         count += this.selectedRooms.size;
         
-        // Ausgewählte Kategorie
-        if (this.selectedType) count++;
-        
         console.log('Filter Count Debug:', {
-            searchType: this.currentSearchType,
             rooms: Array.from(this.selectedRooms),
-            category: this.selectedType,
             totalCount: count
         });
         
         return count;
-    }    
+    } 
     
     updateActiveFilterTags() {
         const container = this.shadowRoot.getElementById('activeFilters');
@@ -2630,24 +2621,7 @@ getQuickStats(item) {
     buildActiveFilterTags() {
         const tags = [];
         
-        // Suchtyp-Tag
-        if (this.currentSearchType !== 'entities') {
-            const config = this.searchTypeConfigs[this.currentSearchType];
-            const searchTypeNames = {
-                'automations': 'Automationen',
-                'scripts': 'Skripte', 
-                'scenes': 'Szenen'
-            };
-            
-            const tag = this.createTag(
-                `📋 ${searchTypeNames[this.currentSearchType]}`,
-                'searchType',
-                this.currentSearchType
-            );
-            tags.push(tag);
-        }
-        
-        // Raum-Tags
+        // Nur Raum-Tags erstellen
         if (this.selectedRooms.size > 0) {
             Array.from(this.selectedRooms).forEach(room => {
                 const roomIcon = this.getRoomIcon(room);
@@ -2658,20 +2632,6 @@ getQuickStats(item) {
                 );
                 tags.push(tag);
             });
-        }
-        
-        // Kategorie-Tag
-        if (this.selectedType) {
-            const config = this.searchTypeConfigs[this.currentSearchType];
-            const icon = config.categoryIcons[this.selectedType] || '📱';
-            const name = config.categoryNames[this.selectedType] || this.selectedType;
-            
-            const tag = this.createTag(
-                `${icon} ${name}`,
-                'category',
-                this.selectedType
-            );
-            tags.push(tag);
         }
         
         return tags;
