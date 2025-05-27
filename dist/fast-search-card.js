@@ -2203,7 +2203,7 @@ getQuickStats(item) {
         
         this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
         this.noResults = this.shadowRoot.getElementById('noResults');
-        this.filterLabel = this.shadowRoot.getElementById('filterLabel');
+
         this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
 
         this.searchInput.addEventListener('input', () => this.handleSearchInput());
@@ -2503,17 +2503,15 @@ getQuickStats(item) {
         return `${text}<span class="loading-dots"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span>`;
     }
 
+
     updateSearchUI() {
         const config = this.searchTypeConfigs[this.currentSearchType];
         this.searchInput.placeholder = config.placeholder;
-        this.filterLabel.textContent = config.filterLabel;
         
-        // Room chips zurücksetzen
-        this.setupRoomChips([]);
         
         // Filter chips zurücksetzen
         this.setupCategoryChips([]);
-    }
+    }    
 
     updateItems() {
         if (!this._hass) return;
@@ -2956,11 +2954,7 @@ getQuickStats(item) {
     }
 
     setupChipFilters() {
-        this.shadowRoot.getElementById('roomChipsInSearch').addEventListener('click', (e) => {
-            if (e.target.classList.contains('room-chip-small')) {
-                this.handleRoomChipClick(e.target);
-            }
-        });
+
 
         this.shadowRoot.getElementById('typeFilterChips').addEventListener('click', (e) => {
             let chip = e.target;
