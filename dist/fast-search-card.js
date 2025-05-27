@@ -186,10 +186,106 @@ class FastSearchCard extends HTMLElement {
                     color: white;
                 }
 
+                .filter-badge {
+                    position: absolute;
+                    top: -4px;
+                    right: -4px;
+                    background: #ff4444;
+                    color: white;
+                    border-radius: 10px;
+                    font-size: 10px;
+                    font-weight: 600;
+                    min-width: 16px;
+                    height: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0;
+                    transform: scale(0.8);
+                    transition: all 0.2s ease;
+                }
+                
+                .filter-badge.active {
+                    opacity: 1;
+                    transform: scale(1);
+                }                
+
                 .filter-section {
                     padding: 0 24px 24px 24px;
                     background: #f8f9fa;
                 }
+
+
+                
+                .active-filters {
+                    padding: 12px 24px 0 24px;
+                    background: #f8f9fa;
+                    border-bottom: 1px solid #e9ecef;
+                }
+                
+                .active-filters-container {
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    padding-bottom: 12px;
+                }
+                
+                .active-filter-tag {
+                    display: flex;
+                    align-items: center;
+                    background: #4285f4;
+                    color: white;
+                    padding: 6px 12px;
+                    border-radius: 16px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    gap: 6px;
+                    animation: slideInTag 0.3s ease-out;
+                }
+                
+                .active-filter-tag .tag-remove {
+                    background: rgba(255, 255, 255, 0.3);
+                    border: none;
+                    border-radius: 50%;
+                    width: 16px;
+                    height: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    font-size: 10px;
+                    color: white;
+                    transition: all 0.2s;
+                }
+                
+                .active-filter-tag .tag-remove:hover {
+                    background: rgba(255, 255, 255, 0.5);
+                    transform: scale(1.1);
+                }
+                
+                .active-filter-tag.removing {
+                    animation: slideOutTag 0.2s ease-in forwards;
+                }
+                
+                @keyframes slideInTag {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-20px) scale(0.8);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0) scale(1);
+                    }
+                }
+                
+                @keyframes slideOutTag {
+                    to {
+                        opacity: 0;
+                        transform: translateX(-20px) scale(0.8);
+                    }
+                }
+                
 
                 .filter-row {
                     display: flex;
@@ -1514,11 +1610,13 @@ class FastSearchCard extends HTMLElement {
             <div class="search-container">
                 <div class="search-section">
                     <div class="search-header">
+
                         <button class="filter-button" id="filterButton">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
                             </svg>
-                        </button>
+                            <span class="filter-badge" id="filterBadge">0</span>
+                        </button>                        
                         
                         <div class="search-input-container">
                             <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
@@ -1543,6 +1641,13 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     </div>
                 </div>
+
+                <!-- Aktive Filter Tags -->
+                <div class="active-filters" id="activeFilters" style="display: none;">
+                    <div class="active-filters-container">
+                        <!-- Tags werden dynamisch eingefügt -->
+                    </div>
+                </div>                
             
                 <div class="filter-section">
                     <div class="filter-row" id="typeFilterChips">
@@ -2434,6 +2539,10 @@ getQuickStats(item) {
         this.updateFilterMenuContent();
         this.updateSearchUI();
         this.updateItems();
+
+        // Badge und Tags aktualisieren
+        this.updateFilterBadge();
+        this.updateActiveFilterTags();        
     }
  
     applyFilterMenu() {
@@ -2460,8 +2569,148 @@ getQuickStats(item) {
         // Filter anwenden und Menu schließen
         this.applyFilters();
         this.closeFilterMenu();
-    }
 
+        // Badge und Tags aktualisieren
+        this.updateFilterBadge();
+        this.updateActiveFilterTags();
+    }
+        
+
+    updateFilterBadge() {
+        const badge = this.shadowRoot.getElementById('filterBadge');
+        const count = this.getActiveFilterCount();
+        
+        badge.textContent = count;
+        badge.classList.toggle('active', count > 0);
+    }
+    
+    getActiveFilterCount() {
+        let count = 0;
+        
+        // Nicht-Standard Suchtyp
+        if (this.currentSearchType !== 'entities') count++;
+        
+        // Ausgewählte Räume
+        if (this.selectedRooms.size > 0) count++;
+        
+        // Ausgewählte Kategorie
+        if (this.selectedType) count++;
+        
+        return count;
+    }
+    
+    updateActiveFilterTags() {
+        const container = this.shadowRoot.getElementById('activeFilters');
+        const tagsContainer = container.querySelector('.active-filters-container');
+        
+        // Alle Tags entfernen
+        tagsContainer.innerHTML = '';
+        
+        const tags = this.buildActiveFilterTags();
+        
+        if (tags.length > 0) {
+            container.style.display = 'block';
+            tags.forEach(tag => tagsContainer.appendChild(tag));
+        } else {
+            container.style.display = 'none';
+        }
+    }
+    
+    buildActiveFilterTags() {
+        const tags = [];
+        
+        // Suchtyp-Tag
+        if (this.currentSearchType !== 'entities') {
+            const config = this.searchTypeConfigs[this.currentSearchType];
+            const searchTypeNames = {
+                'automations': 'Automationen',
+                'scripts': 'Skripte', 
+                'scenes': 'Szenen'
+            };
+            
+            const tag = this.createTag(
+                `📋 ${searchTypeNames[this.currentSearchType]}`,
+                'searchType',
+                this.currentSearchType
+            );
+            tags.push(tag);
+        }
+        
+        // Raum-Tags
+        if (this.selectedRooms.size > 0) {
+            Array.from(this.selectedRooms).forEach(room => {
+                const roomIcon = this.getRoomIcon(room);
+                const tag = this.createTag(
+                    `${roomIcon} ${room}`,
+                    'room',
+                    room
+                );
+                tags.push(tag);
+            });
+        }
+        
+        // Kategorie-Tag
+        if (this.selectedType) {
+            const config = this.searchTypeConfigs[this.currentSearchType];
+            const icon = config.categoryIcons[this.selectedType] || '📱';
+            const name = config.categoryNames[this.selectedType] || this.selectedType;
+            
+            const tag = this.createTag(
+                `${icon} ${name}`,
+                'category',
+                this.selectedType
+            );
+            tags.push(tag);
+        }
+        
+        return tags;
+    }
+    
+    createTag(text, type, value) {
+        const tag = document.createElement('div');
+        tag.className = 'active-filter-tag';
+        tag.innerHTML = `
+            <span>${text}</span>
+            <button class="tag-remove" data-filter-type="${type}" data-filter-value="${value}">×</button>
+        `;
+        
+        // Remove Button Event
+        const removeBtn = tag.querySelector('.tag-remove');
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.removeFilter(type, value, tag);
+        });
+        
+        return tag;
+    }
+    
+    removeFilter(type, value, tagElement) {
+        // Animation vor dem Entfernen
+        tagElement.classList.add('removing');
+        
+        setTimeout(() => {
+            switch (type) {
+                case 'searchType':
+                    this.currentSearchType = 'entities';
+                    this.onSearchTypeChange();
+                    break;
+                    
+                case 'room':
+                    this.selectedRooms.delete(value);
+                    break;
+                    
+                case 'category':
+                    this.selectedType = '';
+                    break;
+            }
+            
+            // UI aktualisieren
+            this.updateFilterBadge();
+            this.updateActiveFilterTags();
+            this.applyFilters();
+            
+        }, 200); // Warten auf Animation
+    }    
 
     
 
@@ -2978,6 +3227,10 @@ getQuickStats(item) {
         
         this.selectedType = chip.getAttribute('data-value');
         this.applyFilters();
+
+        // Badge und Tags aktualisieren
+        this.updateFilterBadge();
+        this.updateActiveFilterTags();        
     }
 
     applyFilters() {
