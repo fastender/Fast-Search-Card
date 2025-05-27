@@ -162,6 +162,8 @@ class FastSearchCard extends HTMLElement {
                 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
                 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
+
+
                 .filter-button {
                     background: rgba(0, 0, 0, 0.08);
                     border: none;
@@ -174,7 +176,8 @@ class FastSearchCard extends HTMLElement {
                     cursor: pointer;
                     transition: all 0.2s;
                     color: #5f6368;
-                }
+                    position: relative; /* ← DIESE ZEILE HINZUFÜGEN */
+                }                
                 
                 .filter-button:hover {
                     background: rgba(0, 0, 0, 0.12);
