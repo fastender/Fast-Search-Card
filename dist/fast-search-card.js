@@ -44,25 +44,25 @@ class FastSearchCard extends HTMLElement {
                     animation: cardEntrance 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
                 }
                           
-
-                .search-container {
+                .search-container::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
                     background: rgba(0, 0, 0, 0.15);
                     backdrop-filter: blur(24px);
                     -webkit-backdrop-filter: blur(24px);
+                    border-radius: inherit;
+                    z-index: -1;
+                }
+                .search-container {
                     border: 1px solid rgba(255, 255, 255, 0.15);
-                    border-top-color: rgba(255, 255, 255, 0.2);
-                    border-bottom-color: rgba(255, 255, 255, 0.05);
                     border-radius: 32px;
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                    overflow: hidden; /* ← Das ist KRITISCH und sollte schon da sein! */
-                    /* ABER: Zusätzliche Isolation für Backdrop-Filter */
-                    isolation: isolate;
-                    /* Eventuell auch: */
-                    contain: layout style paint;
-                    /* ZUSÄTZLICHE WEBKIT FIXES */
-                    -webkit-transform: translateZ(0); /* Force Hardware Acceleration */
-                    transform: translateZ(0);
-                    will-change: backdrop-filter;                    
+                    overflow: hidden;
+                    position: relative;                 
                 }                
 
                 .search-section {
