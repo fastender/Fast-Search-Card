@@ -89,6 +89,7 @@ class FastSearchCard extends HTMLElement {
                     cursor: pointer;
                     transition: all 0.2s;
                     color: #5f6368;
+                    /* FEHLENDE ZEILE: */
                     position: relative;
                 }
                 
@@ -107,7 +108,7 @@ class FastSearchCard extends HTMLElement {
 
 
                 .view-toggle-btn + .view-toggle-btn {
-                    border-left: 1px solid #ddd;
+
                 }
 
 
@@ -693,7 +694,6 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(248, 249, 250, 0.5);
                     backdrop-filter: blur(10px);
                     -webkit-backdrop-filter: blur(10px);
-                    border-bottom: 1px solid rgba(233, 236, 239, 0.3);
                     font-weight: 600;
                     font-size: 14px;
                     color: #495057;
@@ -720,7 +720,7 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(248, 249, 250, 0.5);
                     backdrop-filter: blur(10px);
                     -webkit-backdrop-filter: blur(10px);
-                    border-bottom: 1px solid rgba(233, 236, 239, 0.3);
+
                     font-weight: 600;
                     font-size: 14px;
                     color: #495057;
