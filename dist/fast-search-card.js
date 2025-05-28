@@ -554,7 +554,7 @@ class FastSearchCard extends HTMLElement {
                 .results-container {
                     max-height: 600px;
                     overflow-y: auto;
-                    border-radius: 0 0 32px 32px; /* Nur unten rund */
+                    border-radius: 32px;
                     scrollbar-width: none;
                     -ms-overflow-style: none;
                 }                
@@ -582,7 +582,7 @@ class FastSearchCard extends HTMLElement {
                     
                     .grid-container,
                     .room-group:last-child {
-                        border-radius: 0 0 32px 32px !important;
+                        border-radius: 32px !important;
                     }
                 }
                 
