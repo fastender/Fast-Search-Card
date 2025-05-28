@@ -44,6 +44,18 @@ class FastSearchCard extends HTMLElement {
                     animation: cardEntrance 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
                 }
                           
+                .search-container {
+                    background: transparent;
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-top-color: rgba(255, 255, 255, 0.2);
+                    border-bottom-color: rgba(255, 255, 255, 0.05);
+                    border-radius: 32px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    overflow: hidden;
+                    position: relative;
+                    isolation: isolate;
+                }
+                
                 .search-container::before {
                     content: '';
                     position: absolute;
@@ -54,16 +66,9 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(0, 0, 0, 0.15);
                     backdrop-filter: blur(24px);
                     -webkit-backdrop-filter: blur(24px);
-                    border-radius: inherit;
-                    z-index: -1;
-                }
-                .search-container {
-                    border: 1px solid rgba(255, 255, 255, 0.15);
                     border-radius: 32px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                    overflow: hidden;
-                    position: relative;                 
-                }                
+                    z-index: -1;
+                }           
 
                 .search-section {
                     background: transparent;
