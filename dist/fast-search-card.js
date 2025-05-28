@@ -39,34 +39,34 @@ class FastSearchCard extends HTMLElement {
                 
                 :root {
                   /* Glasmorphismus & VisionOS Theme */
-                  --theme-bg-color: rgba(255, 255, 255, 0.15);
-                  --theme-bg-blur: rgba(255, 255, 255, 0.08);
-                  --border-color: rgba(255, 255, 255, 0.2);
-                  --theme-color: #ffffff;
-                  --inactive-color: rgba(255, 255, 255, 0.7);
-                  --body-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-                  --hover-menu-bg: rgba(255, 255, 255, 0.15);
-                  --content-title-color: rgba(255, 255, 255, 0.8);
-                  --content-bg: rgba(255, 255, 255, 0.1);
-                  --button-inactive: rgba(255, 255, 255, 0.3);
-                  --dropdown-bg: rgba(255, 255, 255, 0.15);
-                  --dropdown-hover: rgba(255, 255, 255, 0.25);
-                  --popup-bg: rgba(255, 255, 255, 0.95);
-                  --search-bg: rgba(255, 255, 255, 0.12);
-                  --overlay-bg: rgba(0, 0, 0, 0.4);
-                  --scrollbar-bg: rgba(255, 255, 255, 0.3);
-                  
-                  /* VisionOS Accent Colors */
-                  --accent-blue: #007AFF;
-                  --accent-purple: #AF52DE;
-                  --accent-pink: #FF2D92;
-                  --accent-orange: #FF9500;
-                  --accent-green: #30D158;
-                  
-                  /* Glasmorphismus Shadows */
-                  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-                  --glass-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
-                  --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+                    --theme-bg-color: rgba(0, 0, 0, 0.4);
+                    --theme-bg-blur: rgba(0, 0, 0, 0.3);
+                    --border-color: rgba(255, 255, 255, 0.1);
+                    --theme-color: #ffffff;
+                    --inactive-color: rgba(255, 255, 255, 0.6);
+                    --body-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+                    --hover-menu-bg: rgba(255, 255, 255, 0.1);
+                    --content-title-color: rgba(255, 255, 255, 0.7);
+                    --content-bg: rgba(0, 0, 0, 0.3);
+                    --button-inactive: rgba(255, 255, 255, 0.2);
+                    --dropdown-bg: rgba(0, 0, 0, 0.7);
+                    --dropdown-hover: rgba(255, 255, 255, 0.1);
+                    --popup-bg: rgba(0, 0, 0, 0.8);
+                    --search-bg: rgba(0, 0, 0, 0.2);
+                    --overlay-bg: rgba(0, 0, 0, 0.6);
+                    --scrollbar-bg: rgba(255, 255, 255, 0.2);
+                    
+                    /* VisionOS Accent Colors */
+                    --accent-blue: #007AFF;
+                    --accent-purple: #AF52DE;
+                    --accent-pink: #FF2D92;
+                    --accent-orange: #FF9500;
+                    --accent-green: #30D158;
+                    
+                    /* Dark Glasmorphismus Shadows */
+                    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                    --glass-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.6);
+                    --glass-border: 1px solid rgba(255, 255, 255, 0.1);
                 }        
     
                 :host {
@@ -85,27 +85,27 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .search-container {
-                  background: var(--theme-bg-color);
-                  backdrop-filter: blur(40px);
-                  -webkit-backdrop-filter: blur(40px);
-                  border-radius: 20px;
-                  border: var(--glass-border);
-                  box-shadow: var(--glass-shadow);
-                  overflow: hidden;
-                  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    background: var(--theme-bg-color);
+                    backdrop-filter: blur(40px);
+                    -webkit-backdrop-filter: blur(40px);
+                    border-radius: 20px;
+                    border: var(--glass-border);
+                    box-shadow: var(--glass-shadow);
+                    overflow: hidden;
+                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
                 }         
 
                 .search-container:hover {
-                  box-shadow: var(--glass-shadow-hover);
-                  transform: translateY(-2px);
+                    box-shadow: var(--glass-shadow-hover);
+                    transform: translateY(-2px);
                 }                
 
                 .search-section {
-                  background: var(--theme-bg-blur);
-                  backdrop-filter: blur(20px);
-                  -webkit-backdrop-filter: blur(20px);
-                  padding: 24px;
-                  border-bottom: var(--glass-border);
+                    background: var(--theme-bg-blur);
+                    backdrop-filter: blur(40px);
+                    -webkit-backdrop-filter: blur(40px);
+                    padding: 24px;
+                    border-bottom: var(--glass-border);
                 }
 
 
@@ -160,30 +160,30 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .search-input {
-                  width: 100%;
-                  padding: 16px 20px;
-                  border: var(--glass-border);
-                  background: var(--search-bg);
-                  backdrop-filter: blur(20px);
-                  -webkit-backdrop-filter: blur(20px);
-                  border-radius: 16px;
-                  font-size: 16px;
-                  outline: none;
-                  color: var(--theme-color);
-                  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-                  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-                  box-sizing: border-box;
+                    width: 100%;
+                    padding: 16px 20px;
+                    border: var(--glass-border);
+                    background: var(--search-bg);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border-radius: 16px;
+                    font-size: 16px;
+                    outline: none;
+                    color: var(--theme-color);
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    box-sizing: border-box;
                 }
                 
                 .search-input:focus {
-                  border-color: var(--accent-blue);
-                  box-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
-                  background: rgba(255, 255, 255, 0.2);
-                  transform: scale(1.02);
+                    border-color: var(--accent-blue);
+                    box-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.2);
+                    transform: scale(1.02);
                 }
                 
                 .search-input::placeholder {
-                    color: #9aa0a6;
+                    color: var(--inactive-color);
                 }
 
                 /* Typing indicator */
@@ -392,13 +392,13 @@ class FastSearchCard extends HTMLElement {
                 .filter-chip:hover {
                     background: var(--hover-menu-bg);
                     transform: translateY(-2px);
-                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+                    box-shadow: var(--glass-shadow);
                 }
                 
                 .filter-chip.active {
                     background: var(--accent-blue);
                     color: white;
-                    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+                    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.4);
                 }
                 
                 .filter-chip.all {
@@ -614,12 +614,14 @@ class FastSearchCard extends HTMLElement {
 
                 .grid-item:hover {
                     transform: translateY(-4px);
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    box-shadow: var(--glass-shadow-hover);
+                    background: rgba(255, 255, 255, 0.05);
                 }
 
                 .grid-item.active {
-                    border: 2px solid #007aff;
-                    background: rgba(0, 122, 255, 0.05);
+                    border: 2px solid var(--accent-blue);
+                    background: rgba(0, 122, 255, 0.15);
+                    box-shadow: 0 8px 25px rgba(0, 122, 255, 0.3);
                 }
 
                 .grid-item-header {
@@ -707,7 +709,7 @@ class FastSearchCard extends HTMLElement {
                 .grid-room-header {
                     font-weight: 600;
                     font-size: 14px;
-                    color: #495057;
+                    color: var(--content-title-color);
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                     margin-bottom: 16px;
