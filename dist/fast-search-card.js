@@ -894,7 +894,7 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(255, 255, 255, 0.95);
                     backdrop-filter: blur(30px);
                     -webkit-backdrop-filter: blur(30px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    
                     border-radius: 16px;
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
                     max-width: 500px;
