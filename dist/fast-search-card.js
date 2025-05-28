@@ -507,8 +507,8 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .grid-item {
-                    background: #f8f9fa;
-                    border: 1px solid #e9ecef;
+                    background: rgba(248, 249, 250, 0.2);  /* ← GEÄNDERT VON #f8f9fa */
+                    border: 1px solid rgba(233, 236, 239, 0.3);  /* ← GEÄNDERT VON #e9ecef */
                     border-radius: 12px;
                     padding: 16px;
                     min-width: 140px;
@@ -545,6 +545,7 @@ class FastSearchCard extends HTMLElement {
                 .grid-item:hover {
                     transform: translateY(-4px);
                     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    background: rgba(248, 249, 250, 0.3);  /* ← NEU HINZUGEFÜGT */
                 }
 
                 .grid-item.active {
@@ -671,17 +672,18 @@ class FastSearchCard extends HTMLElement {
 
                 .item {
                     padding: 16px 20px;
-                    border-bottom: 1px solid #f0f0f0;
+                    border-bottom: 1px solid rgba(240, 240, 240, 0.3);  /* ← GEÄNDERT */
                     display: flex;
                     align-items: center;
                     gap: 16px;
                     transition: background-color 0.2s;
                     margin-left: 0;
                     cursor: pointer;
+                    background: transparent;  /* ← NEU HINZUGEFÜGT */
                 }
-
+                
                 .item:hover {
-                    background-color: #fafafa;
+                    background-color: rgba(250, 250, 250, 0.2);  /* ← GEÄNDERT */
                 }
 
                 .item:last-child {
