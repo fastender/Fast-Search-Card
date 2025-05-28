@@ -55,7 +55,7 @@ class FastSearchCard extends HTMLElement {
                     border-radius: 32px;
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
                     overflow: hidden; /* ← Das ist KRITISCH! */
-                }       
+                }                
 
                 .search-section {
                     background: transparent;
@@ -553,25 +553,10 @@ class FastSearchCard extends HTMLElement {
 
                 .results-container {
                     max-height: 600px;
-                    overflow-y: scroll;
-                    overflow-x: hidden;
+                    overflow-y: auto;
+                    border-radius: 0 0 32px 32px; /* Nur unten rund */
                     scrollbar-width: none;
                     -ms-overflow-style: none;
-                    /* Keine border-radius hier! */
-                }         
-
-                /* Pseudo-Element für abgerundete Ecken */
-                .results-container::after {
-                    content: '';
-                    position: sticky;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    height: 32px;
-                    background: inherit;
-                    border-radius: 0 0 32px 32px;
-                    pointer-events: none;
-                    z-index: 10;
                 }                
 
                 .results-container::-webkit-scrollbar {
@@ -903,12 +888,11 @@ class FastSearchCard extends HTMLElement {
                     border-radius: 0 0 32px 32px;
                 }
 
-                /* Sicherstellen dass der Container selbst auch abgerundet ist */
-                .search-container > *:last-child,
+                /* Fallback für alle Inhalte im Results Container */
                 .results-container > *:last-child {
                     border-radius: 0 0 32px 32px !important;
                     overflow: hidden;
-                }       
+                }                
 
                 /* Loading dots component */
                 .loading-dots {
