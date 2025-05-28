@@ -35,9 +35,49 @@ class FastSearchCard extends HTMLElement {
     render() {
         this.shadowRoot.innerHTML = `
             <style>
+
+                
+                :root {
+                  /* Glasmorphismus & VisionOS Theme */
+                  --theme-bg-color: rgba(255, 255, 255, 0.15);
+                  --theme-bg-blur: rgba(255, 255, 255, 0.08);
+                  --border-color: rgba(255, 255, 255, 0.2);
+                  --theme-color: #ffffff;
+                  --inactive-color: rgba(255, 255, 255, 0.7);
+                  --body-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+                  --hover-menu-bg: rgba(255, 255, 255, 0.15);
+                  --content-title-color: rgba(255, 255, 255, 0.8);
+                  --content-bg: rgba(255, 255, 255, 0.1);
+                  --button-inactive: rgba(255, 255, 255, 0.3);
+                  --dropdown-bg: rgba(255, 255, 255, 0.15);
+                  --dropdown-hover: rgba(255, 255, 255, 0.25);
+                  --popup-bg: rgba(255, 255, 255, 0.95);
+                  --search-bg: rgba(255, 255, 255, 0.12);
+                  --overlay-bg: rgba(0, 0, 0, 0.4);
+                  --scrollbar-bg: rgba(255, 255, 255, 0.3);
+                  
+                  /* VisionOS Accent Colors */
+                  --accent-blue: #007AFF;
+                  --accent-purple: #AF52DE;
+                  --accent-pink: #FF2D92;
+                  --accent-orange: #FF9500;
+                  --accent-green: #30D158;
+                  
+                  /* Glasmorphismus Shadows */
+                  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                  --glass-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
+                  --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+                }        
+    
                 :host {
                     display: block;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-family: var(--body-font);
+
+                    /* VisionOS Background */
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background-attachment: fixed;
+                    border-radius: 20px;
+                    padding: 4px;
                     
                     /* Card fade-in beim Laden */
                     opacity: 0;
@@ -45,15 +85,27 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .search-container {
-                    background: white;
-                    border-radius: 20px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-                    overflow: hidden;
+                  background: var(--theme-bg-color);
+                  backdrop-filter: blur(40px);
+                  -webkit-backdrop-filter: blur(40px);
+                  border-radius: 20px;
+                  border: var(--glass-border);
+                  box-shadow: var(--glass-shadow);
+                  overflow: hidden;
+                  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                }         
+
+                .search-container:hover {
+                  box-shadow: var(--glass-shadow-hover);
+                  transform: translateY(-2px);
                 }                
 
                 .search-section {
-                    background: #f8f9fa;
-                    padding: 24px;
+                  background: var(--theme-bg-blur);
+                  backdrop-filter: blur(20px);
+                  -webkit-backdrop-filter: blur(20px);
+                  padding: 24px;
+                  border-bottom: var(--glass-border);
                 }
 
 
@@ -70,8 +122,10 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .view-toggle-btn {
-                    background: rgba(0, 0, 0, 0.08);
-                    border: none;
+                    background: var(--content-bg);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: var(--glass-border);
                     border-radius: 12px;
                     width: 48px;
                     height: 48px;
@@ -79,17 +133,20 @@ class FastSearchCard extends HTMLElement {
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    transition: all 0.2s;
-                    color: #5f6368;
+                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    color: var(--theme-color);
                 }
                 
                 .view-toggle-btn:hover:not(.active) {
-                    background: rgba(0, 0, 0, 0.12);
+                    background: var(--hover-menu-bg);
+                    transform: scale(1.05);
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
                 }
                 
                 .view-toggle-btn.active {
-                    background: #4285f4;
+                    background: var(--accent-blue);
                     color: white;
+                    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
                 }
 
                 .view-toggle-btn + .view-toggle-btn {
@@ -103,20 +160,26 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .search-input {
-                    width: 100%;
-                    padding: 14px 20px;
-                    border: none;
-                    background: white;
-                    border-radius: 16px;
-                    font-size: 16px;
-                    outline: none;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-                    transition: all 0.2s;
-                    box-sizing: border-box;
+                  width: 100%;
+                  padding: 16px 20px;
+                  border: var(--glass-border);
+                  background: var(--search-bg);
+                  backdrop-filter: blur(20px);
+                  -webkit-backdrop-filter: blur(20px);
+                  border-radius: 16px;
+                  font-size: 16px;
+                  outline: none;
+                  color: var(--theme-color);
+                  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+                  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                  box-sizing: border-box;
                 }
                 
                 .search-input:focus {
-                    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+                  border-color: var(--accent-blue);
+                  box-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
+                  background: rgba(255, 255, 255, 0.2);
+                  transform: scale(1.02);
                 }
                 
                 .search-input::placeholder {
@@ -164,9 +227,13 @@ class FastSearchCard extends HTMLElement {
 
 
 
+
+
                 .filter-button {
-                    background: rgba(0, 0, 0, 0.08);
-                    border: none;
+                    background: var(--content-bg);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: var(--glass-border);
                     border-radius: 12px;
                     width: 48px;
                     height: 48px;
@@ -174,19 +241,20 @@ class FastSearchCard extends HTMLElement {
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    transition: all 0.2s;
-                    color: #5f6368;
-                    position: relative; /* ← DIESE ZEILE HINZUFÜGEN */
-                }                
+                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    color: var(--theme-color);
+                }
                 
                 .filter-button:hover {
-                    background: rgba(0, 0, 0, 0.12);
+                    background: var(--hover-menu-bg);
                     transform: scale(1.05);
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
                 }
                 
                 .filter-button.active {
-                    background: #4285f4;
+                    background: var(--accent-blue);
                     color: white;
+                    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
                 }
 
                 .filter-badge {
@@ -303,29 +371,34 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .filter-chip {
-                    background: #e8eaed;
-                    border: none;
+                    background: var(--content-bg);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: var(--glass-border);
                     border-radius: 20px;
                     padding: 12px 20px;
                     font-size: 14px;
-                    color: #3c4043;
+                    color: var(--theme-color);
                     cursor: pointer;
                     white-space: nowrap;
                     display: flex;
                     align-items: center;
                     gap: 8px;
-                    transition: all 0.2s;
+                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
                     font-weight: 500;
                     flex-shrink: 0;
                 }
                 
                 .filter-chip:hover {
-                    background: #dadce0;
+                    background: var(--hover-menu-bg);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
                 }
                 
                 .filter-chip.active {
-                    background: #4285f4;
+                    background: var(--accent-blue);
                     color: white;
+                    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
                 }
                 
                 .filter-chip.all {
@@ -502,9 +575,11 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .grid-item {
-                    background: #f8f9fa;
-                    border: 1px solid #e9ecef;
-                    border-radius: 12px;
+                    background: var(--content-bg);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: var(--glass-border);
+                    border-radius: 16px;
                     padding: 16px;
                     min-width: 140px;
                     max-width: 180px;
@@ -664,8 +739,10 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .item {
-                    padding: 16px 20px;
-                    border-bottom: 1px solid #f0f0f0;
+                    background: var(--content-bg);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border-bottom: var(--glass-border);
                     display: flex;
                     align-items: center;
                     gap: 16px;
@@ -814,9 +891,12 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .more-info-dialog {
-                    background: white;
-                    border-radius: 16px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    background: var(--popup-bg);
+                    backdrop-filter: blur(40px);
+                    -webkit-backdrop-filter: blur(40px);
+                    border-radius: 20px;
+                    border: var(--glass-border);
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
                     max-width: 500px;
                     width: 100%;
                     max-height: 80vh;
@@ -1423,9 +1503,12 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .filter-menu {
-                    background: white;
-                    border-radius: 16px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+                    background: var(--popup-bg);
+                    backdrop-filter: blur(40px);
+                    -webkit-backdrop-filter: blur(40px);
+                    border-radius: 20px;
+                    border: var(--glass-border);
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
                     max-width: 500px;
                     width: 100%;
                     max-height: 80vh;
