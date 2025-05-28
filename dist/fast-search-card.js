@@ -551,12 +551,12 @@ class FastSearchCard extends HTMLElement {
                     }
                 }                
 
-                /* Animation für Suchergebnisse */
                 .results-container {
                     max-height: 600px;
                     overflow-y: auto;
                     border-radius: 0 0 32px 32px;
-                }
+                    overflow: hidden;
+                }                
 
                 .results-container.loading {
                     animation: slideInFromBottom 0.4s ease-out;
@@ -785,15 +785,18 @@ class FastSearchCard extends HTMLElement {
                     border-bottom: none;
                 }
 
+
                 .room-group:last-child .item:last-child {
                     border-bottom: none;
-                    border-radius: 0 0 32px 32px;
-                }
+                    border-bottom-left-radius: 32px;
+                    border-bottom-right-radius: 32px;
+                }                
                 
                 .room-group:last-child {
-                    border-radius: 0 0 32px 32px;
+                    margin-bottom: 0;
                     overflow: hidden;
-                }                
+                    border-radius: 0 0 32px 32px;
+                }        
 
                 .item-icon {
                     font-size: 24px;
