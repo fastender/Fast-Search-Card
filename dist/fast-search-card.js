@@ -54,7 +54,11 @@ class FastSearchCard extends HTMLElement {
                     border-bottom-color: rgba(255, 255, 255, 0.05);
                     border-radius: 32px;
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                    overflow: hidden; /* ← Das ist KRITISCH! */
+                    overflow: hidden; /* ← Das ist KRITISCH und sollte schon da sein! */
+                    /* ABER: Zusätzliche Isolation für Backdrop-Filter */
+                    isolation: isolate;
+                    /* Eventuell auch: */
+                    contain: layout style paint;
                 }                
 
                 .search-section {
@@ -554,9 +558,11 @@ class FastSearchCard extends HTMLElement {
                 .results-container {
                     max-height: 600px;
                     overflow-y: auto;
-                    border-radius: 0 0 32px 32px; /* Nur unten rund */
+                    border-radius: 0 0 32px 32px;
                     scrollbar-width: none;
                     -ms-overflow-style: none;
+                    /* Wichtig: Kein eigener backdrop-filter hier! */
+                    /* backdrop-filter: inherit; - ENTFERNEN falls vorhanden */
                 }                
 
                 .results-container::-webkit-scrollbar {
@@ -604,8 +610,9 @@ class FastSearchCard extends HTMLElement {
                 .grid-container {
                     padding: 20px 20px 0 20px;
                     animation: slideInFromBottom 0.4s ease-out;
-                    border-radius: 0 0 32px 32px; /* Nur unten rund */
-                    overflow: hidden; /* ← WICHTIG */
+                    border-radius: 0 0 32px 32px;
+                    overflow: hidden;
+                    /* Kein backdrop-filter hier! */
                 }                
 
                 .grid-scroll {
@@ -836,6 +843,7 @@ class FastSearchCard extends HTMLElement {
                     margin-bottom: 0;
                     border-radius: 0 0 32px 32px;
                     overflow: hidden;
+                    /* Kein backdrop-filter hier! */
                 }
                 
                 .room-group:last-child .item:last-child {
