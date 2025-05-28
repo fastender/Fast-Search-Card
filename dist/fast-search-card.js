@@ -54,7 +54,6 @@ class FastSearchCard extends HTMLElement {
                     border-bottom-color: rgba(255, 255, 255, 0.05);
                     border-radius: 32px;
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                    overflow: hidden; /* ← Das ist KRITISCH! */
                 }                
 
                 .search-section {
@@ -557,6 +556,21 @@ class FastSearchCard extends HTMLElement {
                     border-radius: 0 0 32px 32px; /* Nur unten rund */
                     scrollbar-width: none;
                     -ms-overflow-style: none;
+                    position: relative; /* Neu */
+                }                
+
+                /* Pseudo-Element für abgerundete Ecken */
+                .results-container::after {
+                    content: '';
+                    position: sticky;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    height: 32px;
+                    background: inherit;
+                    border-radius: 0 0 32px 32px;
+                    pointer-events: none;
+                    z-index: 10;
                 }                
 
                 .results-container::-webkit-scrollbar {
@@ -880,13 +894,12 @@ class FastSearchCard extends HTMLElement {
 
                 /* No-Results auch abrunden */
                 .no-results {
-                    padding: 40px 20px;
+                    padding: 40px 20px 40px 20px; /* Mehr Padding unten */
                     text-align: center;
                     color: rgba(255, 255, 255, 0.6);
                     font-style: italic;
                     font-size: 16px;
-                    border-radius: 0 0 32px 32px;
-                    background: transparent; /* Wichtig für die Sichtbarkeit der Abrundung */
+                    min-height: 100px; /* Mindesthöhe */
                 }
 
                 /* Sicherstellen dass der Container selbst auch abgerundet ist */
