@@ -479,6 +479,7 @@ class FastSearchCard extends HTMLElement {
                 .results-container {
                     max-height: 600px;
                     overflow-y: auto;
+                    background: transparent;  /* ← NEU HINZUGEFÜGT */
                 }
 
                 .results-container.loading {
@@ -489,6 +490,7 @@ class FastSearchCard extends HTMLElement {
                 .grid-container {
                     padding: 20px;
                     animation: slideInFromBottom 0.4s ease-out;
+                    background: transparent;  /* ← NEU HINZUGEFÜGT */
                 }
 
                 .grid-scroll {
@@ -640,6 +642,7 @@ class FastSearchCard extends HTMLElement {
                     letter-spacing: 0.5px;
                     margin-bottom: 16px;
                     padding: 0 4px;
+                    background: transparent;  /* ← NEU HINZUGEFÜGT */
                 }
 
                 @media (max-width: 768px) {
@@ -657,8 +660,8 @@ class FastSearchCard extends HTMLElement {
 
                 .room-header {
                     padding: 12px 20px;
-                    background: #f8f9fa;
-                    border-bottom: 1px solid #e9ecef;
+                    background: rgba(248, 249, 250, 0.3);  /* ← GEÄNDERT VON #f8f9fa */
+                    border-bottom: 1px solid rgba(233, 236, 239, 0.3);  /* ← GEÄNDERT VON #e9ecef */
                     font-weight: 600;
                     font-size: 14px;
                     color: #495057;
