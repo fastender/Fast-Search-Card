@@ -59,6 +59,10 @@ class FastSearchCard extends HTMLElement {
                     isolation: isolate;
                     /* Eventuell auch: */
                     contain: layout style paint;
+                    /* ZUSÄTZLICHE WEBKIT FIXES */
+                    -webkit-transform: translateZ(0); /* Force Hardware Acceleration */
+                    transform: translateZ(0);
+                    will-change: backdrop-filter;                    
                 }                
 
                 .search-section {
