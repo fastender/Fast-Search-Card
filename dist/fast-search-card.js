@@ -886,13 +886,15 @@ class FastSearchCard extends HTMLElement {
                     font-style: italic;
                     font-size: 16px;
                     border-radius: 0 0 32px 32px;
+                    background: transparent; /* Wichtig für die Sichtbarkeit der Abrundung */
                 }
 
-                /* Fallback für alle Inhalte im Results Container */
+                /* Sicherstellen dass der Container selbst auch abgerundet ist */
+                .search-container > *:last-child,
                 .results-container > *:last-child {
                     border-radius: 0 0 32px 32px !important;
                     overflow: hidden;
-                }                
+                }       
 
                 /* Loading dots component */
                 .loading-dots {
