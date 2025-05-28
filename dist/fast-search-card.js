@@ -110,21 +110,23 @@ class FastSearchCard extends HTMLElement {
                     width: 100%;
                     padding: 14px 20px;
                     border: none;
-                    background: white;
+                    background: rgba(0, 0, 0, 0.1);           /* ← GEÄNDERT: dunkler Hintergrund */
                     border-radius: 16px;
                     font-size: 16px;
                     outline: none;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    box-shadow: none;                         /* ← GEÄNDERT: kein Schatten */
                     transition: all 0.2s;
                     box-sizing: border-box;
+                    color: #ffffff;                           /* ← NEU: weiße Schrift */
                 }
                 
                 .search-input:focus {
-                    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+                    background: rgba(0, 0, 0, 0.25);          /* ← GEÄNDERT: noch dunkler bei Focus */
+                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);  /* ← GEÄNDERT: weißer Ring */
                 }
                 
                 .search-input::placeholder {
-                    color: #9aa0a6;
+                    color: rgba(255, 255, 255, 0.6);         /* ← GEÄNDERT: helle Placeholder-Farbe */
                 }
 
                 /* Typing indicator */
