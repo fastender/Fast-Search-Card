@@ -55,7 +55,7 @@ class FastSearchCard extends HTMLElement {
                 }                
 
                 .search-section {
-                    background: #f8f9fa;
+                    background: rgba(248, 249, 250, 0.5);
                     padding: 24px;
                 }
 
@@ -218,14 +218,14 @@ class FastSearchCard extends HTMLElement {
 
                 .filter-section {
                     padding: 0 24px 24px 24px;
-                    background: #f8f9fa;
+                    background: rgba(248, 249, 250, 0.5);
                 }
 
 
                 
                 .active-filters {
                     padding: 8px 24px 0 24px;
-                    background: #f8f9fa;
+                    background: rgba(248, 249, 250, 0.5);
                 }
                 
                 .active-filters-container {
