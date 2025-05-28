@@ -561,40 +561,7 @@ class FastSearchCard extends HTMLElement {
 
                 .results-container::-webkit-scrollbar {
                     display: none;
-                }           
-
-                /* Sicherstellen dass bei ALLEN Bildschirmbreiten die Ecken rund sind */
-                @media (max-width: 768px) {
-                    .results-container {
-                        border-radius: 0 0 32px 32px !important;
-                        scrollbar-width: none !important;
-                        -ms-overflow-style: none !important;
-                    }
-                    
-                    .results-container::-webkit-scrollbar {
-                        display: none !important;
-                    }
-                    
-                    .search-container {
-                        border-radius: 32px !important;
-                        overflow: hidden !important;
-                    }
-                    
-                    .grid-container,
-                    .room-group:last-child {
-                        border-radius: 32px !important;
-                    }
-                }
-                
-                @media (max-width: 1000px) {
-                    .results-container {
-                        border-radius: 0 0 32px 32px !important;
-                    }
-                    
-                    .search-container {
-                        overflow: hidden !important;
-                    }
-                }                
+                }                         
 
                 .results-container.loading {
                     animation: slideInFromBottom 0.4s ease-out;
