@@ -44,31 +44,23 @@ class FastSearchCard extends HTMLElement {
                     animation: cardEntrance 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
                 }
                           
-                .search-container {
-                    background: transparent;
+
+                .search-container-wrapper {
                     border: 1px solid rgba(255, 255, 255, 0.15);
                     border-top-color: rgba(255, 255, 255, 0.2);
                     border-bottom-color: rgba(255, 255, 255, 0.05);
                     border-radius: 32px;
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
                     overflow: hidden;
-                    position: relative;
-                    isolation: isolate;
+                    opacity: 0;
+                    animation: cardEntrance 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
                 }
                 
-                .search-container::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
+                .search-container {
                     background: rgba(0, 0, 0, 0.15);
                     backdrop-filter: blur(24px);
                     -webkit-backdrop-filter: blur(24px);
-                    border-radius: 32px;
-                    z-index: -1;
-                }           
+                }      
 
                 .search-section {
                     background: transparent;
@@ -1816,59 +1808,62 @@ class FastSearchCard extends HTMLElement {
                 
             </style>
             
-            <div class="search-container">
-                <div class="search-section">
-                    <div class="search-header">
 
-                        <button class="filter-button" id="filterButton">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
-                            </svg>
-                            <span class="filter-badge" id="filterBadge">0</span>
-                        </button>                        
-                        
-                        <div class="search-input-container">
-                            <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
-                            <div class="typing-indicator" id="typingIndicator">
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
+
+            <div class="search-container-wrapper">
+                <div class="search-container">
+                    <div class="search-section">
+                        <div class="search-header">
+                            <button class="filter-button" id="filterButton">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                                </svg>
+                                <span class="filter-badge" id="filterBadge">0</span>
+                            </button>                        
+                            
+                            <div class="search-input-container">
+                                <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
+                                <div class="typing-indicator" id="typingIndicator">
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="view-toggle">
+                                <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                                    </svg>
+                                </button>
+                                <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
-                        
-                        <div class="view-toggle">
-                            <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-                                </svg>
-                            </button>
-                            <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
-                                </svg>
-                            </button>
-                        </div>
                     </div>
-                </div>
-
-                <!-- Aktive Filter Tags -->
-                <div class="active-filters" id="activeFilters" style="display: none;">
-                    <div class="active-filters-container">
-                        <!-- Tags werden dynamisch eingefügt -->
-                    </div>
-                </div>                
             
-                <div class="filter-section">
-                    <div class="filter-row" id="typeFilterChips">
-                        <div class="filter-chip all active" data-value="">
-                            <span class="chip-icon">📋</span>
-                            <span class="chip-name">Alle</span>
+                    <!-- Aktive Filter Tags -->
+                    <div class="active-filters" id="activeFilters" style="display: none;">
+                        <div class="active-filters-container">
+                            <!-- Tags werden dynamisch eingefügt -->
+                        </div>
+                    </div>                
+                
+                    <div class="filter-section">
+                        <div class="filter-row" id="typeFilterChips">
+                            <div class="filter-chip all active" data-value="">
+                                <span class="chip-icon">📋</span>
+                                <span class="chip-name">Alle</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="results-container" id="resultsContainer">
-                    <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
+                    
+                    <div class="results-container" id="resultsContainer">
+                        <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
+                    </div>
                 </div>
             </div>
 
