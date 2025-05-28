@@ -43,7 +43,7 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0;
                     animation: cardEntrance 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
                 }
-                         
+                          
 
                 .search-container {
                     background: rgba(0, 0, 0, 0.15);
@@ -56,7 +56,7 @@ class FastSearchCard extends HTMLElement {
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
                     overflow: hidden;
                     position: relative;
-                }            
+                }                
 
                 .search-section {
                     background: transparent;
