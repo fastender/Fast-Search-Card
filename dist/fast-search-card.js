@@ -549,25 +549,25 @@ class FastSearchCard extends HTMLElement {
                         transform: translateY(0) scale(1);
                         backdrop-filter: blur(24px);
                     }
-                }                
+                }                 
 
                 .results-container {
                     max-height: 600px;
                     overflow-y: auto;
                     border-radius: 0 0 32px 32px;
-                    overflow: hidden;
                 }                
 
                 .results-container.loading {
                     animation: slideInFromBottom 0.4s ease-out;
                 }
 
-                /* Grid View Styles */
+                /* Grid-Ansicht: Container richtig abrunden */
                 .grid-container {
                     padding: 20px;
                     animation: slideInFromBottom 0.4s ease-out;
                     border-radius: 0 0 32px 32px;
-                }
+                    margin-bottom: -20px;
+                }                
 
                 .grid-scroll {
                     display: flex;
@@ -785,18 +785,18 @@ class FastSearchCard extends HTMLElement {
                     border-bottom: none;
                 }
 
-
+                /* Listen-Ansicht: Letztes Element richtig abrunden */
+                .room-group:last-child {
+                    margin-bottom: 0;
+                    border-radius: 0 0 32px 32px;
+                    overflow: hidden;
+                }
+                
                 .room-group:last-child .item:last-child {
                     border-bottom: none;
                     border-bottom-left-radius: 32px;
                     border-bottom-right-radius: 32px;
-                }                
-                
-                .room-group:last-child {
-                    margin-bottom: 0;
-                    overflow: hidden;
-                    border-radius: 0 0 32px 32px;
-                }        
+                }     
 
                 .item-icon {
                     font-size: 24px;
@@ -832,13 +832,20 @@ class FastSearchCard extends HTMLElement {
                     margin-top: 2px;
                 }
 
+                /* No-Results auch abrunden */
                 .no-results {
                     padding: 40px 20px;
                     text-align: center;
                     color: rgba(255, 255, 255, 0.6);
                     font-style: italic;
                     font-size: 16px;
+                    border-radius: 0 0 32px 32px;
                 }
+
+                /* Fallback für alle Inhalte im Results Container */
+                .results-container > *:last-child {
+                    border-radius: 0 0 32px 32px;
+                }                
 
                 /* Loading dots component */
                 .loading-dots {
