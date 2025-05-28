@@ -555,6 +555,7 @@ class FastSearchCard extends HTMLElement {
                 .results-container {
                     max-height: 600px;
                     overflow-y: auto;
+                    border-radius: 0 0 32px 32px;
                 }
 
                 .results-container.loading {
@@ -565,6 +566,7 @@ class FastSearchCard extends HTMLElement {
                 .grid-container {
                     padding: 20px;
                     animation: slideInFromBottom 0.4s ease-out;
+                    border-radius: 0 0 32px 32px;
                 }
 
                 .grid-scroll {
@@ -579,6 +581,11 @@ class FastSearchCard extends HTMLElement {
                 .grid-scroll::-webkit-scrollbar {
                     display: none;
                 }
+
+                /* Letzter Grid-Scroll ohne Padding unten für runde Ecken */
+                .grid-room-group:last-child .grid-scroll {
+                    padding-bottom: 0;
+                }                
 
                 .grid-item {
                     background: rgba(255, 255, 255, 0.1);
@@ -780,7 +787,13 @@ class FastSearchCard extends HTMLElement {
 
                 .room-group:last-child .item:last-child {
                     border-bottom: none;
+                    border-radius: 0 0 32px 32px;
                 }
+                
+                .room-group:last-child {
+                    border-radius: 0 0 32px 32px;
+                    overflow: hidden;
+                }                
 
                 .item-icon {
                     font-size: 24px;
