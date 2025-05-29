@@ -348,8 +348,12 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .filter-chip.all {
-                    background: rgba(0, 0, 0, 0.2);
+                    background: rgba(0, 0, 0, 0.15);
                 }
+
+                .filter-chip.all:hover {
+                    background: rgba(0, 0, 0, 0.25);
+                }                
                 
                 .filter-chip.all.active {
                     background: rgba(255, 255, 255, 0.15);
@@ -520,10 +524,7 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .grid-item {
-                    background: rgba(248, 249, 250, 0.8);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    border: 1px solid rgba(233, 236, 239, 0.5);
+                    background: rgba(0, 0, 0, 0.15);
                     border-radius: 12px;
                     padding: 16px;
                     min-width: 140px;
@@ -560,6 +561,7 @@ class FastSearchCard extends HTMLElement {
                 .grid-item:hover {
                     transform: translateY(-4px);
                     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    background: rgba(0, 0, 0, 0.25);
                 }
 
                 .grid-item.active {
