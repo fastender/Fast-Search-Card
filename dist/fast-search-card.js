@@ -2337,6 +2337,7 @@ class FastSearchCard extends HTMLElement {
             `;
         }
         
+
         async loadRealLogEntries(item) {
             if (!this._hass) return;
             
@@ -2344,6 +2345,12 @@ class FastSearchCard extends HTMLElement {
                 // Zeitraum: Letzte 6 Stunden
                 const endTime = new Date();
                 const startTime = new Date(endTime.getTime() - (6 * 60 * 60 * 1000));
+                
+                console.log('Logbook API Call:', {
+                    start_time: startTime.toISOString(),
+                    end_time: endTime.toISOString(),
+                    entity_id: item.id
+                });
                 
                 // Home Assistant Logbook API aufrufen
                 const logbookData = await this._hass.callWS({
@@ -2353,18 +2360,43 @@ class FastSearchCard extends HTMLElement {
                     entity_ids: [item.id]
                 });
                 
+                console.log('Logbook Response:', logbookData);
+                
+                // Fallback: Verwende State-Historie falls Logbook leer ist
+                if (!logbookData || logbookData.length === 0) {
+                    console.log('Logbook leer, verwende History API...');
+                    const historyData = await this._hass.callWS({
+                        type: 'history/history_during_period',
+                        start_time: startTime.toISOString(),
+                        end_time: endTime.toISOString(),
+                        entity_ids: [item.id]
+                    });
+                    
+                    console.log('History Response:', historyData);
+                    
+                    if (historyData && historyData[0]) {
+                        const processedEntries = this.processHistoryData(historyData[0], item);
+                        this.updateLogbookUI(item.id, processedEntries);
+                        return;
+                    }
+                }
+                
                 // Logbook-Einträge verarbeiten
                 const processedEntries = this.processLogbookData(logbookData, item);
-                
-                // UI aktualisieren
                 this.updateLogbookUI(item.id, processedEntries);
                 
             } catch (error) {
                 console.error('Fehler beim Laden der Logbook-Daten:', error);
                 this.showLogbookError(item.id);
             }
-        }
+        }            
+
+
+
+
+    
         
+
         processLogbookData(logbookData, item) {
             if (!logbookData || logbookData.length === 0) {
                 return [{
@@ -2375,16 +2407,69 @@ class FastSearchCard extends HTMLElement {
                 }];
             }
             
+            console.log('Logbook Raw Data:', logbookData); // Debug
+            
             return logbookData
                 .filter(entry => entry.entity_id === item.id)
-                .map(entry => ({
-                    message: this.formatLogbookMessage(entry, item),
-                    when: this.formatLogTime(new Date(entry.when)),
-                    state: this.formatLogbookState(entry, item),
-                    stateClass: this.getLogbookStateClass(entry, item)
-                }))
+                .map(entry => {
+                    // Debug: Prüfe die Datenstruktur
+                    console.log('Processing entry:', entry);
+                    
+                    // Verschiedene Zeitstempel-Formate versuchen
+                    let entryDate;
+                    if (entry.when) {
+                        entryDate = new Date(entry.when);
+                    } else if (entry.last_changed) {
+                        entryDate = new Date(entry.last_changed);
+                    } else if (entry.timestamp) {
+                        entryDate = new Date(entry.timestamp);
+                    } else {
+                        entryDate = new Date(); // Fallback: jetzt
+                    }
+                    
+                    return {
+                        message: this.formatLogbookMessage(entry, item),
+                        when: this.formatLogTime(entryDate),
+                        state: this.formatLogbookState(entry, item),
+                        stateClass: this.getLogbookStateClass(entry, item),
+                        rawDate: entryDate // Debug
+                    };
+                })
+                .sort((a, b) => b.rawDate - a.rawDate) // Neueste zuerst
                 .slice(0, 20); // Maximal 20 Einträge
         }
+
+
+
+        // Fallback: History-Daten verarbeiten
+        processHistoryData(historyData, item) {
+            if (!historyData || historyData.length === 0) {
+                return [{
+                    message: 'Keine Aktivitäten in den letzten 6 Stunden',
+                    when: 'Heute',
+                    state: 'INFO',
+                    stateClass: 'info'
+                }];
+            }
+            
+            return historyData
+                .slice(-20) // Letzte 20 Einträge
+                .map(entry => {
+                    const entryDate = new Date(entry.last_changed);
+                    
+                    return {
+                        message: this.getStateChangeMessage(item, entry.state),
+                        when: this.formatLogTime(entryDate),
+                        state: entry.state.toUpperCase(),
+                        stateClass: ['on', 'playing', 'open'].includes(entry.state) ? 'on' : 'off',
+                        rawDate: entryDate
+                    };
+                })
+                .sort((a, b) => b.rawDate - a.rawDate); // Neueste zuerst
+        }
+    
+
+    
         
         formatLogbookMessage(entry, item) {
             // Verwende die originale Logbook-Nachricht wenn verfügbar
@@ -2573,18 +2658,66 @@ class FastSearchCard extends HTMLElement {
         }
     
         formatLogTime(date) {
+            // Debug: Prüfe ob date ein gültiges Date-Objekt ist
+            if (!date || isNaN(date.getTime())) {
+                console.error('Ungültiges Datum:', date);
+                return 'Unbekannte Zeit';
+            }
+            
             const now = new Date();
             const diff = now.getTime() - date.getTime();
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             
-            if (days === 0) {
-                return `Heute, ${date.toLocaleTimeString('de-DE')}`;
-            } else if (days === 1) {
-                return `Gestern, ${date.toLocaleTimeString('de-DE')}`;
-            } else {
-                return date.toLocaleString('de-DE');
+            // Wenn weniger als 1 Stunde her
+            if (hours < 1) {
+                if (minutes < 1) {
+                    return 'Gerade eben';
+                }
+                return `Vor ${minutes} Min`;
             }
+            
+            // Wenn weniger als 24 Stunden her
+            if (hours < 24) {
+                return `Vor ${hours} Std`;
+            }
+            
+            // Wenn heute
+            const today = new Date();
+            if (date.toDateString() === today.toDateString()) {
+                return `Heute, ${date.toLocaleTimeString('de-DE', { 
+                    hour: '2-digit', minute: '2-digit' 
+                })}`;
+            }
+            
+            // Wenn gestern
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) {
+                return `Gestern, ${date.toLocaleTimeString('de-DE', { 
+                    hour: '2-digit', minute: '2-digit' 
+                })}`;
+            }
+            
+            // Älter als gestern
+            return date.toLocaleString('de-DE', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
         }
+
+
+
+
+
+
+
+
+
+    
     
         formatLogState(item) {
             if (item.itemType === 'entity') {
