@@ -38,7 +38,19 @@ class FastSearchCard extends HTMLElement {
                 :host {
                     display: block;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    
+
+                    /* ← DIESE ZEILEN HINZUFÜGEN */
+                    --tw-backdrop-blur: blur(40px);
+                    --tw-backdrop-brightness: brightness(1);
+                    --tw-backdrop-contrast: contrast(1);
+                    --tw-backdrop-grayscale: grayscale(0);
+                    --tw-backdrop-hue-rotate: hue-rotate(0deg);
+                    --tw-backdrop-invert: invert(0);
+                    --tw-backdrop-opacity: opacity(1);
+                    --tw-backdrop-saturate: saturate(1);
+                    --tw-backdrop-sepia: sepia(0);
+                    /* ← BIS HIER */
+    
                     /* Card fade-in beim Laden */
                     opacity: 0;
                     animation: cardFadeIn 0.6s ease-out 0.2s forwards;
@@ -46,8 +58,8 @@ class FastSearchCard extends HTMLElement {
                 
                 .search-container {
                     background: rgba(0, 0, 0, 0.15);
-                    backdrop-filter: blur(40px);
-                    -webkit-backdrop-filter: blur(40px);
+                    -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+                    backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
                     border-radius: 20px;
                     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
                     border: 1px solid rgba(255, 255, 255, 0.15);
