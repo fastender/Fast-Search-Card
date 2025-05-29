@@ -82,7 +82,7 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     gap: 4px;
                 }
-                
+
                 .view-toggle-btn {
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
@@ -102,13 +102,9 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .view-toggle-btn.active {
-                    background: rgba(66, 133, 244, 0.8);
+                    background: rgba(255, 255, 255, 0.15);
                     color: white;
                 }
-
-                .view-toggle-btn + .view-toggle-btn { 
-                }
-
 
                 .search-input-container {
                     flex: 1;
@@ -204,14 +200,11 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(0, 0, 0, 0.25);
                 }
                 
-                .view-toggle-btn.active {
-                    background: rgba(66, 133, 244, 0.8);
-                    color: white;
-                }
+
                 
                 
                 .filter-button.active {
-                    background: rgba(66, 133, 244, 0.8);
+                    background: rgba(255, 255, 255, 0.15);
                     color: white;
                 }
 
@@ -350,13 +343,12 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .filter-chip.active {
-                    background: rgba(66, 133, 244, 0.8);
+                    background: rgba(255, 255, 255, 0.15);
                     color: white;
                 }
                 
                 .filter-chip.all {
                     background: rgba(0, 0, 0, 0.2);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
                 }
                 
                 .filter-chip.all.active {
