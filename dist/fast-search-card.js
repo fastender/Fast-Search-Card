@@ -324,7 +324,7 @@ class FastSearchCard extends HTMLElement {
                 .filter-chip {
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
-                    border-radius: 20px;
+                    border-radius: 60px;
                     padding: 12px 20px;
                     font-size: 14px;
                     color: rgba(255, 255, 255, 0.9);
@@ -379,7 +379,7 @@ class FastSearchCard extends HTMLElement {
                 .chip-count {
                     font-size: 12px;
                     opacity: 0.8;
-                    margin-top: 2px;
+                    margin-top: 0px;
                 }
 
                 /* Eingangs-Animationen */
