@@ -35,6 +35,9 @@ class FastSearchCard extends HTMLElement {
     render() {
         this.shadowRoot.innerHTML = `
             <style>
+
+
+
                 :host {
                     display: block;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -42,17 +45,28 @@ class FastSearchCard extends HTMLElement {
                     /* Card fade-in beim Laden */
                     opacity: 0;
                     animation: cardFadeIn 0.6s ease-out 0.2s forwards;
-                }
-                
+                    
+                    /* Glassmorphism Container - Neuer Hintergrund */
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 24px;
+                    box-shadow: 
+                        0 8px 32px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+                    padding: 0;
+                    overflow: hidden;
+                }                
                 .search-container {
-                    background: white;
-                    border-radius: 20px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+                    background: transparent;
+                    border-radius: 0;
+                    box-shadow: none;
                     overflow: hidden;
                 }                
 
                 .search-section {
-                    background: #f8f9fa;
+                    background: rgba(248, 249, 250, 0.3);
                     padding: 24px;
                 }
 
@@ -215,7 +229,7 @@ class FastSearchCard extends HTMLElement {
 
                 .filter-section {
                     padding: 0 24px 24px 24px;
-                    background: #f8f9fa;
+                    background: rgba(248, 249, 250, 0.3);
                 }
 
 
