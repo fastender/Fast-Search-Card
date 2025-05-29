@@ -675,27 +675,26 @@ class FastSearchCard extends HTMLElement {
 
                 .room-header {
                     padding: 12px 20px;
-                    background: rgba(248, 249, 250, 0.4);
-                    backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+
                     
                     font-weight: 600;
                     font-size: 14px;
-                    color: #495057;
+                    color: rgba(255, 255, 255, 0.9);
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                 }
 
                 .item {
                     padding: 16px 20px;
-                    border-bottom: 1px solid #f0f0f0;
                     display: flex;
                     align-items: center;
                     gap: 16px;
                     transition: background-color 0.2s;
                     margin-left: 0;
                     cursor: pointer;
+                    margin: 10px 20px 10px 20px;
+                    background: rgba(0, 0, 0, 0.15);
+                    border-radius: 20px;
                 }
 
                 .item:hover {
@@ -724,18 +723,19 @@ class FastSearchCard extends HTMLElement {
                     flex: 1;
                     display: flex;
                     flex-direction: column;
-                    gap: 2px;
+                    gap: 0px;
                 }
 
                 .item-name {
                     font-weight: 500;
                     font-size: 16px;
-                    color: #333;
+                    color: rgba(255, 255, 255, 0.9);
+                    line-height: 1.2;
                 }
 
                 .item-state {
                     font-size: 14px;
-                    color: #888;
+                    color: rgba(255, 255, 255, 0.7);
                 }
 
                 .item-description {
