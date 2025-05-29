@@ -1424,6 +1424,183 @@ class FastSearchCard extends HTMLElement {
                     }
                 }                
 
+                
+                /* Accordion Container */
+                .accordion-container {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                    margin-top: 24px;
+                }
+                
+                .accordion-item {
+                    border: 2px solid #e9ecef;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                }
+                
+                .accordion-item.active {
+                    border-color: #007aff;
+                    box-shadow: 0 4px 20px rgba(0, 122, 255, 0.1);
+                }
+                
+                .accordion-header {
+                    background: #f8f9fa;
+                    padding: 20px 24px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    transition: all 0.2s;
+                    user-select: none;
+                }
+                
+                .accordion-item.active .accordion-header {
+                    background: rgba(0, 122, 255, 0.1);
+                }
+                
+                .accordion-header:hover {
+                    background: #e9ecef;
+                }
+                
+                .accordion-item.active .accordion-header:hover {
+                    background: rgba(0, 122, 255, 0.15);
+                }
+                
+                .accordion-title {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #333;
+                }
+                
+                .accordion-icon {
+                    font-size: 20px;
+                }
+                
+                .accordion-chevron {
+                    font-size: 18px;
+                    color: #666;
+                    transition: transform 0.3s ease;
+                }
+                
+                .accordion-item.active .accordion-chevron {
+                    transform: rotate(180deg);
+                }
+                
+                .accordion-content {
+                    max-height: 0;
+                    overflow: hidden;
+                    transition: max-height 0.4s ease, padding 0.3s ease;
+                    background: white;
+                }
+                
+                .accordion-item.active .accordion-content {
+                    max-height: 800px;
+                    padding: 24px;
+                }
+                
+                /* Historische Daten Styles */
+                .history-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                }
+                
+                .history-tabs {
+                    display: flex;
+                    gap: 8px;
+                    background: #f8f9fa;
+                    padding: 4px;
+                    border-radius: 12px;
+                }
+                
+                .history-tab {
+                    flex: 1;
+                    padding: 12px 16px;
+                    text-align: center;
+                    background: transparent;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #666;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                
+                .history-tab.active {
+                    background: white;
+                    color: #007aff;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                
+                .chart-placeholder {
+                    height: 200px;
+                    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #666;
+                    font-style: italic;
+                    border: 2px dashed #dee2e6;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                
+                .log-entries {
+                    max-height: 250px;
+                    overflow-y: auto;
+                    border: 1px solid #e9ecef;
+                    border-radius: 12px;
+                    background: white;
+                }
+                
+                .log-entry {
+                    padding: 12px 16px;
+                    border-bottom: 1px solid #f1f3f4;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 14px;
+                }
+                
+                .log-entry:last-child {
+                    border-bottom: none;
+                }
+                
+                .log-action {
+                    color: #333;
+                    font-weight: 500;
+                }
+                
+                .log-time {
+                    color: #666;
+                    font-size: 12px;
+                }
+                
+                .log-state {
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                }
+                
+                .log-state.on {
+                    background: #d4edda;
+                    color: #155724;
+                }
+                
+                .log-state.off {
+                    background: #f8d7da;
+                    color: #721c24;
+                }
+                
 
             
                 /* Filter Menu Overlay */
@@ -1861,7 +2038,7 @@ class FastSearchCard extends HTMLElement {
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
         const iconSection = this.getIconSectionHTML(item);
-        const detailsSection = this.getDetailsSectionHTML(item);
+        const detailsSection = this.getAccordionDetailsSectionHTML(item);  // ← HIER GEÄNDERT!
         
         return `
             <div class="replace-header">
@@ -1879,7 +2056,7 @@ class FastSearchCard extends HTMLElement {
                 </div>
             </div>
         `;
-    }
+    }    
 
     getBreadcrumbHTML(item) {
         const searchType = this.searchTypeConfigs[this.currentSearchType];
@@ -1920,28 +2097,309 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
+
+    getAccordionDetailsSectionHTML(item) {
+            const typeDisplayName = this.getTypeDisplayName(item);
+            const controls = this.getReplaceControlsHTML(item);
+            const attributes = this.getReplaceAttributesHTML(item);
+            const history = this.getHistoryHTML(item);
+            
+            return `
+                <div class="entity-info">
+                    <h2 class="entity-title-large">${item.name}</h2>
+                    <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
+                </div>
+                
+                <div class="accordion-container">
+                    <!-- Steuerung Accordion -->
+                    <div class="accordion-item active" data-accordion="control">
+                        <div class="accordion-header">
+                            <div class="accordion-title">
+                                <span class="accordion-icon">${this.getControlIcon(item)}</span>
+                                <span>STEUERUNG</span>
+                            </div>
+                            <span class="accordion-chevron">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            ${controls}
+                        </div>
+                    </div>
+                    
+                    <!-- Details Accordion -->
+                    <div class="accordion-item" data-accordion="details">
+                        <div class="accordion-header">
+                            <div class="accordion-title">
+                                <span class="accordion-icon">📊</span>
+                                <span>DETAILS</span>
+                            </div>
+                            <span class="accordion-chevron">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            ${attributes}
+                        </div>
+                    </div>
+                    
+                    <!-- Historische Daten Accordion -->
+                    <div class="accordion-item" data-accordion="history">
+                        <div class="accordion-header">
+                            <div class="accordion-title">
+                                <span class="accordion-icon">📈</span>
+                                <span>HISTORISCHE DATEN</span>
+                            </div>
+                            <span class="accordion-chevron">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            ${history}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }    
+
+
+    
+    getControlIcon(item) {
+            switch (item.itemType) {
+                case 'entity':
+                    switch (item.type) {
+                        case 'light': return '💡';
+                        case 'climate': return '🌡️';
+                        case 'cover': return '🪟';
+                        case 'media_player': return '📺';
+                        case 'switch': return '🔌';
+                        case 'fan': return '🌀';
+                        default: return '🔧';
+                    }
+                case 'automation': return '🤖';
+                case 'script': return '📜';
+                case 'scene': return '🎭';
+                default: return '🔧';
+            }
+        }
+    
+        getHistoryHTML(item) {
+            return `
+                <div class="history-content">
+                    <div class="history-tabs">
+                        <button class="history-tab active" data-history-tab="chart">Verlauf</button>
+                        <button class="history-tab" data-history-tab="log">Logbuch</button>
+                    </div>
+                    
+                    <div class="history-view" data-history-view="chart">
+                        <div class="chart-placeholder">
+                            <span>📊 ${this.getChartTitle(item)}</span>
+                            <small>(Chart wird hier eingefügt)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="history-view" data-history-view="log" style="display: none;">
+                        <div class="log-entries" id="logEntries">
+                            ${this.getLogEntriesHTML(item)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    
+        getChartTitle(item) {
+            switch (item.type) {
+                case 'light': return 'Helligkeitsverlauf der letzten 24 Stunden';
+                case 'climate': return 'Temperaturverlauf der letzten 24 Stunden';
+                case 'sensor': return 'Sensorwerte der letzten 24 Stunden';
+                case 'media_player': return 'Aktivitätsverlauf der letzten 24 Stunden';
+                default: return 'Statusverlauf der letzten 24 Stunden';
+            }
+        }
+    
+        getLogEntriesHTML(item) {
+            // Generiere Mock-Daten basierend auf dem aktuellen Zustand
+            const entries = this.generateMockLogEntries(item);
+            
+            return entries.map(entry => `
+                <div class="log-entry">
+                    <div>
+                        <div class="log-action">${entry.action}</div>
+                        <div class="log-time">${entry.time}</div>
+                    </div>
+                    <span class="log-state ${entry.stateClass}">${entry.state}</span>
+                </div>
+            `).join('');
+        }
+    
+        generateMockLogEntries(item) {
+            const now = new Date();
+            const entries = [];
+            
+            // Aktuelle Zeit als erste Entry
+            entries.push({
+                action: this.getLastActionText(item),
+                time: this.formatLogTime(now),
+                state: this.formatLogState(item),
+                stateClass: this.getLogStateClass(item)
+            });
+            
+            // Weitere Mock-Entries basierend auf Gerätetyp
+            for (let i = 1; i < 5; i++) {
+                const pastTime = new Date(now.getTime() - (i * 2 * 60 * 60 * 1000)); // 2h intervals
+                const mockEntry = this.createMockLogEntry(item, pastTime, i);
+                entries.push(mockEntry);
+            }
+            
+            return entries;
+        }
+    
+        getLastActionText(item) {
+            if (item.itemType === 'entity') {
+                switch (item.type) {
+                    case 'light':
+                        return item.state === 'on' ? 'Licht eingeschaltet' : 'Licht ausgeschaltet';
+                    case 'switch':
+                        return item.state === 'on' ? 'Schalter eingeschaltet' : 'Schalter ausgeschaltet';
+                    case 'climate':
+                        return `Temperatur auf ${item.target_temperature || 20}°C gesetzt`;
+                    case 'cover':
+                        return `Position auf ${item.position || 0}% gesetzt`;
+                    default:
+                        return item.state === 'on' ? 'Eingeschaltet' : 'Ausgeschaltet';
+                }
+            }
+            return 'Status geändert';
+        }
+    
+        formatLogTime(date) {
+            const now = new Date();
+            const diff = now.getTime() - date.getTime();
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            if (days === 0) {
+                return `Heute, ${date.toLocaleTimeString('de-DE')}`;
+            } else if (days === 1) {
+                return `Gestern, ${date.toLocaleTimeString('de-DE')}`;
+            } else {
+                return date.toLocaleString('de-DE');
+            }
+        }
+    
+        formatLogState(item) {
+            if (item.itemType === 'entity') {
+                switch (item.type) {
+                    case 'light':
+                        return item.state === 'on' ? `${item.brightness || 100}%` : 'AUS';
+                    case 'climate':
+                        return `${item.target_temperature || 20}°C`;
+                    case 'cover':
+                        return `${item.position || 0}%`;
+                    default:
+                        return item.state === 'on' ? 'AN' : 'AUS';
+                }
+            }
+            return item.state.toUpperCase();
+        }
+    
+        getLogStateClass(item) {
+            return item.state === 'on' || item.state === 'playing' ? 'on' : 'off';
+        }
+    
+        createMockLogEntry(item, time, index) {
+            const isOn = index % 2 === 0; // Alternierend
+            
+            if (item.type === 'light') {
+                return {
+                    action: isOn ? 'Licht eingeschaltet' : 'Licht ausgeschaltet',
+                    time: this.formatLogTime(time),
+                    state: isOn ? `${Math.floor(Math.random() * 50) + 50}%` : 'AUS',
+                    stateClass: isOn ? 'on' : 'off'
+                };
+            }
+            
+            return {
+                action: isOn ? 'Eingeschaltet' : 'Ausgeschaltet',
+                time: this.formatLogTime(time),
+                state: isOn ? 'AN' : 'AUS',
+                stateClass: isOn ? 'on' : 'off'
+            };
+        }
+    
+
+
+
+
     setupReplaceEventListeners(item) {
-        // Back Button
-        const backButton = this.shadowRoot.getElementById('backToSearch');
-        backButton.addEventListener('click', () => this.switchBackToSearch());
-        
-        // Control Buttons
-        const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
-        controlButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const action = button.getAttribute('data-action');
-                this.executeReplaceAction(item, action, button);
+            // Back Button
+            const backButton = this.shadowRoot.getElementById('backToSearch');
+            backButton.addEventListener('click', () => this.switchBackToSearch());
+            
+            // Accordion Headers - NEU!
+            const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', (e) => {
+                    this.toggleAccordion(header);
+                });
             });
-        });
-        
-        // Sliders
-        const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
-        sliders.forEach(slider => {
-            slider.addEventListener('input', (e) => {
-                this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
+            
+            // History Tabs - NEU!
+            const historyTabs = this.shadowRoot.querySelectorAll('.more-info-replace [data-history-tab]');
+            historyTabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    this.switchHistoryTab(tab, tab.getAttribute('data-history-tab'));
+                });
             });
-        });
-    }
+            
+            // Control Buttons (bestehend)
+            const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
+            controlButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const action = button.getAttribute('data-action');
+                    this.executeReplaceAction(item, action, button);
+                });
+            });
+            
+            // Sliders (bestehend)
+            const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
+                });
+            });
+        }        
+
+
+    
+    toggleAccordion(header) {
+            const item = header.parentElement;
+            const isActive = item.classList.contains('active');
+            
+            // Alle anderen schließen (Single-Accordion Verhalten)
+            // Wenn du Multi-Accordion willst, entferne diesen Block
+            this.shadowRoot.querySelectorAll('.more-info-replace .accordion-item').forEach(otherItem => {
+                if (otherItem !== item) {
+                    otherItem.classList.remove('active');
+                }
+            });
+            
+            // Aktuelles Item togglen
+            item.classList.toggle('active', !isActive);
+        }
+    
+        switchHistoryTab(tab, viewType) {
+            // Tab aktiv setzen
+            this.shadowRoot.querySelectorAll('.more-info-replace .history-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            tab.classList.add('active');
+            
+            // Views umschalten
+            this.shadowRoot.querySelectorAll('.more-info-replace [data-history-view]').forEach(view => {
+                view.style.display = 'none';
+            });
+            
+            const targetView = this.shadowRoot.querySelector(`.more-info-replace [data-history-view="${viewType}"]`);
+            if (targetView) {
+                targetView.style.display = 'block';
+            }
+        }
+
+    
 
 getQuickStats(item) {
         const stats = [];
@@ -2237,7 +2695,19 @@ getQuickStats(item) {
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
         replaceContainer.innerHTML = this.getReplaceContentHTML(item);
         this.setupReplaceEventListeners(item);
-    }    
+        
+        // Logbook aktualisieren - NEU!
+        this.updateLogEntries(item);
+    }
+    
+    updateLogEntries(item) {
+        const logContainer = this.shadowRoot.getElementById('logEntries');
+        if (logContainer) {
+            logContainer.innerHTML = this.getLogEntriesHTML(item);
+        }
+    }
+
+    
     
     initializeCard() {
         this.allItems = [];
