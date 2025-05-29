@@ -698,8 +698,12 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .item:hover {
-                    background-color: #fafafa;
+                    background: rgba(0, 0, 0, 0.25);
                 }
+                
+                .item.active {
+                    background: rgba(255, 255, 255, 0.15);
+                }                
 
                 .item:last-child {
                     border-bottom: none;
