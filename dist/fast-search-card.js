@@ -66,7 +66,7 @@ class FastSearchCard extends HTMLElement {
                 }                
 
                 .search-section {
-                    background: rgba(248, 249, 250, 0.3);
+                    background: transparent;
                     padding: 24px;
                 }
 
@@ -233,14 +233,14 @@ class FastSearchCard extends HTMLElement {
 
                 .filter-section {
                     padding: 0 24px 24px 24px;
-                    background: rgba(248, 249, 250, 0.3);
+                    background: transparent;
                 }
 
 
                 
                 .active-filters {
                     padding: 8px 24px 0 24px;
-                    background: #f8f9fa;
+                    background: transparent;
                 }
                 
                 .active-filters-container {
@@ -680,10 +680,11 @@ class FastSearchCard extends HTMLElement {
 
                 .room-header {
                     padding: 12px 20px;
-                    background: rgba(248, 249, 250, 0.8);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    border-bottom: 1px solid #e9ecef;
+                    background: rgba(248, 249, 250, 0.4);
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    
                     font-weight: 600;
                     font-size: 14px;
                     color: #495057;
