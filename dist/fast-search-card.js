@@ -1928,6 +1928,100 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
+
+                /* Music Assistant Suche Styles */
+                .music-assistant-search {
+                    margin-top: 20px;
+                    padding: 16px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 8px;
+                    background: rgba(0, 0, 0, 0.15);
+                }
+                
+                .search-container .search-input {
+                    width: 100%;
+                    padding: 8px 12px;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 4px;
+                    font-size: 14px;
+                    margin-bottom: 12px;
+                    background: rgba(0, 0, 0, 0.25);
+                    color: rgba(255, 255, 255, 0.9);
+                    box-sizing: border-box;
+                }
+                
+                .search-container .search-input::placeholder {
+                    color: rgba(255, 255, 255, 0.6);
+                }
+                
+                .search-container .search-input:focus {
+                    outline: none;
+                    border-color: rgba(255, 255, 255, 0.4);
+                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+                }
+                
+                .search-results {
+                    max-height: 300px;
+                    overflow-y: auto;
+                }
+                
+                .ma-category {
+                    margin-bottom: 16px;
+                }
+                
+                .ma-category h5 {
+                    margin: 0 0 8px 0;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .ma-item {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 8px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                }
+                
+                .ma-item:hover {
+                    background-color: rgba(255, 255, 255, 0.1);
+                }
+                
+                .ma-item-name {
+                    font-weight: 500;
+                    font-size: 14px;
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .ma-item-artist {
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.7);
+                }
+                
+                .ma-play-btn {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 4px 8px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    transition: all 0.2s;
+                }
+                
+                .ma-play-btn:hover {
+                    background: rgba(255, 255, 255, 0.25);
+                }
+                
+                .loading, .no-results {
+                    text-align: center;
+                    color: rgba(255, 255, 255, 0.7);
+                    padding: 20px;
+                    font-style: italic;
+                }
                 
             </style>
             
@@ -3248,8 +3342,101 @@ class FastSearchCard extends HTMLElement {
                             this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
                         });
                     });
+
+                    
+                    // NEU: Music Assistant Event Listeners hinzufügen
+                    this.setupMusicAssistantEventListeners(item);
+
+                
                 }
-            
+
+                
+                // Event Listeners für Music Assistant Suche
+                setupMusicAssistantEventListeners(item) {
+                    const searchInput = this.shadowRoot.querySelector(`[data-ma-search="${item.id}"]`);
+                    const resultsContainer = this.shadowRoot.getElementById(`ma-results-${item.id}`);
+                    
+                    if (!searchInput || !resultsContainer) return;
+                    
+                    let searchTimeout;
+                    
+                    searchInput.addEventListener('input', (e) => {
+                        const query = e.target.value.trim();
+                        
+                        clearTimeout(searchTimeout);
+                        
+                        if (query.length < 2) {
+                            resultsContainer.innerHTML = '';
+                            return;
+                        }
+                        
+                        searchTimeout = setTimeout(async () => {
+                            resultsContainer.innerHTML = '<div class="loading">Suche läuft...</div>';
+                            
+                            const results = await this.searchMusicAssistant(query, item.id);
+                            this.displayMusicAssistantResults(results, resultsContainer, item.id);
+                        }, 300);
+                    });
+                }
+                
+                // Music Assistant Ergebnisse anzeigen
+                displayMusicAssistantResults(results, container, entityId) {
+                    if (!results || Object.keys(results).length === 0) {
+                        container.innerHTML = '<div class="no-results">Keine Ergebnisse gefunden</div>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    
+                    // Zeige verschiedene Kategorien
+                    Object.entries(results).forEach(([type, items]) => {
+                        if (items.length === 0) return;
+                        
+                        const categoryName = this.getMusicAssistantCategoryName(type);
+                        html += `<div class="ma-category">
+                            <h5>${categoryName}</h5>
+                            <div class="ma-items">`;
+                        
+                        // Limitiere auf erste 5 Ergebnisse pro Kategorie
+                        items.slice(0, 5).forEach(item => {
+                            html += `
+                                <div class="ma-item" data-uri="${item.uri}" data-type="${item.media_type}">
+                                    <div class="ma-item-info">
+                                        <div class="ma-item-name">${item.name}</div>
+                                        <div class="ma-item-artist">
+                                            ${item.artists ? item.artists.map(a => a.name).join(', ') : ''}
+                                        </div>
+                                    </div>
+                                    <button class="ma-play-btn" data-action="play">▶️</button>
+                                </div>
+                            `;
+                        });
+                        
+                        html += '</div></div>';
+                    });
+                    
+                    container.innerHTML = html;
+                    
+                    // Event Listeners für Play-Buttons
+                    container.querySelectorAll('.ma-play-btn').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            
+                            const itemElement = btn.closest('.ma-item');
+                            const uri = itemElement.getAttribute('data-uri');
+                            const mediaType = itemElement.getAttribute('data-type');
+                            const name = itemElement.querySelector('.ma-item-name').textContent;
+                            
+                            await this.playMusicAssistantItem({
+                                uri: uri,
+                                media_type: mediaType,
+                                name: name
+                            }, entityId);
+                        });
+                    });
+                }
+
+    
                 executeShortcutAction(actionType, actionId, button) {
                     if (!this._hass) return;
                     
@@ -3500,9 +3687,121 @@ getQuickStats(item) {
         `;
     }
 
+
+    // Music Assistant Verfügbarkeit prüfen
+    checkMusicAssistantAvailability() {
+        if (!this._hass) return false;
+        
+        // Prüfe ob Music Assistant als Integration verfügbar ist
+        const maEntities = Object.keys(this._hass.states).filter(entityId => 
+            entityId.startsWith('media_player.') && 
+            this._hass.states[entityId].attributes.supported_features &&
+            // Prüfe auf Music Assistant spezifische Features
+            this._hass.states[entityId].attributes.device_class === 'speaker'
+        );
+        
+        return maEntities.length > 0;
+    }
+    
+    // Music Assistant Suche implementieren
+    async searchMusicAssistant(query, entityId) {
+        if (!this._hass || !query) return [];
+        
+        try {
+            // Hole Music Assistant Config Entry
+            const configEntries = await this._hass.callApi("GET", "config/config_entries/entry");
+            const maEntry = configEntries.filter(entry => 
+                entry.domain === "music_assistant" && entry.state === "loaded"
+            ).find(entry => entry.state === "loaded");
+            
+            if (!maEntry) {
+                console.warn('Music Assistant nicht gefunden');
+                return [];
+            }
+            
+            // Führe Suche aus
+            const searchParams = {
+                type: "call_service",
+                domain: "music_assistant",
+                service: "search",
+                service_data: {
+                    name: query,
+                    config_entry_id: maEntry.entry_id,
+                    limit: 50
+                },
+                return_response: true
+            };
+            
+            const response = await this._hass.connection.sendMessagePromise(searchParams);
+            return this.processMusicAssistantResults(response.response);
+            
+        } catch (error) {
+            console.error('Music Assistant Suche fehlgeschlagen:', error);
+            return [];
+        }
+    }
+    
+    // Music Assistant Ergebnisse verarbeiten
+    processMusicAssistantResults(results) {
+        if (!results) return [];
+        
+        const processedResults = {};
+        
+        // Gruppiere Ergebnisse nach Typ
+        Object.entries(results).forEach(([type, items]) => {
+            if (Array.isArray(items) && items.length > 0) {
+                processedResults[type] = items.map(item => ({
+                    uri: item.uri,
+                    name: item.name,
+                    artists: item.artists || [],
+                    image: item.image,
+                    media_type: item.media_type || type.slice(0, -1), // "tracks" -> "track"
+                    album: item.album
+                }));
+            }
+        });
+        
+        return processedResults;
+    }
+    
+    // Musik über Music Assistant abspielen
+    async playMusicAssistantItem(item, entityId, enqueueMode = 'play') {
+        if (!this._hass) return;
+        
+        try {
+            await this._hass.callService("music_assistant", "play_media", {
+                entity_id: entityId,
+                media_type: item.media_type,
+                media_id: item.uri,
+                enqueue: enqueueMode
+            });
+            
+            console.log(`Spiele ab: ${item.name} auf ${entityId}`);
+        } catch (error) {
+            console.error('Fehler beim Abspielen:', error);
+        }
+    }
+    
+    // Kategorie-Namen für Music Assistant
+    getMusicAssistantCategoryName(type) {
+        const names = {
+            'artists': 'Künstler',
+            'albums': 'Alben', 
+            'tracks': 'Titel',
+            'playlists': 'Playlists',
+            'radio': 'Radio'
+        };
+        return names[type] || type;
+    }
+
+    
+    
     getMediaReplaceControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
+        
+        // Prüfe ob Music Assistant verfügbar ist
+        const hasMusicAssistant = this.checkMusicAssistantAvailability();
         
         return `
             <div class="control-group-large">
@@ -3522,10 +3821,22 @@ getQuickStats(item) {
                     <input type="range" class="slider-large" data-control="volume" 
                            min="0" max="100" value="${volume}">
                 </div>
+                
+                ${hasMusicAssistant ? `
+                    <div class="music-assistant-search" id="ma-search-${item.id}">
+                        <h4 class="control-title-large">🎵 Music Assistant Suche</h4>
+                        <div class="search-container">
+                            <input type="text" 
+                                   class="search-input" 
+                                   placeholder="Nach Musik suchen..." 
+                                   data-ma-search="${item.id}">
+                            <div class="search-results" id="ma-results-${item.id}"></div>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
-    }
-    
+    }    
 
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
