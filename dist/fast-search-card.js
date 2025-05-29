@@ -565,8 +565,7 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .grid-item.active {
-                    border: 2px solid #007aff;
-                    background: rgba(0, 122, 255, 0.05);
+                    background: rgba(255, 255, 255, 0.15);
                 }
 
                 .grid-item-header {
@@ -630,7 +629,7 @@ class FastSearchCard extends HTMLElement {
                 .grid-item-name {
                     font-weight: 500;
                     font-size: 14px;
-                    color: #333;
+                    color: rgba(255, 255, 255, 0.9);
                     line-height: 1.2;
                     margin-bottom: 4px;
                     overflow: hidden;
@@ -640,7 +639,7 @@ class FastSearchCard extends HTMLElement {
 
                 .grid-item-state {
                     font-size: 12px;
-                    color: #666;
+                    color: rgba(255, 255, 255, 0.7);
                     line-height: 1.1;
                     overflow: hidden;
                     text-overflow: ellipsis;
@@ -654,7 +653,7 @@ class FastSearchCard extends HTMLElement {
                 .grid-room-header {
                     font-weight: 600;
                     font-size: 14px;
-                    color: #495057;
+                    color: rgba(255, 255, 255, 0.9);
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                     margin-bottom: 16px;
