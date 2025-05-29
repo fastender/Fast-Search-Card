@@ -2394,11 +2394,15 @@ class FastSearchCard extends HTMLElement {
 
 
 
-    
+            
+                
         
-
         processLogbookData(logbookData, item) {
+            console.log('=== processLogbookData DEBUG ===');
+            console.log('Raw logbookData:', logbookData);
+            
             if (!logbookData || logbookData.length === 0) {
+                console.log('❌ Keine Logbook-Daten verfügbar');
                 return [{
                     message: 'Keine Aktivitäten in den letzten 6 Stunden',
                     when: 'Heute',
@@ -2407,36 +2411,64 @@ class FastSearchCard extends HTMLElement {
                 }];
             }
             
-            console.log('Logbook Raw Data:', logbookData); // Debug
+            const filteredData = logbookData.filter(entry => entry.entity_id === item.id);
+            console.log('Filtered data for entity:', filteredData);
             
-            return logbookData
-                .filter(entry => entry.entity_id === item.id)
-                .map(entry => {
-                    // Debug: Prüfe die Datenstruktur
-                    console.log('Processing entry:', entry);
-                    
-                    // Verschiedene Zeitstempel-Formate versuchen
-                    let entryDate;
-                    if (entry.when) {
-                        entryDate = new Date(entry.when);
-                    } else if (entry.last_changed) {
-                        entryDate = new Date(entry.last_changed);
-                    } else if (entry.timestamp) {
-                        entryDate = new Date(entry.timestamp);
+            const processedEntries = filteredData.map((entry, index) => {
+                console.log(`--- Processing entry ${index} ---`);
+                
+                // KORREKTUR: Unix-Timestamp richtig konvertieren
+                let entryDate;
+                let timeSource = 'unknown';
+                
+                if (entry.when) {
+                    // Home Assistant gibt Unix-Timestamp in SEKUNDEN (mit Dezimalstellen)
+                    // JavaScript braucht MILLISEKUNDEN
+                    const timestampMs = Math.floor(entry.when * 1000);
+                    entryDate = new Date(timestampMs);
+                    timeSource = 'entry.when (unix seconds → ms)';
+                    console.log('Raw when:', entry.when);
+                    console.log('Converted to ms:', timestampMs);
+                    console.log('Final date:', entryDate.toString());
+                } else if (entry.last_changed) {
+                    entryDate = new Date(entry.last_changed);
+                    timeSource = 'entry.last_changed';
+                } else if (entry.timestamp) {
+                    // Auch timestamp könnte Unix-Format sein
+                    const timestamp = entry.timestamp;
+                    if (typeof timestamp === 'number' && timestamp < 2000000000) {
+                        // Wahrscheinlich Unix-Sekunden
+                        entryDate = new Date(timestamp * 1000);
+                        timeSource = 'entry.timestamp (unix seconds → ms)';
                     } else {
-                        entryDate = new Date(); // Fallback: jetzt
+                        entryDate = new Date(timestamp);
+                        timeSource = 'entry.timestamp';
                     }
-                    
-                    return {
-                        message: this.formatLogbookMessage(entry, item),
-                        when: this.formatLogTime(entryDate),
-                        state: this.formatLogbookState(entry, item),
-                        stateClass: this.getLogbookStateClass(entry, item),
-                        rawDate: entryDate // Debug
-                    };
-                })
-                .sort((a, b) => b.rawDate - a.rawDate) // Neueste zuerst
-                .slice(0, 20); // Maximal 20 Einträge
+                } else {
+                    entryDate = new Date();
+                    timeSource = 'fallback (now)';
+                }
+                
+                console.log('Time source used:', timeSource);
+                console.log('Parsed date:', entryDate.toString());
+                console.log('Date valid:', !isNaN(entryDate.getTime()));
+                
+                const result = {
+                    message: this.formatLogbookMessage(entry, item),
+                    when: this.formatLogTime(entryDate),
+                    state: this.formatLogbookState(entry, item),
+                    stateClass: this.getLogbookStateClass(entry, item),
+                    rawDate: entryDate
+                };
+                
+                console.log('Final result:', result);
+                return result;
+            });
+            
+            const sortedEntries = processedEntries.sort((a, b) => b.rawDate - a.rawDate).slice(0, 20);
+            console.log('Final sorted entries:', sortedEntries);
+            
+            return sortedEntries;
         }
 
 
@@ -2657,8 +2689,9 @@ class FastSearchCard extends HTMLElement {
             return 'Status geändert';
         }
     
+
+        
         formatLogTime(date) {
-            // Debug: Prüfe ob date ein gültiges Date-Objekt ist
             if (!date || isNaN(date.getTime())) {
                 console.error('Ungültiges Datum:', date);
                 return 'Unbekannte Zeit';
@@ -2682,7 +2715,7 @@ class FastSearchCard extends HTMLElement {
                 return `Vor ${hours} Std`;
             }
             
-            // Wenn heute
+            // Heute
             const today = new Date();
             if (date.toDateString() === today.toDateString()) {
                 return `Heute, ${date.toLocaleTimeString('de-DE', { 
@@ -2690,7 +2723,7 @@ class FastSearchCard extends HTMLElement {
                 })}`;
             }
             
-            // Wenn gestern
+            // Gestern
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
             if (date.toDateString() === yesterday.toDateString()) {
@@ -2699,7 +2732,7 @@ class FastSearchCard extends HTMLElement {
                 })}`;
             }
             
-            // Älter als gestern
+            // Älter
             return date.toLocaleString('de-DE', { 
                 day: '2-digit', 
                 month: '2-digit', 
@@ -2708,7 +2741,6 @@ class FastSearchCard extends HTMLElement {
                 minute: '2-digit' 
             });
         }
-
 
 
 
