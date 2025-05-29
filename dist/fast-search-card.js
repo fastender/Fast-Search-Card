@@ -1928,100 +1928,6 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
-
-                /* Music Assistant Suche Styles */
-                .music-assistant-search {
-                    margin-top: 20px;
-                    padding: 16px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 8px;
-                    background: rgba(0, 0, 0, 0.15);
-                }
-                
-                .search-container .search-input {
-                    width: 100%;
-                    padding: 8px 12px;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 4px;
-                    font-size: 14px;
-                    margin-bottom: 12px;
-                    background: rgba(0, 0, 0, 0.25);
-                    color: rgba(255, 255, 255, 0.9);
-                    box-sizing: border-box;
-                }
-                
-                .search-container .search-input::placeholder {
-                    color: rgba(255, 255, 255, 0.6);
-                }
-                
-                .search-container .search-input:focus {
-                    outline: none;
-                    border-color: rgba(255, 255, 255, 0.4);
-                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
-                }
-                
-                .search-results {
-                    max-height: 300px;
-                    overflow-y: auto;
-                }
-                
-                .ma-category {
-                    margin-bottom: 16px;
-                }
-                
-                .ma-category h5 {
-                    margin: 0 0 8px 0;
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: rgba(255, 255, 255, 0.9);
-                }
-                
-                .ma-item {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 8px;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    transition: background-color 0.2s;
-                }
-                
-                .ma-item:hover {
-                    background-color: rgba(255, 255, 255, 0.1);
-                }
-                
-                .ma-item-name {
-                    font-weight: 500;
-                    font-size: 14px;
-                    color: rgba(255, 255, 255, 0.9);
-                }
-                
-                .ma-item-artist {
-                    font-size: 12px;
-                    color: rgba(255, 255, 255, 0.7);
-                }
-                
-                .ma-play-btn {
-                    background: rgba(255, 255, 255, 0.15);
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    padding: 4px 8px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                }
-                
-                .ma-play-btn:hover {
-                    background: rgba(255, 255, 255, 0.25);
-                }
-                
-                .loading, .no-results {
-                    text-align: center;
-                    color: rgba(255, 255, 255, 0.7);
-                    padding: 20px;
-                    font-style: italic;
-                }
                 
             </style>
             
@@ -2167,38 +2073,35 @@ class FastSearchCard extends HTMLElement {
         `;        
         this.initializeCard();
     }   
-
-        
+    
     switchToReplaceMode(item) {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
         
-        // Update-System aktivieren
-        this.moreInfoCurrentItem = item;
-        this.moreInfoIsVisible = true;
-        this.startRealTimeUpdates();
-        
-        // Replace-Content generieren
+        // Replace-Content generieren ABER versteckt halten
         replaceContainer.innerHTML = this.getReplaceContentHTML(item);
         replaceContainer.classList.add('active');
         
-        // Animation (bestehender Code bleibt)
+        // Replace initial komplett verstecken
         replaceContainer.style.position = 'absolute';
         replaceContainer.style.top = '0';
-        replaceContainer.style.left = '100%';
+        replaceContainer.style.left = '100%'; // Außerhalb rechts
         replaceContainer.style.width = '100%';
         replaceContainer.style.opacity = '0';
         
+        // Suche nach links rausschieben + fade-out
         searchContainer.style.transition = 'transform 0.35s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.35s ease';
         searchContainer.style.transform = 'translateX(-100%)';
         searchContainer.style.opacity = '0';
         
+        // Replace nach 250ms von rechts reinschieben + fade-in (GLEICHZEITIG)
         setTimeout(() => {
             replaceContainer.style.transition = 'left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.3s ease';
             replaceContainer.style.left = '0%';
             replaceContainer.style.opacity = '1';
         }, 250);
         
+        // Cleanup nach kompletter Animation
         setTimeout(() => {
             searchContainer.style.display = 'none';
             searchContainer.style.transform = '';
@@ -2208,36 +2111,34 @@ class FastSearchCard extends HTMLElement {
             replaceContainer.style.transition = '';
         }, 600);
         
+        // Event Listeners für Replace-Mode
         this.setupReplaceEventListeners(item);
-    }    
-
+    }
 
     switchBackToSearch() {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
         
-        // Update-System deaktivieren
-        this.stopRealTimeUpdates();
-        this.moreInfoIsVisible = false;
-        this.moreInfoCurrentItem = null;
-        
-        // Animation (bestehender Code bleibt)
+        // Replace nach rechts rausschieben + fade-out
         replaceContainer.style.transition = 'left 0.3s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.3s ease';
         replaceContainer.style.left = '100%';
         replaceContainer.style.opacity = '0';
         
+        // Suche nach 200ms von links reinschieben + fade-in
         setTimeout(() => {
             searchContainer.style.display = 'block';
             searchContainer.style.transform = 'translateX(-100%)';
             searchContainer.style.opacity = '0';
             searchContainer.style.transition = 'transform 0.3s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.3s ease';
             
+            // Animation starten
             requestAnimationFrame(() => {
                 searchContainer.style.transform = 'translateX(0)';
                 searchContainer.style.opacity = '1';
             });
         }, 200);
         
+        // Cleanup
         setTimeout(() => {
             replaceContainer.classList.remove('active');
             replaceContainer.innerHTML = '';
@@ -2249,219 +2150,8 @@ class FastSearchCard extends HTMLElement {
             searchContainer.style.opacity = '';
             searchContainer.style.transition = '';
         }, 500);
-    }    
+    }        
 
-
-    startRealTimeUpdates() {
-        // Bestehende Updates stoppen
-        this.stopRealTimeUpdates();
-        
-        // Sofortiges Update
-        this.performIncrementalUpdate();
-        
-        // Regelmäßige Updates alle 30 Sekunden
-        this.moreInfoUpdateInterval = setInterval(() => {
-            if (this.moreInfoIsVisible && this.moreInfoCurrentItem) {
-                this.performIncrementalUpdate();
-            }
-        }, 30000); // 30 Sekunden
-        
-        console.log('🔄 Echtzeit-Updates gestartet für:', this.moreInfoCurrentItem?.name);
-    }
-
-    stopRealTimeUpdates() {
-        if (this.moreInfoUpdateInterval) {
-            clearInterval(this.moreInfoUpdateInterval);
-            this.moreInfoUpdateInterval = null;
-            console.log('⏹️ Echtzeit-Updates gestoppt');
-        }
-    }    
-
-
-    
-    async performIncrementalUpdate() {
-        if (!this.moreInfoCurrentItem || !this._hass) return;
-        
-        try {
-            const item = this.moreInfoCurrentItem;
-            const currentState = this._hass.states[item.id];
-            
-            if (!currentState) return;
-            
-            // Status-Änderungen prüfen
-            const hasStateChanged = this.checkForStateChanges(item, currentState);
-            
-            if (hasStateChanged) {
-                // Item-Daten aktualisieren
-                this.updateItemData(item, currentState);
-                
-                // UI-Komponenten selektiv aktualisieren
-                await this.updateUIComponents(item);
-                
-                console.log(`🔄 Updated: ${item.name} - State: ${currentState.state}`);
-            }
-            
-            // Zeit-Labels immer aktualisieren (für "Vor X Min")
-            this.updateTimeLabels();
-            
-            this.lastUpdateTime = Date.now();
-            
-        } catch (error) {
-            console.error('❌ Fehler beim Update:', error);
-        }
-    }
-
-    checkForStateChanges(item, newState) {
-        const oldState = item.state;
-        const oldLastChanged = item.attributes?.last_changed;
-        const newLastChanged = newState.last_changed;
-        
-        // State oder Attribute geändert?
-        if (oldState !== newState.state || oldLastChanged !== newLastChanged) {
-            return true;
-        }
-        
-        // Spezifische Attribute prüfen
-        switch (item.type) {
-            case 'light':
-                return item.brightness !== Math.round((newState.attributes.brightness || 0) / 255 * 100);
-            case 'climate':
-                return item.target_temperature !== newState.attributes.temperature ||
-                       item.current_temperature !== newState.attributes.current_temperature;
-            case 'cover':
-                return item.position !== newState.attributes.current_position;
-            case 'media_player':
-                return item.volume !== Math.round((newState.attributes.volume_level || 0) * 100) ||
-                       item.media_title !== newState.attributes.media_title;
-        }
-        
-        return false;
-    }
-
-
-    updateItemData(item, newState) {
-        // Basis-Daten
-        item.state = newState.state;
-        item.attributes = newState.attributes;
-        
-        // Geräte-spezifische Attribute
-        const domain = item.id.split('.')[0];
-        this.addDomainSpecificAttributes(item, domain, newState);
-    }    
-
-
-    async updateUIComponents(item) {
-        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-        if (!replaceContainer) return;
-        
-        // 1. Icon-Status aktualisieren
-        this.updateIconSection(item);
-        
-        // 2. Steuerung aktualisieren (falls offen)
-        this.updateControlSection(item);
-        
-        // 3. Details aktualisieren (falls offen)
-        this.updateDetailsSection(item);
-        
-        // 4. Logbuch aktualisieren (falls offen)
-        await this.updateLogbookSection(item);
-    }    
-
-
-    updateIconSection(item) {
-        const iconSection = this.shadowRoot.querySelector('.more-info-replace .icon-section');
-        if (!iconSection) return;
-        
-        // Status-Indikator
-        const statusIndicator = iconSection.querySelector('.status-indicator-large');
-        if (statusIndicator) {
-            const isActive = this.isItemActive(item);
-            statusIndicator.className = `status-indicator-large ${isActive ? 'on' : 'off'}`;
-            statusIndicator.textContent = isActive ? 'AN' : 'AUS';
-        }
-        
-        // Quick-Stats
-        const quickStats = iconSection.querySelector('.quick-stats');
-        if (quickStats) {
-            const stats = this.getQuickStats(item);
-            quickStats.innerHTML = stats.map(stat => `<div class="stat-item">${stat}</div>`).join('');
-        }
-    }
-
-
-    updateControlSection(item) {
-        const controlAccordion = this.shadowRoot.querySelector('.more-info-replace [data-accordion="control"]');
-        if (!controlAccordion || !controlAccordion.classList.contains('active')) return;
-        
-        const controlContent = controlAccordion.querySelector('.accordion-content');
-        if (controlContent) {
-            controlContent.innerHTML = this.getReplaceControlsHTML(item);
-            
-            // Event-Listeners für neue Buttons hinzufügen
-            this.setupControlEventListeners(item, controlContent);
-        }
-    }    
-
-    
-
-    updateDetailsSection(item) {
-        const detailsAccordion = this.shadowRoot.querySelector('.more-info-replace [data-accordion="details"]');
-        if (!detailsAccordion || !detailsAccordion.classList.contains('active')) return;
-        
-        const detailsContent = detailsAccordion.querySelector('.accordion-content');
-        if (detailsContent) {
-            detailsContent.innerHTML = this.getReplaceAttributesHTML(item);
-        }
-    }    
-
-
-    async updateLogbookSection(item) {
-        const logbookAccordion = this.shadowRoot.querySelector('.more-info-replace [data-accordion="history"]');
-        if (!logbookAccordion || !logbookAccordion.classList.contains('active')) return;
-        
-        // Nur alle 2 Minuten neue Logbuch-Daten laden
-        const now = Date.now();
-        if (this.lastUpdateTime && (now - this.lastUpdateTime) < 120000) {
-            return; // Zu früh für Logbuch-Update
-        }
-        
-        // Neue Logbuch-Daten laden
-        await this.loadRealLogEntries(item);
-    }
-
-
-    updateTimeLabels() {
-        const timeElements = this.shadowRoot.querySelectorAll('.more-info-replace .log-time');
-        timeElements.forEach(element => {
-            const rawDate = element.getAttribute('data-raw-date');
-            if (rawDate) {
-                const date = new Date(parseInt(rawDate));
-                element.textContent = this.formatLogTime(date);
-            }
-        });
-    }
-
-
-    setupControlEventListeners(item, container) {
-        // Control Buttons
-        const controlButtons = container.querySelectorAll('[data-action]');
-        controlButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const action = button.getAttribute('data-action');
-                this.executeReplaceAction(item, action, button);
-            });
-        });
-        
-        // Sliders
-        const sliders = container.querySelectorAll('[data-control]');
-        sliders.forEach(slider => {
-            slider.addEventListener('input', (e) => {
-                this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
-            });
-        });
-    }    
-    
-    
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
         const iconSection = this.getIconSectionHTML(item);
@@ -2704,10 +2394,15 @@ class FastSearchCard extends HTMLElement {
 
 
 
-                    
-                        
+            
+                
+        
         processLogbookData(logbookData, item) {
+            console.log('=== processLogbookData DEBUG ===');
+            console.log('Raw logbookData:', logbookData);
+            
             if (!logbookData || logbookData.length === 0) {
+                console.log('❌ Keine Logbook-Daten verfügbar');
                 return [{
                     message: 'Keine Aktivitäten in den letzten 6 Stunden',
                     when: 'Heute',
@@ -2717,41 +2412,63 @@ class FastSearchCard extends HTMLElement {
             }
             
             const filteredData = logbookData.filter(entry => entry.entity_id === item.id);
+            console.log('Filtered data for entity:', filteredData);
             
-            const processedEntries = filteredData.map(entry => {
-                // Unix-Timestamp richtig konvertieren
+            const processedEntries = filteredData.map((entry, index) => {
+                console.log(`--- Processing entry ${index} ---`);
+                
+                // KORREKTUR: Unix-Timestamp richtig konvertieren
                 let entryDate;
+                let timeSource = 'unknown';
                 
                 if (entry.when) {
                     // Home Assistant gibt Unix-Timestamp in SEKUNDEN (mit Dezimalstellen)
                     // JavaScript braucht MILLISEKUNDEN
                     const timestampMs = Math.floor(entry.when * 1000);
                     entryDate = new Date(timestampMs);
+                    timeSource = 'entry.when (unix seconds → ms)';
+                    console.log('Raw when:', entry.when);
+                    console.log('Converted to ms:', timestampMs);
+                    console.log('Final date:', entryDate.toString());
                 } else if (entry.last_changed) {
                     entryDate = new Date(entry.last_changed);
+                    timeSource = 'entry.last_changed';
                 } else if (entry.timestamp) {
                     // Auch timestamp könnte Unix-Format sein
                     const timestamp = entry.timestamp;
                     if (typeof timestamp === 'number' && timestamp < 2000000000) {
                         // Wahrscheinlich Unix-Sekunden
                         entryDate = new Date(timestamp * 1000);
+                        timeSource = 'entry.timestamp (unix seconds → ms)';
                     } else {
                         entryDate = new Date(timestamp);
+                        timeSource = 'entry.timestamp';
                     }
                 } else {
-                    entryDate = new Date(); // Fallback: jetzt
+                    entryDate = new Date();
+                    timeSource = 'fallback (now)';
                 }
                 
-                return {
+                console.log('Time source used:', timeSource);
+                console.log('Parsed date:', entryDate.toString());
+                console.log('Date valid:', !isNaN(entryDate.getTime()));
+                
+                const result = {
                     message: this.formatLogbookMessage(entry, item),
                     when: this.formatLogTime(entryDate),
                     state: this.formatLogbookState(entry, item),
                     stateClass: this.getLogbookStateClass(entry, item),
                     rawDate: entryDate
                 };
+                
+                console.log('Final result:', result);
+                return result;
             });
             
-            return processedEntries.sort((a, b) => b.rawDate - a.rawDate).slice(0, 20);
+            const sortedEntries = processedEntries.sort((a, b) => b.rawDate - a.rawDate).slice(0, 20);
+            console.log('Final sorted entries:', sortedEntries);
+            
+            return sortedEntries;
         }
 
 
@@ -2976,7 +2693,7 @@ class FastSearchCard extends HTMLElement {
         
         formatLogTime(date) {
             if (!date || isNaN(date.getTime())) {
-               
+                console.error('Ungültiges Datum:', date);
                 return 'Unbekannte Zeit';
             }
             
@@ -3342,101 +3059,8 @@ class FastSearchCard extends HTMLElement {
                             this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
                         });
                     });
-
-                    
-                    // NEU: Music Assistant Event Listeners hinzufügen
-                    this.setupMusicAssistantEventListeners(item);
-
-                
                 }
-
-                
-                // Event Listeners für Music Assistant Suche
-                setupMusicAssistantEventListeners(item) {
-                    const searchInput = this.shadowRoot.querySelector(`[data-ma-search="${item.id}"]`);
-                    const resultsContainer = this.shadowRoot.getElementById(`ma-results-${item.id}`);
-                    
-                    if (!searchInput || !resultsContainer) return;
-                    
-                    let searchTimeout;
-                    
-                    searchInput.addEventListener('input', (e) => {
-                        const query = e.target.value.trim();
-                        
-                        clearTimeout(searchTimeout);
-                        
-                        if (query.length < 2) {
-                            resultsContainer.innerHTML = '';
-                            return;
-                        }
-                        
-                        searchTimeout = setTimeout(async () => {
-                            resultsContainer.innerHTML = '<div class="loading">Suche läuft...</div>';
-                            
-                            const results = await this.searchMusicAssistant(query, item.id);
-                            this.displayMusicAssistantResults(results, resultsContainer, item.id);
-                        }, 300);
-                    });
-                }
-                
-                // Music Assistant Ergebnisse anzeigen
-                displayMusicAssistantResults(results, container, entityId) {
-                    if (!results || Object.keys(results).length === 0) {
-                        container.innerHTML = '<div class="no-results">Keine Ergebnisse gefunden</div>';
-                        return;
-                    }
-                    
-                    let html = '';
-                    
-                    // Zeige verschiedene Kategorien
-                    Object.entries(results).forEach(([type, items]) => {
-                        if (items.length === 0) return;
-                        
-                        const categoryName = this.getMusicAssistantCategoryName(type);
-                        html += `<div class="ma-category">
-                            <h5>${categoryName}</h5>
-                            <div class="ma-items">`;
-                        
-                        // Limitiere auf erste 5 Ergebnisse pro Kategorie
-                        items.slice(0, 5).forEach(item => {
-                            html += `
-                                <div class="ma-item" data-uri="${item.uri}" data-type="${item.media_type}">
-                                    <div class="ma-item-info">
-                                        <div class="ma-item-name">${item.name}</div>
-                                        <div class="ma-item-artist">
-                                            ${item.artists ? item.artists.map(a => a.name).join(', ') : ''}
-                                        </div>
-                                    </div>
-                                    <button class="ma-play-btn" data-action="play">▶️</button>
-                                </div>
-                            `;
-                        });
-                        
-                        html += '</div></div>';
-                    });
-                    
-                    container.innerHTML = html;
-                    
-                    // Event Listeners für Play-Buttons
-                    container.querySelectorAll('.ma-play-btn').forEach(btn => {
-                        btn.addEventListener('click', async (e) => {
-                            e.stopPropagation();
-                            
-                            const itemElement = btn.closest('.ma-item');
-                            const uri = itemElement.getAttribute('data-uri');
-                            const mediaType = itemElement.getAttribute('data-type');
-                            const name = itemElement.querySelector('.ma-item-name').textContent;
-                            
-                            await this.playMusicAssistantItem({
-                                uri: uri,
-                                media_type: mediaType,
-                                name: name
-                            }, entityId);
-                        });
-                    });
-                }
-
-    
+            
                 executeShortcutAction(actionType, actionId, button) {
                     if (!this._hass) return;
                     
@@ -3687,121 +3311,9 @@ getQuickStats(item) {
         `;
     }
 
-
-    // Music Assistant Verfügbarkeit prüfen
-    checkMusicAssistantAvailability() {
-        if (!this._hass) return false;
-        
-        // Prüfe ob Music Assistant als Integration verfügbar ist
-        const maEntities = Object.keys(this._hass.states).filter(entityId => 
-            entityId.startsWith('media_player.') && 
-            this._hass.states[entityId].attributes.supported_features &&
-            // Prüfe auf Music Assistant spezifische Features
-            this._hass.states[entityId].attributes.device_class === 'speaker'
-        );
-        
-        return maEntities.length > 0;
-    }
-    
-    // Music Assistant Suche implementieren
-    async searchMusicAssistant(query, entityId) {
-        if (!this._hass || !query) return [];
-        
-        try {
-            // Hole Music Assistant Config Entry
-            const configEntries = await this._hass.callApi("GET", "config/config_entries/entry");
-            const maEntry = configEntries.filter(entry => 
-                entry.domain === "music_assistant" && entry.state === "loaded"
-            ).find(entry => entry.state === "loaded");
-            
-            if (!maEntry) {
-                console.warn('Music Assistant nicht gefunden');
-                return [];
-            }
-            
-            // Führe Suche aus
-            const searchParams = {
-                type: "call_service",
-                domain: "music_assistant",
-                service: "search",
-                service_data: {
-                    name: query,
-                    config_entry_id: maEntry.entry_id,
-                    limit: 50
-                },
-                return_response: true
-            };
-            
-            const response = await this._hass.connection.sendMessagePromise(searchParams);
-            return this.processMusicAssistantResults(response.response);
-            
-        } catch (error) {
-            console.error('Music Assistant Suche fehlgeschlagen:', error);
-            return [];
-        }
-    }
-    
-    // Music Assistant Ergebnisse verarbeiten
-    processMusicAssistantResults(results) {
-        if (!results) return [];
-        
-        const processedResults = {};
-        
-        // Gruppiere Ergebnisse nach Typ
-        Object.entries(results).forEach(([type, items]) => {
-            if (Array.isArray(items) && items.length > 0) {
-                processedResults[type] = items.map(item => ({
-                    uri: item.uri,
-                    name: item.name,
-                    artists: item.artists || [],
-                    image: item.image,
-                    media_type: item.media_type || type.slice(0, -1), // "tracks" -> "track"
-                    album: item.album
-                }));
-            }
-        });
-        
-        return processedResults;
-    }
-    
-    // Musik über Music Assistant abspielen
-    async playMusicAssistantItem(item, entityId, enqueueMode = 'play') {
-        if (!this._hass) return;
-        
-        try {
-            await this._hass.callService("music_assistant", "play_media", {
-                entity_id: entityId,
-                media_type: item.media_type,
-                media_id: item.uri,
-                enqueue: enqueueMode
-            });
-            
-            console.log(`Spiele ab: ${item.name} auf ${entityId}`);
-        } catch (error) {
-            console.error('Fehler beim Abspielen:', error);
-        }
-    }
-    
-    // Kategorie-Namen für Music Assistant
-    getMusicAssistantCategoryName(type) {
-        const names = {
-            'artists': 'Künstler',
-            'albums': 'Alben', 
-            'tracks': 'Titel',
-            'playlists': 'Playlists',
-            'radio': 'Radio'
-        };
-        return names[type] || type;
-    }
-
-    
-    
     getMediaReplaceControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
-        
-        // Prüfe ob Music Assistant verfügbar ist
-        const hasMusicAssistant = this.checkMusicAssistantAvailability();
         
         return `
             <div class="control-group-large">
@@ -3821,22 +3333,10 @@ getQuickStats(item) {
                     <input type="range" class="slider-large" data-control="volume" 
                            min="0" max="100" value="${volume}">
                 </div>
-                
-                ${hasMusicAssistant ? `
-                    <div class="music-assistant-search" id="ma-search-${item.id}">
-                        <h4 class="control-title-large">🎵 Music Assistant Suche</h4>
-                        <div class="search-container">
-                            <input type="text" 
-                                   class="search-input" 
-                                   placeholder="Nach Musik suchen..." 
-                                   data-ma-search="${item.id}">
-                            <div class="search-results" id="ma-results-${item.id}"></div>
-                        </div>
-                    </div>
-                ` : ''}
             </div>
         `;
-    }    
+    }
+    
 
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
@@ -3967,13 +3467,6 @@ getQuickStats(item) {
         this.selectedType = '';
         this.isInitialized = false; // Flag für Initialisierung
         this.currentView = 'list'; // Neue Property für View-Mode
-
-
-        // Update-Management Properties
-        this.moreInfoUpdateInterval = null;
-        this.moreInfoCurrentItem = null;
-        this.moreInfoIsVisible = false;
-        this.lastUpdateTime = null;
         
         // Definitionen für verschiedene Suchtypen
         this.searchTypeConfigs = {
@@ -6000,11 +5493,6 @@ getQuickStats(item) {
         }
     }
 
-    disconnectedCallback() {
-        this.stopRealTimeUpdates();
-        // ... anderer cleanup code falls vorhanden ...
-    }
-    
     getCardSize() {
         return 3;
     }
