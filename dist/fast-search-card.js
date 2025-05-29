@@ -120,8 +120,6 @@ class FastSearchCard extends HTMLElement {
                     padding: 14px 20px;
                     border: none;
                     background: rgba(0, 0, 0, 0.15);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
                     border-radius: 16px;
                     font-size: 16px;
                     outline: none;
@@ -345,8 +343,6 @@ class FastSearchCard extends HTMLElement {
                     transition: all 0.2s;
                     font-weight: 500;
                     flex-shrink: 0;
-                    backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
                 }
                 
                 .filter-chip:hover {
