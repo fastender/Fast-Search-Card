@@ -352,8 +352,8 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .filter-chip.all.active {
-                    background: rgba(66, 133, 244, 0.8);
-                    border-color: rgba(66, 133, 244, 0.8);
+                    background: rgba(255, 255, 255, 0.15);
+                    border-color: rgba(255, 255, 255, 0.15);
                     color: white;
                 }
                 
