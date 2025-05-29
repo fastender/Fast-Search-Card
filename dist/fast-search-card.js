@@ -1929,6 +1929,289 @@ class FastSearchCard extends HTMLElement {
 
 
                 
+                .music-assistant-search {
+                    margin-top: 20px;
+                    padding: 0;
+                    border: none;
+                    border-radius: 0;
+                    background: transparent;
+                }
+                
+                .ma-search-container {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                
+                .ma-search-bar-container {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                
+                .ma-search-input {
+                    width: 100%;
+                    padding: 12px 16px;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    background: rgba(0, 0, 0, 0.15);
+                    color: rgba(255, 255, 255, 0.9);
+                    box-sizing: border-box;
+                    transition: all 0.2s;
+                }
+                
+                .ma-search-input::placeholder {
+                    color: rgba(255, 255, 255, 0.6);
+                }
+                
+                .ma-search-input:focus {
+                    outline: none;
+                    background: rgba(0, 0, 0, 0.25);
+                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+                }
+                
+                .ma-enqueue-mode {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 8px 16px;
+                    background: rgba(0, 0, 0, 0.15);
+                    border-radius: 20px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    align-self: flex-start;
+                }
+                
+                .ma-enqueue-mode:hover {
+                    background: rgba(0, 0, 0, 0.25);
+                }
+                
+                .ma-enqueue-icon {
+                    font-size: 14px;
+                }
+                
+                .ma-enqueue-text {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .ma-filter-container {
+                    display: flex;
+                    gap: 4px;
+                    overflow-x: auto;
+                    padding: 4px 0;
+                    scrollbar-width: none;
+                    -ms-overflow-style: none;
+                }
+                
+                .ma-filter-container::-webkit-scrollbar {
+                    display: none;
+                }
+                
+                .ma-filter-chip {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 8px 16px;
+                    background: rgba(0, 0, 0, 0.15);
+                    border-radius: 20px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    white-space: nowrap;
+                    flex-shrink: 0;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.8);
+                }
+                
+                .ma-filter-chip:hover:not(.ma-filter-active) {
+                    background: rgba(0, 0, 0, 0.25);
+                }
+                
+                .ma-filter-chip.ma-filter-active {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .ma-filter-icon {
+                    font-size: 16px;
+                }
+                
+                .ma-search-results {
+                    min-height: 200px;
+                    max-height: 400px;
+                    overflow-y: auto;
+                }
+                
+                .ma-grid-container {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                    gap: 16px;
+                    padding: 16px 0;
+                }
+                
+                .ma-grid-item {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    cursor: pointer;
+                    transition: transform 0.2s;
+                    border-radius: 8px;
+                    padding: 12px;
+                    background: rgba(255, 255, 255, 0.05);
+                }
+                
+                .ma-grid-item:hover {
+                    transform: translateY(-4px);
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                .ma-grid-image {
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 8px;
+                    background: rgba(0, 0, 0, 0.3);
+                    margin-bottom: 8px;
+                    object-fit: cover;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                }
+                
+                .ma-grid-image img {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 8px;
+                    object-fit: cover;
+                }
+                
+                .ma-grid-name {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.9);
+                    text-align: center;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    line-height: 1.2;
+                    width: 100%;
+                }
+                
+                .ma-grid-artist {
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.7);
+                    text-align: center;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    width: 100%;
+                    margin-top: 4px;
+                }
+                
+                .ma-list-container {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    padding: 16px 0;
+                }
+                
+                .ma-list-item {
+                    display: grid;
+                    grid-template-columns: 50px 1fr auto;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    background: rgba(255, 255, 255, 0.05);
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                }
+                
+                .ma-list-item:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                .ma-list-image {
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 4px;
+                    background: rgba(0, 0, 0, 0.3);
+                    object-fit: cover;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                }
+                
+                .ma-list-image img {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 4px;
+                    object-fit: cover;
+                }
+                
+                .ma-list-info {
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                }
+                
+                .ma-list-name {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.9);
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                
+                .ma-list-artist {
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.7);
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                
+                .ma-category-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin: 20px 0 12px 0;
+                    cursor: pointer;
+                }
+                
+                .ma-category-title {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.9);
+                    margin: 0;
+                }
+                
+                .ma-category-chevron {
+                    font-size: 18px;
+                    color: rgba(255, 255, 255, 0.6);
+                }
+                
+                .ma-loading, .ma-no-results {
+                    text-align: center;
+                    color: rgba(255, 255, 255, 0.7);
+                    padding: 40px 20px;
+                    font-style: italic;
+                }
+                
+                .ma-empty-state {
+                    text-align: center;
+                    color: rgba(255, 255, 255, 0.6);
+                    padding: 40px 20px;
+                    font-size: 14px;
+                }
+                
             </style>
             
             <div class="search-container">
@@ -3059,7 +3342,224 @@ class FastSearchCard extends HTMLElement {
                             this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
                         });
                     });
+
+                    // NEU: Music Assistant Event Listeners hinzufügen
+                    this.setupMusicAssistantEventListeners(item);
+                
                 }
+
+
+                
+                setupMusicAssistantEventListeners(item) {
+                    const searchInput = this.shadowRoot.querySelector(`[data-ma-search="${item.id}"]`);
+                    const resultsContainer = this.shadowRoot.getElementById(`ma-results-${item.id}`);
+                    const enqueueMode = this.shadowRoot.querySelector(`[data-ma-enqueue="${item.id}"]`);
+                    const filterContainer = this.shadowRoot.getElementById(`ma-filters-${item.id}`);
+                    
+                    if (!searchInput || !resultsContainer) return;
+                    
+                    let searchTimeout;
+                    let currentFilter = 'all';
+                    let currentEnqueueMode = 'play';
+                    let lastResults = null;
+                    
+                    // Enqueue Mode Toggle
+                    if (enqueueMode) {
+                        const enqueueModes = [
+                            { key: 'play', icon: '▶️', text: 'Play now' },
+                            { key: 'replace', icon: '🔄', text: 'Replace queue' },
+                            { key: 'next', icon: '⏭️', text: 'Add next' },
+                            { key: 'add', icon: '➕', text: 'Add to queue' }
+                        ];
+                        
+                        let currentModeIndex = 0;
+                        
+                        enqueueMode.addEventListener('click', () => {
+                            currentModeIndex = (currentModeIndex + 1) % enqueueModes.length;
+                            const mode = enqueueModes[currentModeIndex];
+                            currentEnqueueMode = mode.key;
+                            
+                            enqueueMode.querySelector('.ma-enqueue-icon').textContent = mode.icon;
+                            enqueueMode.querySelector('.ma-enqueue-text').textContent = mode.text;
+                        });
+                    }
+                    
+                    // Filter Chips
+                    if (filterContainer) {
+                        filterContainer.querySelectorAll('.ma-filter-chip').forEach(chip => {
+                            chip.addEventListener('click', () => {
+                                // Remove active class from all chips
+                                filterContainer.querySelectorAll('.ma-filter-chip').forEach(c => {
+                                    c.classList.remove('ma-filter-active');
+                                });
+                                
+                                // Add active class to clicked chip
+                                chip.classList.add('ma-filter-active');
+                                
+                                currentFilter = chip.getAttribute('data-filter');
+                                
+                                // Re-display results with new filter
+                                if (lastResults) {
+                                    this.displayMusicAssistantResults(lastResults, resultsContainer, item.id, currentFilter, currentEnqueueMode);
+                                }
+                            });
+                        });
+                    }
+                    
+                    // Search Input
+                    searchInput.addEventListener('input', (e) => {
+                        const query = e.target.value.trim();
+                        
+                        clearTimeout(searchTimeout);
+                        
+                        if (query.length < 2) {
+                            resultsContainer.innerHTML = '<div class="ma-empty-state">Gebe mindestens 2 Zeichen ein um zu suchen...</div>';
+                            lastResults = null;
+                            return;
+                        }
+                        
+                        searchTimeout = setTimeout(async () => {
+                            resultsContainer.innerHTML = '<div class="ma-loading">Suche läuft...</div>';
+                            
+                            const results = await this.searchMusicAssistant(query, item.id);
+                            lastResults = results;
+                            this.displayMusicAssistantResults(results, resultsContainer, item.id, currentFilter, currentEnqueueMode);
+                        }, 300);
+                    });
+                }
+                
+                // Komplett neue displayMusicAssistantResults Funktion:
+                
+                displayMusicAssistantResults(results, container, entityId, activeFilter = 'all', enqueueMode = 'play') {
+                    if (!results || Object.keys(results).length === 0) {
+                        container.innerHTML = '<div class="ma-no-results">Keine Ergebnisse gefunden</div>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    const categoryOrder = ['artists', 'albums', 'tracks', 'playlists', 'radio'];
+                    
+                    // Filter results based on active filter
+                    const filteredResults = {};
+                    if (activeFilter === 'all') {
+                        Object.assign(filteredResults, results);
+                    } else {
+                        if (results[activeFilter]) {
+                            filteredResults[activeFilter] = results[activeFilter];
+                        }
+                    }
+                    
+                    if (Object.keys(filteredResults).length === 0) {
+                        container.innerHTML = '<div class="ma-no-results">Keine Ergebnisse in dieser Kategorie</div>';
+                        return;
+                    }
+                    
+                    // Display results
+                    categoryOrder.forEach(type => {
+                        const items = filteredResults[type];
+                        if (!items || items.length === 0) return;
+                        
+                        const categoryName = this.getMusicAssistantCategoryName(type);
+                        const isTrackType = type === 'tracks';
+                        
+                        if (activeFilter === 'all') {
+                            html += `
+                                <div class="ma-category-header" data-category="${type}">
+                                    <h3 class="ma-category-title">${categoryName}</h3>
+                                    <span class="ma-category-chevron">›</span>
+                                </div>
+                            `;
+                        }
+                        
+                        if (isTrackType) {
+                            // List view for tracks
+                            html += '<div class="ma-list-container">';
+                            const displayItems = activeFilter === 'all' ? items.slice(0, 5) : items;
+                            
+                            displayItems.forEach(item => {
+                                const artistText = item.artists ? item.artists.map(a => a.name).join(', ') : '';
+                                const imageUrl = item.image || (item.album ? item.album.image : '');
+                                
+                                html += `
+                                    <div class="ma-list-item" data-uri="${item.uri}" data-type="${item.media_type}" data-name="${item.name}">
+                                        <div class="ma-list-image">
+                                            ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" />` : '🎵'}
+                                        </div>
+                                        <div class="ma-list-info">
+                                            <div class="ma-list-name">${item.name}</div>
+                                            <div class="ma-list-artist">${artistText}</div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            html += '</div>';
+                        } else {
+                            // Grid view for artists, albums, playlists, radio
+                            html += '<div class="ma-grid-container">';
+                            const displayItems = activeFilter === 'all' ? items.slice(0, 6) : items;
+                            
+                            displayItems.forEach(item => {
+                                const artistText = item.artists ? item.artists.map(a => a.name).join(', ') : '';
+                                const imageUrl = item.image;
+                                const defaultIcon = type === 'artists' ? '👤' : type === 'albums' ? '💿' : type === 'playlists' ? '📋' : '📻';
+                                
+                                html += `
+                                    <div class="ma-grid-item" data-uri="${item.uri}" data-type="${item.media_type}" data-name="${item.name}">
+                                        <div class="ma-grid-image">
+                                            ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" />` : defaultIcon}
+                                        </div>
+                                        <div class="ma-grid-name">${item.name}</div>
+                                        ${artistText ? `<div class="ma-grid-artist">${artistText}</div>` : ''}
+                                    </div>
+                                `;
+                            });
+                            html += '</div>';
+                        }
+                    });
+                    
+                    container.innerHTML = html;
+                    
+                    // Event Listeners für Items
+                    container.querySelectorAll('.ma-list-item, .ma-grid-item').forEach(itemElement => {
+                        itemElement.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            
+                            const uri = itemElement.getAttribute('data-uri');
+                            const mediaType = itemElement.getAttribute('data-type');
+                            const name = itemElement.getAttribute('data-name');
+                            
+                            // Visual feedback
+                            itemElement.style.opacity = '0.6';
+                            
+                            await this.playMusicAssistantItem({
+                                uri: uri,
+                                media_type: mediaType,
+                                name: name
+                            }, entityId, enqueueMode);
+                            
+                            setTimeout(() => {
+                                itemElement.style.opacity = '1';
+                            }, 1000);
+                        });
+                    });
+                    
+                    // Category header click handlers for "all" view
+                    if (activeFilter === 'all') {
+                        container.querySelectorAll('.ma-category-header').forEach(header => {
+                            header.addEventListener('click', () => {
+                                const category = header.getAttribute('data-category');
+                                
+                                // Switch to that category filter
+                                const filterChip = this.shadowRoot.querySelector(`[data-filter="${category}"]`);
+                                if (filterChip) {
+                                    filterChip.click();
+                                }
+                            });
+                        });
+                    }
+                }
+
+    
             
                 executeShortcutAction(actionType, actionId, button) {
                     if (!this._hass) return;
@@ -3311,9 +3811,123 @@ getQuickStats(item) {
         `;
     }
 
+
+
+    // Music Assistant Verfügbarkeit prüfen
+    checkMusicAssistantAvailability() {
+        if (!this._hass) return false;
+        
+        // Prüfe ob Music Assistant als Integration verfügbar ist
+        const maEntities = Object.keys(this._hass.states).filter(entityId => 
+            entityId.startsWith('media_player.') && 
+            this._hass.states[entityId].attributes.supported_features &&
+            // Prüfe auf Music Assistant spezifische Features
+            this._hass.states[entityId].attributes.device_class === 'speaker'
+        );
+        
+        return maEntities.length > 0;
+    }
+    
+    // Music Assistant Suche implementieren
+    async searchMusicAssistant(query, entityId) {
+        if (!this._hass || !query) return [];
+        
+        try {
+            // Hole Music Assistant Config Entry
+            const configEntries = await this._hass.callApi("GET", "config/config_entries/entry");
+            const maEntry = configEntries.filter(entry => 
+                entry.domain === "music_assistant" && entry.state === "loaded"
+            ).find(entry => entry.state === "loaded");
+            
+            if (!maEntry) {
+                console.warn('Music Assistant nicht gefunden');
+                return [];
+            }
+            
+            // Führe Suche aus
+            const searchParams = {
+                type: "call_service",
+                domain: "music_assistant",
+                service: "search",
+                service_data: {
+                    name: query,
+                    config_entry_id: maEntry.entry_id,
+                    limit: 50
+                },
+                return_response: true
+            };
+            
+            const response = await this._hass.connection.sendMessagePromise(searchParams);
+            return this.processMusicAssistantResults(response.response);
+            
+        } catch (error) {
+            console.error('Music Assistant Suche fehlgeschlagen:', error);
+            return [];
+        }
+    }
+    
+    // Music Assistant Ergebnisse verarbeiten
+    processMusicAssistantResults(results) {
+        if (!results) return [];
+        
+        const processedResults = {};
+        
+        // Gruppiere Ergebnisse nach Typ
+        Object.entries(results).forEach(([type, items]) => {
+            if (Array.isArray(items) && items.length > 0) {
+                processedResults[type] = items.map(item => ({
+                    uri: item.uri,
+                    name: item.name,
+                    artists: item.artists || [],
+                    image: item.image,
+                    media_type: item.media_type || type.slice(0, -1), // "tracks" -> "track"
+                    album: item.album
+                }));
+            }
+        });
+        
+        return processedResults;
+    }
+    
+    // Musik über Music Assistant abspielen
+    async playMusicAssistantItem(item, entityId, enqueueMode = 'play') {
+        if (!this._hass) return;
+        
+        try {
+            await this._hass.callService("music_assistant", "play_media", {
+                entity_id: entityId,
+                media_type: item.media_type,
+                media_id: item.uri,
+                enqueue: enqueueMode
+            });
+            
+            console.log(`Spiele ab: ${item.name} auf ${entityId}`);
+        } catch (error) {
+            console.error('Fehler beim Abspielen:', error);
+        }
+    }
+    
+    // Kategorie-Namen für Music Assistant
+    getMusicAssistantCategoryName(type) {
+        const names = {
+            'artists': 'Künstler',
+            'albums': 'Alben', 
+            'tracks': 'Titel',
+            'playlists': 'Playlists',
+            'radio': 'Radio'
+        };
+        return names[type] || type;
+    }
+
+    
+
+    
     getMediaReplaceControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
+        
+        // Prüfe ob Music Assistant verfügbar ist
+        const hasMusicAssistant = this.checkMusicAssistantAvailability();
         
         return `
             <div class="control-group-large">
@@ -3333,10 +3947,54 @@ getQuickStats(item) {
                     <input type="range" class="slider-large" data-control="volume" 
                            min="0" max="100" value="${volume}">
                 </div>
+                
+                ${hasMusicAssistant ? `
+                    <div class="music-assistant-search" id="ma-search-${item.id}">
+                        <h4 class="control-title-large">🎵 Music Assistant Suche</h4>
+                        <div class="ma-search-container">
+                            <div class="ma-search-bar-container">
+                                <input type="text" 
+                                       class="ma-search-input" 
+                                       placeholder="Suchen..." 
+                                       data-ma-search="${item.id}">
+                                <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
+                                    <span class="ma-enqueue-icon">▶️</span>
+                                    <span class="ma-enqueue-text">Play now</span>
+                                </div>
+                            </div>
+                            <div class="ma-filter-container" id="ma-filters-${item.id}">
+                                <div class="ma-filter-chip ma-filter-active" data-filter="all">
+                                    <span class="ma-filter-icon">🔗</span>
+                                    <span>All</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="artists">
+                                    <span class="ma-filter-icon">👤</span>
+                                    <span>Artists</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="albums">
+                                    <span class="ma-filter-icon">💿</span>
+                                    <span>Albums</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="tracks">
+                                    <span class="ma-filter-icon">🎵</span>
+                                    <span>Tracks</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="playlists">
+                                    <span class="ma-filter-icon">📋</span>
+                                    <span>Playlists</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="radio">
+                                    <span class="ma-filter-icon">📻</span>
+                                    <span>Radio</span>
+                                </div>
+                            </div>
+                            <div class="ma-search-results" id="ma-results-${item.id}"></div>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
-    }
-    
+    }    
 
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
