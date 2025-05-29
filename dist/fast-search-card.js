@@ -1600,7 +1600,30 @@ class FastSearchCard extends HTMLElement {
                     background: #f8d7da;
                     color: #721c24;
                 }
-
+                
+                .log-loading {
+                    border: 1px solid #e9ecef;
+                    border-radius: 12px;
+                    background: white;
+                }
+                
+                .log-loading .log-entry {
+                    opacity: 0.7;
+                    animation: logbookPulse 2s ease-in-out infinite;
+                }
+                
+                .log-entries-container {
+                    border: 1px solid #e9ecef;
+                    border-radius: 12px;
+                    background: white;
+                    max-height: 250px;
+                    overflow-y: auto;
+                }
+                
+                @keyframes logbookPulse {
+                    0%, 100% { opacity: 0.7; }
+                    50% { opacity: 1; }
+                }
                 
                 
                 .shortcuts-grid {
@@ -2296,19 +2319,181 @@ class FastSearchCard extends HTMLElement {
 
 
 
-
-    
+        
+        
         
         
         getLogEntriesHTML(item) {
-            // Hole echte Logbuch-Daten aus Home Assistant
-            const entries = this.getRealLogEntries(item);
+            // Zeige Loading-Indikator während des Ladens
+            this.loadRealLogEntries(item);
             
-            if (entries.length === 0) {
-                return '<div class="log-entry"><div class="log-action">Keine Logbuch-Einträge verfügbar</div></div>';
+            return `
+                <div class="log-loading" id="logLoading-${item.id}">
+                    <div class="log-entry">
+                        <div class="log-action">⏳ Lade Logbook-Einträge...</div>
+                    </div>
+                </div>
+                <div class="log-entries-container" id="logContainer-${item.id}" style="display: none;"></div>
+            `;
+        }
+        
+        async loadRealLogEntries(item) {
+            if (!this._hass) return;
+            
+            try {
+                // Zeitraum: Letzte 6 Stunden
+                const endTime = new Date();
+                const startTime = new Date(endTime.getTime() - (6 * 60 * 60 * 1000));
+                
+                // Home Assistant Logbook API aufrufen
+                const logbookData = await this._hass.callWS({
+                    type: 'logbook/get_events',
+                    start_time: startTime.toISOString(),
+                    end_time: endTime.toISOString(),
+                    entity_ids: [item.id]
+                });
+                
+                // Logbook-Einträge verarbeiten
+                const processedEntries = this.processLogbookData(logbookData, item);
+                
+                // UI aktualisieren
+                this.updateLogbookUI(item.id, processedEntries);
+                
+            } catch (error) {
+                console.error('Fehler beim Laden der Logbook-Daten:', error);
+                this.showLogbookError(item.id);
+            }
+        }
+        
+        processLogbookData(logbookData, item) {
+            if (!logbookData || logbookData.length === 0) {
+                return [{
+                    message: 'Keine Aktivitäten in den letzten 6 Stunden',
+                    when: 'Heute',
+                    state: 'INFO',
+                    stateClass: 'info'
+                }];
             }
             
-            return entries.map(entry => `
+            return logbookData
+                .filter(entry => entry.entity_id === item.id)
+                .map(entry => ({
+                    message: this.formatLogbookMessage(entry, item),
+                    when: this.formatLogTime(new Date(entry.when)),
+                    state: this.formatLogbookState(entry, item),
+                    stateClass: this.getLogbookStateClass(entry, item)
+                }))
+                .slice(0, 20); // Maximal 20 Einträge
+        }
+        
+        formatLogbookMessage(entry, item) {
+            // Verwende die originale Logbook-Nachricht wenn verfügbar
+            if (entry.message) {
+                return entry.message;
+            }
+            
+            // Fallback: Generiere Nachricht basierend auf State-Änderung
+            const newState = entry.state;
+            const oldState = entry.old_state;
+            
+            switch (item.type) {
+                case 'light':
+                    if (newState === 'on' && oldState === 'off') {
+                        return 'Licht eingeschaltet';
+                    } else if (newState === 'off' && oldState === 'on') {
+                        return 'Licht ausgeschaltet';
+                    } else if (newState === 'on' && oldState === 'on') {
+                        // Helligkeit geändert
+                        const newBrightness = entry.attributes?.brightness;
+                        const oldBrightness = entry.old_attributes?.brightness;
+                        if (newBrightness !== oldBrightness) {
+                            const newPercent = Math.round((newBrightness || 0) / 255 * 100);
+                            return `Helligkeit auf ${newPercent}% geändert`;
+                        }
+                    }
+                    return `Status: ${newState}`;
+                    
+                case 'switch':
+                    return newState === 'on' ? 'Schalter eingeschaltet' : 'Schalter ausgeschaltet';
+                    
+                case 'climate':
+                    const newTemp = entry.attributes?.temperature;
+                    const oldTemp = entry.old_attributes?.temperature;
+                    if (newTemp !== oldTemp) {
+                        return `Temperatur auf ${newTemp}°C gesetzt`;
+                    }
+                    return `Thermostat: ${newState}`;
+                    
+                case 'cover':
+                    if (newState === 'open') return 'Rolladen geöffnet';
+                    if (newState === 'closed') return 'Rolladen geschlossen';
+                    
+                    const newPos = entry.attributes?.current_position;
+                    const oldPos = entry.old_attributes?.current_position;
+                    if (newPos !== oldPos) {
+                        return `Position auf ${newPos}% gesetzt`;
+                    }
+                    return `Rolladen: ${newState}`;
+                    
+                case 'media_player':
+                    if (newState === 'playing') return 'Wiedergabe gestartet';
+                    if (newState === 'paused') return 'Wiedergabe pausiert';
+                    if (newState === 'off') return 'Ausgeschaltet';
+                    return `Status: ${newState}`;
+                    
+                default:
+                    return `Status geändert: ${oldState} → ${newState}`;
+            }
+        }
+        
+        formatLogbookState(entry, item) {
+            const state = entry.state;
+            const attributes = entry.attributes || {};
+            
+            switch (item.type) {
+                case 'light':
+                    if (state === 'on' && attributes.brightness) {
+                        return `${Math.round(attributes.brightness / 255 * 100)}%`;
+                    }
+                    return state === 'on' ? 'AN' : 'AUS';
+                    
+                case 'climate':
+                    if (attributes.temperature) {
+                        return `${attributes.temperature}°C`;
+                    }
+                    return state.toUpperCase();
+                    
+                case 'cover':
+                    if (attributes.current_position !== undefined) {
+                        return `${attributes.current_position}%`;
+                    }
+                    return state.toUpperCase();
+                    
+                case 'media_player':
+                    if (state === 'playing' && attributes.media_title) {
+                        return attributes.media_title.substring(0, 20) + '...';
+                    }
+                    return state.toUpperCase();
+                    
+                default:
+                    return state.toUpperCase();
+            }
+        }
+        
+        getLogbookStateClass(entry, item) {
+            const state = entry.state;
+            const onStates = ['on', 'playing', 'open', 'home', 'heat', 'cool'];
+            return onStates.includes(state) ? 'on' : 'off';
+        }
+        
+        updateLogbookUI(itemId, entries) {
+            const loadingElement = this.shadowRoot.getElementById(`logLoading-${itemId}`);
+            const containerElement = this.shadowRoot.getElementById(`logContainer-${itemId}`);
+            
+            if (!loadingElement || !containerElement) return;
+            
+            // HTML für Einträge generieren
+            const entriesHTML = entries.map(entry => `
                 <div class="log-entry">
                     <div>
                         <div class="log-action">${entry.message}</div>
@@ -2317,102 +2502,28 @@ class FastSearchCard extends HTMLElement {
                     <span class="log-state ${entry.stateClass}">${entry.state}</span>
                 </div>
             `).join('');
+            
+            containerElement.innerHTML = entriesHTML;
+            
+            // Loading verstecken, Container zeigen
+            loadingElement.style.display = 'none';
+            containerElement.style.display = 'block';
         }
         
-        getRealLogEntries(item) {
-            if (!this._hass || !this._hass.states[item.id]) return [];
-            
-            const state = this._hass.states[item.id];
-            const entries = [];
-            
-            // Aktueller Zustand
-            const currentEntry = {
-                message: this.getStateChangeMessage(item, state.state),
-                when: this.formatLogTime(new Date(state.last_changed)),
-                state: this.formatRealLogState(item, state),
-                stateClass: this.getRealLogStateClass(item, state)
-            };
-            entries.push(currentEntry);
-            
-            // Zusätzliche Einträge aus last_updated und Attributen
-            if (state.last_updated !== state.last_changed) {
-                entries.push({
-                    message: 'Attribute aktualisiert',
-                    when: this.formatLogTime(new Date(state.last_updated)),
-                    state: 'INFO',
-                    stateClass: 'info'
-                });
+        showLogbookError(itemId) {
+            const loadingElement = this.shadowRoot.getElementById(`logLoading-${itemId}`);
+            if (loadingElement) {
+                loadingElement.innerHTML = `
+                    <div class="log-entry">
+                        <div class="log-action">❌ Fehler beim Laden des Logbooks</div>
+                        <div class="log-time">Versuche es später erneut</div>
+                    </div>
+                `;
             }
-            
-            // Helligkeit-Änderung bei Lichtern
-            if (item.type === 'light' && state.attributes.brightness) {
-                const brightnessPercent = Math.round((state.attributes.brightness / 255) * 100);
-                entries.push({
-                    message: `Helligkeit auf ${brightnessPercent}% gesetzt`,
-                    when: this.formatLogTime(new Date(state.last_changed)),
-                    state: `${brightnessPercent}%`,
-                    stateClass: 'on'
-                });
-            }
-            
-            // Temperatur-Änderung bei Klima
-            if (item.type === 'climate' && state.attributes.temperature) {
-                entries.push({
-                    message: `Zieltemperatur auf ${state.attributes.temperature}°C gesetzt`,
-                    when: this.formatLogTime(new Date(state.last_changed)),
-                    state: `${state.attributes.temperature}°C`,
-                    stateClass: 'on'
-                });
-            }
-            
-            return entries;
-        }
-        
-        getStateChangeMessage(item, state) {
-            switch (item.type) {
-                case 'light':
-                    return state === 'on' ? 'Licht eingeschaltet' : 'Licht ausgeschaltet';
-                case 'switch':
-                    return state === 'on' ? 'Schalter eingeschaltet' : 'Schalter ausgeschaltet';
-                case 'climate':
-                    return `Thermostat auf ${state} gesetzt`;
-                case 'cover':
-                    return state === 'open' ? 'Rolladen geöffnet' : 
-                           state === 'closed' ? 'Rolladen geschlossen' : 
-                           `Rolladen ${state}`;
-                case 'media_player':
-                    return state === 'playing' ? 'Wiedergabe gestartet' : 
-                           state === 'paused' ? 'Wiedergabe pausiert' : 
-                           state === 'off' ? 'Ausgeschaltet' : 
-                           `Status: ${state}`;
-                default:
-                    return `Status geändert zu: ${state}`;
-            }
-        }
-        
-        formatRealLogState(item, state) {
-            switch (item.type) {
-                case 'light':
-                    if (state.state === 'on' && state.attributes.brightness) {
-                        return `${Math.round((state.attributes.brightness / 255) * 100)}%`;
-                    }
-                    return state.state === 'on' ? 'AN' : 'AUS';
-                case 'climate':
-                    return state.attributes.temperature ? `${state.attributes.temperature}°C` : state.state.toUpperCase();
-                case 'cover':
-                    return state.attributes.current_position ? `${state.attributes.current_position}%` : state.state.toUpperCase();
-                default:
-                    return state.state.toUpperCase();
-            }
-        }
-        
-        getRealLogStateClass(item, state) {
-            const onStates = ['on', 'playing', 'open', 'home', 'heat', 'cool'];
-            return onStates.includes(state.state) ? 'on' : 'off';
         }
 
 
-
+    
 
 
 
