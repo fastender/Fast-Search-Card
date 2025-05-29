@@ -119,15 +119,19 @@ class FastSearchCard extends HTMLElement {
                 .search-input {
                     width: 100%;
                     padding: 14px 20px;
-                    border: none;
-                    background: white;
+
                     border-radius: 16px;
                     font-size: 16px;
                     outline: none;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
                     transition: all 0.2s;
                     box-sizing: border-box;
-                }
+
+                    background: rgba(255, 255, 255, 0.8);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                }                
                 
                 .search-input:focus {
                     box-shadow: 0 2px 16px rgba(0,0,0,0.12);
@@ -317,7 +321,11 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .filter-chip {
-                    background: #e8eaed;
+
+                    background: rgba(232, 234, 237, 0.8);
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                                    
                     border: none;
                     border-radius: 20px;
                     padding: 12px 20px;
@@ -338,7 +346,9 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .filter-chip.active {
-                    background: #4285f4;
+                    background: rgba(66, 133, 244, 0.9);
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
                     color: white;
                 }
                 
@@ -516,8 +526,10 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .grid-item {
-                    background: #f8f9fa;
-                    border: 1px solid #e9ecef;
+                    background: rgba(248, 249, 250, 0.8);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border: 1px solid rgba(233, 236, 239, 0.5);
                     border-radius: 12px;
                     padding: 16px;
                     min-width: 140px;
@@ -668,7 +680,9 @@ class FastSearchCard extends HTMLElement {
 
                 .room-header {
                     padding: 12px 20px;
-                    background: #f8f9fa;
+                    background: rgba(248, 249, 250, 0.8);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
                     border-bottom: 1px solid #e9ecef;
                     font-weight: 600;
                     font-size: 14px;
