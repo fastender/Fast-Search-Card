@@ -86,7 +86,7 @@ class FastSearchCard extends HTMLElement {
                 .view-toggle-btn {
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
-                    border-radius: 12px;
+                    border-radius: 60px;
                     width: 48px;
                     height: 48px;
                     display: flex;
@@ -106,8 +106,7 @@ class FastSearchCard extends HTMLElement {
                     color: white;
                 }
 
-                .view-toggle-btn + .view-toggle-btn {
-                    border-left: 1px solid #ddd;
+                .view-toggle-btn + .view-toggle-btn { 
                 }
 
 
@@ -187,7 +186,7 @@ class FastSearchCard extends HTMLElement {
                 .filter-button {
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
-                    border-radius: 12px;
+                    border-radius: 60px;
                     width: 48px;
                     height: 48px;
                     display: flex;
@@ -201,8 +200,17 @@ class FastSearchCard extends HTMLElement {
                 
                 .filter-button:hover {
                     background: rgba(0, 0, 0, 0.25);
-                    transform: scale(1.05);
                 }
+
+                .filter-button:hover:not(.active) {
+                    background: rgba(0, 0, 0, 0.25);
+                }
+                
+                .view-toggle-btn.active {
+                    background: rgba(66, 133, 244, 0.8);
+                    color: white;
+                }
+                
                 
                 .filter-button.active {
                     background: rgba(66, 133, 244, 0.8);
