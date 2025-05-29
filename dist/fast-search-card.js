@@ -37,49 +37,23 @@ class FastSearchCard extends HTMLElement {
             <style>
                 :host {
                     display: block;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
-
-                    position: relative; /* NEU */
-                    z-index: 0; /* NEU */                    
-
-                    /* ← DIESE ZEILEN HINZUFÜGEN */
-                    --tw-backdrop-blur: blur(40px);
-                    --tw-backdrop-brightness: brightness(1);
-                    --tw-backdrop-contrast: contrast(1);
-                    --tw-backdrop-grayscale: grayscale(0);
-                    --tw-backdrop-hue-rotate: hue-rotate(0deg);
-                    --tw-backdrop-invert: invert(0);
-                    --tw-backdrop-opacity: opacity(1);
-                    --tw-backdrop-saturate: saturate(1);
-                    --tw-backdrop-sepia: sepia(0);
-                    /* ← BIS HIER */
-    
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    
                     /* Card fade-in beim Laden */
                     opacity: 0;
                     animation: cardFadeIn 0.6s ease-out 0.2s forwards;
                 }
                 
                 .search-container {
-                    position: relative;
+                    background: white;
                     border-radius: 20px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
                     overflow: hidden;
-                }
-                
-                /* Blur-Effekt als Pseudo-Element */
-                .search-container::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 0.15);
-                    backdrop-filter: blur(40px);
-                    -webkit-backdrop-filter: blur(40px);
-                    z-index: -1;
+                }                
+
+                .search-section {
+                    background: #f8f9fa;
+                    padding: 24px;
                 }
 
 
@@ -132,23 +106,21 @@ class FastSearchCard extends HTMLElement {
                     width: 100%;
                     padding: 14px 20px;
                     border: none;
-                    background: rgba(0, 0, 0, 0.1);           /* ← GEÄNDERT: dunkler Hintergrund */
+                    background: white;
                     border-radius: 16px;
                     font-size: 16px;
                     outline: none;
-                    box-shadow: none;                         /* ← GEÄNDERT: kein Schatten */
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
                     transition: all 0.2s;
                     box-sizing: border-box;
-                    color: #ffffff;                           /* ← NEU: weiße Schrift */
                 }
                 
                 .search-input:focus {
-                    background: rgba(0, 0, 0, 0.25);          /* ← GEÄNDERT: noch dunkler bei Focus */
-                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);  /* ← GEÄNDERT: weißer Ring */
+                    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
                 }
                 
                 .search-input::placeholder {
-                    color: rgba(255, 255, 255, 0.6);         /* ← GEÄNDERT: helle Placeholder-Farbe */
+                    color: #9aa0a6;
                 }
 
                 /* Typing indicator */
@@ -243,14 +215,14 @@ class FastSearchCard extends HTMLElement {
 
                 .filter-section {
                     padding: 0 24px 24px 24px;
-                    background: transparent;
+                    background: #f8f9fa;
                 }
 
 
                 
                 .active-filters {
                     padding: 8px 24px 0 24px;
-                    background: transparent;
+                    background: #f8f9fa;
                 }
                 
                 .active-filters-container {
@@ -504,7 +476,6 @@ class FastSearchCard extends HTMLElement {
                 .results-container {
                     max-height: 600px;
                     overflow-y: auto;
-                    background: transparent;  /* ← NEU HINZUGEFÜGT */
                 }
 
                 .results-container.loading {
@@ -515,7 +486,6 @@ class FastSearchCard extends HTMLElement {
                 .grid-container {
                     padding: 20px;
                     animation: slideInFromBottom 0.4s ease-out;
-                    background: transparent;  /* ← NEU HINZUGEFÜGT */
                 }
 
                 .grid-scroll {
@@ -532,8 +502,8 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .grid-item {
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    background: #f8f9fa;
+                    border: 1px solid #e9ecef;
                     border-radius: 12px;
                     padding: 16px;
                     min-width: 140px;
@@ -570,7 +540,6 @@ class FastSearchCard extends HTMLElement {
                 .grid-item:hover {
                     transform: translateY(-4px);
                     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-                    background: rgba(248, 249, 250, 0.3);  /* ← NEU HINZUGEFÜGT */
                 }
 
                 .grid-item.active {
@@ -668,7 +637,6 @@ class FastSearchCard extends HTMLElement {
                     letter-spacing: 0.5px;
                     margin-bottom: 16px;
                     padding: 0 4px;
-                    background: transparent;  /* ← NEU HINZUGEFÜGT */
                 }
 
                 @media (max-width: 768px) {
@@ -686,30 +654,28 @@ class FastSearchCard extends HTMLElement {
 
                 .room-header {
                     padding: 12px 20px;
-                    background: transparent;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    background: #f8f9fa;
+                    border-bottom: 1px solid #e9ecef;
                     font-weight: 600;
                     font-size: 14px;
-                    color: #ffffff;        /* ← WEISSE Schrift */
+                    color: #495057;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
-                    opacity: 0.8;          /* ← Subtile Transparenz */
                 }
 
                 .item {
                     padding: 16px 20px;
-                    border-bottom: 1px solid rgba(240, 240, 240, 0.3);  /* ← GEÄNDERT */
+                    border-bottom: 1px solid #f0f0f0;
                     display: flex;
                     align-items: center;
                     gap: 16px;
                     transition: background-color 0.2s;
                     margin-left: 0;
                     cursor: pointer;
-                    background: transparent;  /* ← NEU HINZUGEFÜGT */
                 }
-                
+
                 .item:hover {
-                    background-color: rgba(250, 250, 250, 0.2);  /* ← GEÄNDERT */
+                    background-color: #fafafa;
                 }
 
                 .item:last-child {
