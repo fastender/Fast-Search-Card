@@ -1600,6 +1600,100 @@ class FastSearchCard extends HTMLElement {
                     background: #f8d7da;
                     color: #721c24;
                 }
+
+                
+                
+                .shortcuts-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                    gap: 12px;
+                    margin-top: 8px;
+                }
+                
+                .shortcut-button {
+                    background: #f8f9fa;
+                    border: 2px solid #e9ecef;
+                    border-radius: 12px;
+                    padding: 16px 12px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    text-align: left;
+                    min-height: 60px;
+                }
+                
+                .shortcut-button:hover {
+                    background: #e9ecef;
+                    border-color: #007aff;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+                }
+                
+                .shortcut-button:active {
+                    transform: translateY(0);
+                }
+                
+                .shortcut-icon {
+                    font-size: 24px;
+                    flex-shrink: 0;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .shortcut-info {
+                    flex: 1;
+                    min-width: 0;
+                }
+                
+                .shortcut-name {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #333;
+                    margin-bottom: 2px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                
+                .shortcut-description {
+                    font-size: 12px;
+                    color: #666;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                
+                .shortcuts-empty {
+                    text-align: center;
+                    padding: 32px 16px;
+                    color: #666;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                
+                .shortcuts-empty small {
+                    font-size: 12px;
+                    opacity: 0.8;
+                    line-height: 1.4;
+                }
+                
+                /* Info-Stil für Log-Einträge */
+                .log-state.info {
+                    background: #d1ecf1;
+                    color: #0c5460;
+                }
+                
+                @media (max-width: 768px) {
+                    .shortcuts-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
                 
 
             
@@ -2177,29 +2271,17 @@ class FastSearchCard extends HTMLElement {
             }
         }
     
+
         getHistoryHTML(item) {
-            return `
-                <div class="history-content">
-                    <div class="history-tabs">
-                        <button class="history-tab active" data-history-tab="chart">Verlauf</button>
-                        <button class="history-tab" data-history-tab="log">Logbuch</button>
-                    </div>
-                    
-                    <div class="history-view" data-history-view="chart">
-                        <div class="chart-placeholder">
-                            <span>📊 ${this.getChartTitle(item)}</span>
-                            <small>(Chart wird hier eingefügt)</small>
-                        </div>
-                    </div>
-                    
-                    <div class="history-view" data-history-view="log" style="display: none;">
+                return `
+                    <div class="history-content">
                         <div class="log-entries" id="logEntries">
                             ${this.getLogEntriesHTML(item)}
                         </div>
                     </div>
-                </div>
-            `;
-        }
+                `;
+            }            
+        
     
         getChartTitle(item) {
             switch (item.type) {
@@ -2211,20 +2293,133 @@ class FastSearchCard extends HTMLElement {
             }
         }
     
+
+
+
+
+    
+        
+        
         getLogEntriesHTML(item) {
-            // Generiere Mock-Daten basierend auf dem aktuellen Zustand
-            const entries = this.generateMockLogEntries(item);
+            // Hole echte Logbuch-Daten aus Home Assistant
+            const entries = this.getRealLogEntries(item);
+            
+            if (entries.length === 0) {
+                return '<div class="log-entry"><div class="log-action">Keine Logbuch-Einträge verfügbar</div></div>';
+            }
             
             return entries.map(entry => `
                 <div class="log-entry">
                     <div>
-                        <div class="log-action">${entry.action}</div>
-                        <div class="log-time">${entry.time}</div>
+                        <div class="log-action">${entry.message}</div>
+                        <div class="log-time">${entry.when}</div>
                     </div>
                     <span class="log-state ${entry.stateClass}">${entry.state}</span>
                 </div>
             `).join('');
         }
+        
+        getRealLogEntries(item) {
+            if (!this._hass || !this._hass.states[item.id]) return [];
+            
+            const state = this._hass.states[item.id];
+            const entries = [];
+            
+            // Aktueller Zustand
+            const currentEntry = {
+                message: this.getStateChangeMessage(item, state.state),
+                when: this.formatLogTime(new Date(state.last_changed)),
+                state: this.formatRealLogState(item, state),
+                stateClass: this.getRealLogStateClass(item, state)
+            };
+            entries.push(currentEntry);
+            
+            // Zusätzliche Einträge aus last_updated und Attributen
+            if (state.last_updated !== state.last_changed) {
+                entries.push({
+                    message: 'Attribute aktualisiert',
+                    when: this.formatLogTime(new Date(state.last_updated)),
+                    state: 'INFO',
+                    stateClass: 'info'
+                });
+            }
+            
+            // Helligkeit-Änderung bei Lichtern
+            if (item.type === 'light' && state.attributes.brightness) {
+                const brightnessPercent = Math.round((state.attributes.brightness / 255) * 100);
+                entries.push({
+                    message: `Helligkeit auf ${brightnessPercent}% gesetzt`,
+                    when: this.formatLogTime(new Date(state.last_changed)),
+                    state: `${brightnessPercent}%`,
+                    stateClass: 'on'
+                });
+            }
+            
+            // Temperatur-Änderung bei Klima
+            if (item.type === 'climate' && state.attributes.temperature) {
+                entries.push({
+                    message: `Zieltemperatur auf ${state.attributes.temperature}°C gesetzt`,
+                    when: this.formatLogTime(new Date(state.last_changed)),
+                    state: `${state.attributes.temperature}°C`,
+                    stateClass: 'on'
+                });
+            }
+            
+            return entries;
+        }
+        
+        getStateChangeMessage(item, state) {
+            switch (item.type) {
+                case 'light':
+                    return state === 'on' ? 'Licht eingeschaltet' : 'Licht ausgeschaltet';
+                case 'switch':
+                    return state === 'on' ? 'Schalter eingeschaltet' : 'Schalter ausgeschaltet';
+                case 'climate':
+                    return `Thermostat auf ${state} gesetzt`;
+                case 'cover':
+                    return state === 'open' ? 'Rolladen geöffnet' : 
+                           state === 'closed' ? 'Rolladen geschlossen' : 
+                           `Rolladen ${state}`;
+                case 'media_player':
+                    return state === 'playing' ? 'Wiedergabe gestartet' : 
+                           state === 'paused' ? 'Wiedergabe pausiert' : 
+                           state === 'off' ? 'Ausgeschaltet' : 
+                           `Status: ${state}`;
+                default:
+                    return `Status geändert zu: ${state}`;
+            }
+        }
+        
+        formatRealLogState(item, state) {
+            switch (item.type) {
+                case 'light':
+                    if (state.state === 'on' && state.attributes.brightness) {
+                        return `${Math.round((state.attributes.brightness / 255) * 100)}%`;
+                    }
+                    return state.state === 'on' ? 'AN' : 'AUS';
+                case 'climate':
+                    return state.attributes.temperature ? `${state.attributes.temperature}°C` : state.state.toUpperCase();
+                case 'cover':
+                    return state.attributes.current_position ? `${state.attributes.current_position}%` : state.state.toUpperCase();
+                default:
+                    return state.state.toUpperCase();
+            }
+        }
+        
+        getRealLogStateClass(item, state) {
+            const onStates = ['on', 'playing', 'open', 'home', 'heat', 'cool'];
+            return onStates.includes(state.state) ? 'on' : 'off';
+        }
+
+
+
+
+
+
+
+
+
+    
     
         generateMockLogEntries(item) {
             const now = new Date();
@@ -2324,44 +2519,324 @@ class FastSearchCard extends HTMLElement {
 
 
 
-    setupReplaceEventListeners(item) {
-            // Back Button
-            const backButton = this.shadowRoot.getElementById('backToSearch');
-            backButton.addEventListener('click', () => this.switchBackToSearch());
-            
-            // Accordion Headers - NEU!
-            const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
-            accordionHeaders.forEach(header => {
-                header.addEventListener('click', (e) => {
-                    this.toggleAccordion(header);
+        getAccordionDetailsSectionHTML(item) {
+                const typeDisplayName = this.getTypeDisplayName(item);
+                const controls = this.getReplaceControlsHTML(item);
+                const attributes = this.getReplaceAttributesHTML(item);
+                const history = this.getHistoryHTML(item);
+                const shortcuts = this.getShortcutsHTML(item);
+                
+                return `
+                    <div class="entity-info">
+                        <h2 class="entity-title-large">${item.name}</h2>
+                        <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
+                    </div>
+                    
+                    <div class="accordion-container">
+                        <!-- Steuerung Accordion -->
+                        <div class="accordion-item active" data-accordion="control">
+                            <div class="accordion-header">
+                                <div class="accordion-title">
+                                    <span class="accordion-icon">${this.getControlIcon(item)}</span>
+                                    <span>STEUERUNG</span>
+                                </div>
+                                <span class="accordion-chevron">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                ${controls}
+                            </div>
+                        </div>
+                        
+                        <!-- Details Accordion -->
+                        <div class="accordion-item" data-accordion="details">
+                            <div class="accordion-header">
+                                <div class="accordion-title">
+                                    <span class="accordion-icon">📊</span>
+                                    <span>DETAILS</span>
+                                </div>
+                                <span class="accordion-chevron">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                ${attributes}
+                            </div>
+                        </div>
+                        
+                        <!-- Historische Daten Accordion -->
+                        <div class="accordion-item" data-accordion="history">
+                            <div class="accordion-header">
+                                <div class="accordion-title">
+                                    <span class="accordion-icon">📈</span>
+                                    <span>LOGBUCH</span>
+                                </div>
+                                <span class="accordion-chevron">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                ${history}
+                            </div>
+                        </div>
+                        
+                        <!-- Schnellzugriff Accordion -->
+                        <div class="accordion-item" data-accordion="shortcuts">
+                            <div class="accordion-header">
+                                <div class="accordion-title">
+                                    <span class="accordion-icon">⚡</span>
+                                    <span>SCHNELLZUGRIFF</span>
+                                </div>
+                                <span class="accordion-chevron">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                ${shortcuts}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+
+
+        
+        
+        
+        getShortcutsHTML(item) {
+                const contextualActions = this.getContextualActions(item);
+                
+                if (contextualActions.length === 0) {
+                    return `
+                        <div class="shortcuts-empty">
+                            <span>🤷‍♂️ Keine kontextbezogenen Aktionen verfügbar</span>
+                            <small>Erstelle Szenen oder Skripte für "${item.room}" um sie hier zu sehen</small>
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="shortcuts-grid">
+                        ${contextualActions.map(action => `
+                            <button class="shortcut-button" data-shortcut-action="${action.type}" data-shortcut-id="${action.id}">
+                                <div class="shortcut-icon">${action.icon}</div>
+                                <div class="shortcut-info">
+                                    <div class="shortcut-name">${action.name}</div>
+                                    <div class="shortcut-description">${action.description}</div>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        
+            getContextualActions(item) {
+                if (!this._hass) return [];
+                
+                const actions = [];
+                const itemRoom = item.room.toLowerCase();
+                const itemType = item.type;
+                
+                // Szenen für diesen Raum suchen
+                Object.keys(this._hass.states).forEach(entityId => {
+                    if (entityId.startsWith('scene.')) {
+                        const sceneState = this._hass.states[entityId];
+                        const sceneName = sceneState.attributes.friendly_name || entityId.replace('scene.', '');
+                        const sceneNameLower = sceneName.toLowerCase();
+                        
+                        // Raum-bezogene Szenen
+                        if (sceneNameLower.includes(itemRoom) || 
+                            (sceneState.attributes.room && sceneState.attributes.room.toLowerCase() === itemRoom)) {
+                            actions.push({
+                                id: entityId,
+                                type: 'scene',
+                                name: sceneName,
+                                description: 'Szene aktivieren',
+                                icon: this.getSceneContextIcon(sceneName)
+                            });
+                        }
+                        
+                        // Geräte-typ bezogene Szenen
+                        if (itemType === 'light' && (sceneNameLower.includes('licht') || sceneNameLower.includes('light'))) {
+                            actions.push({
+                                id: entityId,
+                                type: 'scene',
+                                name: sceneName,
+                                description: 'Licht-Szene',
+                                icon: '💡'
+                            });
+                        }
+                    }
                 });
-            });
-            
-            // History Tabs - NEU!
-            const historyTabs = this.shadowRoot.querySelectorAll('.more-info-replace [data-history-tab]');
-            historyTabs.forEach(tab => {
-                tab.addEventListener('click', (e) => {
-                    this.switchHistoryTab(tab, tab.getAttribute('data-history-tab'));
+                
+                // Skripte für diesen Raum suchen
+                Object.keys(this._hass.states).forEach(entityId => {
+                    if (entityId.startsWith('script.')) {
+                        const scriptState = this._hass.states[entityId];
+                        const scriptName = scriptState.attributes.friendly_name || entityId.replace('script.', '');
+                        const scriptNameLower = scriptName.toLowerCase();
+                        
+                        // Raum-bezogene Skripte
+                        if (scriptNameLower.includes(itemRoom) || 
+                            (scriptState.attributes.room && scriptState.attributes.room.toLowerCase() === itemRoom)) {
+                            actions.push({
+                                id: entityId,
+                                type: 'script',
+                                name: scriptName,
+                                description: 'Skript ausführen',
+                                icon: this.getScriptContextIcon(scriptName)
+                            });
+                        }
+                        
+                        // Geräte-typ bezogene Skripte
+                        if (itemType === 'light' && (scriptNameLower.includes('licht') || scriptNameLower.includes('light'))) {
+                            actions.push({
+                                id: entityId,
+                                type: 'script',
+                                name: scriptName,
+                                description: 'Licht-Skript',
+                                icon: '💡'
+                            });
+                        }
+                    }
                 });
-            });
-            
-            // Control Buttons (bestehend)
-            const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
-            controlButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const action = button.getAttribute('data-action');
-                    this.executeReplaceAction(item, action, button);
+                
+                // Ähnliche Geräte im Raum
+                const roomDevices = this.getSameRoomDevices(item);
+                roomDevices.forEach(device => {
+                    if (device.id !== item.id) {
+                        actions.push({
+                            id: device.id,
+                            type: 'device',
+                            name: device.name,
+                            description: `${device.type} steuern`,
+                            icon: device.icon
+                        });
+                    }
                 });
-            });
+                
+                // Begrenzen auf max 6 Aktionen
+                return actions.slice(0, 6);
+            }
+        
+            getSceneContextIcon(sceneName) {
+                const name = sceneName.toLowerCase();
+                if (name.includes('morgen') || name.includes('morning')) return '🌅';
+                if (name.includes('abend') || name.includes('evening')) return '🌆';
+                if (name.includes('nacht') || name.includes('night')) return '🌙';
+                if (name.includes('film') || name.includes('movie')) return '🎬';
+                if (name.includes('dimm') || name.includes('dim')) return '🔅';
+                if (name.includes('hell') || name.includes('bright')) return '🔆';
+                return '🎭';
+            }
+        
+            getScriptContextIcon(scriptName) {
+                const name = scriptName.toLowerCase();
+                if (name.includes('licht') || name.includes('light')) return '💡';
+                if (name.includes('heiz') || name.includes('heat')) return '🔥';
+                if (name.includes('klima') || name.includes('climate')) return '❄️';
+                if (name.includes('musik') || name.includes('music')) return '🎵';
+                if (name.includes('sicher') || name.includes('security')) return '🔒';
+                return '📜';
+            }
+        
+            getSameRoomDevices(currentItem) {
+                return this.allItems.filter(item => 
+                    item.room === currentItem.room && 
+                    item.itemType === 'entity' &&
+                    item.id !== currentItem.id
+                ).slice(0, 3); // Max 3 andere Geräte
+            }
+
             
-            // Sliders (bestehend)
-            const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
-            sliders.forEach(slider => {
-                slider.addEventListener('input', (e) => {
-                    this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
-                });
-            });
-        }        
+            
+            setupReplaceEventListeners(item) {
+                    // Back Button
+                    const backButton = this.shadowRoot.getElementById('backToSearch');
+                    backButton.addEventListener('click', () => this.switchBackToSearch());
+                    
+                    // Accordion Headers
+                    const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
+                    accordionHeaders.forEach(header => {
+                        header.addEventListener('click', (e) => {
+                            this.toggleAccordion(header);
+                        });
+                    });
+                    
+                    // Shortcut Buttons - NEU!
+                    const shortcutButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-shortcut-action]');
+                    shortcutButtons.forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const actionType = button.getAttribute('data-shortcut-action');
+                            const actionId = button.getAttribute('data-shortcut-id');
+                            this.executeShortcutAction(actionType, actionId, button);
+                        });
+                    });
+                    
+                    // Control Buttons (bestehend)
+                    const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
+                    controlButtons.forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const action = button.getAttribute('data-action');
+                            this.executeReplaceAction(item, action, button);
+                        });
+                    });
+                    
+                    // Sliders (bestehend)
+                    const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
+                    sliders.forEach(slider => {
+                        slider.addEventListener('input', (e) => {
+                            this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
+                        });
+                    });
+                }
+            
+                executeShortcutAction(actionType, actionId, button) {
+                    if (!this._hass) return;
+                    
+                    // Visual Feedback
+                    const originalContent = button.innerHTML;
+                    button.style.opacity = '0.6';
+                    button.disabled = true;
+                    
+                    let serviceCall;
+                    
+                    switch (actionType) {
+                        case 'scene':
+                            serviceCall = this._hass.callService('scene', 'turn_on', { entity_id: actionId });
+                            break;
+                        case 'script':
+                            serviceCall = this._hass.callService('script', 'turn_on', { entity_id: actionId });
+                            break;
+                        case 'device':
+                            // Navigiere zu anderem Gerät
+                            const targetItem = this.allItems.find(item => item.id === actionId);
+                            if (targetItem) {
+                                this.switchToReplaceMode(targetItem);
+                                return;
+                            }
+                            break;
+                    }
+                    
+                    if (serviceCall) {
+                        serviceCall.then(() => {
+                            // Success feedback
+                            button.style.background = '#d4edda';
+                            setTimeout(() => {
+                                button.style.opacity = '1';
+                                button.style.background = '';
+                                button.disabled = false;
+                            }, 1000);
+                        }).catch(() => {
+                            // Error feedback
+                            button.style.background = '#f8d7da';
+                            setTimeout(() => {
+                                button.style.opacity = '1';
+                                button.style.background = '';
+                                button.disabled = false;
+                            }, 1000);
+                        });
+                    } else {
+                        setTimeout(() => {
+                            button.style.opacity = '1';
+                            button.disabled = false;
+                        }, 500);
+                    }
+                }
 
 
     
