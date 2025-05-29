@@ -37,7 +37,10 @@ class FastSearchCard extends HTMLElement {
             <style>
                 :host {
                     display: block;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
+
+                    position: relative; /* NEU */
+                    z-index: 0; /* NEU */                    
 
                     /* ← DIESE ZEILEN HINZUFÜGEN */
                     --tw-backdrop-blur: blur(40px);
@@ -57,19 +60,26 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .search-container {
-                    background: rgba(0, 0, 0, 0.15);
-                    -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-                    backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+                    position: relative;
                     border-radius: 20px;
                     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
                     border: 1px solid rgba(255, 255, 255, 0.15);
                     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                     overflow: hidden;
-                }                
-
-                .search-section {
-                    background: transparent;
-                    padding: 24px;
+                }
+                
+                /* Blur-Effekt als Pseudo-Element */
+                .search-container::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.15);
+                    backdrop-filter: blur(40px);
+                    -webkit-backdrop-filter: blur(40px);
+                    z-index: -1;
                 }
 
 
