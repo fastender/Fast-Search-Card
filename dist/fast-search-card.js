@@ -3657,54 +3657,57 @@ class FastSearchCard extends HTMLElement {
             }
 
             
-            
+        
+
             setupReplaceEventListeners(item) {
-                    // Back Button
-                    const backButton = this.shadowRoot.getElementById('backToSearch');
-                    backButton.addEventListener('click', () => this.switchBackToSearch());
-                    
-                    // Accordion Headers
-                    const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
-                    accordionHeaders.forEach(header => {
-                        header.addEventListener('click', (e) => {
-                            this.toggleAccordion(header);
-                        });
-                    });
-                    
-                    // Shortcut Buttons - NEU!
-                    const shortcutButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-shortcut-action]');
-                    shortcutButtons.forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const actionType = button.getAttribute('data-shortcut-action');
-                            const actionId = button.getAttribute('data-shortcut-id');
-                            this.executeShortcutAction(actionType, actionId, button);
-                        });
-                    });
-                    
-                    // Control Buttons (bestehend)
-                    const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
-                    controlButtons.forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const action = button.getAttribute('data-action');
-                            this.executeReplaceAction(item, action, button);
-                        });
-                    });
-                    
-                    // Sliders (bestehend)
-                    const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
-                    sliders.forEach(slider => {
-                        slider.addEventListener('input', (e) => {
-                            this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
-                        });
-                    });
-
-                    // NEU: Music Assistant Event Listeners hinzufügen
-                    this.setupServiceTabEventListeners(item);  
-                    this.setupMusicAssistantEventListeners(item);
-
-                    this.setupTextToSpeechEventListeners(item);
+                // Back Button
+                const backButton = this.shadowRoot.getElementById('backToSearch');
+                backButton.addEventListener('click', () => this.switchBackToSearch());
                 
-                }
+                // Accordion Headers
+                const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
+                accordionHeaders.forEach(header => {
+                    header.addEventListener('click', (e) => {
+                        this.toggleAccordion(header);
+                    });
+                });
+                
+                // Service Tab Event Listeners - DIESE ZEILE MUSS VORHANDEN SEIN!
+                this.setupServiceTabEventListeners(item);  // ← WICHTIG!
+                
+                // Shortcut Buttons
+                const shortcutButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-shortcut-action]');
+                shortcutButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const actionType = button.getAttribute('data-shortcut-action');
+                        const actionId = button.getAttribute('data-shortcut-id');
+                        this.executeShortcutAction(actionType, actionId, button);
+                    });
+                });
+                
+                // Control Buttons
+                const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
+                controlButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const action = button.getAttribute('data-action');
+                        this.executeReplaceAction(item, action, button);
+                    });
+                });
+                
+                // Sliders
+                const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
+                sliders.forEach(slider => {
+                    slider.addEventListener('input', (e) => {
+                        this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
+                    });
+                });
+            
+                // Music Assistant Event Listeners
+                this.setupMusicAssistantEventListeners(item);  
+            
+                // Text-to-Speech Event Listeners  
+                this.setupTextToSpeechEventListeners(item);
+            }                
 
 
             
@@ -3785,16 +3788,29 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
+
                 setupServiceTabEventListeners(item) {
+                    // Debug: Prüfe ob Tabs und Inhalte existieren
                     const serviceTabs = this.shadowRoot.querySelectorAll('.more-info-replace .service-tab');
                     const serviceContents = this.shadowRoot.querySelectorAll('.more-info-replace .service-content');
+                    
+                    console.log('🔍 Debug Service Tabs:', {
+                        tabsFound: serviceTabs.length,
+                        contentsFound: serviceContents.length,
+                        itemId: item.id
+                    });
                     
                     serviceTabs.forEach(tab => {
                         tab.addEventListener('click', () => {
                             const service = tab.getAttribute('data-service');
                             
+                            console.log('🎯 Tab clicked:', service);
+                            
                             // Skip if disabled
-                            if (tab.disabled) return;
+                            if (tab.disabled) {
+                                console.log('❌ Tab is disabled');
+                                return;
+                            }
                             
                             // Update tabs
                             serviceTabs.forEach(t => t.classList.remove('active'));
@@ -3806,12 +3822,18 @@ class FastSearchCard extends HTMLElement {
                             });
                             
                             const targetContent = this.shadowRoot.querySelector(`#${service}-service-${item.id}`);
+                            console.log('🎯 Target content:', targetContent);
+                            
                             if (targetContent) {
                                 targetContent.classList.add('active');
+                                console.log('✅ Content activated');
+                            } else {
+                                console.error('❌ Target content not found:', `#${service}-service-${item.id}`);
                             }
                         });
                     });
                 }
+                    
                     
                 setupTextToSpeechEventListeners(item) {
                     const ttsContainer = this.shadowRoot.querySelector(`#tts-service-${item.id}`);
