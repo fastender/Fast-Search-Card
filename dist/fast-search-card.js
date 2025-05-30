@@ -4623,6 +4623,133 @@ getQuickStats(item) {
         `;
     }
 
+    
+    getMusicAssistantHTML(item) {
+        const filterOptions = [
+            { key: 'all', icon: '🎵', text: 'Alle' },
+            { key: 'artists', icon: '👤', text: 'Künstler' },
+            { key: 'albums', icon: '💿', text: 'Alben' },
+            { key: 'tracks', icon: '🎵', text: 'Titel' },
+            { key: 'playlists', icon: '📋', text: 'Playlists' },
+            { key: 'radio', icon: '📻', text: 'Radio' }
+        ];
+    
+        return `
+            <div class="music-assistant-search">
+                <div class="ma-search-container">
+                    <div class="ma-search-bar-container">
+                        <input type="text" class="ma-search-input" placeholder="Musik suchen..." data-ma-search="${item.id}">
+                        
+                        <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
+                            <span class="ma-enqueue-icon">🔄</span>
+                            <span class="ma-enqueue-text">Replace queue</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ma-filter-container" id="ma-filters-${item.id}">
+                        ${filterOptions.map(filter => `
+                            <div class="ma-filter-chip ${filter.key === 'all' ? 'ma-filter-active' : ''}" data-filter="${filter.key}">
+                                <span class="ma-filter-icon">${filter.icon}</span>
+                                <span>${filter.text}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="apple-music-style">
+                    <div class="ma-search-results" id="ma-results-${item.id}">
+                        <div class="ma-empty-state">Geben Sie einen Suchbegriff ein...</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    getTextToSpeechHTML(item) {
+        const availableVoices = this.getAvailableTTSVoices();
+        const availableEngines = this.getAvailableTTSEngines();
+    
+        return `
+            <div class="tts-container">
+                <div class="tts-text-input">
+                    <label class="tts-label" for="tts-text-${item.id}">Text zum Sprechen:</label>
+                    <textarea class="tts-textarea" id="tts-text-${item.id}" 
+                              placeholder="Geben Sie den Text ein, der gesprochen werden soll..."></textarea>
+                </div>
+                
+                <div class="tts-settings">
+                    <div class="tts-setting-row">
+                        <label class="tts-setting-label">Engine:</label>
+                        <select class="tts-select" data-tts-setting="engine">
+                            ${availableEngines.map(engine => `
+                                <option value="${engine.key}" ${engine.default ? 'selected' : ''}>${engine.name}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="tts-setting-row">
+                        <label class="tts-setting-label">Stimme:</label>
+                        <select class="tts-select" data-tts-setting="voice">
+                            ${availableVoices.map(voice => `
+                                <option value="${voice.key}" ${voice.default ? 'selected' : ''}>${voice.name}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="tts-setting-row">
+                        <label class="tts-setting-label">Geschwindigkeit:</label>
+                        <div class="tts-slider-container">
+                            <input type="range" class="tts-slider" data-tts-setting="speed" 
+                                   min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span class="tts-slider-value">1.0x</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tts-setting-row">
+                        <label class="tts-setting-label">Lautstärke:</label>
+                        <div class="tts-slider-container">
+                            <input type="range" class="tts-slider" data-tts-setting="volume" 
+                                   min="0" max="100" step="5" value="80">
+                            <span class="tts-slider-value">80%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tts-actions">
+                    <button class="tts-action-btn preview-btn" data-tts-action="preview">
+                        <span class="btn-icon">👂</span>
+                        <span class="btn-text">Vorschau</span>
+                    </button>
+                    <button class="tts-action-btn speak-btn primary" data-tts-action="speak">
+                        <span class="btn-icon">🗣️</span>
+                        <span class="btn-text">Sprechen</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    getAvailableTTSEngines() {
+        // Standard TTS Engines - könnten später dynamisch ermittelt werden
+        return [
+            { key: 'google_translate', name: 'Google Translate', default: true },
+            { key: 'amazon_polly', name: 'Amazon Polly', default: false },
+            { key: 'microsoft', name: 'Microsoft', default: false }
+        ];
+    }
+    
+    getAvailableTTSVoices() {
+        // Standard deutsche Stimmen - könnten später dynamisch ermittelt werden
+        return [
+            { key: 'de-DE-Standard-A', name: 'Deutsch (Standard A)', default: true },
+            { key: 'de-DE-Standard-B', name: 'Deutsch (Standard B)', default: false },
+            { key: 'de-DE-Wavenet-A', name: 'Deutsch (Wavenet A)', default: false },
+            { key: 'de-DE-Wavenet-B', name: 'Deutsch (Wavenet B)', default: false }
+        ];
+    }
+
+    
+
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
             case 'automation':
@@ -5900,14 +6027,15 @@ getQuickStats(item) {
         // Logic to determine if item should be highlighted
         switch (item.itemType) {
             case 'entity':
-                return ['light', 'switch', 'fan', 'media_player'].includes(item.type) && item.state === 'on';
+                return ['light', 'switch', 'fan'].includes(item.type) && item.state === 'on' ||
+                       item.type === 'media_player' && item.state === 'playing' ||
+                       item.type === 'cover' && item.state === 'open';
             case 'automation':
                 return item.state === 'on';
             default:
                 return false;
         }
     }
-
     getGridItemHTML(item) {
         const stateText = this.getStateText(item);
         const actionButtons = this.getGridActionButtons(item);
@@ -5923,6 +6051,7 @@ getQuickStats(item) {
             </div>
         `;
     }
+
 
     getGridActionButtons(item) {
         switch (item.itemType) {
@@ -5942,6 +6071,13 @@ getQuickStats(item) {
                 if (['light', 'switch', 'fan'].includes(item.type)) {
                     const toggleSymbol = item.state === 'on' ? '⏸' : '▶';
                     return `<div class="grid-action-button primary" data-action="toggle">${toggleSymbol}</div>`;
+                } else if (item.type === 'media_player') {
+                    const playPauseSymbol = item.state === 'playing' ? '⏸' : '▶';
+                    return `<div class="grid-action-button primary" data-action="play_pause">${playPauseSymbol}</div>`;
+                } else if (item.type === 'cover') {
+                    const isOpen = item.state === 'open';
+                    const toggleSymbol = isOpen ? '⬇' : '⬆';
+                    return `<div class="grid-action-button primary" data-action="${isOpen ? 'close' : 'open'}">${toggleSymbol}</div>`;
                 }
                 return '';
                 
@@ -5983,6 +6119,13 @@ getQuickStats(item) {
                 if (['light', 'switch', 'fan'].includes(item.type)) {
                     const toggleText = item.state === 'on' ? 'Aus' : 'Ein';
                     return `<div class="action-buttons"><div class="action-button primary" data-action="toggle">${toggleText}</div></div>`;
+                } else if (item.type === 'media_player') {
+                    const playPauseText = item.state === 'playing' ? 'Pause' : 'Play';
+                    return `<div class="action-buttons"><div class="action-button primary" data-action="play_pause">${playPauseText}</div></div>`;
+                } else if (item.type === 'cover') {
+                    const isOpen = item.state === 'open';
+                    const toggleText = isOpen ? 'Schließen' : 'Öffnen';
+                    return `<div class="action-buttons"><div class="action-button primary" data-action="${isOpen ? 'close' : 'open'}">${toggleText}</div></div>`;
                 }
                 return '';
                 
@@ -5990,7 +6133,6 @@ getQuickStats(item) {
                 return '';
         }
     }
-
     // INDIVIDUELLES MORE-INFO DIALOG
 
     handleItemClick(item, event) {
