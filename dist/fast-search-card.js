@@ -2044,166 +2044,7 @@ class FastSearchCard extends HTMLElement {
                     max-height: 400px;
                     overflow-y: auto;
                 }
-                
-                .ma-grid-container {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                    gap: 16px;
-                    padding: 16px 0;
-                }
-                
-                .ma-grid-item {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    cursor: pointer;
-                    transition: transform 0.2s;
-                    border-radius: 8px;
-                    padding: 12px;
-                    background: rgba(255, 255, 255, 0.05);
-                }
-                
-                .ma-grid-item:hover {
-                    transform: translateY(-4px);
-                    background: rgba(255, 255, 255, 0.1);
-                }
-                
-                .ma-grid-image {
-                    width: 80px;
-                    height: 80px;
-                    border-radius: 8px;
-                    background: rgba(0, 0, 0, 0.3);
-                    margin-bottom: 8px;
-                    object-fit: cover;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 24px;
-                }
-                
-                .ma-grid-image img {
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 8px;
-                    object-fit: cover;
-                }
-                
-                .ma-grid-name {
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: rgba(255, 255, 255, 0.9);
-                    text-align: center;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    line-height: 1.2;
-                    width: 100%;
-                }
-                
-                .ma-grid-artist {
-                    font-size: 12px;
-                    color: rgba(255, 255, 255, 0.7);
-                    text-align: center;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    width: 100%;
-                    margin-top: 4px;
-                }
-                
-                .ma-list-container {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                    padding: 16px 0;
-                }
-                
-                .ma-list-item {
-                    display: grid;
-                    grid-template-columns: 50px 1fr auto;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 8px 12px;
-                    border-radius: 8px;
-                    background: rgba(255, 255, 255, 0.05);
-                    cursor: pointer;
-                    transition: background-color 0.2s;
-                }
-                
-                .ma-list-item:hover {
-                    background: rgba(255, 255, 255, 0.1);
-                }
-                
-                .ma-list-image {
-                    width: 50px;
-                    height: 50px;
-                    border-radius: 4px;
-                    background: rgba(0, 0, 0, 0.3);
-                    object-fit: cover;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 16px;
-                }
-                
-                .ma-list-image img {
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 4px;
-                    object-fit: cover;
-                }
-                
-                .ma-list-info {
-                    display: flex;
-                    flex-direction: column;
-                    overflow: hidden;
-                }
-                
-                .ma-list-name {
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: rgba(255, 255, 255, 0.9);
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-                
-                .ma-list-artist {
-                    font-size: 12px;
-                    color: rgba(255, 255, 255, 0.7);
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-                
-                .ma-category-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin: 20px 0 12px 0;
-                    cursor: pointer;
-                }
-                
-                .ma-category-title {
-                    font-size: 16px;
-                    font-weight: 600;
-                    color: rgba(255, 255, 255, 0.9);
-                    margin: 0;
-                }
-                
-                .ma-category-chevron {
-                    font-size: 18px;
-                    color: rgba(255, 255, 255, 0.6);
-                }
-                
-                .ma-loading, .ma-no-results {
-                    text-align: center;
-                    color: rgba(255, 255, 255, 0.7);
-                    padding: 40px 20px;
-                    font-style: italic;
-                }
+ 
                 
                 .ma-empty-state {
                     text-align: center;
@@ -2212,6 +2053,520 @@ class FastSearchCard extends HTMLElement {
                     font-size: 14px;
                 }
                 
+                /* Service Selector Styles */
+                .media-service-selector {
+                    margin-bottom: 24px;
+                }
+                
+                .service-tabs {
+                    display: flex;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    padding: 4px;
+                    backdrop-filter: blur(10px);
+                }
+                
+                .service-tab {
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    padding: 12px 16px;
+                    background: transparent;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    color: rgba(255, 255, 255, 0.6);
+                    font-size: 14px;
+                    font-weight: 500;
+                }
+                
+                .service-tab.active {
+                    background: rgba(255, 255, 255, 0.2);
+                    color: rgba(255, 255, 255, 0.95);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                }
+                
+                .service-tab:hover:not(.active) {
+                    color: rgba(255, 255, 255, 0.8);
+                    background: rgba(255, 255, 255, 0.05);
+                }
+                
+                .service-icon {
+                    font-size: 16px;
+                }
+                
+                .service-content {
+                    display: none;
+                }
+                
+                .service-content.active {
+                    display: block;
+                }
+
+                
+                
+                /* Apple Music Style List */
+                .apple-music-style {
+                    background: rgba(0, 0, 0, 0.1);
+                    border-radius: 12px;
+                    overflow: hidden;
+                    backdrop-filter: blur(10px);
+                    max-height: 400px;
+                    overflow-y: auto;
+                }
+                
+                .music-section {
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                }
+                
+                .music-section:last-child {
+                    border-bottom: none;
+                }
+                
+                .section-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 16px 20px 8px;
+                    background: rgba(255, 255, 255, 0.02);
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                }
+                
+                .section-title {
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: rgba(255, 255, 255, 0.95);
+                    margin: 0;
+                }
+                
+                .section-count {
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.5);
+                    font-weight: 500;
+                }
+                
+                .music-list {
+                    padding: 0 20px 16px;
+                }
+                
+                .music-item {
+                    display: grid;
+                    align-items: center;
+                    padding: 8px 0;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    border-radius: 8px;
+                    margin: 0 -12px;
+                    padding-left: 12px;
+                    padding-right: 12px;
+                }
+                
+                .music-item:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                }
+                
+                /* Artist and Album Items */
+                .artist-item, .album-item {
+                    grid-template-columns: 50px 1fr auto;
+                    gap: 12px;
+                }
+                
+                /* Song Items */
+                .song-item {
+                    grid-template-columns: 24px 40px 1fr auto auto;
+                    gap: 12px;
+                }
+                
+                .song-number {
+                    font-size: 14px;
+                    color: rgba(255, 255, 255, 0.5);
+                    text-align: center;
+                    font-weight: 500;
+                }
+                
+                .song-item.playing .song-number {
+                    color: #ff6b6b;
+                }
+                
+                .playing-indicator {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 2px;
+                    height: 14px;
+                }
+                
+                .playing-indicator span {
+                    width: 2px;
+                    background: #ff6b6b;
+                    border-radius: 1px;
+                    animation: musicBars 1.5s ease-in-out infinite;
+                }
+                
+                .playing-indicator span:nth-child(1) {
+                    height: 6px;
+                    animation-delay: 0s;
+                }
+                
+                .playing-indicator span:nth-child(2) {
+                    height: 10px;
+                    animation-delay: 0.2s;
+                }
+                
+                .playing-indicator span:nth-child(3) {
+                    height: 4px;
+                    animation-delay: 0.4s;
+                }
+                
+                @keyframes musicBars {
+                    0%, 100% {
+                        transform: scaleY(1);
+                    }
+                    50% {
+                        transform: scaleY(0.3);
+                    }
+                }
+                
+                .music-artwork {
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 8px;
+                    background: rgba(255, 255, 255, 0.1);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    backdrop-filter: blur(10px);
+                }
+                
+                .music-artwork.small {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 6px;
+                    font-size: 16px;
+                }
+                
+                .music-artwork img {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: inherit;
+                    object-fit: cover;
+                }
+                
+                .artwork-placeholder {
+                    filter: grayscale(0.2);
+                }
+                
+                .music-info {
+                    overflow: hidden;
+                }
+                
+                .music-title {
+                    font-size: 15px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.95);
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    margin-bottom: 2px;
+                }
+                
+                .song-item.playing .music-title {
+                    color: #ff6b6b;
+                }
+                
+                .music-subtitle {
+                    font-size: 13px;
+                    color: rgba(255, 255, 255, 0.6);
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                
+                .song-duration {
+                    font-size: 13px;
+                    color: rgba(255, 255, 255, 0.5);
+                    font-weight: 500;
+                    min-width: 40px;
+                    text-align: right;
+                }
+                
+                .music-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    opacity: 0;
+                    transition: opacity 0.2s ease;
+                }
+                
+                .music-item:hover .music-actions {
+                    opacity: 1;
+                }
+                
+                .action-btn {
+                    background: rgba(255, 255, 255, 0.1);
+                    border: none;
+                    border-radius: 6px;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    color: rgba(255, 255, 255, 0.8);
+                    font-size: 12px;
+                    backdrop-filter: blur(10px);
+                }
+                
+                .action-btn:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    transform: scale(1.05);
+                }
+                
+                .play-btn {
+                    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                    color: white;
+                }
+                
+                .play-btn:hover {
+                    background: linear-gradient(135deg, #ff5252, #d84315);
+                }
+                
+                /* Text-to-Speech Styles */
+                .tts-container {
+                    padding: 24px;
+                    background: rgba(0, 0, 0, 0.1);
+                    border-radius: 12px;
+                    backdrop-filter: blur(10px);
+                }
+                
+                .tts-text-input {
+                    margin-bottom: 24px;
+                }
+                
+                .tts-label {
+                    display: block;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.9);
+                    margin-bottom: 8px;
+                }
+                
+                .tts-textarea {
+                    width: 100%;
+                    padding: 16px;
+                    border: none;
+                    border-radius: 12px;
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 15px;
+                    line-height: 1.5;
+                    resize: vertical;
+                    min-height: 100px;
+                    box-sizing: border-box;
+                    backdrop-filter: blur(10px);
+                    transition: all 0.3s ease;
+                }
+                
+                .tts-textarea::placeholder {
+                    color: rgba(255, 255, 255, 0.5);
+                }
+                
+                .tts-textarea:focus {
+                    outline: none;
+                    background: rgba(255, 255, 255, 0.15);
+                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+                }
+                
+                .tts-settings {
+                    margin-bottom: 24px;
+                }
+                
+                .tts-setting-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 16px;
+                }
+                
+                .tts-setting-row:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .tts-setting-label {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.8);
+                    min-width: 120px;
+                }
+                
+                .tts-select {
+                    background: rgba(255, 255, 255, 0.1);
+                    border: none;
+                    border-radius: 8px;
+                    padding: 10px 12px;
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 14px;
+                    min-width: 200px;
+                    backdrop-filter: blur(10px);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .tts-select:focus {
+                    outline: none;
+                    background: rgba(255, 255, 255, 0.15);
+                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+                }
+                
+                .tts-select option {
+                    background: #333;
+                    color: white;
+                }
+                
+                .tts-slider-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    min-width: 200px;
+                }
+                
+                .tts-slider {
+                    flex: 1;
+                    height: 6px;
+                    border-radius: 3px;
+                    background: rgba(255, 255, 255, 0.2);
+                    outline: none;
+                    appearance: none;
+                    cursor: pointer;
+                }
+                
+                .tts-slider::-webkit-slider-thumb {
+                    appearance: none;
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    background: #ff6b6b;
+                    cursor: pointer;
+                    box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
+                }
+                
+                .tts-slider::-moz-range-thumb {
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    background: #ff6b6b;
+                    cursor: pointer;
+                    border: none;
+                    box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
+                }
+                
+                .tts-slider-value {
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.8);
+                    min-width: 40px;
+                    text-align: right;
+                }
+                
+                .tts-actions {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: flex-end;
+                }
+                
+                .tts-action-btn {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 12px 20px;
+                    border: none;
+                    border-radius: 10px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    backdrop-filter: blur(10px);
+                }
+                
+                .preview-btn {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .preview-btn:hover {
+                    background: rgba(255, 255, 255, 0.25);
+                    transform: translateY(-1px);
+                }
+                
+                .speak-btn.primary {
+                    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                    color: white;
+                    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+                }
+                
+                .speak-btn.primary:hover {
+                    background: linear-gradient(135deg, #ff5252, #d84315);
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+                }
+                
+                .btn-icon {
+                    font-size: 16px;
+                }
+                
+                /* Mobile Responsive */
+                @media (max-width: 768px) {
+                    .service-tab {
+                        flex-direction: column;
+                        gap: 4px;
+                        padding: 8px 12px;
+                    }
+                    
+                    .service-label {
+                        font-size: 12px;
+                    }
+                    
+                    .tts-setting-row {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 8px;
+                    }
+                    
+                    .tts-select,
+                    .tts-slider-container {
+                        width: 100%;
+                        min-width: auto;
+                    }
+                    
+                    .tts-actions {
+                        flex-direction: column;
+                    }
+                    
+                    .song-item {
+                        grid-template-columns: 24px 1fr auto;
+                        gap: 8px;
+                    }
+                    
+                    .music-artwork.small {
+                        display: none;
+                    }
+                    
+                    .song-duration {
+                        font-size: 12px;
+                    }
+                }
+
+
+
+
+                                
             </style>
             
             <div class="search-container">
@@ -3344,46 +3699,47 @@ class FastSearchCard extends HTMLElement {
                     });
 
                     // NEU: Music Assistant Event Listeners hinzufügen
+                    this.setupServiceTabEventListeners(item);  
                     this.setupMusicAssistantEventListeners(item);
+
+                    this.setupTextToSpeechEventListeners(item);
                 
                 }
 
 
+            
+            setupMusicAssistantEventListeners(item) {
+                const searchInput = this.shadowRoot.querySelector(`[data-ma-search="${item.id}"]`);
+                const resultsContainer = this.shadowRoot.getElementById(`ma-results-${item.id}`);
+                const enqueueMode = this.shadowRoot.querySelector(`[data-ma-enqueue="${item.id}"]`);
+                const filterContainer = this.shadowRoot.getElementById(`ma-filters-${item.id}`);
                 
-                setupMusicAssistantEventListeners(item) {
-                    const searchInput = this.shadowRoot.querySelector(`[data-ma-search="${item.id}"]`);
-                    const resultsContainer = this.shadowRoot.getElementById(`ma-results-${item.id}`);
-                    const enqueueMode = this.shadowRoot.querySelector(`[data-ma-enqueue="${item.id}"]`);
-                    const filterContainer = this.shadowRoot.getElementById(`ma-filters-${item.id}`);
+                if (!searchInput || !resultsContainer) return;
+                
+                let searchTimeout;
+                let currentFilter = 'all';
+                let currentEnqueueMode = 'replace';
+                let lastResults = null;
+                
+                // Enqueue Mode Toggle
+                if (enqueueMode) {
+                    const enqueueModes = this.getMusicAssistantEnqueueModes();
+
                     
-                    if (!searchInput || !resultsContainer) return;
+                    let currentModeIndex = 0;
                     
-                    let searchTimeout;
-                    let currentFilter = 'all';
-                    let currentEnqueueMode = 'play';
-                    let lastResults = null;
-                    
-                    // Enqueue Mode Toggle
-                    if (enqueueMode) {
-                        const enqueueModes = [
-                            { key: 'play', icon: '▶️', text: 'Play now' },
-                            { key: 'replace', icon: '🔄', text: 'Replace queue' },
-                            { key: 'next', icon: '⏭️', text: 'Add next' },
-                            { key: 'add', icon: '➕', text: 'Add to queue' }
-                        ];
+                    enqueueMode.addEventListener('click', () => {
+                        currentModeIndex = (currentModeIndex + 1) % enqueueModes.length;
+                        const mode = enqueueModes[currentModeIndex];
+                        currentEnqueueMode = mode.key;
                         
-                        let currentModeIndex = 0;
-                        
-                        enqueueMode.addEventListener('click', () => {
-                            currentModeIndex = (currentModeIndex + 1) % enqueueModes.length;
-                            const mode = enqueueModes[currentModeIndex];
-                            currentEnqueueMode = mode.key;
-                            
-                            enqueueMode.querySelector('.ma-enqueue-icon').textContent = mode.icon;
-                            enqueueMode.querySelector('.ma-enqueue-text').textContent = mode.text;
-                        });
-                    }
-                    
+                        enqueueMode.querySelector('.ma-enqueue-icon').textContent = mode.icon;
+                        enqueueMode.querySelector('.ma-enqueue-text').textContent = mode.text;
+                    });
+                }
+                
+   
+                                        
                     // Filter Chips
                     if (filterContainer) {
                         filterContainer.querySelectorAll('.ma-filter-chip').forEach(chip => {
@@ -3413,7 +3769,7 @@ class FastSearchCard extends HTMLElement {
                         clearTimeout(searchTimeout);
                         
                         if (query.length < 2) {
-                            resultsContainer.innerHTML = '<div class="ma-empty-state">Gebe mindestens 2 Zeichen ein um zu suchen...</div>';
+                            resultsContainer.innerHTML = '<div class="ma-empty-state">Suche läuft...</div>';
                             lastResults = null;
                             return;
                         }
@@ -3427,12 +3783,190 @@ class FastSearchCard extends HTMLElement {
                         }, 300);
                     });
                 }
+
+
+
+             
+                setupServiceTabEventListeners(item) {
+                    const serviceTabs = this.shadowRoot.querySelectorAll('.more-info-replace .service-tab');
+                    const serviceContents = this.shadowRoot.querySelectorAll('.more-info-replace .service-content');
+                    
+                    serviceTabs.forEach(tab => {
+                        tab.addEventListener('click', function() {
+                            const service = this.getAttribute('data-service');
+                            
+                            // Skip if disabled
+                            if (this.disabled) return;
+                            
+                            // Update tabs
+                            serviceTabs.forEach(t => t.classList.remove('active'));
+                            this.classList.add('active');
+                            
+                            // Update content
+                            serviceContents.forEach(content => {
+                                content.classList.remove('active');
+                            });
+                            
+                            const targetContent = this.shadowRoot.querySelector(`#${service}-service-${item.id}`);
+                            if (targetContent) {
+                                targetContent.classList.add('active');
+                            }
+                        }.bind(this)); // WICHTIG: .bind(this) für this-Kontext
+                    });
+                }
                 
+                setupTextToSpeechEventListeners(item) {
+                    const ttsContainer = this.shadowRoot.querySelector(`#tts-service-${item.id}`);
+                    if (!ttsContainer) return;
+                    
+                    // TTS Slider interactions
+                    const ttsSliders = ttsContainer.querySelectorAll('.tts-slider');
+                    ttsSliders.forEach(slider => {
+                        slider.addEventListener('input', function() {
+                            const value = this.value;
+                            const valueSpan = this.parentNode.querySelector('.tts-slider-value');
+                            const setting = this.getAttribute('data-tts-setting');
+                            
+                            if (setting === 'speed') {
+                                valueSpan.textContent = value + 'x';
+                            } else if (setting === 'volume') {
+                                valueSpan.textContent = value + '%';
+                            }
+                        });
+                    });
+                    
+                    // TTS Action buttons
+                    const ttsActionBtns = ttsContainer.querySelectorAll('.tts-action-btn');
+                    ttsActionBtns.forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const action = btn.getAttribute('data-tts-action');
+                            const originalText = btn.querySelector('.btn-text').textContent;
+                            const btnText = btn.querySelector('.btn-text');
+                            
+                            if (action === 'preview') {
+                                btnText.textContent = 'Lädt...';
+                                btn.disabled = true;
+                                
+                                this.previewTextToSpeech(item.id).then(() => {
+                                    btnText.textContent = originalText;
+                                    btn.disabled = false;
+                                }).catch(() => {
+                                    btnText.textContent = 'Fehler';
+                                    setTimeout(() => {
+                                        btnText.textContent = originalText;
+                                        btn.disabled = false;
+                                    }, 2000);
+                                });
+                                
+                            } else if (action === 'speak') {
+                                btnText.textContent = 'Wird gesprochen...';
+                                btn.disabled = true;
+                                
+                                this.executeTextToSpeech(item.id).then(() => {
+                                    btnText.textContent = originalText;
+                                    btn.disabled = false;
+                                }).catch(() => {
+                                    btnText.textContent = 'Fehler';
+                                    setTimeout(() => {
+                                        btnText.textContent = originalText;
+                                        btn.disabled = false;
+                                    }, 2000);
+                                });
+                            }
+                        });
+                    });
+                }
+                
+                async previewTextToSpeech(entityId) {
+                    if (!this._hass) return;
+                    
+                    try {
+                        const ttsSettings = this.getTTSSettings(entityId);
+                        
+                        if (!ttsSettings.text.trim()) {
+                            throw new Error('Kein Text eingegeben');
+                        }
+                        
+                        // Preview nur ersten Teil des Textes (max 50 Zeichen)
+                        const previewText = ttsSettings.text.substring(0, 50) + (ttsSettings.text.length > 50 ? '...' : '');
+                        
+                        if (ttsSettings.engine === 'amazon_polly') {
+                            await this._hass.callService('tts', 'amazon_polly_say', {
+                                entity_id: entityId,
+                                message: previewText,
+                                options: {
+                                    voice: ttsSettings.voice
+                                }
+                            });
+                        } else if (ttsSettings.engine === 'google_translate') {
+                            await this._hass.callService('tts', 'google_translate_say', {
+                                entity_id: entityId,
+                                message: previewText,
+                                language: 'de'
+                            });
+                        }
+                        
+                        console.log('TTS Preview ausgeführt');
+                    } catch (error) {
+                        console.error('TTS Preview Fehler:', error);
+                        throw error;
+                    }
+                }
+                
+                async executeTextToSpeech(entityId) {
+                    if (!this._hass) return;
+                    
+                    try {
+                        const ttsSettings = this.getTTSSettings(entityId);
+                        
+                        if (!ttsSettings.text.trim()) {
+                            throw new Error('Kein Text eingegeben');
+                        }
+                        
+                        // Vollständigen Text sprechen
+                        if (ttsSettings.engine === 'amazon_polly') {
+                            await this._hass.callService('tts', 'amazon_polly_say', {
+                                entity_id: entityId,
+                                message: ttsSettings.text,
+                                options: {
+                                    voice: ttsSettings.voice
+                                }
+                            });
+                        } else if (ttsSettings.engine === 'google_translate') {
+                            await this._hass.callService('tts', 'google_translate_say', {
+                                entity_id: entityId,
+                                message: ttsSettings.text,
+                                language: 'de'
+                            });
+                        }
+                        
+                        console.log('TTS ausgeführt:', ttsSettings);
+                    } catch (error) {
+                        console.error('TTS Fehler:', error);
+                        throw error;
+                    }
+                }
+                
+                getTTSSettings(entityId) {
+                    const ttsContainer = this.shadowRoot.querySelector(`#tts-service-${entityId}`);
+                    if (!ttsContainer) return {};
+                    
+                    return {
+                        text: ttsContainer.querySelector('.tts-textarea').value,
+                        engine: ttsContainer.querySelector('[data-tts-setting="engine"]').value,
+                        voice: ttsContainer.querySelector('[data-tts-setting="voice"]').value,
+                        speed: parseFloat(ttsContainer.querySelector('[data-tts-setting="speed"]').value),
+                        volume: parseInt(ttsContainer.querySelector('[data-tts-setting="volume"]').value)
+                    };
+                }
+
+
+    
                 // Komplett neue displayMusicAssistantResults Funktion:
-                
-                displayMusicAssistantResults(results, container, entityId, activeFilter = 'all', enqueueMode = 'play') {
+                                
+                displayMusicAssistantResults(results, container, entityId, activeFilter = 'all', enqueueMode = 'replace') {
                     if (!results || Object.keys(results).length === 0) {
-                        container.innerHTML = '<div class="ma-no-results">Keine Ergebnisse gefunden</div>';
+                        container.innerHTML = '<div class="ma-empty-state">Keine Ergebnisse gefunden</div>';
                         return;
                     }
                     
@@ -3450,11 +3984,11 @@ class FastSearchCard extends HTMLElement {
                     }
                     
                     if (Object.keys(filteredResults).length === 0) {
-                        container.innerHTML = '<div class="ma-no-results">Keine Ergebnisse in dieser Kategorie</div>';
+                        container.innerHTML = '<div class="ma-empty-state">Keine Ergebnisse in dieser Kategorie</div>';
                         return;
                     }
                     
-                    // Display results
+                    // Display results in Apple Music style
                     categoryOrder.forEach(type => {
                         const items = filteredResults[type];
                         if (!items || items.length === 0) return;
@@ -3462,67 +3996,84 @@ class FastSearchCard extends HTMLElement {
                         const categoryName = this.getMusicAssistantCategoryName(type);
                         const isTrackType = type === 'tracks';
                         
-                        if (activeFilter === 'all') {
-                            html += `
-                                <div class="ma-category-header" data-category="${type}">
-                                    <h3 class="ma-category-title">${categoryName}</h3>
-                                    <span class="ma-category-chevron">›</span>
+                        html += `
+                            <div class="music-section">
+                                <div class="section-header" data-category="${type}">
+                                    <h3 class="section-title">${categoryName}</h3>
+                                    <span class="section-count">${items.length} Ergebnisse</span>
                                 </div>
-                            `;
-                        }
+                                
+                                <div class="music-list">
+                        `;
+                        
+                        const displayItems = activeFilter === 'all' ? items.slice(0, 5) : items;
                         
                         if (isTrackType) {
-                            // List view for tracks
-                            html += '<div class="ma-list-container">';
-                            const displayItems = activeFilter === 'all' ? items.slice(0, 5) : items;
-                            
-                            displayItems.forEach(item => {
+                            // Song list style for tracks
+                            displayItems.forEach((item, index) => {
                                 const artistText = item.artists ? item.artists.map(a => a.name).join(', ') : '';
                                 const imageUrl = item.image || (item.album ? item.album.image : '');
+                                const duration = this.formatDuration(item.duration || 0);
                                 
                                 html += `
-                                    <div class="ma-list-item" data-uri="${item.uri}" data-type="${item.media_type}" data-name="${item.name}">
-                                        <div class="ma-list-image">
-                                            ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" />` : '🎵'}
+                                    <div class="music-item song-item" data-uri="${item.uri}" data-type="${item.media_type}" data-name="${item.name}">
+                                        <div class="song-number">${index + 1}</div>
+                                        <div class="music-artwork small">
+                                            ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" />` : '<div class="artwork-placeholder">🎵</div>'}
                                         </div>
-                                        <div class="ma-list-info">
-                                            <div class="ma-list-name">${item.name}</div>
-                                            <div class="ma-list-artist">${artistText}</div>
+                                        <div class="music-info">
+                                            <div class="music-title">${item.name}</div>
+                                            <div class="music-subtitle">${artistText}${item.album ? ' • ' + item.album.name : ''}</div>
+                                        </div>
+                                        <div class="song-duration">${duration}</div>
+                                        <div class="music-actions">
+                                            <button class="action-btn play-btn">▶️</button>
+                                            <button class="action-btn more-btn">⋯</button>
                                         </div>
                                     </div>
                                 `;
                             });
-                            html += '</div>';
                         } else {
-                            // Grid view for artists, albums, playlists, radio
-                            html += '<div class="ma-grid-container">';
-                            const displayItems = activeFilter === 'all' ? items.slice(0, 6) : items;
-                            
+                            // Artist/Album/Playlist style
                             displayItems.forEach(item => {
                                 const artistText = item.artists ? item.artists.map(a => a.name).join(', ') : '';
                                 const imageUrl = item.image;
-                                const defaultIcon = type === 'artists' ? '👤' : type === 'albums' ? '💿' : type === 'playlists' ? '📋' : '📻';
+                                const defaultIcon = this.getDefaultIcon(type);
+                                const subtitle = this.getItemSubtitle(item, type);
                                 
                                 html += `
-                                    <div class="ma-grid-item" data-uri="${item.uri}" data-type="${item.media_type}" data-name="${item.name}">
-                                        <div class="ma-grid-image">
-                                            ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" />` : defaultIcon}
+                                    <div class="music-item ${type.slice(0, -1)}-item" data-uri="${item.uri}" data-type="${item.media_type}" data-name="${item.name}">
+                                        <div class="music-artwork">
+                                            ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" />` : `<div class="artwork-placeholder">${defaultIcon}</div>`}
                                         </div>
-                                        <div class="ma-grid-name">${item.name}</div>
-                                        ${artistText ? `<div class="ma-grid-artist">${artistText}</div>` : ''}
+                                        <div class="music-info">
+                                            <div class="music-title">${item.name}</div>
+                                            <div class="music-subtitle">${subtitle}</div>
+                                        </div>
+                                        <div class="music-actions">
+                                            <button class="action-btn play-btn">▶️</button>
+                                            <button class="action-btn more-btn">⋯</button>
+                                        </div>
                                     </div>
                                 `;
                             });
-                            html += '</div>';
                         }
+                        
+                        html += `
+                                </div>
+                            </div>
+                        `;
                     });
                     
                     container.innerHTML = html;
                     
                     // Event Listeners für Items
-                    container.querySelectorAll('.ma-list-item, .ma-grid-item').forEach(itemElement => {
+                    container.querySelectorAll('.music-item').forEach(itemElement => {
                         itemElement.addEventListener('click', async (e) => {
                             e.stopPropagation();
+                            
+                            // Don't trigger if clicking on action buttons
+                            if (e.target.closest('.action-btn')) return;
                             
                             const uri = itemElement.getAttribute('data-uri');
                             const mediaType = itemElement.getAttribute('data-type');
@@ -3543,20 +4094,117 @@ class FastSearchCard extends HTMLElement {
                         });
                     });
                     
-                    // Category header click handlers for "all" view
-                    if (activeFilter === 'all') {
-                        container.querySelectorAll('.ma-category-header').forEach(header => {
-                            header.addEventListener('click', () => {
-                                const category = header.getAttribute('data-category');
-                                
-                                // Switch to that category filter
-                                const filterChip = this.shadowRoot.querySelector(`[data-filter="${category}"]`);
-                                if (filterChip) {
-                                    filterChip.click();
+                    // Action button event listeners
+                    container.querySelectorAll('.action-btn').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            
+                            const musicItem = btn.closest('.music-item');
+                            const uri = musicItem.getAttribute('data-uri');
+                            const mediaType = musicItem.getAttribute('data-type');
+                            const name = musicItem.getAttribute('data-name');
+                            
+                            if (btn.classList.contains('play-btn')) {
+                                // Handle play button click
+                                if (musicItem.classList.contains('song-item')) {
+                                    // Toggle play/pause for songs
+                                    if (musicItem.classList.contains('playing')) {
+                                        musicItem.classList.remove('playing');
+                                        btn.textContent = '▶️';
+                                        // Stop playback
+                                    } else {
+                                        // Remove playing from other songs
+                                        container.querySelectorAll('.song-item.playing').forEach(item => {
+                                            item.classList.remove('playing');
+                                            item.querySelector('.play-btn').textContent = '▶️';
+                                        });
+                                        
+                                        musicItem.classList.add('playing');
+                                        btn.textContent = '⏸️';
+                                        
+                                        // Start playback
+                                        await this.playMusicAssistantItem({
+                                            uri: uri,
+                                            media_type: mediaType,
+                                            name: name
+                                        }, entityId, enqueueMode);
+                                    }
+                                } else {
+                                    // For artists, albums, playlists - just play
+                                    await this.playMusicAssistantItem({
+                                        uri: uri,
+                                        media_type: mediaType,
+                                        name: name
+                                    }, entityId, enqueueMode);
                                 }
-                            });
+                            } else if (btn.classList.contains('more-btn')) {
+                                // Handle more button click - could show context menu
+                                console.log('More options for:', name);
+                            }
+                            
+                            // Visual feedback
+                            btn.style.transform = 'scale(0.95)';
+                            setTimeout(() => {
+                                btn.style.transform = 'scale(1.05)';
+                                setTimeout(() => {
+                                    btn.style.transform = '';
+                                }, 100);
+                            }, 100);
                         });
+                    });
+                }
+                
+                // Hilfsfunktionen hinzufügen:
+                
+                formatDuration(seconds) {
+                    if (!seconds || seconds === 0) return '--:--';
+                    
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+                }
+                
+                getDefaultIcon(type) {
+                    const icons = {
+                        'artists': '👤',
+                        'albums': '💿',
+                        'playlists': '📋',
+                        'radio': '📻',
+                        'tracks': '🎵'
+                    };
+                    return icons[type] || '🎵';
+                }
+                
+                getItemSubtitle(item, type) {
+                    switch (type) {
+                        case 'artists':
+                            const genres = item.genres ? item.genres.join(', ') : '';
+                            return `Künstler${genres ? ' • ' + genres : ''}`;
+                            
+                        case 'albums':
+                            const artist = item.artists ? item.artists.map(a => a.name).join(', ') : '';
+                            const year = item.year ? ` • ${item.year}` : '';
+                            return `Album${artist ? ' • ' + artist : ''}${year}`;
+                            
+                        case 'playlists':
+                            const trackCount = item.track_count ? ` • ${item.track_count} Titel` : '';
+                            return `Playlist${trackCount}`;
+                            
+                        case 'radio':
+                            return 'Radio Station';
+                            
+                        default:
+                            return '';
                     }
+                }
+                
+                // Enqueue Mode Text anpassen (da "Play now" entfernt wurde):
+                getMusicAssistantEnqueueModes() {
+                    return [
+                        { key: 'replace', icon: '🔄', text: 'Replace queue' },
+                        { key: 'next', icon: '⏭️', text: 'Add next' },
+                        { key: 'add', icon: '➕', text: 'Add to queue' }
+                    ];
                 }
 
     
@@ -3919,9 +4567,9 @@ getQuickStats(item) {
         return names[type] || type;
     }
 
+        
     
-
-    
+        
     getMediaReplaceControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
@@ -3936,8 +4584,8 @@ getQuickStats(item) {
                     <button class="toggle-button-large" data-action="play_pause">
                         ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
                     </button>
-                    <button class="toggle-button-large off" data-action="previous">⏮️</button>
-                    <button class="toggle-button-large off" data-action="next">⏭️</button>
+                    <button class="toggle-button-large secondary" data-action="previous">⏮️</button>
+                    <button class="toggle-button-large secondary" data-action="next">⏭️</button>
                 </div>
                 <div class="slider-control-large">
                     <div class="slider-label-large">
@@ -3948,53 +4596,32 @@ getQuickStats(item) {
                            min="0" max="100" value="${volume}">
                 </div>
                 
-                ${hasMusicAssistant ? `
-                    <div class="music-assistant-search" id="ma-search-${item.id}">
-                        <h4 class="control-title-large">🎵 Music Assistant Suche</h4>
-                        <div class="ma-search-container">
-                            <div class="ma-search-bar-container">
-                                <input type="text" 
-                                       class="ma-search-input" 
-                                       placeholder="Suchen..." 
-                                       data-ma-search="${item.id}">
-                                <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
-                                    <span class="ma-enqueue-icon">▶️</span>
-                                    <span class="ma-enqueue-text">Play now</span>
-                                </div>
-                            </div>
-                            <div class="ma-filter-container" id="ma-filters-${item.id}">
-                                <div class="ma-filter-chip ma-filter-active" data-filter="all">
-                                    <span class="ma-filter-icon">🔗</span>
-                                    <span>All</span>
-                                </div>
-                                <div class="ma-filter-chip" data-filter="artists">
-                                    <span class="ma-filter-icon">👤</span>
-                                    <span>Artists</span>
-                                </div>
-                                <div class="ma-filter-chip" data-filter="albums">
-                                    <span class="ma-filter-icon">💿</span>
-                                    <span>Albums</span>
-                                </div>
-                                <div class="ma-filter-chip" data-filter="tracks">
-                                    <span class="ma-filter-icon">🎵</span>
-                                    <span>Tracks</span>
-                                </div>
-                                <div class="ma-filter-chip" data-filter="playlists">
-                                    <span class="ma-filter-icon">📋</span>
-                                    <span>Playlists</span>
-                                </div>
-                                <div class="ma-filter-chip" data-filter="radio">
-                                    <span class="ma-filter-icon">📻</span>
-                                    <span>Radio</span>
-                                </div>
-                            </div>
-                            <div class="ma-search-results" id="ma-results-${item.id}"></div>
-                        </div>
+                <!-- Media Service Selector -->
+                <div class="media-service-selector">
+                    <div class="service-tabs">
+                        <button class="service-tab ${hasMusicAssistant ? 'active' : ''}" data-service="music" ${!hasMusicAssistant ? 'disabled' : ''}>
+                            <span class="service-icon">🎵</span>
+                            <span class="service-label">Music Assistant</span>
+                        </button>
+                        <button class="service-tab ${!hasMusicAssistant ? 'active' : ''}" data-service="tts">
+                            <span class="service-icon">🗣️</span>
+                            <span class="service-label">Text-to-Speech</span>
+                        </button>
                     </div>
-                ` : ''}
+                </div>
+                
+                <!-- Music Assistant Service -->
+                <div class="service-content ${hasMusicAssistant ? 'active' : ''}" id="music-service-${item.id}">
+                    ${hasMusicAssistant ? this.getMusicAssistantHTML(item) : '<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.6);">Music Assistant nicht verfügbar</div>'}
+                </div>
+                
+                <!-- Text-to-Speech Service -->
+                <div class="service-content ${!hasMusicAssistant ? 'active' : ''}" id="tts-service-${item.id}">
+                    ${this.getTextToSpeechHTML(item)}
+                </div>
             </div>
         `;
-    }    
+    }
 
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
