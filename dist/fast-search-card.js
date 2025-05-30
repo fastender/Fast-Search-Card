@@ -3785,22 +3785,20 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
-
-             
                 setupServiceTabEventListeners(item) {
                     const serviceTabs = this.shadowRoot.querySelectorAll('.more-info-replace .service-tab');
                     const serviceContents = this.shadowRoot.querySelectorAll('.more-info-replace .service-content');
                     
                     serviceTabs.forEach(tab => {
-                        tab.addEventListener('click', function() {
-                            const service = this.getAttribute('data-service');
+                        tab.addEventListener('click', () => {
+                            const service = tab.getAttribute('data-service');
                             
                             // Skip if disabled
-                            if (this.disabled) return;
+                            if (tab.disabled) return;
                             
                             // Update tabs
                             serviceTabs.forEach(t => t.classList.remove('active'));
-                            this.classList.add('active');
+                            tab.classList.add('active');
                             
                             // Update content
                             serviceContents.forEach(content => {
@@ -3811,10 +3809,10 @@ class FastSearchCard extends HTMLElement {
                             if (targetContent) {
                                 targetContent.classList.add('active');
                             }
-                        }.bind(this)); // WICHTIG: .bind(this) für this-Kontext
+                        });
                     });
                 }
-                
+                    
                 setupTextToSpeechEventListeners(item) {
                     const ttsContainer = this.shadowRoot.querySelector(`#tts-service-${item.id}`);
                     if (!ttsContainer) return;
