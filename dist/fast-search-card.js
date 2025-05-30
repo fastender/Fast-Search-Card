@@ -3790,27 +3790,16 @@ class FastSearchCard extends HTMLElement {
 
 
                 setupServiceTabEventListeners(item) {
-                    // Debug: Prüfe ob Tabs und Inhalte existieren
                     const serviceTabs = this.shadowRoot.querySelectorAll('.more-info-replace .service-tab');
                     const serviceContents = this.shadowRoot.querySelectorAll('.more-info-replace .service-content');
-                    
-                    console.log('🔍 Debug Service Tabs:', {
-                        tabsFound: serviceTabs.length,
-                        contentsFound: serviceContents.length,
-                        itemId: item.id
-                    });
                     
                     serviceTabs.forEach(tab => {
                         tab.addEventListener('click', () => {
                             const service = tab.getAttribute('data-service');
-                            
-                            console.log('🎯 Tab clicked:', service);
+                            const cleanId = item.id.replace(/\./g, '_'); // WICHTIG: Punkt ersetzen
                             
                             // Skip if disabled
-                            if (tab.disabled) {
-                                console.log('❌ Tab is disabled');
-                                return;
-                            }
+                            if (tab.disabled) return;
                             
                             // Update tabs
                             serviceTabs.forEach(t => t.classList.remove('active'));
@@ -3821,14 +3810,9 @@ class FastSearchCard extends HTMLElement {
                                 content.classList.remove('active');
                             });
                             
-                            const targetContent = this.shadowRoot.querySelector(`#${service}-service-${item.id}`);
-                            console.log('🎯 Target content:', targetContent);
-                            
+                            const targetContent = this.shadowRoot.querySelector(`#${service}-service-${cleanId}`);
                             if (targetContent) {
                                 targetContent.classList.add('active');
-                                console.log('✅ Content activated');
-                            } else {
-                                console.error('❌ Target content not found:', `#${service}-service-${item.id}`);
                             }
                         });
                     });
@@ -4643,8 +4627,8 @@ getQuickStats(item) {
         `;
     }
 
-    
     getMusicAssistantHTML(item) {
+        const cleanId = item.id.replace(/\./g, '_'); // Punkt durch Unterstrich ersetzen
         const filterOptions = [
             { key: 'all', icon: '🎵', text: 'Alle' },
             { key: 'artists', icon: '👤', text: 'Künstler' },
@@ -4658,15 +4642,15 @@ getQuickStats(item) {
             <div class="music-assistant-search">
                 <div class="ma-search-container">
                     <div class="ma-search-bar-container">
-                        <input type="text" class="ma-search-input" placeholder="Musik suchen..." data-ma-search="${item.id}">
+                        <input type="text" class="ma-search-input" placeholder="Musik suchen..." data-ma-search="${cleanId}">
                         
-                        <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
+                        <div class="ma-enqueue-mode" data-ma-enqueue="${cleanId}">
                             <span class="ma-enqueue-icon">🔄</span>
                             <span class="ma-enqueue-text">Replace queue</span>
                         </div>
                     </div>
                     
-                    <div class="ma-filter-container" id="ma-filters-${item.id}">
+                    <div class="ma-filter-container" id="ma-filters-${cleanId}">
                         ${filterOptions.map(filter => `
                             <div class="ma-filter-chip ${filter.key === 'all' ? 'ma-filter-active' : ''}" data-filter="${filter.key}">
                                 <span class="ma-filter-icon">${filter.icon}</span>
@@ -4677,23 +4661,25 @@ getQuickStats(item) {
                 </div>
                 
                 <div class="apple-music-style">
-                    <div class="ma-search-results" id="ma-results-${item.id}">
+                    <div class="ma-search-results" id="ma-results-${cleanId}">
                         <div class="ma-empty-state">Geben Sie einen Suchbegriff ein...</div>
                     </div>
                 </div>
             </div>
         `;
     }
-    
+        
+
     getTextToSpeechHTML(item) {
+        const cleanId = item.id.replace(/\./g, '_'); // Punkt durch Unterstrich ersetzen
         const availableVoices = this.getAvailableTTSVoices();
         const availableEngines = this.getAvailableTTSEngines();
     
         return `
             <div class="tts-container">
                 <div class="tts-text-input">
-                    <label class="tts-label" for="tts-text-${item.id}">Text zum Sprechen:</label>
-                    <textarea class="tts-textarea" id="tts-text-${item.id}" 
+                    <label class="tts-label" for="tts-text-${cleanId}">Text zum Sprechen:</label>
+                    <textarea class="tts-textarea" id="tts-text-${cleanId}" 
                               placeholder="Geben Sie den Text ein, der gesprochen werden soll..."></textarea>
                 </div>
                 
@@ -4747,7 +4733,7 @@ getQuickStats(item) {
                 </div>
             </div>
         `;
-    }
+    }        
     
     getAvailableTTSEngines() {
         // Standard TTS Engines - könnten später dynamisch ermittelt werden
