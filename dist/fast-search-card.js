@@ -3785,6 +3785,8 @@ class FastSearchCard extends HTMLElement {
 
                 // ↓ HIER die 3 TTS-Funktionen aus Schritt 6 einfügen ↓
                 
+
+                
                 /**
                  * Spricht Text über TTS aus
                  */
@@ -3811,18 +3813,18 @@ class FastSearchCard extends HTMLElement {
                         };
                         
                         // Sprache hinzufügen wenn unterstützt
-                        if (ttsService === 'google_translate_say' || ttsService === 'amazon_polly_say') {
+                        if (ttsService.domain === 'tts' || ttsService.domain === 'chime_tts') {
                             serviceData.language = language;
                         }
                         
                         console.log('TTS Service Call:', {
-                            domain: ttsService,
-                            service: 'tts_say',
+                            domain: ttsService.domain,
+                            service: ttsService.service,
                             serviceData: serviceData
                         });
                         
                         // TTS Service aufrufen
-                        await this._hass.callService(ttsService, 'tts_say', serviceData);
+                        await this._hass.callService(ttsService.domain, ttsService.service, serviceData);
                         
                         console.log('TTS erfolgreich gestartet');
                         return true;
@@ -3842,7 +3844,7 @@ class FastSearchCard extends HTMLElement {
                         
                         return false;
                     }
-                }
+                }    
                 
                 /**
                  * Stoppt TTS Wiedergabe
@@ -4179,12 +4181,13 @@ getQuickStats(item) {
         console.log('=== TTS Service Detection ===');
         console.log('Alle verfügbaren Services:', Object.keys(this._hass.services));
         
-        // Prioritätsliste der TTS Services
+        // Prioritätsliste basierend auf den gefundenen Services
         const priorityServices = [
+            'chime_tts',     // Chime TTS (dein Hauptservice)
+            'tts',           // Standard TTS (Amazon Polly, Cloud, etc.)
             'google_translate_say',
             'amazon_polly_say', 
             'microsoft_tts_say',
-            'tts',  // Standard TTS Service
             'pico2wave_say',
             'watson_tts_say'
         ];
@@ -4194,31 +4197,28 @@ getQuickStats(item) {
             if (this._hass.services[service]) {
                 console.log(`Service "${service}" gefunden:`, this._hass.services[service]);
                 
-                // Prüfe ob tts_say verfügbar ist
-                if (this._hass.services[service].tts_say) {
-                    console.log(`✅ Verwende TTS Service: ${service}`);
-                    return service;
+                // Prüfe verfügbare Methoden
+                const serviceMethods = Object.keys(this._hass.services[service]);
+                console.log(`Methoden für ${service}:`, serviceMethods);
+                
+                // Suche nach passender Methode
+                if (this._hass.services[service].say) {
+                    console.log(`✅ Verwende TTS Service: ${service}.say`);
+                    return { domain: service, service: 'say' };
+                } else if (this._hass.services[service].tts_say) {
+                    console.log(`✅ Verwende TTS Service: ${service}.tts_say`);
+                    return { domain: service, service: 'tts_say' };
+                } else if (this._hass.services[service].amazon_polly_say) {
+                    console.log(`✅ Verwende TTS Service: ${service}.amazon_polly_say`);
+                    return { domain: service, service: 'amazon_polly_say' };
+                } else if (this._hass.services[service].cloud_say) {
+                    console.log(`✅ Verwende TTS Service: ${service}.cloud_say`);
+                    return { domain: service, service: 'cloud_say' };
                 }
             }
         }
         
-        // Fallback: Suche nach jedem Service mit tts_say
-        const allTTSServices = Object.keys(this._hass.services).filter(domain => {
-            const hasService = this._hass.services[domain] && this._hass.services[domain].tts_say;
-            if (hasService) {
-                console.log(`🔍 TTS Service gefunden: ${domain}`);
-            }
-            return hasService;
-        });
-        
-        console.log('Alle TTS Services mit tts_say:', allTTSServices);
-        
-        if (allTTSServices.length > 0) {
-            console.log(`✅ Verwende ersten gefundenen TTS Service: ${allTTSServices[0]}`);
-            return allTTSServices[0];
-        }
-        
-        console.log('❌ Kein TTS Service mit tts_say gefunden');
+        console.log('❌ Kein passender TTS Service gefunden');
         return null;
     }
     
