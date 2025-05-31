@@ -2230,9 +2230,14 @@ class FastSearchCard extends HTMLElement {
 
 
                 /* Text-to-Speech Styles - NACH den bestehenden .ma-empty-state Styles einfügen */
-
+                .tts-section {
+                    margin-top: 24px;
+                    padding: 0px;
+                    background: transparent;
+                    border-radius: 12px;
+                    border-left: 0px solid #007aff;
+                }
                 
-                /* Text-to-Speech Styles - TAB OPTIMIERT */
                 .tts-input-container {
                     margin-bottom: 16px;
                 }
@@ -2241,31 +2246,25 @@ class FastSearchCard extends HTMLElement {
                     width: 100%;
                     min-height: 80px;
                     padding: 12px;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border: 1px solid #ddd;
                     border-radius: 8px;
                     font-size: 14px;
                     font-family: inherit;
                     resize: vertical;
                     box-sizing: border-box;
                     transition: border-color 0.2s;
-                    background: rgba(0, 0, 0, 0.15);
-                    color: rgba(255, 255, 255, 0.9);
-                }
-                
-                .tts-textarea::placeholder {
-                    color: rgba(255, 255, 255, 0.6);
                 }
                 
                 .tts-textarea:focus {
                     outline: none;
-                    border-color: rgba(255, 255, 255, 0.4);
-                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+                    border-color: #007aff;
+                    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
                 }
                 
                 .tts-counter {
                     text-align: right;
                     font-size: 12px;
-                    color: rgba(255, 255, 255, 0.7);
+                    color: #666;
                     margin-top: 4px;
                 }
                 
@@ -2284,18 +2283,17 @@ class FastSearchCard extends HTMLElement {
                 .tts-language-select {
                     flex: 1;
                     padding: 8px 12px;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border: 1px solid #ddd;
                     border-radius: 6px;
                     font-size: 14px;
-                    background: rgba(0, 0, 0, 0.15);
-                    color: rgba(255, 255, 255, 0.9);
+                    background: white;
                     cursor: pointer;
                 }
                 
                 .tts-speak-button {
-                    background: rgba(255, 255, 255, 0.15);
+                    background: #007aff;
                     color: white;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border: none;
                     border-radius: 6px;
                     padding: 8px 16px;
                     font-size: 14px;
@@ -2310,18 +2308,16 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .tts-speak-button:hover {
-                    background: rgba(255, 255, 255, 0.25);
+                    background: #0056b3;
                 }
                 
                 .tts-speak-button:disabled {
-                    background: rgba(255, 255, 255, 0.1);
-                    color: rgba(255, 255, 255, 0.5);
+                    background: #ccc;
                     cursor: not-allowed;
                 }
                 
                 .tts-speak-button.speaking {
                     background: #ff4444;
-                    border-color: #ff4444;
                 }
                 
                 .tts-speak-button.speaking:hover {
@@ -2335,8 +2331,8 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .tts-preset-button {
-                    background: rgba(0, 0, 0, 0.15);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    background: white;
+                    border: 1px solid #ddd;
                     border-radius: 6px;
                     padding: 8px 12px;
                     font-size: 12px;
@@ -2346,13 +2342,11 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     align-items: center;
                     gap: 6px;
-                    color: rgba(255, 255, 255, 0.8);
                 }
                 
                 .tts-preset-button:hover {
-                    background: rgba(0, 0, 0, 0.25);
-                    border-color: rgba(255, 255, 255, 0.4);
-                    color: rgba(255, 255, 255, 0.9);
+                    background: #f0f0f0;
+                    border-color: #007aff;
                 }
                 
                 .tts-preset-button:active {
@@ -2369,133 +2363,6 @@ class FastSearchCard extends HTMLElement {
                         grid-template-columns: 1fr;
                     }
                 }
-
-
-
-                /* Media Player Tabs Styles */
-                .media-tabs-container {
-                    background: transparent;
-                    border-radius: 12px;
-                    overflow: hidden;
-                    height: 400px; /* Feste Höhe */
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .media-tabs-header {
-                    display: flex;
-                    background: rgba(255, 255, 255, 0.1);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    position: relative;
-                    flex-shrink: 0;
-                }
-                
-                .media-tab {
-                    flex: 1;
-                    padding: 16px 12px;
-                    text-align: center;
-                    background: transparent;
-                    border: none;
-                    color: rgba(255, 255, 255, 0.6);
-                    font-size: 14px;
-                    font-weight: 500;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    position: relative;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 4px;
-                }
-                
-                .media-tab.active {
-                    color: rgba(255, 255, 255, 0.9);
-                    background: rgba(255, 255, 255, 0.05);
-                }
-                
-                .media-tab-icon {
-                    font-size: 20px;
-                }
-                
-                .media-tab-label {
-                    font-size: 12px;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-                
-                .tab-indicator {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    height: 2px;
-                    background: rgba(255, 255, 255, 0.8);
-                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-                    border-radius: 1px;
-                    width: 33.333%;
-                }
-                
-                .tab-indicator.tab-1 { transform: translateX(0%); }
-                .tab-indicator.tab-2 { transform: translateX(100%); }
-                .tab-indicator.tab-3 { transform: translateX(200%); }
-                
-                .media-tabs-content {
-                    flex: 1;
-                    overflow: hidden;
-                    position: relative;
-                    background: transparent;
-                }
-                
-                .media-tab-content {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    padding: 24px;
-                    box-sizing: border-box;
-                    overflow-y: auto;
-                    opacity: 0;
-                    visibility: hidden;
-                    transform: translateX(30px);
-                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-                }
-                
-                .media-tab-content.active {
-                    opacity: 1;
-                    visibility: visible;
-                    transform: translateX(0);
-                }
-                
-                .media-tab-content.swipe-left {
-                    transform: translateX(-100%);
-                }
-                
-                .media-tab-content.swipe-right {
-                    transform: translateX(100%);
-                }
-                
-                .media-tabs-content.touching {
-                    overflow: visible;
-                }
-                
-                .media-tabs-content.touching .media-tab-content {
-                    transition: none;
-                }
-                
-                .media-tab-content::-webkit-scrollbar {
-                    width: 4px;
-                }
-                
-                .media-tab-content::-webkit-scrollbar-track {
-                    background: rgba(255, 255, 255, 0.1);
-                    border-radius: 2px;
-                }
-                
-                .media-tab-content::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.3);
-                    border-radius: 2px;
-                }                
 
                 
                 
@@ -6177,191 +6044,41 @@ getQuickStats(item) {
         `;
     }
 
+
     getMediaControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
         
-        // Prüfe verfügbare Features
-        const hasMusicAssistant = this.checkMusicAssistantAvailability();
-        const hasTTS = this.checkTTSAvailability();
+        // TTS HTML für Popup Dialog
+        const ttsHTML = this.getTTSHTML(item);
         
         return `
             <div class="more-info-section">
-                <h3 class="section-title">📺 Media Player</h3>
-                <div class="media-tabs-container">
-                    <div class="media-tabs-header">
-                        <button class="media-tab active" data-tab="controls">
-                            <div class="media-tab-icon">🎛️</div>
-                            <div class="media-tab-label">Steuerung</div>
-                        </button>
-                        ${hasTTS ? `
-                            <button class="media-tab" data-tab="tts">
-                                <div class="media-tab-icon">🗣️</div>
-                                <div class="media-tab-label">TTS</div>
-                            </button>
-                        ` : ''}
-                        ${hasMusicAssistant ? `
-                            <button class="media-tab" data-tab="music">
-                                <div class="media-tab-icon">🎵</div>
-                                <div class="media-tab-label">Musik</div>
-                            </button>
-                        ` : ''}
-                        <div class="tab-indicator tab-1"></div>
-                    </div>
-                    
-                    <div class="media-tabs-content" data-media-tabs="${item.id}">
-                        <!-- Controls Tab -->
-                        <div class="media-tab-content active" data-tab-content="controls">
-                            <div class="control-section">
-                                <button class="control-button" data-action="play_pause">
-                                    ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
-                                </button>
-                                <button class="control-button secondary" data-action="previous">⏮️</button>
-                                <button class="control-button secondary" data-action="next">⏭️</button>
-                            </div>
-                            <div class="slider-control">
-                                <div class="slider-label">
-                                    <span>Lautstärke</span>
-                                    <span>${volume}%</span>
-                                </div>
-                                <input type="range" class="slider" data-control="volume" 
-                                       min="0" max="100" value="${volume}">
-                            </div>
-                            ${item.media_title ? `
-                                <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                    <div style="font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Aktuell:</div>
-                                    <div style="font-weight: 600; color: rgba(255,255,255,0.9);">${item.media_title}</div>
-                                    ${item.attributes.media_artist ? `<div style="font-size: 14px; color: rgba(255,255,255,0.7); margin-top: 2px;">${item.attributes.media_artist}</div>` : ''}
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        ${hasTTS ? `
-                            <!-- TTS Tab -->
-                            <div class="media-tab-content" data-tab-content="tts">
-                                ${this.getTTSHTML(item)}
-                            </div>
-                        ` : ''}
-                        
-                        ${hasMusicAssistant ? `
-                            <!-- Music Assistant Tab -->
-                            <div class="media-tab-content" data-tab-content="music">
-                                ${this.getMusicAssistantHTML(item)}
-                            </div>
-                        ` : ''}
-                    </div>
+                <h3 class="section-title">📺 Mediensteuerung</h3>
+                <div class="control-section">
+                    <button class="control-button" data-action="play_pause">
+                        ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                    </button>
+                    <button class="control-button secondary" data-action="previous">⏮️</button>
+                    <button class="control-button secondary" data-action="next">⏭️</button>
                 </div>
-            </div>
-        `;
-    }
-
-
-
-    /**
-     * Generiert Music Assistant HTML für Tab
-     */
-    getMusicAssistantHTML(item) {
-        return `
-            <div class="ma-search-container">
-                <div class="ma-search-bar-container">
-                    <input type="text" 
-                           class="ma-search-input" 
-                           placeholder="Suchen..." 
-                           data-ma-search="${item.id}">
-                    <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
-                        <span class="ma-enqueue-icon">▶️</span>
-                        <span class="ma-enqueue-text">Play now</span>
+                <div class="slider-control">
+                    <div class="slider-label">
+                        <span>Lautstärke</span>
+                        <span>${volume}%</span>
                     </div>
+                    <input type="range" class="slider" data-control="volume" 
+                           min="0" max="100" value="${volume}">
                 </div>
-                <div class="ma-filter-container" id="ma-filters-${item.id}">
-                    <div class="ma-filter-chip ma-filter-active" data-filter="all">
-                        <span class="ma-filter-icon">🔗</span>
-                        <span>All</span>
-                    </div>
-                    <div class="ma-filter-chip" data-filter="artists">
-                        <span class="ma-filter-icon">👤</span>
-                        <span>Artists</span>
-                    </div>
-                    <div class="ma-filter-chip" data-filter="albums">
-                        <span class="ma-filter-icon">💿</span>
-                        <span>Albums</span>
-                    </div>
-                    <div class="ma-filter-chip" data-filter="tracks">
-                        <span class="ma-filter-icon">🎵</span>
-                        <span>Tracks</span>
-                    </div>
-                    <div class="ma-filter-chip" data-filter="playlists">
-                        <span class="ma-filter-icon">📋</span>
-                        <span>Playlists</span>
-                    </div>
-                    <div class="ma-filter-chip" data-filter="radio">
-                        <span class="ma-filter-icon">📻</span>
-                        <span>Radio</span>
-                    </div>
-                </div>
-                <div class="ma-search-results" id="ma-results-${item.id}">
-                    <div class="ma-empty-state">Gebe mindestens 2 Zeichen ein um zu suchen...</div>
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Generiert TTS HTML für Tab (vereinfacht)
-     */
-    getTTSHTML(item) {
-        if (!this.checkTTSAvailability()) {
-            return '<div class="ma-empty-state">TTS nicht verfügbar</div>';
-        }
-        
-        return `
-            <div class="tts-input-container">
-                <textarea 
-                    class="tts-textarea" 
-                    placeholder="Text eingeben der vorgelesen werden soll..." 
-                    maxlength="300"
-                    data-tts-input="${item.id}"></textarea>
-                <div class="tts-counter" data-tts-counter="${item.id}">0 / 300 Zeichen</div>
             </div>
             
-            <div class="tts-controls">
-                <select class="tts-language-select" data-tts-language="${item.id}">
-                    <option value="de">🇩🇪 Deutsch</option>
-                    <option value="en">🇺🇸 English</option>
-                    <option value="fr">🇫🇷 Français</option>
-                    <option value="es">🇪🇸 Español</option>
-                    <option value="it">🇮🇹 Italiano</option>
-                </select>
-                <button 
-                    class="tts-speak-button" 
-                    data-tts-speak="${item.id}"
-                    disabled>
-                    🗣️ Vorlesen
-                </button>
-            </div>
-            
-            <div class="tts-presets">
-                <button class="tts-preset-button" data-tts-preset="🏠 Willkommen zu Hause!">
-                    🏠 Willkommen
-                </button>
-                <button class="tts-preset-button" data-tts-preset="🍽️ Das Essen ist fertig!">
-                    🍽️ Essen fertig
-                </button>
-                <button class="tts-preset-button" data-tts-preset="🚪 Bitte zur Haustür kommen.">
-                    🚪 Zur Haustür
-                </button>
-                <button class="tts-preset-button" data-tts-preset="🌙 Gute Nacht und schöne Träume!">
-                    🌙 Gute Nacht
-                </button>
-                <button class="tts-preset-button" data-tts-preset="⚠️ Achtung! Wichtige Durchsage.">
-                    ⚠️ Durchsage
-                </button>
-                <button class="tts-preset-button" data-tts-preset="🎵 Die Musik ist zu laut!">
-                    🎵 Musik leiser
-                </button>
-            </div>
+            ${ttsHTML ? `
+                <div class="more-info-section">
+                    ${ttsHTML}
+                </div>
+            ` : ''}
         `;
-    }    
+    }
         
 
     getBasicControls(item) {
@@ -6515,125 +6232,14 @@ getQuickStats(item) {
             slider.addEventListener('input', (e) => {
                 this.handleSliderChange(item, slider.getAttribute('data-control'), e.target.value);
             });
-        });   
-
-        // Media Player Tabs Setup - NEU!
-        if (item.type === 'media_player') {
-            this.setupMediaPlayerTabs(item);
-        }
-        
-    }
-
-    /**
-     * Richtet Media Player Tabs mit Swipe-Navigation ein
-     */
-    setupMediaPlayerTabs(item) {
-        const tabButtons = this.shadowRoot.querySelectorAll('.media-tab');
-        const tabContents = this.shadowRoot.querySelectorAll('.media-tab-content');
-        const tabIndicator = this.shadowRoot.querySelector('.tab-indicator');
-        const tabsContainer = this.shadowRoot.querySelector(`[data-media-tabs="${item.id}"]`);
-        
-        if (!tabButtons.length || !tabsContainer) return;
-        
-        let currentTab = 0;
-        const totalTabs = tabButtons.length;
-        
-        // Tab-Umschaltung
-        const switchToTab = (index) => {
-            if (index < 0 || index >= totalTabs) return;
-            
-            // Tab Buttons aktualisieren
-            tabButtons.forEach((btn, i) => {
-                btn.classList.toggle('active', i === index);
-            });
-            
-            // Tab Contents aktualisieren
-            tabContents.forEach((content, i) => {
-                content.classList.toggle('active', i === index);
-            });
-            
-            // Indicator bewegen
-            tabIndicator.className = `tab-indicator tab-${index + 1}`;
-            currentTab = index;
-        };
-        
-        // Tab Button Click Events
-        tabButtons.forEach((button, index) => {
-            button.addEventListener('click', () => {
-                switchToTab(index);
-            });
         });
-        
-        // Touch/Swipe Events
-        let startX = 0;
-        let startY = 0;
-        let currentX = 0;
-        let isDragging = false;
-        let startTime = 0;
-        
-        const handleTouchStart = (e) => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            startTime = Date.now();
-            isDragging = true;
-            tabsContainer.classList.add('touching');
-        };
-        
-        const handleTouchMove = (e) => {
-            if (!isDragging) return;
-            
-            currentX = e.touches[0].clientX;
-            const currentY = e.touches[0].clientY;
-            const deltaX = currentX - startX;
-            const deltaY = currentY - startY;
-            
-            // Vertikal scrollen erlauben, horizontal blockieren
-            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
-                e.preventDefault();
-            }
-        };
-        
-        const handleTouchEnd = (e) => {
-            if (!isDragging) return;
-            
-            const endTime = Date.now();
-            const deltaX = currentX - startX;
-            const deltaTime = endTime - startTime;
-            const velocity = Math.abs(deltaX) / deltaTime;
-            
-            tabsContainer.classList.remove('touching');
-            isDragging = false;
-            
-            // Swipe-Erkennung
-            const threshold = 50;
-            const isQuickSwipe = velocity > 0.3 && deltaTime < 300;
-            
-            if ((Math.abs(deltaX) > threshold || isQuickSwipe) && Math.abs(deltaX) > 20) {
-                if (deltaX > 0) {
-                    // Swipe right - vorheriger Tab
-                    switchToTab(currentTab - 1);
-                } else {
-                    // Swipe left - nächster Tab
-                    switchToTab(currentTab + 1);
-                }
-            }
-            
-            startX = 0;
-            currentX = 0;
-        };
-        
-        // Touch Events registrieren
-        tabsContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
-        tabsContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
-        tabsContainer.addEventListener('touchend', handleTouchEnd);
-        
-        // TTS und Music Assistant Event Listeners
-        this.setupTTSEventListeners(item);
-        this.setupMusicAssistantEventListeners(item);
+
+
+        // TTS Event Listeners für Popup Dialog - NEU!
+        if (item.type === 'media_player') {
+            this.setupTTSEventListeners(item);
+        }        
     }
-
-
-    
 
     executeMoreInfoAction(item, action, button) {
         // Visual Feedback
