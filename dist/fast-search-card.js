@@ -842,9 +842,16 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .more-info-dialog {
-                    background: white;
-                    border-radius: 16px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    /* Glassmorphism Container - Gleich wie Hauptkarte */
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 24px;
+                    box-shadow: 
+                        0 8px 32px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+                    
                     max-width: 500px;
                     width: 100%;
                     max-height: 80vh;
@@ -852,6 +859,7 @@ class FastSearchCard extends HTMLElement {
                     transform: scale(0.9) translateY(20px);
                     transition: all 0.3s ease;
                     position: relative;
+                    padding: 0;
                 }
 
                 .more-info-overlay.active .more-info-dialog {
@@ -859,20 +867,21 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .more-info-header {
-                    background: linear-gradient(135deg, #007aff, #0056b3);
+                    background: transparent;
                     color: white;
                     padding: 24px;
                     position: relative;
                     display: flex;
                     align-items: center;
                     gap: 16px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 }
 
                 .more-info-close {
                     position: absolute;
                     top: 16px;
                     right: 16px;
-                    background: rgba(255, 255, 255, 0.2);
+                    background: rgba(0, 0, 0, 0.15);
                     border: none;
                     border-radius: 50%;
                     width: 32px;
@@ -880,20 +889,21 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    color: white;
+                    color: rgba(255, 255, 255, 0.8);
                     cursor: pointer;
                     transition: all 0.2s;
                     font-size: 18px;
                 }
 
                 .more-info-close:hover {
-                    background: rgba(255, 255, 255, 0.3);
+                    background: rgba(0, 0, 0, 0.25);
+                    color: white;
                     transform: scale(1.1);
                 }
 
                 .more-info-icon {
                     font-size: 32px;
-                    background: rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.15);
                     border-radius: 12px;
                     width: 60px;
                     height: 60px;
@@ -912,23 +922,27 @@ class FastSearchCard extends HTMLElement {
                     font-weight: 600;
                     margin: 0;
                     line-height: 1.2;
+                    color: white;
                 }
-
+                
                 .more-info-type {
                     font-size: 14px;
                     opacity: 0.8;
                     margin: 4px 0 0 0;
+                    color: rgba(255, 255, 255, 0.7);
                 }
 
                 .more-info-content {
                     padding: 0;
                     max-height: calc(80vh - 120px);
                     overflow-y: auto;
+                    background: transparent;
                 }
-
+                
                 .more-info-section {
                     padding: 24px;
-                    border-bottom: 1px solid #f0f0f0;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    background: transparent;
                 }
 
                 .more-info-section:last-child {
@@ -938,7 +952,7 @@ class FastSearchCard extends HTMLElement {
                 .section-title {
                     font-size: 16px;
                     font-weight: 600;
-                    color: #333;
+                    color: rgba(255, 255, 255, 0.9);
                     margin: 0 0 16px 0;
                     display: flex;
                     align-items: center;
@@ -991,25 +1005,25 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .attribute-item {
-                    background: #f8f9fa;
+                    background: rgba(255, 255, 255, 0.1);
                     border-radius: 8px;
                     padding: 16px;
-                    border-left: 4px solid #007aff;
+                    border-left: 4px solid rgba(255, 255, 255, 0.3);
                 }
-
+                
                 .attribute-label {
                     font-size: 12px;
                     font-weight: 500;
-                    color: #666;
+                    color: rgba(255, 255, 255, 0.7);
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                     margin-bottom: 4px;
                 }
-
+                
                 .attribute-value {
                     font-size: 16px;
                     font-weight: 600;
-                    color: #333;
+                    color: rgba(255, 255, 255, 0.9);
                     word-break: break-word;
                 }
 
@@ -1023,9 +1037,9 @@ class FastSearchCard extends HTMLElement {
                     flex: 1;
                     min-width: 120px;
                     padding: 12px 20px;
-                    background: #007aff;
+                    background: rgba(255, 255, 255, 0.15);
                     color: white;
-                    border: none;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 8px;
                     font-size: 14px;
                     font-weight: 600;
@@ -1036,21 +1050,21 @@ class FastSearchCard extends HTMLElement {
                     justify-content: center;
                     gap: 8px;
                 }
-
+                
                 .control-button:hover {
-                    background: #0056b3;
+                    background: rgba(255, 255, 255, 0.25);
                     transform: translateY(-1px);
                 }
-
+                
                 .control-button.secondary {
-                    background: #f8f9fa;
-                    color: #666;
-                    border: 1px solid #ddd;
+                    background: rgba(0, 0, 0, 0.15);
+                    color: rgba(255, 255, 255, 0.8);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                 }
-
+                
                 .control-button.secondary:hover {
-                    background: #e9ecef;
-                    color: #333;
+                    background: rgba(0, 0, 0, 0.25);
+                    color: white;
                 }
 
                 .slider-control {
@@ -1062,37 +1076,37 @@ class FastSearchCard extends HTMLElement {
                     justify-content: space-between;
                     margin-bottom: 8px;
                     font-size: 14px;
-                    color: #666;
+                    color: rgba(255, 255, 255, 0.8);
                 }
 
                 .slider {
                     width: 100%;
                     height: 6px;
                     border-radius: 3px;
-                    background: #ddd;
+                    background: rgba(255, 255, 255, 0.2);
                     outline: none;
                     appearance: none;
                     cursor: pointer;
                 }
-
+                
                 .slider::-webkit-slider-thumb {
                     appearance: none;
                     width: 20px;
                     height: 20px;
                     border-radius: 50%;
-                    background: #007aff;
+                    background: white;
                     cursor: pointer;
-                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
                 }
 
                 .slider::-moz-range-thumb {
                     width: 20px;
                     height: 20px;
                     border-radius: 50%;
-                    background: #007aff;
+                    background: white;
                     cursor: pointer;
                     border: none;
-                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
                 }
 
                 @media (max-width: 768px) {
