@@ -815,19 +815,16 @@ class FastSearchCard extends HTMLElement {
                     background: #0056b3;
                     border-color: #0056b3;
                 }
-                
-                
-                
-                /* More-Info Dialog Styles - Glassmorphism Design */
+
+                /* More-Info Dialog Styles */
                 .more-info-overlay {
                     position: fixed;
                     top: 0;
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: rgba(0, 0, 0, 0.4);
+                    background: rgba(0, 0, 0, 0.7);
                     backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
                     z-index: 1000;
                     display: flex;
                     align-items: center;
@@ -838,22 +835,16 @@ class FastSearchCard extends HTMLElement {
                     padding: 20px;
                     box-sizing: border-box;
                 }
-                
+
                 .more-info-overlay.active {
                     opacity: 1;
                     visibility: visible;
                 }
-                
+
                 .more-info-dialog {
-                    /* Glassmorphism wie Hauptcontainer */
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 24px;
-                    box-shadow: 
-                        0 20px 60px rgba(0, 0, 0, 0.3),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+                    background: white;
+                    border-radius: 16px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
                     max-width: 500px;
                     width: 100%;
                     max-height: 80vh;
@@ -861,19 +852,14 @@ class FastSearchCard extends HTMLElement {
                     transform: scale(0.9) translateY(20px);
                     transition: all 0.3s ease;
                     position: relative;
-                    color: white;
                 }
-                
+
                 .more-info-overlay.active .more-info-dialog {
                     transform: scale(1) translateY(0);
                 }
-                
+
                 .more-info-header {
-                    /* Glassmorphism Header */
-                    background: rgba(0, 0, 0, 0.15);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    background: linear-gradient(135deg, #007aff, #0056b3);
                     color: white;
                     padding: 24px;
                     position: relative;
@@ -881,13 +867,13 @@ class FastSearchCard extends HTMLElement {
                     align-items: center;
                     gap: 16px;
                 }
-                
+
                 .more-info-close {
                     position: absolute;
                     top: 16px;
                     right: 16px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.2);
+                    border: none;
                     border-radius: 50%;
                     width: 32px;
                     height: 32px;
@@ -898,19 +884,16 @@ class FastSearchCard extends HTMLElement {
                     cursor: pointer;
                     transition: all 0.2s;
                     font-size: 18px;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
                 }
-                
+
                 .more-info-close:hover {
-                    background: rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.3);
                     transform: scale(1.1);
                 }
-                
+
                 .more-info-icon {
                     font-size: 32px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.2);
                     border-radius: 12px;
                     width: 60px;
                     height: 60px;
@@ -918,74 +901,70 @@ class FastSearchCard extends HTMLElement {
                     align-items: center;
                     justify-content: center;
                     flex-shrink: 0;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
                 }
-                
+
                 .more-info-title {
                     flex: 1;
                 }
-                
+
                 .more-info-name {
                     font-size: 20px;
                     font-weight: 600;
                     margin: 0;
                     line-height: 1.2;
-                    color: rgba(255, 255, 255, 0.95);
                 }
-                
+
                 .more-info-type {
                     font-size: 14px;
                     opacity: 0.8;
                     margin: 4px 0 0 0;
-                    color: rgba(255, 255, 255, 0.7);
                 }
-                
+
                 .more-info-content {
                     padding: 0;
                     max-height: calc(80vh - 120px);
                     overflow-y: auto;
                 }
-                
+
                 .more-info-section {
                     padding: 24px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    border-bottom: 1px solid #f0f0f0;
                 }
-                
+
                 .more-info-section:last-child {
                     border-bottom: none;
                 }
-                
+
                 .section-title {
                     font-size: 16px;
                     font-weight: 600;
-                    color: rgba(255, 255, 255, 0.9);
+                    color: #333;
                     margin: 0 0 16px 0;
                     display: flex;
                     align-items: center;
                     gap: 8px;
                 }
-                
+
                 .state-display {
                     display: flex;
                     align-items: center;
                     gap: 16px;
                     margin-bottom: 20px;
                 }
-                
+
                 .state-value {
                     font-size: 28px;
                     font-weight: 700;
-                    color: rgba(255, 255, 255, 0.95);
+                    color: #007aff;
                     flex: 1;
                 }
-                
+
                 .state-unit {
                     font-size: 16px;
-                    color: rgba(255, 255, 255, 0.7);
+                    color: #666;
                     font-weight: 400;
                 }
-                
+
                 .state-badge {
                     padding: 6px 12px;
                     border-radius: 20px;
@@ -993,69 +972,61 @@ class FastSearchCard extends HTMLElement {
                     font-weight: 500;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
                 }
-                
+
                 .state-badge.on {
-                    background: rgba(76, 175, 80, 0.2);
-                    border-color: rgba(76, 175, 80, 0.4);
-                    color: rgba(255, 255, 255, 0.9);
+                    background: #e3f2fd;
+                    color: #1976d2;
                 }
-                
+
                 .state-badge.off {
-                    background: rgba(158, 158, 158, 0.2);
-                    border-color: rgba(158, 158, 158, 0.4);
-                    color: rgba(255, 255, 255, 0.7);
+                    background: #f5f5f5;
+                    color: #666;
                 }
-                
+
                 .attribute-grid {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
                     gap: 16px;
                 }
-                
+
                 .attribute-item {
-                    background: rgba(0, 0, 0, 0.15);
-                    border-radius: 12px;
+                    background: #f8f9fa;
+                    border-radius: 8px;
                     padding: 16px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
+                    border-left: 4px solid #007aff;
                 }
-                
+
                 .attribute-label {
                     font-size: 12px;
                     font-weight: 500;
-                    color: rgba(255, 255, 255, 0.7);
+                    color: #666;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                     margin-bottom: 4px;
                 }
-                
+
                 .attribute-value {
                     font-size: 16px;
                     font-weight: 600;
-                    color: rgba(255, 255, 255, 0.9);
+                    color: #333;
                     word-break: break-word;
                 }
-                
+
                 .control-section {
                     display: flex;
                     gap: 12px;
                     flex-wrap: wrap;
                 }
-                
+
                 .control-button {
                     flex: 1;
                     min-width: 120px;
                     padding: 12px 20px;
-                    background: rgba(255, 255, 255, 0.1);
+                    background: #007aff;
                     color: white;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 12px;
+                    border: none;
+                    border-radius: 8px;
                     font-size: 14px;
                     font-weight: 600;
                     cursor: pointer;
@@ -1064,219 +1035,66 @@ class FastSearchCard extends HTMLElement {
                     align-items: center;
                     justify-content: center;
                     gap: 8px;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
                 }
-                
+
                 .control-button:hover {
-                    background: rgba(255, 255, 255, 0.2);
+                    background: #0056b3;
                     transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
                 }
-                
+
                 .control-button.secondary {
-                    background: rgba(0, 0, 0, 0.15);
-                    border-color: rgba(255, 255, 255, 0.1);
+                    background: #f8f9fa;
+                    color: #666;
+                    border: 1px solid #ddd;
                 }
-                
+
                 .control-button.secondary:hover {
-                    background: rgba(0, 0, 0, 0.25);
+                    background: #e9ecef;
+                    color: #333;
                 }
-                
+
                 .slider-control {
                     margin-top: 16px;
                 }
-                
+
                 .slider-label {
                     display: flex;
                     justify-content: space-between;
                     margin-bottom: 8px;
                     font-size: 14px;
-                    color: rgba(255, 255, 255, 0.8);
+                    color: #666;
                 }
-                
+
                 .slider {
                     width: 100%;
                     height: 6px;
                     border-radius: 3px;
-                    background: rgba(255, 255, 255, 0.2);
+                    background: #ddd;
                     outline: none;
                     appearance: none;
                     cursor: pointer;
                 }
-                
+
                 .slider::-webkit-slider-thumb {
                     appearance: none;
                     width: 20px;
                     height: 20px;
                     border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.9);
+                    background: #007aff;
                     cursor: pointer;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
                 }
-                
+
                 .slider::-moz-range-thumb {
                     width: 20px;
                     height: 20px;
                     border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.9);
+                    background: #007aff;
                     cursor: pointer;
                     border: none;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
                 }
-                
-                /* Text-to-Speech Styles - Glassmorphism Design */
-                .tts-section {
-                    margin-top: 24px;
-                    padding: 20px;
-                    background: rgba(0, 0, 0, 0.15);
-                    border-radius: 16px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                }
-                
-                .tts-input-container {
-                    margin-bottom: 16px;
-                }
-                
-                .tts-textarea {
-                    width: 100%;
-                    min-height: 80px;
-                    padding: 12px;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 12px;
-                    font-size: 14px;
-                    font-family: inherit;
-                    resize: vertical;
-                    box-sizing: border-box;
-                    transition: all 0.2s;
-                    background: rgba(255, 255, 255, 0.1);
-                    color: white;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                }
-                
-                .tts-textarea::placeholder {
-                    color: rgba(255, 255, 255, 0.6);
-                }
-                
-                .tts-textarea:focus {
-                    outline: none;
-                    border-color: rgba(255, 255, 255, 0.4);
-                    background: rgba(255, 255, 255, 0.15);
-                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
-                }
-                
-                .tts-counter {
-                    text-align: right;
-                    font-size: 12px;
-                    color: rgba(255, 255, 255, 0.7);
-                    margin-top: 4px;
-                }
-                
-                .tts-counter.warning {
-                    color: #ff6b35;
-                    font-weight: 600;
-                }
-                
-                .tts-controls {
-                    display: flex;
-                    gap: 12px;
-                    align-items: center;
-                    margin-bottom: 16px;
-                }
-                
-                .tts-language-select {
-                    flex: 1;
-                    padding: 8px 12px;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 8px;
-                    font-size: 14px;
-                    background: rgba(255, 255, 255, 0.1);
-                    color: white;
-                    cursor: pointer;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                }
-                
-                .tts-language-select option {
-                    background: rgba(0, 0, 0, 0.9);
-                    color: white;
-                }
-                
-                .tts-speak-button {
-                    background: rgba(255, 255, 255, 0.1);
-                    color: white;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 8px;
-                    padding: 8px 16px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    min-width: 100px;
-                    justify-content: center;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                }
-                
-                .tts-speak-button:hover:not(:disabled) {
-                    background: rgba(255, 255, 255, 0.2);
-                    transform: translateY(-1px);
-                }
-                
-                .tts-speak-button:disabled {
-                    background: rgba(255, 255, 255, 0.05);
-                    color: rgba(255, 255, 255, 0.3);
-                    cursor: not-allowed;
-                }
-                
-                .tts-speak-button.speaking {
-                    background: rgba(255, 68, 68, 0.2);
-                    border-color: rgba(255, 68, 68, 0.4);
-                }
-                
-                .tts-speak-button.speaking:hover {
-                    background: rgba(255, 68, 68, 0.3);
-                }
-                
-                .tts-presets {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                    gap: 8px;
-                }
-                
-                .tts-preset-button {
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 8px;
-                    padding: 8px 12px;
-                    font-size: 12px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    text-align: left;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    color: rgba(255, 255, 255, 0.8);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                }
-                
-                .tts-preset-button:hover {
-                    background: rgba(255, 255, 255, 0.1);
-                    border-color: rgba(255, 255, 255, 0.2);
-                    color: rgba(255, 255, 255, 0.9);
-                }
-                
-                .tts-preset-button:active {
-                    transform: translateY(1px);
-                }
-                
+
                 @media (max-width: 768px) {
                     .more-info-overlay {
                         padding: 10px;
@@ -1305,21 +1123,7 @@ class FastSearchCard extends HTMLElement {
                     .control-button {
                         min-width: auto;
                     }
-                    
-                    .tts-controls {
-                        flex-direction: column;
-                        align-items: stretch;
-                    }
-                    
-                    .tts-presets {
-                        grid-template-columns: 1fr;
-                    }
                 }
-
-
-
-
-
 
                 /* Replace Mode Styles - HIER EINFÜGEN */
                 .more-info-replace {
