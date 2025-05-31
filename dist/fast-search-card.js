@@ -4151,56 +4151,75 @@ getQuickStats(item) {
     }
 
 
+
+
     /**
      * Prüft ob Text-to-Speech Services verfügbar sind
      */
     checkTTSAvailability() {
-        if (!this._hass) return false;
+        if (!this._hass || !this._hass.services) return false;
         
         // Prüfe verfügbare TTS Services
-        const ttsServices = Object.keys(this._hass.services).filter(domain => 
-            this._hass.services[domain].tts_say || // Standard TTS Service
-            domain === 'tts' || // TTS Domain
-            domain === 'google_translate_say' || // Google TTS
-            domain === 'amazon_polly_say' || // Amazon Polly
-            domain === 'microsoft_tts_say' || // Microsoft TTS
-            domain === 'pico2wave_say' || // Pico TTS
-            domain === 'watson_tts_say' // IBM Watson TTS
-        );
+        const ttsServices = Object.keys(this._hass.services).filter(domain => {
+            const service = this._hass.services[domain];
+            return service && service.tts_say;  // Direkt nach tts_say Service suchen
+        });
         
         console.log('Verfügbare TTS Services:', ttsServices);
         return ttsServices.length > 0;
-    }
+    }    
     
+
     /**
      * Ermittelt den besten verfügbaren TTS Service
      */
     getBestTTSService() {
-        if (!this._hass) return null;
+        if (!this._hass || !this._hass.services) return null;
+        
+        console.log('=== TTS Service Detection ===');
+        console.log('Alle verfügbaren Services:', Object.keys(this._hass.services));
         
         // Prioritätsliste der TTS Services
         const priorityServices = [
             'google_translate_say',
             'amazon_polly_say', 
             'microsoft_tts_say',
-            'tts',
+            'tts',  // Standard TTS Service
             'pico2wave_say',
             'watson_tts_say'
         ];
         
         // Finde ersten verfügbaren Service aus Prioritätsliste
         for (const service of priorityServices) {
-            if (this._hass.services[service] && this._hass.services[service].tts_say) {
-                return service;
+            if (this._hass.services[service]) {
+                console.log(`Service "${service}" gefunden:`, this._hass.services[service]);
+                
+                // Prüfe ob tts_say verfügbar ist
+                if (this._hass.services[service].tts_say) {
+                    console.log(`✅ Verwende TTS Service: ${service}`);
+                    return service;
+                }
             }
         }
         
-        // Fallback: Ersten TTS Service finden
-        const ttsServices = Object.keys(this._hass.services).filter(domain => 
-            this._hass.services[domain].tts_say
-        );
+        // Fallback: Suche nach jedem Service mit tts_say
+        const allTTSServices = Object.keys(this._hass.services).filter(domain => {
+            const hasService = this._hass.services[domain] && this._hass.services[domain].tts_say;
+            if (hasService) {
+                console.log(`🔍 TTS Service gefunden: ${domain}`);
+            }
+            return hasService;
+        });
         
-        return ttsServices.length > 0 ? ttsServices[0] : null;
+        console.log('Alle TTS Services mit tts_say:', allTTSServices);
+        
+        if (allTTSServices.length > 0) {
+            console.log(`✅ Verwende ersten gefundenen TTS Service: ${allTTSServices[0]}`);
+            return allTTSServices[0];
+        }
+        
+        console.log('❌ Kein TTS Service mit tts_say gefunden');
+        return null;
     }
     
     
