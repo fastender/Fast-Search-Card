@@ -2464,11 +2464,11 @@ class FastSearchCard extends HTMLElement {
                 
                 .replace-media-tabs {
                     display: flex;
-                    background: rgba(0, 0, 0, 0.15);
+                    background: transparent;
                     border-radius: 60px;
-                    padding: 12px;
+                    padding: 0px;
                     margin-bottom: 20px;
-                    gap: 4px;
+                    gap: 8px;
                 }
                 
                 .replace-media-tab {
@@ -2490,14 +2490,15 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .replace-media-tab:hover {
-                    background: rgba(255, 255, 255, 0.1);
+                    background: rgba(255, 255, 255, 0.15);
                     color: rgba(255, 255, 255, 0.9);
+                    border-radius: 60px;
                 }
                 
                 .replace-media-tab.active {
                     background: rgba(255, 255, 255, 0.15);
                     color: white;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    border-radius: 60px;
                 }
                 
                 .replace-media-tab-icon {
@@ -2679,7 +2680,7 @@ class FastSearchCard extends HTMLElement {
                     background: transparent;
                     backdrop-filter: blur(0px);
                     border-left: 0px solid rgba(255, 255, 255, 0.1);
-                    padding-top: 80px;
+                    padding-top: 20px;
                 }
                 
                 /* Floating particles for extra atmosphere */
