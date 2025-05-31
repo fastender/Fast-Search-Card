@@ -1165,20 +1165,13 @@ class FastSearchCard extends HTMLElement {
                     left: 0;
                     right: 0;
                     z-index: 100;
-                    background: linear-gradient(
-                        to bottom,
-                        rgba(0, 0, 0, 0.8) 0%,
-                        rgba(0, 0, 0, 0.4) 70%,
-                        transparent 100%
-                    );
+                    background: transparent;
                     color: white;
-                    padding: 16px 20px;
+                    padding: 16px 20px 16px 14px;
                     display: flex;
                     align-items: center;
                     gap: 12px;
-                    border-bottom: none;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);                    
+                    border-bottom: none;                
                 }
 
                 
@@ -1223,7 +1216,7 @@ class FastSearchCard extends HTMLElement {
                 .replace-content {
                     display: flex;
                     padding-top: 0;
-                    min-height: 100vh;
+                    min-height: 50vh;
                     background: transparent;
                 }
                 
@@ -1296,13 +1289,13 @@ class FastSearchCard extends HTMLElement {
                     margin: 0;
                     font-size: 20px;
                     font-weight: 600;
-                    color: #333;
+                    color: rgba(255, 255, 255, 0.9);
                     line-height: 1.2;
                 }
                 
                 .entity-subtitle-large {
                     font-size: 14px;
-                    color: #666;
+                    color: rgba(255, 255, 255, 0.7);
                     margin: 4px 0 0 0;
                 }
                 
@@ -1475,13 +1468,11 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .accordion-item.active {
-                    border-color: #007aff;
-                    box-shadow: 0 4px 20px rgba(0, 122, 255, 0.1);
                     background: rgba(255, 255, 255, 0.15);
                 }
                 
                 .accordion-header {
-                    background: rgba(0, 0, 0, 0.15);
+                    background: transparent;
                     padding: 20px 24px;
                     cursor: pointer;
                     display: flex;
@@ -1492,7 +1483,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .accordion-item.active .accordion-header {
-                    background: rgba(255, 255, 255, 0.15);
+                    background: rgba(0, 0, 0, 0.25);
                 }
                 
                 .accordion-header:hover {
@@ -1526,7 +1517,7 @@ class FastSearchCard extends HTMLElement {
                     max-height: 0;
                     overflow: hidden;
                     transition: max-height 0.4s ease, padding 0.3s ease;
-                    background: rgba(255, 255, 255, 0.15);
+                    background: rgba(0, 0, 0, 0.25);
                 }
                 
                 .accordion-item.active .accordion-content {
@@ -2474,15 +2465,15 @@ class FastSearchCard extends HTMLElement {
                 .replace-media-tabs {
                     display: flex;
                     background: rgba(0, 0, 0, 0.15);
-                    border-radius: 12px;
-                    padding: 4px;
+                    border-radius: 60px;
+                    padding: 12px;
                     margin-bottom: 20px;
                     gap: 4px;
                 }
                 
                 .replace-media-tab {
                     flex: 1;
-                    padding: 14px 18px;
+                    padding: 10px 14px 10px 14px;
                     text-align: center;
                     background: transparent;
                     border: none;
@@ -2685,9 +2676,9 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Enhanced Details Section with Backdrop */
                 .details-section.media-player {
-                    background: rgba(0, 0, 0, 0.2);
-                    backdrop-filter: blur(10px);
-                    border-left: 1px solid rgba(255, 255, 255, 0.1);
+                    background: transparent;
+                    backdrop-filter: blur(0px);
+                    border-left: 0px solid rgba(255, 255, 255, 0.1);
                     padding-top: 80px;
                 }
                 
