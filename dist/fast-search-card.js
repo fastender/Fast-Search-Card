@@ -3919,7 +3919,7 @@ getQuickStats(item) {
         return names[type] || type;
     }
 
-    
+
 
     getMediaReplaceControls(item) {
         const volume = item.volume || 0;
