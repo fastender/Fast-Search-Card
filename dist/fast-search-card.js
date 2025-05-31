@@ -2230,14 +2230,9 @@ class FastSearchCard extends HTMLElement {
 
 
                 /* Text-to-Speech Styles - NACH den bestehenden .ma-empty-state Styles einfügen */
-                .tts-section {
-                    margin-top: 24px;
-                    padding: 0px;
-                    background: transparent;
-                    border-radius: 12px;
-                    border-left: 0px solid #007aff;
-                }
+
                 
+                /* Text-to-Speech Styles - TAB OPTIMIERT */
                 .tts-input-container {
                     margin-bottom: 16px;
                 }
@@ -2246,25 +2241,31 @@ class FastSearchCard extends HTMLElement {
                     width: 100%;
                     min-height: 80px;
                     padding: 12px;
-                    border: 1px solid #ddd;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 8px;
                     font-size: 14px;
                     font-family: inherit;
                     resize: vertical;
                     box-sizing: border-box;
                     transition: border-color 0.2s;
+                    background: rgba(0, 0, 0, 0.15);
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .tts-textarea::placeholder {
+                    color: rgba(255, 255, 255, 0.6);
                 }
                 
                 .tts-textarea:focus {
                     outline: none;
-                    border-color: #007aff;
-                    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+                    border-color: rgba(255, 255, 255, 0.4);
+                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
                 }
                 
                 .tts-counter {
                     text-align: right;
                     font-size: 12px;
-                    color: #666;
+                    color: rgba(255, 255, 255, 0.7);
                     margin-top: 4px;
                 }
                 
@@ -2283,17 +2284,18 @@ class FastSearchCard extends HTMLElement {
                 .tts-language-select {
                     flex: 1;
                     padding: 8px 12px;
-                    border: 1px solid #ddd;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 6px;
                     font-size: 14px;
-                    background: white;
+                    background: rgba(0, 0, 0, 0.15);
+                    color: rgba(255, 255, 255, 0.9);
                     cursor: pointer;
                 }
                 
                 .tts-speak-button {
-                    background: #007aff;
+                    background: rgba(255, 255, 255, 0.15);
                     color: white;
-                    border: none;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 6px;
                     padding: 8px 16px;
                     font-size: 14px;
@@ -2308,16 +2310,18 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .tts-speak-button:hover {
-                    background: #0056b3;
+                    background: rgba(255, 255, 255, 0.25);
                 }
                 
                 .tts-speak-button:disabled {
-                    background: #ccc;
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.5);
                     cursor: not-allowed;
                 }
                 
                 .tts-speak-button.speaking {
                     background: #ff4444;
+                    border-color: #ff4444;
                 }
                 
                 .tts-speak-button.speaking:hover {
@@ -2331,8 +2335,8 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .tts-preset-button {
-                    background: white;
-                    border: 1px solid #ddd;
+                    background: rgba(0, 0, 0, 0.15);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 6px;
                     padding: 8px 12px;
                     font-size: 12px;
@@ -2342,11 +2346,13 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     align-items: center;
                     gap: 6px;
+                    color: rgba(255, 255, 255, 0.8);
                 }
                 
                 .tts-preset-button:hover {
-                    background: #f0f0f0;
-                    border-color: #007aff;
+                    background: rgba(0, 0, 0, 0.25);
+                    border-color: rgba(255, 255, 255, 0.4);
+                    color: rgba(255, 255, 255, 0.9);
                 }
                 
                 .tts-preset-button:active {
