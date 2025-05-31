@@ -2232,7 +2232,7 @@ class FastSearchCard extends HTMLElement {
                 /* Text-to-Speech Styles - NACH den bestehenden .ma-empty-state Styles einfügen */
                 .tts-section {
                     margin-top: 24px;
-                    padding: 20px;
+                    padding: 0px;
                     background: transparent;
                     border-radius: 12px;
                     border-left: 0px solid #007aff;
