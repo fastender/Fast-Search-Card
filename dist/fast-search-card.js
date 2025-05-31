@@ -2211,136 +2211,6 @@ class FastSearchCard extends HTMLElement {
                     padding: 40px 20px;
                     font-size: 14px;
                 }
-
-
-/* TTS Section Styles */
-                .tts-section {
-                    margin-top: 24px;
-                    padding: 0;
-                    border: none;
-                    border-radius: 0;
-                    background: transparent;
-                }
-                
-                .tts-container {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                }
-                
-                .tts-input-container {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                }
-                
-                .tts-message-input {
-                    width: 100%;
-                    padding: 12px 16px;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    font-family: inherit;
-                    background: rgba(0, 0, 0, 0.15);
-                    color: rgba(255, 255, 255, 0.9);
-                    box-sizing: border-box;
-                    transition: all 0.2s;
-                    resize: vertical;
-                    min-height: 80px;
-                }
-                
-                .tts-message-input::placeholder {
-                    color: rgba(255, 255, 255, 0.6);
-                }
-                
-                .tts-message-input:focus {
-                    outline: none;
-                    background: rgba(0, 0, 0, 0.25);
-                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
-                }
-                
-                .tts-controls {
-                    display: flex;
-                    gap: 12px;
-                    align-items: center;
-                }
-                
-                .tts-language-select {
-                    flex: 1;
-                    padding: 12px 16px;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    background: rgba(0, 0, 0, 0.15);
-                    color: rgba(255, 255, 255, 0.9);
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                
-                .tts-language-select:focus {
-                    outline: none;
-                    background: rgba(0, 0, 0, 0.25);
-                    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
-                }
-                
-                .tts-language-select option {
-                    background: #333;
-                    color: white;
-                }
-                
-                .tts-speak-button {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    padding: 12px 20px;
-                    background: #007aff;
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    white-space: nowrap;
-                }
-                
-                .tts-speak-button:hover {
-                    background: #0056b3;
-                    transform: translateY(-1px);
-                }
-                
-                .tts-speak-button:active {
-                    transform: translateY(0);
-                }
-                
-                .tts-speak-button:disabled {
-                    background: #6c757d;
-                    cursor: not-allowed;
-                    transform: none;
-                }
-                
-                .tts-speak-icon {
-                    font-size: 16px;
-                }
-                
-                .tts-speak-text {
-                    font-size: 14px;
-                }
-                
-                /* Responsive für TTS */
-                @media (max-width: 768px) {
-                    .tts-controls {
-                        flex-direction: column;
-                        align-items: stretch;
-                    }
-                    
-                    .tts-speak-button {
-                        justify-content: center;
-                    }
-                }
-
-
-                
                 
             </style>
             
@@ -3475,8 +3345,6 @@ class FastSearchCard extends HTMLElement {
 
                     // NEU: Music Assistant Event Listeners hinzufügen
                     this.setupMusicAssistantEventListeners(item);
-
-                    this.setupTTSEventListeners(item);
                 
                 }
 
@@ -4038,184 +3906,6 @@ getQuickStats(item) {
             console.error('Fehler beim Abspielen:', error);
         }
     }
-
-
-
-   
-    // TTS Event Listeners Setup
-                    setupTTSEventListeners(item) {
-                        const ttsMessage = this.shadowRoot.querySelector(`[data-tts-message="${item.id}"]`);
-                        const ttsLanguage = this.shadowRoot.querySelector(`[data-tts-language="${item.id}"]`);
-                        const ttsSpeakButton = this.shadowRoot.querySelector(`[data-tts-speak="${item.id}"]`);
-                        
-                        if (!ttsMessage || !ttsLanguage || !ttsSpeakButton) return;
-                        
-                        // Speak Button Event
-                        ttsSpeakButton.addEventListener('click', async () => {
-                            const message = ttsMessage.value.trim();
-                            const language = ttsLanguage.value;
-                            
-                            if (!message) {
-                                ttsMessage.focus();
-                                ttsMessage.style.borderColor = '#ff4444';
-                                setTimeout(() => {
-                                    ttsMessage.style.borderColor = '';
-                                }, 2000);
-                                return;
-                            }
-                            
-                            await this.speakTTS(message, language, item.id, ttsSpeakButton);
-                        });
-                        
-                        // Enter Key im Textarea
-                        ttsMessage.addEventListener('keydown', (e) => {
-                            if (e.key === 'Enter' && e.ctrlKey) {
-                                e.preventDefault();
-                                ttsSpeakButton.click();
-                            }
-                        });
-                    }
-                    
-                    // TTS Ausführung
-                    async speakTTS(message, language, entityId, button) {
-                        if (!this._hass || !message) return;
-                        
-                        // Visual Feedback
-                        const originalContent = button.innerHTML;
-                        button.innerHTML = `
-                            <span class="tts-speak-icon">⏳</span>
-                            <span class="tts-speak-text">Wird gesprochen...</span>
-                        `;
-                        button.disabled = true;
-                        
-                        try {
-                            // Prüfe verfügbare TTS Engines
-                            const ttsEngines = await this.getAvailableTTSEngines();
-                            console.log('Verfügbare TTS Engines:', ttsEngines);
-                            
-                            // Wähle beste TTS Engine basierend auf Sprache
-                            const ttsEngine = this.selectBestTTSEngine(ttsEngines, language);
-                            
-                            if (!ttsEngine) {
-                                throw new Error('Keine TTS Engine verfügbar');
-                            }
-                            
-                            // TTS Service Call
-                            await this._hass.callService('tts', 'speak', {
-                                entity_id: entityId,
-                                message: message,
-                                language: language,
-                                options: {
-                                    voice: ttsEngine.voice || undefined
-                                }
-                            });
-                            
-                            console.log(`TTS erfolgreich: "${message}" auf ${entityId} (${language})`);
-                            
-                            // Success Feedback
-                            button.innerHTML = `
-                                <span class="tts-speak-icon">✅</span>
-                                <span class="tts-speak-text">Gesprochen!</span>
-                            `;
-                            
-                            setTimeout(() => {
-                                button.innerHTML = originalContent;
-                                button.disabled = false;
-                            }, 2000);
-                            
-                        } catch (error) {
-                            console.error('TTS Fehler:', error);
-                            
-                            // Fallback: Versuche direkten TTS Service
-                            try {
-                                await this._hass.callService('tts', 'google_translate_say', {
-                                    entity_id: entityId,
-                                    message: message,
-                                    language: language.split('-')[0] // "de-DE" → "de"
-                                });
-                                
-                                button.innerHTML = `
-                                    <span class="tts-speak-icon">✅</span>
-                                    <span class="tts-speak-text">Gesprochen!</span>
-                                `;
-                                
-                                setTimeout(() => {
-                                    button.innerHTML = originalContent;
-                                    button.disabled = false;
-                                }, 2000);
-                                
-                            } catch (fallbackError) {
-                                console.error('TTS Fallback Fehler:', fallbackError);
-                                
-                                // Error Feedback
-                                button.innerHTML = `
-                                    <span class="tts-speak-icon">❌</span>
-                                    <span class="tts-speak-text">Fehler</span>
-                                `;
-                                
-                                setTimeout(() => {
-                                    button.innerHTML = originalContent;
-                                    button.disabled = false;
-                                }, 3000);
-                            }
-                        }
-                    }
-                    
-                    // Verfügbare TTS Engines ermitteln
-                    async getAvailableTTSEngines() {
-                        if (!this._hass) return [];
-                        
-                        try {
-                            // Hole alle TTS Entitäten
-                            const ttsEntities = Object.keys(this._hass.states).filter(entityId => 
-                                entityId.startsWith('tts.')
-                            );
-                            
-                            const engines = ttsEntities.map(entityId => {
-                                const state = this._hass.states[entityId];
-                                return {
-                                    entity_id: entityId,
-                                    name: state.attributes.friendly_name || entityId,
-                                    supported_languages: state.attributes.supported_languages || [],
-                                    voice: state.attributes.voice || null
-                                };
-                            });
-                            
-                            return engines;
-                            
-                        } catch (error) {
-                            console.error('Fehler beim Laden der TTS Engines:', error);
-                            return [];
-                        }
-                    }
-                    
-                    // Beste TTS Engine für Sprache auswählen
-                    selectBestTTSEngine(engines, language) {
-                        if (!engines || engines.length === 0) return null;
-                        
-                        const languageCode = language.split('-')[0]; // "de-DE" → "de"
-                        
-                        // 1. Versuche exakte Sprach-Übereinstimmung
-                        let bestEngine = engines.find(engine => 
-                            engine.supported_languages.includes(language)
-                        );
-                        
-                        // 2. Versuche Sprach-Code Übereinstimmung
-                        if (!bestEngine) {
-                            bestEngine = engines.find(engine => 
-                                engine.supported_languages.some(lang => lang.startsWith(languageCode))
-                            );
-                        }
-                        
-                        // 3. Fallback: Erste verfügbare Engine
-                        if (!bestEngine && engines.length > 0) {
-                            bestEngine = engines[0];
-                        }
-                        
-                        return bestEngine;
-                    }
-        
-
     
     // Kategorie-Namen für Music Assistant
     getMusicAssistantCategoryName(type) {
@@ -4229,8 +3919,7 @@ getQuickStats(item) {
         return names[type] || type;
     }
 
-
- 
+    
 
     
     getMediaReplaceControls(item) {
@@ -4260,82 +3949,52 @@ getQuickStats(item) {
                 </div>
                 
                 ${hasMusicAssistant ? `
-                                    <div class="music-assistant-search" id="ma-search-${item.id}">
-                                        <h4 class="control-title-large">🎵 Music Assistant Suche</h4>
-                                        <div class="ma-search-container">
-                                            <div class="ma-search-bar-container">
-                                                <input type="text" 
-                                                       class="ma-search-input" 
-                                                       placeholder="Suchen..." 
-                                                       data-ma-search="${item.id}">
-                                                <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
-                                                    <span class="ma-enqueue-icon">▶️</span>
-                                                    <span class="ma-enqueue-text">Play now</span>
-                                                </div>
-                                            </div>
-                                            <div class="ma-filter-container" id="ma-filters-${item.id}">
-                                                <div class="ma-filter-chip ma-filter-active" data-filter="all">
-                                                    <span class="ma-filter-icon">🔗</span>
-                                                    <span>All</span>
-                                                </div>
-                                                <div class="ma-filter-chip" data-filter="artists">
-                                                    <span class="ma-filter-icon">👤</span>
-                                                    <span>Artists</span>
-                                                </div>
-                                                <div class="ma-filter-chip" data-filter="albums">
-                                                    <span class="ma-filter-icon">💿</span>
-                                                    <span>Albums</span>
-                                                </div>
-                                                <div class="ma-filter-chip" data-filter="tracks">
-                                                    <span class="ma-filter-icon">🎵</span>
-                                                    <span>Tracks</span>
-                                                </div>
-                                                <div class="ma-filter-chip" data-filter="playlists">
-                                                    <span class="ma-filter-icon">📋</span>
-                                                    <span>Playlists</span>
-                                                </div>
-                                                <div class="ma-filter-chip" data-filter="radio">
-                                                    <span class="ma-filter-icon">📻</span>
-                                                    <span>Radio</span>
-                                                </div>
-                                            </div>
-                                            <div class="ma-search-results" id="ma-results-${item.id}"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tts-section" id="tts-${item.id}">
-                                        <h4 class="control-title-large">🗣️ Text zu Sprache</h4>
-                                        <div class="tts-container">
-                                            <div class="tts-input-container">
-                                                <textarea class="tts-message-input" 
-                                                         placeholder="Nachricht eingeben..." 
-                                                         data-tts-message="${item.id}" 
-                                                         rows="3"></textarea>
-                                                <div class="tts-controls">
-                                                    <select class="tts-language-select" data-tts-language="${item.id}">
-                                                        <option value="de-DE">Deutsch</option>
-                                                        <option value="en-US">English (US)</option>
-                                                        <option value="en-GB">English (UK)</option>
-                                                        <option value="fr-FR">Français</option>
-                                                        <option value="es-ES">Español</option>
-                                                        <option value="it-IT">Italiano</option>
-                                                        <option value="nl-NL">Nederlands</option>
-                                                    </select>
-                                                    <button class="tts-speak-button" data-tts-speak="${item.id}">
-                                                        <span class="tts-speak-icon">🔊</span>
-                                                        <span class="tts-speak-text">Sprechen</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ` : ''}
+                    <div class="music-assistant-search" id="ma-search-${item.id}">
+                        <h4 class="control-title-large">🎵 Music Assistant Suche</h4>
+                        <div class="ma-search-container">
+                            <div class="ma-search-bar-container">
+                                <input type="text" 
+                                       class="ma-search-input" 
+                                       placeholder="Suchen..." 
+                                       data-ma-search="${item.id}">
+                                <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
+                                    <span class="ma-enqueue-icon">▶️</span>
+                                    <span class="ma-enqueue-text">Play now</span>
+                                </div>
                             </div>
-                        `;
-
-
-
-    
+                            <div class="ma-filter-container" id="ma-filters-${item.id}">
+                                <div class="ma-filter-chip ma-filter-active" data-filter="all">
+                                    <span class="ma-filter-icon">🔗</span>
+                                    <span>All</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="artists">
+                                    <span class="ma-filter-icon">👤</span>
+                                    <span>Artists</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="albums">
+                                    <span class="ma-filter-icon">💿</span>
+                                    <span>Albums</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="tracks">
+                                    <span class="ma-filter-icon">🎵</span>
+                                    <span>Tracks</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="playlists">
+                                    <span class="ma-filter-icon">📋</span>
+                                    <span>Playlists</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="radio">
+                                    <span class="ma-filter-icon">📻</span>
+                                    <span>Radio</span>
+                                </div>
+                            </div>
+                            <div class="ma-search-results" id="ma-results-${item.id}"></div>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }    
 
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
