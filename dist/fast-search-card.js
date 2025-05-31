@@ -99,6 +99,7 @@ class FastSearchCard extends HTMLElement {
                 
                 .view-toggle-btn:hover:not(.active) {
                     background: rgba(0, 0, 0, 0.25);
+                    transform: scale(1.05);
                 }
                 
                 .view-toggle-btn.active {
@@ -194,13 +195,14 @@ class FastSearchCard extends HTMLElement {
                 
                 .filter-button:hover {
                     background: rgba(0, 0, 0, 0.25);
+                    transform: scale(1.05);
+                    
                 }
 
                 .filter-button:hover:not(.active) {
                     background: rgba(0, 0, 0, 0.25);
+                    transform: scale(1.05);
                 }
-                
-
                 
                 
                 .filter-button.active {
@@ -1143,8 +1145,6 @@ class FastSearchCard extends HTMLElement {
                 .more-info-replace {
                     display: none;
                     background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
                     border-radius: 12px;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
                     overflow: hidden;
@@ -1166,24 +1166,25 @@ class FastSearchCard extends HTMLElement {
                     align-items: center;
                     gap: 12px;
                 }
+
                 
                 .back-button {
-                    background: rgba(255, 255, 255, 0.2);
+                    background: rgba(0, 0, 0, 0.15);
                     border: none;
-                    border-radius: 8px;
-                    width: 36px;
-                    height: 36px;
+                    border-radius: 60px;
+                    width: 48px;
+                    height: 48px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    color: white;
                     cursor: pointer;
                     transition: all 0.2s;
+                    color: rgba(255, 255, 255, 0.8);
                     font-size: 18px;
                 }
                 
                 .back-button:hover {
-                    background: rgba(255, 255, 255, 0.3);
+                    background: rgba(0, 0, 0, 0.25);
                     transform: scale(1.05);
                 }
                 
@@ -1191,12 +1192,13 @@ class FastSearchCard extends HTMLElement {
                     flex: 1;
                     font-size: 14px;
                     opacity: 0.9;
+                    line-height: 1.2;
                 }
                 
                 .breadcrumb-path {
                     font-size: 12px;
                     opacity: 0.7;
-                    margin-bottom: 2px;
+                    margin-bottom: 0px;
                 }
                 
                 .breadcrumb-current {
@@ -1290,10 +1292,10 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .control-group-large {
-                    background: #f8f9fa;
+                    background: transparent;
                     border-radius: 12px;
-                    padding: 20px;
-                    border-left: 4px solid #007aff;
+                    padding: 0px;
+                    border-left: 0px solid #007aff;
                 }
                 
                 .control-title-large {
@@ -1408,16 +1410,16 @@ class FastSearchCard extends HTMLElement {
                 .attribute-label-large {
                     font-size: 12px;
                     font-weight: 500;
-                    color: #666;
+                    color: rgba(255, 255, 255, 0.7);
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
-                    margin-bottom: 4px;
+                    margin-bottom: 0px;
                 }
                 
                 .attribute-value-large {
                     font-size: 14px;
                     font-weight: 600;
-                    color: #333;
+                    color: rgba(255, 255, 255, 0.9);
                 }
                 
                 /* Responsive für Replace Mode */
@@ -1451,7 +1453,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .accordion-item {
-                    border: 2px solid #e9ecef;
+                    border: 0px solid #e9ecef;
                     border-radius: 16px;
                     overflow: hidden;
                     transition: all 0.3s ease;
@@ -1460,10 +1462,11 @@ class FastSearchCard extends HTMLElement {
                 .accordion-item.active {
                     border-color: #007aff;
                     box-shadow: 0 4px 20px rgba(0, 122, 255, 0.1);
+                    background: rgba(255, 255, 255, 0.15);
                 }
                 
                 .accordion-header {
-                    background: #f8f9fa;
+                    background: rgba(0, 0, 0, 0.15);
                     padding: 20px 24px;
                     cursor: pointer;
                     display: flex;
@@ -1474,15 +1477,11 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .accordion-item.active .accordion-header {
-                    background: rgba(0, 122, 255, 0.1);
+                    background: rgba(255, 255, 255, 0.15);
                 }
                 
                 .accordion-header:hover {
-                    background: #e9ecef;
-                }
-                
-                .accordion-item.active .accordion-header:hover {
-                    background: rgba(0, 122, 255, 0.15);
+                    background: rgba(0, 0, 0, 0.25);                 
                 }
                 
                 .accordion-title {
@@ -1491,7 +1490,7 @@ class FastSearchCard extends HTMLElement {
                     gap: 12px;
                     font-size: 16px;
                     font-weight: 600;
-                    color: #333;
+                    color: rgba(255, 255, 255, 0.9);
                 }
                 
                 .accordion-icon {
@@ -1512,7 +1511,7 @@ class FastSearchCard extends HTMLElement {
                     max-height: 0;
                     overflow: hidden;
                     transition: max-height 0.4s ease, padding 0.3s ease;
-                    background: white;
+                    background: rgba(255, 255, 255, 0.15);
                 }
                 
                 .accordion-item.active .accordion-content {
@@ -1572,13 +1571,13 @@ class FastSearchCard extends HTMLElement {
                 .log-entries {
                     max-height: 250px;
                     overflow-y: auto;
-                    border: 1px solid #e9ecef;
+                    border: 0px solid #e9ecef;
                     border-radius: 12px;
-                    background: white;
+                    background: transparent;
                 }
                 
                 .log-entry {
-                    padding: 12px 16px;
+                    padding: 12px 0px 12px 0px;
                     border-bottom: 1px solid #f1f3f4;
                     display: flex;
                     justify-content: space-between;
@@ -1591,7 +1590,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .log-action {
-                    color: #333;
+                    color: rgba(255, 255, 255, 0.9);
                     font-weight: 500;
                 }
                 
@@ -1630,9 +1629,9 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .log-entries-container {
-                    border: 1px solid #e9ecef;
+                    border: 0px solid #e9ecef;
                     border-radius: 12px;
-                    background: white;
+                    background: transparent;
                     max-height: 250px;
                     overflow-y: auto;
                 }
