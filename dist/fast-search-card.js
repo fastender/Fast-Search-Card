@@ -1401,10 +1401,10 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .attribute-item-large {
-                    background: white;
-                    border: 1px solid #e9ecef;
+                    background: transparent;
+                    border: 0px solid #e9ecef;
                     border-radius: 8px;
-                    padding: 12px;
+                    padding: 12px 6px 12px 0px;
                 }
                 
                 .attribute-label-large {
@@ -1595,7 +1595,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .log-time {
-                    color: #666;
+                    color: rgba(255, 255, 255, 0.7);
                     font-size: 12px;
                 }
                 
@@ -2233,9 +2233,9 @@ class FastSearchCard extends HTMLElement {
                 .tts-section {
                     margin-top: 24px;
                     padding: 20px;
-                    background: #f8f9fa;
+                    background: transparent;
                     border-radius: 12px;
-                    border-left: 4px solid #007aff;
+                    border-left: 0px solid #007aff;
                 }
                 
                 .tts-input-container {
