@@ -1148,6 +1148,7 @@ class FastSearchCard extends HTMLElement {
                     border-radius: 12px;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
                     overflow: hidden;
+                    position: relative;
                 }
 
                 .more-info-replace.active {
@@ -1159,12 +1160,25 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .replace-header {
-                    background: transparent;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    z-index: 100;
+                    background: linear-gradient(
+                        to bottom,
+                        rgba(0, 0, 0, 0.8) 0%,
+                        rgba(0, 0, 0, 0.4) 70%,
+                        transparent 100%
+                    );
                     color: white;
                     padding: 16px 20px;
                     display: flex;
                     align-items: center;
                     gap: 12px;
+                    border-bottom: none;
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);                    
                 }
 
                 
@@ -1208,7 +1222,8 @@ class FastSearchCard extends HTMLElement {
                 
                 .replace-content {
                     display: flex;
-                    min-height: 400px;
+                    padding-top: 0;
+                    min-height: 100vh;
                     background: transparent;
                 }
                 
@@ -2558,6 +2573,7 @@ class FastSearchCard extends HTMLElement {
                 .replace-content.media-player {
                     position: relative;
                     overflow: hidden;
+                    padding-top: 0;
                 }
                 
                 .album-background-blur {
@@ -2672,6 +2688,7 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(0, 0, 0, 0.2);
                     backdrop-filter: blur(10px);
                     border-left: 1px solid rgba(255, 255, 255, 0.1);
+                    padding-top: 80px;
                 }
                 
                 /* Floating particles for extra atmosphere */
@@ -2718,8 +2735,13 @@ class FastSearchCard extends HTMLElement {
                 @media (max-width: 768px) {
                     .album-art-section {
                         min-height: 300px;
-                        padding: 30px 20px;
+                        
+                        padding-top: 70px;
                     }
+
+                    .details-section.media-player {
+                        padding-top: 70px;
+                    }                    
                     
                     .album-cover-large {
                         width: 200px;
