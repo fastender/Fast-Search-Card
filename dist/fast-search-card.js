@@ -3920,7 +3920,6 @@ getQuickStats(item) {
     }
 
 
-
     getMediaReplaceControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
@@ -3936,97 +3935,7 @@ getQuickStats(item) {
                 <h3 class="control-title-large">📺 Mediensteuerung</h3>
                 <div class="main-control-large">
                     <button class="toggle-button-large" data-action="play_pause">
-                        ${isPlaying ? '⏸️ Pause' : '▶️ Play'                }
-                
-                // TTS Event Listeners Setup
-                setupTTSEventListeners(item) {
-                    const ttsInput = this.shadowRoot.querySelector(`[data-tts-input="${item.id}"]`);
-                    const ttsLanguage = this.shadowRoot.querySelector(`[data-tts-language="${item.id}"]`);
-                    const ttsSpeakButton = this.shadowRoot.querySelector(`[data-tts-speak="${item.id}"]`);
-                    const ttsCharCount = this.shadowRoot.getElementById(`tts-count-${item.id}`);
-                    const ttsPresets = this.shadowRoot.querySelectorAll(`#tts-presets-${item.id} .tts-preset`);
-                    
-                    if (!ttsInput || !ttsSpeakButton) return;
-                    
-                    let isSpeaking = false;
-                    
-                    // Character Counter
-                    const updateCharCount = () => {
-                        const length = ttsInput.value.length;
-                        const maxLength = 300;
-                        
-                        if (ttsCharCount) {
-                            ttsCharCount.textContent = `${length}/${maxLength}`;
-                            ttsCharCount.classList.toggle('warning', length > maxLength * 0.8);
-                            ttsCharCount.classList.toggle('error', length > maxLength);
-                        }
-                        
-                        // Button aktivieren/deaktivieren
-                        ttsSpeakButton.disabled = length === 0 || length > maxLength || isSpeaking;
-                    };
-                    
-                    // Input Event Listener
-                    ttsInput.addEventListener('input', updateCharCount);
-                    
-                    // Speak Button Event Listener
-                    ttsSpeakButton.addEventListener('click', async () => {
-                        const text = ttsInput.value.trim();
-                        const language = ttsLanguage ? ttsLanguage.value : 'de-DE';
-                        
-                        if (!text || isSpeaking) return;
-                        
-                        // UI State ändern
-                        isSpeaking = true;
-                        ttsSpeakButton.classList.add('speaking');
-                        ttsSpeakButton.querySelector('.tts-speak-text').textContent = 'Stoppen';
-                        ttsSpeakButton.querySelector('.tts-speak-icon').textContent = '⏹️';
-                        ttsSpeakButton.disabled = false;
-                        
-                        try {
-                            await this.executeTTS(text, item.id, language);
-                            
-                            // Nach erfolgreichem Start - simuliere Ende nach geschätzter Zeit
-                            const estimatedDuration = Math.max(3000, text.length * 100); // ~100ms pro Zeichen
-                            setTimeout(() => {
-                                this.resetTTSButton(ttsSpeakButton);
-                                isSpeaking = false;
-                                updateCharCount();
-                            }, estimatedDuration);
-                            
-                        } catch (error) {
-                            console.error('TTS Fehler:', error);
-                            this.resetTTSButton(ttsSpeakButton);
-                            isSpeaking = false;
-                            updateCharCount();
-                            
-                            // Error Feedback
-                            ttsSpeakButton.style.background = '#f44336';
-                            setTimeout(() => {
-                                ttsSpeakButton.style.background = '';
-                            }, 2000);
-                        }
-                    });
-                    
-                    // Preset Buttons
-                    ttsPresets.forEach(preset => {
-                        preset.addEventListener('click', () => {
-                            const presetText = preset.getAttribute('data-tts-preset');
-                            ttsInput.value = presetText;
-                            updateCharCount();
-                            ttsInput.focus();
-                        });
-                    });
-                    
-                    // Initial character count
-                    updateCharCount();
-                }
-                
-                // TTS Button zurücksetzen
-                resetTTSButton(button) {
-                    button.classList.remove('speaking');
-                    button.querySelector('.tts-speak-text').textContent = 'Vorlesen';
-                    button.querySelector('.tts-speak-icon').textContent = '🗣️';
-                }
+                        ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
                     </button>
                     <button class="toggle-button-large off" data-action="previous">⏮️</button>
                     <button class="toggle-button-large off" data-action="next">⏭️</button>
@@ -4123,7 +4032,7 @@ getQuickStats(item) {
                 ` : ''}
             </div>
         `;
-    }        
+    }
 
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
