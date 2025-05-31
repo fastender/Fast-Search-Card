@@ -2364,6 +2364,87 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
+
+
+                /* Media Player Tab System */
+                .media-tabs {
+                    display: flex;
+                    background: rgba(0, 0, 0, 0.1);
+                    padding: 4px;
+                    margin: 0 0 20px 0;
+                    border-radius: 12px;
+                    gap: 4px;
+                }
+                
+                .media-tab {
+                    flex: 1;
+                    padding: 12px 16px;
+                    text-align: center;
+                    background: transparent;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.7);
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                }
+                
+                .media-tab:hover:not(.active) {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .media-tab.active {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                
+                .tab-icon {
+                    font-size: 16px;
+                }
+                
+                /* Tab Content Areas */
+                .tab-content {
+                    display: none;
+                    animation: fadeIn 0.3s ease-out;
+                }
+                
+                .tab-content.active {
+                    display: block;
+                }
+                
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                @media (max-width: 768px) {
+                    .media-tab {
+                        flex-direction: column;
+                        gap: 4px;
+                        padding: 8px 12px;
+                    }
+                    
+                    .tab-icon {
+                        font-size: 14px;
+                    }
+                    
+                    .media-tab span:not(.tab-icon) {
+                        font-size: 12px;
+                    }
+                }
                 
                 
             </style>
@@ -3456,56 +3537,101 @@ class FastSearchCard extends HTMLElement {
             }
 
             
-            
+        
             setupReplaceEventListeners(item) {
-                    // Back Button
-                    const backButton = this.shadowRoot.getElementById('backToSearch');
-                    backButton.addEventListener('click', () => this.switchBackToSearch());
-                    
-                    // Accordion Headers
-                    const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
-                    accordionHeaders.forEach(header => {
-                        header.addEventListener('click', (e) => {
-                            this.toggleAccordion(header);
-                        });
-                    });
-                    
-                    // Shortcut Buttons - NEU!
-                    const shortcutButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-shortcut-action]');
-                    shortcutButtons.forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const actionType = button.getAttribute('data-shortcut-action');
-                            const actionId = button.getAttribute('data-shortcut-id');
-                            this.executeShortcutAction(actionType, actionId, button);
-                        });
-                    });
-                    
-                    // Control Buttons (bestehend)
-                    const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
-                    controlButtons.forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const action = button.getAttribute('data-action');
-                            this.executeReplaceAction(item, action, button);
-                        });
-                    });
-                    
-                    // Sliders (bestehend)
-                    const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
-                    sliders.forEach(slider => {
-                        slider.addEventListener('input', (e) => {
-                            this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
-                        });
-                    });
-
-                    // NEU: Music Assistant Event Listeners hinzufügen
-                    this.setupMusicAssistantEventListeners(item);
-
-                    // ↓ DIESE ZEILE HINZUFÜGEN ↓
-                    this.setupTTSEventListeners(item);
+                // Back Button
+                const backButton = this.shadowRoot.getElementById('backToSearch');
+                backButton.addEventListener('click', () => this.switchBackToSearch());
                 
+                // Accordion Headers
+                const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
+                accordionHeaders.forEach(header => {
+                    header.addEventListener('click', (e) => {
+                        this.toggleAccordion(header);
+                    });
+                });
+                
+                // Shortcut Buttons - NEU!
+                const shortcutButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-shortcut-action]');
+                shortcutButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const actionType = button.getAttribute('data-shortcut-action');
+                        const actionId = button.getAttribute('data-shortcut-id');
+                        this.executeShortcutAction(actionType, actionId, button);
+                    });
+                });
+                
+                // Control Buttons (bestehend)
+                const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
+                controlButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const action = button.getAttribute('data-action');
+                        this.executeReplaceAction(item, action, button);
+                    });
+                });
+                
+                // Sliders (bestehend)
+                const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
+                sliders.forEach(slider => {
+                    slider.addEventListener('input', (e) => {
+                        this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
+                    });
+                });
+            
+                // NEU: Music Assistant Event Listeners hinzufügen
+                this.setupMusicAssistantEventListeners(item);
+            
+                // TTS Event Listeners hinzufügen
+                this.setupTTSEventListeners(item);
+            
+                // Media Player Tab Event Listeners - nur für Media Player
+                if (item.type === 'media_player') {
+                    const mediaTabs = this.shadowRoot.querySelectorAll('.more-info-replace .media-tab');
+                    mediaTabs.forEach(tab => {
+                        tab.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.switchMediaTab(tab, item);
+                        });
+                    });
                 }
-
-
+            } // ← DIESE schließende Klammer fehlt dir!
+            
+            // NEUE separate Methode:
+            switchMediaTab(clickedTab, item) {
+                const itemId = clickedTab.getAttribute('data-item-id');
+                const targetTab = clickedTab.getAttribute('data-tab');
+                
+                // Alle Tabs in diesem Media Player deaktivieren
+                const allTabs = this.shadowRoot.querySelectorAll(`.more-info-replace .media-tab[data-item-id="${itemId}"]`);
+                const allContents = this.shadowRoot.querySelectorAll(`.more-info-replace .tab-content[id$="-${itemId}"]`);
+                
+                allTabs.forEach(tab => tab.classList.remove('active'));
+                allContents.forEach(content => content.classList.remove('active'));
+                
+                // Geklickten Tab und entsprechenden Content aktivieren
+                clickedTab.classList.add('active');
+                const targetContent = this.shadowRoot.getElementById(`${targetTab}-tab-${itemId}`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+                
+                // Special handling für Music Assistant Tab
+                if (targetTab === 'music') {
+                    // Music Assistant Event Listeners neu initialisieren falls nötig
+                    setTimeout(() => {
+                        this.setupMusicAssistantEventListeners(item);
+                    }, 100);
+                }
+                
+                // Special handling für TTS Tab
+                if (targetTab === 'tts') {
+                    // TTS Event Listeners neu initialisieren falls nötig
+                    setTimeout(() => {
+                        this.setupTTSEventListeners(item);
+                    }, 100);
+                }
+            }
                 
                 setupMusicAssistantEventListeners(item) {
                     const searchInput = this.shadowRoot.querySelector(`[data-ma-search="${item.id}"]`);
@@ -4038,27 +4164,118 @@ getQuickStats(item) {
         return stats;
     }
 
-    getReplaceControlsHTML(item) {
-        if (item.itemType !== 'entity') {
-            return this.getNonEntityReplaceControls(item);
-        }
+    getMediaReplaceControls(item) {
+        const volume = item.volume || 0;
+        const isPlaying = item.state === 'playing';
         
-        switch (item.type) {
-            case 'light':
-                return this.getLightReplaceControls(item);
-            case 'climate':
-                return this.getClimateReplaceControls(item);
-            case 'cover':
-                return this.getCoverReplaceControls(item);
-            case 'media_player':
-                return this.getMediaReplaceControls(item);
-            case 'switch':
-            case 'fan':
-                return this.getBasicReplaceControls(item);
-            default:
-                return '';
-        }
+        // Prüfe ob Music Assistant verfügbar ist
+        const hasMusicAssistant = this.checkMusicAssistantAvailability();
+        
+        // TTS HTML generieren
+        const ttsHTML = this.getTTSHTML(item);
+        
+        return `
+            <div class="control-group-large">
+                <!-- Tab Navigation -->
+                <div class="media-tabs">
+                    <button class="media-tab active" data-tab="controls" data-item-id="${item.id}">
+                        <span class="tab-icon">📺</span>
+                        <span>Steuerung</span>
+                    </button>
+                    <button class="media-tab" data-tab="tts" data-item-id="${item.id}">
+                        <span class="tab-icon">🗣️</span>
+                        <span>TTS</span>
+                    </button>
+                    ${hasMusicAssistant ? `
+                    <button class="media-tab" data-tab="music" data-item-id="${item.id}">
+                        <span class="tab-icon">🎵</span>
+                        <span>Musik</span>
+                    </button>
+                    ` : ''}
+                </div>
+                
+                <!-- Tab Content: Mediensteuerung -->
+                <div class="tab-content active" id="controls-tab-${item.id}">
+                    <h3 class="control-title-large">📺 Mediensteuerung</h3>
+                    <div class="main-control-large">
+                        <button class="toggle-button-large" data-action="play_pause">
+                            ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                        </button>
+                        <button class="toggle-button-large off" data-action="previous">⏮️</button>
+                        <button class="toggle-button-large off" data-action="next">⏭️</button>
+                    </div>
+                    <div class="slider-control-large">
+                        <div class="slider-label-large">
+                            <span>Lautstärke</span>
+                            <span class="value">${volume}%</span>
+                        </div>
+                        <input type="range" class="slider-large" data-control="volume" 
+                               min="0" max="100" value="${volume}">
+                    </div>
+                    ${item.media_title ? `
+                        <div style="background: rgba(0, 0, 0, 0.1); padding: 16px; border-radius: 8px; margin-top: 16px;">
+                            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 4px;">Aktuell spielt:</div>
+                            <div style="font-weight: 600; color: white;">${item.media_title}</div>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <!-- Tab Content: Text-to-Speech -->
+                <div class="tab-content" id="tts-tab-${item.id}">
+                    ${ttsHTML}
+                </div>
+                
+                <!-- Tab Content: Music Assistant -->
+                ${hasMusicAssistant ? `
+                <div class="tab-content" id="music-tab-${item.id}">
+                    <h4 class="control-title-large">🎵 Music Assistant Suche</h4>
+                    <div class="ma-search-container">
+                        <div class="ma-search-bar-container">
+                            <input type="text" 
+                                   class="ma-search-input" 
+                                   placeholder="Suchen..." 
+                                   data-ma-search="${item.id}">
+                            <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
+                                <span class="ma-enqueue-icon">▶️</span>
+                                <span class="ma-enqueue-text">Play now</span>
+                            </div>
+                        </div>
+                        <div class="ma-filter-container" id="ma-filters-${item.id}">
+                            <div class="ma-filter-chip ma-filter-active" data-filter="all">
+                                <span class="ma-filter-icon">🔗</span>
+                                <span>All</span>
+                            </div>
+                            <div class="ma-filter-chip" data-filter="artists">
+                                <span class="ma-filter-icon">👤</span>
+                                <span>Artists</span>
+                            </div>
+                            <div class="ma-filter-chip" data-filter="albums">
+                                <span class="ma-filter-icon">💿</span>
+                                <span>Albums</span>
+                            </div>
+                            <div class="ma-filter-chip" data-filter="tracks">
+                                <span class="ma-filter-icon">🎵</span>
+                                <span>Tracks</span>
+                            </div>
+                            <div class="ma-filter-chip" data-filter="playlists">
+                                <span class="ma-filter-icon">📋</span>
+                                <span>Playlists</span>
+                            </div>
+                            <div class="ma-filter-chip" data-filter="radio">
+                                <span class="ma-filter-icon">📻</span>
+                                <span>Radio</span>
+                            </div>
+                        </div>
+                        <div class="ma-search-results" id="ma-results-${item.id}">
+                            <div class="ma-empty-state">Gebe mindestens 2 Zeichen ein um zu suchen...</div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
     }
+    
 
     getLightReplaceControls(item) {
         const brightness = item.brightness || 0;
@@ -4335,17 +4552,26 @@ getQuickStats(item) {
     
     // ↓ HIER die getTTSHTML() Methode aus Schritt 3 einfügen ↓
     
-    /**
-     * Generiert TTS HTML für Media Player
-     */
     getTTSHTML(item) {
         if (!this.checkTTSAvailability()) {
-            return '';
+            return `
+                <div class="tts-section">
+                    <div style="text-align: center; color: rgba(255, 255, 255, 0.6); padding: 20px;">
+                        🔇 Kein TTS Service verfügbar
+                    </div>
+                </div>
+            `;
         }
         
         const ttsService = this.getBestTTSService();
         if (!ttsService) {
-            return '';
+            return `
+                <div class="tts-section">
+                    <div style="text-align: center; color: rgba(255, 255, 255, 0.6); padding: 20px;">
+                        ❌ TTS Service nicht konfiguriert
+                    </div>
+                </div>
+            `;
         }
         
         return `
@@ -4399,7 +4625,7 @@ getQuickStats(item) {
                 </div>
             </div>
         `;
-    }    
+    }
     
 
     getMediaReplaceControls(item) {
