@@ -1142,7 +1142,9 @@ class FastSearchCard extends HTMLElement {
                 /* Replace Mode Styles - HIER EINFÜGEN */
                 .more-info-replace {
                     display: none;
-                    background: white;
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
                     border-radius: 12px;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
                     overflow: hidden;
@@ -1157,7 +1159,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .replace-header {
-                    background: linear-gradient(135deg, #007aff, #0056b3);
+                    background: transparent;
                     color: white;
                     padding: 16px 20px;
                     display: flex;
@@ -1205,11 +1207,12 @@ class FastSearchCard extends HTMLElement {
                 .replace-content {
                     display: flex;
                     min-height: 400px;
+                    background: transparent;
                 }
                 
                 .icon-section {
                     flex: 1;
-                    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                    background: transparent;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
