@@ -4250,56 +4250,6 @@ getQuickStats(item) {
         return null;
     }
     
-
-    /**
-     * Ermittelt den besten verfügbaren TTS Service
-     */
-    getBestTTSService() {
-        if (!this._hass || !this._hass.services) return null;
-        
-        console.log('=== TTS Service Detection ===');
-        console.log('Alle verfügbaren Services:', Object.keys(this._hass.services));
-        
-        // Prioritätsliste basierend auf den gefundenen Services
-        const priorityServices = [
-            'chime_tts',     // Chime TTS (dein Hauptservice)
-            'tts',           // Standard TTS (Amazon Polly, Cloud, etc.)
-            'google_translate_say',
-            'amazon_polly_say', 
-            'microsoft_tts_say',
-            'pico2wave_say',
-            'watson_tts_say'
-        ];
-        
-        // Finde ersten verfügbaren Service aus Prioritätsliste
-        for (const service of priorityServices) {
-            if (this._hass.services[service]) {
-                console.log(`Service "${service}" gefunden:`, this._hass.services[service]);
-                
-                // Prüfe verfügbare Methoden
-                const serviceMethods = Object.keys(this._hass.services[service]);
-                console.log(`Methoden für ${service}:`, serviceMethods);
-                
-                // Suche nach passender Methode
-                if (this._hass.services[service].say) {
-                    console.log(`✅ Verwende TTS Service: ${service}.say`);
-                    return { domain: service, service: 'say' };
-                } else if (this._hass.services[service].tts_say) {
-                    console.log(`✅ Verwende TTS Service: ${service}.tts_say`);
-                    return { domain: service, service: 'tts_say' };
-                } else if (this._hass.services[service].amazon_polly_say) {
-                    console.log(`✅ Verwende TTS Service: ${service}.amazon_polly_say`);
-                    return { domain: service, service: 'amazon_polly_say' };
-                } else if (this._hass.services[service].cloud_say) {
-                    console.log(`✅ Verwende TTS Service: ${service}.cloud_say`);
-                    return { domain: service, service: 'cloud_say' };
-                }
-            }
-        }
-        
-        console.log('❌ Kein passender TTS Service gefunden');
-        return null;
-    }
     
     
     // Music Assistant Suche implementieren
