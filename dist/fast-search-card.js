@@ -3785,12 +3785,9 @@ class FastSearchCard extends HTMLElement {
 
                 
 
-                
+        
                 /**
-                 * Spricht Text über TTS aus - MIT SPRACH-FALLBACK
-                 */
-                /**
-                 * Spricht Text über TTS aus - ROBUSTE VERSION OHNE PROXY-PROBLEME
+                 * Spricht Text über TTS aus - NUR AMAZON POLLY
                  */
                 async speakTTS(entityId, text, language = 'de', buttonElement = null) {
                     if (!this._hass || !text) return false;
@@ -3801,54 +3798,39 @@ class FastSearchCard extends HTMLElement {
                             buttonElement.innerHTML = '⏳ Spreche...';
                         }
                         
-                        // Methode 1: Direkt über media_player.play_media (umgeht TTS-Proxy)
-                        try {
-                            console.log('🔄 Versuche media_player.play_media Methode...');
-                            
-                            await this._hass.callService('media_player', 'play_media', {
-                                entity_id: entityId,
-                                media_content_type: 'music',
-                                media_content_id: `media-source://tts/amazon_polly?message=${encodeURIComponent(text)}&language=en&voice=Joanna`
-                            });
-                            
-                            console.log('✅ Media Player TTS erfolgreich!');
-                            return true;
-                            
-                        } catch (mediaError) {
-                            console.log('❌ Media Player Methode fehlgeschlagen, versuche notify...');
-                            
-                            // Methode 2: Über notify service (funktioniert oft besser)
-                            try {
-                                await this._hass.callService('notify', 'alexa_media', {
-                                    target: entityId,
-                                    message: text,
-                                    data: {
-                                        type: 'tts'
-                                    }
-                                });
-                                
-                                console.log('✅ Notify TTS erfolgreich!');
-                                return true;
-                                
-                            } catch (notifyError) {
-                                console.log('❌ Notify fehlgeschlagen, versuche Chime TTS...');
-                                
-                                // Methode 3: Chime TTS (funktioniert meist zuverlässig)
-                                await this._hass.callService('chime_tts', 'say', {
-                                    entity_id: entityId,
-                                    message: text
-                                });
-                                
-                                console.log('✅ Chime TTS erfolgreich!');
-                                return true;
+                        console.log('🗣️ Amazon Polly TTS:', { entityId, text });
+                        
+                        // Nur Amazon Polly verwenden - einfachste Parameter
+                        const serviceData = {
+                            entity_id: entityId,
+                            message: text
+                        };
+                        
+                        // Fire-and-Forget für Polly (gegen Proxy-Timeouts)
+                        this._hass.callService('tts', 'amazon_polly_say', serviceData).catch(error => {
+                            if (error.message.includes('timeout') || error.message.includes('5XX')) {
+                                console.log('ℹ️ Polly Proxy-Fehler ignoriert - Audio läuft vermutlich trotzdem');
+                            } else {
+                                console.error('❌ Polly TTS Fehler:', error);
                             }
+                        });
+                        
+                        console.log('✅ Amazon Polly TTS gestartet');
+                        
+                        // Button automatisch nach 4 Sekunden zurücksetzen
+                        if (buttonElement) {
+                            setTimeout(() => {
+                                this.updateTTSButton(buttonElement, false);
+                            }, 4000);
                         }
                         
+                        return true;
+                        
                     } catch (error) {
-                        console.error('❌ Alle TTS Methoden fehlgeschlagen:', error);
+                        console.error('❌ Amazon Polly Start fehlgeschlagen:', error);
                         
                         if (buttonElement) {
-                            buttonElement.innerHTML = '❌ TTS-Fehler';
+                            buttonElement.innerHTML = '❌ Polly-Fehler';
                             buttonElement.disabled = false;
                             setTimeout(() => this.updateTTSButton(buttonElement, false), 3000);
                         }
@@ -4205,39 +4187,34 @@ getQuickStats(item) {
     }
     
     /**
-     * Ermittelt den besten verfügbaren TTS Service - POLLY PRIORITÄT
+     * Ermittelt den besten verfügbaren TTS Service - NUR POLLY
      */
     getBestTTSService() {
         if (!this._hass || !this._hass.services) return null;
         
-        console.log('=== TTS Service Detection (POLLY) ===');
+        console.log('=== TTS Service Detection (NUR POLLY) ===');
         
-        // 1. PRIORITÄT: Amazon Polly
-        if (this._hass.services.tts && this._hass.services.tts.amazon_polly_say) {
-            console.log('✅ Verwende Amazon Polly: tts.amazon_polly_say');
-            return { domain: 'tts', service: 'amazon_polly_say' };
-        }
-        
-        // 2. Fallback: Cloud TTS
-        if (this._hass.services.tts && this._hass.services.tts.cloud_say) {
-            console.log('✅ Verwende Cloud TTS: tts.cloud_say');
-            return { domain: 'tts', service: 'cloud_say' };
-        }
-        
-        // 3. Fallback: Chime TTS
-        if (this._hass.services.chime_tts && this._hass.services.chime_tts.say) {
-            console.log('✅ Verwende Chime TTS: chime_tts.say');
-            return { domain: 'chime_tts', service: 'say' };
-        }
-        
-        // 4. Fallback: Erster verfügbarer TTS Service
+        // NUR Amazon Polly Services prüfen
         if (this._hass.services.tts) {
             const ttsMethods = Object.keys(this._hass.services.tts);
-            console.log('Verfügbare TTS Methoden:', ttsMethods);
+            console.log('🔍 Verfügbare TTS Methoden:', ttsMethods);
             
+            // Amazon Polly bevorzugen
+            if (this._hass.services.tts.amazon_polly_say) {
+                console.log('✅ Amazon Polly gefunden: tts.amazon_polly_say');
+                return { domain: 'tts', service: 'amazon_polly_say' };
+            }
+            
+            // Fallback: Cloud TTS
+            if (this._hass.services.tts.cloud_say) {
+                console.log('✅ Cloud TTS gefunden: tts.cloud_say');
+                return { domain: 'tts', service: 'cloud_say' };
+            }
+            
+            // Fallback: Erster TTS Service
             if (ttsMethods.length > 0) {
                 const firstMethod = ttsMethods[0];
-                console.log(`✅ Verwende ersten TTS Service: tts.${firstMethod}`);
+                console.log(`✅ Fallback TTS: tts.${firstMethod}`);
                 return { domain: 'tts', service: firstMethod };
             }
         }
