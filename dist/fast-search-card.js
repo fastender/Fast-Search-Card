@@ -3919,209 +3919,82 @@ getQuickStats(item) {
         return names[type] || type;
     }
 
-    getMediaReplaceControls(item) {
-            const volume = item.volume || 0;
-            const isPlaying = item.state === 'playing';
-            
-            // Prüfe ob Music Assistant verfügbar ist
-            const hasMusicAssistant = this.checkMusicAssistantAvailability();
-            
-            // Prüfe ob Text-to-Speech verfügbar ist
-            const hasTTS = this.checkTTSAvailability();
-            
-            return `
-                <div class="control-group-large">
-                    <h3 class="control-title-large">📺 Mediensteuerung</h3>
-                    <div class="main-control-large">
-                        <button class="toggle-button-large" data-action="play_pause">
-                            ${isPlaying ? '⏸️ Pause' : '▶️ Play'                }
     
-                    // TTS Event Listeners Setup
-                    setupTTSEventListeners(item) {
-                        const ttsInput = this.shadowRoot.querySelector(`[data-tts-input="${item.id}"]`);
-                        const ttsLanguage = this.shadowRoot.querySelector(`[data-tts-language="${item.id}"]`);
-                        const ttsSpeakButton = this.shadowRoot.querySelector(`[data-tts-speak="${item.id}"]`);
-                        const ttsCharCount = this.shadowRoot.getElementById(`tts-count-${item.id}`);
-                        const ttsPresets = this.shadowRoot.querySelectorAll(`#tts-presets-${item.id} .tts-preset`);
-                        
-                        if (!ttsInput || !ttsSpeakButton) return;
-                        
-                        let isSpeaking = false;
-                        
-                        // Character Counter
-                        const updateCharCount = () => {
-                            const length = ttsInput.value.length;
-                            const maxLength = 300;
-                            
-                            if (ttsCharCount) {
-                                ttsCharCount.textContent = `${length}/${maxLength}`;
-                                ttsCharCount.classList.toggle('warning', length > maxLength * 0.8);
-                                ttsCharCount.classList.toggle('error', length > maxLength);
-                            }
-                            
-                            // Button aktivieren/deaktivieren
-                            ttsSpeakButton.disabled = length === 0 || length > maxLength || isSpeaking;
-                        };
-                        
-                        // Input Event Listener
-                        ttsInput.addEventListener('input', updateCharCount);
-                        
-                        // Speak Button Event Listener
-                        ttsSpeakButton.addEventListener('click', async () => {
-                            const text = ttsInput.value.trim();
-                            const language = ttsLanguage ? ttsLanguage.value : 'de-DE';
-                            
-                            if (!text || isSpeaking) return;
-                            
-                            // UI State ändern
-                            isSpeaking = true;
-                            ttsSpeakButton.classList.add('speaking');
-                            ttsSpeakButton.querySelector('.tts-speak-text').textContent = 'Stoppen';
-                            ttsSpeakButton.querySelector('.tts-speak-icon').textContent = '⏹️';
-                            ttsSpeakButton.disabled = false;
-                            
-                            try {
-                                await this.executeTTS(text, item.id, language);
-                                
-                                // Nach erfolgreichem Start - simuliere Ende nach geschätzter Zeit
-                                const estimatedDuration = Math.max(3000, text.length * 100); // ~100ms pro Zeichen
-                                setTimeout(() => {
-                                    this.resetTTSButton(ttsSpeakButton);
-                                    isSpeaking = false;
-                                    updateCharCount();
-                                }, estimatedDuration);
-                                
-                            } catch (error) {
-                                console.error('TTS Fehler:', error);
-                                this.resetTTSButton(ttsSpeakButton);
-                                isSpeaking = false;
-                                updateCharCount();
-                                
-                                // Error Feedback
-                                ttsSpeakButton.style.background = '#f44336';
-                                setTimeout(() => {
-                                    ttsSpeakButton.style.background = '';
-                                }, 2000);
-                            }
-                        });
-                        
-                        // Preset Buttons
-                        ttsPresets.forEach(preset => {
-                            preset.addEventListener('click', () => {
-                                const presetText = preset.getAttribute('data-tts-preset');
-                                ttsInput.value = presetText;
-                                updateCharCount();
-                                ttsInput.focus();
-                            });
-                        });
-                        
-                        // Initial character count
-                        updateCharCount();
-                    }
-                    
-                    // TTS Button zurücksetzen
-                    resetTTSButton(button) {
-                        button.classList.remove('speaking');
-                        button.querySelector('.tts-speak-text').textContent = 'Vorlesen';
-                        button.querySelector('.tts-speak-icon').textContent = '🗣️';
-                    }
-                        </button>
-                        <button class="toggle-button-large off" data-action="previous">⏮️</button>
-                        <button class="toggle-button-large off" data-action="next">⏭️</button>
-                    </div>
-                    <div class="slider-control-large">
-                        <div class="slider-label-large">
-                            <span>Lautstärke</span>
-                            <span class="value">${volume}%</span>
-                        </div>
-                        <input type="range" class="slider-large" data-control="volume" 
-                               min="0" max="100" value="${volume}">
-                    </div>
-                    
-                    ${hasTTS ? `
-                        <div class="tts-section" id="tts-section-${item.id}">
-                            <h4 class="control-title-large">🗣️ Text-to-Speech</h4>
-                            <div class="tts-container">
-                                <div class="tts-input-container">
-                                    <textarea 
-                                        class="tts-input" 
-                                        placeholder="Text eingeben der vorgelesen werden soll..."
-                                        data-tts-input="${item.id}"
-                                        rows="3"
-                                        maxlength="300"></textarea>
-                                    <div class="tts-char-count" id="tts-count-${item.id}">0/300</div>
-                                </div>
-                                <div class="tts-controls">
-                                    <select class="tts-language" data-tts-language="${item.id}">
-                                        <option value="de-DE">🇩🇪 Deutsch</option>
-                                        <option value="en-US">🇺🇸 English (US)</option>
-                                        <option value="en-GB">🇬🇧 English (UK)</option>
-                                        <option value="fr-FR">🇫🇷 Français</option>
-                                        <option value="es-ES">🇪🇸 Español</option>
-                                        <option value="it-IT">🇮🇹 Italiano</option>
-                                    </select>
-                                    <button class="tts-speak-button" data-tts-speak="${item.id}" disabled>
-                                        <span class="tts-speak-icon">🗣️</span>
-                                        <span class="tts-speak-text">Vorlesen</span>
-                                    </button>
-                                </div>
-                                <div class="tts-presets" id="tts-presets-${item.id}">
-                                    <button class="tts-preset" data-tts-preset="Willkommen zu Hause!">🏠 Willkommen</button>
-                                    <button class="tts-preset" data-tts-preset="Das Essen ist fertig!">🍽️ Essen fertig</button>
-                                    <button class="tts-preset" data-tts-preset="Bitte zur Haustür kommen.">🚪 Zur Tür</button>
-                                    <button class="tts-preset" data-tts-preset="Gute Nacht und schöne Träume!">🌙 Gute Nacht</button>
-                                </div>
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    ${hasMusicAssistant ? `
-                        <div class="music-assistant-search" id="ma-search-${item.id}">
-                            <h4 class="control-title-large">🎵 Music Assistant Suche</h4>
-                            <div class="ma-search-container">
-                                <div class="ma-search-bar-container">
-                                    <input type="text" 
-                                           class="ma-search-input" 
-                                           placeholder="Suchen..." 
-                                           data-ma-search="${item.id}">
-                                    <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
-                                        <span class="ma-enqueue-icon">▶️</span>
-                                        <span class="ma-enqueue-text">Play now</span>
-                                    </div>
-                                </div>
-                                <div class="ma-filter-container" id="ma-filters-${item.id}">
-                                    <div class="ma-filter-chip ma-filter-active" data-filter="all">
-                                        <span class="ma-filter-icon">🔗</span>
-                                        <span>All</span>
-                                    </div>
-                                    <div class="ma-filter-chip" data-filter="artists">
-                                        <span class="ma-filter-icon">👤</span>
-                                        <span>Artists</span>
-                                    </div>
-                                    <div class="ma-filter-chip" data-filter="albums">
-                                        <span class="ma-filter-icon">💿</span>
-                                        <span>Albums</span>
-                                    </div>
-                                    <div class="ma-filter-chip" data-filter="tracks">
-                                        <span class="ma-filter-icon">🎵</span>
-                                        <span>Tracks</span>
-                                    </div>
-                                    <div class="ma-filter-chip" data-filter="playlists">
-                                        <span class="ma-filter-icon">📋</span>
-                                        <span>Playlists</span>
-                                    </div>
-                                    <div class="ma-filter-chip" data-filter="radio">
-                                        <span class="ma-filter-icon">📻</span>
-                                        <span>Radio</span>
-                                    </div>
-                                </div>
-                                <div class="ma-search-results" id="ma-results-${item.id}"></div>
-                            </div>
-                        </div>
-                    ` : ''}
+
+    
+    getMediaReplaceControls(item) {
+        const volume = item.volume || 0;
+        const isPlaying = item.state === 'playing';
+        
+        // Prüfe ob Music Assistant verfügbar ist
+        const hasMusicAssistant = this.checkMusicAssistantAvailability();
+        
+        return `
+            <div class="control-group-large">
+                <h3 class="control-title-large">📺 Mediensteuerung</h3>
+                <div class="main-control-large">
+                    <button class="toggle-button-large" data-action="play_pause">
+                        ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                    </button>
+                    <button class="toggle-button-large off" data-action="previous">⏮️</button>
+                    <button class="toggle-button-large off" data-action="next">⏭️</button>
                 </div>
-            `;
-        }
+                <div class="slider-control-large">
+                    <div class="slider-label-large">
+                        <span>Lautstärke</span>
+                        <span class="value">${volume}%</span>
+                    </div>
+                    <input type="range" class="slider-large" data-control="volume" 
+                           min="0" max="100" value="${volume}">
+                </div>
+                
+                ${hasMusicAssistant ? `
+                    <div class="music-assistant-search" id="ma-search-${item.id}">
+                        <h4 class="control-title-large">🎵 Music Assistant Suche</h4>
+                        <div class="ma-search-container">
+                            <div class="ma-search-bar-container">
+                                <input type="text" 
+                                       class="ma-search-input" 
+                                       placeholder="Suchen..." 
+                                       data-ma-search="${item.id}">
+                                <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
+                                    <span class="ma-enqueue-icon">▶️</span>
+                                    <span class="ma-enqueue-text">Play now</span>
+                                </div>
+                            </div>
+                            <div class="ma-filter-container" id="ma-filters-${item.id}">
+                                <div class="ma-filter-chip ma-filter-active" data-filter="all">
+                                    <span class="ma-filter-icon">🔗</span>
+                                    <span>All</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="artists">
+                                    <span class="ma-filter-icon">👤</span>
+                                    <span>Artists</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="albums">
+                                    <span class="ma-filter-icon">💿</span>
+                                    <span>Albums</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="tracks">
+                                    <span class="ma-filter-icon">🎵</span>
+                                    <span>Tracks</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="playlists">
+                                    <span class="ma-filter-icon">📋</span>
+                                    <span>Playlists</span>
+                                </div>
+                                <div class="ma-filter-chip" data-filter="radio">
+                                    <span class="ma-filter-icon">📻</span>
+                                    <span>Radio</span>
+                                </div>
+                            </div>
+                            <div class="ma-search-results" id="ma-results-${item.id}"></div>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }    
 
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
