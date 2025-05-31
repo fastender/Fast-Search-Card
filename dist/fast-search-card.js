@@ -2364,7 +2364,194 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
+                /* Media Player Tab System */
+                .media-tabs-container {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                }
                 
+                .media-tabs {
+                    display: flex;
+                    background: rgba(0, 0, 0, 0.15);
+                    border-radius: 12px;
+                    padding: 4px;
+                    margin-bottom: 20px;
+                    gap: 4px;
+                }
+                
+                .media-tab {
+                    flex: 1;
+                    padding: 12px 16px;
+                    text-align: center;
+                    background: transparent;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.7);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+                
+                .media-tab:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .media-tab.active {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                
+                .media-tab-icon {
+                    font-size: 16px;
+                }
+                
+                .media-tab-content {
+                    flex: 1;
+                    display: none;
+                    animation: fadeInTab 0.3s ease-out;
+                }
+                
+                .media-tab-content.active {
+                    display: block;
+                }
+                
+                @keyframes fadeInTab {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                /* Mobile Responsiveness */
+                @media (max-width: 768px) {
+                    .media-tab {
+                        padding: 10px 8px;
+                        font-size: 12px;
+                    }
+                    
+                    .media-tab-icon {
+                        font-size: 14px;
+                    }
+                }
+
+
+
+                /* Replace Mode Media Tabs */
+                .replace-media-tabs-container {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                    flex: 1;
+                }
+                
+                .replace-media-tabs {
+                    display: flex;
+                    background: rgba(0, 0, 0, 0.15);
+                    border-radius: 12px;
+                    padding: 4px;
+                    margin-bottom: 20px;
+                    gap: 4px;
+                }
+                
+                .replace-media-tab {
+                    flex: 1;
+                    padding: 14px 18px;
+                    text-align: center;
+                    background: transparent;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 15px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.7);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                }
+                
+                .replace-media-tab:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .replace-media-tab.active {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                
+                .replace-media-tab-icon {
+                    font-size: 18px;
+                }
+                
+                .replace-media-tab-content {
+                    flex: 1;
+                    display: none;
+                    animation: fadeInReplaceTab 0.3s ease-out;
+                    overflow-y: auto;
+                }
+                
+                .replace-media-tab-content.active {
+                    display: block;
+                }
+                
+                @keyframes fadeInReplaceTab {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                /* Replace Mode spezifische Anpassungen */
+                .replace-content .ma-search-container {
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .replace-content .ma-search-results {
+                    flex: 1;
+                    max-height: none;
+                    min-height: 300px;
+                }
+                
+                /* Mobile Responsiveness für Replace Mode */
+                @media (max-width: 768px) {
+                    .replace-media-tab {
+                        padding: 12px 10px;
+                        font-size: 13px;
+                    }
+                    
+                    .replace-media-tab-icon {
+                        font-size: 16px;
+                    }
+                    
+                    .replace-content {
+                        flex-direction: column;
+                    }
+                    
+                    .details-section {
+                        padding: 20px 15px;
+                    }
+}                
                 
             </style>
             
@@ -3461,6 +3648,11 @@ class FastSearchCard extends HTMLElement {
                     // Back Button
                     const backButton = this.shadowRoot.getElementById('backToSearch');
                     backButton.addEventListener('click', () => this.switchBackToSearch());
+
+                    // NEU: Replace Mode Media Player Tabs
+                    if (item.type === 'media_player') {
+                        this.setupReplaceMediaPlayerTabs(item);
+                    }                
                     
                     // Accordion Headers
                     const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
@@ -3506,6 +3698,49 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
+
+                setupReplaceMediaPlayerTabs(item) {
+                    const tabs = this.shadowRoot.querySelectorAll('.replace-media-tab');
+                    const contents = this.shadowRoot.querySelectorAll('.replace-media-tab-content');
+                    
+                    tabs.forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            const targetTab = tab.getAttribute('data-replace-tab');
+                            
+                            // Alle Tabs deaktivieren
+                            tabs.forEach(t => t.classList.remove('active'));
+                            contents.forEach(c => c.classList.remove('active'));
+                            
+                            // Aktiven Tab aktivieren
+                            tab.classList.add('active');
+                            const targetContent = this.shadowRoot.querySelector(`[data-replace-tab-content="${targetTab}"]`);
+                            if (targetContent) {
+                                targetContent.classList.add('active');
+                                
+                                // Spezielle Initialisierung für verschiedene Tabs
+                                if (targetTab === 'music' && this.checkMusicAssistantAvailability()) {
+                                    // Music Assistant Event Listeners neu setup mit Delay
+                                    setTimeout(() => {
+                                        this.setupMusicAssistantEventListeners(item);
+                                    }, 150);
+                                }
+                                
+                                if (targetTab === 'tts') {
+                                    // TTS Event Listeners neu setup mit Delay
+                                    setTimeout(() => {
+                                        this.setupTTSEventListeners(item);
+                                    }, 150);
+                                }
+                            }
+                        });
+                    });
+                    
+                    // Initial Setup für alle Tabs (aber nur der erste ist sichtbar)
+                    setTimeout(() => {
+                        this.setupTTSEventListeners(item);
+                        this.setupMusicAssistantEventListeners(item);
+                    }, 100);
+                }    
                 
                 setupMusicAssistantEventListeners(item) {
                     const searchInput = this.shadowRoot.querySelector(`[data-ma-search="${item.id}"]`);
@@ -4406,77 +4641,121 @@ getQuickStats(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
         
-        // Prüfe ob Music Assistant verfügbar ist
-        const hasMusicAssistant = this.checkMusicAssistantAvailability();
+        // Basis Mediensteuerung für Replace Mode
+        const basicControls = `
+            <div class="main-control-large">
+                <button class="toggle-button-large" data-action="play_pause">
+                    ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                </button>
+                <button class="toggle-button-large off" data-action="previous">⏮️ Zurück</button>
+                <button class="toggle-button-large off" data-action="next">⏭️ Weiter</button>
+            </div>
+            <div class="slider-control-large">
+                <div class="slider-label-large">
+                    <span>Lautstärke</span>
+                    <span class="value">${volume}%</span>
+                </div>
+                <input type="range" class="slider-large" data-control="volume" 
+                       min="0" max="100" value="${volume}">
+            </div>
+            ${item.media_title ? `
+                <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.1); border-radius: 12px;">
+                    <div style="font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 4px;">
+                        🎵 ${item.media_title}
+                    </div>
+                    ${item.attributes.media_artist ? `
+                        <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
+                            👤 ${item.attributes.media_artist}
+                        </div>
+                    ` : ''}
+                    ${item.attributes.media_album ? `
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px;">
+                            💿 ${item.attributes.media_album}
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
+        `;
         
-        // TTS HTML generieren
+        // TTS HTML für Replace Mode
         const ttsHTML = this.getTTSHTML(item);
+        
+        // Music Assistant HTML für Replace Mode
+        const musicAssistantHTML = this.checkMusicAssistantAvailability() ? `
+            <div class="ma-search-container">
+                <div class="ma-search-bar-container">
+                    <input type="text" 
+                           class="ma-search-input" 
+                           placeholder="Künstler, Album oder Song suchen..." 
+                           data-ma-search="${item.id}">
+                    <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
+                        <span class="ma-enqueue-icon">▶️</span>
+                        <span class="ma-enqueue-text">Play now</span>
+                    </div>
+                </div>
+                <div class="ma-filter-container" id="ma-filters-${item.id}">
+                    <div class="ma-filter-chip ma-filter-active" data-filter="all">
+                        <span class="ma-filter-icon">🔗</span>
+                        <span>Alle</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="artists">
+                        <span class="ma-filter-icon">👤</span>
+                        <span>Künstler</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="albums">
+                        <span class="ma-filter-icon">💿</span>
+                        <span>Alben</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="tracks">
+                        <span class="ma-filter-icon">🎵</span>
+                        <span>Songs</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="playlists">
+                        <span class="ma-filter-icon">📋</span>
+                        <span>Playlists</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="radio">
+                        <span class="ma-filter-icon">📻</span>
+                        <span>Radio</span>
+                    </div>
+                </div>
+                <div class="ma-search-results" id="ma-results-${item.id}">
+                    <div class="ma-empty-state">Gebe einen Suchbegriff ein um Musik zu finden...</div>
+                </div>
+            </div>
+        ` : '<div class="ma-empty-state">Music Assistant Integration nicht verfügbar</div>';
         
         return `
             <div class="control-group-large">
-                <h3 class="control-title-large">📺 Mediensteuerung</h3>
-                <div class="main-control-large">
-                    <button class="toggle-button-large" data-action="play_pause">
-                        ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
-                    </button>
-                    <button class="toggle-button-large off" data-action="previous">⏮️</button>
-                    <button class="toggle-button-large off" data-action="next">⏭️</button>
-                </div>
-                <div class="slider-control-large">
-                    <div class="slider-label-large">
-                        <span>Lautstärke</span>
-                        <span class="value">${volume}%</span>
+                <h3 class="control-title-large">📺 Media Player</h3>
+                <div class="replace-media-tabs-container">
+                    <div class="replace-media-tabs">
+                        <button class="replace-media-tab active" data-replace-tab="controls" data-entity="${item.id}">
+                            <span class="replace-media-tab-icon">🎮</span>
+                            <span>Steuerung</span>
+                        </button>
+                        <button class="replace-media-tab" data-replace-tab="tts" data-entity="${item.id}">
+                            <span class="replace-media-tab-icon">🗣️</span>
+                            <span>Sprechen</span>
+                        </button>
+                        <button class="replace-media-tab" data-replace-tab="music" data-entity="${item.id}">
+                            <span class="replace-media-tab-icon">🎵</span>
+                            <span>Musik</span>
+                        </button>
                     </div>
-                    <input type="range" class="slider-large" data-control="volume" 
-                           min="0" max="100" value="${volume}">
-                </div>
-                
-                ${ttsHTML}
-                
-                ${hasMusicAssistant ? `
-                    <div class="music-assistant-search" id="ma-search-${item.id}">
-                        <h4 class="control-title-large">🎵 Music Assistant Suche</h4>
-                        <div class="ma-search-container">
-                            <div class="ma-search-bar-container">
-                                <input type="text" 
-                                       class="ma-search-input" 
-                                       placeholder="Suchen..." 
-                                       data-ma-search="${item.id}">
-                                <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
-                                    <span class="ma-enqueue-icon">▶️</span>
-                                    <span class="ma-enqueue-text">Play now</span>
-                                </div>
-                            </div>
-                            <div class="ma-filter-container" id="ma-filters-${item.id}">
-                                <div class="ma-filter-chip ma-filter-active" data-filter="all">
-                                    <span class="ma-filter-icon">🔗</span>
-                                    <span>All</span>
-                                </div>
-                                <div class="ma-filter-chip" data-filter="artists">
-                                    <span class="ma-filter-icon">👤</span>
-                                    <span>Artists</span>
-                                </div>
-                                <div class="ma-filter-chip" data-filter="albums">
-                                    <span class="ma-filter-icon">💿</span>
-                                    <span>Albums</span>
-                                </div>
-                                <div class="ma-filter-chip" data-filter="tracks">
-                                    <span class="ma-filter-icon">🎵</span>
-                                    <span>Tracks</span>
-                                </div>
-                                <div class="ma-filter-chip" data-filter="playlists">
-                                    <span class="ma-filter-icon">📋</span>
-                                    <span>Playlists</span>
-                                </div>
-                                <div class="ma-filter-chip" data-filter="radio">
-                                    <span class="ma-filter-icon">📻</span>
-                                    <span>Radio</span>
-                                </div>
-                            </div>
-                            <div class="ma-search-results" id="ma-results-${item.id}"></div>
-                        </div>
+                    
+                    <div class="replace-media-tab-content active" data-replace-tab-content="controls">
+                        ${basicControls}
                     </div>
-                ` : ''}
+                    
+                    <div class="replace-media-tab-content" data-replace-tab-content="tts">
+                        ${ttsHTML || '<div class="ma-empty-state">Text-to-Speech nicht verfügbar</div>'}
+                    </div>
+                    
+                    <div class="replace-media-tab-content" data-replace-tab-content="music">
+                        ${musicAssistantHTML}
+                    </div>
+                </div>
             </div>
         `;
     }
@@ -6045,38 +6324,121 @@ getQuickStats(item) {
     }
 
 
+
+
     getMediaControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
         
-        // TTS HTML für Popup Dialog
+        // Basis Mediensteuerung
+        const basicControls = `
+            <div class="control-section">
+                <button class="control-button" data-action="play_pause">
+                    ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                </button>
+                <button class="control-button secondary" data-action="previous">⏮️</button>
+                <button class="control-button secondary" data-action="next">⏭️</button>
+            </div>
+            <div class="slider-control">
+                <div class="slider-label">
+                    <span>Lautstärke</span>
+                    <span>${volume}%</span>
+                </div>
+                <input type="range" class="slider" data-control="volume" 
+                       min="0" max="100" value="${volume}">
+            </div>
+            ${item.media_title ? `
+                <div style="margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.9); font-weight: 500;">
+                        🎵 ${item.media_title}
+                    </div>
+                    ${item.attributes.media_artist ? `
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px;">
+                            👤 ${item.attributes.media_artist}
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
+        `;
+        
+        // TTS HTML
         const ttsHTML = this.getTTSHTML(item);
+        
+        // Music Assistant HTML
+        const musicAssistantHTML = this.checkMusicAssistantAvailability() ? `
+            <div class="ma-search-container">
+                <div class="ma-search-bar-container">
+                    <input type="text" 
+                           class="ma-search-input" 
+                           placeholder="Suchen..." 
+                           data-ma-search="${item.id}">
+                    <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
+                        <span class="ma-enqueue-icon">▶️</span>
+                        <span class="ma-enqueue-text">Play now</span>
+                    </div>
+                </div>
+                <div class="ma-filter-container" id="ma-filters-${item.id}">
+                    <div class="ma-filter-chip ma-filter-active" data-filter="all">
+                        <span class="ma-filter-icon">🔗</span>
+                        <span>All</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="artists">
+                        <span class="ma-filter-icon">👤</span>
+                        <span>Artists</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="albums">
+                        <span class="ma-filter-icon">💿</span>
+                        <span>Albums</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="tracks">
+                        <span class="ma-filter-icon">🎵</span>
+                        <span>Tracks</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="playlists">
+                        <span class="ma-filter-icon">📋</span>
+                        <span>Playlists</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="radio">
+                        <span class="ma-filter-icon">📻</span>
+                        <span>Radio</span>
+                    </div>
+                </div>
+                <div class="ma-search-results" id="ma-results-${item.id}"></div>
+            </div>
+        ` : '<div class="ma-empty-state">Music Assistant nicht verfügbar</div>';
         
         return `
             <div class="more-info-section">
-                <h3 class="section-title">📺 Mediensteuerung</h3>
-                <div class="control-section">
-                    <button class="control-button" data-action="play_pause">
-                        ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
-                    </button>
-                    <button class="control-button secondary" data-action="previous">⏮️</button>
-                    <button class="control-button secondary" data-action="next">⏭️</button>
-                </div>
-                <div class="slider-control">
-                    <div class="slider-label">
-                        <span>Lautstärke</span>
-                        <span>${volume}%</span>
+                <h3 class="section-title">📺 Media Player</h3>
+                <div class="media-tabs-container">
+                    <div class="media-tabs">
+                        <button class="media-tab active" data-tab="controls" data-entity="${item.id}">
+                            <span class="media-tab-icon">🎮</span>
+                            <span>Steuerung</span>
+                        </button>
+                        <button class="media-tab" data-tab="tts" data-entity="${item.id}">
+                            <span class="media-tab-icon">🗣️</span>
+                            <span>TTS</span>
+                        </button>
+                        <button class="media-tab" data-tab="music" data-entity="${item.id}">
+                            <span class="media-tab-icon">🎵</span>
+                            <span>Musik</span>
+                        </button>
                     </div>
-                    <input type="range" class="slider" data-control="volume" 
-                           min="0" max="100" value="${volume}">
+                    
+                    <div class="media-tab-content active" data-tab-content="controls">
+                        ${basicControls}
+                    </div>
+                    
+                    <div class="media-tab-content" data-tab-content="tts">
+                        ${ttsHTML || '<div class="ma-empty-state">TTS nicht verfügbar</div>'}
+                    </div>
+                    
+                    <div class="media-tab-content" data-tab-content="music">
+                        ${musicAssistantHTML}
+                    </div>
                 </div>
             </div>
-            
-            ${ttsHTML ? `
-                <div class="more-info-section">
-                    ${ttsHTML}
-                </div>
-            ` : ''}
         `;
     }
         
@@ -6217,6 +6579,12 @@ getQuickStats(item) {
     }
 
     setupMoreInfoControls(overlay, item) {
+
+        // NEU: Media Player Tab System
+        if (item.type === 'media_player') {
+            this.setupMediaPlayerTabs(overlay, item);
+        }
+        
         // Control Buttons
         const controlButtons = overlay.querySelectorAll('[data-action]');
         controlButtons.forEach(button => {
@@ -6240,6 +6608,48 @@ getQuickStats(item) {
             this.setupTTSEventListeners(item);
         }        
     }
+
+
+    setupMediaPlayerTabs(overlay, item) {
+        const tabs = overlay.querySelectorAll('.media-tab');
+        const contents = overlay.querySelectorAll('.media-tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.getAttribute('data-tab');
+                
+                // Alle Tabs deaktivieren
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+                
+                // Aktiven Tab aktivieren
+                tab.classList.add('active');
+                const targetContent = overlay.querySelector(`[data-tab-content="${targetTab}"]`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                    
+                    // Spezielle Initialisierung für Music Assistant Tab
+                    if (targetTab === 'music' && this.checkMusicAssistantAvailability()) {
+                        // Music Assistant Event Listeners neu setup
+                        setTimeout(() => {
+                            this.setupMusicAssistantEventListeners(item);
+                        }, 100);
+                    }
+                    
+                    // TTS Event Listeners für TTS Tab
+                    if (targetTab === 'tts') {
+                        setTimeout(() => {
+                            this.setupTTSEventListeners(item);
+                        }, 100);
+                    }
+                }
+            });
+        });
+        
+        // Initial Setup für den ersten Tab (Steuerung)
+        this.setupTTSEventListeners(item);
+        this.setupMusicAssistantEventListeners(item);
+    }    
 
     executeMoreInfoAction(item, action, button) {
         // Visual Feedback
