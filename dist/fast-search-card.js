@@ -2551,7 +2551,189 @@ class FastSearchCard extends HTMLElement {
                     .details-section {
                         padding: 20px 15px;
                     }
-}                
+                }
+
+
+                /* Album Art Background & Apple Music Style */
+                .replace-content.media-player {
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .album-background-blur {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-size: cover;
+                    background-position: center;
+                    filter: blur(40px) brightness(0.3) saturate(1.2);
+                    transform: scale(1.1);
+                    z-index: 0;
+                    transition: all 0.8s ease;
+                }
+                
+                /* Album Section Styling */
+                .album-art-section {
+                    flex: 1;
+                    background: transparent;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 40px 20px;
+                    position: relative;
+                    z-index: 1;
+                }
+                
+                .album-cover-large {
+                    width: 280px;
+                    height: 280px;
+                    border-radius: 20px;
+                    background-size: cover;
+                    background-position: center;
+                    background-color: rgba(255, 255, 255, 0.1);
+                    box-shadow: 
+                        0 20px 60px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+                    margin-bottom: 24px;
+                    position: relative;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                }
+                
+                .album-cover-large::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(
+                        135deg,
+                        rgba(255, 255, 255, 0.1) 0%,
+                        rgba(255, 255, 255, 0.05) 50%,
+                        rgba(0, 0, 0, 0.1) 100%
+                    );
+                    border-radius: inherit;
+                }
+                
+                /* Pulsing animation for playing state */
+                @keyframes albumPulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.02); }
+                }
+                
+                .album-cover-large.playing {
+                    animation: albumPulse 3s ease-in-out infinite;
+                }
+                
+                /* Now Playing Info */
+                .now-playing-info {
+                    text-align: center;
+                    color: white;
+                    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+                    max-width: 280px;
+                }
+                
+                .song-title-large {
+                    font-size: 24px;
+                    font-weight: 700;
+                    margin-bottom: 8px;
+                    line-height: 1.2;
+                    color: white;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                
+                .artist-name-large {
+                    font-size: 18px;
+                    opacity: 0.8;
+                    margin-bottom: 6px;
+                    color: rgba(255, 255, 255, 0.9);
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                
+                .album-name-large {
+                    font-size: 14px;
+                    opacity: 0.6;
+                    color: rgba(255, 255, 255, 0.7);
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                
+                /* Enhanced Details Section with Backdrop */
+                .details-section.media-player {
+                    background: rgba(0, 0, 0, 0.2);
+                    backdrop-filter: blur(10px);
+                    border-left: 1px solid rgba(255, 255, 255, 0.1);
+                }
+                
+                /* Floating particles for extra atmosphere */
+                .floating-particles {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    pointer-events: none;
+                    z-index: 0;
+                }
+                
+                .particle {
+                    position: absolute;
+                    width: 4px;
+                    height: 4px;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    animation: float 6s ease-in-out infinite;
+                }
+                
+                @keyframes float {
+                    0%, 100% { 
+                        transform: translateY(0px) rotate(0deg);
+                        opacity: 0.3;
+                    }
+                    50% { 
+                        transform: translateY(-20px) rotate(180deg);
+                        opacity: 0.8;
+                    }
+                }
+                
+                .particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
+                .particle:nth-child(2) { left: 20%; top: 40%; animation-delay: 1s; }
+                .particle:nth-child(3) { left: 30%; top: 60%; animation-delay: 2s; }
+                .particle:nth-child(4) { left: 40%; top: 80%; animation-delay: 3s; }
+                .particle:nth-child(5) { left: 60%; top: 30%; animation-delay: 4s; }
+                .particle:nth-child(6) { left: 70%; top: 50%; animation-delay: 5s; }
+                .particle:nth-child(7) { left: 80%; top: 70%; animation-delay: 0.5s; }
+                .particle:nth-child(8) { left: 90%; top: 90%; animation-delay: 1.5s; }
+                
+                /* Mobile Responsive */
+                @media (max-width: 768px) {
+                    .album-art-section {
+                        min-height: 300px;
+                        padding: 30px 20px;
+                    }
+                    
+                    .album-cover-large {
+                        width: 200px;
+                        height: 200px;
+                    }
+                    
+                    .song-title-large {
+                        font-size: 20px;
+                    }
+                    
+                    .artist-name-large {
+                        font-size: 16px;
+                    }
+                }                
                 
             </style>
             
@@ -2742,6 +2924,12 @@ class FastSearchCard extends HTMLElement {
     switchBackToSearch() {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+
+        // Cleanup: Album Art Update Timer stoppen
+        const intervalId = replaceContainer.getAttribute('data-interval-id');
+        if (intervalId) {
+            clearInterval(parseInt(intervalId));
+        }        
         
         // Replace nach rechts rausschieben + fade-out
         replaceContainer.style.transition = 'left 0.3s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.3s ease';
@@ -2778,8 +2966,35 @@ class FastSearchCard extends HTMLElement {
 
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
+        
+        // Spezielle Behandlung für Media Player
+        if (item.type === 'media_player') {
+            const albumSection = this.getAlbumArtSectionHTML(item);
+            const detailsSection = this.getAccordionDetailsSectionHTML(item);
+            
+            return `
+                <div class="replace-header">
+                    <button class="back-button" id="backToSearch">←</button>
+                    <div class="breadcrumb">
+                        ${breadcrumb}
+                    </div>
+                </div>
+                <div class="replace-content media-player">
+                    ${this.getAlbumBackgroundHTML(item)}
+                    ${this.getFloatingParticlesHTML()}
+                    <div class="album-art-section">
+                        ${albumSection}
+                    </div>
+                    <div class="details-section media-player">
+                        ${detailsSection}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Standard Layout für andere Geräte
         const iconSection = this.getIconSectionHTML(item);
-        const detailsSection = this.getAccordionDetailsSectionHTML(item);  // ← HIER GEÄNDERT!
+        const detailsSection = this.getAccordionDetailsSectionHTML(item);
         
         return `
             <div class="replace-header">
@@ -2797,8 +3012,83 @@ class FastSearchCard extends HTMLElement {
                 </div>
             </div>
         `;
-    }    
+    }
 
+
+    getAlbumBackgroundHTML(item) {
+        const albumArt = this.getAlbumArtUrl(item);
+        if (albumArt) {
+            return `<div class="album-background-blur" style="background-image: url('${albumArt}');"></div>`;
+        }
+        return `<div class="album-background-blur" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>`;
+    }
+    
+    getFloatingParticlesHTML() {
+        return `
+            <div class="floating-particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+            </div>
+        `;
+    }
+    
+    getAlbumArtSectionHTML(item) {
+        const albumArt = this.getAlbumArtUrl(item);
+        const isPlaying = item.state === 'playing';
+        const songTitle = item.attributes.media_title || 'Kein Titel';
+        const artistName = item.attributes.media_artist || 'Unbekannter Künstler';
+        const albumName = item.attributes.media_album || '';
+        
+        const albumCoverStyle = albumArt ? `background-image: url('${albumArt}');` : 
+            `background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);`;
+        
+        return `
+            <div class="album-cover-large ${isPlaying ? 'playing' : ''}" 
+                 style="${albumCoverStyle}">
+            </div>
+            <div class="now-playing-info">
+                <div class="song-title-large">${songTitle}</div>
+                <div class="artist-name-large">${artistName}</div>
+                ${albumName ? `<div class="album-name-large">${albumName}</div>` : ''}
+            </div>
+        `;
+    }
+    
+    getAlbumArtUrl(item) {
+        // Verschiedene Attribute prüfen wo Album Art gespeichert sein könnte
+        const attributes = item.attributes;
+        
+        if (attributes.entity_picture) {
+            return attributes.entity_picture;
+        }
+        
+        if (attributes.entity_picture_local) {
+            return attributes.entity_picture_local;
+        }
+        
+        if (attributes.media_image_url) {
+            return attributes.media_image_url;
+        }
+        
+        // Für Music Assistant
+        if (attributes.media_image_remotely_accessible_url) {
+            return attributes.media_image_remotely_accessible_url;
+        }
+        
+        // Fallback: Versuche Standard Home Assistant Media Image
+        if (item.id && this._hass) {
+            return `/api/media_player_proxy/${item.id}?token=${this._hass.auth.data.access_token}&cache=${Date.now()}`;
+        }
+        
+        return null;
+    }
+    
     getBreadcrumbHTML(item) {
         const searchType = this.searchTypeConfigs[this.currentSearchType];
         const categoryName = searchType.categoryNames[item.category] || item.category;
@@ -3643,61 +3933,128 @@ class FastSearchCard extends HTMLElement {
             }
 
             
-            
+        
+
+
             setupReplaceEventListeners(item) {
-                    // Back Button
-                    const backButton = this.shadowRoot.getElementById('backToSearch');
-                    backButton.addEventListener('click', () => this.switchBackToSearch());
-
-                    // NEU: Replace Mode Media Player Tabs
-                    if (item.type === 'media_player') {
-                        this.setupReplaceMediaPlayerTabs(item);
-                    }                
-                    
-                    // Accordion Headers
-                    const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
-                    accordionHeaders.forEach(header => {
-                        header.addEventListener('click', (e) => {
-                            this.toggleAccordion(header);
-                        });
-                    });
-                    
-                    // Shortcut Buttons - NEU!
-                    const shortcutButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-shortcut-action]');
-                    shortcutButtons.forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const actionType = button.getAttribute('data-shortcut-action');
-                            const actionId = button.getAttribute('data-shortcut-id');
-                            this.executeShortcutAction(actionType, actionId, button);
-                        });
-                    });
-                    
-                    // Control Buttons (bestehend)
-                    const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
-                    controlButtons.forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const action = button.getAttribute('data-action');
-                            this.executeReplaceAction(item, action, button);
-                        });
-                    });
-                    
-                    // Sliders (bestehend)
-                    const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
-                    sliders.forEach(slider => {
-                        slider.addEventListener('input', (e) => {
-                            this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
-                        });
-                    });
-
-                    // NEU: Music Assistant Event Listeners hinzufügen
-                    this.setupMusicAssistantEventListeners(item);
-
-                    // ↓ DIESE ZEILE HINZUFÜGEN ↓
-                    this.setupTTSEventListeners(item);
+                // Back Button
+                const backButton = this.shadowRoot.getElementById('backToSearch');
+                backButton.addEventListener('click', () => this.switchBackToSearch());
                 
+                // NEU: Replace Mode Media Player Tabs
+                if (item.type === 'media_player') {
+                    this.setupReplaceMediaPlayerTabs(item);
+                    
+                    // NEU: Album Art Update Setup
+                    this.setupAlbumArtUpdates(item);
+                }                
+                
+                // Accordion Headers
+                const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
+                accordionHeaders.forEach(header => {
+                    header.addEventListener('click', (e) => {
+                        this.toggleAccordion(header);
+                    });
+                });
+                
+                // Shortcut Buttons
+                const shortcutButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-shortcut-action]');
+                shortcutButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const actionType = button.getAttribute('data-shortcut-action');
+                        const actionId = button.getAttribute('data-shortcut-id');
+                        this.executeShortcutAction(actionType, actionId, button);
+                    });
+                });
+                
+                // Control Buttons
+                const controlButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-action]');
+                controlButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const action = button.getAttribute('data-action');
+                        this.executeReplaceAction(item, action, button);
+                    });
+                });
+                
+                // Sliders
+                const sliders = this.shadowRoot.querySelectorAll('.more-info-replace [data-control]');
+                sliders.forEach(slider => {
+                    slider.addEventListener('input', (e) => {
+                        this.handleReplaceSliderChange(item, slider.getAttribute('data-control'), e.target.value);
+                    });
+                });
+                
+                // Music Assistant Event Listeners
+                this.setupMusicAssistantEventListeners(item);
+                
+                // TTS Event Listeners
+                this.setupTTSEventListeners(item);
+            }                
+
+
+            setupAlbumArtUpdates(item) {
+                // Speichere den aktuellen Media State für Vergleiche
+                let lastMediaTitle = item.attributes.media_title;
+                let lastEntityPicture = item.attributes.entity_picture;
+                let lastMediaImageUrl = item.attributes.media_image_url;
+                
+                // Erstelle einen Timer für regelmäßige Updates
+                const albumArtUpdateInterval = setInterval(() => {
+                    if (!this._hass || !this._hass.states[item.id]) {
+                        clearInterval(albumArtUpdateInterval);
+                        return;
+                    }
+                    
+                    const currentState = this._hass.states[item.id];
+                    const currentMediaTitle = currentState.attributes.media_title;
+                    const currentEntityPicture = currentState.attributes.entity_picture;
+                    const currentMediaImageUrl = currentState.attributes.media_image_url;
+                    
+                    // Prüfe ob sich Media-Daten geändert haben
+                    const hasMediaChanged = 
+                        currentMediaTitle !== lastMediaTitle ||
+                        currentEntityPicture !== lastEntityPicture ||
+                        currentMediaImageUrl !== lastMediaImageUrl;
+                    
+                    if (hasMediaChanged) {
+                        console.log('🎵 Album Art Update detected:', {
+                            oldTitle: lastMediaTitle,
+                            newTitle: currentMediaTitle,
+                            oldPicture: lastEntityPicture,
+                            newPicture: currentEntityPicture
+                        });
+                        
+                        // Update item mit neuen Daten
+                        Object.assign(item, {
+                            state: currentState.state,
+                            attributes: currentState.attributes
+                        });
+                        
+                        // Album Art und Info aktualisieren
+                        this.updateMediaPlayerAlbumArt(item);
+                        
+                        // Neue Werte speichern
+                        lastMediaTitle = currentMediaTitle;
+                        lastEntityPicture = currentEntityPicture;
+                        lastMediaImageUrl = currentMediaImageUrl;
+                    }
+                    
+                    // Playing State Animation updaten
+                    const albumCover = this.shadowRoot.querySelector('.album-cover-large');
+                    if (albumCover) {
+                        const isPlaying = currentState.state === 'playing';
+                        albumCover.classList.toggle('playing', isPlaying);
+                    }
+                    
+                }, 2000); // Alle 2 Sekunden prüfen
+                
+                // Cleanup wenn Replace Mode verlassen wird
+                const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+                if (replaceContainer) {
+                    replaceContainer.setAttribute('data-interval-id', albumArtUpdateInterval);
                 }
-
-
+            }
+    
 
                 setupReplaceMediaPlayerTabs(item) {
                     const tabs = this.shadowRoot.querySelectorAll('.replace-media-tab');
@@ -4864,14 +5221,69 @@ getQuickStats(item) {
             this.addDomainSpecificAttributes(item, domain, currentState);
         }
         
+        // Spezielle Behandlung für Media Player Album Art Update
+        if (item.type === 'media_player') {
+            this.updateMediaPlayerAlbumArt(item);
+        }
+        
         // Replace-Content neu generieren
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
         replaceContainer.innerHTML = this.getReplaceContentHTML(item);
         this.setupReplaceEventListeners(item);
         
-        // Logbook aktualisieren - NEU!
+        // Logbook aktualisieren
         this.updateLogEntries(item);
     }
+    
+    updateMediaPlayerAlbumArt(item) {
+        const albumBackground = this.shadowRoot.querySelector('.album-background-blur');
+        const albumCover = this.shadowRoot.querySelector('.album-cover-large');
+        const songTitle = this.shadowRoot.querySelector('.song-title-large');
+        const artistName = this.shadowRoot.querySelector('.artist-name-large');
+        const albumName = this.shadowRoot.querySelector('.album-name-large');
+        
+        if (!albumBackground || !albumCover) return;
+        
+        const albumArt = this.getAlbumArtUrl(item);
+        const isPlaying = item.state === 'playing';
+        
+        console.log('🎨 Updating Album Art:', {
+            albumArt,
+            isPlaying,
+            mediaTitle: item.attributes.media_title
+        });
+        
+        // Background und Cover aktualisieren
+        if (albumArt) {
+            albumBackground.style.backgroundImage = `url('${albumArt}')`;
+            albumCover.style.backgroundImage = `url('${albumArt}')`;
+            albumBackground.style.background = 'none';
+            albumCover.style.background = 'none';
+        } else {
+            const gradient = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            albumBackground.style.background = gradient;
+            albumCover.style.background = gradient;
+            albumBackground.style.backgroundImage = 'none';
+            albumCover.style.backgroundImage = 'none';
+        }
+        
+        // Animation State aktualisieren
+        albumCover.classList.toggle('playing', isPlaying);
+        
+        // Text Updates
+        if (songTitle) {
+            songTitle.textContent = item.attributes.media_title || 'Kein Titel';
+        }
+        if (artistName) {
+            artistName.textContent = item.attributes.media_artist || 'Unbekannter Künstler';
+        }
+        if (albumName) {
+            const albumText = item.attributes.media_album || '';
+            albumName.textContent = albumText;
+            albumName.style.display = albumText ? 'block' : 'none';
+        }
+    }
+
     
     updateLogEntries(item) {
         const logContainer = this.shadowRoot.getElementById('logEntries');
