@@ -4158,18 +4158,67 @@ getQuickStats(item) {
     /**
      * Prüft ob Text-to-Speech Services verfügbar sind
      */
+    /**
+     * Prüft ob Text-to-Speech Services verfügbar sind - KORRIGIERT
+     */
     checkTTSAvailability() {
         if (!this._hass || !this._hass.services) return false;
         
-        // Prüfe verfügbare TTS Services
-        const ttsServices = Object.keys(this._hass.services).filter(domain => {
-            const service = this._hass.services[domain];
-            return service && service.tts_say;  // Direkt nach tts_say Service suchen
+        console.log('=== TTS Availability Check ===');
+        console.log('Alle Services:', Object.keys(this._hass.services));
+        
+        // Prüfe verfügbare TTS Services - ERWEITERTE SUCHE
+        const ttsServices = [];
+        
+        // 1. Prüfe Standard TTS Services
+        if (this._hass.services.tts) {
+            console.log('TTS Domain gefunden:', this._hass.services.tts);
+            ttsServices.push('tts');
+        }
+        
+        // 2. Prüfe Chime TTS
+        if (this._hass.services.chime_tts) {
+            console.log('Chime TTS Domain gefunden:', this._hass.services.chime_tts);
+            ttsServices.push('chime_tts');
+        }
+        
+        // 3. Prüfe andere bekannte TTS Services
+        const knownTTSServices = [
+            'google_translate_say',
+            'amazon_polly_say',
+            'microsoft_tts_say',
+            'pico2wave_say',
+            'watson_tts_say'
+        ];
+        
+        knownTTSServices.forEach(service => {
+            if (this._hass.services[service]) {
+                console.log(`${service} gefunden:`, this._hass.services[service]);
+                ttsServices.push(service);
+            }
         });
         
-        console.log('Verfügbare TTS Services:', ttsServices);
-        return ttsServices.length > 0;
-    }    
+        // 4. Fallback: Suche nach allen Services mit "say" oder "speak" Methoden
+        Object.keys(this._hass.services).forEach(domain => {
+            const serviceMethods = Object.keys(this._hass.services[domain]);
+            const hasSpeechMethod = serviceMethods.some(method => 
+                method.includes('say') || 
+                method.includes('speak') || 
+                method.includes('tts')
+            );
+            
+            if (hasSpeechMethod && !ttsServices.includes(domain)) {
+                console.log(`${domain} hat Speech-Methoden:`, serviceMethods);
+                ttsServices.push(domain);
+            }
+        });
+        
+        console.log('🔍 Gefundene TTS Services:', ttsServices);
+        const available = ttsServices.length > 0;
+        console.log('✅ TTS verfügbar:', available);
+        
+        return available;
+    }
     
 
     /**
