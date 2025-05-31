@@ -3790,6 +3790,10 @@ class FastSearchCard extends HTMLElement {
                 /**
                  * Spricht Text über TTS aus
                  */
+
+                /**
+                 * Spricht Text über TTS aus - POLLY OPTIMIERT
+                 */
                 async speakTTS(entityId, text, language = 'de', buttonElement = null) {
                     if (!this._hass || !text) return false;
                     
@@ -3806,18 +3810,33 @@ class FastSearchCard extends HTMLElement {
                             buttonElement.innerHTML = '⏳ Spreche...';
                         }
                         
-                        // TTS Service Parameter vorbereiten
-                        const serviceData = {
+                        // Service-spezifische Parameter
+                        let serviceData = {
                             entity_id: entityId,
                             message: text
                         };
                         
-                        // Sprache hinzufügen wenn unterstützt
-                        if (ttsService.domain === 'tts' || ttsService.domain === 'chime_tts') {
+                        // Amazon Polly spezifische Parameter
+                        if (ttsService.service === 'amazon_polly_say') {
+                            serviceData = {
+                                entity_id: entityId,
+                                message: text,
+                                language: language,
+                                options: {
+                                    voice: language === 'de' ? 'Marlene' : 'Joanna' // Deutsche vs. englische Stimme
+                                }
+                            };
+                        }
+                        // Cloud TTS Parameter
+                        else if (ttsService.service === 'cloud_say') {
+                            serviceData.language = language;
+                        }
+                        // Chime TTS Parameter
+                        else if (ttsService.domain === 'chime_tts') {
                             serviceData.language = language;
                         }
                         
-                        console.log('TTS Service Call:', {
+                        console.log('🗣️ Polly TTS Service Call:', {
                             domain: ttsService.domain,
                             service: ttsService.service,
                             serviceData: serviceData
@@ -3826,11 +3845,11 @@ class FastSearchCard extends HTMLElement {
                         // TTS Service aufrufen
                         await this._hass.callService(ttsService.domain, ttsService.service, serviceData);
                         
-                        console.log('TTS erfolgreich gestartet');
+                        console.log('✅ Polly TTS erfolgreich gestartet');
                         return true;
                         
                     } catch (error) {
-                        console.error('TTS Fehler:', error);
+                        console.error('❌ Polly TTS Fehler:', error);
                         
                         // Error Feedback
                         if (buttonElement) {
@@ -4154,70 +4173,81 @@ getQuickStats(item) {
 
 
 
-
     /**
-     * Prüft ob Text-to-Speech Services verfügbar sind
-     */
-    /**
-     * Prüft ob Text-to-Speech Services verfügbar sind - KORRIGIERT
+     * Prüft ob Text-to-Speech Services verfügbar sind - POLLY OPTIMIERT
      */
     checkTTSAvailability() {
         if (!this._hass || !this._hass.services) return false;
         
-        console.log('=== TTS Availability Check ===');
+        console.log('=== TTS Availability Check (POLLY) ===');
         console.log('Alle Services:', Object.keys(this._hass.services));
         
-        // Prüfe verfügbare TTS Services - ERWEITERTE SUCHE
-        const ttsServices = [];
-        
-        // 1. Prüfe Standard TTS Services
-        if (this._hass.services.tts) {
-            console.log('TTS Domain gefunden:', this._hass.services.tts);
-            ttsServices.push('tts');
+        // Prüfe speziell auf Amazon Polly
+        if (this._hass.services.tts && this._hass.services.tts.amazon_polly_say) {
+            console.log('✅ Amazon Polly gefunden:', this._hass.services.tts.amazon_polly_say);
+            return true;
         }
         
-        // 2. Prüfe Chime TTS
+        // Fallback: Andere TTS Services
+        const ttsServices = [];
+        
+        if (this._hass.services.tts) {
+            const ttsMethods = Object.keys(this._hass.services.tts);
+            console.log('TTS Methoden verfügbar:', ttsMethods);
+            
+            if (ttsMethods.length > 0) {
+                ttsServices.push('tts');
+            }
+        }
+        
         if (this._hass.services.chime_tts) {
-            console.log('Chime TTS Domain gefunden:', this._hass.services.chime_tts);
             ttsServices.push('chime_tts');
         }
         
-        // 3. Prüfe andere bekannte TTS Services
-        const knownTTSServices = [
-            'google_translate_say',
-            'amazon_polly_say',
-            'microsoft_tts_say',
-            'pico2wave_say',
-            'watson_tts_say'
-        ];
+        console.log('🔍 Verfügbare TTS Services:', ttsServices);
+        return ttsServices.length > 0;
+    }
+    
+    /**
+     * Ermittelt den besten verfügbaren TTS Service - POLLY PRIORITÄT
+     */
+    getBestTTSService() {
+        if (!this._hass || !this._hass.services) return null;
         
-        knownTTSServices.forEach(service => {
-            if (this._hass.services[service]) {
-                console.log(`${service} gefunden:`, this._hass.services[service]);
-                ttsServices.push(service);
-            }
-        });
+        console.log('=== TTS Service Detection (POLLY) ===');
         
-        // 4. Fallback: Suche nach allen Services mit "say" oder "speak" Methoden
-        Object.keys(this._hass.services).forEach(domain => {
-            const serviceMethods = Object.keys(this._hass.services[domain]);
-            const hasSpeechMethod = serviceMethods.some(method => 
-                method.includes('say') || 
-                method.includes('speak') || 
-                method.includes('tts')
-            );
+        // 1. PRIORITÄT: Amazon Polly
+        if (this._hass.services.tts && this._hass.services.tts.amazon_polly_say) {
+            console.log('✅ Verwende Amazon Polly: tts.amazon_polly_say');
+            return { domain: 'tts', service: 'amazon_polly_say' };
+        }
+        
+        // 2. Fallback: Cloud TTS
+        if (this._hass.services.tts && this._hass.services.tts.cloud_say) {
+            console.log('✅ Verwende Cloud TTS: tts.cloud_say');
+            return { domain: 'tts', service: 'cloud_say' };
+        }
+        
+        // 3. Fallback: Chime TTS
+        if (this._hass.services.chime_tts && this._hass.services.chime_tts.say) {
+            console.log('✅ Verwende Chime TTS: chime_tts.say');
+            return { domain: 'chime_tts', service: 'say' };
+        }
+        
+        // 4. Fallback: Erster verfügbarer TTS Service
+        if (this._hass.services.tts) {
+            const ttsMethods = Object.keys(this._hass.services.tts);
+            console.log('Verfügbare TTS Methoden:', ttsMethods);
             
-            if (hasSpeechMethod && !ttsServices.includes(domain)) {
-                console.log(`${domain} hat Speech-Methoden:`, serviceMethods);
-                ttsServices.push(domain);
+            if (ttsMethods.length > 0) {
+                const firstMethod = ttsMethods[0];
+                console.log(`✅ Verwende ersten TTS Service: tts.${firstMethod}`);
+                return { domain: 'tts', service: firstMethod };
             }
-        });
+        }
         
-        console.log('🔍 Gefundene TTS Services:', ttsServices);
-        const available = ttsServices.length > 0;
-        console.log('✅ TTS verfügbar:', available);
-        
-        return available;
+        console.log('❌ Kein TTS Service gefunden');
+        return null;
     }
     
 
