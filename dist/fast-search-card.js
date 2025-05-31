@@ -3783,16 +3783,11 @@ class FastSearchCard extends HTMLElement {
 
 
 
-                // ↓ HIER die 3 TTS-Funktionen aus Schritt 6 einfügen ↓
                 
 
                 
                 /**
-                 * Spricht Text über TTS aus
-                 */
-
-                /**
-                 * Spricht Text über TTS aus - POLLY OPTIMIERT
+                 * Spricht Text über TTS aus - MIT SPRACH-FALLBACK
                  */
                 async speakTTS(entityId, text, language = 'de', buttonElement = null) {
                     if (!this._hass || !text) return false;
@@ -3818,14 +3813,40 @@ class FastSearchCard extends HTMLElement {
                         
                         // Amazon Polly spezifische Parameter
                         if (ttsService.service === 'amazon_polly_say') {
+                            
+                            // Erst mit deutscher Sprache versuchen
                             serviceData = {
                                 entity_id: entityId,
                                 message: text,
                                 language: language,
                                 options: {
-                                    voice: language === 'de' ? 'Marlene' : 'Joanna' // Deutsche vs. englische Stimme
+                                    voice: language === 'de' ? 'Marlene' : 'Joanna'
                                 }
                             };
+                            
+                            console.log('🗣️ Polly TTS Service Call (mit Sprache):', serviceData);
+                            
+                            try {
+                                await this._hass.callService(ttsService.domain, ttsService.service, serviceData);
+                                console.log('✅ Polly TTS mit Sprache erfolgreich');
+                                return true;
+                            } catch (languageError) {
+                                console.warn('⚠️ Polly mit Sprache fehlgeschlagen, versuche ohne Sprache:', languageError);
+                                
+                                // Fallback: Ohne language Parameter
+                                serviceData = {
+                                    entity_id: entityId,
+                                    message: text,
+                                    options: {
+                                        voice: language === 'de' ? 'Marlene' : 'Joanna'
+                                    }
+                                };
+                                
+                                console.log('🔄 Polly Fallback (ohne language):', serviceData);
+                                await this._hass.callService(ttsService.domain, ttsService.service, serviceData);
+                                console.log('✅ Polly Fallback erfolgreich');
+                                return true;
+                            }
                         }
                         // Cloud TTS Parameter
                         else if (ttsService.service === 'cloud_say') {
@@ -3836,34 +3857,45 @@ class FastSearchCard extends HTMLElement {
                             serviceData.language = language;
                         }
                         
-                        console.log('🗣️ Polly TTS Service Call:', {
-                            domain: ttsService.domain,
-                            service: ttsService.service,
-                            serviceData: serviceData
-                        });
-                        
-                        // TTS Service aufrufen
+                        // Für andere Services
                         await this._hass.callService(ttsService.domain, ttsService.service, serviceData);
-                        
-                        console.log('✅ Polly TTS erfolgreich gestartet');
+                        console.log('✅ TTS erfolgreich gestartet');
                         return true;
                         
                     } catch (error) {
-                        console.error('❌ Polly TTS Fehler:', error);
+                        console.error('❌ TTS Fehler:', error);
                         
-                        // Error Feedback
-                        if (buttonElement) {
-                            buttonElement.innerHTML = '❌ Fehler';
-                            buttonElement.disabled = false;
+                        // Letzter Fallback: Ganz einfacher Service Call
+                        try {
+                            console.log('🔄 Letzter Fallback: Einfacher TTS...');
+                            await this._hass.callService(ttsService.domain, ttsService.service, {
+                                entity_id: entityId,
+                                message: text
+                            });
+                            console.log('✅ Einfacher TTS erfolgreich');
+                            return true;
+                        } catch (finalError) {
+                            console.error('❌ Auch einfacher TTS fehlgeschlagen:', finalError);
                             
-                            setTimeout(() => {
-                                this.updateTTSButton(buttonElement, false);
-                            }, 2000);
+                            // Error Feedback
+                            if (buttonElement) {
+                                buttonElement.innerHTML = '❌ Fehler';
+                                buttonElement.disabled = false;
+                                
+                                setTimeout(() => {
+                                    this.updateTTSButton(buttonElement, false);
+                                }, 2000);
+                            }
+                            
+                            return false;
                         }
-                        
-                        return false;
                     }
-                }    
+                }
+
+
+
+
+    
                 
                 /**
                  * Stoppt TTS Wiedergabe
