@@ -2211,6 +2211,144 @@ class FastSearchCard extends HTMLElement {
                     padding: 40px 20px;
                     font-size: 14px;
                 }
+
+
+                /* Text-to-Speech Styles - NACH den bestehenden .ma-empty-state Styles einfügen */
+                .tts-section {
+                    margin-top: 24px;
+                    padding: 20px;
+                    background: #f8f9fa;
+                    border-radius: 12px;
+                    border-left: 4px solid #007aff;
+                }
+                
+                .tts-input-container {
+                    margin-bottom: 16px;
+                }
+                
+                .tts-textarea {
+                    width: 100%;
+                    min-height: 80px;
+                    padding: 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-family: inherit;
+                    resize: vertical;
+                    box-sizing: border-box;
+                    transition: border-color 0.2s;
+                }
+                
+                .tts-textarea:focus {
+                    outline: none;
+                    border-color: #007aff;
+                    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+                }
+                
+                .tts-counter {
+                    text-align: right;
+                    font-size: 12px;
+                    color: #666;
+                    margin-top: 4px;
+                }
+                
+                .tts-counter.warning {
+                    color: #ff6b35;
+                    font-weight: 600;
+                }
+                
+                .tts-controls {
+                    display: flex;
+                    gap: 12px;
+                    align-items: center;
+                    margin-bottom: 16px;
+                }
+                
+                .tts-language-select {
+                    flex: 1;
+                    padding: 8px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    background: white;
+                    cursor: pointer;
+                }
+                
+                .tts-speak-button {
+                    background: #007aff;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 8px 16px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    min-width: 100px;
+                    justify-content: center;
+                }
+                
+                .tts-speak-button:hover {
+                    background: #0056b3;
+                }
+                
+                .tts-speak-button:disabled {
+                    background: #ccc;
+                    cursor: not-allowed;
+                }
+                
+                .tts-speak-button.speaking {
+                    background: #ff4444;
+                }
+                
+                .tts-speak-button.speaking:hover {
+                    background: #cc3333;
+                }
+                
+                .tts-presets {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                    gap: 8px;
+                }
+                
+                .tts-preset-button {
+                    background: white;
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    padding: 8px 12px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    text-align: left;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                
+                .tts-preset-button:hover {
+                    background: #f0f0f0;
+                    border-color: #007aff;
+                }
+                
+                .tts-preset-button:active {
+                    transform: translateY(1px);
+                }
+                
+                @media (max-width: 768px) {
+                    .tts-controls {
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+                    
+                    .tts-presets {
+                        grid-template-columns: 1fr;
+                    }
+                }
+
+                
                 
             </style>
             
@@ -3345,6 +3483,9 @@ class FastSearchCard extends HTMLElement {
 
                     // NEU: Music Assistant Event Listeners hinzufügen
                     this.setupMusicAssistantEventListeners(item);
+
+                    // ↓ DIESE ZEILE HINZUFÜGEN ↓
+                    this.setupTTSEventListeners(item);
                 
                 }
 
@@ -3559,8 +3700,189 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
-    
-            
+
+                /**
+                 * Richtet TTS Event Listeners ein
+                 */
+                setupTTSEventListeners(item) {
+                    const ttsInput = this.shadowRoot.querySelector(`[data-tts-input="${item.id}"]`);
+                    const ttsCounter = this.shadowRoot.querySelector(`[data-tts-counter="${item.id}"]`);
+                    const ttsLanguage = this.shadowRoot.querySelector(`[data-tts-language="${item.id}"]`);
+                    const ttsSpeakButton = this.shadowRoot.querySelector(`[data-tts-speak="${item.id}"]`);
+                    const ttsPresets = this.shadowRoot.querySelectorAll(`[data-tts-preset]`);
+                    
+                    if (!ttsInput || !ttsSpeakButton) return;
+                    
+                    // Text Input Event Listener
+                    ttsInput.addEventListener('input', (e) => {
+                        const text = e.target.value;
+                        const length = text.length;
+                        
+                        // Counter aktualisieren
+                        if (ttsCounter) {
+                            ttsCounter.textContent = `${length} / 300 Zeichen`;
+                            ttsCounter.classList.toggle('warning', length > 250);
+                        }
+                        
+                        // Speak Button aktivieren/deaktivieren
+                        ttsSpeakButton.disabled = length === 0 || length > 300;
+                    });
+                    
+                    // Preset Buttons Event Listeners
+                    ttsPresets.forEach(preset => {
+                        preset.addEventListener('click', (e) => {
+                            const presetText = preset.getAttribute('data-tts-preset');
+                            if (presetText && ttsInput) {
+                                ttsInput.value = presetText;
+                                
+                                // Input Event manuell triggern
+                                const inputEvent = new Event('input');
+                                ttsInput.dispatchEvent(inputEvent);
+                                
+                                // Visual Feedback
+                                preset.style.transform = 'scale(0.95)';
+                                setTimeout(() => {
+                                    preset.style.transform = '';
+                                }, 150);
+                            }
+                        });
+                    });
+                    
+                    // Speak Button Event Listener
+                    ttsSpeakButton.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        
+                        const text = ttsInput.value.trim();
+                        if (!text) return;
+                        
+                        const language = ttsLanguage ? ttsLanguage.value : 'de';
+                        const isSpeaking = ttsSpeakButton.classList.contains('speaking');
+                        
+                        if (isSpeaking) {
+                            // Stoppen
+                            await this.stopTTS(item.id);
+                            this.updateTTSButton(ttsSpeakButton, false);
+                        } else {
+                            // Sprechen
+                            const success = await this.speakTTS(item.id, text, language, ttsSpeakButton);
+                            if (success) {
+                                this.updateTTSButton(ttsSpeakButton, true);
+                                
+                                // Geschätzte Spieldauer (ca. 150 Wörter pro Minute)
+                                const wordCount = text.split(' ').length;
+                                const estimatedDuration = Math.max(3000, (wordCount / 150) * 60 * 1000);
+                                
+                                // Button nach geschätzter Zeit zurücksetzen
+                                setTimeout(() => {
+                                    this.updateTTSButton(ttsSpeakButton, false);
+                                }, estimatedDuration);
+                            }
+                        }
+                    });
+                }
+
+
+
+                // ↓ HIER die 3 TTS-Funktionen aus Schritt 6 einfügen ↓
+                
+                /**
+                 * Spricht Text über TTS aus
+                 */
+                async speakTTS(entityId, text, language = 'de', buttonElement = null) {
+                    if (!this._hass || !text) return false;
+                    
+                    const ttsService = this.getBestTTSService();
+                    if (!ttsService) {
+                        console.error('Kein TTS Service verfügbar');
+                        return false;
+                    }
+                    
+                    try {
+                        // Button in Loading-Zustand setzen
+                        if (buttonElement) {
+                            buttonElement.disabled = true;
+                            buttonElement.innerHTML = '⏳ Spreche...';
+                        }
+                        
+                        // TTS Service Parameter vorbereiten
+                        const serviceData = {
+                            entity_id: entityId,
+                            message: text
+                        };
+                        
+                        // Sprache hinzufügen wenn unterstützt
+                        if (ttsService === 'google_translate_say' || ttsService === 'amazon_polly_say') {
+                            serviceData.language = language;
+                        }
+                        
+                        console.log('TTS Service Call:', {
+                            domain: ttsService,
+                            service: 'tts_say',
+                            serviceData: serviceData
+                        });
+                        
+                        // TTS Service aufrufen
+                        await this._hass.callService(ttsService, 'tts_say', serviceData);
+                        
+                        console.log('TTS erfolgreich gestartet');
+                        return true;
+                        
+                    } catch (error) {
+                        console.error('TTS Fehler:', error);
+                        
+                        // Error Feedback
+                        if (buttonElement) {
+                            buttonElement.innerHTML = '❌ Fehler';
+                            buttonElement.disabled = false;
+                            
+                            setTimeout(() => {
+                                this.updateTTSButton(buttonElement, false);
+                            }, 2000);
+                        }
+                        
+                        return false;
+                    }
+                }
+                
+                /**
+                 * Stoppt TTS Wiedergabe
+                 */
+                async stopTTS(entityId) {
+                    if (!this._hass) return false;
+                    
+                    try {
+                        // Media Player stoppen
+                        await this._hass.callService('media_player', 'media_stop', {
+                            entity_id: entityId
+                        });
+                        
+                        console.log('TTS gestoppt');
+                        return true;
+                        
+                    } catch (error) {
+                        console.error('TTS Stop Fehler:', error);
+                        return false;
+                    }
+                }
+                
+                /**
+                 * Aktualisiert TTS Button Status
+                 */
+                updateTTSButton(button, isSpeaking) {
+                    if (!button) return;
+                    
+                    if (isSpeaking) {
+                        button.classList.add('speaking');
+                        button.innerHTML = '⏹️ Stoppen';
+                        button.disabled = false;
+                    } else {
+                        button.classList.remove('speaking');
+                        button.innerHTML = '🗣️ Vorlesen';
+                        button.disabled = false;
+                    }
+                }
+
+                    
                 executeShortcutAction(actionType, actionId, button) {
                     if (!this._hass) return;
                     
@@ -3827,6 +4149,60 @@ getQuickStats(item) {
         
         return maEntities.length > 0;
     }
+
+
+    /**
+     * Prüft ob Text-to-Speech Services verfügbar sind
+     */
+    checkTTSAvailability() {
+        if (!this._hass) return false;
+        
+        // Prüfe verfügbare TTS Services
+        const ttsServices = Object.keys(this._hass.services).filter(domain => 
+            this._hass.services[domain].tts_say || // Standard TTS Service
+            domain === 'tts' || // TTS Domain
+            domain === 'google_translate_say' || // Google TTS
+            domain === 'amazon_polly_say' || // Amazon Polly
+            domain === 'microsoft_tts_say' || // Microsoft TTS
+            domain === 'pico2wave_say' || // Pico TTS
+            domain === 'watson_tts_say' // IBM Watson TTS
+        );
+        
+        console.log('Verfügbare TTS Services:', ttsServices);
+        return ttsServices.length > 0;
+    }
+    
+    /**
+     * Ermittelt den besten verfügbaren TTS Service
+     */
+    getBestTTSService() {
+        if (!this._hass) return null;
+        
+        // Prioritätsliste der TTS Services
+        const priorityServices = [
+            'google_translate_say',
+            'amazon_polly_say', 
+            'microsoft_tts_say',
+            'tts',
+            'pico2wave_say',
+            'watson_tts_say'
+        ];
+        
+        // Finde ersten verfügbaren Service aus Prioritätsliste
+        for (const service of priorityServices) {
+            if (this._hass.services[service] && this._hass.services[service].tts_say) {
+                return service;
+            }
+        }
+        
+        // Fallback: Ersten TTS Service finden
+        const ttsServices = Object.keys(this._hass.services).filter(domain => 
+            this._hass.services[domain].tts_say
+        );
+        
+        return ttsServices.length > 0 ? ttsServices[0] : null;
+    }
+    
     
     // Music Assistant Suche implementieren
     async searchMusicAssistant(query, entityId) {
@@ -3906,6 +4282,7 @@ getQuickStats(item) {
             console.error('Fehler beim Abspielen:', error);
         }
     }
+        
     
     // Kategorie-Namen für Music Assistant
     getMusicAssistantCategoryName(type) {
@@ -3918,16 +4295,85 @@ getQuickStats(item) {
         };
         return names[type] || type;
     }
-
+    
+    // ↓ HIER die getTTSHTML() Methode aus Schritt 3 einfügen ↓
+    
+    /**
+     * Generiert TTS HTML für Media Player
+     */
+    getTTSHTML(item) {
+        if (!this.checkTTSAvailability()) {
+            return '';
+        }
+        
+        const ttsService = this.getBestTTSService();
+        if (!ttsService) {
+            return '';
+        }
+        
+        return `
+            <div class="tts-section" id="tts-section-${item.id}">
+                <h4 class="control-title-large">🗣️ Text-to-Speech</h4>
+                
+                <div class="tts-input-container">
+                    <textarea 
+                        class="tts-textarea" 
+                        placeholder="Text eingeben der vorgelesen werden soll..." 
+                        maxlength="300"
+                        data-tts-input="${item.id}"></textarea>
+                    <div class="tts-counter" data-tts-counter="${item.id}">0 / 300 Zeichen</div>
+                </div>
+                
+                <div class="tts-controls">
+                    <select class="tts-language-select" data-tts-language="${item.id}">
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="en">🇺🇸 English</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="it">🇮🇹 Italiano</option>
+                    </select>
+                    <button 
+                        class="tts-speak-button" 
+                        data-tts-speak="${item.id}"
+                        disabled>
+                        🗣️ Vorlesen
+                    </button>
+                </div>
+                
+                <div class="tts-presets">
+                    <button class="tts-preset-button" data-tts-preset="🏠 Willkommen zu Hause!">
+                        🏠 Willkommen
+                    </button>
+                    <button class="tts-preset-button" data-tts-preset="🍽️ Das Essen ist fertig!">
+                        🍽️ Essen fertig
+                    </button>
+                    <button class="tts-preset-button" data-tts-preset="🚪 Bitte zur Haustür kommen.">
+                        🚪 Zur Haustür
+                    </button>
+                    <button class="tts-preset-button" data-tts-preset="🌙 Gute Nacht und schöne Träume!">
+                        🌙 Gute Nacht
+                    </button>
+                    <button class="tts-preset-button" data-tts-preset="⚠️ Achtung! Wichtige Durchsage.">
+                        ⚠️ Durchsage
+                    </button>
+                    <button class="tts-preset-button" data-tts-preset="🎵 Die Musik ist zu laut!">
+                        🎵 Musik leiser
+                    </button>
+                </div>
+            </div>
+        `;
+    }    
     
 
-    
     getMediaReplaceControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
         
         // Prüfe ob Music Assistant verfügbar ist
         const hasMusicAssistant = this.checkMusicAssistantAvailability();
+        
+        // TTS HTML generieren
+        const ttsHTML = this.getTTSHTML(item);
         
         return `
             <div class="control-group-large">
@@ -3947,6 +4393,8 @@ getQuickStats(item) {
                     <input type="range" class="slider-large" data-control="volume" 
                            min="0" max="100" value="${volume}">
                 </div>
+                
+                ${ttsHTML}
                 
                 ${hasMusicAssistant ? `
                     <div class="music-assistant-search" id="ma-search-${item.id}">
@@ -3994,7 +4442,7 @@ getQuickStats(item) {
                 ` : ''}
             </div>
         `;
-    }    
+    }
 
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
@@ -5559,9 +6007,13 @@ getQuickStats(item) {
         `;
     }
 
+
     getMediaControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
+        
+        // TTS HTML für Popup Dialog
+        const ttsHTML = this.getTTSHTML(item);
         
         return `
             <div class="more-info-section">
@@ -5582,8 +6034,15 @@ getQuickStats(item) {
                            min="0" max="100" value="${volume}">
                 </div>
             </div>
+            
+            ${ttsHTML ? `
+                <div class="more-info-section">
+                    ${ttsHTML}
+                </div>
+            ` : ''}
         `;
     }
+        
 
     getBasicControls(item) {
         const isOn = item.state === 'on';
@@ -5737,6 +6196,12 @@ getQuickStats(item) {
                 this.handleSliderChange(item, slider.getAttribute('data-control'), e.target.value);
             });
         });
+
+
+        // TTS Event Listeners für Popup Dialog - NEU!
+        if (item.type === 'media_player') {
+            this.setupTTSEventListeners(item);
+        }        
     }
 
     executeMoreInfoAction(item, action, button) {
