@@ -18,7 +18,8 @@ class FastSearchCard extends HTMLElement {
             showControls: config.show_controls !== false,     // Standard: true
             showHistory: config.show_history === true,        // Standard: false
             customActions: config.custom_actions || [],        // Benutzerdefinierte Aktionen
-            displayMode: config.more_info_mode || 'popup' // Neue Option: 'popup' oder 'replace'  
+            displayMode: config.more_info_mode || 'popup', // Neue Option: 'popup' oder 'replace' 
+            layoutMode: config.more_info_layout || 'accordion' // NEU: 'accordion' oder 'tabs'
         };
         
         // Entities können entweder als Array oder automatisch geladen werden
@@ -2473,9 +2474,191 @@ class FastSearchCard extends HTMLElement {
                     
                     .media-tab-icon {
                         font-size: 14px;
-                    }
+                    }                    
                 }
 
+
+                /* ===== MORE-INFO POPUP TAB SYSTEM ===== */
+                .more-info-tabs-container {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                }
+                
+                .more-info-tabs {
+                    display: flex;
+                    background: rgba(0, 0, 0, 0.15);
+                    border-radius: 12px;
+                    padding: 4px;
+                    margin-bottom: 20px;
+                    gap: 4px;
+                    flex-shrink: 0;
+                }
+                
+                .more-info-tab {
+                    flex: 1;
+                    padding: 12px 16px;
+                    text-align: center;
+                    background: transparent;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.7);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+                
+                .more-info-tab:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .more-info-tab.active {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                
+                .more-info-tab-icon {
+                    font-size: 16px;
+                }
+                
+                .more-info-tab-content {
+                    flex: 1;
+                    display: none;
+                    animation: fadeInMoreInfoTab 0.3s ease-out;
+                    overflow-y: auto;
+                }
+                
+                .more-info-tab-content.active {
+                    display: block;
+                }
+                
+                @keyframes fadeInMoreInfoTab {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                
+                /* ===== REPLACE MODE GENERAL TAB SYSTEM ===== */
+                .replace-tabs-container {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                    flex: 1;
+                }
+                
+                .replace-tabs {
+                    flex-shrink: 0;
+                    display: flex;
+                    background: rgba(0, 0, 0, 0.15);
+                    border-radius: 12px;
+                    padding: 4px;
+                    margin-bottom: 20px;
+                    gap: 4px;
+                }
+                
+                .replace-tab {
+                    flex: 1;
+                    padding: 12px 16px;
+                    text-align: center;
+                    background: transparent;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.7);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+                
+                .replace-tab:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                .replace-tab.active {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                
+                .replace-tab-icon {
+                    font-size: 16px;
+                }
+                
+                .replace-tab-content {
+                    flex: 1;
+                    display: none;
+                    animation: fadeInReplaceGeneralTab 0.3s ease-out;
+                    overflow-y: auto;
+                }
+                
+                .replace-tab-content.active {
+                    display: block;
+                }
+                
+                @keyframes fadeInReplaceGeneralTab {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                
+                /* ===== MOBILE RESPONSIVENESS FÜR TAB SYSTEMS ===== */
+                @media (max-width: 768px) {
+                    .more-info-tab,
+                    .replace-tab {
+                        padding: 10px 8px;
+                        font-size: 12px;
+                        flex-direction: column;
+                        gap: 4px;
+                    }
+                    
+                    .more-info-tab-icon,
+                    .replace-tab-icon {
+                        font-size: 14px;
+                    }
+                    
+                    .more-info-tabs,
+                    .replace-tabs {
+                        padding: 2px;
+                        gap: 2px;
+                    }
+                }
+                
+                /* Sehr kleine Bildschirme: Nur Icons */
+                @media (max-width: 480px) {
+                    .more-info-tab span:not(.more-info-tab-icon),
+                    .replace-tab span:not(.replace-tab-icon) {
+                        display: none;
+                    }
+                    
+                    .more-info-tab,
+                    .replace-tab {
+                        padding: 12px 8px;
+                    }
+                }
 
 
                 /* Replace Mode Media Tabs */
@@ -3034,10 +3217,11 @@ class FastSearchCard extends HTMLElement {
         }, 500);
     }        
 
+
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
-
-        // Spezielle Behandlung für Media Player
+    
+        // Spezielle Behandlung für Media Player (behält eigenes Tab-System)
         if (item.type === 'media_player') {
             const albumSection = this.getAlbumArtSectionHTML(item);
             const detailsSection = this.getAccordionDetailsSectionHTML(item);
@@ -3045,9 +3229,7 @@ class FastSearchCard extends HTMLElement {
             return `
                 <div class="replace-header">
                     <button class="back-button" id="backToSearch">←</button>
-                    <div class="breadcrumb">
-                        ${breadcrumb}
-                    </div>
+                    <div class="breadcrumb">${breadcrumb}</div>
                 </div>
                 <div class="replace-content media-player">
                     <div class="album-container">
@@ -3066,16 +3248,16 @@ class FastSearchCard extends HTMLElement {
             `;
         }        
         
-        // Standard Layout für andere Geräte
+        // NEU: Layout-Mode für andere Geräte prüfen
         const iconSection = this.getIconSectionHTML(item);
-        const detailsSection = this.getAccordionDetailsSectionHTML(item);
+        const detailsSection = this.moreInfoConfig.layoutMode === 'tabs' 
+            ? this.getReplaceTabDetailsSectionHTML(item)
+            : this.getAccordionDetailsSectionHTML(item);
         
         return `
             <div class="replace-header">
                 <button class="back-button" id="backToSearch">←</button>
-                <div class="breadcrumb">
-                    ${breadcrumb}
-                </div>
+                <div class="breadcrumb">${breadcrumb}</div>
             </div>
             <div class="replace-content">
                 <div class="icon-section">
@@ -3087,6 +3269,62 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
+
+    // NEUE Methode für Replace-Mode Tab-Layout
+    getReplaceTabDetailsSectionHTML(item) {
+        const typeDisplayName = this.getTypeDisplayName(item);
+        const controls = this.getReplaceControlsHTML(item);
+        const attributes = this.getReplaceAttributesHTML(item);
+        const history = this.getHistoryHTML(item);
+        const shortcuts = this.getShortcutsHTML(item);
+        
+        return `
+            <div class="entity-info">
+                <h2 class="entity-title-large">${item.name}</h2>
+                <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
+            </div>
+            
+            <div class="replace-tabs-container">
+                <div class="replace-tabs">
+                    <button class="replace-tab active" data-replace-general-tab="controls">
+                        <span class="replace-tab-icon">${this.getControlIcon(item)}</span>
+                        <span>Steuerung</span>
+                    </button>
+                    <button class="replace-tab" data-replace-general-tab="details">
+                        <span class="replace-tab-icon">📊</span>
+                        <span>Details</span>
+                    </button>
+                    <button class="replace-tab" data-replace-general-tab="history">
+                        <span class="replace-tab-icon">📈</span>
+                        <span>Logbuch</span>
+                    </button>
+                    <button class="replace-tab" data-replace-general-tab="shortcuts">
+                        <span class="replace-tab-icon">⚡</span>
+                        <span>Aktionen</span>
+                    </button>
+                </div>
+                
+                <div class="replace-tab-content active" data-replace-general-tab-content="controls">
+                    ${controls}
+                </div>
+                
+                <div class="replace-tab-content" data-replace-general-tab-content="details">
+                    ${attributes}
+                </div>
+                
+                <div class="replace-tab-content" data-replace-general-tab-content="history">
+                    ${history}
+                </div>
+                
+                <div class="replace-tab-content" data-replace-general-tab-content="shortcuts">
+                    ${shortcuts}
+                </div>
+            </div>
+        `;
+    }
+
+
+    
 
     getAlbumBackgroundHTML(item) {
         const albumArt = this.getAlbumArtUrl(item);
@@ -4009,28 +4247,68 @@ class FastSearchCard extends HTMLElement {
             
         
 
-
             setupReplaceEventListeners(item) {
                 // Back Button
                 const backButton = this.shadowRoot.getElementById('backToSearch');
                 backButton.addEventListener('click', () => this.switchBackToSearch());
                 
-                // NEU: Replace Mode Media Player Tabs
+                // NEU: General Tab System für nicht-Media-Player
+                if (item.type !== 'media_player' && this.moreInfoConfig.layoutMode === 'tabs') {
+                    this.setupReplaceGeneralTabs(item);
+                }
+                
+                // Media Player Tabs (nur für Media Player)
                 if (item.type === 'media_player') {
                     this.setupReplaceMediaPlayerTabs(item);
-                    
-                    // NEU: Album Art Update Setup
                     this.setupAlbumArtUpdates(item);
                 }                
                 
-                // Accordion Headers
-                const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
-                accordionHeaders.forEach(header => {
-                    header.addEventListener('click', (e) => {
-                        this.toggleAccordion(header);
+                // Accordion Headers (nur wenn nicht Tab-Mode)
+                if (this.moreInfoConfig.layoutMode !== 'tabs' || item.type === 'media_player') {
+                    const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
+                    accordionHeaders.forEach(header => {
+                        header.addEventListener('click', (e) => {
+                            this.toggleAccordion(header);
+                        });
+                    });
+                }
+                
+                // Restliche Event Listeners
+                this.setupRemainingReplaceEventListeners(item);
+            }
+
+
+            // NEUE Methode für Replace-Mode General Tab-System
+            setupReplaceGeneralTabs(item) {
+                const tabs = this.shadowRoot.querySelectorAll('.replace-tab');
+                const contents = this.shadowRoot.querySelectorAll('.replace-tab-content');
+                
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const targetTab = tab.getAttribute('data-replace-general-tab');
+                        
+                        // Alle Tabs deaktivieren
+                        tabs.forEach(t => t.classList.remove('active'));
+                        contents.forEach(c => c.classList.remove('active'));
+                        
+                        // Aktiven Tab aktivieren
+                        tab.classList.add('active');
+                        const targetContent = this.shadowRoot.querySelector(`[data-replace-general-tab-content="${targetTab}"]`);
+                        if (targetContent) {
+                            targetContent.classList.add('active');
+                            
+                            // Spezielle Initialisierung für verschiedene Tabs
+                            if (targetTab === 'history') {
+                                // Logbook neu laden wenn Tab aktiviert wird
+                                this.loadRealLogEntries(item);
+                            }
+                        }
                     });
                 });
-                
+            }
+            
+            // Event Listeners in separater Methode für bessere Übersicht
+            setupRemainingReplaceEventListeners(item) {
                 // Shortcut Buttons
                 const shortcutButtons = this.shadowRoot.querySelectorAll('.more-info-replace [data-shortcut-action]');
                 shortcutButtons.forEach(button => {
@@ -4063,7 +4341,7 @@ class FastSearchCard extends HTMLElement {
                 
                 // TTS Event Listeners
                 this.setupTTSEventListeners(item);
-            }                
+            }
 
 
             setupAlbumArtUpdates(item) {
@@ -6674,6 +6952,11 @@ getQuickStats(item) {
         const controls = this.getControlsHTML(item);
         const attributes = this.getAttributesHTML(item);
         
+        // NEU: Layout-Mode prüfen
+        const contentHTML = this.moreInfoConfig.layoutMode === 'tabs' 
+            ? this.getTabLayoutHTML(item, stateInfo, controls, attributes)
+            : this.getAccordionLayoutHTML(stateInfo, controls, attributes);
+        
         return `
             <div class="more-info-dialog">
                 <div class="more-info-header">
@@ -6686,13 +6969,54 @@ getQuickStats(item) {
                 </div>
                 
                 <div class="more-info-content">
+                    ${contentHTML}
+                </div>
+            </div>
+        `;
+    }
+
+
+    
+    // NEUE Methode für Tab-Layout (Popup-Dialog)
+    getTabLayoutHTML(item, stateInfo, controls, attributes) {
+        return `
+            <div class="more-info-tabs-container">
+                <div class="more-info-tabs">
+                    <button class="more-info-tab active" data-more-info-tab="status">
+                        <span class="more-info-tab-icon">📊</span>
+                        <span>Status</span>
+                    </button>
+                    <button class="more-info-tab" data-more-info-tab="controls">
+                        <span class="more-info-tab-icon">${this.getControlIcon(item)}</span>
+                        <span>Steuerung</span>
+                    </button>
+                    <button class="more-info-tab" data-more-info-tab="details">
+                        <span class="more-info-tab-icon">🔧</span>
+                        <span>Details</span>
+                    </button>
+                </div>
+                
+                <div class="more-info-tab-content active" data-more-info-tab-content="status">
                     ${stateInfo}
+                </div>
+                
+                <div class="more-info-tab-content" data-more-info-tab-content="controls">
                     ${controls}
+                </div>
+                
+                <div class="more-info-tab-content" data-more-info-tab-content="details">
                     ${attributes}
                 </div>
             </div>
         `;
     }
+    
+    // NEUE Methode für Accordion-Layout (bestehender Code)
+    getAccordionLayoutHTML(stateInfo, controls, attributes) {
+        return stateInfo + controls + attributes;
+    }
+
+    
 
     getStateInfo(item) {
         const stateClass = ['on', 'playing', 'open', 'active'].includes(item.state) ? 'on' : 'off';
@@ -7063,8 +7387,12 @@ getQuickStats(item) {
     }
 
     setupMoreInfoControls(overlay, item) {
-
-        // NEU: Media Player Tab System
+        // NEU: General Tab System für Popup-Dialog
+        if (this.moreInfoConfig.layoutMode === 'tabs') {
+            this.setupMoreInfoTabs(overlay, item);
+        }
+    
+        // Media Player Tab System (bleibt unverändert)
         if (item.type === 'media_player') {
             this.setupMediaPlayerTabs(overlay, item);
         }
@@ -7085,13 +7413,36 @@ getQuickStats(item) {
                 this.handleSliderChange(item, slider.getAttribute('data-control'), e.target.value);
             });
         });
-
-
-        // TTS Event Listeners für Popup Dialog - NEU!
+    
+        // TTS Event Listeners für Popup Dialog
         if (item.type === 'media_player') {
             this.setupTTSEventListeners(item);
         }        
     }
+
+    // NEUE Methode für More-Info Tab-System (Popup)
+    setupMoreInfoTabs(overlay, item) {
+        const tabs = overlay.querySelectorAll('.more-info-tab');
+        const contents = overlay.querySelectorAll('.more-info-tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.getAttribute('data-more-info-tab');
+                
+                // Alle Tabs deaktivieren
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+                
+                // Aktiven Tab aktivieren
+                tab.classList.add('active');
+                const targetContent = overlay.querySelector(`[data-more-info-tab-content="${targetTab}"]`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+            });
+        });
+    }
+    
 
 
     setupMediaPlayerTabs(overlay, item) {
@@ -7562,6 +7913,8 @@ getQuickStats(item) {
             show_attributes: true,
             show_controls: true,
             show_history: false,
+            more_info_mode: 'popup',        // NEU: 'popup' oder 'replace'
+            more_info_layout: 'accordion',  // NEU: 'accordion' oder 'tabs'
             custom_actions: [],
             entities: [
                 {
