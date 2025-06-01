@@ -3221,10 +3221,12 @@ class FastSearchCard extends HTMLElement {
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
     
-        // Spezielle Behandlung für Media Player (behält eigenes Tab-System)
+        // Spezielle Behandlung für Media Player (mit allgemeinem Tab-System)
         if (item.type === 'media_player') {
             const albumSection = this.getAlbumArtSectionHTML(item);
-            const detailsSection = this.getAccordionDetailsSectionHTML(item);
+            const detailsSection = this.moreInfoConfig.layoutMode === 'tabs' 
+                ? this.getMediaPlayerTabDetailsSectionHTML(item)
+                : this.getAccordionDetailsSectionHTML(item);
             
             return `
                 <div class="replace-header">
@@ -3246,7 +3248,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
             `;
-        }        
+        }
         
         // NEU: Layout-Mode für andere Geräte prüfen
         const iconSection = this.getIconSectionHTML(item);
@@ -3324,6 +3326,161 @@ class FastSearchCard extends HTMLElement {
     }
 
 
+    // NEUE Methode für Media Player Tab-Layout
+    getMediaPlayerTabDetailsSectionHTML(item) {
+        const typeDisplayName = this.getTypeDisplayName(item);
+        const basicControls = this.getMediaPlayerBasicControls(item);
+        const attributes = this.getReplaceAttributesHTML(item);
+        const history = this.getHistoryHTML(item);
+        const musicAssistantHTML = this.getMediaPlayerMusicSection(item);
+        const ttsHTML = this.getMediaPlayerTTSSection(item);
+        
+        return `
+            <div class="entity-info">
+                <h2 class="entity-title-large">${item.name}</h2>
+                <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
+            </div>
+            
+            <div class="replace-tabs-container">
+                <div class="replace-tabs">
+                    <button class="replace-tab active" data-replace-general-tab="controls">
+                        <span class="replace-tab-icon">🎮</span>
+                        <span>Steuerung</span>
+                    </button>
+                    <button class="replace-tab" data-replace-general-tab="music">
+                        <span class="replace-tab-icon">🎵</span>
+                        <span>Musik</span>
+                    </button>
+                    <button class="replace-tab" data-replace-general-tab="tts">
+                        <span class="replace-tab-icon">🗣️</span>
+                        <span>Sprechen</span>
+                    </button>
+                    <button class="replace-tab" data-replace-general-tab="details">
+                        <span class="replace-tab-icon">📊</span>
+                        <span>Details</span>
+                    </button>
+                    <button class="replace-tab" data-replace-general-tab="history">
+                        <span class="replace-tab-icon">📈</span>
+                        <span>Logbuch</span>
+                    </button>
+                </div>
+                
+                <div class="replace-tab-content active" data-replace-general-tab-content="controls">
+                    ${basicControls}
+                </div>
+                
+                <div class="replace-tab-content" data-replace-general-tab-content="music">
+                    ${musicAssistantHTML}
+                </div>
+                
+                <div class="replace-tab-content" data-replace-general-tab-content="tts">
+                    ${ttsHTML}
+                </div>
+                
+                <div class="replace-tab-content" data-replace-general-tab-content="details">
+                    ${attributes}
+                </div>
+                
+                <div class="replace-tab-content" data-replace-general-tab-content="history">
+                    ${history}
+                </div>
+            </div>
+        `;
+    }    
+
+
+    // NEUE Helper-Methoden für Media Player Tab-System
+    getMediaPlayerBasicControls(item) {
+        const volume = item.volume || 0;
+        const isPlaying = item.state === 'playing';
+        
+        return `
+            <div class="control-group-large">
+                <div class="main-control-large">
+                    <button class="toggle-button-large" data-action="play_pause">
+                        ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                    </button>
+                    <button class="toggle-button-large off" data-action="previous">⏮️ Zurück</button>
+                    <button class="toggle-button-large off" data-action="next">⏭️ Weiter</button>
+                </div>
+                <div class="slider-control-large">
+                    <div class="slider-label-large">
+                        <span>Lautstärke</span>
+                        <span class="value">${volume}%</span>
+                    </div>
+                    <input type="range" class="slider-large" data-control="volume" 
+                           min="0" max="100" value="${volume}">
+                </div>
+                ${item.media_title ? `
+                    <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.1); border-radius: 12px;">
+                        <div style="font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 4px;">
+                            🎵 ${item.media_title}
+                        </div>
+                        ${item.attributes.media_artist ? `
+                            <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
+                                👤 ${item.attributes.media_artist}
+                            </div>
+                        ` : ''}
+                        ${item.attributes.media_album ? `
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px;">
+                                💿 ${item.attributes.media_album}
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+    
+    getMediaPlayerMusicSection(item) {
+        return this.checkMusicAssistantAvailability() ? `
+            <div class="ma-search-container">
+                <div class="ma-search-bar-container">
+                    <input type="text" 
+                           class="ma-search-input" 
+                           placeholder="Künstler, Album oder Song suchen..." 
+                           data-ma-search="${item.id}">
+                    <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
+                        <span class="ma-enqueue-icon">▶️</span>
+                        <span class="ma-enqueue-text">Play now</span>
+                    </div>
+                </div>
+                <div class="ma-filter-container" id="ma-filters-${item.id}">
+                    <div class="ma-filter-chip ma-filter-active" data-filter="all">
+                        <span class="ma-filter-icon">🔗</span>
+                        <span>Alle</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="artists">
+                        <span class="ma-filter-icon">👤</span>
+                        <span>Künstler</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="albums">
+                        <span class="ma-filter-icon">💿</span>
+                        <span>Alben</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="tracks">
+                        <span class="ma-filter-icon">🎵</span>
+                        <span>Songs</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="playlists">
+                        <span class="ma-filter-icon">📋</span>
+                        <span>Playlists</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="radio">
+                        <span class="ma-filter-icon">📻</span>
+                        <span>Radio</span>
+                    </div>
+                </div>
+                <div class="ma-search-results" id="ma-results-${item.id}">
+                    <div class="ma-empty-state">Gebe einen Suchbegriff ein um Musik zu finden...</div>
+                </div>
+            </div>
+        ` : '<div class="ma-empty-state">Music Assistant Integration nicht verfügbar</div>';
+    }
+    
+    getMediaPlayerTTSSection(item) {
+        return this.getTTSHTML(item) || '<div class="ma-empty-state">Text-to-Speech nicht verfügbar</div>';
+    }    
     
 
     getAlbumBackgroundHTML(item) {
@@ -4252,19 +4409,18 @@ class FastSearchCard extends HTMLElement {
                 const backButton = this.shadowRoot.getElementById('backToSearch');
                 backButton.addEventListener('click', () => this.switchBackToSearch());
                 
-                // NEU: General Tab System für nicht-Media-Player
-                if (item.type !== 'media_player' && this.moreInfoConfig.layoutMode === 'tabs') {
+                // NEU: General Tab System für ALLE Geräte (inklusive Media Player)
+                if (this.moreInfoConfig.layoutMode === 'tabs') {
                     this.setupReplaceGeneralTabs(item);
                 }
                 
-                // Media Player Tabs (nur für Media Player)
+                // Album Art Updates nur für Media Player
                 if (item.type === 'media_player') {
-                    this.setupReplaceMediaPlayerTabs(item);
                     this.setupAlbumArtUpdates(item);
                 }                
                 
-                // Accordion Headers (nur wenn nicht Tab-Mode)
-                if (this.moreInfoConfig.layoutMode !== 'tabs' || item.type === 'media_player') {
+                // Accordion Headers (nur wenn NICHT Tab-Mode)
+                if (this.moreInfoConfig.layoutMode !== 'tabs') {
                     const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
                     accordionHeaders.forEach(header => {
                         header.addEventListener('click', (e) => {
@@ -4301,6 +4457,21 @@ class FastSearchCard extends HTMLElement {
                             if (targetTab === 'history') {
                                 // Logbook neu laden wenn Tab aktiviert wird
                                 this.loadRealLogEntries(item);
+                            }
+                            
+                            // Media Player spezifische Tab-Initialisierung
+                            if (item.type === 'media_player') {
+                                if (targetTab === 'music' && this.checkMusicAssistantAvailability()) {
+                                    setTimeout(() => {
+                                        this.setupMusicAssistantEventListeners(item);
+                                    }, 150);
+                                }
+                                
+                                if (targetTab === 'tts') {
+                                    setTimeout(() => {
+                                        this.setupTTSEventListeners(item);
+                                    }, 150);
+                                }
                             }
                         }
                     });
@@ -7133,8 +7304,36 @@ getQuickStats(item) {
 
 
 
-
     getMediaControls(item) {
+        // Prüfe Layout-Modus
+        if (this.moreInfoConfig.layoutMode === 'tabs') {
+            // Im Tab-Modus: Nur Basis-Controls, da TTS/Music eigene Tabs sind
+            const volume = item.volume || 0;
+            const isPlaying = item.state === 'playing';
+            
+            return `
+                <div class="more-info-section">
+                    <h3 class="section-title">📺 Media Player Steuerung</h3>
+                    <div class="control-section">
+                        <button class="control-button" data-action="play_pause">
+                            ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                        </button>
+                        <button class="control-button secondary" data-action="previous">⏮️</button>
+                        <button class="control-button secondary" data-action="next">⏭️</button>
+                    </div>
+                    <div class="slider-control">
+                        <div class="slider-label">
+                            <span>Lautstärke</span>
+                            <span>${volume}%</span>
+                        </div>
+                        <input type="range" class="slider" data-control="volume" 
+                               min="0" max="100" value="${volume}">
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Im Accordion-Modus: Behalte das alte Tab-System
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
         
@@ -7249,6 +7448,10 @@ getQuickStats(item) {
             </div>
         `;
     }
+
+
+
+    
         
 
     getBasicControls(item) {
