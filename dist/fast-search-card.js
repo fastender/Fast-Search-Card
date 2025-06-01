@@ -1521,9 +1521,32 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .accordion-item.active .accordion-content {
-                    max-height: 800px;
+                    max-height: 400px;
                     padding: 24px;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    scrollbar-width: thin; /* Firefox: Dünne Scrollbar */
+                    -webkit-overflow-scrolling: touch; /* iOS: Smooth scroll */                    
                 }
+
+                /* Optional: Scrollbar stylen */
+                .accordion-content::-webkit-scrollbar {
+                    width: 6px;
+                }
+                
+                .accordion-content::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 3px;
+                }
+                
+                .accordion-content::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 3px;
+                }
+                
+                .accordion-content::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.5);
+                }                
                 
                 /* Historische Daten Styles */
                 .history-content {
@@ -1963,6 +1986,7 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     flex-direction: column;
                     gap: 12px;
+                    container-type: inline-size;
                 }
                 
                 .ma-search-bar-container {
@@ -2463,6 +2487,10 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .replace-media-tabs {
+                    flex-shrink: 0; /* Wichtig: Tabs schrumpfen nicht */
+                    position: sticky; /* Optional: Extra-Fix */
+                    top: 0;
+                    z-index: 10;                
                     display: flex;
                     background: transparent;
                     border-radius: 60px;
