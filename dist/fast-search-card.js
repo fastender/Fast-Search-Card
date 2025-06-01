@@ -2626,6 +2626,21 @@ class FastSearchCard extends HTMLElement {
                     );
                     border-radius: inherit;
                 }
+
+                /* Blur Background nur auf Album Art Seite */
+                .album-background-blur.album-side-only {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 50%; /* NUR die linke Hälfte */
+                    height: 100%;
+                    background-size: cover;
+                    background-position: center;
+                    filter: blur(40px) brightness(0.3) saturate(1.2);
+                    transform: scale(1.1);
+                    z-index: 0;
+                    transition: all 0.8s ease;
+                }
                 
                 /* Pulsing animation for playing state */
                 @keyframes albumPulse {
@@ -3028,14 +3043,14 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-
     getAlbumBackgroundHTML(item) {
         const albumArt = this.getAlbumArtUrl(item);
         if (albumArt) {
-            return `<div class="album-background-blur" style="background-image: url('${albumArt}');"></div>`;
+            return `<div class="album-background-blur album-side-only" style="background-image: url('${albumArt}');"></div>`;
         }
-        return `<div class="album-background-blur" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>`;
+        return `<div class="album-background-blur album-side-only" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>`;
     }
+
     
     getFloatingParticlesHTML() {
         return `
