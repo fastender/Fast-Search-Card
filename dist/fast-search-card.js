@@ -1457,7 +1457,7 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     flex-direction: column;
                     gap: 16px;
-                    margin-top: 24px;
+                    margin-top: 0px;
                 }
                 
                 .accordion-item {
@@ -2721,7 +2721,7 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Details Section */
                 .details-section.media-player {
-                    padding: 80px 25px 30px 25px;
+                    padding: 20px 25px 30px 25px;
                     height: auto; /* Automatische Höhe */
                     background: transparent; /* Background ist jetzt im details-container */
                 }
@@ -2768,6 +2768,11 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Mobile Responsive */
                 @media (max-width: 768px) {
+
+                    .entity-info {
+                        display: none;
+                    }
+                
                     .replace-content.media-player {
                         flex-direction: column;
                     }
@@ -4727,7 +4732,6 @@ getQuickStats(item) {
         
         return `
             <div class="control-group-large">
-                <h3 class="control-title-large">💡 Steuerung</h3>
                 <div class="main-control-large">
                     <button class="toggle-button-large ${isOn ? '' : 'off'}" data-action="toggle">
                         ${isOn ? '🔆 Ausschalten' : '💡 Einschalten'}
@@ -4752,7 +4756,7 @@ getQuickStats(item) {
         
         return `
             <div class="control-group-large">
-                <h3 class="control-title-large">🔌 Steuerung</h3>
+                
                 <div class="main-control-large">
                     <button class="toggle-button-large ${isOn ? '' : 'off'}" data-action="toggle">
                         ${isOn ? '⏹️ Ausschalten' : '▶️ Einschalten'}
@@ -4768,7 +4772,7 @@ getQuickStats(item) {
         
         return `
             <div class="control-group-large">
-                <h3 class="control-title-large">🌡️ Temperaturregelung</h3>
+                
                 <div class="slider-control-large">
                     <div class="slider-label-large">
                         <span>Zieltemperatur</span>
@@ -4791,7 +4795,6 @@ getQuickStats(item) {
         
         return `
             <div class="control-group-large">
-                <h3 class="control-title-large">🪟 Rollladensteuerung</h3>
                 <div class="main-control-large">
                     <button class="toggle-button-large" data-action="open">⬆️ Öffnen</button>
                     <button class="toggle-button-large off" data-action="stop">⏹️ Stopp</button>
@@ -5011,7 +5014,7 @@ getQuickStats(item) {
         
         return `
             <div class="tts-section" id="tts-section-${item.id}">
-                <h4 class="control-title-large">🗣️ Text-to-Speech</h4>
+ 
                 
                 <div class="tts-input-container">
                     <textarea 
@@ -5153,7 +5156,7 @@ getQuickStats(item) {
         
         return `
             <div class="control-group-large">
-                <h3 class="control-title-large">📺 Media Player</h3>
+                
                 <div class="replace-media-tabs-container">
                     <div class="replace-media-tabs">
                         <button class="replace-media-tab active" data-replace-tab="controls" data-entity="${item.id}">
@@ -5191,7 +5194,7 @@ getQuickStats(item) {
             case 'automation':
                 return `
                     <div class="control-group-large">
-                        <h3 class="control-title-large">🤖 Automation Steuerung</h3>
+                       
                         <div class="main-control-large">
                             <button class="toggle-button-large" data-action="trigger">🚀 Jetzt ausführen</button>
                         </div>
@@ -5205,7 +5208,7 @@ getQuickStats(item) {
             case 'script':
                 return `
                     <div class="control-group-large">
-                        <h3 class="control-title-large">📜 Skript Steuerung</h3>
+                        
                         <div class="main-control-large">
                             <button class="toggle-button-large" data-action="run">▶️ Skript ausführen</button>
                         </div>
@@ -5214,7 +5217,7 @@ getQuickStats(item) {
             case 'scene':
                 return `
                     <div class="control-group-large">
-                        <h3 class="control-title-large">🎭 Szene Steuerung</h3>
+                        
                         <div class="main-control-large">
                             <button class="toggle-button-large" data-action="activate">🎬 Szene aktivieren</button>
                         </div>
