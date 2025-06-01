@@ -2561,13 +2561,28 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
-                /* Album Art Background & Apple Music Style */
+                /* Media Player Container Layout */
                 .replace-content.media-player {
-                    position: relative;
-                    overflow: hidden;
+                    display: flex;
+                    min-height: 100vh;
                     padding-top: 0;
                 }
                 
+                .album-container {
+                    flex: 1;
+                    position: relative;
+                    overflow: hidden; /* WICHTIG: Verhindert Overflow */
+                    background: transparent;
+                }
+                
+                .details-container {
+                    flex: 1;
+                    background: rgba(0, 0, 0, 0.6);
+                    backdrop-filter: blur(8px);
+                    border-left: 1px solid rgba(255, 255, 255, 0.1);
+                }
+                
+                /* Album Background - NUR innerhalb des Album Containers */
                 .album-background-blur {
                     position: absolute;
                     top: 0;
@@ -2577,23 +2592,26 @@ class FastSearchCard extends HTMLElement {
                     background-size: cover;
                     background-position: center;
                     filter: blur(40px) brightness(0.3) saturate(1.2);
-                    transform: scale(1.1);
                     z-index: 0;
                     transition: all 0.8s ease;
+                    /* KEIN transform: scale mehr! */
                 }
                 
-                /* Album Section Styling */
+                /* Album Art Section */
                 .album-art-section {
-                    flex: 1;
-                    background: transparent;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    padding: 40px 20px;
+                    padding: 80px 20px 40px 20px;
                     position: relative;
                     z-index: 1;
+                    height: 100%;
+                    min-height: 100vh;
                 }
+
+
+                
                 
                 .album-cover-large {
                     width: 280px;
@@ -2625,21 +2643,6 @@ class FastSearchCard extends HTMLElement {
                         rgba(0, 0, 0, 0.1) 100%
                     );
                     border-radius: inherit;
-                }
-
-                /* Blur Background nur auf Album Art Seite */
-                .album-background-blur.album-side-only {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 50%; /* NUR die linke Hälfte */
-                    height: 100%;
-                    background-size: cover;
-                    background-position: center;
-                    filter: blur(40px) brightness(0.3) saturate(1.2);
-                    transform: scale(1.1);
-                    z-index: 0;
-                    transition: all 0.8s ease;
                 }
                 
                 /* Pulsing animation for playing state */
@@ -2690,12 +2693,12 @@ class FastSearchCard extends HTMLElement {
                     white-space: nowrap;
                 }
                 
-                /* Enhanced Details Section with Backdrop */
+                /* Details Section */
                 .details-section.media-player {
-                    background: transparent;
-                    backdrop-filter: blur(0px);
-                    border-left: 0px solid rgba(255, 255, 255, 0.1);
-                    padding-top: 20px;
+                    padding: 80px 25px 30px 25px;
+                    height: 100%;
+                    min-height: 100vh;
+                    background: transparent; /* Background ist jetzt im details-container */
                 }
                 
                 /* Floating particles for extra atmosphere */
@@ -2740,15 +2743,24 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Mobile Responsive */
                 @media (max-width: 768px) {
+                    .replace-content.media-player {
+                        flex-direction: column;
+                    }
+                    
+                    .album-container {
+                        min-height: 50vh;
+                    }     
+                    
                     .album-art-section {
-                        min-height: 300px;
-                        
+                        padding: 20px 15px;
+                        min-height: 50vh;
                         padding-top: 70px;
                     }
-
+                    
                     .details-section.media-player {
-                        padding-top: 70px;
-                    }                    
+                        padding: 20px 15px;
+                        min-height: 50vh;             
+                    }                        
                     
                     .album-cover-large {
                         width: 200px;
@@ -2995,7 +3007,7 @@ class FastSearchCard extends HTMLElement {
 
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
-        
+
         // Spezielle Behandlung für Media Player
         if (item.type === 'media_player') {
             const albumSection = this.getAlbumArtSectionHTML(item);
@@ -3009,17 +3021,21 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
                 <div class="replace-content media-player">
-                    ${this.getAlbumBackgroundHTML(item)}
-                    ${this.getFloatingParticlesHTML()}
-                    <div class="album-art-section">
-                        ${albumSection}
+                    <div class="album-container">
+                        ${this.getAlbumBackgroundHTML(item)}
+                        ${this.getFloatingParticlesHTML()}
+                        <div class="album-art-section">
+                            ${albumSection}
+                        </div>
                     </div>
-                    <div class="details-section media-player">
-                        ${detailsSection}
+                    <div class="details-container">
+                        <div class="details-section media-player">
+                            ${detailsSection}
+                        </div>
                     </div>
                 </div>
             `;
-        }
+        }        
         
         // Standard Layout für andere Geräte
         const iconSection = this.getIconSectionHTML(item);
