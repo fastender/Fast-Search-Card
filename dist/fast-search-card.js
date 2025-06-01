@@ -3363,6 +3363,11 @@ class FastSearchCard extends HTMLElement {
                         <span class="replace-tab-icon">📈</span>
                         <span>Logbuch</span>
                     </button>
+                    <button class="replace-tab" data-replace-general-tab="shortcuts">
+                        <span class="replace-tab-icon">⚡</span>
+                        <span>Aktionen</span>
+                    </button>
+                    
                 </div>
                 
                 <div class="replace-tab-content active" data-replace-general-tab-content="controls">
@@ -3384,6 +3389,11 @@ class FastSearchCard extends HTMLElement {
                 <div class="replace-tab-content" data-replace-general-tab-content="history">
                     ${history}
                 </div>
+
+                <div class="replace-tab-content" data-replace-general-tab-content="shortcuts">
+                    ${this.getShortcutsHTML(item)}
+                </div>
+                
             </div>
         `;
     }    
