@@ -2564,7 +2564,7 @@ class FastSearchCard extends HTMLElement {
                 /* Media Player Container Layout */
                 .replace-content.media-player {
                     display: flex;
-                    min-height: 100vh;
+                    height: auto;
                     padding-top: 0;
                 }
                 
@@ -2577,9 +2577,8 @@ class FastSearchCard extends HTMLElement {
                 
                 .details-container {
                     flex: 1;
-                    background: rgba(0, 0, 0, 0.6);
-                    backdrop-filter: blur(8px);
-                    border-left: 1px solid rgba(255, 255, 255, 0.1);
+                    background: transparent;
+                    border-left: 0px solid rgba(255, 255, 255, 0.1);
                 }
                 
                 /* Album Background - NUR innerhalb des Album Containers */
@@ -2607,7 +2606,6 @@ class FastSearchCard extends HTMLElement {
                     position: relative;
                     z-index: 1;
                     height: 100%;
-                    min-height: 100vh;
                 }
 
 
@@ -2696,8 +2694,7 @@ class FastSearchCard extends HTMLElement {
                 /* Details Section */
                 .details-section.media-player {
                     padding: 80px 25px 30px 25px;
-                    height: 100%;
-                    min-height: 100vh;
+                    height: auto; /* Automatische Höhe */
                     background: transparent; /* Background ist jetzt im details-container */
                 }
                 
@@ -2748,18 +2745,17 @@ class FastSearchCard extends HTMLElement {
                     }
                     
                     .album-container {
-                        min-height: 50vh;
+                        height: auto;
                     }     
                     
                     .album-art-section {
-                        padding: 20px 15px;
-                        min-height: 50vh;
-                        padding-top: 70px;
+                        padding: 70px 20px 30px 20px;
+                        height: auto;
                     }
                     
                     .details-section.media-player {
                         padding: 20px 15px;
-                        min-height: 50vh;             
+                        height: auto;           
                     }                        
                     
                     .album-cover-large {
