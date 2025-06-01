@@ -1522,7 +1522,7 @@ class FastSearchCard extends HTMLElement {
                 
                 .accordion-item.active .accordion-content {
                     max-height: 400px;
-                    padding: 24px;
+                    padding: 0px 24px 24px 24px;
                     overflow-y: auto;
                     overflow-x: hidden;
                     scrollbar-width: thin; /* Firefox: Dünne Scrollbar */
@@ -2503,9 +2503,9 @@ class FastSearchCard extends HTMLElement {
                     flex: 1;
                     padding: 10px 14px 10px 14px;
                     text-align: center;
-                    background: transparent;
+                    background: rgba(0, 0, 0, .15);
                     border: none;
-                    border-radius: 8px;
+                    border-radius: 60px;
                     font-size: 15px;
                     font-weight: 500;
                     color: rgba(255, 255, 255, 0.7);
@@ -2630,7 +2630,7 @@ class FastSearchCard extends HTMLElement {
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    padding: 80px 20px 40px 20px;
+                    padding: 0px 20px 0px 20px;
                     position: relative;
                     z-index: 1;
                     height: 100%;
