@@ -20,7 +20,7 @@ class FastSearchCard extends HTMLElement {
             customActions: config.custom_actions || [],        // Benutzerdefinierte Aktionen
             displayMode: config.more_info_mode || 'popup', // Neue Option: 'popup' oder 'replace' 
             layoutMode: config.more_info_layout || 'accordion', // NEU: 'accordion' oder 'tabs'
-            modernLightControls: config.modern_light_controls !== false  // NEU: Moderne Light Controls (Standard: true)
+            
         };
         
         // Entities können entweder als Array oder automatisch geladen werden
@@ -5114,14 +5114,12 @@ class FastSearchCard extends HTMLElement {
 
 
      
-
             setupHALightControls(item) {
                         if (item.type !== 'light') return;
                         
-                        console.log('=== SETUP HA LIGHT CONTROLS (MODERN/CLASSIC) ===');
+                        console.log('=== SETUP MODERN LIGHT CONTROLS ===');
                         console.log('Item:', item);
                         console.log('Current state:', item.state);
-                        console.log('Modern controls enabled:', this.moreInfoConfig.modernLightControls);
                         
                         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
                         if (!replaceContainer) {
@@ -5129,19 +5127,8 @@ class FastSearchCard extends HTMLElement {
                             return;
                         }
                         
-                        // Versuche zuerst moderne Controls, dann fallback zu klassischen
-                        const modernSlider = replaceContainer.querySelector(`[id="ha-brightness-slider-modern-${item.id}"]`);
-                        const classicSlider = replaceContainer.querySelector(`[id="ha-brightness-slider-${item.id}"]`);
-                        
-                        if (modernSlider) {
-                            console.log('✅ Setting up MODERN light controls');
-                            this.setupModernLightControls(item, replaceContainer);
-                        } else if (classicSlider) {
-                            console.log('✅ Setting up CLASSIC light controls');
-                            this.setupClassicLightControls(item, replaceContainer);
-                        } else {
-                            console.log('❌ No light control sliders found');
-                        }
+                        // Nur moderne Controls - kein Fallback nötig
+                        this.setupModernLightControls(item, replaceContainer);
                     }
 
 
@@ -6367,276 +6354,132 @@ getQuickStats(item) {
         }
     }
 
-
-
     getLightReplaceControls(item) {
-            // Prüfe ob moderne Controls aktiviert sind
-            if (this.moreInfoConfig.modernLightControls) {
-                return this.getModernLightReplaceControls(item);
-            } else {
-                return this.getClassicLightReplaceControls(item);
-            }
-        }        
-
-
-
-    // NEUE METHODE 1: Klassische Light Controls (Ihre bisherige Implementierung)
-    getClassicLightReplaceControls(item) {
-        const brightness = item.brightness || 0;
-        const isOn = item.state === 'on';
-        
-        // Debug: Log alle verfügbaren Attribute
-        console.log('Light attributes:', item.attributes);
-        
-        // Verschiedene Wege um Features zu erkennen
-        const supportedFeatures = item.attributes.supported_features || 0;
-        const supportedColorModes = item.attributes.supported_color_modes || [];
-        
-        // Color Temperature Support (verschiedene Checks)
-        const hasTempSupport = 
-            supportedColorModes.includes('color_temp') ||
-            supportedColorModes.includes('ct') ||
-            (supportedFeatures & 2) || // SUPPORT_COLOR_TEMP = 2
-            item.attributes.min_mireds !== undefined ||
-            item.attributes.max_mireds !== undefined;
-        
-        // RGB Color Support - NUR auf supported_color_modes prüfen!
-        const hasColorSupport = 
-            supportedColorModes.includes('rgb') ||
-            supportedColorModes.includes('hs') ||
-            supportedColorModes.includes('xy') ||
-            supportedColorModes.includes('rgbw') ||
-            supportedColorModes.includes('rgbww');
-           
-        console.log('Feature detection:', {
-            supportedFeatures,
-            supportedColorModes,
-            hasTempSupport,
-            hasColorSupport
-        });        
-        console.log('Detailed color modes:', supportedColorModes); 
-        
-        const htmlString = `
-            <div class="control-group-large">
-                <div class="ha-light-control">
-                    <!-- Entity Header -->
-                    <div class="ha-entity-header">
-                        <div class="ha-entity-icon">${item.icon}</div>
-                        <div class="ha-entity-name">${item.name}</div>
-                        <div class="ha-entity-state" id="ha-state-${item.id}">
-                            ${isOn ? `Ein • ${brightness}% Helligkeit` : 'Aus'}
-                        </div>
-                    </div>
-        
-                    <!-- Main Toggle -->
-                    <button class="ha-main-toggle ${isOn ? '' : 'off'}" data-action="toggle" id="ha-toggle-${item.id}">
-                        <span>${isOn ? '🔆' : '💡'}</span>
-                        <span>${isOn ? 'Ausschalten' : 'Einschalten'}</span>
-                    </button>
-        
-                    <!-- Brightness Control -->
-                    <div class="ha-brightness-section ${isOn ? '' : 'disabled'}" id="ha-brightness-${item.id}">
-                        <div class="ha-control-label">
-                            <span>Helligkeit</span>
-                            <span class="ha-control-value" id="ha-brightness-value-${item.id}">${brightness}%</span>
-                        </div>
-
-                        <div class="ha-slider-container">
-                            <div class="ha-slider-track" style="width: ${brightness}%" id="ha-track-${item.id}"></div>
-                            <input type="range" class="ha-slider-input" data-control="brightness" 
-                                   min="1" max="100" value="${brightness}" id="ha-brightness-slider-${item.id}">
-                        </div>
-                               
-                    </div>
-        
-                    <!-- Color Temperature -->
-                    ${hasTempSupport ? `
-                    <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-temp-${item.id}">
-                        <div class="ha-control-label">
-                            <span>Farbtemperatur</span>
-                        </div>
-                        <div class="ha-temp-controls">
-                            <button class="ha-temp-preset" data-temp="warm" data-kelvin="2700">
-                                🔥 Warm
-                            </button>
-                            <button class="ha-temp-preset" data-temp="neutral" data-kelvin="4000">
-                                ☀️ Neutral
-                            </button>
-                            <button class="ha-temp-preset" data-temp="cool" data-kelvin="6500">
-                                ❄️ Kalt
-                            </button>
-                        </div>
-                    </div>
-                    ` : ''}
-        
-                    <!-- Color Control -->
-                    ${hasColorSupport ? `
-                    <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-color-${item.id}">
-                        <div class="ha-control-label">
-                            <span>Farbe</span>
-                        </div>
-                        <div class="ha-color-presets">
-                            <div class="ha-color-preset" style="background: #ff6b35;" data-color="red" data-rgb="255,107,53"></div>
-                            <div class="ha-color-preset" style="background: #f7931e;" data-color="orange" data-rgb="247,147,30"></div>
-                            <div class="ha-color-preset" style="background: #ffd23f;" data-color="yellow" data-rgb="255,210,63"></div>
-                            <div class="ha-color-preset" style="background: #06d6a0;" data-color="green" data-rgb="6,214,160"></div>
-                            <div class="ha-color-preset" style="background: #118ab2;" data-color="blue" data-rgb="17,138,178"></div>
-                            <div class="ha-color-preset" style="background: #8e44ad;" data-color="purple" data-rgb="142,68,173"></div>
-                            <div class="ha-color-preset" style="background: #e91e63;" data-color="pink" data-rgb="233,30,99"></div>
-                            <div class="ha-color-preset active" style="background: #ffffff;" data-color="white" data-rgb="255,255,255"></div>
-                        </div>
-                        <button class="ha-advanced-color" id="ha-advanced-${item.id}">
-                            🎨 Erweiterte Farbauswahl
-                        </button>
-                    </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-        
-        console.log('=== CLASSIC TEMPLATE DEBUG ===');
-        console.log('hasTempSupport:', hasTempSupport);
-        console.log('hasColorSupport:', hasColorSupport);
-        console.log('Generated HTML length:', htmlString.length);
-        
-        return htmlString;
-    }
-
-    // NEUE METHODE 2: Moderne Light Controls
-    getModernLightReplaceControls(item) {
-        const brightness = item.brightness || 0;
-        const isOn = item.state === 'on';
-        
-        // Debug: Log alle verfügbaren Attribute
-        console.log('Modern Light attributes:', item.attributes);
-        
-        // Verschiedene Wege um Features zu erkennen
-        const supportedFeatures = item.attributes.supported_features || 0;
-        const supportedColorModes = item.attributes.supported_color_modes || [];
-        
-        // Color Temperature Support
-        const hasTempSupport = 
-            supportedColorModes.includes('color_temp') ||
-            supportedColorModes.includes('ct') ||
-            (supportedFeatures & 2) || // SUPPORT_COLOR_TEMP = 2
-            item.attributes.min_mireds !== undefined ||
-            item.attributes.max_mireds !== undefined;
-        
-        // RGB Color Support
-        const hasColorSupport = 
-            supportedColorModes.includes('rgb') ||
-            supportedColorModes.includes('hs') ||
-            supportedColorModes.includes('xy') ||
-            supportedColorModes.includes('rgbw') ||
-            supportedColorModes.includes('rgbww');
-           
-        console.log('Modern Feature detection:', {
-            supportedFeatures,
-            supportedColorModes,
-            hasTempSupport,
-            hasColorSupport
-        });
-        
-        // Color presets für den Dropdown
-        const colorPresets = [
-            { name: 'Rot', rgb: '255,107,53', color: '#ff6b35' },
-            { name: 'Orange', rgb: '247,147,30', color: '#f7931e' },
-            { name: 'Gelb', rgb: '255,210,63', color: '#ffd23f' },
-            { name: 'Grün', rgb: '6,214,160', color: '#06d6a0' },
-            { name: 'Blau', rgb: '17,138,178', color: '#118ab2' },
-            { name: 'Lila', rgb: '142,68,173', color: '#8e44ad' },
-            { name: 'Pink', rgb: '233,30,99', color: '#e91e63' },
-            { name: 'Weiß', rgb: '255,255,255', color: '#ffffff' }
-        ];
-        
-        const colorGrid = colorPresets.map(preset => `
-            <div class="ha-color-option" 
-                 style="background: ${preset.color};" 
-                 data-color="${preset.name.toLowerCase()}" 
-                 data-rgb="${preset.rgb}"
-                 title="${preset.name}">
-            </div>
-        `).join('');
+            const brightness = item.brightness || 0;
+            const isOn = item.state === 'on';
             
-        const htmlString = `
-            <div class="control-group-large">
-                <div class="ha-light-control">
-                    <!-- Modernized Entity Header - ohne Icon -->
-                    <div class="ha-entity-header-modern">
-                        <div class="ha-entity-name-modern">${item.name}</div>
-                        <div class="ha-entity-state-modern" id="ha-state-modern-${item.id}">
-                            ${isOn ? `Ein • ${brightness}% Helligkeit` : 'Aus'}
-                        </div>
-                    </div>
-
-                    <!-- Runder Ein/Aus Toggle -->
-                    <button class="ha-main-toggle-round ${isOn ? '' : 'off'}" 
-                            data-action="toggle" 
-                            id="ha-toggle-modern-${item.id}"
-                            data-tooltip="${isOn ? 'Ausschalten' : 'Einschalten'}">
-                        ${isOn ? '💡' : '🔘'}
-                    </button>
-
-                    <!-- Zentraler Brightness Slider -->
-                    <div class="ha-brightness-section-modern ${isOn ? '' : 'disabled'}" id="ha-brightness-modern-${item.id}">
-                        <div class="ha-brightness-label-modern">
-                            Helligkeit: <span class="ha-brightness-value-modern" id="ha-brightness-value-modern-${item.id}">${brightness}%</span>
-                        </div>
-
-                        <div class="ha-slider-container-modern">
-                            <div class="ha-slider-track-modern" style="width: ${brightness}%" id="ha-track-modern-${item.id}"></div>
-                            <input type="range" class="ha-slider-input-modern" data-control="brightness" 
-                                   min="1" max="100" value="${brightness}" id="ha-brightness-slider-modern-${item.id}">
-                        </div>
-                    </div>
-
-                    <!-- Control Button Row -->
-                    <div class="ha-control-row">
-                        ${hasTempSupport ? `
-                            <button class="ha-control-btn-round" 
-                                    data-temp="warm" 
-                                    data-kelvin="2700"
-                                    data-tooltip="Warm (2700K)">
-                                🔥
-                            </button>
-                            <button class="ha-control-btn-round" 
-                                    data-temp="neutral" 
-                                    data-kelvin="4000"
-                                    data-tooltip="Neutral (4000K)">
-                                ☀️
-                            </button>
-                            <button class="ha-control-btn-round" 
-                                    data-temp="cool" 
-                                    data-kelvin="6500"
-                                    data-tooltip="Kalt (6500K)">
-                                ❄️
-                            </button>
-                        ` : ''}
-                        
-                        ${hasColorSupport ? `
-                            <div class="ha-color-dropdown" id="ha-color-dropdown-${item.id}">
-                                <button class="ha-control-btn-round" 
-                                        id="ha-color-trigger-${item.id}"
-                                        data-tooltip="Farbauswahl">
-                                    🎨
-                                </button>
-                                <div class="ha-color-grid" id="ha-color-grid-${item.id}">
-                                    ${colorGrid}
-                                </div>
+            console.log('=== MODERN LIGHT CONTROLS ONLY ===');
+            console.log('Item:', item);
+            console.log('Current state:', item.state);
+            
+            // Feature Detection
+            const supportedFeatures = item.attributes.supported_features || 0;
+            const supportedColorModes = item.attributes.supported_color_modes || [];
+            
+            const hasTempSupport = 
+                supportedColorModes.includes('color_temp') ||
+                supportedColorModes.includes('ct') ||
+                (supportedFeatures & 2) ||
+                item.attributes.min_mireds !== undefined ||
+                item.attributes.max_mireds !== undefined;
+            
+            const hasColorSupport = 
+                supportedColorModes.includes('rgb') ||
+                supportedColorModes.includes('hs') ||
+                supportedColorModes.includes('xy') ||
+                supportedColorModes.includes('rgbw') ||
+                supportedColorModes.includes('rgbww');
+            
+            console.log('Feature detection:', {
+                supportedFeatures,
+                supportedColorModes,
+                hasTempSupport,
+                hasColorSupport
+            });
+            
+            // Color presets für den Dropdown
+            const colorPresets = [
+                { name: 'Rot', rgb: '255,107,53', color: '#ff6b35' },
+                { name: 'Orange', rgb: '247,147,30', color: '#f7931e' },
+                { name: 'Gelb', rgb: '255,210,63', color: '#ffd23f' },
+                { name: 'Grün', rgb: '6,214,160', color: '#06d6a0' },
+                { name: 'Blau', rgb: '17,138,178', color: '#118ab2' },
+                { name: 'Lila', rgb: '142,68,173', color: '#8e44ad' },
+                { name: 'Pink', rgb: '233,30,99', color: '#e91e63' },
+                { name: 'Weiß', rgb: '255,255,255', color: '#ffffff' }
+            ];
+            
+            const colorGrid = colorPresets.map(preset => `
+                <div class="ha-color-option" 
+                     style="background: ${preset.color};" 
+                     data-color="${preset.name.toLowerCase()}" 
+                     data-rgb="${preset.rgb}"
+                     title="${preset.name}">
+                </div>
+            `).join('');
+            
+            return `
+                <div class="control-group-large">
+                    <div class="ha-light-control">
+                        <!-- Moderne Entity Header - ohne Icon -->
+                        <div class="ha-entity-header-modern">
+                            <div class="ha-entity-name-modern">${item.name}</div>
+                            <div class="ha-entity-state-modern" id="ha-state-modern-${item.id}">
+                                ${isOn ? `Ein • ${brightness}% Helligkeit` : 'Aus'}
                             </div>
-                        ` : ''}
+                        </div>
+    
+                        <!-- Runder Ein/Aus Toggle -->
+                        <button class="ha-main-toggle-round ${isOn ? '' : 'off'}" 
+                                data-action="toggle" 
+                                id="ha-toggle-modern-${item.id}"
+                                data-tooltip="${isOn ? 'Ausschalten' : 'Einschalten'}">
+                            ${isOn ? '💡' : '🔘'}
+                        </button>
+    
+                        <!-- Zentraler Brightness Slider -->
+                        <div class="ha-brightness-section-modern ${isOn ? '' : 'disabled'}" id="ha-brightness-modern-${item.id}">
+                            <div class="ha-brightness-label-modern">
+                                Helligkeit: <span class="ha-brightness-value-modern" id="ha-brightness-value-modern-${item.id}">${brightness}%</span>
+                            </div>
+    
+                            <div class="ha-slider-container-modern">
+                                <div class="ha-slider-track-modern" style="width: ${brightness}%" id="ha-track-modern-${item.id}"></div>
+                                <input type="range" class="ha-slider-input-modern" data-control="brightness" 
+                                       min="1" max="100" value="${brightness}" id="ha-brightness-slider-modern-${item.id}">
+                            </div>
+                        </div>
+    
+                        <!-- Control Button Row -->
+                        <div class="ha-control-row">
+                            ${hasTempSupport ? `
+                                <button class="ha-control-btn-round" 
+                                        data-temp="warm" 
+                                        data-kelvin="2700"
+                                        data-tooltip="Warm (2700K)">
+                                    🔥
+                                </button>
+                                <button class="ha-control-btn-round" 
+                                        data-temp="neutral" 
+                                        data-kelvin="4000"
+                                        data-tooltip="Neutral (4000K)">
+                                    ☀️
+                                </button>
+                                <button class="ha-control-btn-round" 
+                                        data-temp="cool" 
+                                        data-kelvin="6500"
+                                        data-tooltip="Kalt (6500K)">
+                                    ❄️
+                                </button>
+                            ` : ''}
+                            
+                            ${hasColorSupport ? `
+                                <div class="ha-color-dropdown" id="ha-color-dropdown-${item.id}">
+                                    <button class="ha-control-btn-round" 
+                                            id="ha-color-trigger-${item.id}"
+                                            data-tooltip="Farbauswahl">
+                                        🎨
+                                    </button>
+                                    <div class="ha-color-grid" id="ha-color-grid-${item.id}">
+                                        ${colorGrid}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-        
-        console.log('=== MODERN TEMPLATE DEBUG ===');
-        console.log('hasTempSupport:', hasTempSupport);
-        console.log('hasColorSupport:', hasColorSupport);
-        console.log('Generated HTML length:', htmlString.length);
-        
-        return htmlString;
-    }    
+            `;
+        } 
 
     
 
@@ -7206,27 +7049,9 @@ getQuickStats(item) {
 
 
     updateHALightControlUI(item) {
-        // DIESE 5 ZEILEN AM ANFANG HINZUFÜGEN:
-        // Moderne UI zuerst versuchen
-        if (this.shadowRoot.getElementById(`ha-toggle-modern-${item.id}`)) {
+            // Direkt moderne UI verwenden - kein Fallback
             this.updateModernHALightControlUI(item);
-            return;
-        }
-        
-        // Fallback zu klassischer UI (Ihr bestehender Code bleibt UNVERÄNDERT)
-        
-        const isOn = item.state === 'on';
-        const brightness = item.brightness || 0;
-        
-        // Update toggle button
-        const toggle = this.shadowRoot.getElementById(`ha-toggle-${item.id}`);
-        if (toggle) {
-            toggle.classList.toggle('off', !isOn);
-            toggle.innerHTML = `
-                <span>${isOn ? '🔆' : '💡'}</span>
-                <span>${isOn ? 'Ausschalten' : 'Einschalten'}</span>
-            `;
-        }
+        }   
         
         // Update state text
         const stateText = this.shadowRoot.getElementById(`ha-state-${item.id}`);
