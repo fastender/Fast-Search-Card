@@ -1525,13 +1525,27 @@ class FastSearchCard extends HTMLElement {
                 
                 .ha-slider {
                     width: 100%;
-                    height: 6px;
-                    border-radius: 3px;
-                    background: rgba(255, 255, 255, 0.2);
+                    height: 24px;
+                    border-radius: 12px;
+                    background: rgba(255, 255, 255, 0.15);
+                    backdrop-filter: blur(10px);
                     outline: none;
                     appearance: none;
                     cursor: pointer;
-                    transition: all 0.2s ease;
+                    transition: all 0.3s ease;
+                    position: relative;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    box-shadow: 
+                        inset 0 2px 8px rgba(0, 0, 0, 0.1),
+                        0 2px 8px rgba(0, 0, 0, 0.1);
+                }
+                
+                .ha-slider:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    transform: translateY(-1px);
+                    box-shadow: 
+                        inset 0 2px 8px rgba(0, 0, 0, 0.15),
+                        0 4px 12px rgba(0, 0, 0, 0.15);
                 }
                 
                 .ha-slider::-webkit-slider-thumb {
@@ -1539,26 +1553,49 @@ class FastSearchCard extends HTMLElement {
                     width: 20px;
                     height: 20px;
                     border-radius: 50%;
-                    background: white;
+                    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
                     cursor: pointer;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
                     border: 2px solid rgba(255, 255, 255, 0.8);
-                    transition: all 0.2s ease;
+                    box-shadow: 
+                        0 4px 12px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    position: relative;
                 }
                 
                 .ha-slider::-webkit-slider-thumb:hover {
-                    transform: scale(1.1);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+                    transform: scale(1.15);
+                    box-shadow: 
+                        0 6px 16px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.4);
+                    background: linear-gradient(135deg, #ffffff 0%, #e8e8e8 100%);
+                }
+                
+                .ha-slider::-webkit-slider-thumb:active {
+                    transform: scale(1.05);
+                    box-shadow: 
+                        0 2px 8px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.3);
                 }
                 
                 .ha-slider::-moz-range-thumb {
                     width: 20px;
                     height: 20px;
                     border-radius: 50%;
-                    background: white;
+                    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
                     cursor: pointer;
                     border: 2px solid rgba(255, 255, 255, 0.8);
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                    box-shadow: 
+                        0 4px 12px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                }
+                
+                .ha-slider::-moz-range-thumb:hover {
+                    transform: scale(1.15);
+                    box-shadow: 
+                        0 6px 16px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.4);
                 }
                 
                 .ha-temp-controls {
