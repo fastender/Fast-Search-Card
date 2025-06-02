@@ -1523,29 +1523,27 @@ class FastSearchCard extends HTMLElement {
                     font-weight: 600;
                 }
                 
+
+
                 .ha-slider {
                     width: 100%;
-                    height: 24px;
-                    border-radius: 12px;
-                    background: rgba(255, 255, 255, 0.15);
-                    backdrop-filter: blur(10px);
+                    height: 40px;
+                    position: relative;
+                    cursor: pointer;
+                    border-radius: 20px;
+                    background: rgba(255, 255, 255, 0.1);
                     outline: none;
                     appearance: none;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    position: relative;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    box-shadow: 
-                        inset 0 2px 8px rgba(0, 0, 0, 0.1),
-                        0 2px 8px rgba(0, 0, 0, 0.1);
+                    overflow: hidden;
+                    border: 1px solid rgba(255, 255, 255, 0.15);
                 }
                 
-                .ha-slider:hover {
-                    background: rgba(255, 255, 255, 0.2);
-                    transform: translateY(-1px);
-                    box-shadow: 
-                        inset 0 2px 8px rgba(0, 0, 0, 0.15),
-                        0 4px 12px rgba(0, 0, 0, 0.15);
+                .ha-slider::-webkit-slider-track {
+                    width: 100%;
+                    height: 40px;
+                    background: transparent;
+                    border: none;
+                    border-radius: 20px;
                 }
                 
                 .ha-slider::-webkit-slider-thumb {
@@ -1553,50 +1551,100 @@ class FastSearchCard extends HTMLElement {
                     width: 20px;
                     height: 20px;
                     border-radius: 50%;
-                    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+                    background: white;
                     cursor: pointer;
-                    border: 2px solid rgba(255, 255, 255, 0.8);
-                    box-shadow: 
-                        0 4px 12px rgba(0, 0, 0, 0.3),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.3);
-                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    border: none;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
                     position: relative;
+                    z-index: 2;
+                    margin-top: 10px;
                 }
                 
-                .ha-slider::-webkit-slider-thumb:hover {
-                    transform: scale(1.15);
-                    box-shadow: 
-                        0 6px 16px rgba(0, 0, 0, 0.4),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.4);
-                    background: linear-gradient(135deg, #ffffff 0%, #e8e8e8 100%);
-                }
-                
-                .ha-slider::-webkit-slider-thumb:active {
-                    transform: scale(1.05);
-                    box-shadow: 
-                        0 2px 8px rgba(0, 0, 0, 0.3),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+                .ha-slider::-moz-range-track {
+                    width: 100%;
+                    height: 40px;
+                    background: transparent;
+                    border: none;
+                    border-radius: 20px;
                 }
                 
                 .ha-slider::-moz-range-thumb {
                     width: 20px;
                     height: 20px;
                     border-radius: 50%;
-                    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+                    background: white;
                     cursor: pointer;
-                    border: 2px solid rgba(255, 255, 255, 0.8);
-                    box-shadow: 
-                        0 4px 12px rgba(0, 0, 0, 0.3),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.3);
-                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    border: none;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
                 }
                 
-                .ha-slider::-moz-range-thumb:hover {
-                    transform: scale(1.15);
-                    box-shadow: 
-                        0 6px 16px rgba(0, 0, 0, 0.4),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.4);
+                /* Slider Container mit Progress Bar */
+                .ha-slider-container {
+                    position: relative;
+                    width: 100%;
+                    height: 40px;
+                    border-radius: 20px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    overflow: hidden;
                 }
+                
+                .ha-slider-track {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    height: 100%;
+                    background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%);
+                    border-radius: 20px;
+                    transition: width 0.2s ease;
+                    z-index: 1;
+                }
+                
+                .ha-slider-input {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    opacity: 0;
+                    cursor: pointer;
+                    z-index: 3;
+                    margin: 0;
+                    background: transparent;
+                    border: none;
+                    outline: none;
+                    appearance: none;
+                }
+                
+                .ha-slider-handle {
+                    position: absolute;
+                    top: 50%;
+                    width: 20px;
+                    height: 20px;
+                    background: white;
+                    border-radius: 50%;
+                    transform: translate(-50%, -50%);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                    z-index: 2;
+                    transition: all 0.2s ease;
+                    pointer-events: none;
+                }
+                
+                .ha-slider-container:hover .ha-slider-handle {
+                    transform: translate(-50%, -50%) scale(1.1);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                }
+                
+                .ha-slider-container:active .ha-slider-handle {
+                    transform: translate(-50%, -50%) scale(1.05);
+                }
+
+
+
+
+
+
+                
                 
                 .ha-temp-controls {
                     display: flex;
@@ -4813,6 +4861,16 @@ class FastSearchCard extends HTMLElement {
                 if (brightnessSlider) {
                     brightnessSlider.addEventListener('input', (e) => {
                         const brightness = parseInt(e.target.value);
+                        
+                        // Update Progress Bar und Handle Position
+                        const container = brightnessSlider.parentElement;
+                        const track = container.querySelector('.ha-slider-track');
+                        const handle = container.querySelector('.ha-slider-handle');
+                        
+                        if (track) track.style.width = brightness + '%';
+                        if (handle) handle.style.left = brightness + '%';
+                        
+                        // Update Text
                         if (brightnessValue) {
                             brightnessValue.textContent = brightness + '%';
                         }
@@ -5701,8 +5759,14 @@ getQuickStats(item) {
                             <span>Helligkeit</span>
                             <span class="ha-control-value" id="ha-brightness-value-${item.id}">${brightness}%</span>
                         </div>
-                        <input type="range" class="ha-slider" data-control="brightness" 
-                               min="1" max="100" value="${brightness}" id="ha-brightness-slider-${item.id}">
+
+                        <div class="ha-slider-container">
+                            <div class="ha-slider-track" style="width: ${brightness}%"></div>
+                            <div class="ha-slider-handle" style="left: ${brightness}%"></div>
+                            <input type="range" class="ha-slider-input" data-control="brightness" 
+                                   min="1" max="100" value="${brightness}" id="ha-brightness-slider-${item.id}">
+                        </div>
+                               
                     </div>
         
                     <!-- Color Temperature -->
