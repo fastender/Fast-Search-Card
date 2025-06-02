@@ -5638,7 +5638,7 @@ getQuickStats(item) {
         });        
         console.log('Detailed color modes:', supportedColorModes); 
         
-        return `
+        const htmlString = `
             <div class="control-group-large">
                 <div class="ha-light-control">
                     <!-- Entity Header -->
@@ -5649,13 +5649,13 @@ getQuickStats(item) {
                             ${isOn ? `Ein • ${brightness}% Helligkeit` : 'Aus'}
                         </div>
                     </div>
-    
+        
                     <!-- Main Toggle -->
                     <button class="ha-main-toggle ${isOn ? '' : 'off'}" data-action="toggle" id="ha-toggle-${item.id}">
                         <span>${isOn ? '🔆' : '💡'}</span>
                         <span>${isOn ? 'Ausschalten' : 'Einschalten'}</span>
                     </button>
-    
+        
                     <!-- Brightness Control -->
                     <div class="ha-brightness-section ${isOn ? '' : 'disabled'}" id="ha-brightness-${item.id}">
                         <div class="ha-control-label">
@@ -5665,7 +5665,7 @@ getQuickStats(item) {
                         <input type="range" class="ha-slider" data-control="brightness" 
                                min="1" max="100" value="${brightness}" id="ha-brightness-slider-${item.id}">
                     </div>
-    
+        
                     <!-- Color Temperature (FORCE ENABLED FOR TEST) -->
                     <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-temp-${item.id}">
                         <div class="ha-control-label">
@@ -5683,8 +5683,7 @@ getQuickStats(item) {
                             </button>
                         </div>
                     </div>
-                   
-    
+        
                     <!-- Color Control (FORCE ENABLED FOR TEST) -->
                     <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-color-${item.id}">
                         <div class="ha-control-label">
@@ -5704,10 +5703,18 @@ getQuickStats(item) {
                             🎨 Erweiterte Farbauswahl
                         </button>
                     </div>
-                    
                 </div>
             </div>
         `;
+        
+        console.log('=== TEMPLATE DEBUG ===');
+        console.log('hasTempSupport:', hasTempSupport);
+        console.log('hasColorSupport:', hasColorSupport);
+        console.log('Generated HTML length:', htmlString.length);
+        console.log('HTML contains temp controls:', htmlString.includes('ha-temp-controls'));
+        console.log('HTML contains color presets:', htmlString.includes('ha-color-presets'));
+        
+        return htmlString;
     }        
 
     getBasicReplaceControls(item) {
