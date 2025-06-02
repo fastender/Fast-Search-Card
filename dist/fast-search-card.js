@@ -4886,6 +4886,18 @@ class FastSearchCard extends HTMLElement {
                             this._hass.callService('light', 'turn_on', {
                                 entity_id: item.id,
                                 color_temp: mireds
+                            }).then(() => {
+                                // Update item attributes und Slider-Farbe
+                                setTimeout(() => {
+                                    const currentState = this._hass.states[item.id];
+                                    if (currentState) {
+                                        Object.assign(item, {
+                                            state: currentState.state,
+                                            attributes: currentState.attributes
+                                        });
+                                        this.updateSliderColor(item);
+                                    }
+                                }, 500); // Kurz warten damit HA die Änderung verarbeitet
                             }).catch(error => {
                                 console.error('Color temp service call failed:', error);
                             });
@@ -4899,7 +4911,7 @@ class FastSearchCard extends HTMLElement {
                 console.log('Color presets found:', colorPresets.length);  // ← HINZUFÜGEN
                 colorPresets.forEach(preset => {
                     preset.addEventListener('click', () => {
-                        console.log('🎨 COLOR PRESET CLICKED!');  // ← HINZUFÜGEN                     
+                        console.log('🎨 COLOR PRESET CLICKED!');
                         // Remove active from all
                         colorPresets.forEach(p => p.classList.remove('active'));
                         // Add active to clicked
@@ -4913,25 +4925,41 @@ class FastSearchCard extends HTMLElement {
                             // Check what color mode the light supports
                             const supportedColorModes = item.attributes.supported_color_modes || [];
                             
+                            let serviceCall;
                             if (supportedColorModes.includes('rgb')) {
-                                // Use RGB if supported
-                                this._hass.callService('light', 'turn_on', {
+                                serviceCall = this._hass.callService('light', 'turn_on', {
                                     entity_id: item.id,
                                     rgb_color: [r, g, b]
                                 });
                             } else if (supportedColorModes.includes('xy')) {
-                                // Convert RGB to XY for XY lights
                                 const xy = this.rgbToXy(r, g, b);
-                                this._hass.callService('light', 'turn_on', {
+                                serviceCall = this._hass.callService('light', 'turn_on', {
                                     entity_id: item.id,
                                     xy_color: xy
                                 });
                             } else if (supportedColorModes.includes('hs')) {
-                                // Convert RGB to HS for HS lights
                                 const hs = this.rgbToHs(r, g, b);
-                                this._hass.callService('light', 'turn_on', {
+                                serviceCall = this._hass.callService('light', 'turn_on', {
                                     entity_id: item.id,
                                     hs_color: hs
+                                });
+                            }
+                            
+                            // Update Slider-Farbe nach Service Call
+                            if (serviceCall) {
+                                serviceCall.then(() => {
+                                    setTimeout(() => {
+                                        const currentState = this._hass.states[item.id];
+                                        if (currentState) {
+                                            Object.assign(item, {
+                                                state: currentState.state,
+                                                attributes: currentState.attributes
+                                            });
+                                            this.updateSliderColor(item);
+                                        }
+                                    }, 500);
+                                }).catch(error => {
+                                    console.error('Color service call failed:', error);
                                 });
                             }
                         }
