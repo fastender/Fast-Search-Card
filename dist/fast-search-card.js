@@ -5523,9 +5523,12 @@ getQuickStats(item) {
             supportedColorModes.includes('rgb') ||
             supportedColorModes.includes('hs') ||
             supportedColorModes.includes('xy') ||
+            supportedColorModes.includes('rgbw') ||
+            supportedColorModes.includes('rgbww') ||
             (supportedFeatures & 16) || // SUPPORT_COLOR = 16
             item.attributes.rgb_color !== undefined ||
-            item.attributes.hs_color !== undefined;
+            item.attributes.hs_color !== undefined ||
+            item.attributes.xy_color !== undefined;
            
         console.log('Feature detection:', {
             supportedFeatures,
