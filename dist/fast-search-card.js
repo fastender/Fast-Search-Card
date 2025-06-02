@@ -1430,6 +1430,233 @@ class FastSearchCard extends HTMLElement {
                     font-weight: 600;
                     color: rgba(255, 255, 255, 0.9);
                 }
+
+
+                /* Native HA Light Control Styles */
+                .ha-light-control {
+                    background: transparent;
+                    padding: 0;
+                }
+                
+                .ha-entity-header {
+                    text-align: center;
+                    margin-bottom: 24px;
+                }
+                
+                .ha-entity-icon {
+                    font-size: 32px;
+                    margin-bottom: 12px;
+                    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+                }
+                
+                .ha-entity-name {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.9);
+                    margin-bottom: 6px;
+                }
+                
+                .ha-entity-state {
+                    font-size: 14px;
+                    color: rgba(255, 255, 255, 0.7);
+                    font-weight: 500;
+                }
+                
+                .ha-main-toggle {
+                    width: 100%;
+                    padding: 14px 20px;
+                    background: rgba(255, 255, 255, 0.15);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
+                    color: white;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    margin-bottom: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                }
+                
+                .ha-main-toggle:hover {
+                    background: rgba(255, 255, 255, 0.25);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+                }
+                
+                .ha-main-toggle.off {
+                    background: rgba(0, 0, 0, 0.15);
+                    color: rgba(255, 255, 255, 0.7);
+                }
+                
+                .ha-main-toggle.off:hover {
+                    background: rgba(0, 0, 0, 0.25);
+                }
+                
+                .ha-brightness-section,
+                .ha-color-section {
+                    margin-bottom: 24px;
+                    opacity: 1;
+                    transition: opacity 0.3s ease;
+                }
+                
+                .ha-brightness-section.disabled,
+                .ha-color-section.disabled {
+                    opacity: 0.5;
+                    pointer-events: none;
+                }
+                
+                .ha-control-label {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 12px;
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 14px;
+                    font-weight: 500;
+                }
+                
+                .ha-control-value {
+                    color: white;
+                    font-weight: 600;
+                }
+                
+                .ha-slider {
+                    width: 100%;
+                    height: 6px;
+                    border-radius: 3px;
+                    background: rgba(255, 255, 255, 0.2);
+                    outline: none;
+                    appearance: none;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .ha-slider::-webkit-slider-thumb {
+                    appearance: none;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background: white;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                    border: 2px solid rgba(255, 255, 255, 0.8);
+                    transition: all 0.2s ease;
+                }
+                
+                .ha-slider::-webkit-slider-thumb:hover {
+                    transform: scale(1.1);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+                }
+                
+                .ha-slider::-moz-range-thumb {
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background: white;
+                    cursor: pointer;
+                    border: 2px solid rgba(255, 255, 255, 0.8);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                }
+                
+                .ha-temp-controls {
+                    display: flex;
+                    gap: 8px;
+                    margin-bottom: 20px;
+                }
+                
+                .ha-temp-preset {
+                    flex: 1;
+                    padding: 10px 6px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 8px;
+                    color: rgba(255, 255, 255, 0.8);
+                    font-size: 11px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    text-align: center;
+                }
+                
+                .ha-temp-preset:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    color: white;
+                }
+                
+                .ha-temp-preset.active {
+                    background: rgba(255, 255, 255, 0.25);
+                    color: white;
+                    border-color: rgba(255, 255, 255, 0.4);
+                }
+                
+                .ha-color-presets {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 10px;
+                    margin-bottom: 16px;
+                }
+                
+                .ha-color-preset {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    border: 2px solid rgba(255, 255, 255, 0.2);
+                    transition: all 0.2s ease;
+                    position: relative;
+                    justify-self: center;
+                }
+                
+                .ha-color-preset:hover {
+                    transform: scale(1.1);
+                    border-color: rgba(255, 255, 255, 0.5);
+                }
+                
+                .ha-color-preset.active {
+                    border-color: white;
+                    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+                }
+                
+                .ha-color-preset.active::after {
+                    content: '✓';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: white;
+                    font-weight: bold;
+                    font-size: 12px;
+                    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+                }
+                
+                .ha-advanced-color {
+                    width: 100%;
+                    padding: 10px 14px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 8px;
+                    color: rgba(255, 255, 255, 0.8);
+                    font-size: 12px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                }
+                
+                .ha-advanced-color:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    color: white;
+                }
+
+
+
+                
                 
                 /* Responsive für Replace Mode */
                 @media (max-width: 768px) {
@@ -4512,7 +4739,101 @@ class FastSearchCard extends HTMLElement {
                 
                 // TTS Event Listeners
                 this.setupTTSEventListeners(item);
+
+                // HA Light Control Event Listeners
+                this.setupHALightControls(item);   
             }
+
+
+            setupHALightControls(item) {
+                if (item.type !== 'light') return;
+                
+                // Brightness Slider
+                const brightnessSlider = this.shadowRoot.getElementById(`ha-brightness-slider-${item.id}`);
+                const brightnessValue = this.shadowRoot.getElementById(`ha-brightness-value-${item.id}`);
+                const entityState = this.shadowRoot.getElementById(`ha-state-${item.id}`);
+                
+                if (brightnessSlider) {
+                    brightnessSlider.addEventListener('input', (e) => {
+                        const brightness = parseInt(e.target.value);
+                        if (brightnessValue) {
+                            brightnessValue.textContent = brightness + '%';
+                        }
+                        if (entityState && item.state === 'on') {
+                            entityState.textContent = `Ein • ${brightness}% Helligkeit`;
+                        }
+                        
+                        // Service Call
+                        this.handleSliderChange(item, 'brightness', brightness);
+                    });
+                }
+                
+                // Temperature Presets
+                const tempPresets = this.shadowRoot.querySelectorAll(`#ha-temp-${item.id} .ha-temp-preset`);
+                tempPresets.forEach(preset => {
+                    preset.addEventListener('click', () => {
+                        // Remove active from all
+                        tempPresets.forEach(p => p.classList.remove('active'));
+                        // Add active to clicked
+                        preset.classList.add('active');
+                        
+                        // Set color temperature
+                        const kelvin = parseInt(preset.getAttribute('data-kelvin'));
+                        const mireds = Math.round(1000000 / kelvin);
+                        
+                        if (this._hass && item.state === 'on') {
+                            this._hass.callService('light', 'turn_on', {
+                                entity_id: item.id,
+                                color_temp: mireds
+                            });
+                        }
+                    });
+                });
+                
+                // Color Presets
+                const colorPresets = this.shadowRoot.querySelectorAll(`#ha-color-${item.id} .ha-color-preset`);
+                colorPresets.forEach(preset => {
+                    preset.addEventListener('click', () => {
+                        // Remove active from all
+                        colorPresets.forEach(p => p.classList.remove('active'));
+                        // Add active to clicked
+                        preset.classList.add('active');
+                        
+                        // Set RGB color
+                        const rgbString = preset.getAttribute('data-rgb');
+                        if (rgbString && this._hass && item.state === 'on') {
+                            const [r, g, b] = rgbString.split(',').map(Number);
+                            this._hass.callService('light', 'turn_on', {
+                                entity_id: item.id,
+                                rgb_color: [r, g, b]
+                            });
+                        }
+                    });
+                });
+                
+                // Advanced Color Picker
+                const advancedButton = this.shadowRoot.getElementById(`ha-advanced-${item.id}`);
+                if (advancedButton) {
+                    advancedButton.addEventListener('click', () => {
+                        // Open HA more-info dialog for advanced color picking
+                        this.openHAMoreInfo(item.id);
+                    });
+                }
+            }    
+
+            openHAMoreInfo(entityId) {
+                if (!this._hass) return;
+                
+                // Dispatch HA more-info event
+                const event = new CustomEvent('hass-more-info', {
+                    detail: { entityId: entityId },
+                    bubbles: true,
+                    composed: true
+                });
+                
+                this.dispatchEvent(event);
+            }
+    
 
 
             setupAlbumArtUpdates(item) {
@@ -5178,27 +5499,85 @@ getQuickStats(item) {
     getLightReplaceControls(item) {
         const brightness = item.brightness || 0;
         const isOn = item.state === 'on';
+        const hasColorSupport = item.attributes.supported_color_modes && 
+            (item.attributes.supported_color_modes.includes('rgb') || 
+             item.attributes.supported_color_modes.includes('hs'));
+        const hasTempSupport = item.attributes.supported_color_modes && 
+            item.attributes.supported_color_modes.includes('color_temp');
         
         return `
             <div class="control-group-large">
-                <div class="main-control-large">
-                    <button class="toggle-button-large ${isOn ? '' : 'off'}" data-action="toggle">
-                        ${isOn ? '🔆 Ausschalten' : '💡 Einschalten'}
-                    </button>
-                </div>
-                ${isOn ? `
-                    <div class="brightness-control-large">
-                        <div class="slider-label-large">
-                            <span>Helligkeit</span>
-                            <span class="value">${brightness}%</span>
+                <div class="ha-light-control">
+                    <!-- Entity Header -->
+                    <div class="ha-entity-header">
+                        <div class="ha-entity-icon">${item.icon}</div>
+                        <div class="ha-entity-name">${item.name}</div>
+                        <div class="ha-entity-state" id="ha-state-${item.id}">
+                            ${isOn ? `Ein • ${brightness}% Helligkeit` : 'Aus'}
                         </div>
-                        <input type="range" class="slider-large" data-control="brightness" 
-                               min="1" max="100" value="${brightness}">
                     </div>
-                ` : ''}
+    
+                    <!-- Main Toggle -->
+                    <button class="ha-main-toggle ${isOn ? '' : 'off'}" data-action="toggle" id="ha-toggle-${item.id}">
+                        <span>${isOn ? '🔆' : '💡'}</span>
+                        <span>${isOn ? 'Ausschalten' : 'Einschalten'}</span>
+                    </button>
+    
+                    <!-- Brightness Control -->
+                    <div class="ha-brightness-section ${isOn ? '' : 'disabled'}" id="ha-brightness-${item.id}">
+                        <div class="ha-control-label">
+                            <span>Helligkeit</span>
+                            <span class="ha-control-value" id="ha-brightness-value-${item.id}">${brightness}%</span>
+                        </div>
+                        <input type="range" class="ha-slider" data-control="brightness" 
+                               min="1" max="100" value="${brightness}" id="ha-brightness-slider-${item.id}">
+                    </div>
+    
+                    ${hasTempSupport ? `
+                    <!-- Color Temperature -->
+                    <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-temp-${item.id}">
+                        <div class="ha-control-label">
+                            <span>Farbtemperatur</span>
+                        </div>
+                        <div class="ha-temp-controls">
+                            <button class="ha-temp-preset" data-temp="warm" data-kelvin="2700">
+                                🔥 Warm
+                            </button>
+                            <button class="ha-temp-preset" data-temp="neutral" data-kelvin="4000">
+                                ☀️ Neutral
+                            </button>
+                            <button class="ha-temp-preset" data-temp="cool" data-kelvin="6500">
+                                ❄️ Kalt
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
+    
+                    ${hasColorSupport ? `
+                    <!-- Color Control -->
+                    <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-color-${item.id}">
+                        <div class="ha-control-label">
+                            <span>Farbe</span>
+                        </div>
+                        <div class="ha-color-presets">
+                            <div class="ha-color-preset" style="background: #ff6b35;" data-color="red" data-rgb="255,107,53"></div>
+                            <div class="ha-color-preset" style="background: #f7931e;" data-color="orange" data-rgb="247,147,30"></div>
+                            <div class="ha-color-preset" style="background: #ffd23f;" data-color="yellow" data-rgb="255,210,63"></div>
+                            <div class="ha-color-preset" style="background: #06d6a0;" data-color="green" data-rgb="6,214,160"></div>
+                            <div class="ha-color-preset" style="background: #118ab2;" data-color="blue" data-rgb="17,138,178"></div>
+                            <div class="ha-color-preset" style="background: #8e44ad;" data-color="purple" data-rgb="142,68,173"></div>
+                            <div class="ha-color-preset" style="background: #e91e63;" data-color="pink" data-rgb="233,30,99"></div>
+                            <div class="ha-color-preset active" style="background: #ffffff;" data-color="white" data-rgb="255,255,255"></div>
+                        </div>
+                        <button class="ha-advanced-color" id="ha-advanced-${item.id}">
+                            🎨 Erweiterte Farbauswahl
+                        </button>
+                    </div>
+                    ` : ''}
+                </div>
             </div>
         `;
-    }
+    }        
 
     getBasicReplaceControls(item) {
         const isOn = item.state === 'on';
@@ -5741,6 +6120,11 @@ getQuickStats(item) {
             const domain = item.id.split('.')[0];
             this.addDomainSpecificAttributes(item, domain, currentState);
         }
+
+        // Update HA Light Control UI
+        if (item.type === 'light') {
+            this.updateHALightControlUI(item);
+        }        
         
         // Spezielle Behandlung für Media Player Album Art Update
         if (item.type === 'media_player') {
@@ -5755,6 +6139,48 @@ getQuickStats(item) {
         // Logbook aktualisieren
         this.updateLogEntries(item);
     }
+
+
+    updateHALightControlUI(item) {
+        const isOn = item.state === 'on';
+        const brightness = item.brightness || 0;
+        
+        // Update toggle button
+        const toggle = this.shadowRoot.getElementById(`ha-toggle-${item.id}`);
+        if (toggle) {
+            toggle.classList.toggle('off', !isOn);
+            toggle.innerHTML = `
+                <span>${isOn ? '🔆' : '💡'}</span>
+                <span>${isOn ? 'Ausschalten' : 'Einschalten'}</span>
+            `;
+        }
+        
+        // Update state text
+        const stateText = this.shadowRoot.getElementById(`ha-state-${item.id}`);
+        if (stateText) {
+            stateText.textContent = isOn ? `Ein • ${brightness}% Helligkeit` : 'Aus';
+        }
+        
+        // Update brightness slider
+        const slider = this.shadowRoot.getElementById(`ha-brightness-slider-${item.id}`);
+        const value = this.shadowRoot.getElementById(`ha-brightness-value-${item.id}`);
+        if (slider && value) {
+            slider.value = brightness;
+            value.textContent = brightness + '%';
+        }
+        
+        // Update disabled states
+        const brightnessSection = this.shadowRoot.getElementById(`ha-brightness-${item.id}`);
+        const tempSection = this.shadowRoot.getElementById(`ha-temp-${item.id}`);
+        const colorSection = this.shadowRoot.getElementById(`ha-color-${item.id}`);
+        
+        [brightnessSection, tempSection, colorSection].forEach(section => {
+            if (section) {
+                section.classList.toggle('disabled', !isOn);
+            }
+        });
+    }
+    
     
     updateMediaPlayerAlbumArt(item) {
         const albumBackground = this.shadowRoot.querySelector('.album-background-blur');
