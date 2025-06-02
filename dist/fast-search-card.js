@@ -2987,141 +2987,6 @@ class FastSearchCard extends HTMLElement {
                         font-size: 16px;
                     }
                 }                
-
-
-                /* ===== SWIPE NAVIGATION SYSTEM ===== */
-                .swipe-container {
-                    position: relative;
-                    overflow: hidden;
-                    touch-action: pan-y; /* Erlaubt vertikales Scrollen, blockiert horizontales */
-                }
-                
-                .swipe-wrapper {
-                    display: flex;
-                    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-                    will-change: transform;
-                }
-                
-                .swipe-slide {
-                    flex: 0 0 100%;
-                    width: 100%;
-                }
-                
-                /* Tab Navigation mit Swipe-Support */
-                .tabs-with-swipe {
-                    position: relative;
-                }
-                
-                .tab-indicators {
-                    display: flex;
-                    justify-content: center;
-                    gap: 8px;
-                    margin-top: 16px;
-                    padding: 8px 0;
-                }
-                
-                .tab-indicator {
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.3);
-                    transition: all 0.3s ease;
-                    cursor: pointer;
-                }
-                
-                .tab-indicator.active {
-                    background: rgba(255, 255, 255, 0.8);
-                    transform: scale(1.2);
-                }
-                
-                .tab-indicator:hover {
-                    background: rgba(255, 255, 255, 0.6);
-                    transform: scale(1.1);
-                }
-                
-                /* Swipe-Feedback */
-                .swipe-feedback {
-                    position: absolute;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    font-size: 24px;
-                    opacity: 0;
-                    transition: opacity 0.2s ease;
-                    pointer-events: none;
-                    z-index: 10;
-                }
-                
-                .swipe-feedback.left {
-                    left: 20px;
-                }
-                
-                .swipe-feedback.right {
-                    right: 20px;
-                }
-                
-                .swipe-feedback.active {
-                    opacity: 0.7;
-                }
-                
-                /* Enhanced Tab Bar für Swipe */
-                .swipe-tab-bar {
-                    position: relative;
-                    overflow: hidden;
-                }
-                
-                .swipe-tab-underline {
-                    position: absolute;
-                    bottom: 0;
-                    height: 3px;
-                    background: rgba(255, 255, 255, 0.8);
-                    border-radius: 2px;
-                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-                }
-                
-                /* Mobile Optimierungen */
-                @media (max-width: 768px) {
-                    .tab-indicators {
-                        margin-top: 12px;
-                        gap: 6px;
-                    }
-                    
-                    .tab-indicator {
-                        width: 6px;
-                        height: 6px;
-                    }
-                    
-                    .swipe-feedback {
-                        font-size: 20px;
-                    }
-                }
-                
-                /* Touch-Feedback */
-                .touch-feedback {
-                    position: absolute;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.3);
-                    transform: scale(0);
-                    animation: touchRipple 0.6s ease-out;
-                    pointer-events: none;
-                }
-                
-                @keyframes touchRipple {
-                    to {
-                        transform: scale(4);
-                        opacity: 0;
-                    }
-                }
-                
-                /* Momentum Scrolling für iOS */
-                .swipe-container {
-                    -webkit-overflow-scrolling: touch;
-                }
-                
-                /* Disable text selection during swipe */
-                .swipe-container.swiping {
-                    user-select: none;
-                    -webkit-user-select: none;
-                }                
                 
             </style>
             
@@ -3313,12 +3178,6 @@ class FastSearchCard extends HTMLElement {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
 
-        // NEU: Cleanup Swipe-Handler
-        if (this.replaceSwipeHandler) {
-            this.replaceSwipeHandler.destroy();
-            this.replaceSwipeHandler = null;
-        }        
-        
         // Cleanup: Album Art Update Timer stoppen
         const intervalId = replaceContainer.getAttribute('data-interval-id');
         if (intervalId) {
@@ -3500,19 +3359,11 @@ class FastSearchCard extends HTMLElement {
                         <span class="replace-tab-icon">📊</span>
                         <span>Details</span>
                     </button>
-
-                    
                     <button class="replace-tab" data-replace-general-tab="history">
                         <span class="replace-tab-icon">📈</span>
                         <span>Logbuch</span>
                     </button>
-                    <button class="replace-tab" data-replace-general-tab="shortcuts">
-                        <span class="replace-tab-icon">⚡</span>
-                        <span>Aktionen</span>
-                    </button>
-                    
                 </div>
-                
                 
                 <div class="replace-tab-content active" data-replace-general-tab-content="controls">
                     ${basicControls}
@@ -3533,13 +3384,6 @@ class FastSearchCard extends HTMLElement {
                 <div class="replace-tab-content" data-replace-general-tab-content="history">
                     ${history}
                 </div>
-                
-                <div class="replace-tab-content" data-replace-general-tab-content="shortcuts">
-                    ${this.getShortcutsHTML(item)}
-                </div>                
-
-                
-                
             </div>
         `;
     }    
@@ -4590,67 +4434,48 @@ class FastSearchCard extends HTMLElement {
             }
 
 
-            // NEUE Methode für Replace-Mode General Tab-System mit Swipe-Support
+            // NEUE Methode für Replace-Mode General Tab-System
             setupReplaceGeneralTabs(item) {
                 const tabs = this.shadowRoot.querySelectorAll('.replace-tab');
                 const contents = this.shadowRoot.querySelectorAll('.replace-tab-content');
-                const tabsContainer = this.shadowRoot.querySelector('.replace-tabs-container');
                 
-                if (!tabs.length || !contents.length || !tabsContainer) return;
-                
-                // Standard Tab-Click Events
-                tabs.forEach((tab, index) => {
+                tabs.forEach(tab => {
                     tab.addEventListener('click', () => {
-                        this.switchToReplaceTab(index, item, tabs, contents);
+                        const targetTab = tab.getAttribute('data-replace-general-tab');
+                        
+                        // Alle Tabs deaktivieren
+                        tabs.forEach(t => t.classList.remove('active'));
+                        contents.forEach(c => c.classList.remove('active'));
+                        
+                        // Aktiven Tab aktivieren
+                        tab.classList.add('active');
+                        const targetContent = this.shadowRoot.querySelector(`[data-replace-general-tab-content="${targetTab}"]`);
+                        if (targetContent) {
+                            targetContent.classList.add('active');
+                            
+                            // Spezielle Initialisierung für verschiedene Tabs
+                            if (targetTab === 'history') {
+                                // Logbook neu laden wenn Tab aktiviert wird
+                                this.loadRealLogEntries(item);
+                            }
+                            
+                            // Media Player spezifische Tab-Initialisierung
+                            if (item.type === 'media_player') {
+                                if (targetTab === 'music' && this.checkMusicAssistantAvailability()) {
+                                    setTimeout(() => {
+                                        this.setupMusicAssistantEventListeners(item);
+                                    }, 150);
+                                }
+                                
+                                if (targetTab === 'tts') {
+                                    setTimeout(() => {
+                                        this.setupTTSEventListeners(item);
+                                    }, 150);
+                                }
+                            }
+                        }
                     });
                 });
-                
-                // Swipe-Handler initialisieren
-                this.replaceSwipeHandler = new SwipeTabHandler(
-                    tabsContainer,
-                    Array.from(tabs),
-                    Array.from(contents),
-                    (index, tabName) => {
-                        this.switchToReplaceTab(index, item, tabs, contents, tabName);
-                    }
-                );
-            }
-            
-            // Neue Helper-Methode für Tab-Switching
-            switchToReplaceTab(index, item, tabs, contents, tabName = null) {
-                const targetTab = tabName || tabs[index].getAttribute('data-replace-general-tab');
-                
-                // Alle Tabs deaktivieren
-                tabs.forEach(t => t.classList.remove('active'));
-                contents.forEach(c => c.classList.remove('active'));
-                
-                // Aktiven Tab aktivieren
-                tabs[index].classList.add('active');
-                const targetContent = this.shadowRoot.querySelector(`[data-replace-general-tab-content="${targetTab}"]`);
-                if (targetContent) {
-                    targetContent.classList.add('active');
-                    
-                    // Spezielle Initialisierung für verschiedene Tabs
-                    if (targetTab === 'history') {
-                        // Logbook neu laden wenn Tab aktiviert wird
-                        this.loadRealLogEntries(item);
-                    }
-            
-                    // Media Player spezifische Tab-Initialisierung
-                    if (item.type === 'media_player') {
-                        if (targetTab === 'music' && this.checkMusicAssistantAvailability()) {
-                            setTimeout(() => {
-                                this.setupMusicAssistantEventListeners(item);
-                            }, 150);
-                        }
-                        
-                        if (targetTab === 'tts') {
-                            setTimeout(() => {
-                                this.setupTTSEventListeners(item);
-                            }, 150);
-                        }
-                    }
-                }
             }
             
             // Event Listeners in separater Methode für bessere Übersicht
@@ -4689,256 +4514,6 @@ class FastSearchCard extends HTMLElement {
                 this.setupTTSEventListeners(item);
             }
 
-
-            
-            // ===== SWIPE NAVIGATION SYSTEM =====
-            class SwipeTabHandler {
-                constructor(container, tabs, contents, onTabChange) {
-                    this.container = container;
-                    this.tabs = tabs;
-                    this.contents = contents;
-                    this.onTabChange = onTabChange;
-                    this.currentIndex = 0;
-                    this.startX = 0;
-                    this.startY = 0;
-                    this.currentX = 0;
-                    this.isDragging = false;
-                    this.threshold = 50; // Minimum swipe distance
-                    this.maxVerticalMovement = 100; // Max vertical movement to still count as horizontal swipe
-                    
-                    this.init();
-                }
-                
-                init() {
-                    // Touch Events
-                    this.container.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-                    this.container.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-                    this.container.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-                    
-                    // Mouse Events für Desktop
-                    this.container.addEventListener('mousedown', this.handleMouseStart.bind(this));
-                    this.container.addEventListener('mousemove', this.handleMouseMove.bind(this));
-                    this.container.addEventListener('mouseup', this.handleMouseEnd.bind(this));
-                    this.container.addEventListener('mouseleave', this.handleMouseEnd.bind(this));
-                    
-                    // Keyboard Events
-                    this.container.addEventListener('keydown', this.handleKeyDown.bind(this));
-                    this.container.setAttribute('tabindex', '0'); // Make focusable
-                    
-                    // Wheel Events für Desktop
-                    this.container.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
-                    
-                    // Erstelle Swipe-Feedback Elemente
-                    this.createSwipeFeedback();
-                    
-                    // Erstelle Tab-Indikatoren
-                    this.createTabIndicators();
-                }
-                
-                createSwipeFeedback() {
-                    this.leftFeedback = document.createElement('div');
-                    this.leftFeedback.className = 'swipe-feedback left';
-                    this.leftFeedback.innerHTML = '←';
-                    
-                    this.rightFeedback = document.createElement('div');
-                    this.rightFeedback.className = 'swipe-feedback right';
-                    this.rightFeedback.innerHTML = '→';
-                    
-                    this.container.appendChild(this.leftFeedback);
-                    this.container.appendChild(this.rightFeedback);
-                }
-                
-                createTabIndicators() {
-                    this.indicators = document.createElement('div');
-                    this.indicators.className = 'tab-indicators';
-                    
-                    this.tabs.forEach((_, index) => {
-                        const indicator = document.createElement('div');
-                        indicator.className = `tab-indicator ${index === 0 ? 'active' : ''}`;
-                        indicator.addEventListener('click', () => this.goToTab(index));
-                        this.indicators.appendChild(indicator);
-                    });
-                    
-                    this.container.appendChild(this.indicators);
-                }
-                
-                handleTouchStart(e) {
-                    this.startX = e.touches[0].clientX;
-                    this.startY = e.touches[0].clientY;
-                    this.isDragging = true;
-                    this.container.classList.add('swiping');
-                }
-                
-                handleTouchMove(e) {
-                    if (!this.isDragging) return;
-                    
-                    this.currentX = e.touches[0].clientX;
-                    const currentY = e.touches[0].clientY;
-                    const deltaX = this.currentX - this.startX;
-                    const deltaY = Math.abs(currentY - this.startY);
-                    
-                    // Nur horizontale Swipes erlauben
-                    if (deltaY > this.maxVerticalMovement) {
-                        this.isDragging = false;
-                        this.container.classList.remove('swiping');
-                        return;
-                    }
-                    
-                    // Swipe-Feedback anzeigen
-                    if (Math.abs(deltaX) > 20) {
-                        e.preventDefault(); // Verhindert Scrollen
-                        
-                        if (deltaX > 0 && this.currentIndex > 0) {
-                            this.leftFeedback.classList.add('active');
-                            this.rightFeedback.classList.remove('active');
-                        } else if (deltaX < 0 && this.currentIndex < this.tabs.length - 1) {
-                            this.rightFeedback.classList.add('active');
-                            this.leftFeedback.classList.remove('active');
-                        }
-                    }
-                }
-                
-                handleTouchEnd(e) {
-                    if (!this.isDragging) return;
-                    
-                    const deltaX = this.currentX - this.startX;
-                    this.isDragging = false;
-                    this.container.classList.remove('swiping');
-                    this.leftFeedback.classList.remove('active');
-                    this.rightFeedback.classList.remove('active');
-                    
-                    // Swipe-Richtung bestimmen
-                    if (Math.abs(deltaX) > this.threshold) {
-                        if (deltaX > 0 && this.currentIndex > 0) {
-                            this.goToTab(this.currentIndex - 1);
-                        } else if (deltaX < 0 && this.currentIndex < this.tabs.length - 1) {
-                            this.goToTab(this.currentIndex + 1);
-                        }
-                    }
-                }
-                
-                handleMouseStart(e) {
-                    this.startX = e.clientX;
-                    this.isDragging = true;
-                    this.container.classList.add('swiping');
-                    e.preventDefault();
-                }
-                
-                handleMouseMove(e) {
-                    if (!this.isDragging) return;
-                    
-                    this.currentX = e.clientX;
-                    const deltaX = this.currentX - this.startX;
-                    
-                    if (Math.abs(deltaX) > 20) {
-                        if (deltaX > 0 && this.currentIndex > 0) {
-                            this.leftFeedback.classList.add('active');
-                            this.rightFeedback.classList.remove('active');
-                        } else if (deltaX < 0 && this.currentIndex < this.tabs.length - 1) {
-                            this.rightFeedback.classList.add('active');
-                            this.leftFeedback.classList.remove('active');
-                        }
-                    }
-                }
-                
-                handleMouseEnd(e) {
-                    if (!this.isDragging) return;
-                    
-                    const deltaX = this.currentX - this.startX;
-                    this.isDragging = false;
-                    this.container.classList.remove('swiping');
-                    this.leftFeedback.classList.remove('active');
-                    this.rightFeedback.classList.remove('active');
-                    
-                    if (Math.abs(deltaX) > this.threshold) {
-                        if (deltaX > 0 && this.currentIndex > 0) {
-                            this.goToTab(this.currentIndex - 1);
-                        } else if (deltaX < 0 && this.currentIndex < this.tabs.length - 1) {
-                            this.goToTab(this.currentIndex + 1);
-                        }
-                    }
-                }
-                
-                handleKeyDown(e) {
-                    switch(e.key) {
-                        case 'ArrowLeft':
-                            e.preventDefault();
-                            if (this.currentIndex > 0) {
-                                this.goToTab(this.currentIndex - 1);
-                            }
-                            break;
-                        case 'ArrowRight':
-                            e.preventDefault();
-                            if (this.currentIndex < this.tabs.length - 1) {
-                                this.goToTab(this.currentIndex + 1);
-                            }
-                            break;
-                    }
-                }
-                
-                handleWheel(e) {
-                    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                        e.preventDefault();
-                        
-                        if (e.deltaX > 0 && this.currentIndex < this.tabs.length - 1) {
-                            this.goToTab(this.currentIndex + 1);
-                        } else if (e.deltaX < 0 && this.currentIndex > 0) {
-                            this.goToTab(this.currentIndex - 1);
-                        }
-                    }
-                }
-                
-                goToTab(index) {
-                    if (index < 0 || index >= this.tabs.length || index === this.currentIndex) return;
-                    
-                    this.currentIndex = index;
-                    
-                    // Tab-Buttons aktualisieren
-                    this.tabs.forEach((tab, i) => {
-                        tab.classList.toggle('active', i === index);
-                    });
-                    
-                    // Content aktualisieren
-                    this.contents.forEach((content, i) => {
-                        content.classList.toggle('active', i === index);
-                    });
-                    
-                    // Indikatoren aktualisieren
-                    this.indicators.querySelectorAll('.tab-indicator').forEach((indicator, i) => {
-                        indicator.classList.toggle('active', i === index);
-                    });
-                    
-                    // Callback aufrufen
-                    if (this.onTabChange) {
-                        this.onTabChange(index, this.tabs[index].getAttribute('data-replace-general-tab') || this.tabs[index].getAttribute('data-more-info-tab'));
-                    }
-                    
-                    // Haptic Feedback (falls unterstützt)
-                    if (navigator.vibrate) {
-                        navigator.vibrate(10);
-                    }
-                }
-                
-                destroy() {
-                    // Event Listeners entfernen
-                    this.container.removeEventListener('touchstart', this.handleTouchStart);
-                    this.container.removeEventListener('touchmove', this.handleTouchMove);
-                    this.container.removeEventListener('touchend', this.handleTouchEnd);
-                    this.container.removeEventListener('mousedown', this.handleMouseStart);
-                    this.container.removeEventListener('mousemove', this.handleMouseMove);
-                    this.container.removeEventListener('mouseup', this.handleMouseEnd);
-                    this.container.removeEventListener('mouseleave', this.handleMouseEnd);
-                    this.container.removeEventListener('keydown', this.handleKeyDown);
-                    this.container.removeEventListener('wheel', this.handleWheel);
-                    
-                    // DOM-Elemente entfernen
-                    if (this.leftFeedback) this.leftFeedback.remove();
-                    if (this.rightFeedback) this.rightFeedback.remove();
-                    if (this.indicators) this.indicators.remove();
-                }
-            }
-    
-    
 
             setupAlbumArtUpdates(item) {
                 // Speichere den aktuellen Media State für Vergleiche
@@ -6155,13 +5730,6 @@ getQuickStats(item) {
     }
 
     updateReplaceContent(item) {
-
-        // NEU: Cleanup alter Swipe-Handler
-        if (this.replaceSwipeHandler) {
-            this.replaceSwipeHandler.destroy();
-            this.replaceSwipeHandler = null;
-        }        
-        
         // Item-Daten aktualisieren
         const currentState = this._hass.states[item.id];
         if (currentState) {
@@ -8055,56 +7623,27 @@ getQuickStats(item) {
         }        
     }
 
-
-    // NEUE Methode für More-Info Tab-System (Popup) mit Swipe-Support
+    // NEUE Methode für More-Info Tab-System (Popup)
     setupMoreInfoTabs(overlay, item) {
         const tabs = overlay.querySelectorAll('.more-info-tab');
         const contents = overlay.querySelectorAll('.more-info-tab-content');
-        const tabsContainer = overlay.querySelector('.more-info-tabs-container');
         
-        if (!tabs.length || !contents.length || !tabsContainer) return;
-        
-        // Standard Tab-Click Events
-        tabs.forEach((tab, index) => {
+        tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                this.switchToMoreInfoTab(index, item, tabs, contents, overlay);
+                const targetTab = tab.getAttribute('data-more-info-tab');
+                
+                // Alle Tabs deaktivieren
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+                
+                // Aktiven Tab aktivieren
+                tab.classList.add('active');
+                const targetContent = overlay.querySelector(`[data-more-info-tab-content="${targetTab}"]`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
             });
         });
-        
-        // Swipe-Handler initialisieren
-        this.popupSwipeHandler = new SwipeTabHandler(
-            tabsContainer,
-            Array.from(tabs),
-            Array.from(contents),
-            (index, tabName) => {
-                this.switchToMoreInfoTab(index, item, tabs, contents, overlay, tabName);
-            }
-        );
-    }
-    
-    // Neue Helper-Methode für Popup Tab-Switching
-    switchToMoreInfoTab(index, item, tabs, contents, overlay, tabName = null) {
-        const targetTab = tabName || tabs[index].getAttribute('data-more-info-tab');
-        
-        // Alle Tabs deaktivieren
-        tabs.forEach(t => t.classList.remove('active'));
-        contents.forEach(c => c.classList.remove('active'));
-        
-        // Aktiven Tab aktivieren
-        tabs[index].classList.add('active');
-        const targetContent = overlay.querySelector(`[data-more-info-tab-content="${targetTab}"]`);
-        if (targetContent) {
-            targetContent.classList.add('active');
-            
-            // Spezielle Initialisierung für verschiedene Tabs
-            if (targetTab === 'controls' && item.type === 'media_player') {
-                // Media Player Controls neu initialisieren
-                setTimeout(() => {
-                    this.setupTTSEventListeners(item);
-                    this.setupMusicAssistantEventListeners(item);
-                }, 150);
-            }
-        }
     }
     
 
@@ -8232,13 +7771,6 @@ getQuickStats(item) {
     }
 
     closeMoreInfo() {
-
-        // NEU: Cleanup Swipe-Handler
-        if (this.popupSwipeHandler) {
-            this.popupSwipeHandler.destroy();
-            this.popupSwipeHandler = null;
-        }        
-        
         const overlay = this.shadowRoot.querySelector('.more-info-overlay');
         if (overlay) {
             overlay.classList.remove('active');
