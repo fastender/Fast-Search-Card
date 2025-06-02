@@ -5496,14 +5496,43 @@ getQuickStats(item) {
         }
     }
 
+
+
+
     getLightReplaceControls(item) {
         const brightness = item.brightness || 0;
         const isOn = item.state === 'on';
-        const hasColorSupport = item.attributes.supported_color_modes && 
-            (item.attributes.supported_color_modes.includes('rgb') || 
-             item.attributes.supported_color_modes.includes('hs'));
-        const hasTempSupport = item.attributes.supported_color_modes && 
-            item.attributes.supported_color_modes.includes('color_temp');
+        
+        // Debug: Log alle verfügbaren Attribute
+        console.log('Light attributes:', item.attributes);
+        
+        // Verschiedene Wege um Features zu erkennen
+        const supportedFeatures = item.attributes.supported_features || 0;
+        const supportedColorModes = item.attributes.supported_color_modes || [];
+        
+        // Color Temperature Support (verschiedene Checks)
+        const hasTempSupport = 
+            supportedColorModes.includes('color_temp') ||
+            supportedColorModes.includes('ct') ||
+            (supportedFeatures & 2) || // SUPPORT_COLOR_TEMP = 2
+            item.attributes.min_mireds !== undefined ||
+            item.attributes.max_mireds !== undefined;
+        
+        // RGB Color Support (verschiedene Checks)  
+        const hasColorSupport = 
+            supportedColorModes.includes('rgb') ||
+            supportedColorModes.includes('hs') ||
+            supportedColorModes.includes('xy') ||
+            (supportedFeatures & 16) || // SUPPORT_COLOR = 16
+            item.attributes.rgb_color !== undefined ||
+            item.attributes.hs_color !== undefined;
+        
+        console.log('Feature detection:', {
+            supportedFeatures,
+            supportedColorModes,
+            hasTempSupport,
+            hasColorSupport
+        });        
         
         return `
             <div class="control-group-large">
