@@ -3311,6 +3311,56 @@ class FastSearchCard extends HTMLElement {
                         gap: 8px;
                     }
                 }
+
+
+                /* Mittiger Power Button im Aus-Zustand */
+                .new-light-power-center {
+                    display: flex;
+                    justify-content: center;
+                    margin: 24px 0;
+                    opacity: 0;
+                    transform: translateY(-10px);
+                    transition: all 0.4s ease;
+                }
+                
+                .new-light-power-center.visible {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                
+                .new-light-power-center .new-light-control-btn {
+                    width: 80px;
+                    height: 80px;
+                    font-size: 32px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                }
+                
+                .new-light-power-center .new-light-control-btn:hover {
+                    transform: scale(1.1);
+                    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+                }
+                
+                /* Controls Row verstecken im Aus-Zustand */
+                .new-light-controls-row {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                    transition: all 0.4s ease;
+                    pointer-events: none;
+                }
+                
+                .new-light-controls-row.visible {
+                    opacity: 1;
+                    transform: translateY(0);
+                    pointer-events: auto;
+                }
+                
+                /* Farbpalette bleibt offen bis manuell geschlossen */
+                .new-light-colors.stay-open {
+                    max-height: 200px;
+                    opacity: 1;
+                    transform: translateY(0);
+                    pointer-events: auto;
+                }
                 
             </style>
             
@@ -4843,10 +4893,12 @@ class FastSearchCard extends HTMLElement {
 
 
      
+
+
             setupHALightControls(item) {
                 if (item.type !== 'light') return;
                 
-                console.log('=== SETUP ANIMATED LIGHT CONTROLS ===');
+                console.log('=== SETUP DUAL POWER BUTTON LIGHT CONTROLS ===');
                 console.log('Item:', item);
                 
                 const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
@@ -4859,17 +4911,20 @@ class FastSearchCard extends HTMLElement {
                 const brightnessSlider = replaceContainer.querySelector(`[id="new-light-brightness-slider-${item.id}"]`);
                 const brightnessValue = replaceContainer.querySelector(`[id="new-light-brightness-value-${item.id}"]`);
                 const entityState = replaceContainer.querySelector(`[id="new-light-state-${item.id}"]`);
-                const powerButton = replaceContainer.querySelector(`[id="new-light-toggle-${item.id}"]`);
+                
+                // BEIDE Power Buttons
+                const powerButtonCenter = replaceContainer.querySelector(`[id="new-light-toggle-center-${item.id}"]`);
+                const powerButtonRow = replaceContainer.querySelector(`[id="new-light-toggle-${item.id}"]`);
+                
                 const colorToggleButton = replaceContainer.querySelector(`[id="new-light-color-toggle-${item.id}"]`);
                 const colorsContainer = replaceContainer.querySelector(`[id="new-light-colors-${item.id}"]`);
-                const sliderContainer = replaceContainer.querySelector(`[id="new-light-slider-container-${item.id}"]`);
                 
                 console.log('DOM Elements found:', {
                     brightnessSlider: !!brightnessSlider,
-                    powerButton: !!powerButton,
+                    powerButtonCenter: !!powerButtonCenter,
+                    powerButtonRow: !!powerButtonRow,
                     colorToggleButton: !!colorToggleButton,
-                    colorsContainer: !!colorsContainer,
-                    sliderContainer: !!sliderContainer
+                    colorsContainer: !!colorsContainer
                 });
                 
                 // Brightness Slider Event Listener
@@ -4897,36 +4952,54 @@ class FastSearchCard extends HTMLElement {
                     });
                 }
                 
-                // Power Button Event Listener (mit Animation)
-                if (powerButton) {
-                    powerButton.addEventListener('click', () => {
-                        console.log('🔘 POWER BUTTON CLICKED!');
-                        
-                        const wasOn = item.state === 'on';
-                        
-                        // Service Call
-                        this.executeReplaceAction(item, 'toggle', powerButton).then(() => {
-                            // Nach dem Service Call: UI animieren
-                            setTimeout(() => {
-                                this.animateLightControls(item.id, !wasOn);
-                            }, 300);
-                        });
+                // Power Button Event Handler Funktion
+                const handlePowerClick = (button) => {
+                    console.log('🔘 POWER BUTTON CLICKED!');
+                    
+                    const wasOn = item.state === 'on';
+                    
+                    // Service Call
+                    this.executeReplaceAction(item, 'toggle', button).then(() => {
+                        // Nach dem Service Call: UI animieren
+                        setTimeout(() => {
+                            this.animateLightControls(item.id, !wasOn);
+                        }, 300);
+                    });
+                };
+                
+                // Center Power Button Event Listener
+                if (powerButtonCenter) {
+                    powerButtonCenter.addEventListener('click', () => {
+                        handlePowerClick(powerButtonCenter);
                     });
                 }
                 
-                // Color Toggle Button Event Listener
+                // Row Power Button Event Listener
+                if (powerButtonRow) {
+                    powerButtonRow.addEventListener('click', () => {
+                        handlePowerClick(powerButtonRow);
+                    });
+                }
+                
+                // Color Toggle Button Event Listener (Fixed: Persistent Toggle)
                 if (colorToggleButton) {
                     colorToggleButton.addEventListener('click', (e) => {
-                        e.stopPropagation(); // Verhindert andere Event Handler
+                        e.stopPropagation();
                         console.log('🎨 COLOR TOGGLE CLICKED!');
                         
                         if (colorsContainer) {
-                            const isVisible = colorsContainer.classList.contains('visible');
+                            const isOpen = colorsContainer.getAttribute('data-is-open') === 'true';
                             
-                            if (isVisible) {
-                                colorsContainer.classList.remove('visible');
+                            if (isOpen) {
+                                // Schließen
+                                colorsContainer.classList.remove('visible', 'stay-open');
+                                colorsContainer.setAttribute('data-is-open', 'false');
+                                console.log('🎨 Farbpalette geschlossen');
                             } else {
-                                colorsContainer.classList.add('visible');
+                                // Öffnen
+                                colorsContainer.classList.add('visible', 'stay-open');
+                                colorsContainer.setAttribute('data-is-open', 'true');
+                                console.log('🎨 Farbpalette geöffnet');
                             }
                             
                             // Button Animation
@@ -5030,43 +5103,57 @@ class FastSearchCard extends HTMLElement {
                 });
             }
             
-            // NEUE Methode für Control Animation
+            // Aktualisierte Animation Methode
             animateLightControls(itemId, isOn) {
-                console.log('🎬 Animating light controls:', { itemId, isOn });
+                console.log('🎬 Animating dual power light controls:', { itemId, isOn });
                 
                 const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
                 if (!replaceContainer) return;
                 
                 const sliderContainer = replaceContainer.querySelector(`[id="new-light-slider-container-${itemId}"]`);
-                const secondaryButtons = replaceContainer.querySelectorAll(`[id="new-light-${itemId}"] .new-light-control-btn.secondary`);
+                const controlsRow = replaceContainer.querySelector(`[id="new-light-controls-row-${itemId}"]`);
+                const powerCenter = replaceContainer.querySelector(`[id="new-light-power-center-${itemId}"]`);
                 const colorsContainer = replaceContainer.querySelector(`[id="new-light-colors-${itemId}"]`);
                 
                 if (isOn) {
-                    // Licht an: Elemente einblenden
-                    if (sliderContainer) {
-                        sliderContainer.classList.add('visible');
-                    }
-                    
-                    secondaryButtons.forEach(btn => {
-                        btn.classList.add('visible');
-                    });
-                } else {
-                    // Licht aus: Elemente ausblenden
-                    if (colorsContainer) {
-                        colorsContainer.classList.remove('visible');
+                    // Licht an: Zeige Row-Controls, verstecke Center Power
+                    if (powerCenter) {
+                        powerCenter.classList.remove('visible');
                     }
                     
                     setTimeout(() => {
-                        secondaryButtons.forEach(btn => {
-                            btn.classList.remove('visible');
-                        });
-                        
                         if (sliderContainer) {
-                            sliderContainer.classList.remove('visible');
+                            sliderContainer.classList.add('visible');
                         }
-                    }, 100); // Kurze Verzögerung für sanfteren Übergang
+                        if (controlsRow) {
+                            controlsRow.classList.add('visible');
+                        }
+                    }, 200);
+                    
+                } else {
+                    // Licht aus: Zeige Center Power, verstecke Row-Controls
+                    if (colorsContainer) {
+                        colorsContainer.classList.remove('visible', 'stay-open');
+                        colorsContainer.setAttribute('data-is-open', 'false');
+                    }
+                    
+                    if (controlsRow) {
+                        controlsRow.classList.remove('visible');
+                    }
+                    if (sliderContainer) {
+                        sliderContainer.classList.remove('visible');
+                    }
+                    
+                    setTimeout(() => {
+                        if (powerCenter) {
+                            powerCenter.classList.add('visible');
+                        }
+                    }, 200);
                 }
-            }
+            }                
+
+
+    
             
             // Neue Methode für Slider-Farbe (ersetzt updateSliderColor)
             updateNewLightSliderColor(item) {
@@ -5971,6 +6058,7 @@ getQuickStats(item) {
     }
 
     
+
     getLightReplaceControls(item) {
         const brightness = item.brightness || 0;
         const isOn = item.state === 'on';
@@ -5990,7 +6078,7 @@ getQuickStats(item) {
             supportedColorModes.includes('rgbw') ||
             supportedColorModes.includes('rgbww');
         
-        console.log('Animated Light Design:', {
+        console.log('Centered Power Light Design:', {
             isOn,
             brightness,
             hasTempSupport,
@@ -6009,6 +6097,14 @@ getQuickStats(item) {
                         </div>
                     </div>
                     
+                    <!-- Mittiger Power Button (nur im Aus-Zustand sichtbar) -->
+                    <div class="new-light-power-center ${!isOn ? 'visible' : ''}" id="new-light-power-center-${item.id}">
+                        <button class="new-light-control-btn power-off" 
+                                data-action="toggle" id="new-light-toggle-center-${item.id}">
+                            🔌
+                        </button>
+                    </div>
+                    
                     <!-- Zentraler Slider (nur sichtbar wenn an) -->
                     <div class="new-light-slider-container ${isOn ? 'visible' : ''}" id="new-light-slider-container-${item.id}">
                         <div class="new-light-slider-label">
@@ -6022,30 +6118,30 @@ getQuickStats(item) {
                         </div>
                     </div>
                     
-                    <!-- Control Buttons -->
-                    <div class="new-light-controls-row">
-                        <!-- Power Button (immer sichtbar) -->
-                        <button class="new-light-control-btn ${isOn ? 'power-on' : 'power-off'}" 
+                    <!-- Control Buttons Row (nur sichtbar wenn an) -->
+                    <div class="new-light-controls-row ${isOn ? 'visible' : ''}" id="new-light-controls-row-${item.id}">
+                        <!-- Power Button -->
+                        <button class="new-light-control-btn power-on" 
                                 data-action="toggle" id="new-light-toggle-${item.id}">
-                            ${isOn ? '💡' : '🔌'}
+                            💡
                         </button>
                         
                         ${hasTempSupport ? `
-                        <!-- Temperature Buttons (nur sichtbar wenn an) -->
-                        <button class="new-light-control-btn secondary ${isOn ? 'visible' : ''}" data-temp="warm" data-kelvin="2700">
+                        <!-- Temperature Buttons -->
+                        <button class="new-light-control-btn secondary visible" data-temp="warm" data-kelvin="2700">
                             🔥
                         </button>
-                        <button class="new-light-control-btn secondary ${isOn ? 'visible' : ''}" data-temp="neutral" data-kelvin="4000">
+                        <button class="new-light-control-btn secondary visible" data-temp="neutral" data-kelvin="4000">
                             ☀️
                         </button>
-                        <button class="new-light-control-btn secondary ${isOn ? 'visible' : ''}" data-temp="cool" data-kelvin="6500">
+                        <button class="new-light-control-btn secondary visible" data-temp="cool" data-kelvin="6500">
                             ❄️
                         </button>
                         ` : ''}
                         
                         ${hasColorSupport ? `
-                        <!-- Farbauswahl Toggle Button (nur sichtbar wenn an) -->
-                        <button class="new-light-control-btn secondary new-light-color-toggle ${isOn ? 'visible' : ''}" 
+                        <!-- Farbauswahl Toggle Button -->
+                        <button class="new-light-control-btn secondary new-light-color-toggle visible" 
                                 id="new-light-color-toggle-${item.id}" data-action="toggle-colors">
                             🎨
                         </button>
@@ -6054,7 +6150,7 @@ getQuickStats(item) {
                     
                     ${hasColorSupport ? `
                     <!-- Farbpalette (versteckt by default) -->
-                    <div class="new-light-colors" id="new-light-colors-${item.id}">
+                    <div class="new-light-colors" id="new-light-colors-${item.id}" data-is-open="false">
                         <div class="new-light-colors-grid">
                             <div class="new-light-color-preset" style="background: #ff6b35;" data-color="red" data-rgb="255,107,53"></div>
                             <div class="new-light-color-preset" style="background: #f7931e;" data-color="orange" data-rgb="247,147,30"></div>
@@ -6640,18 +6736,27 @@ getQuickStats(item) {
 
 
 
+
     updateHALightControlUI(item) {
         const isOn = item.state === 'on';
         const brightness = item.brightness || 0;
         
-        console.log('🔄 Updating animated light UI:', { isOn, brightness });
+        console.log('🔄 Updating dual power light UI:', { isOn, brightness });
         
-        // Update power button
-        const powerButton = this.shadowRoot.getElementById(`new-light-toggle-${item.id}`);
-        if (powerButton) {
-            powerButton.classList.toggle('power-on', isOn);
-            powerButton.classList.toggle('power-off', !isOn);
-            powerButton.innerHTML = isOn ? '💡' : '🔌';
+        // Update beide power buttons
+        const powerButtonCenter = this.shadowRoot.getElementById(`new-light-toggle-center-${item.id}`);
+        const powerButtonRow = this.shadowRoot.getElementById(`new-light-toggle-${item.id}`);
+        
+        if (powerButtonCenter) {
+            powerButtonCenter.classList.toggle('power-on', isOn);
+            powerButtonCenter.classList.toggle('power-off', !isOn);
+            powerButtonCenter.innerHTML = isOn ? '💡' : '🔌';
+        }
+        
+        if (powerButtonRow) {
+            powerButtonRow.classList.toggle('power-on', isOn);
+            powerButtonRow.classList.toggle('power-off', !isOn);
+            powerButtonRow.innerHTML = isOn ? '💡' : '🔌';
         }
         
         // Update state text
