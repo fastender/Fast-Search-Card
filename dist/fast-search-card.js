@@ -1594,9 +1594,9 @@ class FastSearchCard extends HTMLElement {
                     top: 0;
                     left: 0;
                     height: 100%;
-                    background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%);
+                    background: #4CAF50; /* Fallback - wird dynamisch überschrieben */
                     border-radius: 20px;
-                    transition: width 0.2s ease;
+                    transition: all 0.3s ease;
                     z-index: 1;
                 }
                 
@@ -1616,28 +1616,7 @@ class FastSearchCard extends HTMLElement {
                     appearance: none;
                 }
                 
-                .ha-slider-handle {
-                    position: absolute;
-                    top: 50%;
-                    width: 20px;
-                    height: 20px;
-                    background: white;
-                    border-radius: 50%;
-                    transform: translate(-50%, -50%);
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-                    z-index: 2;
-                    transition: all 0.2s ease;
-                    pointer-events: none;
-                }
-                
-                .ha-slider-container:hover .ha-slider-handle {
-                    transform: translate(-50%, -50%) scale(1.1);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                }
-                
-                .ha-slider-container:active .ha-slider-handle {
-                    transform: translate(-50%, -50%) scale(1.05);
-                }
+
 
 
 
@@ -4859,16 +4838,19 @@ class FastSearchCard extends HTMLElement {
                 });                
                 
                 if (brightnessSlider) {
+                    // Initiale Farbe setzen
+                    this.updateSliderColor(item);
+                    
                     brightnessSlider.addEventListener('input', (e) => {
                         const brightness = parseInt(e.target.value);
                         
-                        // Update Progress Bar und Handle Position
+                        // Update Progress Bar
                         const container = brightnessSlider.parentElement;
                         const track = container.querySelector('.ha-slider-track');
-                        const handle = container.querySelector('.ha-slider-handle');
                         
-                        if (track) track.style.width = brightness + '%';
-                        if (handle) handle.style.left = brightness + '%';
+                        if (track) {
+                            track.style.width = brightness + '%';
+                        }
                         
                         // Update Text
                         if (brightnessValue) {
@@ -5022,7 +5004,102 @@ class FastSearchCard extends HTMLElement {
             }    
 
 
-    
+            
+            // NEUE Methode: Slider-Farbe basierend auf Licht-Zustand
+            updateSliderColor(item) {
+                const track = this.shadowRoot.querySelector(`#ha-track-${item.id}`);
+                if (!track) return;
+                
+                let sliderColor = '#4CAF50'; // Fallback Grün
+                
+                if (item.state === 'off') {
+                    sliderColor = 'rgba(255, 255, 255, 0.3)'; // Grau wenn aus
+                } else {
+                    // Farbe basierend auf Licht-Attributen
+                    if (item.attributes.rgb_color) {
+                        // RGB Farbe direkt verwenden
+                        const [r, g, b] = item.attributes.rgb_color;
+                        sliderColor = `rgb(${r}, ${g}, ${b})`;
+                    } else if (item.attributes.color_temp_kelvin) {
+                        // Farbtemperatur zu RGB konvertieren
+                        sliderColor = this.kelvinToRgb(item.attributes.color_temp_kelvin);
+                    } else if (item.attributes.hs_color) {
+                        // HS zu RGB konvertieren
+                        const [h, s] = item.attributes.hs_color;
+                        sliderColor = this.hsToRgb(h, s, 100);
+                    } else if (item.attributes.xy_color) {
+                        // XY zu RGB konvertieren (vereinfacht)
+                        sliderColor = this.xyToRgb(item.attributes.xy_color[0], item.attributes.xy_color[1]);
+                    }
+                }
+                
+                track.style.background = sliderColor;
+            }
+            
+            // Kelvin zu RGB Konvertierung
+            kelvinToRgb(kelvin) {
+                const temp = kelvin / 100;
+                let r, g, b;
+                
+                if (temp <= 66) {
+                    r = 255;
+                    g = temp <= 19 ? 0 : 99.4708025861 * Math.log(temp - 10) - 161.1195681661;
+                    b = temp >= 66 ? 255 : temp <= 19 ? 0 : 138.5177312231 * Math.log(temp - 10) - 305.0447927307;
+                } else {
+                    r = 329.698727446 * Math.pow(temp - 60, -0.1332047592);
+                    g = 288.1221695283 * Math.pow(temp - 60, -0.0755148492);
+                    b = 255;
+                }
+                
+                r = Math.max(0, Math.min(255, r));
+                g = Math.max(0, Math.min(255, g));
+                b = Math.max(0, Math.min(255, b));
+                
+                return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+            }
+            
+            // HS zu RGB Konvertierung
+            hsToRgb(h, s, v) {
+                h = h / 360;
+                s = s / 100;
+                v = v / 100;
+                
+                const i = Math.floor(h * 6);
+                const f = h * 6 - i;
+                const p = v * (1 - s);
+                const q = v * (1 - f * s);
+                const t = v * (1 - (1 - f) * s);
+                
+                let r, g, b;
+                switch (i % 6) {
+                    case 0: r = v; g = t; b = p; break;
+                    case 1: r = q; g = v; b = p; break;
+                    case 2: r = p; g = v; b = t; break;
+                    case 3: r = p; g = q; b = v; break;
+                    case 4: r = t; g = p; b = v; break;
+                    case 5: r = v; g = p; b = q; break;
+                }
+                
+                return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+            }
+            
+            // XY zu RGB Konvertierung (vereinfacht)
+            xyToRgb(x, y) {
+                const z = 1.0 - x - y;
+                const Y = 1.0;
+                const X = (Y / y) * x;
+                const Z = (Y / y) * z;
+                
+                let r = X * 1.656492 - Y * 0.354851 - Z * 0.255038;
+                let g = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
+                let b = X * 0.051713 - Y * 0.121364 + Z * 1.011530;
+                
+                r = Math.max(0, Math.min(1, r));
+                g = Math.max(0, Math.min(1, g));
+                b = Math.max(0, Math.min(1, b));
+                
+                return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+            } 
 
             openHAMoreInfo(entityId) {
                 if (!this._hass) return;
@@ -5761,8 +5838,7 @@ getQuickStats(item) {
                         </div>
 
                         <div class="ha-slider-container">
-                            <div class="ha-slider-track" style="width: ${brightness}%"></div>
-                            <div class="ha-slider-handle" style="left: ${brightness}%"></div>
+                            <div class="ha-slider-track" style="width: ${brightness}%" id="ha-track-${item.id}"></div>
                             <input type="range" class="ha-slider-input" data-control="brightness" 
                                    min="1" max="100" value="${brightness}" id="ha-brightness-slider-${item.id}">
                         </div>
