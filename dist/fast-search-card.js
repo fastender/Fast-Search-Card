@@ -5666,8 +5666,7 @@ getQuickStats(item) {
                                min="1" max="100" value="${brightness}" id="ha-brightness-slider-${item.id}">
                     </div>
     
-                    ${hasTempSupport ? `
-                    <!-- Color Temperature -->
+                    <!-- Color Temperature (FORCE ENABLED FOR TEST) -->
                     <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-temp-${item.id}">
                         <div class="ha-control-label">
                             <span>Farbtemperatur</span>
@@ -5684,10 +5683,9 @@ getQuickStats(item) {
                             </button>
                         </div>
                     </div>
-                    ` : ''}
+                   
     
-                    ${hasColorSupport ? `
-                    <!-- Color Control -->
+                    <!-- Color Control (FORCE ENABLED FOR TEST) -->
                     <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-color-${item.id}">
                         <div class="ha-control-label">
                             <span>Farbe</span>
@@ -5706,7 +5704,7 @@ getQuickStats(item) {
                             🎨 Erweiterte Farbauswahl
                         </button>
                     </div>
-                    ` : ''}
+                    
                 </div>
             </div>
         `;
