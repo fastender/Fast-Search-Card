@@ -4755,10 +4755,17 @@ class FastSearchCard extends HTMLElement {
                 console.log('Item:', item);
                 console.log('Current state:', item.state);
                 
+                // FIXED: Verwende Container-Selektor statt IDs
+                const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+                if (!replaceContainer) {
+                    console.log('❌ Replace container not found');
+                    return;
+                }
+                
                 // Brightness Slider
-                const brightnessSlider = this.shadowRoot.getElementById(`ha-brightness-slider-${item.id}`);
-                const brightnessValue = this.shadowRoot.getElementById(`ha-brightness-value-${item.id}`);
-                const entityState = this.shadowRoot.getElementById(`ha-state-${item.id}`);
+                const brightnessSlider = replaceContainer.querySelector(`[id="ha-brightness-slider-${item.id}"]`);                
+                const brightnessValue = replaceContainer.querySelector(`[id="ha-brightness-value-${item.id}"]`);
+                const entityState = replaceContainer.querySelector(`[id="ha-state-${item.id}"]`);
                 
                 console.log('DOM Elements found:', {
                     brightnessSlider: !!brightnessSlider,
@@ -4781,8 +4788,8 @@ class FastSearchCard extends HTMLElement {
                     });
                 }
                 
-                // Temperature Presets
-                const tempPresets = this.shadowRoot.querySelectorAll(`#ha-temp-${item.id} .ha-temp-preset`);
+                // Temperature Presets - FIXED: Verwende Container
+                const tempPresets = replaceContainer.querySelectorAll(`[id="ha-temp-${item.id}"] .ha-temp-preset`);
                 console.log('Temperature presets found:', tempPresets.length);
 
                 tempPresets.forEach(preset => {
@@ -4810,8 +4817,8 @@ class FastSearchCard extends HTMLElement {
                 });
                 
 
-                // Color Presets
-                const colorPresets = this.shadowRoot.querySelectorAll(`#ha-color-${item.id} .ha-color-preset`);
+                // Color Presets - FIXED: Verwende Container
+                const colorPresets = replaceContainer.querySelectorAll(`[id="ha-color-${item.id}"] .ha-color-preset`);
                 console.log('Color presets found:', colorPresets.length);  // ← HINZUFÜGEN
                 colorPresets.forEach(preset => {
                     preset.addEventListener('click', () => {
@@ -4854,8 +4861,9 @@ class FastSearchCard extends HTMLElement {
                     });
                 });
                 
-                // Advanced Color Picker
-                const advancedButton = this.shadowRoot.getElementById(`ha-advanced-${item.id}`);
+
+                // Advanced Color Picker - FIXED: Verwende Container
+                const advancedButton = replaceContainer.querySelector(`[id="ha-advanced-${item.id}"]`);
                 if (advancedButton) {
                     advancedButton.addEventListener('click', () => {
                         // Open HA more-info dialog for advanced color picking
