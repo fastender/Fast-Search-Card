@@ -5526,13 +5526,15 @@ getQuickStats(item) {
             (supportedFeatures & 16) || // SUPPORT_COLOR = 16
             item.attributes.rgb_color !== undefined ||
             item.attributes.hs_color !== undefined;
-        
+           
+
         console.log('Feature detection:', {
             supportedFeatures,
             supportedColorModes,
             hasTempSupport,
             hasColorSupport
         });        
+        console.log('Detailed color modes:', supportedColorModes        
         
         return `
             <div class="control-group-large">
