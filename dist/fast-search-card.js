@@ -4745,13 +4745,26 @@ class FastSearchCard extends HTMLElement {
             }
 
 
+     
+
+
             setupHALightControls(item) {
                 if (item.type !== 'light') return;
+                
+                console.log('=== SETUP HA LIGHT CONTROLS DEBUG ===');
+                console.log('Item:', item);
+                console.log('Current state:', item.state);
                 
                 // Brightness Slider
                 const brightnessSlider = this.shadowRoot.getElementById(`ha-brightness-slider-${item.id}`);
                 const brightnessValue = this.shadowRoot.getElementById(`ha-brightness-value-${item.id}`);
                 const entityState = this.shadowRoot.getElementById(`ha-state-${item.id}`);
+                
+                console.log('DOM Elements found:', {
+                    brightnessSlider: !!brightnessSlider,
+                    brightnessValue: !!brightnessValue,
+                    entityState: !!entityState
+                });                
                 
                 if (brightnessSlider) {
                     brightnessSlider.addEventListener('input', (e) => {
@@ -4770,8 +4783,11 @@ class FastSearchCard extends HTMLElement {
                 
                 // Temperature Presets
                 const tempPresets = this.shadowRoot.querySelectorAll(`#ha-temp-${item.id} .ha-temp-preset`);
+                console.log('Temperature presets found:', tempPresets.length);
+
                 tempPresets.forEach(preset => {
                     preset.addEventListener('click', () => {
+                        console.log('🔥 TEMPERATURE PRESET CLICKED!');
                         // Remove active from all
                         tempPresets.forEach(p => p.classList.remove('active'));
                         // Add active to clicked
@@ -4793,10 +4809,13 @@ class FastSearchCard extends HTMLElement {
                     });
                 });
                 
+
                 // Color Presets
                 const colorPresets = this.shadowRoot.querySelectorAll(`#ha-color-${item.id} .ha-color-preset`);
+                console.log('Color presets found:', colorPresets.length);  // ← HINZUFÜGEN
                 colorPresets.forEach(preset => {
                     preset.addEventListener('click', () => {
+                        console.log('🎨 COLOR PRESET CLICKED!');  // ← HINZUFÜGEN                     
                         // Remove active from all
                         colorPresets.forEach(p => p.classList.remove('active'));
                         // Add active to clicked
