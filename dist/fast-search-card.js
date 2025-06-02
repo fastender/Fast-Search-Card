@@ -2998,15 +2998,16 @@ class FastSearchCard extends HTMLElement {
 
                 /* NEUES LICHT DESIGN - Komplett Ersatz */
                 .new-light-design {
-                    padding: 24px;
+                    padding: 20px;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: 24px;
+                    gap: 16px;
                 }
                 
                 .new-light-header {
                     text-align: center;
+                    margin-bottom: 8px; /* Reduziert */
                 }
                 
                 .new-light-name {
@@ -3027,6 +3028,7 @@ class FastSearchCard extends HTMLElement {
                     width: 100%;
                     max-width: 280px;
                     position: relative;
+                    margin-bottom: 8px; /* Weniger Abstand nach Slider */
                 }
                 
                 .new-light-slider-label {
@@ -3077,9 +3079,8 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Runde Buttons Zeile */
                 .new-light-controls-row {
-                    display: flex;
-                    gap: 16px;
-                    align-items: center;
+                    gap: 12px;
+                    margin-top: 4px;
                 }
                 
                 .new-light-control-btn {
@@ -3127,6 +3128,13 @@ class FastSearchCard extends HTMLElement {
                 .new-light-colors {
                     width: 100%;
                     max-width: 280px;
+                    margin-top: 8px; /* Weniger Abstand */
+                    max-height: 0;
+                    opacity: 0;
+                    overflow: hidden;
+                    transform: translateY(-10px);
+                    transition: all 0.4s ease;
+                    pointer-events: none;
                 }
                 
                 .new-light-colors-grid {
@@ -3272,7 +3280,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .new-light-colors.visible {
-                    max-height: 200px;
+                    max-height: 180px;
                     opacity: 1;
                     transform: translateY(0);
                     pointer-events: auto;
@@ -3317,7 +3325,7 @@ class FastSearchCard extends HTMLElement {
                 .new-light-power-center {
                     display: flex;
                     justify-content: center;
-                    margin: 24px 0;
+                    margin: 16px 0;
                     opacity: 0;
                     transform: translateY(-10px);
                     transition: all 0.4s ease;
@@ -3354,13 +3362,6 @@ class FastSearchCard extends HTMLElement {
                     pointer-events: auto;
                 }
                 
-                /* Farbpalette bleibt offen bis manuell geschlossen */
-                .new-light-colors.stay-open {
-                    max-height: 200px;
-                    opacity: 1;
-                    transform: translateY(0);
-                    pointer-events: auto;
-                }
                 
             </style>
             
@@ -4981,23 +4982,28 @@ class FastSearchCard extends HTMLElement {
                     });
                 }
                 
-                // Color Toggle Button Event Listener (Fixed: Persistent Toggle)
+                // Color Toggle Button Event Listener (FIXED: Kein automatisches Schließen)
                 if (colorToggleButton) {
                     colorToggleButton.addEventListener('click', (e) => {
+                        e.preventDefault();
                         e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        
                         console.log('🎨 COLOR TOGGLE CLICKED!');
                         
                         if (colorsContainer) {
                             const isOpen = colorsContainer.getAttribute('data-is-open') === 'true';
                             
+                            console.log('🎨 Current state:', { isOpen });
+                            
                             if (isOpen) {
                                 // Schließen
-                                colorsContainer.classList.remove('visible', 'stay-open');
+                                colorsContainer.classList.remove('visible');
                                 colorsContainer.setAttribute('data-is-open', 'false');
                                 console.log('🎨 Farbpalette geschlossen');
                             } else {
                                 // Öffnen
-                                colorsContainer.classList.add('visible', 'stay-open');
+                                colorsContainer.classList.add('visible');
                                 colorsContainer.setAttribute('data-is-open', 'true');
                                 console.log('🎨 Farbpalette geöffnet');
                             }
@@ -5008,8 +5014,17 @@ class FastSearchCard extends HTMLElement {
                                 colorToggleButton.style.transform = '';
                             }, 150);
                         }
+                    }, true); // WICHTIG: Capture Phase verwenden
+
+                    // Zusätzlicher Schutz: Verhindere andere Events auf dem Button
+                    colorToggleButton.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
                     });
-                }
+                    
+                    colorToggleButton.addEventListener('mouseup', (e) => {
+                        e.stopPropagation();
+                    });
+                }                    
                 
                 // Temperature Presets
                 const tempPresets = replaceContainer.querySelectorAll(`[id="new-light-${item.id}"] [data-temp]`);
@@ -5103,7 +5118,7 @@ class FastSearchCard extends HTMLElement {
                 });
             }
             
-            // Aktualisierte Animation Methode
+            // Aktualisierte Animation Methode (nur der relevante Teil)
             animateLightControls(itemId, isOn) {
                 console.log('🎬 Animating dual power light controls:', { itemId, isOn });
                 
@@ -5133,7 +5148,7 @@ class FastSearchCard extends HTMLElement {
                 } else {
                     // Licht aus: Zeige Center Power, verstecke Row-Controls
                     if (colorsContainer) {
-                        colorsContainer.classList.remove('visible', 'stay-open');
+                        colorsContainer.classList.remove('visible'); // Nur visible entfernen
                         colorsContainer.setAttribute('data-is-open', 'false');
                     }
                     
@@ -5150,7 +5165,7 @@ class FastSearchCard extends HTMLElement {
                         }
                     }, 200);
                 }
-            }                
+            }  
 
 
     
