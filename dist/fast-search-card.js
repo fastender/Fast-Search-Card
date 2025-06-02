@@ -4782,9 +4782,12 @@ class FastSearchCard extends HTMLElement {
                         const mireds = Math.round(1000000 / kelvin);
                         
                         if (this._hass && item.state === 'on') {
+                            console.log('Setting color temp:', { entity_id: item.id, color_temp: mireds });
                             this._hass.callService('light', 'turn_on', {
                                 entity_id: item.id,
                                 color_temp: mireds
+                            }).catch(error => {
+                                console.error('Color temp service call failed:', error);
                             });
                         }
                     });
@@ -4799,14 +4802,35 @@ class FastSearchCard extends HTMLElement {
                         // Add active to clicked
                         preset.classList.add('active');
                         
-                        // Set RGB color
+                        // Set color based on supported modes
                         const rgbString = preset.getAttribute('data-rgb');
                         if (rgbString && this._hass && item.state === 'on') {
                             const [r, g, b] = rgbString.split(',').map(Number);
-                            this._hass.callService('light', 'turn_on', {
-                                entity_id: item.id,
-                                rgb_color: [r, g, b]
-                            });
+                            
+                            // Check what color mode the light supports
+                            const supportedColorModes = item.attributes.supported_color_modes || [];
+                            
+                            if (supportedColorModes.includes('rgb')) {
+                                // Use RGB if supported
+                                this._hass.callService('light', 'turn_on', {
+                                    entity_id: item.id,
+                                    rgb_color: [r, g, b]
+                                });
+                            } else if (supportedColorModes.includes('xy')) {
+                                // Convert RGB to XY for XY lights
+                                const xy = this.rgbToXy(r, g, b);
+                                this._hass.callService('light', 'turn_on', {
+                                    entity_id: item.id,
+                                    xy_color: xy
+                                });
+                            } else if (supportedColorModes.includes('hs')) {
+                                // Convert RGB to HS for HS lights
+                                const hs = this.rgbToHs(r, g, b);
+                                this._hass.callService('light', 'turn_on', {
+                                    entity_id: item.id,
+                                    hs_color: hs
+                                });
+                            }
                         }
                     });
                 });
@@ -4820,6 +4844,63 @@ class FastSearchCard extends HTMLElement {
                     });
                 }
             }    
+
+
+            // RGB zu XY Konvertierung für Philips Hue und andere XY Lichter
+            rgbToXy(r, g, b) {
+                // Normalisiere RGB zu 0-1
+                r = r / 255;
+                g = g / 255;
+                b = b / 255;
+                
+                // Gamma Korrektur
+                r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : (r / 12.92);
+                g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : (g / 12.92);
+                b = (b > 0.04045) ? Math.pow((b + 0.055) / 1.055, 2.4) : (b / 12.92);
+                
+                // RGB zu XYZ
+                const X = r * 0.649926 + g * 0.103455 + b * 0.197109;
+                const Y = r * 0.234327 + g * 0.743075 + b * 0.022598;
+                const Z = r * 0.0000000 + g * 0.053077 + b * 1.035763;
+                
+                // XYZ zu xy
+                const x = X / (X + Y + Z);
+                const y = Y / (X + Y + Z);
+                
+                // Clamp values
+                return [
+                    Math.max(0, Math.min(1, x || 0)),
+                    Math.max(0, Math.min(1, y || 0))
+                ];
+            }
+            
+            // RGB zu HS Konvertierung (Fallback)
+            rgbToHs(r, g, b) {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+                
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                const diff = max - min;
+                
+                let h = 0;
+                let s = max === 0 ? 0 : diff / max;
+                
+                if (diff !== 0) {
+                    switch (max) {
+                        case r: h = (g - b) / diff + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / diff + 2; break;
+                        case b: h = (r - g) / diff + 4; break;
+                    }
+                    h /= 6;
+                }
+                
+                return [Math.round(h * 360), Math.round(s * 100)];
+            }    
+
+
+    
 
             openHAMoreInfo(entityId) {
                 if (!this._hass) return;
