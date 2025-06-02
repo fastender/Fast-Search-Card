@@ -3002,12 +3002,12 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: 16px;
+                    gap: 0; /* WICHTIG: Kein Gap zwischen Hauptelementen */
                 }
                 
                 .new-light-header {
                     text-align: center;
-                    margin-bottom: 8px; /* Reduziert */
+                    margin-bottom: 16px; /* Kontrollierter Abstand */
                 }
                 
                 .new-light-name {
@@ -3028,7 +3028,11 @@ class FastSearchCard extends HTMLElement {
                     width: 100%;
                     max-width: 280px;
                     position: relative;
-                    margin-bottom: 8px; /* Weniger Abstand nach Slider */
+                    margin: 0 0 16px 0; /* Nur Abstand nach unten */
+                    opacity: 0;
+                    transform: translateY(-20px);
+                    transition: all 0.4s ease;
+                    pointer-events: none;
                 }
                 
                 .new-light-slider-label {
@@ -3079,8 +3083,12 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Runde Buttons Zeile */
                 .new-light-controls-row {
+                    display: flex;
+                    flex-direction: row;
                     gap: 12px;
                     margin-top: 4px;
+                    align-items: center; /* Vertikal zentriert */
+                    justify-content: center; /* Horizontal zentriert */
                 }
                 
                 .new-light-control-btn {
@@ -3128,7 +3136,7 @@ class FastSearchCard extends HTMLElement {
                 .new-light-colors {
                     width: 100%;
                     max-width: 280px;
-                    margin-top: 8px; /* Weniger Abstand */
+                    margin: 16px 0 0 0; /* Nur Abstand nach oben */
                     max-height: 0;
                     opacity: 0;
                     overflow: hidden;
@@ -3228,7 +3236,16 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .new-light-controls-row {
-                    gap: 12px; /* Weniger Gap für mehr Buttons */
+                    display: none; /* NEU: komplett versteckt */
+                    flex-direction: row;
+                    gap: 12px;
+                    margin: 0; /* KEIN Margin */
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0;
+                    transform: translateY(-20px);
+                    transition: all 0.4s ease;
+                    pointer-events: none;
                 }
                 
                 /* Zusätzliche Buttons (versteckt by default) */
@@ -3323,15 +3340,16 @@ class FastSearchCard extends HTMLElement {
 
                 /* Mittiger Power Button im Aus-Zustand */
                 .new-light-power-center {
-                    display: flex;
+                    display: none; /* NEU: komplett versteckt */
                     justify-content: center;
-                    margin: 16px 0;
+                    margin: 0; /* KEIN Margin */
                     opacity: 0;
                     transform: translateY(-10px);
                     transition: all 0.4s ease;
                 }
                 
                 .new-light-power-center.visible {
+                    display: flex; /* NEU: nur anzeigen wenn visible */
                     opacity: 1;
                     transform: translateY(0);
                 }
@@ -3357,6 +3375,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .new-light-controls-row.visible {
+                    display: flex; /* NEU: nur anzeigen wenn visible */
                     opacity: 1;
                     transform: translateY(0);
                     pointer-events: auto;
