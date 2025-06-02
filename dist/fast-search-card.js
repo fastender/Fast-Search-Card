@@ -5624,17 +5624,13 @@ getQuickStats(item) {
             item.attributes.min_mireds !== undefined ||
             item.attributes.max_mireds !== undefined;
         
-        // RGB Color Support (verschiedene Checks)  
+        // RGB Color Support - NUR auf supported_color_modes prüfen!
         const hasColorSupport = 
             supportedColorModes.includes('rgb') ||
             supportedColorModes.includes('hs') ||
             supportedColorModes.includes('xy') ||
             supportedColorModes.includes('rgbw') ||
-            supportedColorModes.includes('rgbww') ||
-            (supportedFeatures & 16) || // SUPPORT_COLOR = 16
-            item.attributes.rgb_color !== undefined ||
-            item.attributes.hs_color !== undefined ||
-            item.attributes.xy_color !== undefined;
+            supportedColorModes.includes('rgbww');
            
         console.log('Feature detection:', {
             supportedFeatures,
