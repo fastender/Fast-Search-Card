@@ -5605,8 +5605,6 @@ getQuickStats(item) {
     }
 
 
-
-
     getLightReplaceControls(item) {
         const brightness = item.brightness || 0;
         const isOn = item.state === 'on';
@@ -5674,7 +5672,8 @@ getQuickStats(item) {
                                min="1" max="100" value="${brightness}" id="ha-brightness-slider-${item.id}">
                     </div>
         
-                    <!-- Color Temperature (FORCE ENABLED FOR TEST) -->
+                    <!-- Color Temperature -->
+                    ${hasTempSupport ? `
                     <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-temp-${item.id}">
                         <div class="ha-control-label">
                             <span>Farbtemperatur</span>
@@ -5691,8 +5690,10 @@ getQuickStats(item) {
                             </button>
                         </div>
                     </div>
+                    ` : ''}
         
-                    <!-- Color Control (FORCE ENABLED FOR TEST) -->
+                    <!-- Color Control -->
+                    ${hasColorSupport ? `
                     <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-color-${item.id}">
                         <div class="ha-control-label">
                             <span>Farbe</span>
@@ -5711,6 +5712,7 @@ getQuickStats(item) {
                             🎨 Erweiterte Farbauswahl
                         </button>
                     </div>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -5724,6 +5726,10 @@ getQuickStats(item) {
         
         return htmlString;
     }        
+
+
+
+    
 
     getBasicReplaceControls(item) {
         const isOn = item.state === 'on';
