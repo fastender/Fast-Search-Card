@@ -3204,6 +3204,113 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
+
+                /* Animationen für versteckte/sichtbare Elemente */
+                .new-light-slider-container {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                    transition: all 0.4s ease;
+                    pointer-events: none;
+                }
+                
+                .new-light-slider-container.visible {
+                    opacity: 1;
+                    transform: translateY(0);
+                    pointer-events: auto;
+                }
+                
+                .new-light-controls-row {
+                    gap: 12px; /* Weniger Gap für mehr Buttons */
+                }
+                
+                /* Zusätzliche Buttons (versteckt by default) */
+                .new-light-control-btn.secondary {
+                    opacity: 0;
+                    transform: scale(0.8);
+                    transition: all 0.3s ease;
+                    pointer-events: none;
+                }
+                
+                .new-light-control-btn.secondary.visible {
+                    opacity: 1;
+                    transform: scale(1);
+                    pointer-events: auto;
+                }
+                
+                /* Stagger Animation für Buttons */
+                .new-light-control-btn.secondary:nth-child(2) { transition-delay: 0.1s; }
+                .new-light-control-btn.secondary:nth-child(3) { transition-delay: 0.2s; }
+                .new-light-control-btn.secondary:nth-child(4) { transition-delay: 0.3s; }
+                .new-light-control-btn.secondary:nth-child(5) { transition-delay: 0.4s; }
+                
+                /* Farbauswahl Button */
+                .new-light-color-toggle {
+                    background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd23f, #06d6a0, #118ab2, #8e44ad, #e91e63, #ffffff);
+                    background-size: 200% 200%;
+                    animation: colorShift 3s ease infinite;
+                }
+                
+                @keyframes colorShift {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+                
+                .new-light-color-toggle:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+                }
+                
+                /* Farbpalette Animation */
+                .new-light-colors {
+                    max-height: 0;
+                    opacity: 0;
+                    overflow: hidden;
+                    transform: translateY(-10px);
+                    transition: all 0.4s ease;
+                    pointer-events: none;
+                }
+                
+                .new-light-colors.visible {
+                    max-height: 200px;
+                    opacity: 1;
+                    transform: translateY(0);
+                    pointer-events: auto;
+                }
+                
+                /* Farb-Preset Stagger Animation */
+                .new-light-color-preset {
+                    opacity: 0;
+                    transform: scale(0.7);
+                    transition: all 0.3s ease;
+                }
+                
+                .new-light-colors.visible .new-light-color-preset {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                
+                .new-light-colors.visible .new-light-color-preset:nth-child(1) { transition-delay: 0.05s; }
+                .new-light-colors.visible .new-light-color-preset:nth-child(2) { transition-delay: 0.1s; }
+                .new-light-colors.visible .new-light-color-preset:nth-child(3) { transition-delay: 0.15s; }
+                .new-light-colors.visible .new-light-color-preset:nth-child(4) { transition-delay: 0.2s; }
+                .new-light-colors.visible .new-light-color-preset:nth-child(5) { transition-delay: 0.25s; }
+                .new-light-colors.visible .new-light-color-preset:nth-child(6) { transition-delay: 0.3s; }
+                .new-light-colors.visible .new-light-color-preset:nth-child(7) { transition-delay: 0.35s; }
+                .new-light-colors.visible .new-light-color-preset:nth-child(8) { transition-delay: 0.4s; }
+                
+                /* Kompakte Buttons für mehr Platz */
+                @media (max-width: 768px) {
+                    .new-light-control-btn {
+                        width: 50px;
+                        height: 50px;
+                        font-size: 20px;
+                    }
+                    
+                    .new-light-controls-row {
+                        gap: 8px;
+                    }
+                }
                 
             </style>
             
@@ -4736,11 +4843,10 @@ class FastSearchCard extends HTMLElement {
 
 
      
-
             setupHALightControls(item) {
                 if (item.type !== 'light') return;
                 
-                console.log('=== SETUP NEW LIGHT CONTROLS ===');
+                console.log('=== SETUP ANIMATED LIGHT CONTROLS ===');
                 console.log('Item:', item);
                 
                 const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
@@ -4749,28 +4855,30 @@ class FastSearchCard extends HTMLElement {
                     return;
                 }
                 
-                // Neue Selektoren für das neue Design
+                // DOM Elemente
                 const brightnessSlider = replaceContainer.querySelector(`[id="new-light-brightness-slider-${item.id}"]`);
                 const brightnessValue = replaceContainer.querySelector(`[id="new-light-brightness-value-${item.id}"]`);
                 const entityState = replaceContainer.querySelector(`[id="new-light-state-${item.id}"]`);
                 const powerButton = replaceContainer.querySelector(`[id="new-light-toggle-${item.id}"]`);
+                const colorToggleButton = replaceContainer.querySelector(`[id="new-light-color-toggle-${item.id}"]`);
+                const colorsContainer = replaceContainer.querySelector(`[id="new-light-colors-${item.id}"]`);
+                const sliderContainer = replaceContainer.querySelector(`[id="new-light-slider-container-${item.id}"]`);
                 
-                console.log('New DOM Elements found:', {
+                console.log('DOM Elements found:', {
                     brightnessSlider: !!brightnessSlider,
-                    brightnessValue: !!brightnessValue,
-                    entityState: !!entityState,
-                    powerButton: !!powerButton
+                    powerButton: !!powerButton,
+                    colorToggleButton: !!colorToggleButton,
+                    colorsContainer: !!colorsContainer,
+                    sliderContainer: !!sliderContainer
                 });
                 
                 // Brightness Slider Event Listener
                 if (brightnessSlider) {
-                    // Initiale Farbe setzen
                     this.updateNewLightSliderColor(item);
                     
                     brightnessSlider.addEventListener('input', (e) => {
                         const brightness = parseInt(e.target.value);
                         
-                        // Update Progress Bar
                         const container = brightnessSlider.parentElement;
                         const track = container.querySelector('.new-light-slider-track');
                         
@@ -4778,7 +4886,6 @@ class FastSearchCard extends HTMLElement {
                             track.style.width = brightness + '%';
                         }
                         
-                        // Update Text
                         if (brightnessValue) {
                             brightnessValue.textContent = brightness + '%';
                         }
@@ -4786,16 +4893,48 @@ class FastSearchCard extends HTMLElement {
                             entityState.textContent = `Ein • ${brightness}% Helligkeit`;
                         }
                         
-                        // Service Call
                         this.handleSliderChange(item, 'brightness', brightness);
                     });
                 }
                 
-                // Power Button Event Listener
+                // Power Button Event Listener (mit Animation)
                 if (powerButton) {
                     powerButton.addEventListener('click', () => {
                         console.log('🔘 POWER BUTTON CLICKED!');
-                        this.executeReplaceAction(item, 'toggle', powerButton);
+                        
+                        const wasOn = item.state === 'on';
+                        
+                        // Service Call
+                        this.executeReplaceAction(item, 'toggle', powerButton).then(() => {
+                            // Nach dem Service Call: UI animieren
+                            setTimeout(() => {
+                                this.animateLightControls(item.id, !wasOn);
+                            }, 300);
+                        });
+                    });
+                }
+                
+                // Color Toggle Button Event Listener
+                if (colorToggleButton) {
+                    colorToggleButton.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Verhindert andere Event Handler
+                        console.log('🎨 COLOR TOGGLE CLICKED!');
+                        
+                        if (colorsContainer) {
+                            const isVisible = colorsContainer.classList.contains('visible');
+                            
+                            if (isVisible) {
+                                colorsContainer.classList.remove('visible');
+                            } else {
+                                colorsContainer.classList.add('visible');
+                            }
+                            
+                            // Button Animation
+                            colorToggleButton.style.transform = 'scale(0.9)';
+                            setTimeout(() => {
+                                colorToggleButton.style.transform = '';
+                            }, 150);
+                        }
                     });
                 }
                 
@@ -4806,17 +4945,13 @@ class FastSearchCard extends HTMLElement {
                 tempPresets.forEach(preset => {
                     preset.addEventListener('click', () => {
                         console.log('🔥 TEMPERATURE PRESET CLICKED!');
-                        // Remove active from all temp buttons
                         tempPresets.forEach(p => p.classList.remove('active'));
-                        // Add active to clicked
                         preset.classList.add('active');
                         
-                        // Set color temperature
                         const kelvin = parseInt(preset.getAttribute('data-kelvin'));
                         const mireds = Math.round(1000000 / kelvin);
                         
                         if (this._hass && item.state === 'on') {
-                            console.log('Setting color temp:', { entity_id: item.id, color_temp: mireds });
                             this._hass.callService('light', 'turn_on', {
                                 entity_id: item.id,
                                 color_temp: mireds
@@ -4845,12 +4980,9 @@ class FastSearchCard extends HTMLElement {
                 colorPresets.forEach(preset => {
                     preset.addEventListener('click', () => {
                         console.log('🎨 COLOR PRESET CLICKED!');
-                        // Remove active from all color presets
                         colorPresets.forEach(p => p.classList.remove('active'));
-                        // Add active to clicked
                         preset.classList.add('active');
                         
-                        // Set color based on supported modes
                         const rgbString = preset.getAttribute('data-rgb');
                         if (rgbString && this._hass && item.state === 'on') {
                             const [r, g, b] = rgbString.split(',').map(Number);
@@ -4896,6 +5028,44 @@ class FastSearchCard extends HTMLElement {
                         }
                     });
                 });
+            }
+            
+            // NEUE Methode für Control Animation
+            animateLightControls(itemId, isOn) {
+                console.log('🎬 Animating light controls:', { itemId, isOn });
+                
+                const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+                if (!replaceContainer) return;
+                
+                const sliderContainer = replaceContainer.querySelector(`[id="new-light-slider-container-${itemId}"]`);
+                const secondaryButtons = replaceContainer.querySelectorAll(`[id="new-light-${itemId}"] .new-light-control-btn.secondary`);
+                const colorsContainer = replaceContainer.querySelector(`[id="new-light-colors-${itemId}"]`);
+                
+                if (isOn) {
+                    // Licht an: Elemente einblenden
+                    if (sliderContainer) {
+                        sliderContainer.classList.add('visible');
+                    }
+                    
+                    secondaryButtons.forEach(btn => {
+                        btn.classList.add('visible');
+                    });
+                } else {
+                    // Licht aus: Elemente ausblenden
+                    if (colorsContainer) {
+                        colorsContainer.classList.remove('visible');
+                    }
+                    
+                    setTimeout(() => {
+                        secondaryButtons.forEach(btn => {
+                            btn.classList.remove('visible');
+                        });
+                        
+                        if (sliderContainer) {
+                            sliderContainer.classList.remove('visible');
+                        }
+                    }, 100); // Kurze Verzögerung für sanfteren Übergang
+                }
             }
             
             // Neue Methode für Slider-Farbe (ersetzt updateSliderColor)
@@ -5800,8 +5970,7 @@ getQuickStats(item) {
         }
     }
 
-
- 
+    
     getLightReplaceControls(item) {
         const brightness = item.brightness || 0;
         const isOn = item.state === 'on';
@@ -5821,7 +5990,7 @@ getQuickStats(item) {
             supportedColorModes.includes('rgbw') ||
             supportedColorModes.includes('rgbww');
         
-        console.log('New Light Design:', {
+        console.log('Animated Light Design:', {
             isOn,
             brightness,
             hasTempSupport,
@@ -5830,7 +5999,7 @@ getQuickStats(item) {
         
         return `
             <div class="control-group-large">
-                <div class="new-light-design ${isOn ? '' : 'disabled'}" id="new-light-${item.id}">
+                <div class="new-light-design" id="new-light-${item.id}">
                     
                     <!-- Header ohne Icon -->
                     <div class="new-light-header">
@@ -5840,8 +6009,8 @@ getQuickStats(item) {
                         </div>
                     </div>
                     
-                    <!-- Zentraler Slider -->
-                    <div class="new-light-slider-container">
+                    <!-- Zentraler Slider (nur sichtbar wenn an) -->
+                    <div class="new-light-slider-container ${isOn ? 'visible' : ''}" id="new-light-slider-container-${item.id}">
                         <div class="new-light-slider-label">
                             <span>Helligkeit</span>
                             <span id="new-light-brightness-value-${item.id}">${brightness}%</span>
@@ -5853,30 +6022,38 @@ getQuickStats(item) {
                         </div>
                     </div>
                     
-                    <!-- Runde Control Buttons -->
+                    <!-- Control Buttons -->
                     <div class="new-light-controls-row">
-                        <!-- Power Button -->
+                        <!-- Power Button (immer sichtbar) -->
                         <button class="new-light-control-btn ${isOn ? 'power-on' : 'power-off'}" 
                                 data-action="toggle" id="new-light-toggle-${item.id}">
                             ${isOn ? '💡' : '🔌'}
                         </button>
                         
                         ${hasTempSupport ? `
-                        <!-- Temperature Buttons -->
-                        <button class="new-light-control-btn" data-temp="warm" data-kelvin="2700">
+                        <!-- Temperature Buttons (nur sichtbar wenn an) -->
+                        <button class="new-light-control-btn secondary ${isOn ? 'visible' : ''}" data-temp="warm" data-kelvin="2700">
                             🔥
                         </button>
-                        <button class="new-light-control-btn" data-temp="neutral" data-kelvin="4000">
+                        <button class="new-light-control-btn secondary ${isOn ? 'visible' : ''}" data-temp="neutral" data-kelvin="4000">
                             ☀️
                         </button>
-                        <button class="new-light-control-btn" data-temp="cool" data-kelvin="6500">
+                        <button class="new-light-control-btn secondary ${isOn ? 'visible' : ''}" data-temp="cool" data-kelvin="6500">
                             ❄️
+                        </button>
+                        ` : ''}
+                        
+                        ${hasColorSupport ? `
+                        <!-- Farbauswahl Toggle Button (nur sichtbar wenn an) -->
+                        <button class="new-light-control-btn secondary new-light-color-toggle ${isOn ? 'visible' : ''}" 
+                                id="new-light-color-toggle-${item.id}" data-action="toggle-colors">
+                            🎨
                         </button>
                         ` : ''}
                     </div>
                     
                     ${hasColorSupport ? `
-                    <!-- Farbpalette -->
+                    <!-- Farbpalette (versteckt by default) -->
                     <div class="new-light-colors" id="new-light-colors-${item.id}">
                         <div class="new-light-colors-grid">
                             <div class="new-light-color-preset" style="background: #ff6b35;" data-color="red" data-rgb="255,107,53"></div>
@@ -5895,6 +6072,7 @@ getQuickStats(item) {
             </div>
         `;
     }
+
 
 
     
@@ -6466,7 +6644,7 @@ getQuickStats(item) {
         const isOn = item.state === 'on';
         const brightness = item.brightness || 0;
         
-        console.log('🔄 Updating new light UI:', { isOn, brightness });
+        console.log('🔄 Updating animated light UI:', { isOn, brightness });
         
         // Update power button
         const powerButton = this.shadowRoot.getElementById(`new-light-toggle-${item.id}`);
@@ -6493,11 +6671,8 @@ getQuickStats(item) {
             track.style.width = brightness + '%';
         }
         
-        // Update main container disabled state
-        const mainContainer = this.shadowRoot.getElementById(`new-light-${item.id}`);
-        if (mainContainer) {
-            mainContainer.classList.toggle('disabled', !isOn);
-        }
+        // Animate controls based on state
+        this.animateLightControls(item.id, isOn);
         
         // Update slider color
         this.updateNewLightSliderColor(item);
