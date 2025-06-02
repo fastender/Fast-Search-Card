@@ -19,8 +19,7 @@ class FastSearchCard extends HTMLElement {
             showHistory: config.show_history === true,        // Standard: false
             customActions: config.custom_actions || [],        // Benutzerdefinierte Aktionen
             displayMode: config.more_info_mode || 'popup', // Neue Option: 'popup' oder 'replace' 
-            layoutMode: config.more_info_layout || 'accordion', // NEU: 'accordion' oder 'tabs'
-            
+            layoutMode: config.more_info_layout || 'accordion' // NEU: 'accordion' oder 'tabs'
         };
         
         // Entities können entweder als Array oder automatisch geladen werden
@@ -3279,309 +3278,6 @@ class FastSearchCard extends HTMLElement {
                         font-size: 16px;
                     }
                 }                
-
-/* ===== MODERNE LIGHT CONTROLS - HIER EINFÜGEN ===== */
-                
-                /* Modern Light Control Styles */
-                .ha-light-control {
-                    background: transparent;
-                    padding: 0;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 24px;
-                }
-
-                /* Modernized Entity Header - ohne Icon */
-                .ha-entity-header-modern {
-                    text-align: center;
-                    margin-bottom: 8px;
-                }
-
-                .ha-entity-name-modern {
-                    font-size: 20px;
-                    font-weight: 700;
-                    color: rgba(255, 255, 255, 0.9);
-                    margin-bottom: 6px;
-                    line-height: 1.2;
-                }
-
-                .ha-entity-state-modern {
-                    font-size: 14px;
-                    color: rgba(255, 255, 255, 0.7);
-                    font-weight: 500;
-                }
-
-                /* Runder Ein/Aus Toggle */
-                .ha-main-toggle-round {
-                    width: 80px;
-                    height: 80px;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.15);
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    color: white;
-                    font-size: 32px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    position: relative;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                }
-
-                .ha-main-toggle-round:hover {
-                    background: rgba(255, 255, 255, 0.25);
-                    transform: scale(1.05);
-                    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.15);
-                }
-
-                .ha-main-toggle-round.off {
-                    background: rgba(0, 0, 0, 0.15);
-                    color: rgba(255, 255, 255, 0.5);
-                    border-color: rgba(255, 255, 255, 0.1);
-                }
-
-                .ha-main-toggle-round.off:hover {
-                    background: rgba(0, 0, 0, 0.25);
-                    color: rgba(255, 255, 255, 0.7);
-                }
-
-                /* Zentraler Brightness Slider */
-                .ha-brightness-section-modern {
-                    width: 100%;
-                    max-width: 280px;
-                    opacity: 1;
-                    transition: opacity 0.3s ease;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 12px;
-                }
-
-                .ha-brightness-section-modern.disabled {
-                    opacity: 0.4;
-                    pointer-events: none;
-                }
-
-                .ha-brightness-label-modern {
-                    font-size: 14px;
-                    color: rgba(255, 255, 255, 0.8);
-                    font-weight: 500;
-                    text-align: center;
-                }
-
-                .ha-brightness-value-modern {
-                    color: white;
-                    font-weight: 700;
-                    font-size: 16px;
-                }
-
-                /* Modernized Slider Container */
-                .ha-slider-container-modern {
-                    position: relative;
-                    width: 100%;
-                    height: 50px;
-                    border-radius: 25px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    overflow: hidden;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                }
-
-                .ha-slider-track-modern {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    height: 100%;
-                    background: linear-gradient(90deg, #4CAF50, #8BC34A);
-                    border-radius: 25px;
-                    transition: all 0.3s ease;
-                    z-index: 1;
-                }
-
-                .ha-slider-input-modern {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    opacity: 0;
-                    cursor: pointer;
-                    z-index: 3;
-                    margin: 0;
-                    background: transparent;
-                    border: none;
-                    outline: none;
-                    appearance: none;
-                }
-
-                /* Control Button Row */
-                .ha-control-row {
-                    display: flex;
-                    gap: 16px;
-                    align-items: center;
-                    justify-content: center;
-                    flex-wrap: wrap;
-                    width: 100%;
-                    max-width: 320px;
-                }
-
-                /* Runde Control Buttons */
-                .ha-control-btn-round {
-                    width: 56px;
-                    height: 56px;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    color: rgba(255, 255, 255, 0.8);
-                    font-size: 24px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    position: relative;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                }
-
-                .ha-control-btn-round:hover {
-                    background: rgba(255, 255, 255, 0.2);
-                    color: white;
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
-                }
-
-                .ha-control-btn-round.active {
-                    background: rgba(255, 255, 255, 0.25);
-                    color: white;
-                    border-color: rgba(255, 255, 255, 0.3);
-                    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15);
-                }
-
-                /* Tooltip für Buttons */
-                .ha-control-btn-round::before {
-                    content: attr(data-tooltip);
-                    position: absolute;
-                    bottom: -35px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: rgba(0, 0, 0, 0.8);
-                    color: white;
-                    padding: 4px 8px;
-                    border-radius: 6px;
-                    font-size: 11px;
-                    font-weight: 500;
-                    white-space: nowrap;
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: all 0.3s ease;
-                    z-index: 100;
-                }
-
-                .ha-control-btn-round:hover::before {
-                    opacity: 1;
-                    visibility: visible;
-                    bottom: -30px;
-                }
-
-                /* Color Dropdown */
-                .ha-color-dropdown {
-                    position: relative;
-                    display: inline-block;
-                }
-
-                .ha-color-grid {
-                    position: absolute;
-                    top: 100%;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    margin-top: 8px;
-                    background: rgba(0, 0, 0, 0.9);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 16px;
-                    padding: 16px;
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 8px;
-                    min-width: 160px;
-                    opacity: 0;
-                    visibility: hidden;
-                    transform: translateX(-50%) translateY(-10px) scale(0.9);
-                    transition: all 0.3s ease;
-                    z-index: 1000;
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-                }
-
-                .ha-color-dropdown.open .ha-color-grid {
-                    opacity: 1;
-                    visibility: visible;
-                    transform: translateX(-50%) translateY(0) scale(1);
-                }
-
-                .ha-color-option {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                    cursor: pointer;
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    transition: all 0.2s ease;
-                    position: relative;
-                }
-
-                .ha-color-option:hover {
-                    transform: scale(1.15);
-                    border-color: rgba(255, 255, 255, 0.5);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                }
-
-                .ha-color-option.active {
-                    border-color: white;
-                    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-                }
-
-                .ha-color-option.active::after {
-                    content: '✓';
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    color: white;
-                    font-weight: bold;
-                    font-size: 11px;
-                    text-shadow: 0 0 4px rgba(0,0,0,0.8);
-                }
-
-                /* Mobile Responsive */
-                @media (max-width: 480px) {
-                    .ha-control-row {
-                        gap: 12px;
-                        max-width: 280px;
-                    }
-                    
-                    .ha-control-btn-round {
-                        width: 48px;
-                        height: 48px;
-                        font-size: 20px;
-                    }
-                    
-                    .ha-main-toggle-round {
-                        width: 70px;
-                        height: 70px;
-                        font-size: 28px;
-                    }
-                    
-                    .ha-brightness-section-modern {
-                        max-width: 240px;
-                    }
-                }
-
-                /* ===== ENDE MODERNE LIGHT CONTROLS ===== */
                 
             </style>
             
@@ -5114,332 +4810,84 @@ class FastSearchCard extends HTMLElement {
 
 
      
+
+
             setupHALightControls(item) {
-                        if (item.type !== 'light') return;
+                if (item.type !== 'light') return;
+                
+                console.log('=== SETUP HA LIGHT CONTROLS DEBUG ===');
+                console.log('Item:', item);
+                console.log('Current state:', item.state);
+                
+                // FIXED: Verwende Container-Selektor statt IDs
+                const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+                if (!replaceContainer) {
+                    console.log('❌ Replace container not found');
+                    return;
+                }
+                
+                // Brightness Slider
+                const brightnessSlider = replaceContainer.querySelector(`[id="ha-brightness-slider-${item.id}"]`);                
+                const brightnessValue = replaceContainer.querySelector(`[id="ha-brightness-value-${item.id}"]`);
+                const entityState = replaceContainer.querySelector(`[id="ha-state-${item.id}"]`);
+                
+                console.log('DOM Elements found:', {
+                    brightnessSlider: !!brightnessSlider,
+                    brightnessValue: !!brightnessValue,
+                    entityState: !!entityState
+                });                
+                
+                if (brightnessSlider) {
+                    // Initiale Farbe setzen
+                    this.updateSliderColor(item);
+                    
+                    brightnessSlider.addEventListener('input', (e) => {
+                        const brightness = parseInt(e.target.value);
                         
-                        console.log('=== SETUP MODERN LIGHT CONTROLS ===');
-                        console.log('Item:', item);
-                        console.log('Current state:', item.state);
+                        // Update Progress Bar
+                        const container = brightnessSlider.parentElement;
+                        const track = container.querySelector('.ha-slider-track');
                         
-                        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-                        if (!replaceContainer) {
-                            console.log('❌ Replace container not found');
-                            return;
+                        if (track) {
+                            track.style.width = brightness + '%';
                         }
                         
-                        // Nur moderne Controls - kein Fallback nötig
-                        this.setupModernLightControls(item, replaceContainer);
-                    }
+                        // Update Text
+                        if (brightnessValue) {
+                            brightnessValue.textContent = brightness + '%';
+                        }
+                        if (entityState && item.state === 'on') {
+                            entityState.textContent = `Ein • ${brightness}% Helligkeit`;
+                        }
+                        
+                        // Service Call
+                        this.handleSliderChange(item, 'brightness', brightness);
+                    });
+                }
+                
+                // Temperature Presets - FIXED: Verwende Container
+                const tempPresets = replaceContainer.querySelectorAll(`[id="ha-temp-${item.id}"] .ha-temp-preset`);
+                console.log('Temperature presets found:', tempPresets.length);
 
-
-
-                // HELPER METHODE 1: Setup für moderne Light Controls
-                    setupModernLightControls(item, container) {
-                        const brightnessSlider = container.querySelector(`[id="ha-brightness-slider-modern-${item.id}"]`);
-                        const brightnessValue = container.querySelector(`[id="ha-brightness-value-modern-${item.id}"]`);
-                        const entityState = container.querySelector(`[id="ha-state-modern-${item.id}"]`);
+                tempPresets.forEach(preset => {
+                    preset.addEventListener('click', () => {
+                        console.log('🔥 TEMPERATURE PRESET CLICKED!');
+                        // Remove active from all
+                        tempPresets.forEach(p => p.classList.remove('active'));
+                        // Add active to clicked
+                        preset.classList.add('active');
                         
-                        console.log('Modern DOM Elements found:', {
-                            brightnessSlider: !!brightnessSlider,
-                            brightnessValue: !!brightnessValue,
-                            entityState: !!entityState
-                        });
+                        // Set color temperature
+                        const kelvin = parseInt(preset.getAttribute('data-kelvin'));
+                        const mireds = Math.round(1000000 / kelvin);
                         
-                        if (brightnessSlider) {
-                            // Initiale Farbe setzen
-                            this.updateModernSliderColor(item);
-                            
-                            brightnessSlider.addEventListener('input', (e) => {
-                                const brightness = parseInt(e.target.value);
-                                
-                                // Update Progress Bar
-                                const track = container.querySelector(`[id="ha-track-modern-${item.id}"]`);
-                                if (track) {
-                                    track.style.width = brightness + '%';
-                                }
-                                
-                                // Update Text
-                                if (brightnessValue) {
-                                    brightnessValue.textContent = brightness + '%';
-                                }
-                                if (entityState && item.state === 'on') {
-                                    entityState.textContent = `Ein • ${brightness}% Helligkeit`;
-                                }
-                                
-                                // Service Call
-                                this.handleSliderChange(item, 'brightness', brightness);
-                            });
-                        }
-                        
-                        // Temperature Presets
-                        const tempButtons = container.querySelectorAll(`[data-temp]`);
-                        console.log('Modern temperature buttons found:', tempButtons.length);
-                        
-                        tempButtons.forEach(button => {
-                            button.addEventListener('click', () => {
-                                console.log('🔥 MODERN TEMPERATURE PRESET CLICKED!');
-                                
-                                // Remove active from all temp buttons
-                                tempButtons.forEach(btn => btn.classList.remove('active'));
-                                button.classList.add('active');
-                                
-                                const kelvin = parseInt(button.getAttribute('data-kelvin'));
-                                const mireds = Math.round(1000000 / kelvin);
-                                
-                                if (this._hass && item.state === 'on') {
-                                    this._hass.callService('light', 'turn_on', {
-                                        entity_id: item.id,
-                                        color_temp: mireds
-                                    }).then(() => {
-                                        setTimeout(() => {
-                                            const currentState = this._hass.states[item.id];
-                                            if (currentState) {
-                                                Object.assign(item, {
-                                                    state: currentState.state,
-                                                    attributes: currentState.attributes
-                                                });
-                                                this.updateModernSliderColor(item);
-                                            }
-                                        }, 500);
-                                    }).catch(error => {
-                                        console.error('Modern color temp service call failed:', error);
-                                    });
-                                }
-                            });
-                        });
-                
-                        // Color Dropdown Setup
-                        this.setupModernColorDropdown(item, container);
-                    }
-                
-                    // HELPER METHODE 2: Setup für moderne Color Dropdown
-                    setupModernColorDropdown(item, container) {
-                        const colorTrigger = container.querySelector(`[id="ha-color-trigger-${item.id}"]`);
-                        const colorDropdown = container.querySelector(`[id="ha-color-dropdown-${item.id}"]`);
-                        
-                        if (!colorTrigger || !colorDropdown) {
-                            console.log('Color dropdown elements not found');
-                            return;
-                        }
-                        
-                        console.log('Color dropdown elements found');
-                        
-                        // Toggle dropdown
-                        colorTrigger.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            console.log('🎨 COLOR DROPDOWN TRIGGERED!');
-                            
-                            // Close all other dropdowns first
-                            this.closeAllColorDropdowns();
-                            colorDropdown.classList.toggle('open');
-                        });
-                        
-                        // Color options
-                        const colorOptions = container.querySelectorAll(`#ha-color-grid-${item.id} .ha-color-option`);
-                        console.log('Color options found:', colorOptions.length);
-                        
-                        colorOptions.forEach(option => {
-                            option.addEventListener('click', () => {
-                                console.log('🎨 COLOR PRESET CLICKED!');
-                                
-                                // Remove active from all colors
-                                colorOptions.forEach(opt => opt.classList.remove('active'));
-                                option.classList.add('active');
-                                
-                                // Close dropdown
-                                colorDropdown.classList.remove('open');
-                                
-                                // Set color
-                                this.setLightColor(item, option.getAttribute('data-rgb'));
-                            });
-                        });
-                        
-                        // Close dropdown when clicking outside (nur einmal pro Karte registrieren)
-                        if (!this.colorDropdownListenerAdded) {
-                            document.addEventListener('click', (e) => {
-                                if (!e.target.closest('.ha-color-dropdown')) {
-                                    this.closeAllColorDropdowns();
-                                }
-                            });
-                            this.colorDropdownListenerAdded = true;
-                        }
-                    }
-                
-                    // HELPER METHODE 3: Setup für klassische Light Controls (Fallback)
-                    setupClassicLightControls(item, container) {
-                        // Ihre bestehende Implementierung aus der paste.txt
-                        const brightnessSlider = container.querySelector(`[id="ha-brightness-slider-${item.id}"]`);
-                        const brightnessValue = container.querySelector(`[id="ha-brightness-value-${item.id}"]`);
-                        const entityState = container.querySelector(`[id="ha-state-${item.id}"]`);
-                        
-                        console.log('Classic DOM Elements found:', {
-                            brightnessSlider: !!brightnessSlider,
-                            brightnessValue: !!brightnessValue,
-                            entityState: !!entityState
-                        });
-                        
-                        if (brightnessSlider) {
-                            // Initiale Farbe setzen
-                            this.updateSliderColor(item);
-                            
-                            brightnessSlider.addEventListener('input', (e) => {
-                                const brightness = parseInt(e.target.value);
-                                
-                                // Update Progress Bar
-                                const container = brightnessSlider.parentElement;
-                                const track = container.querySelector('.ha-slider-track');
-                                
-                                if (track) {
-                                    track.style.width = brightness + '%';
-                                }
-                                
-                                // Update Text
-                                if (brightnessValue) {
-                                    brightnessValue.textContent = brightness + '%';
-                                }
-                                if (entityState && item.state === 'on') {
-                                    entityState.textContent = `Ein • ${brightness}% Helligkeit`;
-                                }
-                                
-                                // Service Call
-                                this.handleSliderChange(item, 'brightness', brightness);
-                            });
-                        }
-                        
-                        // Temperature Presets - Klassisch
-                        const tempPresets = container.querySelectorAll(`[id="ha-temp-${item.id}"] .ha-temp-preset`);
-                        console.log('Classic temperature presets found:', tempPresets.length);
-                
-                        tempPresets.forEach(preset => {
-                            preset.addEventListener('click', () => {
-                                console.log('🔥 CLASSIC TEMPERATURE PRESET CLICKED!');
-                                tempPresets.forEach(p => p.classList.remove('active'));
-                                preset.classList.add('active');
-                                
-                                const kelvin = parseInt(preset.getAttribute('data-kelvin'));
-                                const mireds = Math.round(1000000 / kelvin);
-                                
-                                if (this._hass && item.state === 'on') {
-                                    this._hass.callService('light', 'turn_on', {
-                                        entity_id: item.id,
-                                        color_temp: mireds
-                                    }).then(() => {
-                                        setTimeout(() => {
-                                            const currentState = this._hass.states[item.id];
-                                            if (currentState) {
-                                                Object.assign(item, {
-                                                    state: currentState.state,
-                                                    attributes: currentState.attributes
-                                                });
-                                                this.updateSliderColor(item);
-                                            }
-                                        }, 500);
-                                    }).catch(error => {
-                                        console.error('Classic color temp service call failed:', error);
-                                    });
-                                }
-                            });
-                        });
-                
-                        // Color Presets - Klassisch
-                        const colorPresets = container.querySelectorAll(`[id="ha-color-${item.id}"] .ha-color-preset`);
-                        console.log('Classic color presets found:', colorPresets.length);
-                        
-                        colorPresets.forEach(preset => {
-                            preset.addEventListener('click', () => {
-                                console.log('🎨 CLASSIC COLOR PRESET CLICKED!');
-                                colorPresets.forEach(p => p.classList.remove('active'));
-                                preset.classList.add('active');
-                                
-                                const rgbString = preset.getAttribute('data-rgb');
-                                if (rgbString && this._hass && item.state === 'on') {
-                                    const [r, g, b] = rgbString.split(',').map(Number);
-                                    const supportedColorModes = item.attributes.supported_color_modes || [];
-                                    
-                                    let serviceCall;
-                                    if (supportedColorModes.includes('rgb')) {
-                                        serviceCall = this._hass.callService('light', 'turn_on', {
-                                            entity_id: item.id,
-                                            rgb_color: [r, g, b]
-                                        });
-                                    } else if (supportedColorModes.includes('xy')) {
-                                        const xy = this.rgbToXy(r, g, b);
-                                        serviceCall = this._hass.callService('light', 'turn_on', {
-                                            entity_id: item.id,
-                                            xy_color: xy
-                                        });
-                                    } else if (supportedColorModes.includes('hs')) {
-                                        const hs = this.rgbToHs(r, g, b);
-                                        serviceCall = this._hass.callService('light', 'turn_on', {
-                                            entity_id: item.id,
-                                            hs_color: hs
-                                        });
-                                    }
-                                    
-                                    if (serviceCall) {
-                                        serviceCall.then(() => {
-                                            setTimeout(() => {
-                                                const currentState = this._hass.states[item.id];
-                                                if (currentState) {
-                                                    Object.assign(item, {
-                                                        state: currentState.state,
-                                                        attributes: currentState.attributes
-                                                    });
-                                                    this.updateSliderColor(item);
-                                                }
-                                            }, 500);
-                                        }).catch(error => {
-                                            console.error('Classic color service call failed:', error);
-                                        });
-                                    }
-                                }
-                            });
-                        });
-                
-                        // Advanced Color Picker - Klassisch
-                        const advancedButton = container.querySelector(`[id="ha-advanced-${item.id}"]`);
-                        if (advancedButton) {
-                            advancedButton.addEventListener('click', () => {
-                                this.openHAMoreInfo(item.id);
-                            });
-                        }
-                    }
-                
-                    // HELPER METHODE 4: Alle Color Dropdowns schließen
-                    closeAllColorDropdowns() {
-                        const allDropdowns = this.shadowRoot.querySelectorAll('.ha-color-dropdown');
-                        allDropdowns.forEach(dropdown => dropdown.classList.remove('open'));
-                    }
-                
-                    // HELPER METHODE 5: Lichtfarbe setzen
-                    setLightColor(item, rgbString) {
-                        if (!rgbString || !this._hass || item.state !== 'on') return;
-                        
-                        const [r, g, b] = rgbString.split(',').map(Number);
-                        const supportedColorModes = item.attributes.supported_color_modes || [];
-                        
-                        let serviceCall;
-                        if (supportedColorModes.includes('rgb')) {
-                            serviceCall = this._hass.callService('light', 'turn_on', {
+                        if (this._hass && item.state === 'on') {
+                            console.log('Setting color temp:', { entity_id: item.id, color_temp: mireds });
+                            this._hass.callService('light', 'turn_on', {
                                 entity_id: item.id,
-                                rgb_color: [r, g, b]
-                            });
-                        } else if (supportedColorModes.includes('xy')) {
-                            const xy = this.rgbToXy(r, g, b);
-                            serviceCall = this._hass.callService('light', 'turn_on', {
-                                entity_id: item.id,
-                                xy_color: xy
-                            });
-                        } else if (supportedColorModes.includes('hs')) {
-                            const hs = this.rgbToHs(r, g, b);
-                            serviceCall = this._hass.callService('light', 'turn_on', {
-                                entity_id: item.id,
-                                hs_color: hs
-                            });
-                        }
-                        
-                        if (serviceCall) {
-                            serviceCall.then(() => {
+                                color_temp: mireds
+                            }).then(() => {
+                                // Update item attributes und Slider-Farbe
                                 setTimeout(() => {
                                     const currentState = this._hass.states[item.id];
                                     if (currentState) {
@@ -5447,50 +4895,87 @@ class FastSearchCard extends HTMLElement {
                                             state: currentState.state,
                                             attributes: currentState.attributes
                                         });
-                                        this.updateModernSliderColor(item);
+                                        this.updateSliderColor(item);
                                     }
-                                }, 500);
+                                }, 500); // Kurz warten damit HA die Änderung verarbeitet
                             }).catch(error => {
-                                console.error('Color service call failed:', error);
+                                console.error('Color temp service call failed:', error);
                             });
                         }
-                    }
+                    });
+                });
                 
-                    // HELPER METHODE 6: Moderne Slider-Farbe aktualisieren
-                    updateModernSliderColor(item) {
-                        const track = this.shadowRoot.getElementById(`ha-track-modern-${item.id}`);
-                        if (!track) {
-                            console.log('❌ Modern track not found for:', item.id);
-                            return;
-                        }
+
+                // Color Presets - FIXED: Verwende Container
+                const colorPresets = replaceContainer.querySelectorAll(`[id="ha-color-${item.id}"] .ha-color-preset`);
+                console.log('Color presets found:', colorPresets.length);  // ← HINZUFÜGEN
+                colorPresets.forEach(preset => {
+                    preset.addEventListener('click', () => {
+                        console.log('🎨 COLOR PRESET CLICKED!');
+                        // Remove active from all
+                        colorPresets.forEach(p => p.classList.remove('active'));
+                        // Add active to clicked
+                        preset.classList.add('active');
                         
-                        let sliderColor = 'linear-gradient(90deg, #4CAF50, #8BC34A)'; // Fallback
-                        
-                        if (item.state === 'off') {
-                            sliderColor = 'rgba(255, 255, 255, 0.2)';
-                        } else {
-                            // Farbe basierend auf Licht-Attributen
-                            if (item.attributes.rgb_color) {
-                                const [r, g, b] = item.attributes.rgb_color;
-                                const rgbColor = `rgb(${r}, ${g}, ${b})`;
-                                sliderColor = `linear-gradient(90deg, ${rgbColor}, ${rgbColor})`;
-                            } else if (item.attributes.color_temp_kelvin) {
-                                const rgbColor = this.kelvinToRgb(item.attributes.color_temp_kelvin);
-                                sliderColor = `linear-gradient(90deg, ${rgbColor}, ${rgbColor})`;
-                            } else if (item.attributes.hs_color) {
-                                const [h, s] = item.attributes.hs_color;
-                                const rgbColor = this.hsToRgb(h, s, 100);
-                                sliderColor = `linear-gradient(90deg, ${rgbColor}, ${rgbColor})`;
-                            } else if (item.attributes.xy_color) {
-                                const rgbColor = this.xyToRgb(item.attributes.xy_color[0], item.attributes.xy_color[1]);
-                                sliderColor = `linear-gradient(90deg, ${rgbColor}, ${rgbColor})`;
+                        // Set color based on supported modes
+                        const rgbString = preset.getAttribute('data-rgb');
+                        if (rgbString && this._hass && item.state === 'on') {
+                            const [r, g, b] = rgbString.split(',').map(Number);
+                            
+                            // Check what color mode the light supports
+                            const supportedColorModes = item.attributes.supported_color_modes || [];
+                            
+                            let serviceCall;
+                            if (supportedColorModes.includes('rgb')) {
+                                serviceCall = this._hass.callService('light', 'turn_on', {
+                                    entity_id: item.id,
+                                    rgb_color: [r, g, b]
+                                });
+                            } else if (supportedColorModes.includes('xy')) {
+                                const xy = this.rgbToXy(r, g, b);
+                                serviceCall = this._hass.callService('light', 'turn_on', {
+                                    entity_id: item.id,
+                                    xy_color: xy
+                                });
+                            } else if (supportedColorModes.includes('hs')) {
+                                const hs = this.rgbToHs(r, g, b);
+                                serviceCall = this._hass.callService('light', 'turn_on', {
+                                    entity_id: item.id,
+                                    hs_color: hs
+                                });
+                            }
+                            
+                            // Update Slider-Farbe nach Service Call
+                            if (serviceCall) {
+                                serviceCall.then(() => {
+                                    setTimeout(() => {
+                                        const currentState = this._hass.states[item.id];
+                                        if (currentState) {
+                                            Object.assign(item, {
+                                                state: currentState.state,
+                                                attributes: currentState.attributes
+                                            });
+                                            this.updateSliderColor(item);
+                                        }
+                                    }, 500);
+                                }).catch(error => {
+                                    console.error('Color service call failed:', error);
+                                });
                             }
                         }
-                        
-                        track.style.background = sliderColor;
-                        console.log('✅ Modern Slider-Farbe aktualisiert für:', item.id);
-                    }
-    
+                    });
+                });
+                
+
+                // Advanced Color Picker - FIXED: Verwende Container
+                const advancedButton = replaceContainer.querySelector(`[id="ha-advanced-${item.id}"]`);
+                if (advancedButton) {
+                    advancedButton.addEventListener('click', () => {
+                        // Open HA more-info dialog for advanced color picking
+                        this.openHAMoreInfo(item.id);
+                    });
+                }
+            }    
 
 
             // RGB zu XY Konvertierung für Philips Hue und andere XY Lichter
@@ -6354,132 +5839,131 @@ getQuickStats(item) {
         }
     }
 
+
     getLightReplaceControls(item) {
-            const brightness = item.brightness || 0;
-            const isOn = item.state === 'on';
-            
-            console.log('=== MODERN LIGHT CONTROLS ONLY ===');
-            console.log('Item:', item);
-            console.log('Current state:', item.state);
-            
-            // Feature Detection
-            const supportedFeatures = item.attributes.supported_features || 0;
-            const supportedColorModes = item.attributes.supported_color_modes || [];
-            
-            const hasTempSupport = 
-                supportedColorModes.includes('color_temp') ||
-                supportedColorModes.includes('ct') ||
-                (supportedFeatures & 2) ||
-                item.attributes.min_mireds !== undefined ||
-                item.attributes.max_mireds !== undefined;
-            
-            const hasColorSupport = 
-                supportedColorModes.includes('rgb') ||
-                supportedColorModes.includes('hs') ||
-                supportedColorModes.includes('xy') ||
-                supportedColorModes.includes('rgbw') ||
-                supportedColorModes.includes('rgbww');
-            
-            console.log('Feature detection:', {
-                supportedFeatures,
-                supportedColorModes,
-                hasTempSupport,
-                hasColorSupport
-            });
-            
-            // Color presets für den Dropdown
-            const colorPresets = [
-                { name: 'Rot', rgb: '255,107,53', color: '#ff6b35' },
-                { name: 'Orange', rgb: '247,147,30', color: '#f7931e' },
-                { name: 'Gelb', rgb: '255,210,63', color: '#ffd23f' },
-                { name: 'Grün', rgb: '6,214,160', color: '#06d6a0' },
-                { name: 'Blau', rgb: '17,138,178', color: '#118ab2' },
-                { name: 'Lila', rgb: '142,68,173', color: '#8e44ad' },
-                { name: 'Pink', rgb: '233,30,99', color: '#e91e63' },
-                { name: 'Weiß', rgb: '255,255,255', color: '#ffffff' }
-            ];
-            
-            const colorGrid = colorPresets.map(preset => `
-                <div class="ha-color-option" 
-                     style="background: ${preset.color};" 
-                     data-color="${preset.name.toLowerCase()}" 
-                     data-rgb="${preset.rgb}"
-                     title="${preset.name}">
-                </div>
-            `).join('');
-            
-            return `
-                <div class="control-group-large">
-                    <div class="ha-light-control">
-                        <!-- Moderne Entity Header - ohne Icon -->
-                        <div class="ha-entity-header-modern">
-                            <div class="ha-entity-name-modern">${item.name}</div>
-                            <div class="ha-entity-state-modern" id="ha-state-modern-${item.id}">
-                                ${isOn ? `Ein • ${brightness}% Helligkeit` : 'Aus'}
-                            </div>
-                        </div>
-    
-                        <!-- Runder Ein/Aus Toggle -->
-                        <button class="ha-main-toggle-round ${isOn ? '' : 'off'}" 
-                                data-action="toggle" 
-                                id="ha-toggle-modern-${item.id}"
-                                data-tooltip="${isOn ? 'Ausschalten' : 'Einschalten'}">
-                            ${isOn ? '💡' : '🔘'}
-                        </button>
-    
-                        <!-- Zentraler Brightness Slider -->
-                        <div class="ha-brightness-section-modern ${isOn ? '' : 'disabled'}" id="ha-brightness-modern-${item.id}">
-                            <div class="ha-brightness-label-modern">
-                                Helligkeit: <span class="ha-brightness-value-modern" id="ha-brightness-value-modern-${item.id}">${brightness}%</span>
-                            </div>
-    
-                            <div class="ha-slider-container-modern">
-                                <div class="ha-slider-track-modern" style="width: ${brightness}%" id="ha-track-modern-${item.id}"></div>
-                                <input type="range" class="ha-slider-input-modern" data-control="brightness" 
-                                       min="1" max="100" value="${brightness}" id="ha-brightness-slider-modern-${item.id}">
-                            </div>
-                        </div>
-    
-                        <!-- Control Button Row -->
-                        <div class="ha-control-row">
-                            ${hasTempSupport ? `
-                                <button class="ha-control-btn-round" 
-                                        data-temp="warm" 
-                                        data-kelvin="2700"
-                                        data-tooltip="Warm (2700K)">
-                                    🔥
-                                </button>
-                                <button class="ha-control-btn-round" 
-                                        data-temp="neutral" 
-                                        data-kelvin="4000"
-                                        data-tooltip="Neutral (4000K)">
-                                    ☀️
-                                </button>
-                                <button class="ha-control-btn-round" 
-                                        data-temp="cool" 
-                                        data-kelvin="6500"
-                                        data-tooltip="Kalt (6500K)">
-                                    ❄️
-                                </button>
-                            ` : ''}
-                            
-                            ${hasColorSupport ? `
-                                <div class="ha-color-dropdown" id="ha-color-dropdown-${item.id}">
-                                    <button class="ha-control-btn-round" 
-                                            id="ha-color-trigger-${item.id}"
-                                            data-tooltip="Farbauswahl">
-                                        🎨
-                                    </button>
-                                    <div class="ha-color-grid" id="ha-color-grid-${item.id}">
-                                        ${colorGrid}
-                                    </div>
-                                </div>
-                            ` : ''}
+        const brightness = item.brightness || 0;
+        const isOn = item.state === 'on';
+        
+        // Debug: Log alle verfügbaren Attribute
+        console.log('Light attributes:', item.attributes);
+        
+        // Verschiedene Wege um Features zu erkennen
+        const supportedFeatures = item.attributes.supported_features || 0;
+        const supportedColorModes = item.attributes.supported_color_modes || [];
+        
+        // Color Temperature Support (verschiedene Checks)
+        const hasTempSupport = 
+            supportedColorModes.includes('color_temp') ||
+            supportedColorModes.includes('ct') ||
+            (supportedFeatures & 2) || // SUPPORT_COLOR_TEMP = 2
+            item.attributes.min_mireds !== undefined ||
+            item.attributes.max_mireds !== undefined;
+        
+        // RGB Color Support - NUR auf supported_color_modes prüfen!
+        const hasColorSupport = 
+            supportedColorModes.includes('rgb') ||
+            supportedColorModes.includes('hs') ||
+            supportedColorModes.includes('xy') ||
+            supportedColorModes.includes('rgbw') ||
+            supportedColorModes.includes('rgbww');
+           
+        console.log('Feature detection:', {
+            supportedFeatures,
+            supportedColorModes,
+            hasTempSupport,
+            hasColorSupport
+        });        
+        console.log('Detailed color modes:', supportedColorModes); 
+        
+        const htmlString = `
+            <div class="control-group-large">
+                <div class="ha-light-control">
+                    <!-- Entity Header -->
+                    <div class="ha-entity-header">
+                        <div class="ha-entity-icon">${item.icon}</div>
+                        <div class="ha-entity-name">${item.name}</div>
+                        <div class="ha-entity-state" id="ha-state-${item.id}">
+                            ${isOn ? `Ein • ${brightness}% Helligkeit` : 'Aus'}
                         </div>
                     </div>
+        
+                    <!-- Main Toggle -->
+                    <button class="ha-main-toggle ${isOn ? '' : 'off'}" data-action="toggle" id="ha-toggle-${item.id}">
+                        <span>${isOn ? '🔆' : '💡'}</span>
+                        <span>${isOn ? 'Ausschalten' : 'Einschalten'}</span>
+                    </button>
+        
+                    <!-- Brightness Control -->
+                    <div class="ha-brightness-section ${isOn ? '' : 'disabled'}" id="ha-brightness-${item.id}">
+                        <div class="ha-control-label">
+                            <span>Helligkeit</span>
+                            <span class="ha-control-value" id="ha-brightness-value-${item.id}">${brightness}%</span>
+                        </div>
+
+                        <div class="ha-slider-container">
+                            <div class="ha-slider-track" style="width: ${brightness}%" id="ha-track-${item.id}"></div>
+                            <input type="range" class="ha-slider-input" data-control="brightness" 
+                                   min="1" max="100" value="${brightness}" id="ha-brightness-slider-${item.id}">
+                        </div>
+                               
+                    </div>
+        
+                    <!-- Color Temperature -->
+                    ${hasTempSupport ? `
+                    <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-temp-${item.id}">
+                        <div class="ha-control-label">
+                            <span>Farbtemperatur</span>
+                        </div>
+                        <div class="ha-temp-controls">
+                            <button class="ha-temp-preset" data-temp="warm" data-kelvin="2700">
+                                🔥 Warm
+                            </button>
+                            <button class="ha-temp-preset" data-temp="neutral" data-kelvin="4000">
+                                ☀️ Neutral
+                            </button>
+                            <button class="ha-temp-preset" data-temp="cool" data-kelvin="6500">
+                                ❄️ Kalt
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
+        
+                    <!-- Color Control -->
+                    ${hasColorSupport ? `
+                    <div class="ha-color-section ${isOn ? '' : 'disabled'}" id="ha-color-${item.id}">
+                        <div class="ha-control-label">
+                            <span>Farbe</span>
+                        </div>
+                        <div class="ha-color-presets">
+                            <div class="ha-color-preset" style="background: #ff6b35;" data-color="red" data-rgb="255,107,53"></div>
+                            <div class="ha-color-preset" style="background: #f7931e;" data-color="orange" data-rgb="247,147,30"></div>
+                            <div class="ha-color-preset" style="background: #ffd23f;" data-color="yellow" data-rgb="255,210,63"></div>
+                            <div class="ha-color-preset" style="background: #06d6a0;" data-color="green" data-rgb="6,214,160"></div>
+                            <div class="ha-color-preset" style="background: #118ab2;" data-color="blue" data-rgb="17,138,178"></div>
+                            <div class="ha-color-preset" style="background: #8e44ad;" data-color="purple" data-rgb="142,68,173"></div>
+                            <div class="ha-color-preset" style="background: #e91e63;" data-color="pink" data-rgb="233,30,99"></div>
+                            <div class="ha-color-preset active" style="background: #ffffff;" data-color="white" data-rgb="255,255,255"></div>
+                        </div>
+                        <button class="ha-advanced-color" id="ha-advanced-${item.id}">
+                            🎨 Erweiterte Farbauswahl
+                        </button>
+                    </div>
+                    ` : ''}
                 </div>
-            `;
-        } 
+            </div>
+        `;
+        
+        console.log('=== TEMPLATE DEBUG ===');
+        console.log('hasTempSupport:', hasTempSupport);
+        console.log('hasColorSupport:', hasColorSupport);
+        console.log('Generated HTML length:', htmlString.length);
+        console.log('HTML contains temp controls:', htmlString.includes('ha-temp-controls'));
+        console.log('HTML contains color presets:', htmlString.includes('ha-color-presets'));
+        
+        return htmlString;
+    }        
+
+
 
     
 
@@ -7045,13 +6529,19 @@ getQuickStats(item) {
     }
 
 
-
-
-
     updateHALightControlUI(item) {
-            // Direkt moderne UI verwenden - kein Fallback
-            this.updateModernHALightControlUI(item);
-        }   
+        const isOn = item.state === 'on';
+        const brightness = item.brightness || 0;
+        
+        // Update toggle button
+        const toggle = this.shadowRoot.getElementById(`ha-toggle-${item.id}`);
+        if (toggle) {
+            toggle.classList.toggle('off', !isOn);
+            toggle.innerHTML = `
+                <span>${isOn ? '🔆' : '💡'}</span>
+                <span>${isOn ? 'Ausschalten' : 'Einschalten'}</span>
+            `;
+        }
         
         // Update state text
         const stateText = this.shadowRoot.getElementById(`ha-state-${item.id}`);
@@ -7078,56 +6568,6 @@ getQuickStats(item) {
             }
         });
     }
-
-
-    // NEUE METHODE: Update für moderne Light Control UI
-    updateModernHALightControlUI(item) {
-        const isOn = item.state === 'on';
-        const brightness = item.brightness || 0;
-        
-        console.log('🔄 Updating modern light control UI for:', item.id, 'State:', isOn, 'Brightness:', brightness);
-        
-        // Update modern toggle button
-        const toggleModern = this.shadowRoot.getElementById(`ha-toggle-modern-${item.id}`);
-        if (toggleModern) {
-            toggleModern.classList.toggle('off', !isOn);
-            toggleModern.innerHTML = isOn ? '💡' : '🔘';
-            toggleModern.setAttribute('data-tooltip', isOn ? 'Ausschalten' : 'Einschalten');
-        }
-        
-        // Update modern state text
-        const stateTextModern = this.shadowRoot.getElementById(`ha-state-modern-${item.id}`);
-        if (stateTextModern) {
-            stateTextModern.textContent = isOn ? `Ein • ${brightness}% Helligkeit` : 'Aus';
-        }
-        
-        // Update modern brightness slider
-        const sliderModern = this.shadowRoot.getElementById(`ha-brightness-slider-modern-${item.id}`);
-        const valueModern = this.shadowRoot.getElementById(`ha-brightness-value-modern-${item.id}`);
-        const trackModern = this.shadowRoot.getElementById(`ha-track-modern-${item.id}`);
-        
-        if (sliderModern && valueModern) {
-            sliderModern.value = brightness;
-            valueModern.textContent = brightness + '%';
-        }
-        
-        if (trackModern) {
-            trackModern.style.width = brightness + '%';
-        }
-        
-        // Update disabled states
-        const brightnessSectionModern = this.shadowRoot.getElementById(`ha-brightness-modern-${item.id}`);
-        if (brightnessSectionModern) {
-            brightnessSectionModern.classList.toggle('disabled', !isOn);
-        }
-        
-        // Update slider color
-        this.updateModernSliderColor(item);
-        
-        console.log('✅ Modern light control UI updated');
-    }
-
-
     
     
     updateMediaPlayerAlbumArt(item) {
