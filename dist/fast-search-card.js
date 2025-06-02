@@ -1090,7 +1090,6 @@ class FastSearchCard extends HTMLElement {
                     outline: none;
                     appearance: none;
                     cursor: pointer;
-                    box-sizing: border-box;
                 }
                 
                 .slider::-webkit-slider-thumb {
