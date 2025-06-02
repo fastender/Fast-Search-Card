@@ -5035,8 +5035,16 @@ class FastSearchCard extends HTMLElement {
             
             // NEUE Methode: Slider-Farbe basierend auf Licht-Zustand
             updateSliderColor(item) {
-                const track = this.shadowRoot.querySelector(`#ha-track-${item.id}`);
-                if (!track) return;
+                // FIXED: Verwende Replace Container für DOM-Suche
+                const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+                const track = replaceContainer ? 
+                    replaceContainer.querySelector(`#ha-track-${item.id}`) : 
+                    this.shadowRoot.querySelector(`#ha-track-${item.id}`);
+                    
+                if (!track) {
+                    console.log('❌ Track nicht gefunden für:', item.id);
+                    return;
+                }
                 
                 let sliderColor = '#4CAF50'; // Fallback Grün
                 
@@ -5048,20 +5056,25 @@ class FastSearchCard extends HTMLElement {
                         // RGB Farbe direkt verwenden
                         const [r, g, b] = item.attributes.rgb_color;
                         sliderColor = `rgb(${r}, ${g}, ${b})`;
+                        console.log('🎨 RGB Farbe gesetzt:', sliderColor);
                     } else if (item.attributes.color_temp_kelvin) {
                         // Farbtemperatur zu RGB konvertieren
                         sliderColor = this.kelvinToRgb(item.attributes.color_temp_kelvin);
+                        console.log('🌡️ Kelvin Farbe gesetzt:', sliderColor);
                     } else if (item.attributes.hs_color) {
                         // HS zu RGB konvertieren
                         const [h, s] = item.attributes.hs_color;
                         sliderColor = this.hsToRgb(h, s, 100);
+                        console.log('🌈 HS Farbe gesetzt:', sliderColor);
                     } else if (item.attributes.xy_color) {
                         // XY zu RGB konvertieren (vereinfacht)
                         sliderColor = this.xyToRgb(item.attributes.xy_color[0], item.attributes.xy_color[1]);
+                        console.log('📍 XY Farbe gesetzt:', sliderColor);
                     }
                 }
                 
                 track.style.background = sliderColor;
+                console.log('✅ Slider-Farbe aktualisiert für:', item.id, 'Farbe:', sliderColor);
             }
             
             // Kelvin zu RGB Konvertierung
