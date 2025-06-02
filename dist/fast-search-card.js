@@ -5035,14 +5035,36 @@ class FastSearchCard extends HTMLElement {
             
             // NEUE Methode: Slider-Farbe basierend auf Licht-Zustand
             updateSliderColor(item) {
-                // FIXED: Verwende Replace Container für DOM-Suche
+                console.log('🔍 Suche Track für:', item.id);
+                
+                // ALLE möglichen Container durchsuchen
+                let track = null;
+                
+                // 1. Replace Container
                 const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-                const track = replaceContainer ? 
-                    replaceContainer.querySelector(`#ha-track-${item.id}`) : 
-                    this.shadowRoot.querySelector(`#ha-track-${item.id}`);
+                if (replaceContainer) {
+                    track = replaceContainer.querySelector(`[id="ha-track-${item.id}"]`);
+                    console.log('🔍 Replace Container - Track gefunden:', !!track);
+                }
+                
+                // 2. Fallback: Gesamtes shadowRoot
+                if (!track) {
+                    track = this.shadowRoot.querySelector(`[id="ha-track-${item.id}"]`);
+                    console.log('🔍 ShadowRoot - Track gefunden:', !!track);
+                }
+                
+                // 3. Alternative: Alle Tracks finden
+                if (!track) {
+                    const allTracks = this.shadowRoot.querySelectorAll('.ha-slider-track');
+                    console.log('🔍 Alle Tracks gefunden:', allTracks.length);
+                    allTracks.forEach((t, i) => console.log(`Track ${i}:`, t.id));
+                    
+                    // Nimm den letzten Track (wahrscheinlich der aktuelle)
+                    track = allTracks[allTracks.length - 1];
+                }
                     
                 if (!track) {
-                    console.log('❌ Track nicht gefunden für:', item.id);
+                    console.log('❌ Track immer noch nicht gefunden für:', item.id);
                     return;
                 }
                 
