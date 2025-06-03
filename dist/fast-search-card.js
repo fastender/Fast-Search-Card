@@ -3335,6 +3335,196 @@ class FastSearchCard extends HTMLElement {
                     pointer-events: auto;
                 }
                 
+
+
+                /* ===== MODERN POPOVER DROPDOWN SYSTEM ===== */
+                
+                /* Dropdown Container */
+                .dropdown-container {
+                    position: relative;
+                    flex-shrink: 0;
+                }
+                
+                .dropdown-button {
+                    background: rgba(255, 255, 255, 0.15);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
+                    color: white;
+                    padding: 12px 16px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    min-width: 140px;
+                    justify-content: space-between;
+                    position: relative;
+                }
+                
+                .dropdown-button:hover {
+                    background: rgba(255, 255, 255, 0.25);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                }
+                
+                .dropdown-button.open {
+                    background: rgba(255, 255, 255, 0.3);
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                    z-index: 1001;
+                }
+                
+                .dropdown-icon {
+                    font-size: 14px;
+                    transition: transform 0.3s ease;
+                    opacity: 0.8;
+                }
+                
+                .dropdown-button.open .dropdown-icon {
+                    transform: rotate(180deg);
+                    opacity: 1;
+                }
+                
+                /* Popover Container (freischwebend) */
+                .dropdown-menu {
+                    position: fixed;
+                    background: rgba(255, 255, 255, 0.95);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 16px;
+                    min-width: 200px;
+                    max-width: 280px;
+                    opacity: 0;
+                    visibility: hidden;
+                    transform: scale(0.95) translateY(-10px);
+                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    z-index: 1000;
+                    box-shadow: 
+                        0 10px 40px rgba(0, 0, 0, 0.15),
+                        0 4px 12px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.4);
+                    overflow: hidden;
+                }
+                
+                .dropdown-menu.open {
+                    opacity: 1;
+                    visibility: visible;
+                    transform: scale(1) translateY(0);
+                }
+                
+                /* Popover Items */
+                .dropdown-item {
+                    padding: 14px 18px;
+                    color: rgba(0, 0, 0, 0.8);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    font-size: 15px;
+                    font-weight: 500;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+                    position: relative;
+                    background: transparent;
+                    opacity: 0;
+                    transform: translateX(-10px);
+                }
+                
+                .dropdown-item:last-child {
+                    border-bottom: none;
+                }
+                
+                .dropdown-item:hover {
+                    background: rgba(0, 0, 0, 0.06);
+                    color: rgba(0, 0, 0, 0.9);
+                }
+                
+                .dropdown-item.active {
+                    background: rgba(99, 102, 241, 0.1);
+                    color: #6366f1;
+                    font-weight: 600;
+                }
+                
+                .dropdown-item.active::after {
+                    content: '✓';
+                    position: absolute;
+                    right: 18px;
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #6366f1;
+                }
+                
+                .dropdown-item-icon {
+                    font-size: 18px;
+                    width: 22px;
+                    height: 22px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                    opacity: 0.8;
+                }
+                
+                .dropdown-item.active .dropdown-item-icon {
+                    opacity: 1;
+                }
+                
+                /* Animation für Popover Items */
+                .dropdown-menu.open .dropdown-item {
+                    opacity: 1;
+                    transform: translateX(0);
+                    transition: all 0.3s ease;
+                }
+                
+                .dropdown-menu.open .dropdown-item:nth-child(1) { transition-delay: 0.05s; }
+                .dropdown-menu.open .dropdown-item:nth-child(2) { transition-delay: 0.1s; }
+                .dropdown-menu.open .dropdown-item:nth-child(3) { transition-delay: 0.15s; }
+                .dropdown-menu.open .dropdown-item:nth-child(4) { transition-delay: 0.2s; }
+                .dropdown-menu.open .dropdown-item:nth-child(5) { transition-delay: 0.25s; }
+                .dropdown-menu.open .dropdown-item:nth-child(6) { transition-delay: 0.3s; }
+                
+                /* Backdrop für Popover */
+                .popover-backdrop {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.1);
+                    backdrop-filter: blur(2px);
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                    z-index: 999;
+                }
+                
+                .popover-backdrop.open {
+                    opacity: 1;
+                    visibility: visible;
+                }
+                
+                /* Mobile Anpassungen */
+                @media (max-width: 768px) {
+                    .dropdown-menu {
+                        min-width: 180px;
+                        max-width: 260px;
+                        border-radius: 12px;
+                    }
+                    
+                    .dropdown-item {
+                        padding: 12px 16px;
+                        font-size: 14px;
+                    }
+                    
+                    .dropdown-item-icon {
+                        font-size: 16px;
+                        width: 20px;
+                        height: 20px;
+                    }
+                }
+
                 
             </style>
             
@@ -3711,24 +3901,111 @@ class FastSearchCard extends HTMLElement {
         
         let isDropdownOpen = false;
         
+        // Füge Backdrop für Replace Mode hinzu
+        let backdrop = replaceContainer.querySelector('.popover-backdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.className = 'popover-backdrop';
+            backdrop.id = 'replacePopoverBackdrop';
+            replaceContainer.insertBefore(backdrop, replaceContainer.firstChild);
+        }
+        
+        // Berechne Popover Position
+        const calculatePopoverPosition = () => {
+            const buttonRect = dropdownButton.getBoundingClientRect();
+            const menuRect = dropdownMenu.getBoundingClientRect();
+            const viewport = {
+                width: window.innerWidth,
+                height: window.innerHeight
+            };
+            
+            // Standard Position: unter dem Button, rechts ausgerichtet
+            let top = buttonRect.bottom + 8;
+            let left = buttonRect.right - menuRect.width;
+            
+            // Überlauf-Schutz
+            if (left < 16) {
+                left = buttonRect.left; // Links ausrichten wenn zu weit rechts
+            }
+            
+            if (top + menuRect.height > viewport.height - 16) {
+                top = buttonRect.top - menuRect.height - 8; // Über dem Button wenn zu weit unten
+            }
+            
+            return { top, left };
+        };
+        
+        // Öffne Popover
+        const openPopover = () => {
+            if (isDropdownOpen) return;
+            
+            isDropdownOpen = true;
+            
+            // Backdrop aktivieren
+            backdrop.classList.add('open');
+            
+            // Button State
+            dropdownButton.classList.add('open');
+            
+            // Position berechnen und setzen
+            const { top, left } = calculatePopoverPosition();
+            dropdownMenu.style.top = top + 'px';
+            dropdownMenu.style.left = left + 'px';
+            
+            // Menu öffnen
+            dropdownMenu.classList.add('open');
+        };
+        
+        // Schließe Popover
+        const closePopover = () => {
+            if (!isDropdownOpen) return;
+            
+            isDropdownOpen = false;
+            
+            // Backdrop deaktivieren
+            backdrop.classList.remove('open');
+            
+            // Button State
+            dropdownButton.classList.remove('open');
+            
+            // Menu schließen
+            dropdownMenu.classList.remove('open');
+        };
+        
         // Toggle Dropdown
         dropdownButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            isDropdownOpen = !isDropdownOpen;
-            dropdownButton.classList.toggle('open', isDropdownOpen);
-            dropdownMenu.classList.toggle('open', isDropdownOpen);
+            
+            if (isDropdownOpen) {
+                closePopover();
+            } else {
+                openPopover();
+            }
         });
         
-        // Close dropdown when clicking outside
-        const closeDropdown = (e) => {
-            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                isDropdownOpen = false;
-                dropdownButton.classList.remove('open');
-                dropdownMenu.classList.remove('open');
+        // Backdrop Click - Schließen
+        backdrop.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closePopover();
+        });
+        
+        // Outside Click - Schließen
+        document.addEventListener('click', (e) => {
+            if (!dropdownButton.contains(e.target) && 
+                !dropdownMenu.contains(e.target) && 
+                isDropdownOpen) {
+                closePopover();
+            }
+        });
+        
+        // ESC Key - Schließen
+        const escapeHandler = (e) => {
+            if (e.key === 'Escape' && isDropdownOpen) {
+                closePopover();
+                dropdownButton.focus();
             }
         };
-        
-        document.addEventListener('click', closeDropdown);
+        document.addEventListener('keydown', escapeHandler);
         
         // Dropdown Item Selection
         dropdownItems.forEach(dropdownItem => {
@@ -3762,16 +4039,41 @@ class FastSearchCard extends HTMLElement {
                         setTimeout(() => this.setupTTSEventListeners(item), 150);
                     } else if (targetSection === 'music' && item.type === 'media_player') {
                         setTimeout(() => this.setupMusicAssistantEventListeners(item), 150);
+                    } else if (targetSection === 'history') {
+                        this.loadRealLogEntries(item);
                     }
                 }
                 
-                // Close dropdown
-                isDropdownOpen = false;
-                dropdownButton.classList.remove('open');
-                dropdownMenu.classList.remove('open');
+                // Popover schließen
+                closePopover();
+            });
+            
+            // Hover Effekte
+            dropdownItem.addEventListener('mouseenter', () => {
+                dropdownItem.style.transform = 'translateX(2px)';
+            });
+            
+            dropdownItem.addEventListener('mouseleave', () => {
+                dropdownItem.style.transform = 'translateX(0)';
             });
         });
-    }    
+        
+        // Window Resize - Position neu berechnen
+        const resizeHandler = () => {
+            if (isDropdownOpen) {
+                const { top, left } = calculatePopoverPosition();
+                dropdownMenu.style.top = top + 'px';
+                dropdownMenu.style.left = left + 'px';
+            }
+        };
+        window.addEventListener('resize', resizeHandler);
+        
+        // Cleanup beim Verlassen des Replace Modes
+        replaceContainer.addEventListener('remove', () => {
+            document.removeEventListener('keydown', escapeHandler);
+            window.removeEventListener('resize', resizeHandler);
+        });
+    }        
     
 
     // NEUE Methode für Media Player Tab-Layout
@@ -8255,10 +8557,14 @@ getQuickStats(item) {
         `;
     }
 
+
     getDropdownLayoutHTML(item, stateInfo, controls, attributes, history, shortcuts) {
         const typeDisplayName = this.getTypeDisplayName(item);
         
         return `
+            <!-- Popover Backdrop -->
+            <div class="popover-backdrop" id="popoverBackdrop"></div>
+            
             <div class="more-info-header">
                 <div class="entity-info-section">
                     <div class="more-info-icon">${item.icon}</div>
@@ -8340,7 +8646,7 @@ getQuickStats(item) {
                 </div>
             </div>
         `;
-    }    
+    }        
 
 
     getMusicAssistantHTML(item) {
@@ -8937,35 +9243,116 @@ getQuickStats(item) {
         }
     }
 
+
     setupMoreInfoDropdown(overlay, item) {
         const dropdownButton = overlay.querySelector('#moreInfoDropdownButton');
         const dropdownMenu = overlay.querySelector('#moreInfoDropdownMenu');
         const dropdownItems = overlay.querySelectorAll('.dropdown-item');
         const sections = overlay.querySelectorAll('[data-more-info-content]');
+        const backdrop = overlay.querySelector('#popoverBackdrop');
         
-        if (!dropdownButton || !dropdownMenu) return;
+        if (!dropdownButton || !dropdownMenu || !backdrop) return;
         
         let isDropdownOpen = false;
+        
+        // Berechne Popover Position
+        const calculatePopoverPosition = () => {
+            const buttonRect = dropdownButton.getBoundingClientRect();
+            const menuRect = dropdownMenu.getBoundingClientRect();
+            const viewport = {
+                width: window.innerWidth,
+                height: window.innerHeight
+            };
+            
+            // Standard Position: unter dem Button, rechts ausgerichtet
+            let top = buttonRect.bottom + 8;
+            let left = buttonRect.right - menuRect.width;
+            
+            // Überlauf-Schutz
+            if (left < 16) {
+                left = buttonRect.left; // Links ausrichten wenn zu weit rechts
+            }
+            
+            if (top + menuRect.height > viewport.height - 16) {
+                top = buttonRect.top - menuRect.height - 8; // Über dem Button wenn zu weit unten
+            }
+            
+            return { top, left };
+        };
+        
+        // Öffne Popover
+        const openPopover = () => {
+            if (isDropdownOpen) return;
+            
+            isDropdownOpen = true;
+            
+            // Backdrop aktivieren
+            backdrop.classList.add('open');
+            
+            // Button State
+            dropdownButton.classList.add('open');
+            
+            // Position berechnen und setzen
+            const { top, left } = calculatePopoverPosition();
+            dropdownMenu.style.top = top + 'px';
+            dropdownMenu.style.left = left + 'px';
+            
+            // Menu öffnen
+            dropdownMenu.classList.add('open');
+            
+            // Focus Management
+            dropdownMenu.focus();
+        };
+        
+        // Schließe Popover
+        const closePopover = () => {
+            if (!isDropdownOpen) return;
+            
+            isDropdownOpen = false;
+            
+            // Backdrop deaktivieren
+            backdrop.classList.remove('open');
+            
+            // Button State
+            dropdownButton.classList.remove('open');
+            
+            // Menu schließen
+            dropdownMenu.classList.remove('open');
+        };
         
         // Toggle Dropdown
         dropdownButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            isDropdownOpen = !isDropdownOpen;
-            dropdownButton.classList.toggle('open', isDropdownOpen);
-            dropdownMenu.classList.toggle('open', isDropdownOpen);
+            
+            if (isDropdownOpen) {
+                closePopover();
+            } else {
+                openPopover();
+            }
         });
         
-        // Close dropdown when clicking outside
-        const closeDropdown = (e) => {
-            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                isDropdownOpen = false;
-                dropdownButton.classList.remove('open');
-                dropdownMenu.classList.remove('open');
-            }
-        };
+        // Backdrop Click - Schließen
+        backdrop.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closePopover();
+        });
         
-        document.addEventListener('click', closeDropdown);
-        overlay.addEventListener('click', closeDropdown);
+        // Outside Click - Schließen
+        document.addEventListener('click', (e) => {
+            if (!dropdownButton.contains(e.target) && 
+                !dropdownMenu.contains(e.target) && 
+                isDropdownOpen) {
+                closePopover();
+            }
+        });
+        
+        // ESC Key - Schließen
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isDropdownOpen) {
+                closePopover();
+                dropdownButton.focus();
+            }
+        });
         
         // Dropdown Item Selection
         dropdownItems.forEach(dropdownItem => {
@@ -9015,13 +9402,29 @@ getQuickStats(item) {
                     }
                 }
                 
-                // Close dropdown
-                isDropdownOpen = false;
-                dropdownButton.classList.remove('open');
-                dropdownMenu.classList.remove('open');
+                // Popover schließen
+                closePopover();
+            });
+            
+            // Hover Effekte für bessere UX
+            dropdownItem.addEventListener('mouseenter', () => {
+                dropdownItem.style.transform = 'translateX(2px)';
+            });
+            
+            dropdownItem.addEventListener('mouseleave', () => {
+                dropdownItem.style.transform = 'translateX(0)';
             });
         });
-    }
+        
+        // Window Resize - Position neu berechnen
+        window.addEventListener('resize', () => {
+            if (isDropdownOpen) {
+                const { top, left } = calculatePopoverPosition();
+                dropdownMenu.style.top = top + 'px';
+                dropdownMenu.style.left = left + 'px';
+            }
+        });
+    }        
     
 
     closeMoreInfo() {
