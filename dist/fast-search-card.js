@@ -1317,20 +1317,21 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0;
                     animation: slideInRight 0.8s ease-out 0.8s forwards;
                 }
-                
-                /* Licht AUS: Quick-Stats rechts unten */
+
+                /* Licht AUS: Quick-Stats rechts unten (bleibt unverändert) */
                 .icon-content.light-off .quick-stats {
                     right: 20px;
                     text-align: right;
                     transform: translateX(30px);
-                }
+                }                
                 
-                /* Licht AN: Quick-Stats neben Status (horizontal) */
+                /* Licht AN: Quick-Stats neben Status (horizontal) - WEITER RECHTS */
                 .icon-content.light-on .quick-stats {
-                    left: 200px; /* Neben dem Status */
+                    left: 250px; /* WEITER rechts - war 200px */
                     flex-direction: row;
                     gap: 8px;
                     transform: translateX(-30px);
+                    bottom: 20px; /* Gleiche Höhe wie Status */
                 }
                 
                 .stat-item {
@@ -1388,16 +1389,16 @@ class FastSearchCard extends HTMLElement {
                     .icon-section {
                         min-height: 250px;
                         padding: 30px 15px;
-                        background: rgba(0, 0, 0, 0.15); /* Auch auf Mobile */
+                        background: rgba(0, 0, 0, 0.15);
                     }
                     
                     .icon-background {
                         width: 65%;
                         height: 65%;
-                        filter: none; /* KEIN BLUR auf Mobile */
+                        filter: none; /* KEIN BLUR auf Mobile - KORRIGIERT */
                     }
                     
-                    /* Status IMMER links unten - auch Mobile */
+                    /* Status UND Quick-Stats BEIDE links unten - Mobile */
                     .status-indicator-large {
                         bottom: 15px !important;
                         left: 15px !important;
@@ -1406,22 +1407,22 @@ class FastSearchCard extends HTMLElement {
                         position: absolute !important;
                     }
                     
-                    /* Quick Stats Mobile */
+                    /* Quick-Stats AUCH links unten, aber über dem Status */
                     .quick-stats {
-                        bottom: 15px !important;
-                    }
-                    
-                    /* Licht AUS Mobile: Quick-Stats rechts */
-                    .icon-content.light-off .quick-stats {
-                        right: 15px !important;
-                        left: auto !important;
-                    }
-                    
-                    /* Licht AN Mobile: Quick-Stats unter Status (vertikal) */
-                    .icon-content.light-on .quick-stats {
+                        bottom: 65px !important; /* Über dem Status */
                         left: 15px !important;
                         right: auto !important;
+                        flex-direction: column !important;
+                        gap: 4px !important;
+                        text-align: left !important;
+                    }
+                    
+                    /* Für BEIDE Zustände (AN/AUS) auf Mobile gleich */
+                    .icon-content.light-off .quick-stats,
+                    .icon-content.light-on .quick-stats {
                         bottom: 65px !important;
+                        left: 15px !important;
+                        right: auto !important;
                         flex-direction: column !important;
                         gap: 4px !important;
                     }
