@@ -1279,7 +1279,7 @@ class FastSearchCard extends HTMLElement {
                 /* Status Indicator - IMMER links unten */
                 .status-indicator-large {
                     position: absolute;
-                    bottom: 20px;
+                    bottom: 0px;
                     left: 20px;
                     background: rgba(40, 167, 69, 0.9);
                     color: white;
@@ -1389,8 +1389,7 @@ class FastSearchCard extends HTMLElement {
                 /* Mobile Responsive - BEREINIGT */
                 @media (max-width: 768px) {
                     .icon-section {
-                        min-height: 250px;
-                        padding: 0;
+                        min-height: 350px;
                         background: rgba(0, 0, 0, 0.15);
                         position: relative; /* Wichtig für absolute Positionierung */
                     }
@@ -1409,8 +1408,8 @@ class FastSearchCard extends HTMLElement {
                     /* Status-Indicator - NUR EINE REGEL */
                     .status-indicator-large {
                         position: absolute !important;
-                        bottom: 10px !important;
-                        left: 10px !important;
+                        bottom: 60px !important;
+                        left: 15px !important;
                         font-size: 12px;
                         padding: 6px 12px;
                         z-index: 1000 !important;
@@ -1419,9 +1418,9 @@ class FastSearchCard extends HTMLElement {
                     /* Quick-Stats - NUR EINE REGEL */
                     .quick-stats {
                         position: absolute !important;
-                        bottom: 60px !important;
-                        left: 10px !important;
-                        flex-direction: column !important;
+                        bottom: 20px !important;
+                        left: 15px !important;
+                        flex-direction: row !important;
                         gap: 4px !important;
                         z-index: 1000 !important;
                         text-align: left !important;
