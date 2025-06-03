@@ -2709,194 +2709,6 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 
-                /* ===== REPLACE MODE GENERAL TAB SYSTEM ===== */
-                .replace-tabs-container {
-                    display: flex;
-                    flex-direction: column;
-                    height: 100%;
-                    flex: 1;
-                }
-                
-                .replace-tabs {
-                    flex-shrink: 0;
-                    display: flex;
-                    background: rgba(0, 0, 0, 0.15);
-                    border-radius: 60px;
-                    padding: 4px;
-                    margin-bottom: 20px;
-                    gap: 4px;
-                }
-                
-                .replace-tab {
-                    flex: 1;
-                    padding: 12px 16px;
-                    text-align: center;
-                    background: transparent;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: rgba(255, 255, 255, 0.7);
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                }
-                
-                .replace-tab:hover {
-                    background: rgba(255, 255, 255, 0.1);
-                    color: rgba(255, 255, 255, 0.9);
-                    border-radius: 60px;
-                }
-                
-                .replace-tab.active {
-                    background: rgba(255, 255, 255, 0.15);
-                    color: white;
-                    border-radius: 60px;
-                }
-                
-                .replace-tab-icon {
-                    font-size: 16px;
-                }
-                
-                .replace-tab-content {
-                    flex: 1;
-                    display: none;
-                    animation: fadeInReplaceGeneralTab 0.3s ease-out;
-                    overflow-y: auto;
-                }
-                
-                .replace-tab-content.active {
-                    display: block;
-                }
-                
-                @keyframes fadeInReplaceGeneralTab {
-                    from {
-                        opacity: 0;
-                        transform: translateY(10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                
-                
-                /* ===== MOBILE RESPONSIVENESS FÜR TAB SYSTEMS ===== */
-                @media (max-width: 768px) {
-                    .more-info-tab,
-                    .replace-tab {
-                        padding: 10px 8px;
-                        font-size: 12px;
-                        flex-direction: column;
-                        gap: 4px;
-                    }
-                    
-                    .more-info-tab-icon,
-                    .replace-tab-icon {
-                        font-size: 14px;
-                    }
-                    
-                    .more-info-tabs,
-                    .replace-tabs {
-                        padding: 2px;
-                        gap: 2px;
-                    }
-                }
-                
-                /* Sehr kleine Bildschirme: Nur Icons */
-                @media (max-width: 480px) {
-                    .more-info-tab span:not(.more-info-tab-icon),
-                    .replace-tab span:not(.replace-tab-icon) {
-                        display: none;
-                    }
-                    
-                    .more-info-tab,
-                    .replace-tab {
-                        padding: 12px 8px;
-                    }
-                }
-
-
-                /* Replace Mode Media Tabs */
-                .replace-media-tabs-container {
-                    display: flex;
-                    flex-direction: column;
-                    height: 100%;
-                    flex: 1;
-                }
-                
-                .replace-media-tabs {
-                    flex-shrink: 0; /* Wichtig: Tabs schrumpfen nicht */
-                    position: sticky; /* Optional: Extra-Fix */
-                    top: 0;
-                    z-index: 10;                
-                    display: flex;
-                    background: transparent;
-                    border-radius: 60px;
-                    padding: 0px;
-                    margin-bottom: 20px;
-                    gap: 8px;
-                }
-                
-                .replace-media-tab {
-                    flex: 1;
-                    padding: 10px 14px 10px 14px;
-                    text-align: center;
-                    background: rgba(0, 0, 0, .15);
-                    border: none;
-                    border-radius: 60px;
-                    font-size: 15px;
-                    font-weight: 500;
-                    color: rgba(255, 255, 255, 0.7);
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 10px;
-                }
-                
-                .replace-media-tab:hover {
-                    background: rgba(255, 255, 255, 0.15);
-                    color: rgba(255, 255, 255, 0.9);
-                    border-radius: 60px;
-                }
-                
-                .replace-media-tab.active {
-                    background: rgba(255, 255, 255, 0.15);
-                    color: white;
-                    border-radius: 60px;
-                }
-                
-                .replace-media-tab-icon {
-                    font-size: 18px;
-                }
-                
-                .replace-media-tab-content {
-                    flex: 1;
-                    display: none;
-                    animation: fadeInReplaceTab 0.3s ease-out;
-                    overflow-y: auto;
-                }
-                
-                .replace-media-tab-content.active {
-                    display: block;
-                }
-                
-                @keyframes fadeInReplaceTab {
-                    from {
-                        opacity: 0;
-                        transform: translateY(10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                
                 /* Replace Mode spezifische Anpassungen */
                 .replace-content .ma-search-container {
                     height: 100%;
@@ -3822,45 +3634,150 @@ class FastSearchCard extends HTMLElement {
                 <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
             </div>
             
-            <div class="replace-tabs-container">
-                <div class="replace-tabs">
-                    <button class="replace-tab active" data-replace-general-tab="controls">
-                        <span class="replace-tab-icon">${this.getControlIcon(item)}</span>
+            <div class="replace-dropdown-container">
+                <div class="dropdown-container">
+                    <button class="dropdown-button" id="replaceDropdownButton">
                         <span>Steuerung</span>
+                        <span class="dropdown-icon">▼</span>
                     </button>
-                    <button class="replace-tab" data-replace-general-tab="details">
-                        <span class="replace-tab-icon">📊</span>
-                        <span>Details</span>
-                    </button>
-                    <button class="replace-tab" data-replace-general-tab="history">
-                        <span class="replace-tab-icon">📈</span>
-                        <span>Logbuch</span>
-                    </button>
-                    <button class="replace-tab" data-replace-general-tab="shortcuts">
-                        <span class="replace-tab-icon">⚡</span>
-                        <span>Aktionen</span>
-                    </button>
+                    <div class="dropdown-menu" id="replaceDropdownMenu">
+                        <div class="dropdown-item active" data-replace-section="controls">
+                            <span class="dropdown-item-icon">${this.getControlIcon(item)}</span>
+                            <span>Steuerung</span>
+                        </div>
+                        ${item.type === 'media_player' ? `
+                            <div class="dropdown-item" data-replace-section="tts">
+                                <span class="dropdown-item-icon">🗣️</span>
+                                <span>Sprechen</span>
+                            </div>
+                            <div class="dropdown-item" data-replace-section="music">
+                                <span class="dropdown-item-icon">🎵</span>
+                                <span>Musik</span>
+                            </div>
+                        ` : ''}
+                        <div class="dropdown-item" data-replace-section="details">
+                            <span class="dropdown-item-icon">📊</span>
+                            <span>Details</span>
+                        </div>
+                        <div class="dropdown-item" data-replace-section="history">
+                            <span class="dropdown-item-icon">📈</span>
+                            <span>Logbuch</span>
+                        </div>
+                        <div class="dropdown-item" data-replace-section="shortcuts">
+                            <span class="dropdown-item-icon">⚡</span>
+                            <span>Aktionen</span>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="replace-tab-content active" data-replace-general-tab-content="controls">
+                <div class="replace-section-content active" data-replace-content="controls">
                     ${controls}
                 </div>
                 
-                <div class="replace-tab-content" data-replace-general-tab-content="details">
+                ${item.type === 'media_player' ? `
+                    <div class="replace-section-content" data-replace-content="tts" style="display: none;">
+                        <h3 class="section-title">🗣️ Text-to-Speech</h3>
+                        ${this.getTTSHTML(item) || '<div class="ma-empty-state">TTS nicht verfügbar</div>'}
+                    </div>
+                    
+                    <div class="replace-section-content" data-replace-content="music" style="display: none;">
+                        <h3 class="section-title">🎵 Musik Suche</h3>
+                        ${this.getMusicAssistantHTML(item)}
+                    </div>
+                ` : ''}
+                
+                <div class="replace-section-content" data-replace-content="details" style="display: none;">
                     ${attributes}
                 </div>
                 
-                <div class="replace-tab-content" data-replace-general-tab-content="history">
+                <div class="replace-section-content" data-replace-content="history" style="display: none;">
                     ${history}
                 </div>
                 
-                <div class="replace-tab-content" data-replace-general-tab-content="shortcuts">
+                <div class="replace-section-content" data-replace-content="shortcuts" style="display: none;">
                     ${shortcuts}
                 </div>
             </div>
         `;
     }
 
+
+
+    setupReplaceDropdown(item) {
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        if (!replaceContainer) return;
+        
+        const dropdownButton = replaceContainer.querySelector('#replaceDropdownButton');
+        const dropdownMenu = replaceContainer.querySelector('#replaceDropdownMenu');
+        const dropdownItems = replaceContainer.querySelectorAll('.dropdown-item');
+        const sections = replaceContainer.querySelectorAll('[data-replace-content]');
+        
+        if (!dropdownButton || !dropdownMenu) return;
+        
+        let isDropdownOpen = false;
+        
+        // Toggle Dropdown
+        dropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isDropdownOpen = !isDropdownOpen;
+            dropdownButton.classList.toggle('open', isDropdownOpen);
+            dropdownMenu.classList.toggle('open', isDropdownOpen);
+        });
+        
+        // Close dropdown when clicking outside
+        const closeDropdown = (e) => {
+            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                isDropdownOpen = false;
+                dropdownButton.classList.remove('open');
+                dropdownMenu.classList.remove('open');
+            }
+        };
+        
+        document.addEventListener('click', closeDropdown);
+        
+        // Dropdown Item Selection
+        dropdownItems.forEach(dropdownItem => {
+            dropdownItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                const targetSection = dropdownItem.getAttribute('data-replace-section');
+                const sectionText = dropdownItem.querySelector('span:last-child').textContent;
+                
+                // Update active state
+                dropdownItems.forEach(i => i.classList.remove('active'));
+                dropdownItem.classList.add('active');
+                
+                // Update button text
+                dropdownButton.querySelector('span:first-child').textContent = sectionText;
+                
+                // Hide all sections
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                    section.classList.remove('active');
+                });
+                
+                // Show selected section
+                const targetSectionElement = replaceContainer.querySelector(`[data-replace-content="${targetSection}"]`);
+                if (targetSectionElement) {
+                    targetSectionElement.style.display = 'block';
+                    targetSectionElement.classList.add('active');
+                    
+                    // Spezielle Initialisierung
+                    if (targetSection === 'tts' && item.type === 'media_player') {
+                        setTimeout(() => this.setupTTSEventListeners(item), 150);
+                    } else if (targetSection === 'music' && item.type === 'media_player') {
+                        setTimeout(() => this.setupMusicAssistantEventListeners(item), 150);
+                    }
+                }
+                
+                // Close dropdown
+                isDropdownOpen = false;
+                dropdownButton.classList.remove('open');
+                dropdownMenu.classList.remove('open');
+            });
+        });
+    }    
+    
 
     // NEUE Methode für Media Player Tab-Layout
     getMediaPlayerTabDetailsSectionHTML(item) {
@@ -4986,78 +4903,22 @@ class FastSearchCard extends HTMLElement {
         
 
             setupReplaceEventListeners(item) {
+                // Replace-Mode Dropdown
+                this.setupReplaceDropdown(item);         
+                
                 // Back Button
                 const backButton = this.shadowRoot.getElementById('backToSearch');
                 backButton.addEventListener('click', () => this.switchBackToSearch());
-                
-                // NEU: General Tab System für ALLE Geräte (inklusive Media Player)
-                if (this.moreInfoConfig.layoutMode === 'tabs') {
-                    this.setupReplaceGeneralTabs(item);
-                }
                 
                 // Album Art Updates nur für Media Player
                 if (item.type === 'media_player') {
                     this.setupAlbumArtUpdates(item);
                 }                
                 
-                // Accordion Headers (nur wenn NICHT Tab-Mode)
-                if (this.moreInfoConfig.layoutMode !== 'tabs') {
-                    const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
-                    accordionHeaders.forEach(header => {
-                        header.addEventListener('click', (e) => {
-                            this.toggleAccordion(header);
-                        });
-                    });
-                }
-                
                 // Restliche Event Listeners
                 this.setupRemainingReplaceEventListeners(item);
             }
 
-
-            // NEUE Methode für Replace-Mode General Tab-System
-            setupReplaceGeneralTabs(item) {
-                const tabs = this.shadowRoot.querySelectorAll('.replace-tab');
-                const contents = this.shadowRoot.querySelectorAll('.replace-tab-content');
-                
-                tabs.forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        const targetTab = tab.getAttribute('data-replace-general-tab');
-                        
-                        // Alle Tabs deaktivieren
-                        tabs.forEach(t => t.classList.remove('active'));
-                        contents.forEach(c => c.classList.remove('active'));
-                        
-                        // Aktiven Tab aktivieren
-                        tab.classList.add('active');
-                        const targetContent = this.shadowRoot.querySelector(`[data-replace-general-tab-content="${targetTab}"]`);
-                        if (targetContent) {
-                            targetContent.classList.add('active');
-                            
-                            // Spezielle Initialisierung für verschiedene Tabs
-                            if (targetTab === 'history') {
-                                // Logbook neu laden wenn Tab aktiviert wird
-                                this.loadRealLogEntries(item);
-                            }
-                            
-                            // Media Player spezifische Tab-Initialisierung
-                            if (item.type === 'media_player') {
-                                if (targetTab === 'music' && this.checkMusicAssistantAvailability()) {
-                                    setTimeout(() => {
-                                        this.setupMusicAssistantEventListeners(item);
-                                    }, 150);
-                                }
-                                
-                                if (targetTab === 'tts') {
-                                    setTimeout(() => {
-                                        this.setupTTSEventListeners(item);
-                                    }, 150);
-                                }
-                            }
-                        }
-                    });
-                });
-            }
             
             // Event Listeners in separater Methode für bessere Übersicht
             setupRemainingReplaceEventListeners(item) {
