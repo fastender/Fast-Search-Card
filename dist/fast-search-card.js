@@ -1327,11 +1327,11 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Licht AN: Quick-Stats neben Status (horizontal) - WEITER RECHTS */
                 .icon-content.light-on .quick-stats {
-                    left: 250px; /* WEITER rechts - war 200px */
+                    right: 20px; /* WEITER rechts - war 200px */
                     flex-direction: row;
                     gap: 8px;
                     transform: translateX(-30px);
-                    bottom: 20px; /* Gleiche Höhe wie Status */
+                    bottom: 0px; /* Gleiche Höhe wie Status */
                 }
                 
                 .stat-item {
@@ -1387,8 +1387,9 @@ class FastSearchCard extends HTMLElement {
                 /* Mobile Responsive - KORRIGIERT */
                 @media (max-width: 768px) {
                     .icon-section {
-                        min-height: 250px;
-                        padding: 30px 15px;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        height: 100% !important;
                         background: rgba(0, 0, 0, 0.15);
                     }
                     
@@ -1400,8 +1401,8 @@ class FastSearchCard extends HTMLElement {
                     
                     /* Status UND Quick-Stats BEIDE links unten - Mobile */
                     .status-indicator-large {
-                        bottom: 15px !important;
-                        left: 15px !important;
+                        bottom: 10px !important;
+                        left: 10px !important;
                         font-size: 12px;
                         padding: 6px 12px;
                         position: absolute !important;
@@ -1417,14 +1418,15 @@ class FastSearchCard extends HTMLElement {
                         text-align: left !important;
                     }
                     
-                    /* Für BEIDE Zustände (AN/AUS) auf Mobile gleich */
-                    .icon-content.light-off .quick-stats,
+                    /* Quick-Stats über dem Status */
+                    .icon-content.light-off .quick-stats, 
                     .icon-content.light-on .quick-stats {
-                        bottom: 65px !important;
-                        left: 15px !important;
+                        bottom: 60px !important;
+                        left: 10px !important;
                         right: auto !important;
                         flex-direction: column !important;
                         gap: 4px !important;
+                        position: absolute !important;
                     }
                     
                     .stat-item {
@@ -1608,17 +1610,8 @@ class FastSearchCard extends HTMLElement {
                         min-height: auto;
                     }
                     
-                    .icon-section {
-                        min-height: 250px;
-                        padding: 30px 15px;
-                    }
-                    
                     .device-icon-large {
                         font-size: 60px;
-                    }
-
-                    .icon-background {
-                        filter: blur(15px) brightness(0.8) saturate(1.1);
                     }
                     
                     .details-section {
