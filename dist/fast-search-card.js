@@ -1220,17 +1220,104 @@ class FastSearchCard extends HTMLElement {
                     min-height: 50vh;
                     background: transparent;
                 }
+
+
+
                 
+                /* Icon Section Background Enhancement */
                 .icon-section {
                     flex: 1;
-                    background: transparent;
+                    background: transparent; /* Wird durch .icon-background ersetzt */
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
                     padding: 40px 20px;
                     position: relative;
+                    overflow: hidden; /* WICHTIG: Verhindert Overflow des Backgrounds */
                 }
+                
+                .icon-background {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-size: cover;
+                    background-position: center;
+                    filter: blur(20px) brightness(0.7) saturate(1.2);
+                    z-index: 0;
+                    transition: all 0.8s ease;
+                    transform: scale(1.1); /* Verhindert weiße Ränder durch Blur */
+                }
+                
+                /* Content über dem Background */
+                .icon-content {
+                    position: relative;
+                    z-index: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    height: 100%;
+                }
+                
+                /* Device Icon mit Glow-Effekt */
+                .device-icon-large {
+                    font-size: 80px;
+                    margin-bottom: 20px;
+                    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+                    animation: iconPulse 2s ease-in-out infinite;
+                    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+                }
+                
+                /* Status Indicator Enhancement */
+                .status-indicator-large {
+                    background: rgba(40, 167, 69, 0.9);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                }
+                
+                .status-indicator-large.off {
+                    background: rgba(108, 117, 125, 0.9);
+                    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+                }
+                
+                /* Quick Stats Enhancement */
+                .quick-stats {
+                    position: absolute;
+                    bottom: 20px;
+                    left: 20px;
+                    right: 20px;
+                    text-align: center;
+                    z-index: 1;
+                }
+                
+                .stat-item {
+                    background: rgba(255, 255, 255, 0.15);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
+                    padding: 8px 12px;
+                    margin: 4px 0;
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.9);
+                    font-weight: 500;
+                }
+
+
+
+
+                
                 
                 .device-icon-large {
                     font-size: 80px;
@@ -1446,12 +1533,16 @@ class FastSearchCard extends HTMLElement {
                     }
                     
                     .icon-section {
-                        min-height: 200px;
-                        padding: 30px 20px;
+                        min-height: 250px;
+                        padding: 30px 15px;
                     }
                     
                     .device-icon-large {
                         font-size: 60px;
+                    }
+
+                    .icon-background {
+                        filter: blur(15px) brightness(0.8) saturate(1.1);
                     }
                     
                     .details-section {
@@ -3966,15 +4057,48 @@ class FastSearchCard extends HTMLElement {
         const stateInfo = this.getDetailedStateText(item);
         const isActive = this.isItemActive(item);
         const quickStats = this.getQuickStats(item);
+        const backgroundImage = this.getBackgroundImageForItem(item);
         
         return `
-            <div class="device-icon-large">${item.icon}</div>
-            <div class="status-indicator-large ${isActive ? '' : 'off'}">${stateInfo.status}</div>
-            <div class="quick-stats">
-                ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
+            <!-- Background Image -->
+            <div class="icon-background" style="background-image: url('${backgroundImage}');"></div>
+            
+            <!-- Content über dem Background -->
+            <div class="icon-content">
+                <div class="device-icon-large">${item.icon}</div>
+                <div class="status-indicator-large ${isActive ? '' : 'off'}">${stateInfo.status}</div>
+                <div class="quick-stats">
+                    ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
+                </div>
             </div>
         `;
+    }        
+
+
+    getBackgroundImageForItem(item) {
+        const baseUrl = 'https://raw.githubusercontent.com/fastender/Fast-Search-Card/refs/heads/main/docs/';
+        
+        switch (item.type) {
+            case 'light':
+                const isOn = item.state === 'on';
+                return baseUrl + (isOn ? 'light-on.jpeg' : 'light-off.jpeg');
+                
+            case 'climate':
+                return baseUrl + 'climate-bg.jpeg'; // Fallback für später
+                
+            case 'media_player':
+                return baseUrl + 'media-bg.jpeg'; // Fallback für später
+                
+            case 'switch':
+                const switchOn = item.state === 'on';
+                return baseUrl + (switchOn ? 'light-on.jpeg' : 'light-off.jpeg'); // Vorerst Light-Bilder
+                
+            default:
+                // Fallback: Generisches Bild oder Gradient
+                return baseUrl + 'light-off.jpeg';
+        }
     }
+    
 
     getDetailsSectionHTML(item) {
         const typeDisplayName = this.getTypeDisplayName(item);
@@ -6749,6 +6873,16 @@ getQuickStats(item) {
             this.addDomainSpecificAttributes(item, domain, currentState);
         }
 
+        // Replace-Content neu generieren
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        replaceContainer.innerHTML = this.getReplaceContentHTML(item);
+        this.setupReplaceEventListeners(item);
+        
+        // Background Image für Lichter aktualisieren
+        if (item.type === 'light') {
+            this.updateIconSectionBackground(item);
+        }        
+
         // Update HA Light Control UI
         if (item.type === 'light') {
             this.updateHALightControlUI(item);
@@ -6759,16 +6893,23 @@ getQuickStats(item) {
             this.updateMediaPlayerAlbumArt(item);
         }
         
-        // Replace-Content neu generieren
-        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-        replaceContainer.innerHTML = this.getReplaceContentHTML(item);
-        this.setupReplaceEventListeners(item);
-        
         // Logbook aktualisieren
         this.updateLogEntries(item);
     }
 
 
+    updateIconSectionBackground(item) {
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        if (!replaceContainer) return;
+        
+        const backgroundElement = replaceContainer.querySelector('.icon-background');
+        if (!backgroundElement) return;
+        
+        const newBackgroundImage = this.getBackgroundImageForItem(item);
+        backgroundElement.style.backgroundImage = `url('${newBackgroundImage}')`;
+        
+        console.log('✅ Background Image aktualisiert für:', item.id, 'Neue URL:', newBackgroundImage);
+    }    
 
 
     updateHALightControlUI(item) {
