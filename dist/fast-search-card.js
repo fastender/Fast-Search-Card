@@ -1280,18 +1280,14 @@ class FastSearchCard extends HTMLElement {
                 .status-indicator-large {
                     position: absolute;
                     bottom: 0px;
-                    left: 20px;
-                    background: rgba(40, 167, 69, 0.9);
+                    left: 15px;
+                    background: #007aff;
                     color: white;
                     padding: 8px 16px;
                     border-radius: 20px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    font-size: 12px;
+                    font-weight: 500;
+                    border: 1px solid #007aff;
                     
                     /* Eingangsanimation */
                     opacity: 0;
@@ -1300,8 +1296,8 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .status-indicator-large.off {
-                    background: rgba(108, 117, 125, 0.9);
-                    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+                    background: rgba(255, 255, 255, 0.2);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                 }
                 
                 /* Quick Stats - Position abhängig vom Zustand */
@@ -1335,10 +1331,9 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .stat-item {
-                    background: rgba(255, 255, 255, 0.15);
-                    backdrop-filter: blur(10px);
+                    background: transparent;
                     border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 12px;
+                    border-radius: 20px;
                     padding: 8px 12px;
                     font-size: 12px;
                     color: rgba(255, 255, 255, 0.9);
@@ -2727,7 +2722,7 @@ class FastSearchCard extends HTMLElement {
                     flex-shrink: 0;
                     display: flex;
                     background: rgba(0, 0, 0, 0.15);
-                    border-radius: 12px;
+                    border-radius: 60px;
                     padding: 4px;
                     margin-bottom: 20px;
                     gap: 4px;
@@ -2754,12 +2749,13 @@ class FastSearchCard extends HTMLElement {
                 .replace-tab:hover {
                     background: rgba(255, 255, 255, 0.1);
                     color: rgba(255, 255, 255, 0.9);
+                    border-radius: 60px;
                 }
                 
                 .replace-tab.active {
                     background: rgba(255, 255, 255, 0.15);
                     color: white;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    border-radius: 60px;
                 }
                 
                 .replace-tab-icon {
@@ -3205,9 +3201,9 @@ class FastSearchCard extends HTMLElement {
                     position: relative;
                     width: 100%;
                     height: 50px;
-                    border-radius: 25px;
+                    border-radius: 0px;
                     background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border: 0px solid rgba(255, 255, 255, 0.15);
                     overflow: hidden;
                 }
                 
@@ -3253,7 +3249,7 @@ class FastSearchCard extends HTMLElement {
                     height: 60px;
                     border-radius: 50%;
                     background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border: 0px solid rgba(255, 255, 255, 0.2);
                     color: rgba(255, 255, 255, 0.8);
                     font-size: 24px;
                     cursor: pointer;
@@ -3278,9 +3274,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .new-light-control-btn.power-on {
-                    background: rgba(76, 175, 80, 0.2);
-                    border-color: rgba(76, 175, 80, 0.4);
-                    color: #4CAF50;
+                    background: rgba(255, 255, 255, 0.9);
                 }
                 
                 .new-light-control-btn.power-off {
@@ -3419,12 +3413,6 @@ class FastSearchCard extends HTMLElement {
                     pointer-events: auto;
                 }
                 
-                /* Stagger Animation für Buttons */
-                .new-light-control-btn.secondary:nth-child(2) { transition-delay: 0.1s; }
-                .new-light-control-btn.secondary:nth-child(3) { transition-delay: 0.2s; }
-                .new-light-control-btn.secondary:nth-child(4) { transition-delay: 0.3s; }
-                .new-light-control-btn.secondary:nth-child(5) { transition-delay: 0.4s; }
-                
                 /* Farbauswahl Button */
                 .new-light-color-toggle {
                     background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd23f, #06d6a0, #118ab2, #8e44ad, #e91e63, #ffffff);
@@ -3512,15 +3500,13 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .new-light-power-center .new-light-control-btn {
-                    width: 80px;
-                    height: 80px;
-                    font-size: 32px;
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                    width: 60px;
+                    height: 60px;
+                    font-size: 24px;
                 }
                 
                 .new-light-power-center .new-light-control-btn:hover {
-                    transform: scale(1.1);
-                    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+                    transform: scale(1.1);                    
                 }
                 
                 /* Controls Row verstecken im Aus-Zustand */
