@@ -3565,16 +3565,13 @@ class FastSearchCard extends HTMLElement {
         }, 500);
     }        
 
-
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
     
-        // Spezielle Behandlung für Media Player (mit allgemeinem Tab-System)
+        // Spezielle Behandlung für Media Player (mit Dropdown-System)
         if (item.type === 'media_player') {
             const albumSection = this.getAlbumArtSectionHTML(item);
-            const detailsSection = this.moreInfoConfig.layoutMode === 'tabs' 
-                ? this.getMediaPlayerTabDetailsSectionHTML(item)
-                : this.getAccordionDetailsSectionHTML(item);
+            const detailsSection = this.getReplaceTabDetailsSectionHTML(item);
             
             return `
                 <div class="replace-header">
@@ -3598,11 +3595,9 @@ class FastSearchCard extends HTMLElement {
             `;
         }
         
-        // NEU: Layout-Mode für andere Geräte prüfen
+        // Dropdown-Layout für alle anderen Geräte
         const iconSection = this.getIconSectionHTML(item);
-        const detailsSection = this.moreInfoConfig.layoutMode === 'tabs' 
-            ? this.getReplaceTabDetailsSectionHTML(item)
-            : this.getAccordionDetailsSectionHTML(item);
+        const detailsSection = this.getReplaceTabDetailsSectionHTML(item);
         
         return `
             <div class="replace-header">
