@@ -1223,32 +1223,36 @@ class FastSearchCard extends HTMLElement {
 
 
 
-                
-                /* Icon Section Background Enhancement */
+                /* Icon Section Background Enhancement - ERWEITERT */
                 .icon-section {
                     flex: 1;
-                    background: transparent; /* Wird durch .icon-background ersetzt */
+                    background: transparent;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
                     padding: 40px 20px;
                     position: relative;
-                    overflow: hidden; /* WICHTIG: Verhindert Overflow des Backgrounds */
+                    overflow: hidden;
                 }
                 
                 .icon-background {
                     position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
+                    top: 50%;
+                    left: 50%;
+                    width: 80%; /* 20% kleiner */
+                    height: 80%; /* 20% kleiner */
+                    transform: translate(-50%, -50%); /* Zentriert */
                     background-size: cover;
                     background-position: center;
                     filter: blur(20px) brightness(0.7) saturate(1.2);
                     z-index: 0;
                     transition: all 0.8s ease;
-                    transform: scale(1.1); /* Verhindert weiße Ränder durch Blur */
+                    border-radius: 20px; /* Rundere Ecken */
+                    
+                    /* Eingangsanimation */
+                    opacity: 0;
+                    animation: fadeInBounce 1.2s ease-out 0.3s forwards;
                 }
                 
                 /* Content über dem Background */
@@ -1261,19 +1265,19 @@ class FastSearchCard extends HTMLElement {
                     justify-content: center;
                     text-align: center;
                     height: 100%;
+                    width: 100%;
                 }
                 
-                /* Device Icon mit Glow-Effekt */
+                /* Device Icon ENTFERNT - wird nicht mehr angezeigt */
                 .device-icon-large {
-                    font-size: 80px;
-                    margin-bottom: 20px;
-                    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
-                    animation: iconPulse 2s ease-in-out infinite;
-                    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+                    display: none !important;
                 }
                 
-                /* Status Indicator Enhancement */
+                /* Status Indicator - Links unten positioniert */
                 .status-indicator-large {
+                    position: absolute;
+                    bottom: 20px;
+                    left: 20px;
                     background: rgba(40, 167, 69, 0.9);
                     color: white;
                     padding: 8px 16px;
@@ -1285,6 +1289,11 @@ class FastSearchCard extends HTMLElement {
                     box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
                     backdrop-filter: blur(10px);
                     border: 1px solid rgba(255, 255, 255, 0.2);
+                    
+                    /* Eingangsanimation */
+                    opacity: 0;
+                    transform: translateX(-30px);
+                    animation: slideInLeft 0.8s ease-out 0.6s forwards;
                 }
                 
                 .status-indicator-large.off {
@@ -1292,14 +1301,21 @@ class FastSearchCard extends HTMLElement {
                     box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
                 }
                 
-                /* Quick Stats Enhancement */
+                /* Quick Stats - Rechts unten, neben Status */
                 .quick-stats {
                     position: absolute;
                     bottom: 20px;
-                    left: 20px;
                     right: 20px;
-                    text-align: center;
+                    text-align: right;
                     z-index: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                    
+                    /* Eingangsanimation */
+                    opacity: 0;
+                    transform: translateX(30px);
+                    animation: slideInRight 0.8s ease-out 0.8s forwards;
                 }
                 
                 .stat-item {
@@ -1308,10 +1324,137 @@ class FastSearchCard extends HTMLElement {
                     border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 12px;
                     padding: 8px 12px;
-                    margin: 4px 0;
                     font-size: 12px;
                     color: rgba(255, 255, 255, 0.9);
                     font-weight: 500;
+                    white-space: nowrap;
+                }
+                
+                /* Spezielle Anordnung für Licht AN - Status und Stats nebeneinander */
+                .icon-content.light-on .status-indicator-large {
+                    bottom: 20px;
+                    left: 20px;
+                }
+                
+                .icon-content.light-on .quick-stats {
+                    bottom: 20px;
+                    left: auto;
+                    right: 20px;
+                    flex-direction: column;
+                }
+                
+                /* Alternativ: Status und Stats in einer Zeile bei Licht AN */
+                .icon-content.light-on .bottom-row {
+                    position: absolute;
+                    bottom: 20px;
+                    left: 20px;
+                    right: 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-end;
+                    
+                    /* Eingangsanimation für die gesamte untere Zeile */
+                    opacity: 0;
+                    transform: translateY(20px);
+                    animation: slideInUp 0.8s ease-out 0.6s forwards;
+                }
+                
+                .icon-content.light-on .status-indicator-large {
+                    position: static;
+                    margin: 0;
+                    animation: none; /* Einzelanimation deaktivieren */
+                }
+                
+                .icon-content.light-on .quick-stats {
+                    position: static;
+                    margin: 0;
+                    animation: none; /* Einzelanimation deaktivieren */
+                }
+                
+                /* Animationen */
+                @keyframes fadeInBounce {
+                    0% {
+                        opacity: 0;
+                        transform: translate(-50%, -50%) scale(0.8);
+                    }
+                    60% {
+                        opacity: 0.8;
+                        transform: translate(-50%, -50%) scale(1.05);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                }
+                
+                @keyframes slideInLeft {
+                    0% {
+                        opacity: 0;
+                        transform: translateX(-30px);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                }
+                
+                @keyframes slideInRight {
+                    0% {
+                        opacity: 0;
+                        transform: translateX(30px);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                }
+                
+                @keyframes slideInUp {
+                    0% {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                /* Mobile Responsive */
+                @media (max-width: 768px) {
+                    .icon-section {
+                        min-height: 250px;
+                        padding: 30px 15px;
+                    }
+                    
+                    .icon-background {
+                        width: 85%;
+                        height: 85%;
+                        filter: blur(15px) brightness(0.8) saturate(1.1);
+                    }
+                    
+                    .status-indicator-large {
+                        bottom: 15px;
+                        left: 15px;
+                        font-size: 12px;
+                        padding: 6px 12px;
+                    }
+                    
+                    .quick-stats {
+                        bottom: 15px;
+                        right: 15px;
+                    }
+                    
+                    .stat-item {
+                        font-size: 11px;
+                        padding: 6px 10px;
+                    }
+                    
+                    .icon-content.light-on .bottom-row {
+                        bottom: 15px;
+                        left: 15px;
+                        right: 15px;
+                    }
                 }
 
 
@@ -4059,20 +4202,32 @@ class FastSearchCard extends HTMLElement {
         const quickStats = this.getQuickStats(item);
         const backgroundImage = this.getBackgroundImageForItem(item);
         
+        // Spezielle Klasse für Licht AN/AUS
+        const contentClass = (item.type === 'light' && item.state === 'on') ? 'light-on' : 'light-off';
+        
         return `
-            <!-- Background Image -->
+            <!-- Background Image (20% kleiner, mittig) -->
             <div class="icon-background" style="background-image: url('${backgroundImage}');"></div>
             
             <!-- Content über dem Background -->
-            <div class="icon-content">
-                <div class="device-icon-large">${item.icon}</div>
-                <div class="status-indicator-large ${isActive ? '' : 'off'}">${stateInfo.status}</div>
-                <div class="quick-stats">
-                    ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
-                </div>
+            <div class="icon-content ${contentClass}">
+                ${(item.type === 'light' && item.state === 'on') ? 
+                    // Licht AN: Status und Stats nebeneinander
+                    `<div class="bottom-row">
+                        <div class="status-indicator-large ${isActive ? '' : 'off'}">${stateInfo.status}</div>
+                        <div class="quick-stats">
+                            ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
+                        </div>
+                    </div>` :
+                    // Licht AUS: Standard Layout
+                    `<div class="status-indicator-large ${isActive ? '' : 'off'}">${stateInfo.status}</div>
+                     <div class="quick-stats">
+                        ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
+                     </div>`
+                }
             </div>
         `;
-    }        
+    }
 
 
     getBackgroundImageForItem(item) {
