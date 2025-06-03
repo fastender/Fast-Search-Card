@@ -1384,49 +1384,47 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
                 
-                /* Mobile Responsive - KORRIGIERT */
+
+
+                /* Mobile Responsive - BEREINIGT */
                 @media (max-width: 768px) {
                     .icon-section {
-                        padding: 0 !important;
-                        margin: 0 !important;
-                        height: 100% !important;
+                        min-height: 250px;
+                        padding: 0;
                         background: rgba(0, 0, 0, 0.15);
+                        position: relative; /* Wichtig für absolute Positionierung */
                     }
                     
                     .icon-background {
                         width: 65%;
                         height: 65%;
-                        filter: none; /* KEIN BLUR auf Mobile - KORRIGIERT */
+                        filter: none;
                     }
                     
-                    /* Status UND Quick-Stats BEIDE links unten - Mobile */
+                    /* icon-content nicht mehr relativ positionieren */
+                    .icon-content {
+                        position: static !important;
+                    }
+                    
+                    /* Status-Indicator - NUR EINE REGEL */
                     .status-indicator-large {
+                        position: absolute !important;
                         bottom: 10px !important;
                         left: 10px !important;
                         font-size: 12px;
                         padding: 6px 12px;
-                        position: absolute !important;
+                        z-index: 1000 !important;
                     }
                     
-                    /* Quick-Stats AUCH links unten, aber über dem Status */
+                    /* Quick-Stats - NUR EINE REGEL */
                     .quick-stats {
-                        bottom: 65px !important; /* Über dem Status */
-                        left: 15px !important;
-                        right: auto !important;
-                        flex-direction: column !important;
-                        gap: 4px !important;
-                        text-align: left !important;
-                    }
-                    
-                    /* Quick-Stats über dem Status */
-                    .icon-content.light-off .quick-stats, 
-                    .icon-content.light-on .quick-stats {
+                        position: absolute !important;
                         bottom: 60px !important;
                         left: 10px !important;
-                        right: auto !important;
                         flex-direction: column !important;
                         gap: 4px !important;
-                        position: absolute !important;
+                        z-index: 1000 !important;
+                        text-align: left !important;
                     }
                     
                     .stat-item {
