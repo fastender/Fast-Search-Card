@@ -4081,21 +4081,21 @@ class FastSearchCard extends HTMLElement {
         switch (item.type) {
             case 'light':
                 const isOn = item.state === 'on';
-                return baseUrl + (isOn ? 'light-on.jpeg' : 'light-off.jpeg');
+                return baseUrl + (isOn ? 'light-on.png' : 'light-off.png');
                 
             case 'climate':
-                return baseUrl + 'climate-bg.jpeg'; // Fallback für später
+                return baseUrl + 'climate-bg.png'; // Fallback für später
                 
             case 'media_player':
-                return baseUrl + 'media-bg.jpeg'; // Fallback für später
+                return baseUrl + 'media-bg.png'; // Fallback für später
                 
             case 'switch':
                 const switchOn = item.state === 'on';
-                return baseUrl + (switchOn ? 'light-on.jpeg' : 'light-off.jpeg'); // Vorerst Light-Bilder
+                return baseUrl + (switchOn ? 'light-on.png' : 'light-off.png'); // Vorerst Light-Bilder
                 
             default:
                 // Fallback: Generisches Bild oder Gradient
-                return baseUrl + 'light-off.jpeg';
+                return baseUrl + 'light-off.png';
         }
     }
     
