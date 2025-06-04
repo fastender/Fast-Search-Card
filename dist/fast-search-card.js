@@ -3936,11 +3936,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="dropdown-container">
                     <button class="dropdown-button" id="replaceDropdownButton">
                         <span>Steuerung</span>
-                        <span class="dropdown-icon">
-                            <svg viewBox="-4 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.0020846,16 L12,20.9980217 L6.99551,16 M6.99551,8 L12,3.00077787 L17.0020846,8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </span>
+                        <span class="dropdown-icon">▼</span>
                         
                     </button>
                     <div class="dropdown-menu" id="replaceDropdownMenu">
