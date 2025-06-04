@@ -3337,8 +3337,6 @@ class FastSearchCard extends HTMLElement {
                 
 
 
-
-                
                 /* ===== MODERN POPOVER DROPDOWN SYSTEM ===== */
                 
                 /* Dropdown Container */
@@ -3348,87 +3346,65 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .dropdown-button {
-                    background: rgba(25, 25, 45, 0.95);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    background: rgba(255, 255, 255, 0.15);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 12px;
                     color: white;
                     padding: 12px 16px;
                     font-size: 14px;
                     font-weight: 500;
                     cursor: pointer;
-                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    transition: all 0.3s ease;
                     display: flex;
                     align-items: center;
                     gap: 8px;
                     min-width: 140px;
                     justify-content: space-between;
                     position: relative;
-                    overflow: hidden;
-                    box-shadow: 
-                        0 8px 32px rgba(0, 0, 0, 0.1),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.2);
-                }
-                
-                .dropdown-button::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: linear-gradient(135deg, 
-                        rgba(255, 255, 255, 0.1) 0%, 
-                        rgba(255, 255, 255, 0.05) 100%);
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
-                }
-                
-                .dropdown-button:hover::before {
-                    opacity: 1;
                 }
                 
                 .dropdown-button:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 
-                        0 12px 40px rgba(0, 0, 0, 0.2),
-                        0 0 0 1px rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.25);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
                 }
                 
                 .dropdown-button.open {
-                    background: rgba(255, 255, 255, 0.15);
+                    background: rgba(255, 255, 255, 0.3);
                     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
                     z-index: 1001;
                 }
                 
-
-                /* Einfaches statisches Icon */
                 .dropdown-icon {
                     font-size: 14px;
-                    color: rgba(255, 255, 255, 0.9);
-                    user-select: none;
+                    transition: transform 0.3s ease;
+                    opacity: 0.8;
                 }
-
-
+                
+                .dropdown-button.open .dropdown-icon {
+                    transform: rotate(180deg);
+                    opacity: 1;
+                }
+                
                 /* Popover Container (freischwebend) */
                 .dropdown-menu {
                     position: fixed;
-                    background: rgba(25, 25, 45, 0.95);
+                    background: rgba(255, 255, 255, 0.95);
                     backdrop-filter: blur(20px);
                     -webkit-backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
                     border-radius: 16px;
                     min-width: 200px;
                     max-width: 280px;
                     opacity: 0;
                     visibility: hidden;
                     transform: scale(0.95) translateY(-10px);
-                    transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
                     z-index: 1000;
                     box-shadow: 
-                        0 20px 60px rgba(0, 0, 0, 0.4),
-                        0 0 0 1px rgba(255, 255, 255, 0.1);
+                        0 10px 40px rgba(0, 0, 0, 0.15),
+                        0 4px 12px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.4);
                     overflow: hidden;
                 }
                 
@@ -3441,15 +3417,15 @@ class FastSearchCard extends HTMLElement {
                 /* Popover Items */
                 .dropdown-item {
                     padding: 14px 18px;
-                    color: rgba(255, 255, 255, 0.5);
+                    color: rgba(0, 0, 0, 0.8);
                     cursor: pointer;
-                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+                    transition: all 0.2s ease;
                     display: flex;
                     align-items: center;
                     gap: 12px;
                     font-size: 15px;
                     font-weight: 500;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
                     position: relative;
                     background: transparent;
                     opacity: 0;
@@ -3461,13 +3437,13 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .dropdown-item:hover {
-                    background: rgba(255, 255, 255, 0.08);
-                    color: rgba(255, 255, 255, 0.9);
+                    background: rgba(0, 0, 0, 0.06);
+                    color: rgba(0, 0, 0, 0.9);
                 }
                 
                 .dropdown-item.active {
-                    background: rgba(255, 255, 255, 0.1);
-                    color: white;
+                    background: rgba(99, 102, 241, 0.1);
+                    color: #6366f1;
                     font-weight: 600;
                 }
                 
@@ -3477,7 +3453,7 @@ class FastSearchCard extends HTMLElement {
                     right: 18px;
                     font-size: 16px;
                     font-weight: 700;
-                    color: white;
+                    color: #6366f1;
                 }
                 
                 .dropdown-item-icon {
@@ -3528,9 +3504,7 @@ class FastSearchCard extends HTMLElement {
                     opacity: 1;
                     visibility: visible;
                 }
-
-
-
+                
                 /* Mobile Anpassungen */
                 @media (max-width: 768px) {
                     .dropdown-menu {
@@ -3550,6 +3524,7 @@ class FastSearchCard extends HTMLElement {
                         height: 20px;
                     }
                 }
+
                 
             </style>
             
@@ -3848,7 +3823,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="dropdown-container">
                     <button class="dropdown-button" id="replaceDropdownButton">
                         <span>Steuerung</span>
-                        <div class="dropdown-icon">⚙️</div>
+                        <span class="dropdown-icon">▼</span>
                     </button>
                     <div class="dropdown-menu" id="replaceDropdownMenu">
                         <div class="dropdown-item active" data-replace-section="controls">
@@ -8602,7 +8577,7 @@ getQuickStats(item) {
                 <div class="dropdown-container">
                     <button class="dropdown-button" id="moreInfoDropdownButton">
                         <span>Steuerung</span>
-                        <span class="dropdown-icon">⚙️</span>
+                        <span class="dropdown-icon">▼</span>
                     </button>
                     <div class="dropdown-menu" id="moreInfoDropdownMenu">
                         <div class="dropdown-item active" data-more-info-section="controls">
@@ -9280,7 +9255,6 @@ getQuickStats(item) {
         
         let isDropdownOpen = false;
         
-
         // Berechne Popover Position
         const calculatePopoverPosition = () => {
             const buttonRect = dropdownButton.getBoundingClientRect();
@@ -9294,26 +9268,18 @@ getQuickStats(item) {
             let top = buttonRect.bottom + 8;
             let left = buttonRect.right - menuRect.width;
             
-            // Überlauf-Schutz horizontal
+            // Überlauf-Schutz
             if (left < 16) {
                 left = buttonRect.left; // Links ausrichten wenn zu weit rechts
             }
-            if (left + menuRect.width > viewport.width - 16) {
-                left = viewport.width - menuRect.width - 16; // Innerhalb viewport halten
-            }
             
-            // Überlauf-Schutz vertikal
             if (top + menuRect.height > viewport.height - 16) {
                 top = buttonRect.top - menuRect.height - 8; // Über dem Button wenn zu weit unten
-            }
-            if (top < 16) {
-                top = 16; // Mindestabstand vom oberen Rand
             }
             
             return { top, left };
         };
         
-
         // Öffne Popover
         const openPopover = () => {
             if (isDropdownOpen) return;
@@ -9323,7 +9289,7 @@ getQuickStats(item) {
             // Backdrop aktivieren
             backdrop.classList.add('open');
             
-            // Button State mit Glassmorphism-Effekt
+            // Button State
             dropdownButton.classList.add('open');
             
             // Position berechnen und setzen
@@ -9331,17 +9297,11 @@ getQuickStats(item) {
             dropdownMenu.style.top = top + 'px';
             dropdownMenu.style.left = left + 'px';
             
-            // Menu öffnen mit staggered Animation
+            // Menu öffnen
             dropdownMenu.classList.add('open');
             
-            // Focus management für Accessibility
-            dropdownMenu.setAttribute('tabindex', '-1');
+            // Focus Management
             dropdownMenu.focus();
-            
-            // Verhindere Body-Scroll auf Mobile
-            if (window.innerWidth <= 768) {
-                document.body.style.overflow = 'hidden';
-            }
         };
         
         // Schließe Popover
@@ -9353,25 +9313,16 @@ getQuickStats(item) {
             // Backdrop deaktivieren
             backdrop.classList.remove('open');
             
-            // Button State zurücksetzen
+            // Button State
             dropdownButton.classList.remove('open');
             
             // Menu schließen
             dropdownMenu.classList.remove('open');
-            
-            // Body-Scroll wiederherstellen
-            document.body.style.overflow = '';
-            
-            // Focus zurück zum Button
-            dropdownButton.focus();
         };
-
         
-
-        // Toggle Dropdown mit verbesserter UX
+        // Toggle Dropdown
         dropdownButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            e.preventDefault();
             
             if (isDropdownOpen) {
                 closePopover();
@@ -9380,192 +9331,102 @@ getQuickStats(item) {
             }
         });
         
-        // Backdrop Click - Schließen mit sanfter Animation
+        // Backdrop Click - Schließen
         backdrop.addEventListener('click', (e) => {
             e.stopPropagation();
             closePopover();
         });
         
-        // Enhanced Outside Click Handler
-        const outsideClickHandler = (e) => {
+        // Outside Click - Schließen
+        document.addEventListener('click', (e) => {
             if (!dropdownButton.contains(e.target) && 
                 !dropdownMenu.contains(e.target) && 
-                !backdrop.contains(e.target) &&
                 isDropdownOpen) {
                 closePopover();
             }
-        };
+        });
         
-        document.addEventListener('click', outsideClickHandler);
-        document.addEventListener('touchstart', outsideClickHandler); // Mobile Support
-        
-        // Enhanced Keyboard Navigation
-        const keyboardHandler = (e) => {
-            if (!isDropdownOpen) return;
-            
-            switch (e.key) {
-                case 'Escape':
-                    e.preventDefault();
-                    closePopover();
-                    break;
-                    
-                case 'ArrowDown':
-                    e.preventDefault();
-                    focusNextItem();
-                    break;
-                    
-                case 'ArrowUp':
-                    e.preventDefault();
-                    focusPreviousItem();
-                    break;
-                    
-                case 'Enter':
-                case ' ':
-                    e.preventDefault();
-                    const focusedItem = dropdownMenu.querySelector('.dropdown-item:focus');
-                    if (focusedItem) {
-                        focusedItem.click();
-                    }
-                    break;
+        // ESC Key - Schließen
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isDropdownOpen) {
+                closePopover();
+                dropdownButton.focus();
             }
-        };
+        });
         
-        document.addEventListener('keydown', keyboardHandler);  
-
-        
-        // Keyboard Navigation Hilfsfunktionen
-        const focusNextItem = () => {
-            const items = Array.from(dropdownMenu.querySelectorAll('.dropdown-item'));
-            const currentIndex = items.findIndex(item => item === document.activeElement);
-            const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
-            items[nextIndex].focus();
-        };
-        
-        const focusPreviousItem = () => {
-            const items = Array.from(dropdownMenu.querySelectorAll('.dropdown-item'));
-            const currentIndex = items.findIndex(item => item === document.activeElement);
-            const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
-            items[prevIndex].focus();
-        };
-        
-        // Window Resize Handler mit Debouncing
-        let resizeTimeout;
-        const resizeHandler = () => {
-            if (!isDropdownOpen) return;
-            
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                const { top, left } = calculatePopoverPosition();
-                dropdownMenu.style.top = top + 'px';
-                dropdownMenu.style.left = left + 'px';
-            }, 100);
-        };
-        
-        window.addEventListener('resize', resizeHandler);
-        window.addEventListener('orientationchange', resizeHandler); // Mobile Support
-        
-
-
-
-        
-
-        // Enhanced Dropdown Item Selection
-        dropdownItems.forEach((dropdownItem, index) => {
-            // Mache Items focusable für Keyboard Navigation
-            dropdownItem.setAttribute('tabindex', '0');
-            
+        // Dropdown Item Selection
+        dropdownItems.forEach(dropdownItem => {
             dropdownItem.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
-                const targetSection = dropdownItem.getAttribute('data-more-info-section'); // ← KORRIGIERT
+                const targetSection = dropdownItem.getAttribute('data-more-info-section');
                 const sectionText = dropdownItem.querySelector('span:last-child').textContent;
                 
-                // Visual Feedback vor der Änderung
-                dropdownItem.style.transform = 'scale(0.98)';
-                dropdownItem.style.background = 'rgba(255, 255, 255, 0.2)';
+                // Update active state
+                dropdownItems.forEach(i => i.classList.remove('active'));
+                dropdownItem.classList.add('active');
                 
-                setTimeout(() => {
-                    // Update active state
-                    dropdownItems.forEach(i => i.classList.remove('active'));
-                    dropdownItem.classList.add('active');
+                // Update button text
+                dropdownButton.querySelector('span:first-child').textContent = sectionText;
+                
+                // Hide all sections
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                    section.classList.remove('active', 'fade-in');
+                });
+                
+                // Show selected section with animation
+                const targetSectionElement = overlay.querySelector(`[data-more-info-content="${targetSection}"]`);
+                if (targetSectionElement) {
+                    targetSectionElement.style.display = 'block';
+                    targetSectionElement.classList.add('active');
                     
-                    // Update button text
-                    dropdownButton.querySelector('span:first-child').textContent = sectionText;
+                    // Trigger reflow for animation
+                    targetSectionElement.offsetHeight;
+                    targetSectionElement.classList.add('fade-in');
                     
-                    // Hide all sections
-                    sections.forEach(section => {
-                        section.style.display = 'none';
-                        section.classList.remove('active');
-                    });
-                    
-                    // Show selected section with fade-in
-                    const targetSectionElement = overlay.querySelector(`[data-more-info-content="${targetSection}"]`); // ← KORRIGIERT
-                    if (targetSectionElement) {
-                        targetSectionElement.style.display = 'block';
-                        targetSectionElement.classList.add('active');
-                        
-                        // Smooth fade-in
-                        targetSectionElement.style.opacity = '0';
-                        requestAnimationFrame(() => {
-                            targetSectionElement.style.transition = 'opacity 0.3s ease';
-                            targetSectionElement.style.opacity = '1';
-                        });
-                        
-                        // Spezielle Initialisierung
-                        if (targetSection === 'tts' && item.type === 'media_player') {
-                            setTimeout(() => this.setupTTSEventListeners(item), 150);
-                        } else if (targetSection === 'music' && item.type === 'media_player') {
-                            setTimeout(() => this.setupMusicAssistantEventListeners(item), 150);
-                        } else if (targetSection === 'history') {
-                            this.loadRealLogEntries(item);
-                        }
+                    // Spezielle Initialisierung für verschiedene Sektionen
+                    if (targetSection === 'history') {
+                        // Logbook neu laden wenn Sektion aktiviert wird
+                        this.loadRealLogEntries(item);
+                    } else if (targetSection === 'tts' && item.type === 'media_player') {
+                        // TTS Event Listeners setup
+                        setTimeout(() => {
+                            this.setupTTSEventListeners(item);
+                        }, 150);
+                    } else if (targetSection === 'music' && item.type === 'media_player') {
+                        // Music Assistant Event Listeners setup
+                        setTimeout(() => {
+                            this.setupMusicAssistantEventListeners(item);
+                        }, 150);
                     }
-                    
-                    // Reset visual feedback
-                    dropdownItem.style.transform = '';
-                    dropdownItem.style.background = '';
-                    
-                    // Popover schließen
-                    closePopover();
-                }, 150);
-            });
-
-            
-            // Enhanced Hover Effekte
-            dropdownItem.addEventListener('mouseenter', () => {
-                if (!dropdownItem.classList.contains('active')) {
-                    dropdownItem.style.transform = 'translateX(2px)';
                 }
+                
+                // Popover schließen
+                closePopover();
+            });
+            
+            // Hover Effekte für bessere UX
+            dropdownItem.addEventListener('mouseenter', () => {
+                dropdownItem.style.transform = 'translateX(2px)';
             });
             
             dropdownItem.addEventListener('mouseleave', () => {
                 dropdownItem.style.transform = 'translateX(0)';
             });
-            
-            // Focus Styles für Keyboard Navigation
-            dropdownItem.addEventListener('focus', () => {
-                dropdownItem.style.outline = '2px solid rgba(255, 255, 255, 0.3)';
-                dropdownItem.style.outlineOffset = '2px';
-            });
-            
-            dropdownItem.addEventListener('blur', () => {
-                dropdownItem.style.outline = 'none';
-            });
         });
         
-
-        // Cleanup korrigieren:
-        overlay.addEventListener('remove', () => { // ← KORRIGIERT von replaceContainer
-            document.removeEventListener('keydown', keyboardHandler);
-            document.removeEventListener('click', outsideClickHandler);
-            document.removeEventListener('touchstart', outsideClickHandler);
-            window.removeEventListener('resize', resizeHandler);
-            window.removeEventListener('orientationchange', resizeHandler);
+        // Window Resize - Position neu berechnen
+        window.addEventListener('resize', () => {
+            if (isDropdownOpen) {
+                const { top, left } = calculatePopoverPosition();
+                dropdownMenu.style.top = top + 'px';
+                dropdownMenu.style.left = left + 'px';
+            }
         });
+    }        
+    
 
-
-        
-        
     closeMoreInfo() {
         const overlay = this.shadowRoot.querySelector('.more-info-overlay');
         if (overlay) {
