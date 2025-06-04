@@ -3878,7 +3878,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="dropdown-container">
                     <button class="dropdown-button" id="replaceDropdownButton">
                         <span>Steuerung</span>
-                        <span class="dropdown-icon">▼</span>
+                        <div class="dropdown-icon"></div>
                     </button>
                     <div class="dropdown-menu" id="replaceDropdownMenu">
                         <div class="dropdown-item active" data-replace-section="controls">
@@ -8632,7 +8632,7 @@ getQuickStats(item) {
                 <div class="dropdown-container">
                     <button class="dropdown-button" id="moreInfoDropdownButton">
                         <span>Steuerung</span>
-                        <span class="dropdown-icon">▼</span>
+                        <span class="dropdown-icon"></span>
                     </button>
                     <div class="dropdown-menu" id="moreInfoDropdownMenu">
                         <div class="dropdown-item active" data-more-info-section="controls">
