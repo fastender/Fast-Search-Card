@@ -4117,33 +4117,10 @@ class FastSearchCard extends HTMLElement {
             // Vertikaler Überlauf-Schutz
             if (top + menuHeight > viewport.height - 16) {
                 top = buttonRect.top - menuHeight - 8; // Über dem Button
-            }
-            
-            return { top, left };
-        };
-            
-            
-            // Standard Position: unter dem Button, rechts ausgerichtet
-            let top = buttonRect.bottom + 12; // Mehr Abstand für modernen Look
-            let left = buttonRect.right - menuWidth;
-            
-            // Überlauf-Schutz mit sanften Übergängen
-            if (left < 16) {
-                left = buttonRect.left; // Links ausrichten wenn zu weit rechts
-            }
-            
-            // Rechter Rand-Schutz
-            if (left + menuWidth > viewport.width - 16) {
-                left = viewport.width - menuWidth - 16;
-            }
-            
-            // Vertikaler Überlauf-Schutz
-            if (top + menuHeight > viewport.height - 16) {
-                top = buttonRect.top - menuHeight - 12; // Über dem Button
                 
                 // Falls auch über dem Button kein Platz
                 if (top < 16) {
-                    top = buttonRect.bottom + 12;
+                    top = buttonRect.bottom + 8;
                     // Menu-Höhe begrenzen wenn nötig
                     const maxHeight = viewport.height - top - 16;
                     dropdownMenu.style.maxHeight = maxHeight + 'px';
@@ -4157,6 +4134,8 @@ class FastSearchCard extends HTMLElement {
             
             return { top, left };
         };
+
+            
         
         // Verbesserte Hover-Effekte für Items
         const enhanceItemInteractions = () => {
