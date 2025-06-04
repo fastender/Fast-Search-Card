@@ -3501,6 +3501,7 @@ class FastSearchCard extends HTMLElement {
                 
                 .dropdown-item.active .dropdown-item-icon {
                     opacity: 1;
+                    width: 0;
                 }
                 
                 .dropdown-item:hover .dropdown-item-icon {
