@@ -9498,7 +9498,7 @@ getQuickStats(item) {
 
 
         
-        
+
         // Enhanced Dropdown Item Selection
         dropdownItems.forEach((dropdownItem, index) => {
             // Mache Items focusable für Keyboard Navigation
@@ -9507,7 +9507,7 @@ getQuickStats(item) {
             dropdownItem.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
-                const targetSection = dropdownItem.getAttribute('data-replace-section');
+                const targetSection = dropdownItem.getAttribute('data-more-info-section'); // ← KORRIGIERT
                 const sectionText = dropdownItem.querySelector('span:last-child').textContent;
                 
                 // Visual Feedback vor der Änderung
@@ -9529,7 +9529,7 @@ getQuickStats(item) {
                     });
                     
                     // Show selected section with fade-in
-                    const targetSectionElement = replaceContainer.querySelector(`[data-replace-content="${targetSection}"]`);
+                    const targetSectionElement = overlay.querySelector(`[data-more-info-content="${targetSection}"]`); // ← KORRIGIERT
                     if (targetSectionElement) {
                         targetSectionElement.style.display = 'block';
                         targetSectionElement.classList.add('active');
@@ -9559,6 +9559,7 @@ getQuickStats(item) {
                     closePopover();
                 }, 150);
             });
+
             
             // Enhanced Hover Effekte
             dropdownItem.addEventListener('mouseenter', () => {
@@ -9582,8 +9583,9 @@ getQuickStats(item) {
             });
         });
         
-        // Cleanup beim Verlassen des Replace Modes
-        replaceContainer.addEventListener('remove', () => {
+
+        // Cleanup korrigieren:
+        overlay.addEventListener('remove', () => { // ← KORRIGIERT von replaceContainer
             document.removeEventListener('keydown', keyboardHandler);
             document.removeEventListener('click', outsideClickHandler);
             document.removeEventListener('touchstart', outsideClickHandler);
