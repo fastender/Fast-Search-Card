@@ -3364,6 +3364,7 @@ class FastSearchCard extends HTMLElement {
                     z-index: 1002 !important;
                     position: relative !important;
                     box-sizing: border-box;
+                    font-family: inherit;
                 }
                 
                 .dropdown-button:hover {
@@ -3598,13 +3599,13 @@ class FastSearchCard extends HTMLElement {
                     .dropdown-menu {
                         min-width: 100%;
                         max-width: 100%;
-                        border-radius: 16px;
+                        border-radius: 20px;
                         left: 0;
                         right: 0;
                     }
                     
                     .dropdown-item {
-                        padding: 14px 16px; /* Gleiche Höhe wie Button */
+                        padding: 8px 16px 8px 12px; /* Gleiche Höhe wie Button */
                         font-size: 12px;
                     }
                     
@@ -3618,6 +3619,7 @@ class FastSearchCard extends HTMLElement {
                         min-width: 100px;
                         padding: 10px 12px;
                         font-size: 12px;
+                        font-family: inherit;
                     }
                     
                     /* Button fade-out auch auf Mobile */
