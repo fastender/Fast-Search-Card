@@ -3556,14 +3556,10 @@ class FastSearchCard extends HTMLElement {
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: rgba(0, 0, 0, 0.2);
-                    backdrop-filter: blur(4px);
-                    -webkit-backdrop-filter: blur(4px);
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-                    z-index: 999;
+                    background: transparent;
                 }
+
+                
                 
                 .popover-backdrop.open {
                     opacity: 1;
@@ -4102,12 +4098,30 @@ class FastSearchCard extends HTMLElement {
         // Verbesserte Berechnung der Popover Position
         const calculatePopoverPosition = () => {
             const buttonRect = dropdownButton.getBoundingClientRect();
-            const menuWidth = 220; // Basierte auf CSS min-width
-            const menuHeight = 300; // Geschätzte maximale Höhe
+            const menuWidth = 220;
+            const menuHeight = 300;
             const viewport = {
                 width: window.innerWidth,
                 height: window.innerHeight
             };
+            
+            // Position: direkt unter dem Button, linksbündig
+            let top = buttonRect.bottom + 8;
+            let left = buttonRect.left;
+            
+            // Rechter Rand-Schutz
+            if (left + menuWidth > viewport.width - 16) {
+                left = buttonRect.right - menuWidth; // Rechtsbündig wenn zu weit rechts
+            }
+            
+            // Vertikaler Überlauf-Schutz
+            if (top + menuHeight > viewport.height - 16) {
+                top = buttonRect.top - menuHeight - 8; // Über dem Button
+            }
+            
+            return { top, left };
+        };
+            
             
             // Standard Position: unter dem Button, rechts ausgerichtet
             let top = buttonRect.bottom + 12; // Mehr Abstand für modernen Look
