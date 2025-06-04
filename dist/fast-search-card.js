@@ -3627,6 +3627,11 @@ class FastSearchCard extends HTMLElement {
                         opacity: 0;
                         visibility: hidden;
                     }
+
+                    .dropdown-item.active {
+                        opacity: 0;
+                        padding-left: 0px;
+                    }
                 }
 
 
