@@ -3435,7 +3435,7 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Verbesserte Dropdown Items */
                 .dropdown-item {
-                    padding: 16px 20px;
+                    padding: 14px 20px 14px 20px;
                     color: rgba(255, 255, 255, 0.9);
                     cursor: pointer;
                     transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -3449,9 +3449,8 @@ class FastSearchCard extends HTMLElement {
                     background: transparent;
                     opacity: 0;
                     margin: 0;
-                    transform: translateX(-20px);
                     box-sizing: border-box;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    border-bottom: 0px solid rgba(255, 255, 255, 0.1);
                 }
                 
                 .dropdown-item:last-child {
