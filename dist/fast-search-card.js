@@ -3371,7 +3371,9 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .dropdown-button.open {
-                    background: rgba(0, 0, 0, 0.25);
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: opacity 0.2s ease, visibility 0.2s ease;
                     z-index: 999;
                 }
                 
@@ -3426,6 +3428,9 @@ class FastSearchCard extends HTMLElement {
                 .dropdown-menu.open {
                     opacity: 1;
                     visibility: visible;
+                    max-height: 400px;
+                    transform: translateY(0) scale(1);
+                    transition-delay: 0.1s; /* Startet nach Button fade-out */
                 }
                 
                 /* Verbesserte Dropdown Items */
