@@ -2709,6 +2709,194 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 
+                /* ===== REPLACE MODE GENERAL TAB SYSTEM ===== */
+                .replace-tabs-container {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                    flex: 1;
+                }
+                
+                .replace-tabs {
+                    flex-shrink: 0;
+                    display: flex;
+                    background: rgba(0, 0, 0, 0.15);
+                    border-radius: 60px;
+                    padding: 4px;
+                    margin-bottom: 20px;
+                    gap: 4px;
+                }
+                
+                .replace-tab {
+                    flex: 1;
+                    padding: 12px 16px;
+                    text-align: center;
+                    background: transparent;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.7);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+                
+                .replace-tab:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.9);
+                    border-radius: 60px;
+                }
+                
+                .replace-tab.active {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    border-radius: 60px;
+                }
+                
+                .replace-tab-icon {
+                    font-size: 16px;
+                }
+                
+                .replace-tab-content {
+                    flex: 1;
+                    display: none;
+                    animation: fadeInReplaceGeneralTab 0.3s ease-out;
+                    overflow-y: auto;
+                }
+                
+                .replace-tab-content.active {
+                    display: block;
+                }
+                
+                @keyframes fadeInReplaceGeneralTab {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                
+                /* ===== MOBILE RESPONSIVENESS FÜR TAB SYSTEMS ===== */
+                @media (max-width: 768px) {
+                    .more-info-tab,
+                    .replace-tab {
+                        padding: 10px 8px;
+                        font-size: 12px;
+                        flex-direction: column;
+                        gap: 4px;
+                    }
+                    
+                    .more-info-tab-icon,
+                    .replace-tab-icon {
+                        font-size: 14px;
+                    }
+                    
+                    .more-info-tabs,
+                    .replace-tabs {
+                        padding: 2px;
+                        gap: 2px;
+                    }
+                }
+                
+                /* Sehr kleine Bildschirme: Nur Icons */
+                @media (max-width: 480px) {
+                    .more-info-tab span:not(.more-info-tab-icon),
+                    .replace-tab span:not(.replace-tab-icon) {
+                        display: none;
+                    }
+                    
+                    .more-info-tab,
+                    .replace-tab {
+                        padding: 12px 8px;
+                    }
+                }
+
+
+                /* Replace Mode Media Tabs */
+                .replace-media-tabs-container {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                    flex: 1;
+                }
+                
+                .replace-media-tabs {
+                    flex-shrink: 0; /* Wichtig: Tabs schrumpfen nicht */
+                    position: sticky; /* Optional: Extra-Fix */
+                    top: 0;
+                    z-index: 10;                
+                    display: flex;
+                    background: transparent;
+                    border-radius: 60px;
+                    padding: 0px;
+                    margin-bottom: 20px;
+                    gap: 8px;
+                }
+                
+                .replace-media-tab {
+                    flex: 1;
+                    padding: 10px 14px 10px 14px;
+                    text-align: center;
+                    background: rgba(0, 0, 0, .15);
+                    border: none;
+                    border-radius: 60px;
+                    font-size: 15px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.7);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                }
+                
+                .replace-media-tab:hover {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: rgba(255, 255, 255, 0.9);
+                    border-radius: 60px;
+                }
+                
+                .replace-media-tab.active {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    border-radius: 60px;
+                }
+                
+                .replace-media-tab-icon {
+                    font-size: 18px;
+                }
+                
+                .replace-media-tab-content {
+                    flex: 1;
+                    display: none;
+                    animation: fadeInReplaceTab 0.3s ease-out;
+                    overflow-y: auto;
+                }
+                
+                .replace-media-tab-content.active {
+                    display: block;
+                }
+                
+                @keyframes fadeInReplaceTab {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
                 /* Replace Mode spezifische Anpassungen */
                 .replace-content .ma-search-container {
                     height: 100%;
@@ -2922,6 +3110,10 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Mobile Responsive */
                 @media (max-width: 768px) {
+
+                    .entity-info {
+                        display: none;
+                    }
                 
                     .replace-content.media-player {
                         flex-direction: column;
@@ -3008,7 +3200,7 @@ class FastSearchCard extends HTMLElement {
                     position: relative;
                     width: 100%;
                     height: 50px;
-                    border-radius: 60px;
+                    border-radius: 0px;
                     background: rgba(255, 255, 255, 0.1);
                     border: 0px solid rgba(255, 255, 255, 0.15);
                     overflow: hidden;
@@ -3331,372 +3523,6 @@ class FastSearchCard extends HTMLElement {
                     pointer-events: auto;
                 }
                 
-
-
-                /* ===== MODERN POPOVER DROPDOWN SYSTEM ===== */
-                
-                /* ===== VERBESSERTE DROPDOWN STYLES MIT GLASSMORPHISMUS ===== */
-                
-                /* Dropdown Container */
-                .dropdown-container {
-                    z-index: 1001 !important;
-                    position: relative !important;
-                    flex-shrink: 0;
-                    width: 100%;
-                    max-width: 200px;                    
-                }
-                
-                .dropdown-button {
-                    background: rgba(0, 0, 0, 0.15);
-                    border: 0px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
-                    color: white;
-                    padding: 16px 20px 16px 20px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    cursor: pointer;
-                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    min-width: 200px;
-                    justify-content: space-between;
-                    z-index: 1002 !important;
-                    position: relative !important;
-                    box-sizing: border-box;
-                    font-family: inherit;
-                }
-                
-                .dropdown-button:hover {
-                    background: rgba(0, 0, 0, 0.25);
-                }
-                
-                .dropdown-button.open {
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: opacity 0.2s ease, visibility 0.2s ease;
-                    z-index: 999;
-                }
-                
-                .dropdown-icon {
-                    font-size: 14px;
-                    transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-                    opacity: 0.8;
-                    width: 16px;
-                    height: 16px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                /* SVG Icon für Dropdown */
-                .dropdown-icon svg {
-                    width: 14px;
-                    height: 14px;
-                    stroke: currentColor;
-                    stroke-width: 2;
-                    fill: none;
-                    transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-                }
-                
-                .dropdown-button.open .dropdown-icon {
-                    opacity: 0;  /* Button unsichtbar wenn offen */
-                }
-                
-                .dropdown-button.open .dropdown-icon svg {
-                    stroke-width: 2.5;
-                }
-                
-                /* Glassmorphismus Popover Container */
-                .dropdown-menu {
-                    position: absolute;
-                    background: rgba(0, 0, 0, 0.15);
-                    border: 0px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
-                    min-width: 200px;
-                    max-width: 200px;
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-                    z-index: 1000;
-                    overflow: hidden;
-                    padding: 0px;
-                    box-sizing: border-box;
-                    top: 0;
-                    left: 0;                    
-                }
-                
-                .dropdown-menu.open {
-                    opacity: 1;
-                    visibility: visible;
-                    max-height: 400px;
-                    transform: translateY(0) scale(1);
-                    transition-delay: 0.1s; /* Startet nach Button fade-out */
-                }
-                
-                /* Verbesserte Dropdown Items */
-                .dropdown-item {
-                    padding: 14px 20px 14px 20px;
-                    color: rgba(255, 255, 255, 0.9);
-                    cursor: pointer;
-                    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    border-radius: 0;
-                    position: relative;
-                    background: transparent;
-                    opacity: 0;
-                    margin: 0;
-                    box-sizing: border-box;
-                    border-bottom: 0px solid rgba(255, 255, 255, 0.1);
-                }
-                
-                .dropdown-item:last-child {
-                    border-bottom: none;
-                    border-radius: 0 0 20px 20px;
-                }
-                
-                .dropdown-item:first-child {
-                    border-radius: 20px 20px 0 0;
-                }
-                
-                .dropdown-item:only-child {
-                    border-radius: 20px;
-                }
-                
-                .dropdown-item:hover {
-                    background: rgba(255, 255, 255, 0.15);
-                    color: white;
-                    transform: translateX(0);
-                }
-                
-                .dropdown-item.active {
-                    background: rgba(0, 0, 0, 0.15);
-                    color: white;
-                    font-weight: 500;
-                    transform: translateX(0);
-                    justify-content: flex-start;
-                    padding-left: 20px;
-                }
-                
-                .dropdown-item.active::after {
-                    display: none;
-                }
-
-                
-                .dropdown-item-icon {
-                    font-size: 16px;
-                    width: 20px;
-                    height: 20px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                    opacity: 0.9;
-                    transition: all 0.3s ease;
-                }
-                
-                .dropdown-item.active .dropdown-item-icon {
-                    display: none;
-                }
-                
-                .dropdown-item:hover .dropdown-item-icon {
-                    opacity: 1;
-                }
-
-                .replace-dropdown-container .dropdown-item-icon {
-                    display: none;
-                }
-
-                
-                
-                /* Staggered Animation für Items */
-                .dropdown-menu.open .dropdown-item {
-                    opacity: 1;
-                }
-                
-                .dropdown-menu.open .dropdown-item:nth-child(1) { 
-                    transition-delay: 0.05s; 
-                }
-                .dropdown-menu.open .dropdown-item:nth-child(2) { 
-                    transition-delay: 0.1s; 
-                }
-                .dropdown-menu.open .dropdown-item:nth-child(3) { 
-                    transition-delay: 0.15s; 
-                }
-                .dropdown-menu.open .dropdown-item:nth-child(4) { 
-                    transition-delay: 0.2s; 
-                }
-                .dropdown-menu.open .dropdown-item:nth-child(5) { 
-                    transition-delay: 0.25s; 
-                }
-                .dropdown-menu.open .dropdown-item:nth-child(6) { 
-                    transition-delay: 0.3s; 
-                }
-                
-                /* Backdrop mit Glassmorphismus */
-                .popover-backdrop {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: transparent;
-                }
-
-                
-                
-                .popover-backdrop.open {
-                    opacity: 1;
-                    visibility: visible;
-                }
-                
-                /* Leuchtende Hover-Effekte */
-                @keyframes glow {
-                    0%, 100% {
-                        box-shadow: 
-                            0 8px 25px rgba(0, 0, 0, 0.15),
-                            0 0 20px rgba(255, 255, 255, 0.1),
-                            inset 0 1px 1px rgba(255, 255, 255, 0.3);
-                    }
-                    50% {
-                        box-shadow: 
-                            0 8px 25px rgba(0, 0, 0, 0.15),
-                            0 0 30px rgba(255, 255, 255, 0.2),
-                            inset 0 1px 1px rgba(255, 255, 255, 0.4);
-                    }
-                }
-            
-                
-                /* Ripple Effect für Button Click */
-                .dropdown-button {
-                    overflow: hidden;
-                }
-                
-                .dropdown-button::before {
-                    content: '';
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    width: 0;
-                    height: 0;
-                    background: rgba(255, 255, 255, 0.3);
-                    border-radius: 50%;
-                    transform: translate(-50%, -50%);
-                    transition: width 0.6s, height 0.6s;
-                }
-                
-                .dropdown-button:active::before {
-                    width: 200px;
-                    height: 200px;
-                }
-                
-                /* Mobile Anpassungen */
-                @media (max-width: 768px) {
-                    .dropdown-menu {
-                        min-width: 100%;
-                        max-width: 100%;
-                        border-radius: 20px;
-                        left: 0;
-                        right: 0;
-                    }
-                    
-                    .dropdown-item {
-                        padding: 8px 16px 8px 12px; /* Gleiche Höhe wie Button */
-                        font-size: 12px;
-                    }
-                    
-                    .dropdown-item-icon {
-                        font-size: 14px;
-                        width: 16px;
-                        height: 16px;
-                    }
-                    
-                    .dropdown-button {
-                        min-width: 100px;
-                        padding: 10px 12px;
-                        font-size: 12px;
-                        font-family: inherit;
-                    }
-                    
-                    /* Button fade-out auch auf Mobile */
-                    .dropdown-button.open {
-                        opacity: 0;
-                        visibility: hidden;
-                    }
-
-                    .dropdown-item.active {
-                        opacity: 0;
-                        padding-left: 12px;
-                    }
-                }
-
-
-                .entity-header-row {
-                    display: flex;
-                    align-items: center;
-                    gap: 16px;
-                    margin-bottom: 20px;
-                }
-                
-                .entity-info {
-                    flex: 1; /* 50% */
-                }
-                
-                .replace-dropdown-container {
-                    flex: 1; /* 50% */
-                    display: flex;
-                    justify-content: flex-end;
-                }
-
-                @media (max-width: 768px) {
-                    .entity-header-row {
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        gap: 8px;
-                    }
-                    
-                    .entity-info {
-                        flex: 1;
-                        min-width: 0; /* Wichtig für Text-Overflow */
-                        overflow: hidden;
-                    }
-                    
-                    .entity-title-large {
-                        font-size: 16px;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
-                    }
-                    
-                    .entity-subtitle-large {
-                        font-size: 11px;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
-                        opacity: 0.8;
-                    }
-                    
-                    .replace-dropdown-container {
-                        flex: 0 0 auto; /* Feste Breite, kein wachsen/schrumpfen */
-                        margin-left: auto; /* Schiebt den Dropdown ganz nach rechts */
-                    }
-                    
-                    .dropdown-container {
-                        max-width: 130px;
-                    }
-                    
-                    .dropdown-button {
-                        min-width: 100px;
-                        padding: 8px 12px;
-                        font-size: 12px;
-                    }
-                }
-
                 
             </style>
             
@@ -3927,13 +3753,16 @@ class FastSearchCard extends HTMLElement {
         }, 500);
     }        
 
+
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
     
-        // Spezielle Behandlung für Media Player (mit Dropdown-System)
+        // Spezielle Behandlung für Media Player (mit allgemeinem Tab-System)
         if (item.type === 'media_player') {
             const albumSection = this.getAlbumArtSectionHTML(item);
-            const detailsSection = this.getReplaceTabDetailsSectionHTML(item);
+            const detailsSection = this.moreInfoConfig.layoutMode === 'tabs' 
+                ? this.getMediaPlayerTabDetailsSectionHTML(item)
+                : this.getAccordionDetailsSectionHTML(item);
             
             return `
                 <div class="replace-header">
@@ -3957,9 +3786,11 @@ class FastSearchCard extends HTMLElement {
             `;
         }
         
-        // Dropdown-Layout für alle anderen Geräte
+        // NEU: Layout-Mode für andere Geräte prüfen
         const iconSection = this.getIconSectionHTML(item);
-        const detailsSection = this.getReplaceTabDetailsSectionHTML(item);
+        const detailsSection = this.moreInfoConfig.layoutMode === 'tabs' 
+            ? this.getReplaceTabDetailsSectionHTML(item)
+            : this.getAccordionDetailsSectionHTML(item);
         
         return `
             <div class="replace-header">
@@ -3985,404 +3816,51 @@ class FastSearchCard extends HTMLElement {
         const history = this.getHistoryHTML(item);
         const shortcuts = this.getShortcutsHTML(item);
         
-
         return `
-            <div class="entity-header-row">
-                <div class="entity-info">
-                    <h2 class="entity-title-large">${item.name}</h2>
-                    <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
+            <div class="entity-info">
+                <h2 class="entity-title-large">${item.name}</h2>
+                <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
+            </div>
+            
+            <div class="replace-tabs-container">
+                <div class="replace-tabs">
+                    <button class="replace-tab active" data-replace-general-tab="controls">
+                        <span class="replace-tab-icon">${this.getControlIcon(item)}</span>
+                        <span>Steuerung</span>
+                    </button>
+                    <button class="replace-tab" data-replace-general-tab="details">
+                        <span class="replace-tab-icon">📊</span>
+                        <span>Details</span>
+                    </button>
+                    <button class="replace-tab" data-replace-general-tab="history">
+                        <span class="replace-tab-icon">📈</span>
+                        <span>Logbuch</span>
+                    </button>
+                    <button class="replace-tab" data-replace-general-tab="shortcuts">
+                        <span class="replace-tab-icon">⚡</span>
+                        <span>Aktionen</span>
+                    </button>
                 </div>
                 
-                <div class="replace-dropdown-container">
-                    <div class="dropdown-container">
-                        <button class="dropdown-button" id="replaceDropdownButton">
-                            <span>Steuerung</span>
-                            <span class="dropdown-icon">
-                                <svg viewBox="-4 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M17.0020846,16 L12,20.9980217 L6.99551,16 M6.99551,8 L12,3.00077787 L17.0020846,8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </span>
-                        </button>
-                        <div class="dropdown-menu" id="replaceDropdownMenu">
-                            <div class="dropdown-item active" data-replace-section="controls">
-                                <span class="dropdown-item-icon">${this.getControlIcon(item)}</span>
-                                <span>Steuerung</span>
-                            </div>
-                            ${item.type === 'media_player' ? `
-                                <div class="dropdown-item" data-replace-section="tts">
-                                    <span class="dropdown-item-icon">🗣️</span>
-                                    <span>Sprechen</span>
-                                </div>
-                                <div class="dropdown-item" data-replace-section="music">
-                                    <span class="dropdown-item-icon">🎵</span>
-                                    <span>Musik</span>
-                                </div>
-                            ` : ''}
-                            <div class="dropdown-item" data-replace-section="details">
-                                <span class="dropdown-item-icon">📊</span>
-                                <span>Details</span>
-                            </div>
-                            <div class="dropdown-item" data-replace-section="history">
-                                <span class="dropdown-item-icon">📈</span>
-                                <span>Logbuch</span>
-                            </div>
-                            <div class="dropdown-item" data-replace-section="shortcuts">
-                                <span class="dropdown-item-icon">⚡</span>
-                                <span>Aktionen</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="replace-section-content active" data-replace-content="controls">
-                ${controls}
-            </div>
-            
-            ${item.type === 'media_player' ? `
-                <div class="replace-section-content" data-replace-content="tts" style="display: none;">
-                    <h3 class="section-title">🗣️ Text-to-Speech</h3>
-                    ${this.getTTSHTML(item) || '<div class="ma-empty-state">TTS nicht verfügbar</div>'}
+                <div class="replace-tab-content active" data-replace-general-tab-content="controls">
+                    ${controls}
                 </div>
                 
-                <div class="replace-section-content" data-replace-content="music" style="display: none;">
-                    <h3 class="section-title">🎵 Musik Suche</h3>
-                    ${this.getMusicAssistantHTML(item)}
+                <div class="replace-tab-content" data-replace-general-tab-content="details">
+                    ${attributes}
                 </div>
-            ` : ''}
-            
-            <div class="replace-section-content" data-replace-content="details" style="display: none;">
-                ${attributes}
-            </div>
-            
-            <div class="replace-section-content" data-replace-content="history" style="display: none;">
-                ${history}
-            </div>
-            
-            <div class="replace-section-content" data-replace-content="shortcuts" style="display: none;">
-                ${shortcuts}
+                
+                <div class="replace-tab-content" data-replace-general-tab-content="history">
+                    ${history}
+                </div>
+                
+                <div class="replace-tab-content" data-replace-general-tab-content="shortcuts">
+                    ${shortcuts}
+                </div>
             </div>
         `;
     }
 
-
-
-    setupReplaceDropdown(item) {
-        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-        if (!replaceContainer) return;
-        
-        const dropdownButton = replaceContainer.querySelector('#replaceDropdownButton');
-        const dropdownMenu = replaceContainer.querySelector('#replaceDropdownMenu');
-        const dropdownItems = replaceContainer.querySelectorAll('.dropdown-item');
-        const sections = replaceContainer.querySelectorAll('[data-replace-content]');
-        
-        if (!dropdownButton || !dropdownMenu) return;
-        
-        let isDropdownOpen = false;
-        
-        // Füge Backdrop für Replace Mode hinzu
-        let backdrop = replaceContainer.querySelector('.popover-backdrop');
-        if (!backdrop) {
-            backdrop = document.createElement('div');
-            backdrop.className = 'popover-backdrop';
-            backdrop.id = 'replacePopoverBackdrop';
-            replaceContainer.insertBefore(backdrop, replaceContainer.firstChild);
-        }
-    
-        
-        // Öffne Popover mit verbesserter Animation
-        const openPopover = () => {
-            if (isDropdownOpen) return;
-            
-            isDropdownOpen = true;
-            
-            // Backdrop mit sanfter Animation aktivieren
-            backdrop.classList.add('open');
-            
-            // Button State mit Ripple-Effekt
-            dropdownButton.classList.add('open');
-            
-            // Position berechnen und setzen
-            const { top, left } = calculatePopoverPosition();
-            dropdownMenu.style.top = top + 'px';
-            dropdownMenu.style.left = left + 'px';
-            
-            // Menu mit Glassmorphismus-Animation öffnen
-            dropdownMenu.classList.add('open');
-            
-            // Reset aller Item-Animationen vor dem Öffnen
-            const items = dropdownMenu.querySelectorAll('.dropdown-item');
-            items.forEach(item => {
-                item.style.opacity = '0';
-                item.style.transform = 'translateY(-10px)';
-            });
-            
-            // Trigger reflow für smoother Animation
-            dropdownMenu.offsetHeight;
-            
-            // Staggered Animation für Items
-            setTimeout(() => {
-                items.forEach((item, index) => {
-                    setTimeout(() => {
-                        item.style.opacity = '1';
-                        item.style.transform = 'translateY(0)';
-                    }, index * 50); // 50ms delay zwischen Items
-                });
-            }, 100);
-            
-            // Focus Management für Accessibility
-            dropdownMenu.setAttribute('tabindex', '-1');
-            dropdownMenu.focus();
-        };
-        
-        // Schließe Popover mit verbesserter Animation
-        const closePopover = () => {
-            if (!isDropdownOpen) return;
-            
-            isDropdownOpen = false;
-            
-            // Items erst ausblenden (reverse stagger)
-            const items = dropdownMenu.querySelectorAll('.dropdown-item');
-            items.forEach((item, index) => {
-                setTimeout(() => {
-                    item.style.opacity = '0';
-                    item.style.transform = 'translateY(-10px)';
-                }, index * 20); // Schnelleres Ausblenden
-            });
-            
-            // Menu nach Item-Animation schließen
-            setTimeout(() => {
-                dropdownMenu.classList.remove('open');
-                
-                // Button State zurücksetzen
-                dropdownButton.classList.remove('open');
-                
-                // Backdrop nach Menu-Animation deaktivieren
-                setTimeout(() => {
-                    backdrop.classList.remove('open');
-                }, 200);
-            }, items.length * 20 + 100);
-        };
-        
-        // Verbesserte Berechnung der Popover Position
-        const calculatePopoverPosition = () => {
-            // Das Dropdown soll den Button überdecken
-            let top = 0;   // Exakt auf gleicher Höhe wie Button
-            let left = 0;  // Exakt auf gleicher Position wie Button       
-            
-            return { top, left };
-        };
-
-            
-        
-        // Verbesserte Hover-Effekte für Items
-        const enhanceItemInteractions = () => {
-            dropdownItems.forEach(item => {
-                // Maus Enter mit Micro-Animation
-                item.addEventListener('mouseenter', () => {
-                    if (!item.classList.contains('active')) {
-                        item.style.transition = 'all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)';
-                    }
-                });
-                
-                // Maus Leave zurücksetzen
-                item.addEventListener('mouseleave', () => {
-                    if (!item.classList.contains('active')) {
-                    }
-                });
-                
-                // Click mit sanfter Feedback-Animation
-                item.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    
-                    // Ripple-Effect für clicked item
-                    const ripple = document.createElement('div');
-                    ripple.style.cssText = `
-                        position: absolute;
-                        border-radius: 50%;
-                        background: rgba(255, 255, 255, 0.4);
-                        transform: scale(0);
-                        animation: ripple 0.6s linear;
-                        pointer-events: none;
-                    `;
-                    
-                    const rect = item.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    ripple.style.width = ripple.style.height = size + 'px';
-                    ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
-                    ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
-                    
-                    item.style.position = 'relative';
-                    item.appendChild(ripple);
-                    
-                    // Ripple nach Animation entfernen
-                    setTimeout(() => {
-                        if (ripple.parentNode) {
-                            ripple.parentNode.removeChild(ripple);
-                        }
-                    }, 600);
-                    
-                    // Originale Click-Logik fortsetzen...
-                    const targetSection = item.getAttribute('data-replace-section');
-                    console.log('Selected section:', targetSection); // Debug-Log
-                    
-                    // Section-Namen anpassen für korrekte Selektoren
-                    let contentSelector;
-                    switch(targetSection) {
-                        case 'controls':
-                            contentSelector = 'controls';
-                            break;
-                        case 'details':
-                            contentSelector = 'details';
-                            break;
-                        case 'history':
-                            contentSelector = 'history';
-                            break;
-                        case 'shortcuts':
-                            contentSelector = 'shortcuts';
-                            break;
-                        case 'tts':
-                            contentSelector = 'tts';
-                            break;
-                        case 'music':
-                            contentSelector = 'music';
-                            break;
-                        default:
-                            contentSelector = targetSection;
-                    }
-
-                    // Text vom Dropdown-Item holen (nicht vom Icon)
-                    const textSpan = item.querySelector('span:not(.dropdown-item-icon)');
-                    const sectionText = textSpan ? textSpan.textContent : 'Unbekannt';
-                    
-                    // Update active state mit sanfter Animation
-                    dropdownItems.forEach(i => {
-                        i.classList.remove('active');
-                        i.style.transform = 'translateY(0) translateX(0)';
-                    });
-                    item.classList.add('active');
-                    
-                    // Button text update mit Fade-Effekt
-                    const buttonText = dropdownButton.querySelector('span:first-child');
-                    buttonText.style.opacity = '0';
-                    setTimeout(() => {
-                        buttonText.textContent = sectionText;
-                        buttonText.style.opacity = '1';
-                    }, 150);
-                    
-                    // Hide all sections
-                    sections.forEach(section => {
-                        section.style.display = 'none';
-                        section.classList.remove('active');
-                    });
-                    
-                    // Show selected section
-                    const targetSectionElement = replaceContainer.querySelector(`[data-replace-content="${contentSelector}"]`);
-                    if (targetSectionElement) {
-                        targetSectionElement.style.display = 'block';
-                        targetSectionElement.classList.add('active');
-                        
-                        // Spezielle Initialisierung
-                        if (targetSection === 'tts' && item.type === 'media_player') {
-                            setTimeout(() => this.setupTTSEventListeners(item), 150);
-                        } else if (targetSection === 'music' && item.type === 'media_player') {
-                            setTimeout(() => this.setupMusicAssistantEventListeners(item), 150);
-                        } else if (targetSection === 'history') {
-                            this.loadRealLogEntries(item);
-                        } else if (targetSection === 'shortcuts') {
-                            // Shortcuts Event Listeners setup
-                            setTimeout(() => this.setupShortcutEventListeners(item), 150);
-                        }                       
-                    }
-                    
-                    // Popover schließen
-                    closePopover();
-                });
-            });
-        };
-        
-        // CSS Animation für Ripple-Effekt hinzufügen
-        const addRippleStyles = () => {
-            if (!document.querySelector('#dropdown-ripple-styles')) {
-                const style = document.createElement('style');
-                style.id = 'dropdown-ripple-styles';
-                style.textContent = `
-                    @keyframes ripple {
-                        to {
-                            transform: scale(4);
-                            opacity: 0;
-                        }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-        };
-        
-        // Initialisierung aufrufen
-        addRippleStyles();
-        enhanceItemInteractions();
-
-
-        
-
-
-
-
-        // Toggle Dropdown
-                dropdownButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    
-                    if (isDropdownOpen) {
-                        closePopover();
-                    } else {
-                        openPopover();
-                    }
-                });
-                
-                // Backdrop Click - Schließen
-                backdrop.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    closePopover();
-                });
-                
-                // Outside Click - Schließen
-                document.addEventListener('click', (e) => {
-                    if (!dropdownButton.contains(e.target) && 
-                        !dropdownMenu.contains(e.target) && 
-                        isDropdownOpen) {
-                        closePopover();
-                    }
-                });
-                
-                // ESC Key - Schließen
-                const escapeHandler = (e) => {
-                    if (e.key === 'Escape' && isDropdownOpen) {
-                        closePopover();
-                        dropdownButton.focus();
-                    }
-                };
-                document.addEventListener('keydown', escapeHandler);
-                
-                // Window Resize - Position neu berechnen
-                const resizeHandler = () => {
-                    if (isDropdownOpen) {
-                        const { top, left } = calculatePopoverPosition();
-                        dropdownMenu.style.top = top + 'px';
-                        dropdownMenu.style.left = left + 'px';
-                    }
-                };
-                window.addEventListener('resize', resizeHandler);
-                
-                // Cleanup beim Verlassen des Replace Modes
-                replaceContainer.addEventListener('remove', () => {
-                    document.removeEventListener('keydown', escapeHandler);
-                    window.removeEventListener('resize', resizeHandler);
-                });        
-    }        
-
-
-
-    
 
     // NEUE Methode für Media Player Tab-Layout
     getMediaPlayerTabDetailsSectionHTML(item) {
@@ -5508,22 +4986,78 @@ class FastSearchCard extends HTMLElement {
         
 
             setupReplaceEventListeners(item) {
-                // Replace-Mode Dropdown
-                this.setupReplaceDropdown(item);         
-                
                 // Back Button
                 const backButton = this.shadowRoot.getElementById('backToSearch');
                 backButton.addEventListener('click', () => this.switchBackToSearch());
+                
+                // NEU: General Tab System für ALLE Geräte (inklusive Media Player)
+                if (this.moreInfoConfig.layoutMode === 'tabs') {
+                    this.setupReplaceGeneralTabs(item);
+                }
                 
                 // Album Art Updates nur für Media Player
                 if (item.type === 'media_player') {
                     this.setupAlbumArtUpdates(item);
                 }                
                 
+                // Accordion Headers (nur wenn NICHT Tab-Mode)
+                if (this.moreInfoConfig.layoutMode !== 'tabs') {
+                    const accordionHeaders = this.shadowRoot.querySelectorAll('.more-info-replace .accordion-header');
+                    accordionHeaders.forEach(header => {
+                        header.addEventListener('click', (e) => {
+                            this.toggleAccordion(header);
+                        });
+                    });
+                }
+                
                 // Restliche Event Listeners
                 this.setupRemainingReplaceEventListeners(item);
             }
 
+
+            // NEUE Methode für Replace-Mode General Tab-System
+            setupReplaceGeneralTabs(item) {
+                const tabs = this.shadowRoot.querySelectorAll('.replace-tab');
+                const contents = this.shadowRoot.querySelectorAll('.replace-tab-content');
+                
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const targetTab = tab.getAttribute('data-replace-general-tab');
+                        
+                        // Alle Tabs deaktivieren
+                        tabs.forEach(t => t.classList.remove('active'));
+                        contents.forEach(c => c.classList.remove('active'));
+                        
+                        // Aktiven Tab aktivieren
+                        tab.classList.add('active');
+                        const targetContent = this.shadowRoot.querySelector(`[data-replace-general-tab-content="${targetTab}"]`);
+                        if (targetContent) {
+                            targetContent.classList.add('active');
+                            
+                            // Spezielle Initialisierung für verschiedene Tabs
+                            if (targetTab === 'history') {
+                                // Logbook neu laden wenn Tab aktiviert wird
+                                this.loadRealLogEntries(item);
+                            }
+                            
+                            // Media Player spezifische Tab-Initialisierung
+                            if (item.type === 'media_player') {
+                                if (targetTab === 'music' && this.checkMusicAssistantAvailability()) {
+                                    setTimeout(() => {
+                                        this.setupMusicAssistantEventListeners(item);
+                                    }, 150);
+                                }
+                                
+                                if (targetTab === 'tts') {
+                                    setTimeout(() => {
+                                        this.setupTTSEventListeners(item);
+                                    }, 150);
+                                }
+                            }
+                        }
+                    });
+                });
+            }
             
             // Event Listeners in separater Methode für bessere Übersicht
             setupRemainingReplaceEventListeners(item) {
@@ -6635,21 +6169,7 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
-    
-    setupShortcutEventListeners(item) {
-        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-        if (!replaceContainer) return;
-        
-        // Shortcut Buttons
-        const shortcutButtons = replaceContainer.querySelectorAll('[data-shortcut-action]');
-        shortcutButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const actionType = button.getAttribute('data-shortcut-action');
-                const actionId = button.getAttribute('data-shortcut-id');
-                this.executeShortcutAction(actionType, actionId, button);
-            });
-        });
-    }        
+
     
     toggleAccordion(header) {
             const item = header.parentElement;
@@ -8879,14 +8399,10 @@ getQuickStats(item) {
         `;
     }
 
-
     getDropdownLayoutHTML(item, stateInfo, controls, attributes, history, shortcuts) {
         const typeDisplayName = this.getTypeDisplayName(item);
         
         return `
-            <!-- Popover Backdrop -->
-            <div class="popover-backdrop" id="popoverBackdrop"></div>
-            
             <div class="more-info-header">
                 <div class="entity-info-section">
                     <div class="more-info-icon">${item.icon}</div>
@@ -8899,11 +8415,7 @@ getQuickStats(item) {
                 <div class="dropdown-container">
                     <button class="dropdown-button" id="moreInfoDropdownButton">
                         <span>Steuerung</span>
-                        <span class="dropdown-icon">
-                            <svg viewBox="-4 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.0020846,16 L12,20.9980217 L6.99551,16 M6.99551,8 L12,3.00077787 L17.0020846,8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </span>
+                        <span class="dropdown-icon">▼</span>
                     </button>
                     <div class="dropdown-menu" id="moreInfoDropdownMenu">
                         <div class="dropdown-item active" data-more-info-section="controls">
@@ -8972,7 +8484,7 @@ getQuickStats(item) {
                 </div>
             </div>
         `;
-    }        
+    }    
 
 
     getMusicAssistantHTML(item) {
@@ -9569,92 +9081,35 @@ getQuickStats(item) {
         }
     }
 
-
     setupMoreInfoDropdown(overlay, item) {
         const dropdownButton = overlay.querySelector('#moreInfoDropdownButton');
         const dropdownMenu = overlay.querySelector('#moreInfoDropdownMenu');
         const dropdownItems = overlay.querySelectorAll('.dropdown-item');
         const sections = overlay.querySelectorAll('[data-more-info-content]');
-        const backdrop = overlay.querySelector('#popoverBackdrop');
         
-        if (!dropdownButton || !dropdownMenu || !backdrop) return;
+        if (!dropdownButton || !dropdownMenu) return;
         
         let isDropdownOpen = false;
-        
-        
-        // Öffne Popover
-        const openPopover = () => {
-            if (isDropdownOpen) return;
-            
-            isDropdownOpen = true;
-            
-            // Backdrop aktivieren
-            backdrop.classList.add('open');
-            
-            // Button State
-            dropdownButton.classList.add('open');
-            
-            // Position berechnen und setzen
-            const { top, left } = calculatePopoverPosition();
-            dropdownMenu.style.top = top + 'px';
-            dropdownMenu.style.left = left + 'px';
-            
-            // Menu öffnen
-            dropdownMenu.classList.add('open');
-            
-            // Focus Management
-            dropdownMenu.focus();
-        };
-        
-        // Schließe Popover
-        const closePopover = () => {
-            if (!isDropdownOpen) return;
-            
-            isDropdownOpen = false;
-            
-            // Backdrop deaktivieren
-            backdrop.classList.remove('open');
-            
-            // Button State
-            dropdownButton.classList.remove('open');
-            
-            // Menu schließen
-            dropdownMenu.classList.remove('open');
-        };
         
         // Toggle Dropdown
         dropdownButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            
-            if (isDropdownOpen) {
-                closePopover();
-            } else {
-                openPopover();
-            }
+            isDropdownOpen = !isDropdownOpen;
+            dropdownButton.classList.toggle('open', isDropdownOpen);
+            dropdownMenu.classList.toggle('open', isDropdownOpen);
         });
         
-        // Backdrop Click - Schließen
-        backdrop.addEventListener('click', (e) => {
-            e.stopPropagation();
-            closePopover();
-        });
-        
-        // Outside Click - Schließen
-        document.addEventListener('click', (e) => {
-            if (!dropdownButton.contains(e.target) && 
-                !dropdownMenu.contains(e.target) && 
-                isDropdownOpen) {
-                closePopover();
+        // Close dropdown when clicking outside
+        const closeDropdown = (e) => {
+            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                isDropdownOpen = false;
+                dropdownButton.classList.remove('open');
+                dropdownMenu.classList.remove('open');
             }
-        });
+        };
         
-        // ESC Key - Schließen
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isDropdownOpen) {
-                closePopover();
-                dropdownButton.focus();
-            }
-        });
+        document.addEventListener('click', closeDropdown);
+        overlay.addEventListener('click', closeDropdown);
         
         // Dropdown Item Selection
         dropdownItems.forEach(dropdownItem => {
@@ -9704,29 +9159,13 @@ getQuickStats(item) {
                     }
                 }
                 
-                // Popover schließen
-                closePopover();
-            });
-            
-            // Hover Effekte für bessere UX
-            dropdownItem.addEventListener('mouseenter', () => {
-                dropdownItem.style.transform = 'translateX(2px)';
-            });
-            
-            dropdownItem.addEventListener('mouseleave', () => {
-                dropdownItem.style.transform = 'translateX(0)';
+                // Close dropdown
+                isDropdownOpen = false;
+                dropdownButton.classList.remove('open');
+                dropdownMenu.classList.remove('open');
             });
         });
-        
-        // Window Resize - Position neu berechnen
-        window.addEventListener('resize', () => {
-            if (isDropdownOpen) {
-                const { top, left } = calculatePopoverPosition();
-                dropdownMenu.style.top = top + 'px';
-                dropdownMenu.style.left = left + 'px';
-            }
-        });
-    }        
+    }
     
 
     closeMoreInfo() {
