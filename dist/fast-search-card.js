@@ -4221,7 +4221,10 @@ class FastSearchCard extends HTMLElement {
                         default:
                             contentSelector = targetSection;
                     }
-                    const sectionText = item.querySelector('span:last-child').textContent;
+
+                    // Text vom Dropdown-Item holen (nicht vom Icon)
+                    const textSpan = item.querySelector('span:not(.dropdown-item-icon)');
+                    const sectionText = textSpan ? textSpan.textContent : 'Unbekannt';
                     
                     // Update active state mit sanfter Animation
                     dropdownItems.forEach(i => {
