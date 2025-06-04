@@ -3407,9 +3407,7 @@ class FastSearchCard extends HTMLElement {
                 /* Glassmorphismus Popover Container */
                 .dropdown-menu {
                     position: absolute;
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(30px);
-                    -webkit-backdrop-filter: blur(30px);
+                    background: rgba(0, 0, 0, 0.15);
                     border: 0px solid rgba(255, 255, 255, 0.2);
                     border-radius: 16px;
                     min-width: 200px;
@@ -3420,7 +3418,7 @@ class FastSearchCard extends HTMLElement {
                     transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
                     z-index: 1000;
                     overflow: hidden;
-                    padding: 8px;
+                    padding: 0px;
                 }
                 
                 .dropdown-menu.open {
@@ -3455,10 +3453,6 @@ class FastSearchCard extends HTMLElement {
                 .dropdown-item:hover {
                     background: rgba(255, 255, 255, 0.15);
                     color: white;
-                    transform: translateY(-10px) translateX(4px);
-                    box-shadow: 
-                        0 4px 15px rgba(255, 255, 255, 0.1),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.2);
                 }
                 
                 .dropdown-item.active {
