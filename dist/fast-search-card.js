@@ -3923,91 +3923,82 @@ class FastSearchCard extends HTMLElement {
         const history = this.getHistoryHTML(item);
         const shortcuts = this.getShortcutsHTML(item);
         
+
         return `
-
-
             <div class="entity-header-row">
-                <div class="entity-header-row">
-                    <div class="entity-info">
-                        <h2 class="entity-title-large">${item.name}</h2>
-                        <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
-                    </div>
-                    
-                    <div class="replace-dropdown-container">
-                        <div class="dropdown-container">
-                            <!-- Dropdown HTML bleibt hier -->
-                        </div>
-                    </div>
+                <div class="entity-info">
+                    <h2 class="entity-title-large">${item.name}</h2>
+                    <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
                 </div>
                 
                 <div class="replace-dropdown-container">
                     <div class="dropdown-container">
-            </div>                    
-            
-            <div class="replace-dropdown-container">
-                <div class="dropdown-container">
-                    <button class="dropdown-button" id="replaceDropdownButton">
-                        <span>Steuerung</span>
-                        <span class="dropdown-icon">▼</span>
-                        
-                    </button>
-                    <div class="dropdown-menu" id="replaceDropdownMenu">
-                        <div class="dropdown-item active" data-replace-section="controls">
-                            <span class="dropdown-item-icon">${this.getControlIcon(item)}</span>
+                        <button class="dropdown-button" id="replaceDropdownButton">
                             <span>Steuerung</span>
-                        </div>
-                        ${item.type === 'media_player' ? `
-                            <div class="dropdown-item" data-replace-section="tts">
-                                <span class="dropdown-item-icon">🗣️</span>
-                                <span>Sprechen</span>
+                            <span class="dropdown-icon">
+                                <svg viewBox="-4 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M17.0020846,16 L12,20.9980217 L6.99551,16 M6.99551,8 L12,3.00077787 L17.0020846,8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="dropdown-menu" id="replaceDropdownMenu">
+                            <div class="dropdown-item active" data-replace-section="controls">
+                                <span class="dropdown-item-icon">${this.getControlIcon(item)}</span>
+                                <span>Steuerung</span>
                             </div>
-                            <div class="dropdown-item" data-replace-section="music">
-                                <span class="dropdown-item-icon">🎵</span>
-                                <span>Musik</span>
+                            ${item.type === 'media_player' ? `
+                                <div class="dropdown-item" data-replace-section="tts">
+                                    <span class="dropdown-item-icon">🗣️</span>
+                                    <span>Sprechen</span>
+                                </div>
+                                <div class="dropdown-item" data-replace-section="music">
+                                    <span class="dropdown-item-icon">🎵</span>
+                                    <span>Musik</span>
+                                </div>
+                            ` : ''}
+                            <div class="dropdown-item" data-replace-section="details">
+                                <span class="dropdown-item-icon">📊</span>
+                                <span>Details</span>
                             </div>
-                        ` : ''}
-                        <div class="dropdown-item" data-replace-section="details">
-                            <span class="dropdown-item-icon">📊</span>
-                            <span>Details</span>
-                        </div>
-                        <div class="dropdown-item" data-replace-section="history">
-                            <span class="dropdown-item-icon">📈</span>
-                            <span>Logbuch</span>
-                        </div>
-                        <div class="dropdown-item" data-replace-section="shortcuts">
-                            <span class="dropdown-item-icon">⚡</span>
-                            <span>Aktionen</span>
+                            <div class="dropdown-item" data-replace-section="history">
+                                <span class="dropdown-item-icon">📈</span>
+                                <span>Logbuch</span>
+                            </div>
+                            <div class="dropdown-item" data-replace-section="shortcuts">
+                                <span class="dropdown-item-icon">⚡</span>
+                                <span>Aktionen</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="replace-section-content active" data-replace-content="controls">
-                    ${controls}
+            </div>
+            
+            <div class="replace-section-content active" data-replace-content="controls">
+                ${controls}
+            </div>
+            
+            ${item.type === 'media_player' ? `
+                <div class="replace-section-content" data-replace-content="tts" style="display: none;">
+                    <h3 class="section-title">🗣️ Text-to-Speech</h3>
+                    ${this.getTTSHTML(item) || '<div class="ma-empty-state">TTS nicht verfügbar</div>'}
                 </div>
                 
-                ${item.type === 'media_player' ? `
-                    <div class="replace-section-content" data-replace-content="tts" style="display: none;">
-                        <h3 class="section-title">🗣️ Text-to-Speech</h3>
-                        ${this.getTTSHTML(item) || '<div class="ma-empty-state">TTS nicht verfügbar</div>'}
-                    </div>
-                    
-                    <div class="replace-section-content" data-replace-content="music" style="display: none;">
-                        <h3 class="section-title">🎵 Musik Suche</h3>
-                        ${this.getMusicAssistantHTML(item)}
-                    </div>
-                ` : ''}
-                
-                <div class="replace-section-content" data-replace-content="details" style="display: none;">
-                    ${attributes}
+                <div class="replace-section-content" data-replace-content="music" style="display: none;">
+                    <h3 class="section-title">🎵 Musik Suche</h3>
+                    ${this.getMusicAssistantHTML(item)}
                 </div>
-                
-                <div class="replace-section-content" data-replace-content="history" style="display: none;">
-                    ${history}
-                </div>
-                
-                <div class="replace-section-content" data-replace-content="shortcuts" style="display: none;">
-                    ${shortcuts}
-                </div>
+            ` : ''}
+            
+            <div class="replace-section-content" data-replace-content="details" style="display: none;">
+                ${attributes}
+            </div>
+            
+            <div class="replace-section-content" data-replace-content="history" style="display: none;">
+                ${history}
+            </div>
+            
+            <div class="replace-section-content" data-replace-content="shortcuts" style="display: none;">
+                ${shortcuts}
             </div>
         `;
     }
