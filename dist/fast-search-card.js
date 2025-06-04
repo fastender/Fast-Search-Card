@@ -3421,7 +3421,7 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Glassmorphismus Popover Container */
                 .dropdown-menu {
-                    position: fixed;
+                    position: absolute;
                     background: rgba(255, 255, 255, 0.1);
                     backdrop-filter: blur(30px);
                     -webkit-backdrop-filter: blur(30px);
@@ -4097,36 +4097,9 @@ class FastSearchCard extends HTMLElement {
         
         // Verbesserte Berechnung der Popover Position
         const calculatePopoverPosition = () => {
-            const buttonRect = dropdownButton.getBoundingClientRect();
-            const menuWidth = 220;
-            const menuHeight = 300;
-            const viewport = {
-                width: window.innerWidth,
-                height: window.innerHeight
-            };
-
-            // Position: direkt über dem Button (1:1 Überlagerung)
-            let top = buttonRect.top;
-            let left = buttonRect.left;            
-            
-            // Rechter Rand-Schutz
-            if (left + menuWidth > viewport.width - 16) {
-                left = buttonRect.right - menuWidth; // Rechtsbündig wenn zu weit rechts
-            }
-            
-            // Vertikaler Überlauf-Schutz
-            if (top + menuHeight > viewport.height - 16) {
-                top = buttonRect.bottom - menuHeight; // Über dem Button wenn zu wenig Platz unten
-                
-                // Falls auch über dem Button kein Platz
-                if (top < 16) {
-                    top = 16; // Mindestabstand vom oberen Rand
-                    // Menu-Höhe begrenzen wenn nötig
-                    const maxHeight = viewport.height - top - 16;
-                    dropdownMenu.style.maxHeight = maxHeight + 'px';
-                    dropdownMenu.style.overflowY = 'auto';
-                }
-            }
+            // Bei position: absolute - relative Position zum Button
+            let top = 0;  // Direkt über dem Button
+            let left = 0; // Gleiche linke Position       
             
             return { top, left };
         };
