@@ -4147,7 +4147,6 @@ class FastSearchCard extends HTMLElement {
                 // Maus Enter mit Micro-Animation
                 item.addEventListener('mouseenter', () => {
                     if (!item.classList.contains('active')) {
-                        item.style.transform = 'translateY(0) translateX(4px)';
                         item.style.transition = 'all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)';
                     }
                 });
@@ -4155,7 +4154,6 @@ class FastSearchCard extends HTMLElement {
                 // Maus Leave zurücksetzen
                 item.addEventListener('mouseleave', () => {
                     if (!item.classList.contains('active')) {
-                        item.style.transform = 'translateY(0) translateX(0)';
                     }
                 });
                 
