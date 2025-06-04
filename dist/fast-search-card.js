@@ -3339,7 +3339,8 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Dropdown Container */
                 .dropdown-container {
-                    position: relative;
+                    z-index: 1001 !important;
+                    position: relative !important;
                     flex-shrink: 0;
                     width: 100%;
                     max-width: 200px;                    
@@ -3360,7 +3361,8 @@ class FastSearchCard extends HTMLElement {
                     gap: 8px;
                     min-width: 200px;
                     justify-content: space-between;
-                    position: relative;
+                    z-index: 1002 !important;
+                    position: relative !important;
                 }
                 
                 .dropdown-button:hover {
@@ -3635,6 +3637,52 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     justify-content: flex-end;
                 }
+
+                @media (max-width: 768px) {
+                    .entity-header-row {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 8px;
+                    }
+                    
+                    .entity-info {
+                        flex: 1;
+                        min-width: 0; /* Wichtig für Text-Overflow */
+                        overflow: hidden;
+                    }
+                    
+                    .entity-title-large {
+                        font-size: 16px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                    
+                    .entity-subtitle-large {
+                        font-size: 11px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        opacity: 0.8;
+                    }
+                    
+                    .replace-dropdown-container {
+                        flex: 0 0 auto; /* Feste Breite, kein wachsen/schrumpfen */
+                        margin-left: auto; /* Schiebt den Dropdown ganz nach rechts */
+                    }
+                    
+                    .dropdown-container {
+                        max-width: 130px;
+                    }
+                    
+                    .dropdown-button {
+                        min-width: 100px;
+                        padding: 8px 12px;
+                        font-size: 12px;
+                    }
+                }
+
                 
             </style>
             
