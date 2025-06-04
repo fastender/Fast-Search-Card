@@ -3927,9 +3927,17 @@ class FastSearchCard extends HTMLElement {
 
 
             <div class="entity-header-row">
-                <div class="entity-info">
-                    <h2 class="entity-title-large">${item.name}</h2>
-                    <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
+                <div class="entity-header-row">
+                    <div class="entity-info">
+                        <h2 class="entity-title-large">${item.name}</h2>
+                        <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
+                    </div>
+                    
+                    <div class="replace-dropdown-container">
+                        <div class="dropdown-container">
+                            <!-- Dropdown HTML bleibt hier -->
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="replace-dropdown-container">
