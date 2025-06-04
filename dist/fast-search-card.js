@@ -3402,42 +3402,12 @@ class FastSearchCard extends HTMLElement {
                     z-index: 1001;
                 }
                 
-                /* Neues statisches Icon */
+
+                /* Einfaches statisches Icon */
                 .dropdown-icon {
-                    position: relative;
-                    width: 16px;
-                    height: 16px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .dropdown-icon::before,
-                .dropdown-icon::after {
-                    content: '';
-                    position: absolute;
-                    width: 8px;
-                    height: 4px;
-                }
-                
-                /* Oberer Chevron (nach oben zeigend) */
-                .dropdown-icon::before {
-                    top: 2px;
-                    left: 4px;
-                    border-left: 1.5px solid rgba(255, 255, 255, 0.9);
-                    border-bottom: 1.5px solid rgba(255, 255, 255, 0.9);
-                    transform: rotate(135deg);
-                    border-radius: 0 0 0 1px;
-                }
-                
-                /* Unterer Chevron (nach unten zeigend) */
-                .dropdown-icon::after {
-                    bottom: 2px;
-                    left: 4px;
-                    border-left: 1.5px solid rgba(255, 255, 255, 0.9);
-                    border-top: 1.5px solid rgba(255, 255, 255, 0.9);
-                    transform: rotate(-135deg);
-                    border-radius: 1px 0 0 0;
+                    font-size: 14px;
+                    color: rgba(255, 255, 255, 0.9);
+                    user-select: none;
                 }
 
 
@@ -3878,7 +3848,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="dropdown-container">
                     <button class="dropdown-button" id="replaceDropdownButton">
                         <span>Steuerung</span>
-                        <div class="dropdown-icon"></div>
+                        <div class="dropdown-icon">⚙️</div>
                     </button>
                     <div class="dropdown-menu" id="replaceDropdownMenu">
                         <div class="dropdown-item active" data-replace-section="controls">
@@ -8632,7 +8602,7 @@ getQuickStats(item) {
                 <div class="dropdown-container">
                     <button class="dropdown-button" id="moreInfoDropdownButton">
                         <span>Steuerung</span>
-                        <span class="dropdown-icon"></span>
+                        <span class="dropdown-icon">⚙️</span>
                     </button>
                     <div class="dropdown-menu" id="moreInfoDropdownMenu">
                         <div class="dropdown-item active" data-more-info-section="controls">
