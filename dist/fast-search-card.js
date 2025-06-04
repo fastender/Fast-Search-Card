@@ -4023,31 +4023,7 @@ class FastSearchCard extends HTMLElement {
             backdrop.id = 'replacePopoverBackdrop';
             replaceContainer.insertBefore(backdrop, replaceContainer.firstChild);
         }
-        
-        // Berechne Popover Position
-        const calculatePopoverPosition = () => {
-            const buttonRect = dropdownButton.getBoundingClientRect();
-            const menuRect = dropdownMenu.getBoundingClientRect();
-            const viewport = {
-                width: window.innerWidth,
-                height: window.innerHeight
-            };
-            
-            // Standard Position: unter dem Button, rechts ausgerichtet
-            let top = buttonRect.bottom + 8;
-            let left = buttonRect.right - menuRect.width;
-            
-            // Überlauf-Schutz
-            if (left < 16) {
-                left = buttonRect.left; // Links ausrichten wenn zu weit rechts
-            }
-            
-            if (top + menuRect.height > viewport.height - 16) {
-                top = buttonRect.top - menuRect.height - 8; // Über dem Button wenn zu weit unten
-            }
-            
-            return { top, left };
-        };
+    
         
         // Öffne Popover mit verbesserter Animation
         const openPopover = () => {
@@ -8848,7 +8824,11 @@ getQuickStats(item) {
                 <div class="dropdown-container">
                     <button class="dropdown-button" id="moreInfoDropdownButton">
                         <span>Steuerung</span>
-                        <span class="dropdown-icon">▼</span>
+                        <span class="dropdown-icon">
+                            <svg viewBox="-4 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17.0020846,16 L12,20.9980217 L6.99551,16 M6.99551,8 L12,3.00077787 L17.0020846,8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
                     </button>
                     <div class="dropdown-menu" id="moreInfoDropdownMenu">
                         <div class="dropdown-item active" data-more-info-section="controls">
