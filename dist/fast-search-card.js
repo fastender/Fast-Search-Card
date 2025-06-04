@@ -2922,10 +2922,6 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Mobile Responsive */
                 @media (max-width: 768px) {
-
-                    .entity-info {
-                        display: none;
-                    }
                 
                     .replace-content.media-player {
                         flex-direction: column;
@@ -3345,16 +3341,16 @@ class FastSearchCard extends HTMLElement {
                 .dropdown-container {
                     position: relative;
                     flex-shrink: 0;
+                    width: 100%;
+                    max-width: 200px;                    
                 }
                 
                 .dropdown-button {
-                    background: rgba(255, 255, 255, 0.15);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 12px;
+                    background: rgba(0, 0, 0, 0.15);
+                    border: 0px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 20px;
                     color: white;
-                    padding: 12px 16px;
+                    padding: 16px 20px 16px 20px;
                     font-size: 14px;
                     font-weight: 500;
                     cursor: pointer;
@@ -3362,31 +3358,19 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     align-items: center;
                     gap: 8px;
-                    min-width: 140px;
+                    min-width: 200px;
                     justify-content: space-between;
                     position: relative;
-                    box-shadow: 
-                        0 4px 12px rgba(0, 0, 0, 0.1),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.2);
                 }
                 
                 .dropdown-button:hover {
-                    background: rgba(255, 255, 255, 0.25);
-                    transform: translateY(-2px);
-                    box-shadow: 
-                        0 8px 25px rgba(0, 0, 0, 0.15),
-                        0 0 20px rgba(255, 255, 255, 0.1),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.3);
+                    background: rgba(0, 0, 0, 0.25);
                 }
                 
                 .dropdown-button.open {
-                    background: rgba(255, 255, 255, 0.3);
+                    background: rgba(0, 0, 0, 0.25);
                     transform: translateY(-2px);
-                    box-shadow: 
-                        0 8px 25px rgba(0, 0, 0, 0.2),
-                        0 0 30px rgba(255, 255, 255, 0.15),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.4);
-                    z-index: 1001;
+                    z-index: 999;
                 }
                 
                 .dropdown-icon {
@@ -3411,8 +3395,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .dropdown-button.open .dropdown-icon {
-                    transform: rotate(180deg);
-                    opacity: 1;
+                    opacity: 0;  /* Button unsichtbar wenn offen */
                 }
                 
                 .dropdown-button.open .dropdown-icon svg {
@@ -3425,20 +3408,15 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(255, 255, 255, 0.1);
                     backdrop-filter: blur(30px);
                     -webkit-backdrop-filter: blur(30px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border: 0px solid rgba(255, 255, 255, 0.2);
                     border-radius: 16px;
-                    min-width: 220px;
-                    max-width: 300px;
+                    min-width: 200px;
+                    max-width: 200px;
                     opacity: 0;
                     visibility: hidden;
                     transform: scale(0.9) translateY(-20px);
                     transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
                     z-index: 1000;
-                    box-shadow: 
-                        0 20px 60px rgba(0, 0, 0, 0.25),
-                        0 8px 25px rgba(0, 0, 0, 0.15),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.3),
-                        0 0 0 1px rgba(255, 255, 255, 0.1);
                     overflow: hidden;
                     padding: 8px;
                 }
@@ -3522,6 +3500,12 @@ class FastSearchCard extends HTMLElement {
                     opacity: 1;
                     transform: scale(1.05);
                 }
+
+                .replace-dropdown-container .dropdown-item-icon {
+                    display: none;
+                }
+
+                
                 
                 /* Staggered Animation für Items */
                 .dropdown-menu.open .dropdown-item {
@@ -3634,6 +3618,23 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
+
+                .entity-header-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    margin-bottom: 20px;
+                }
+                
+                .entity-info {
+                    flex: 1; /* 50% */
+                }
+                
+                .replace-dropdown-container {
+                    flex: 1; /* 50% */
+                    display: flex;
+                    justify-content: flex-end;
+                }
                 
             </style>
             
@@ -3923,10 +3924,17 @@ class FastSearchCard extends HTMLElement {
         const shortcuts = this.getShortcutsHTML(item);
         
         return `
-            <div class="entity-info">
-                <h2 class="entity-title-large">${item.name}</h2>
-                <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
-            </div>
+
+
+            <div class="entity-header-row">
+                <div class="entity-info">
+                    <h2 class="entity-title-large">${item.name}</h2>
+                    <p class="entity-subtitle-large">${typeDisplayName} • ${item.room} • ${item.id}</p>
+                </div>
+                
+                <div class="replace-dropdown-container">
+                    <div class="dropdown-container">
+            </div>                    
             
             <div class="replace-dropdown-container">
                 <div class="dropdown-container">
