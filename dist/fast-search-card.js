@@ -3630,7 +3630,7 @@ class FastSearchCard extends HTMLElement {
 
                     .dropdown-item.active {
                         opacity: 0;
-                        padding-left: 0px;
+                        padding-left: 12px;
                     }
                 }
 
