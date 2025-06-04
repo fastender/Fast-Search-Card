@@ -3473,17 +3473,12 @@ class FastSearchCard extends HTMLElement {
                     color: white;
                     font-weight: 600;
                     transform: translateX(0);
+                    justify-content: flex-start;
+                    padding-left: 20px;
                 }
                 
                 .dropdown-item.active::after {
-                    content: '';
-                    position: absolute;
-                    right: 20px;
-                    width: 6px;
-                    height: 6px;
-                    background: white;
-                    border-radius: 50%;
-                    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+                    display: none;
                 }
 
                 
@@ -3500,8 +3495,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .dropdown-item.active .dropdown-item-icon {
-                    opacity: 1;
-                    width: 0;
+                    display: none;
                 }
                 
                 .dropdown-item:hover .dropdown-item-icon {
