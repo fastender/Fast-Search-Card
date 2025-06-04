@@ -4195,6 +4195,32 @@ class FastSearchCard extends HTMLElement {
                     
                     // Originale Click-Logik fortsetzen...
                     const targetSection = item.getAttribute('data-replace-section');
+                    console.log('Selected section:', targetSection); // Debug-Log
+                    
+                    // Section-Namen anpassen für korrekte Selektoren
+                    let contentSelector;
+                    switch(targetSection) {
+                        case 'controls':
+                            contentSelector = 'controls';
+                            break;
+                        case 'details':
+                            contentSelector = 'details';
+                            break;
+                        case 'history':
+                            contentSelector = 'history';
+                            break;
+                        case 'shortcuts':
+                            contentSelector = 'shortcuts';
+                            break;
+                        case 'tts':
+                            contentSelector = 'tts';
+                            break;
+                        case 'music':
+                            contentSelector = 'music';
+                            break;
+                        default:
+                            contentSelector = targetSection;
+                    }
                     const sectionText = item.querySelector('span:last-child').textContent;
                     
                     // Update active state mit sanfter Animation
@@ -4219,7 +4245,7 @@ class FastSearchCard extends HTMLElement {
                     });
                     
                     // Show selected section
-                    const targetSectionElement = replaceContainer.querySelector(`[data-replace-content="${targetSection}"]`);
+                    const targetSectionElement = replaceContainer.querySelector(`[data-replace-content="${contentSelector}"]`);
                     if (targetSectionElement) {
                         targetSectionElement.style.display = 'block';
                         targetSectionElement.classList.add('active');
@@ -4231,7 +4257,10 @@ class FastSearchCard extends HTMLElement {
                             setTimeout(() => this.setupMusicAssistantEventListeners(item), 150);
                         } else if (targetSection === 'history') {
                             this.loadRealLogEntries(item);
-                        }
+                        } else if (targetSection === 'shortcuts') {
+                            // Shortcuts Event Listeners setup
+                            setTimeout(() => this.setupShortcutEventListeners(item), 150);
+                        }                       
                     }
                     
                     // Popover schließen
@@ -6574,7 +6603,21 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
-
+    
+    setupShortcutEventListeners(item) {
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        if (!replaceContainer) return;
+        
+        // Shortcut Buttons
+        const shortcutButtons = replaceContainer.querySelectorAll('[data-shortcut-action]');
+        shortcutButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const actionType = button.getAttribute('data-shortcut-action');
+                const actionId = button.getAttribute('data-shortcut-id');
+                this.executeShortcutAction(actionType, actionId, button);
+            });
+        });
+    }        
     
     toggleAccordion(header) {
             const item = header.parentElement;
