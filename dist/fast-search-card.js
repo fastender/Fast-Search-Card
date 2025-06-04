@@ -3008,7 +3008,7 @@ class FastSearchCard extends HTMLElement {
                     position: relative;
                     width: 100%;
                     height: 50px;
-                    border-radius: 0px;
+                    border-radius: 60px;
                     background: rgba(255, 255, 255, 0.1);
                     border: 0px solid rgba(255, 255, 255, 0.15);
                     overflow: hidden;
@@ -3473,9 +3473,9 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .dropdown-item.active {
-                    background: rgba(255, 255, 255, 0.25);
+                    background: rgba(0, 0, 0, 0.15);
                     color: white;
-                    font-weight: 600;
+                    font-weight: 500;
                     transform: translateX(0);
                     justify-content: flex-start;
                     padding-left: 20px;
@@ -3596,25 +3596,34 @@ class FastSearchCard extends HTMLElement {
                 /* Mobile Anpassungen */
                 @media (max-width: 768px) {
                     .dropdown-menu {
-                        min-width: 200px;
-                        max-width: 280px;
-                        border-radius: 12px;
+                        min-width: 100%;
+                        max-width: 100%;
+                        border-radius: 16px;
+                        left: 0;
+                        right: 0;
                     }
                     
                     .dropdown-item {
-                        padding: 12px 14px;
-                        font-size: 13px;
+                        padding: 14px 16px; /* Gleiche Höhe wie Button */
+                        font-size: 12px;
                     }
                     
                     .dropdown-item-icon {
-                        font-size: 15px;
-                        width: 18px;
-                        height: 18px;
+                        font-size: 14px;
+                        width: 16px;
+                        height: 16px;
                     }
                     
                     .dropdown-button {
-                        min-width: 120px;
-                        padding: 10px 14px;
+                        min-width: 100px;
+                        padding: 10px 12px;
+                        font-size: 12px;
+                    }
+                    
+                    /* Button fade-out auch auf Mobile */
+                    .dropdown-button.open {
+                        opacity: 0;
+                        visibility: hidden;
                     }
                 }
 
