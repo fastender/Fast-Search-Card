@@ -3363,6 +3363,7 @@ class FastSearchCard extends HTMLElement {
                     justify-content: space-between;
                     z-index: 1002 !important;
                     position: relative !important;
+                    box-sizing: border-box;
                 }
                 
                 .dropdown-button:hover {
@@ -3408,7 +3409,7 @@ class FastSearchCard extends HTMLElement {
                     position: absolute;
                     background: rgba(0, 0, 0, 0.15);
                     border: 0px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 16px;
+                    border-radius: 20px;
                     min-width: 200px;
                     max-width: 200px;
                     opacity: 0;
@@ -3417,6 +3418,9 @@ class FastSearchCard extends HTMLElement {
                     z-index: 1000;
                     overflow: hidden;
                     padding: 0px;
+                    box-sizing: border-box;
+                    top: 0;
+                    left: 0;                    
                 }
                 
                 .dropdown-menu.open {
@@ -3426,7 +3430,7 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Verbesserte Dropdown Items */
                 .dropdown-item {
-                    padding: 14px 16px;
+                    padding: 16px 20px;
                     color: rgba(255, 255, 255, 0.9);
                     cursor: pointer;
                     transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -3435,38 +3439,53 @@ class FastSearchCard extends HTMLElement {
                     gap: 12px;
                     font-size: 14px;
                     font-weight: 500;
-                    border-radius: 12px;
+                    border-radius: 0;
                     position: relative;
                     background: transparent;
                     opacity: 0;
-                    margin-bottom: 4px;
+                    margin: 0;
+                    transform: translateX(-20px);
+                    box-sizing: border-box;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 }
                 
                 .dropdown-item:last-child {
-                    margin-bottom: 0;
+                    border-bottom: none;
+                    border-radius: 0 0 20px 20px;
+                }
+                
+                .dropdown-item:first-child {
+                    border-radius: 20px 20px 0 0;
+                }
+                
+                .dropdown-item:only-child {
+                    border-radius: 20px;
                 }
                 
                 .dropdown-item:hover {
                     background: rgba(255, 255, 255, 0.15);
                     color: white;
+                    transform: translateX(0);
                 }
                 
                 .dropdown-item.active {
                     background: rgba(255, 255, 255, 0.25);
                     color: white;
                     font-weight: 600;
+                    transform: translateX(0);
                 }
                 
                 .dropdown-item.active::after {
                     content: '';
                     position: absolute;
-                    right: 16px;
+                    right: 20px;
                     width: 6px;
                     height: 6px;
                     background: white;
                     border-radius: 50%;
                     box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
                 }
+
                 
                 .dropdown-item-icon {
                     font-size: 16px;
@@ -4132,9 +4151,9 @@ class FastSearchCard extends HTMLElement {
         
         // Verbesserte Berechnung der Popover Position
         const calculatePopoverPosition = () => {
-            // Bei position: absolute - relative Position zum Button
-            let top = 0;  // Direkt über dem Button
-            let left = 0; // Gleiche linke Position       
+            // Das Dropdown soll den Button überdecken
+            let top = 0;   // Exakt auf gleicher Höhe wie Button
+            let left = 0;  // Exakt auf gleicher Position wie Button       
             
             return { top, left };
         };
