@@ -3442,7 +3442,6 @@ class FastSearchCard extends HTMLElement {
                     position: relative;
                     background: transparent;
                     opacity: 0;
-                    transform: translateY(-10px);
                     margin-bottom: 4px;
                 }
                 
@@ -3459,9 +3458,6 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(255, 255, 255, 0.25);
                     color: white;
                     font-weight: 600;
-                    box-shadow: 
-                        0 4px 15px rgba(255, 255, 255, 0.15),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.3);
                 }
                 
                 .dropdown-item.active::after {
@@ -3489,12 +3485,10 @@ class FastSearchCard extends HTMLElement {
                 
                 .dropdown-item.active .dropdown-item-icon {
                     opacity: 1;
-                    transform: scale(1.1);
                 }
                 
                 .dropdown-item:hover .dropdown-item-icon {
                     opacity: 1;
-                    transform: scale(1.05);
                 }
 
                 .replace-dropdown-container .dropdown-item-icon {
