@@ -4104,10 +4104,10 @@ class FastSearchCard extends HTMLElement {
                 width: window.innerWidth,
                 height: window.innerHeight
             };
-            
-            // Position: direkt unter dem Button, linksbündig
-            let top = buttonRect.bottom + 8;
-            let left = buttonRect.left;
+
+            // Position: direkt über dem Button (1:1 Überlagerung)
+            let top = buttonRect.top;
+            let left = buttonRect.left;            
             
             // Rechter Rand-Schutz
             if (left + menuWidth > viewport.width - 16) {
@@ -4116,20 +4116,16 @@ class FastSearchCard extends HTMLElement {
             
             // Vertikaler Überlauf-Schutz
             if (top + menuHeight > viewport.height - 16) {
-                top = buttonRect.top - menuHeight - 8; // Über dem Button
+                top = buttonRect.bottom - menuHeight; // Über dem Button wenn zu wenig Platz unten
                 
                 // Falls auch über dem Button kein Platz
                 if (top < 16) {
-                    top = buttonRect.bottom + 8;
+                    top = 16; // Mindestabstand vom oberen Rand
                     // Menu-Höhe begrenzen wenn nötig
                     const maxHeight = viewport.height - top - 16;
                     dropdownMenu.style.maxHeight = maxHeight + 'px';
                     dropdownMenu.style.overflowY = 'auto';
                 }
-            } else {
-                // Reset max-height wenn normale Position
-                dropdownMenu.style.maxHeight = '';
-                dropdownMenu.style.overflowY = '';
             }
             
             return { top, left };
