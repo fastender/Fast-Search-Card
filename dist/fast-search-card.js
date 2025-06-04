@@ -3335,6 +3335,10 @@ class FastSearchCard extends HTMLElement {
                 
                 /* ===== VERBESSERTE DROPDOWN STYLES MIT GLASSMORPHISMUS ===== */
                 
+/* ===== MODERN POPOVER DROPDOWN SYSTEM ===== */
+                
+                /* ===== VERBESSERTE DROPDOWN STYLES MIT GLASSMORPHISMUS ===== */
+                
                 /* Dropdown Container - FIXED z-index */
                 .dropdown-container {
                     z-index: 10 !important; /* NIEDRIG wenn geschlossen */
@@ -3416,7 +3420,7 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0;
                     visibility: hidden;
                     transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-                    z-index: -1 !important; /* SEHR NIEDRIG wenn geschlossen */
+                    z-index: 5 !important; /* NIEDRIG aber POSITIV wenn geschlossen */
                     overflow: hidden;
                     padding: 0px;
                     box-sizing: border-box;
@@ -3614,7 +3618,7 @@ class FastSearchCard extends HTMLElement {
                         border-radius: 20px;
                         left: 0;
                         right: 0;
-                        z-index: -1 !important; /* Niedrig wenn geschlossen */
+                        z-index: 5 !important; /* Niedrig aber POSITIV wenn geschlossen */
                         pointer-events: none;
                     }
                     
