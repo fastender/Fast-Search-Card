@@ -3414,7 +3414,6 @@ class FastSearchCard extends HTMLElement {
                     max-width: 200px;
                     opacity: 0;
                     visibility: hidden;
-                    transform: scale(0.9) translateY(-20px);
                     transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
                     z-index: 1000;
                     overflow: hidden;
@@ -3500,8 +3499,6 @@ class FastSearchCard extends HTMLElement {
                 /* Staggered Animation für Items */
                 .dropdown-menu.open .dropdown-item {
                     opacity: 1;
-                    transform: translateY(0);
-                    transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
                 }
                 
                 .dropdown-menu.open .dropdown-item:nth-child(1) { 
@@ -3555,10 +3552,7 @@ class FastSearchCard extends HTMLElement {
                             inset 0 1px 1px rgba(255, 255, 255, 0.4);
                     }
                 }
-                
-                .dropdown-button:hover {
-                    animation: glow 2s ease-in-out infinite;
-                }
+            
                 
                 /* Ripple Effect für Button Click */
                 .dropdown-button {
