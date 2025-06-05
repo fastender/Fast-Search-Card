@@ -4425,8 +4425,8 @@ class FastSearchCard extends HTMLElement {
                 return baseUrl + (switchOn ? 'light-on.png' : 'light-off.png'); // Vorerst Light-Bilder
 
             case 'cover':
-                const coverOpen = item.state === 'open' || (item.position && item.position > 50);
-                return baseUrl + (coverOpen ? 'cover-on.png' : 'cover-off.png');                
+                const position = item.position || 0;
+                return baseUrl + (position === 0 ? 'cover-on.png' : 'cover-off.png'); 
                 
             default:
                 // Fallback: Generisches Bild oder Gradient
@@ -6460,7 +6460,9 @@ getQuickStats(item) {
                     if (item.media_title) stats.push(`♪ ${item.media_title}`);
                     stats.push(`${item.volume || 0}% Lautstärke`);
                 } else if (item.type === 'cover') {
-                    stats.push(`${item.position || 0}% Position`);
+                    const position = item.position || 0;
+                    const status = position === 0 ? 'Geschlossen' : 'Geöffnet';
+                    stats.push(`${status} • ${position}%`);
                 }
                 break;
                 
@@ -6724,9 +6726,10 @@ getQuickStats(item) {
                     <!-- Szenen-Auswahl (versteckt by default) -->
                     <div class="new-light-colors" id="new-cover-scenes-${item.id}" data-is-open="false">
                         <div class="new-light-colors-grid">
-                            <div class="new-light-color-preset" style="background: linear-gradient(45deg, #FF6B35, #F7931E);" data-position="25">25%</div>
-                            <div class="new-light-color-preset active" style="background: linear-gradient(45deg, #FFD23F, #06D6A0);" data-position="50">50%</div>
-                            <div class="new-light-color-preset" style="background: linear-gradient(45deg, #06D6A0, #118AB2);" data-position="75">75%</div>
+                            <div class="new-light-color-preset" style="background: linear-gradient(45deg, #FF6B35, #F7931E);" data-position="20">20%</div>
+                            <div class="new-light-color-preset" style="background: linear-gradient(45deg, #F7931E, #FFD23F);" data-position="40">40%</div>
+                            <div class="new-light-color-preset" style="background: linear-gradient(45deg, #FFD23F, #06D6A0);" data-position="60">60%</div>
+                            <div class="new-light-color-preset active" style="background: linear-gradient(45deg, #06D6A0, #118AB2);" data-position="80">80%</div>
                         </div>
                     </div>
                     
