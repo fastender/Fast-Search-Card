@@ -3340,8 +3340,7 @@ class FastSearchCard extends HTMLElement {
                     pointer-events: auto;
                 }
                 
-                
-                /* SIMPLE DROPDOWN SYSTEM */
+                /* SMOOTH iOS-STYLE DROPDOWN */
                 .dropdown-container {
                     position: relative;
                     width: 100%;
@@ -3363,26 +3362,58 @@ class FastSearchCard extends HTMLElement {
                     justify-content: space-between;
                     width: 100%;
                     position: relative;
+                    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* iOS ease-out */
+                    opacity: 1;
+                    transform: scale(1);
                 }
                 
                 .dropdown-button:hover {
                     background: rgba(0, 0, 0, 0.25);
+                    transform: scale(1.02); /* Subtile Hover-Vergrößerung */
+                }
+                
+                .dropdown-button.open {
+                    opacity: 0;
+                    transform: scale(0.95);
+                    pointer-events: none;
+                }
+                
+                .dropdown-icon {
+                    transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                }
+                
+                .dropdown-button:hover .dropdown-icon {
+                    transform: scale(1.1);
                 }
                 
                 .dropdown-menu {
                     position: absolute;
-                    top: calc(100% + 8px);
+                    top: 0; /* Exakt an gleicher Position wie Button */
                     left: 0;
                     right: 0;
-                    background: rgba(0, 0, 0, 0.8);
+                    background: rgba(0, 0, 0, 0.25);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
                     border-radius: 20px;
                     border: 1px solid rgba(255, 255, 255, 0.1);
-                    display: none;
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
                     z-index: 1001; /* HÖCHSTER */
+                    
+                    /* Initial State: Unsichtbar und kleiner */
+                    opacity: 0;
+                    transform: scale(0.9);
+                    visibility: hidden;
+                    
+                    /* iOS spring animation */
+                    transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Spring easing */
+                    
+                    overflow: hidden;
                 }
                 
                 .dropdown-menu.open {
-                    display: block;
+                    opacity: 1;
+                    transform: scale(1);
+                    visibility: visible;
                 }
                 
                 .dropdown-item {
@@ -3396,10 +3427,16 @@ class FastSearchCard extends HTMLElement {
                     background: transparent;
                     width: 100%;
                     text-align: left;
+                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    
+                    /* Items starten unsichtbar und verschoben */
+                    opacity: 0;
+                    transform: translateY(-8px);
                 }
                 
                 .dropdown-item:hover {
                     background: rgba(255, 255, 255, 0.1);
+                    transform: translateY(-8px) scale(1.02);
                 }
                 
                 .dropdown-item.active {
@@ -3410,14 +3447,48 @@ class FastSearchCard extends HTMLElement {
                 .dropdown-item-icon {
                     font-size: 16px;
                     width: 20px;
+                    transition: transform 0.2s ease;
+                }
+                
+                .dropdown-item:hover .dropdown-item-icon {
+                    transform: scale(1.1);
                 }
                 
                 .replace-dropdown-container .dropdown-item-icon {
                     display: none;
                 }
-
-
-
+                
+                /* Staggered Animation für Items */
+                .dropdown-menu.open .dropdown-item {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                
+                .dropdown-menu.open .dropdown-item:nth-child(1) { 
+                    transition-delay: 0.05s; 
+                }
+                .dropdown-menu.open .dropdown-item:nth-child(2) { 
+                    transition-delay: 0.08s; 
+                }
+                .dropdown-menu.open .dropdown-item:nth-child(3) { 
+                    transition-delay: 0.11s; 
+                }
+                .dropdown-menu.open .dropdown-item:nth-child(4) { 
+                    transition-delay: 0.14s; 
+                }
+                .dropdown-menu.open .dropdown-item:nth-child(5) { 
+                    transition-delay: 0.17s; 
+                }
+                .dropdown-menu.open .dropdown-item:nth-child(6) { 
+                    transition-delay: 0.20s; 
+                }
+                
+                /* Closing Animation: Items verschwinden schneller */
+                .dropdown-menu:not(.open) .dropdown-item {
+                    transition-delay: 0s;
+                    transition-duration: 0.15s;
+                }
+                
                 /* ===== ANDERE ELEMENTE HÖHER SETZEN ===== */
                 
                 /* More-Info Dialog Basis */
@@ -3443,14 +3514,13 @@ class FastSearchCard extends HTMLElement {
                     position: relative;
                     z-index: 102 !important;
                 }
-
+                
                 .entity-header-row {
                     display: flex;
                     align-items: center;
                     gap: 16px;
                     margin-bottom: 20px;
                     position: relative;
-                    padding-top: 80px; /* Platz für den Header schaffen */
                 }
                 
                 .entity-info {
@@ -3464,7 +3534,7 @@ class FastSearchCard extends HTMLElement {
                     justify-content: flex-end;
                     position: relative;
                 }
-
+                
                 @media (max-width: 768px) {
                     .entity-header-row {
                         display: flex;
@@ -3512,6 +3582,15 @@ class FastSearchCard extends HTMLElement {
                         padding: 8px 12px;
                         font-size: 12px;
                         z-index: 1001; /* HÖCHSTER */
+                    }
+                    
+                    /* Mobile Animation Anpassungen */
+                    .dropdown-button {
+                        transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    }
+                    
+                    .dropdown-menu {
+                        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                     }
                 }
 
@@ -3885,7 +3964,6 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-
     setupReplaceDropdown(item) {
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
         if (!replaceContainer) return;
@@ -3895,49 +3973,87 @@ class FastSearchCard extends HTMLElement {
         const dropdownItems = replaceContainer.querySelectorAll('.dropdown-item');
         const sections = replaceContainer.querySelectorAll('[data-replace-content]');
         
-        if (!dropdownButton || !dropdownMenu) {
-            console.log('Dropdown elements not found');
-            return;
-        }
-        
-        console.log('Setting up dropdown...', { dropdownButton, dropdownMenu, items: dropdownItems.length });
+        if (!dropdownButton || !dropdownMenu) return;
         
         let isOpen = false;
+        let animating = false;
         
-        // Button Click Handler
+        // Button Click Handler mit sanfter Animation
         dropdownButton.onclick = function(e) {
-            console.log('Button clicked!');
             e.stopPropagation();
             
+            if (animating) return; // Prevent rapid clicking
+            
             if (isOpen) {
-                dropdownMenu.classList.remove('open');
-                isOpen = false;
+                closeDropdown();
             } else {
-                dropdownMenu.classList.add('open');
-                isOpen = true;
+                openDropdown();
             }
         };
         
-        // Item Click Handlers
-        dropdownItems.forEach((item, index) => {
-            console.log(`Setting up item ${index}:`, item);
+        const openDropdown = () => {
+            if (animating || isOpen) return;
             
+            animating = true;
+            isOpen = true;
+            
+            // Button fade-out
+            dropdownButton.classList.add('open');
+            
+            // Menu erscheint nach kurzer Verzögerung
+            setTimeout(() => {
+                dropdownMenu.classList.add('open');
+                
+                // Animation beendet nach 350ms
+                setTimeout(() => {
+                    animating = false;
+                }, 350);
+            }, 100); // 100ms delay für smoothen Übergang
+        };
+        
+        const closeDropdown = () => {
+            if (animating || !isOpen) return;
+            
+            animating = true;
+            isOpen = false;
+            
+            // Menu verschwindet zuerst
+            dropdownMenu.classList.remove('open');
+            
+            // Button erscheint wieder nach Animation
+            setTimeout(() => {
+                dropdownButton.classList.remove('open');
+                animating = false;
+            }, 250);
+        };
+        
+        // Item Click Handlers mit Haptic Feedback
+        dropdownItems.forEach((item, index) => {
             item.onclick = function(e) {
-                console.log('Item clicked!', item);
                 e.stopPropagation();
                 
+                // Subtle scale animation on click
+                item.style.transform = 'translateY(0) scale(0.98)';
+                setTimeout(() => {
+                    item.style.transform = '';
+                }, 100);
+                
                 const targetSection = item.getAttribute('data-replace-section');
-                console.log('Target section:', targetSection);
                 
                 // Update active state
                 dropdownItems.forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
                 
-                // Update button text
+                // Update button text mit fade
                 const textSpan = item.querySelector('span:last-child');
                 const buttonTextSpan = dropdownButton.querySelector('span:first-child');
                 if (textSpan && buttonTextSpan) {
-                    buttonTextSpan.textContent = textSpan.textContent;
+                    buttonTextSpan.style.transition = 'opacity 0.15s ease';
+                    buttonTextSpan.style.opacity = '0';
+                    setTimeout(() => {
+                        buttonTextSpan.textContent = textSpan.textContent;
+                        buttonTextSpan.style.opacity = '1';
+                    }, 150);
                 }
                 
                 // Hide all sections
@@ -3951,24 +4067,38 @@ class FastSearchCard extends HTMLElement {
                 if (targetElement) {
                     targetElement.style.display = 'block';
                     targetElement.classList.add('active');
+                    
+                    // Spezielle Initialisierung basierend auf Sektion
+                    if (targetSection === 'tts' && item.type === 'media_player') {
+                        setTimeout(() => this.setupTTSEventListeners(item), 150);
+                    } else if (targetSection === 'music' && item.type === 'media_player') {
+                        setTimeout(() => this.setupMusicAssistantEventListeners(item), 150);
+                    } else if (targetSection === 'history') {
+                        this.loadRealLogEntries(item);
+                    } else if (targetSection === 'shortcuts') {
+                        setTimeout(() => this.setupShortcutEventListeners(item), 150);
+                    }
                 }
                 
                 // Close dropdown
-                dropdownMenu.classList.remove('open');
-                isOpen = false;
+                closeDropdown();
             };
         });
         
         // Close on outside click
-        document.onclick = function(e) {
+        document.addEventListener('click', function(e) {
             if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                dropdownMenu.classList.remove('open');
-                isOpen = false;
+                closeDropdown();
             }
-        };
-    }         
-
-
+        });
+        
+        // ESC key support
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isOpen) {
+                closeDropdown();
+            }
+        });
+    }
 
     
 
