@@ -1164,14 +1164,23 @@ class FastSearchCard extends HTMLElement {
                     top: 0;
                     left: 0;
                     right: 0;
-                    z-index: 100;
+                    z-index: 10; /* NIEDRIGER z-index */
                     background: transparent;
                     color: white;
                     padding: 16px 20px 16px 14px;
                     display: flex;
                     align-items: center;
                     gap: 12px;
-                    border-bottom: none;                
+                    border-bottom: none;
+                    pointer-events: none; /* WICHTIG: Keine Maus-Events blockieren */
+                }
+                
+                .replace-header .back-button {
+                    pointer-events: all; /* Nur der Back-Button soll klickbar sein */
+                }
+                
+                .replace-header .breadcrumb {
+                    pointer-events: none; /* Breadcrumb nicht klickbar */
                 }
 
                 
@@ -3337,6 +3346,7 @@ class FastSearchCard extends HTMLElement {
                     position: relative;
                     width: 100%;
                     max-width: 200px;
+                    z-index: 1000; /* HÖHER als replace-header */
                 }
                 
                 .dropdown-button {
@@ -3368,6 +3378,7 @@ class FastSearchCard extends HTMLElement {
                     border-radius: 20px;
                     border: 1px solid rgba(255, 255, 255, 0.1);
                     display: none;
+                    z-index: 1001; /* HÖCHSTER */
                 }
                 
                 .dropdown-menu.open {
@@ -3439,6 +3450,7 @@ class FastSearchCard extends HTMLElement {
                     gap: 16px;
                     margin-bottom: 20px;
                     position: relative;
+                    padding-top: 80px; /* Platz für den Header schaffen */
                 }
                 
                 .entity-info {
