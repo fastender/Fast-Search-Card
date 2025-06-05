@@ -3358,23 +3358,20 @@ class FastSearchCard extends HTMLElement {
                     cursor: pointer;
                     display: flex;
                     align-items: center;
-                    gap: 8px;
+                    gap: 12px;
                     justify-content: space-between;
                     width: 100%;
                     position: relative;
                     transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* iOS ease-out */
                     opacity: 1;
-                    transform: scale(1);
                 }
                 
                 .dropdown-button:hover {
-                    background: rgba(0, 0, 0, 0.25);
-                    transform: scale(1.02); /* Subtile Hover-Vergrößerung */
+                    background: rgba(0, 0, 0, 0.25);                    
                 }
                 
                 .dropdown-button.open {
                     opacity: 0;
-                    transform: scale(0.95);
                     pointer-events: none;
                 }
                 
@@ -3383,7 +3380,6 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .dropdown-button:hover .dropdown-icon {
-                    transform: scale(1.1);
                 }
                 
                 .dropdown-menu {
@@ -3395,17 +3391,16 @@ class FastSearchCard extends HTMLElement {
                     backdrop-filter: blur(20px);
                     -webkit-backdrop-filter: blur(20px);
                     border-radius: 20px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                    border: 0px solid rgba(255, 255, 255, 0.1);
                     z-index: 1001; /* HÖCHSTER */
                     
                     /* Initial State: Unsichtbar und kleiner */
                     opacity: 0;
-                    transform: scale(0.9);
+                    transform: scale(0.85); /* Startet kleiner für dramatischeren Effekt */
                     visibility: hidden;
                     
                     /* iOS spring animation */
-                    transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Spring easing */
+                    transition: all 0.55s cubic-bezier(0.16, 1.08, 0.38, 0.98); /* Langsamerer Spring mit Überschwingen */
                     
                     overflow: hidden;
                 }
@@ -3417,7 +3412,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .dropdown-item {
-                    padding: 16px 20px;
+                    padding: 14px 20px 14px 20px;
                     color: white;
                     cursor: pointer;
                     display: flex;
@@ -3431,17 +3426,16 @@ class FastSearchCard extends HTMLElement {
                     
                     /* Items starten unsichtbar und verschoben */
                     opacity: 0;
-                    transform: translateY(-8px);
+                    transform: translateY(-12px) scale(0.9); /* Startet weiter oben und kleiner */
                 }
                 
                 .dropdown-item:hover {
-                    background: rgba(255, 255, 255, 0.1);
-                    transform: translateY(-8px) scale(1.02);
+                    background: rgba(255, 255, 255, 0.1);                
                 }
                 
                 .dropdown-item.active {
                     background: rgba(255, 255, 255, 0.2);
-                    font-weight: 600;
+                    font-weight: 500;
                 }
                 
                 .dropdown-item-icon {
@@ -3461,32 +3455,51 @@ class FastSearchCard extends HTMLElement {
                 /* Staggered Animation für Items */
                 .dropdown-menu.open .dropdown-item {
                     opacity: 1;
-                    transform: translateY(0);
+                    transform: translateY(0) scale(1);
                 }
                 
                 .dropdown-menu.open .dropdown-item:nth-child(1) { 
-                    transition-delay: 0.05s; 
+                    transition-delay: 0.1s; /* Längere Delays */
                 }
                 .dropdown-menu.open .dropdown-item:nth-child(2) { 
-                    transition-delay: 0.08s; 
+                    transition-delay: 0.18s; 
                 }
                 .dropdown-menu.open .dropdown-item:nth-child(3) { 
-                    transition-delay: 0.11s; 
+                    transition-delay: 0.26s; 
                 }
                 .dropdown-menu.open .dropdown-item:nth-child(4) { 
-                    transition-delay: 0.14s; 
+                    transition-delay: 0.34s; 
                 }
                 .dropdown-menu.open .dropdown-item:nth-child(5) { 
-                    transition-delay: 0.17s; 
+                    transition-delay: 0.42s; 
                 }
                 .dropdown-menu.open .dropdown-item:nth-child(6) { 
-                    transition-delay: 0.20s; 
+                    transition-delay: 0.5s; 
                 }
                 
-                /* Closing Animation: Items verschwinden schneller */
+                /* Closing Animation: Items verschwinden in umgekehrter Reihenfolge */
                 .dropdown-menu:not(.open) .dropdown-item {
                     transition-delay: 0s;
-                    transition-duration: 0.15s;
+                    transition-duration: 0.2s;
+                }
+                
+                .dropdown-menu:not(.open) .dropdown-item:nth-child(1) { 
+                    transition-delay: 0.4s; /* Letztes Item verschwindet zuerst */
+                }
+                .dropdown-menu:not(.open) .dropdown-item:nth-child(2) { 
+                    transition-delay: 0.32s; 
+                }
+                .dropdown-menu:not(.open) .dropdown-item:nth-child(3) { 
+                    transition-delay: 0.24s; 
+                }
+                .dropdown-menu:not(.open) .dropdown-item:nth-child(4) { 
+                    transition-delay: 0.16s; 
+                }
+                .dropdown-menu:not(.open) .dropdown-item:nth-child(5) { 
+                    transition-delay: 0.08s; 
+                }
+                .dropdown-menu:not(.open) .dropdown-item:nth-child(6) { 
+                    transition-delay: 0s; /* Erstes Item verschwindet zuletzt */
                 }
                 
                 /* ===== ANDERE ELEMENTE HÖHER SETZEN ===== */
@@ -4000,15 +4013,15 @@ class FastSearchCard extends HTMLElement {
             // Button fade-out
             dropdownButton.classList.add('open');
             
-            // Menu erscheint nach kurzer Verzögerung
+            // Menu erscheint nach etwas längerer Verzögerung für dramatischen Effekt
             setTimeout(() => {
                 dropdownMenu.classList.add('open');
                 
-                // Animation beendet nach 350ms
+                // Animation beendet nach 800ms (wegen längerer Animation)
                 setTimeout(() => {
                     animating = false;
-                }, 350);
-            }, 100); // 100ms delay für smoothen Übergang
+                }, 800);
+            }, 150); // Etwas längere Verzögerung
         };
         
         const closeDropdown = () => {
@@ -4024,7 +4037,7 @@ class FastSearchCard extends HTMLElement {
             setTimeout(() => {
                 dropdownButton.classList.remove('open');
                 animating = false;
-            }, 250);
+            }, 400); // Längere Wartezeit wegen reverse animation
         };
         
         // Item Click Handlers mit Haptic Feedback
