@@ -1314,8 +1314,8 @@ class FastSearchCard extends HTMLElement {
                     bottom: 0px;
                     z-index: 1;
                     display: flex;
-                    flex-direction: column;
-                    gap: 4px;
+                    flex-direction: row;
+                    gap: 8px;
                     
                     /* Eingangsanimation */
                     opacity: 0;
@@ -3088,6 +3088,21 @@ class FastSearchCard extends HTMLElement {
                     border-color: rgba(255, 255, 255, 0.4);
                     box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
                 }
+
+
+                /* Spezielle rote Hintergrundfarbe für aktive Climate Mode Buttons */
+                .new-light-control-btn.secondary.active {
+                    background: rgba(220, 53, 69, 0.8) !important;
+                    color: white !important;
+                    border-color: rgba(220, 53, 69, 1) !important;
+                    box-shadow: 0 0 15px rgba(220, 53, 69, 0.4) !important;
+                }
+                
+                .new-light-control-btn.secondary.active:hover {
+                    background: rgba(220, 53, 69, 0.9) !important;
+                    transform: scale(1.05);
+                }
+                
                 
                 .new-light-control-btn.power-on {
                     background: rgba(255, 255, 255, 0.9);
@@ -6750,29 +6765,23 @@ getQuickStats(item) {
                         </button>
                         
                         <!-- Heizen Button -->
-                        <button class="new-light-control-btn secondary visible ${item.state === 'heat' ? 'active' : ''}" data-action="heat">
+                        <button class="new-light-control-btn secondary visible ${(item.hvac_mode || item.state) === 'heat' ? 'active' : ''}" data-action="heat">
                             🔥
                         </button>
                         
                         <!-- Kühlen Button -->
-                        <button class="new-light-control-btn secondary visible ${item.state === 'cool' ? 'active' : ''}" data-action="cool">
+                        <button class="new-light-control-btn secondary visible ${(item.hvac_mode || item.state) === 'cool' ? 'active' : ''}" data-action="cool">
                             ❄️
                         </button>
                         
                         <!-- Entfeuchtung Button -->
-                        <button class="new-light-control-btn secondary visible ${item.state === 'dry' ? 'active' : ''}" data-action="dry">
+                        <button class="new-light-control-btn secondary visible ${(item.hvac_mode || item.state) === 'dry' ? 'active' : ''}" data-action="dry">
                             💧
                         </button>
                         
                         <!-- Lüfter Button -->
-                        <button class="new-light-control-btn secondary visible ${item.state === 'fan_only' ? 'active' : ''}" data-action="fan_only">
+                        <button class="new-light-control-btn secondary visible ${(item.hvac_mode || item.state) === 'fan_only' ? 'active' : ''}" data-action="fan_only">
                             🌀
-                        </button>
-                        
-                        <!-- Einstellungen Toggle Button -->
-                        <button class="new-light-control-btn secondary new-light-color-toggle visible" 
-                                id="new-climate-settings-toggle-${item.id}" data-action="toggle-settings">
-                            ⚙️
                         </button>
                     </div>
                     
@@ -7822,11 +7831,14 @@ getQuickStats(item) {
         // Update mode buttons active state
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
         if (replaceContainer) {
+
             const modeButtons = replaceContainer.querySelectorAll(`[id="new-climate-controls-row-${item.id}"] .new-light-control-btn.secondary`);
             modeButtons.forEach(button => {
                 const action = button.getAttribute('data-action');
-                button.classList.toggle('active', action === item.state);
-            });
+                const currentMode = item.hvac_mode || item.state;
+                button.classList.toggle('active', action === currentMode);
+            });            
+            
         }
         
         // Animate controls based on state
