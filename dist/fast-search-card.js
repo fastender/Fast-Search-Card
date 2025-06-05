@@ -3610,6 +3610,60 @@ class FastSearchCard extends HTMLElement {
 
 
 
+                /* Climate Settings Grid */
+                .climate-settings-grid {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    padding: 8px 0;
+                }
+                
+                .climate-setting-row {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                
+                .climate-setting-label {
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.8);
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                
+                .climate-setting-options {
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                }
+                
+                .climate-setting-option {
+                    flex: 1;
+                    min-width: 60px;
+                    padding: 8px 12px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.8);
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .climate-setting-option:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    color: white;
+                }
+                
+                .climate-setting-option.active {
+                    background: rgba(255, 255, 255, 0.25);
+                    color: white;
+                    border-color: rgba(255, 255, 255, 0.4);
+                }
+
                 
             </style>
             
@@ -4414,9 +4468,6 @@ class FastSearchCard extends HTMLElement {
                 const isOn = item.state === 'on';
                 return baseUrl + (isOn ? 'light-on.png' : 'light-off.png');
                 
-            case 'climate':
-                return baseUrl + 'climate-bg.png'; // Fallback für später
-                
             case 'media_player':
                 return baseUrl + 'media-bg.png'; // Fallback für später
                 
@@ -4427,6 +4478,10 @@ class FastSearchCard extends HTMLElement {
             case 'cover':
                 const position = item.position || 0;
                 return baseUrl + (position === 0 ? 'cover-on.png' : 'cover-off.png'); 
+
+            case 'climate':
+                const isHeating = item.state === 'heat' || item.state === 'cool' || item.state === 'auto';
+                return baseUrl + (isHeating ? 'climate-on.png' : 'climate-off.png');                
                 
             default:
                 // Fallback: Generisches Bild oder Gradient
@@ -5315,6 +5370,9 @@ class FastSearchCard extends HTMLElement {
 
                 // HA Cover Control Event Listeners
                 this.setupHACoverControls(item);
+
+                // HA Climate Control Event Listeners
+                this.setupHAClimateControls(item);                
                 
             }
 
@@ -6647,24 +6705,113 @@ getQuickStats(item) {
     }
 
     getClimateReplaceControls(item) {
-        const currentTemp = item.current_temperature || '--';
         const targetTemp = item.target_temperature || 20;
+        const isOn = ['heat', 'cool', 'auto', 'dry', 'fan_only'].includes(item.state);
         
         return `
             <div class="control-group-large">
-                
-                <div class="slider-control-large">
-                    <div class="slider-label-large">
-                        <span>Zieltemperatur</span>
-                        <span class="value">${targetTemp}°C</span>
+                <div class="new-light-design" id="new-climate-${item.id}">
+                    
+                    <!-- Header -->
+                    <div class="new-light-header">
+                        <div class="new-light-name">${item.name}</div>
+                        <div class="new-light-state" id="new-climate-state-${item.id}">
+                            ${isOn ? `Ein • ${targetTemp}°C Zieltemperatur` : 'Aus'}
+                        </div>
                     </div>
-                    <input type="range" class="slider-large" data-control="temperature" 
-                           min="10" max="30" step="0.5" value="${targetTemp}">
-                </div>
-                <div class="main-control-large" style="margin-top: 16px;">
-                    <button class="toggle-button-large" data-action="heat">🔥 Heizen</button>
-                    <button class="toggle-button-large" data-action="cool">❄️ Kühlen</button>
-                    <button class="toggle-button-large off" data-action="off">⏹️ Aus</button>
+                    
+                    <!-- Mittiger Ein/Aus Button (nur im Aus-Zustand) -->
+                    <div class="new-light-power-center ${!isOn ? 'visible' : ''}" id="new-climate-power-center-${item.id}">
+                        <button class="new-light-control-btn power-off" 
+                                data-action="heat" id="new-climate-toggle-center-${item.id}">
+                            🌡️
+                        </button>
+                    </div>
+                    
+                    <!-- Zentraler Temperatur-Slider (nur sichtbar wenn an) -->
+                    <div class="new-light-slider-container ${isOn ? 'visible' : ''}" id="new-climate-slider-container-${item.id}">
+                        <div class="new-light-slider-label">
+                            <span>Zieltemperatur</span>
+                            <span id="new-climate-temp-value-${item.id}">${targetTemp}°C</span>
+                        </div>
+                        <div class="new-light-slider-track-container">
+                            <div class="new-light-slider-track" style="width: ${((targetTemp - 10) / 20) * 100}%" id="new-climate-track-${item.id}"></div>
+                            <input type="range" class="new-light-slider-input" data-control="temperature" 
+                                   min="10" max="30" step="0.5" value="${targetTemp}" id="new-climate-temp-slider-${item.id}">
+                        </div>
+                    </div>
+                    
+                    <!-- Control Buttons Row (nur sichtbar wenn an) -->
+                    <div class="new-light-controls-row ${isOn ? 'visible' : ''}" id="new-climate-controls-row-${item.id}">
+                        <!-- Ein/Aus Button -->
+                        <button class="new-light-control-btn power-on" 
+                                data-action="off" id="new-climate-toggle-${item.id}">
+                            🌡️
+                        </button>
+                        
+                        <!-- Heizen Button -->
+                        <button class="new-light-control-btn secondary visible ${item.state === 'heat' ? 'active' : ''}" data-action="heat">
+                            🔥
+                        </button>
+                        
+                        <!-- Kühlen Button -->
+                        <button class="new-light-control-btn secondary visible ${item.state === 'cool' ? 'active' : ''}" data-action="cool">
+                            ❄️
+                        </button>
+                        
+                        <!-- Entfeuchtung Button -->
+                        <button class="new-light-control-btn secondary visible ${item.state === 'dry' ? 'active' : ''}" data-action="dry">
+                            💧
+                        </button>
+                        
+                        <!-- Lüfter Button -->
+                        <button class="new-light-control-btn secondary visible ${item.state === 'fan_only' ? 'active' : ''}" data-action="fan_only">
+                            🌀
+                        </button>
+                        
+                        <!-- Einstellungen Toggle Button -->
+                        <button class="new-light-control-btn secondary new-light-color-toggle visible" 
+                                id="new-climate-settings-toggle-${item.id}" data-action="toggle-settings">
+                            ⚙️
+                        </button>
+                    </div>
+                    
+                    <!-- Einstellungen-Menu (versteckt by default) -->
+                    <div class="new-light-colors" id="new-climate-settings-${item.id}" data-is-open="false">
+                        <div class="climate-settings-grid">
+                            <!-- Horizontale Oszillation -->
+                            <div class="climate-setting-row">
+                                <div class="climate-setting-label">Horizontal</div>
+                                <div class="climate-setting-options">
+                                    <div class="climate-setting-option" data-swing="horizontal_off">Aus</div>
+                                    <div class="climate-setting-option" data-swing="horizontal_on">Ein</div>
+                                    <div class="climate-setting-option" data-swing="horizontal_auto">Auto</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Vertikale Oszillation -->
+                            <div class="climate-setting-row">
+                                <div class="climate-setting-label">Vertikal</div>
+                                <div class="climate-setting-options">
+                                    <div class="climate-setting-option" data-swing="vertical_off">Aus</div>
+                                    <div class="climate-setting-option" data-swing="vertical_on">Ein</div>
+                                    <div class="climate-setting-option" data-swing="vertical_auto">Auto</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Lüfter-Geschwindigkeit -->
+                            <div class="climate-setting-row">
+                                <div class="climate-setting-label">Lüfter</div>
+                                <div class="climate-setting-options">
+                                    <div class="climate-setting-option" data-fan="low">Niedrig</div>
+                                    <div class="climate-setting-option" data-fan="medium">Mittel</div>
+                                    <div class="climate-setting-option" data-fan="high">Hoch</div>
+                                    <div class="climate-setting-option" data-fan="auto">Auto</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         `;
@@ -6839,6 +6986,146 @@ getQuickStats(item) {
             });
         });
     }       
+
+
+    setupHAClimateControls(item) {
+        if (item.type !== 'climate') return;
+        
+        console.log('=== SETUP CLIMATE CONTROLS ===');
+        
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        if (!replaceContainer) return;
+        
+        // DOM Elemente
+        const tempSlider = replaceContainer.querySelector(`[id="new-climate-temp-slider-${item.id}"]`);
+        const tempValue = replaceContainer.querySelector(`[id="new-climate-temp-value-${item.id}"]`);
+        const entityState = replaceContainer.querySelector(`[id="new-climate-state-${item.id}"]`);
+        
+        // Power Buttons
+        const powerButtonCenter = replaceContainer.querySelector(`[id="new-climate-toggle-center-${item.id}"]`);
+        const powerButtonRow = replaceContainer.querySelector(`[id="new-climate-toggle-${item.id}"]`);
+        
+        const settingsToggleButton = replaceContainer.querySelector(`[id="new-climate-settings-toggle-${item.id}"]`);
+        const settingsContainer = replaceContainer.querySelector(`[id="new-climate-settings-${item.id}"]`);
+        
+        // Temperatur Slider Event Listener
+        if (tempSlider) {
+            tempSlider.addEventListener('input', (e) => {
+                const temp = parseFloat(e.target.value);
+                
+                const container = tempSlider.parentElement;
+                const track = container.querySelector('.new-light-slider-track');
+                
+                if (track) {
+                    const percentage = ((temp - 10) / 20) * 100;
+                    track.style.width = percentage + '%';
+                }
+                
+                if (tempValue) {
+                    tempValue.textContent = temp + '°C';
+                }
+                if (entityState) {
+                    const isOn = ['heat', 'cool', 'auto', 'dry', 'fan_only'].includes(item.state);
+                    entityState.textContent = isOn ? `Ein • ${temp}°C Zieltemperatur` : 'Aus';
+                }
+                
+                this.handleSliderChange(item, 'temperature', temp);
+            });
+        }
+        
+        // Power Button Event Handler
+        const handleClimateAction = (action, button) => {
+            console.log('🌡️ CLIMATE ACTION:', action);
+            
+            this.executeReplaceAction(item, action, button).then(() => {
+                setTimeout(() => {
+                    this.animateClimateControls(item.id, action);
+                }, 300);
+            });
+        };
+        
+        // Center Power Button
+        if (powerButtonCenter) {
+            powerButtonCenter.addEventListener('click', () => {
+                handleClimateAction('heat', powerButtonCenter);
+            });
+        }
+        
+        // Row Power Button
+        if (powerButtonRow) {
+            powerButtonRow.addEventListener('click', () => {
+                handleClimateAction('off', powerButtonRow);
+            });
+        }
+        
+        // Einstellungen Toggle Button
+        if (settingsToggleButton) {
+            settingsToggleButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('⚙️ SETTINGS TOGGLE CLICKED!');
+                
+                if (settingsContainer) {
+                    const isOpen = settingsContainer.getAttribute('data-is-open') === 'true';
+                    
+                    if (isOpen) {
+                        settingsContainer.classList.remove('visible');
+                        settingsContainer.setAttribute('data-is-open', 'false');
+                    } else {
+                        settingsContainer.classList.add('visible');
+                        settingsContainer.setAttribute('data-is-open', 'true');
+                    }
+                    
+                    settingsToggleButton.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        settingsToggleButton.style.transform = '';
+                    }, 150);
+                }
+            }, true);
+        }
+        
+        // Einstellungs-Optionen
+        const settingOptions = replaceContainer.querySelectorAll(`[id="new-climate-settings-${item.id}"] .climate-setting-option`);
+        
+        settingOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                console.log('⚙️ SETTING OPTION CLICKED!');
+                
+                // Aktive Klasse in derselben Zeile togglen
+                const row = option.closest('.climate-setting-row');
+                const rowOptions = row.querySelectorAll('.climate-setting-option');
+                rowOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                // Service Call für Einstellung
+                const swingMode = option.getAttribute('data-swing');
+                const fanMode = option.getAttribute('data-fan');
+                
+                if (this._hass) {
+                    let serviceCall;
+                    
+                    if (swingMode) {
+                        serviceCall = this._hass.callService('climate', 'set_swing_mode', {
+                            entity_id: item.id,
+                            swing_mode: swingMode
+                        });
+                    } else if (fanMode) {
+                        serviceCall = this._hass.callService('climate', 'set_fan_mode', {
+                            entity_id: item.id,
+                            fan_mode: fanMode
+                        });
+                    }
+                    
+                    if (serviceCall) {
+                        serviceCall.catch(error => {
+                            console.error('Climate setting service call failed:', error);
+                        });
+                    }
+                }
+            });
+        });
+    }
     
 
     // Music Assistant Verfügbarkeit prüfen
@@ -7307,6 +7594,8 @@ getQuickStats(item) {
         }
     }
 
+
+
     updateReplaceContent(item) {
         // Item-Daten aktualisieren
         const currentState = this._hass.states[item.id];
@@ -7319,25 +7608,29 @@ getQuickStats(item) {
             const domain = item.id.split('.')[0];
             this.addDomainSpecificAttributes(item, domain, currentState);
         }
-
         // Replace-Content neu generieren
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
         replaceContainer.innerHTML = this.getReplaceContentHTML(item);
         this.setupReplaceEventListeners(item);
         
-        // Background Image für Lichter aktualisieren
-        if (item.type === 'light') {
+        // Background Image für Lichter, Rollläden und Klima aktualisieren
+        if (item.type === 'light' || item.type === 'cover' || item.type === 'climate') {
             this.updateIconSectionBackground(item);
         }        
-
+        
         // Update HA Light Control UI
         if (item.type === 'light') {
             this.updateHALightControlUI(item);
         }        
-
+        
         // Update Cover Control UI
         if (item.type === 'cover') {
             this.updateCoverControlUI(item);
+        }        
+        
+        // Update Climate Control UI
+        if (item.type === 'climate') {
+            this.updateClimateControlUI(item);
         }        
         
         // Spezielle Behandlung für Media Player Album Art Update
@@ -7434,6 +7727,110 @@ getQuickStats(item) {
             value.textContent = position + '%';
             track.style.width = position + '%';
         }
+    }    
+
+
+    animateClimateControls(itemId, action) {
+        console.log('🎬 Animating climate controls:', { itemId, action });
+        
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        if (!replaceContainer) return;
+        
+        const sliderContainer = replaceContainer.querySelector(`[id="new-climate-slider-container-${itemId}"]`);
+        const controlsRow = replaceContainer.querySelector(`[id="new-climate-controls-row-${itemId}"]`);
+        const powerCenter = replaceContainer.querySelector(`[id="new-climate-power-center-${itemId}"]`);
+        const settingsContainer = replaceContainer.querySelector(`[id="new-climate-settings-${itemId}"]`);
+        
+        const isTurningOn = ['heat', 'cool', 'auto', 'dry', 'fan_only'].includes(action);
+        
+        if (isTurningOn) {
+            // Einschalten: Zeige Row-Controls, verstecke Center Power
+            if (powerCenter) {
+                powerCenter.classList.remove('visible');
+            }
+            
+            setTimeout(() => {
+                if (sliderContainer) {
+                    sliderContainer.classList.add('visible');
+                }
+                if (controlsRow) {
+                    controlsRow.classList.add('visible');
+                }
+            }, 200);
+            
+        } else {
+            // Ausschalten: Zeige Center Power, verstecke Row-Controls
+            if (settingsContainer) {
+                settingsContainer.classList.remove('visible');
+                settingsContainer.setAttribute('data-is-open', 'false');
+            }
+            
+            if (controlsRow) {
+                controlsRow.classList.remove('visible');
+            }
+            if (sliderContainer) {
+                sliderContainer.classList.remove('visible');
+            }
+            
+            setTimeout(() => {
+                if (powerCenter) {
+                    powerCenter.classList.add('visible');
+                }
+            }, 200);
+        }
+    }
+
+
+    updateClimateControlUI(item) {
+        const targetTemp = item.target_temperature || 20;
+        const isOn = ['heat', 'cool', 'auto', 'dry', 'fan_only'].includes(item.state);
+        
+        console.log('🔄 Updating climate UI:', { isOn, targetTemp, state: item.state });
+        
+        // Update both power buttons
+        const powerButtonCenter = this.shadowRoot.getElementById(`new-climate-toggle-center-${item.id}`);
+        const powerButtonRow = this.shadowRoot.getElementById(`new-climate-toggle-${item.id}`);
+        
+        if (powerButtonCenter) {
+            powerButtonCenter.classList.toggle('power-on', isOn);
+            powerButtonCenter.classList.toggle('power-off', !isOn);
+        }
+        
+        if (powerButtonRow) {
+            powerButtonRow.classList.toggle('power-on', isOn);
+            powerButtonRow.classList.toggle('power-off', !isOn);
+        }
+        
+        // Update state text
+        const stateText = this.shadowRoot.getElementById(`new-climate-state-${item.id}`);
+        if (stateText) {
+            stateText.textContent = isOn ? `Ein • ${targetTemp}°C Zieltemperatur` : 'Aus';
+        }
+        
+        // Update temperature slider and track
+        const slider = this.shadowRoot.getElementById(`new-climate-temp-slider-${item.id}`);
+        const value = this.shadowRoot.getElementById(`new-climate-temp-value-${item.id}`);
+        const track = this.shadowRoot.getElementById(`new-climate-track-${item.id}`);
+        
+        if (slider && value && track) {
+            slider.value = targetTemp;
+            value.textContent = targetTemp + '°C';
+            const percentage = ((targetTemp - 10) / 20) * 100;
+            track.style.width = percentage + '%';
+        }
+        
+        // Update mode buttons active state
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        if (replaceContainer) {
+            const modeButtons = replaceContainer.querySelectorAll(`[id="new-climate-controls-row-${item.id}"] .new-light-control-btn.secondary`);
+            modeButtons.forEach(button => {
+                const action = button.getAttribute('data-action');
+                button.classList.toggle('active', action === item.state);
+            });
+        }
+        
+        // Animate controls based on state
+        this.animateClimateControls(item.id, item.state);
     }    
     
     
@@ -8647,6 +9044,7 @@ getQuickStats(item) {
         return element;
     }
 
+
     isItemActive(item) {
         // Logic to determine if item should be highlighted
         switch (item.itemType) {
@@ -8654,13 +9052,16 @@ getQuickStats(item) {
                 if (item.type === 'cover') {
                     return (item.position || 0) > 0;
                 }
+                if (item.type === 'climate') {
+                    return ['heat', 'cool', 'auto', 'dry', 'fan_only'].includes(item.state);
+                }
                 return ['light', 'switch', 'fan', 'media_player'].includes(item.type) && item.state === 'on';
             case 'automation':
                 return item.state === 'on';
             default:
                 return false;
         }
-    }        
+    }  
 
     getGridItemHTML(item) {
         const stateText = this.getStateText(item);
