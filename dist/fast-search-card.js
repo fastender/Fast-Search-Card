@@ -3364,6 +3364,7 @@ class FastSearchCard extends HTMLElement {
                     position: relative;
                     transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* iOS ease-out */
                     opacity: 1;
+                    font-family: inherit;
                 }
                 
                 .dropdown-button:hover {
@@ -3412,7 +3413,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .dropdown-item {
-                    padding: 14px 20px 14px 20px;
+                    padding: 13px 20px 13px 20px;
                     color: white;
                     cursor: pointer;
                     display: flex;
@@ -3435,7 +3436,7 @@ class FastSearchCard extends HTMLElement {
                 
                 .dropdown-item.active {
                     background: rgba(255, 255, 255, 0.2);
-                    font-weight: 500;
+                    font-weight: inherit;
                 }
                 
                 .dropdown-item-icon {
@@ -4098,19 +4099,23 @@ class FastSearchCard extends HTMLElement {
             };
         });
         
-        // Close on outside click
-        document.addEventListener('click', function(e) {
+        // Close on outside click - nur für diesen Container
+        replaceContainer.addEventListener('click', function(e) {
+            // Klick außerhalb des Dropdowns
             if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
                 closeDropdown();
             }
         });
         
-        // ESC key support
-        document.addEventListener('keydown', function(e) {
+        // ESC key support - nur wenn Container focus hat
+        replaceContainer.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && isOpen) {
                 closeDropdown();
             }
         });
+        
+        // Container fokussierbar machen
+        replaceContainer.setAttribute('tabindex', '-1');
     }
 
     
