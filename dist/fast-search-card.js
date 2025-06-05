@@ -6764,24 +6764,38 @@ getQuickStats(item) {
                             🌡️
                         </button>
                         
+                        ${(item.hvac_modes || []).includes('heat') ? `
                         <!-- Heizen Button -->
                         <button class="new-light-control-btn secondary visible ${(item.hvac_mode || item.state) === 'heat' ? 'active' : ''}" data-action="heat">
                             🔥
                         </button>
+                        ` : ''}
                         
+                        ${(item.hvac_modes || []).includes('cool') ? `
                         <!-- Kühlen Button -->
                         <button class="new-light-control-btn secondary visible ${(item.hvac_mode || item.state) === 'cool' ? 'active' : ''}" data-action="cool">
                             ❄️
                         </button>
+                        ` : ''}
                         
+                        ${(item.hvac_modes || []).includes('dry') ? `
                         <!-- Entfeuchtung Button -->
                         <button class="new-light-control-btn secondary visible ${(item.hvac_mode || item.state) === 'dry' ? 'active' : ''}" data-action="dry">
                             💧
                         </button>
+                        ` : ''}
                         
+                        ${(item.hvac_modes || []).includes('fan_only') ? `
                         <!-- Lüfter Button -->
                         <button class="new-light-control-btn secondary visible ${(item.hvac_mode || item.state) === 'fan_only' ? 'active' : ''}" data-action="fan_only">
                             🌀
+                        </button>
+                        ` : ''}
+                        
+                        <!-- Einstellungen Toggle Button -->
+                        <button class="new-light-control-btn secondary new-light-color-toggle visible" 
+                                id="new-climate-settings-toggle-${item.id}" data-action="toggle-settings">
+                            ⚙️
                         </button>
                     </div>
                     
@@ -8673,8 +8687,10 @@ getQuickStats(item) {
                 device.hvac_mode = state.state;
                 device.hvac_modes = state.attributes.hvac_modes || [];
                 device.fan_mode = state.attributes.fan_mode;
+                device.fan_modes = state.attributes.fan_modes || [];
                 device.swing_mode = state.attributes.swing_mode;
-                break;
+                device.swing_modes = state.attributes.swing_modes || [];
+                break;                
 
                 
             case 'cover':
@@ -10312,6 +10328,21 @@ getQuickStats(item) {
                     hvac_mode: 'off' 
                 });
                 break;
+
+            case 'dry':
+                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
+                    entity_id: item.id, 
+                    hvac_mode: 'dry' 
+                });
+                break;
+                
+            case 'fan_only':
+                serviceCall = this._hass.callService('climate', 'set_hvac_mode', { 
+                    entity_id: item.id, 
+                    hvac_mode: 'fan_only' 
+                });
+                break;
+                
         }
         
         // Promise zurückgeben für More-Info Dialog
