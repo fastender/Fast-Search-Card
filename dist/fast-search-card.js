@@ -4046,13 +4046,14 @@ class FastSearchCard extends HTMLElement {
             item.onclick = function(e) {
                 e.stopPropagation();
                 
+                const targetSection = item.getAttribute('data-replace-section');
+                console.log('🔥 Section clicked:', targetSection); // Debug-Log
+                
                 // Subtle scale animation on click
                 item.style.transform = 'translateY(0) scale(0.98)';
                 setTimeout(() => {
                     item.style.transform = '';
                 }, 100);
-                
-                const targetSection = item.getAttribute('data-replace-section');
                 
                 // Update active state
                 dropdownItems.forEach(i => i.classList.remove('active'));
@@ -4084,25 +4085,32 @@ class FastSearchCard extends HTMLElement {
                     
                     // Spezielle Initialisierung basierend auf Sektion
                     if (targetSection === 'tts' && item.type === 'media_player') {
+                        console.log('🎤 Setting up TTS'); // Debug-Log
                         setTimeout(() => this.setupTTSEventListeners(item), 150);
                     } else if (targetSection === 'music' && item.type === 'media_player') {
+                        console.log('🎵 Setting up Music'); // Debug-Log
                         setTimeout(() => this.setupMusicAssistantEventListeners(item), 150);
                     } else if (targetSection === 'history') {
+                        console.log('📈 Loading Logbook'); // Debug-Log
                         this.loadRealLogEntries(item);
                     } else if (targetSection === 'shortcuts') {
+                        console.log('⚡ Setting up Shortcuts'); // Debug-Log
                         setTimeout(() => this.setupShortcutEventListeners(item), 150);
                     }
                 }
                 
+                console.log('🔒 Closing dropdown for:', targetSection); // Debug-Log
                 // Close dropdown
                 closeDropdown();
             };
         });
-        
+
+
         // Close on outside click - nur für diesen Container
         replaceContainer.addEventListener('click', function(e) {
             // Klick außerhalb des Dropdowns
             if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                console.log('🔒 Outside click - closing dropdown'); // Debug-Log
                 closeDropdown();
             }
         });
@@ -4110,6 +4118,7 @@ class FastSearchCard extends HTMLElement {
         // ESC key support - nur wenn Container focus hat
         replaceContainer.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && isOpen) {
+                console.log('🔒 ESC pressed - closing dropdown'); // Debug-Log
                 closeDropdown();
             }
         });
