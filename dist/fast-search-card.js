@@ -3992,8 +3992,9 @@ class FastSearchCard extends HTMLElement {
         let isOpen = false;
         let animating = false;
         
+
         // Button Click Handler mit sanfter Animation
-        dropdownButton.onclick = function(e) {
+        dropdownButton.onclick = (e) => { // ← Arrow Function
             e.stopPropagation();
             
             if (animating) return; // Prevent rapid clicking
@@ -4003,7 +4004,7 @@ class FastSearchCard extends HTMLElement {
             } else {
                 openDropdown();
             }
-        };
+        };        
         
         const openDropdown = () => {
             if (animating || isOpen) return;
@@ -4043,7 +4044,7 @@ class FastSearchCard extends HTMLElement {
         
         // Item Click Handlers mit Haptic Feedback
         dropdownItems.forEach((item, index) => {
-            item.onclick = function(e) {
+            item.onclick = (e) => { // ← Arrow Function statt function
                 e.stopPropagation();
                 
                 const targetSection = item.getAttribute('data-replace-section');
@@ -4092,7 +4093,7 @@ class FastSearchCard extends HTMLElement {
                         setTimeout(() => this.setupMusicAssistantEventListeners(item), 150);
                     } else if (targetSection === 'history') {
                         console.log('📈 Loading Logbook'); // Debug-Log
-                        this.loadRealLogEntries(item);
+                        this.loadRealLogEntries(item); // ← Jetzt funktioniert das `this`
                     } else if (targetSection === 'shortcuts') {
                         console.log('⚡ Setting up Shortcuts'); // Debug-Log
                         setTimeout(() => this.setupShortcutEventListeners(item), 150);
