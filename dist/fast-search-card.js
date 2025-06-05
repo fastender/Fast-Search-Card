@@ -4423,6 +4423,10 @@ class FastSearchCard extends HTMLElement {
             case 'switch':
                 const switchOn = item.state === 'on';
                 return baseUrl + (switchOn ? 'light-on.png' : 'light-off.png'); // Vorerst Light-Bilder
+
+            case 'cover':
+                const coverOpen = item.state === 'open' || (item.position && item.position > 50);
+                return baseUrl + (coverOpen ? 'cover-on.png' : 'cover-off.png');                
                 
             default:
                 // Fallback: Generisches Bild oder Gradient
@@ -5308,6 +5312,10 @@ class FastSearchCard extends HTMLElement {
 
                 // HA Light Control Event Listeners
                 this.setupHALightControls(item);   
+
+                // HA Cover Control Event Listeners
+                this.setupHACoverControls(item);
+                
             }
 
 
@@ -5586,6 +5594,56 @@ class FastSearchCard extends HTMLElement {
             }  
 
 
+            
+            animateCoverControls(itemId, action) {
+                console.log('🎬 Animating cover controls:', { itemId, action });
+                
+                const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+                if (!replaceContainer) return;
+                
+                const sliderContainer = replaceContainer.querySelector(`[id="new-cover-slider-container-${itemId}"]`);
+                const controlsRow = replaceContainer.querySelector(`[id="new-cover-controls-row-${itemId}"]`);
+                const powerCenter = replaceContainer.querySelector(`[id="new-cover-power-center-${itemId}"]`);
+                const scenesContainer = replaceContainer.querySelector(`[id="new-cover-scenes-${itemId}"]`);
+                
+                const isOpening = action === 'open';
+                
+                if (isOpening) {
+                    // Öffnen: Zeige Row-Controls, verstecke Center Power
+                    if (powerCenter) {
+                        powerCenter.classList.remove('visible');
+                    }
+                    
+                    setTimeout(() => {
+                        if (sliderContainer) {
+                            sliderContainer.classList.add('visible');
+                        }
+                        if (controlsRow) {
+                            controlsRow.classList.add('visible');
+                        }
+                    }, 200);
+                    
+                } else {
+                    // Schließen: Zeige Center Power, verstecke Row-Controls
+                    if (scenesContainer) {
+                        scenesContainer.classList.remove('visible');
+                        scenesContainer.setAttribute('data-is-open', 'false');
+                    }
+                    
+                    if (controlsRow) {
+                        controlsRow.classList.remove('visible');
+                    }
+                    if (sliderContainer) {
+                        sliderContainer.classList.remove('visible');
+                    }
+                    
+                    setTimeout(() => {
+                        if (powerCenter) {
+                            powerCenter.classList.add('visible');
+                        }
+                    }, 200);
+                }
+            }    
     
             
             // Neue Methode für Slider-Farbe (ersetzt updateSliderColor)
@@ -6661,27 +6719,218 @@ getQuickStats(item) {
 
     getCoverReplaceControls(item) {
         const position = item.position || 0;
+        const isOpen = item.state === 'open' || position > 0;
         
         return `
             <div class="control-group-large">
-                <div class="main-control-large">
-                    <button class="toggle-button-large" data-action="open">⬆️ Öffnen</button>
-                    <button class="toggle-button-large off" data-action="stop">⏹️ Stopp</button>
-                    <button class="toggle-button-large" data-action="close">⬇️ Schließen</button>
-                </div>
-                <div class="slider-control-large">
-                    <div class="slider-label-large">
-                        <span>Position</span>
-                        <span class="value">${position}%</span>
+                <div class="new-light-design" id="new-cover-${item.id}">
+                    
+                    <!-- Header -->
+                    <div class="new-light-header">
+                        <div class="new-light-name">${item.name}</div>
+                        <div class="new-light-state" id="new-cover-state-${item.id}">
+                            ${isOpen ? `Offen • ${position}% Position` : 'Geschlossen'}
+                        </div>
                     </div>
-                    <input type="range" class="slider-large" data-control="position" 
-                           min="0" max="100" value="${position}">
+                    
+                    <!-- Mittiger Ein/Aus Button (nur im geschlossenen Zustand) -->
+                    <div class="new-light-power-center ${!isOpen ? 'visible' : ''}" id="new-cover-power-center-${item.id}">
+                        <button class="new-light-control-btn power-off" 
+                                data-action="open" id="new-cover-toggle-center-${item.id}">
+                            🪟
+                        </button>
+                    </div>
+                    
+                    <!-- Zentraler Positions-Slider (nur sichtbar wenn offen) -->
+                    <div class="new-light-slider-container ${isOpen ? 'visible' : ''}" id="new-cover-slider-container-${item.id}">
+                        <div class="new-light-slider-label">
+                            <span>Position</span>
+                            <span id="new-cover-position-value-${item.id}">${position}%</span>
+                        </div>
+                        <div class="new-light-slider-track-container">
+                            <div class="new-light-slider-track" style="width: ${position}%" id="new-cover-track-${item.id}"></div>
+                            <input type="range" class="new-light-slider-input" data-control="position" 
+                                   min="0" max="100" value="${position}" id="new-cover-position-slider-${item.id}">
+                        </div>
+                    </div>
+                    
+                    <!-- Control Buttons Row (nur sichtbar wenn offen) -->
+                    <div class="new-light-controls-row ${isOpen ? 'visible' : ''}" id="new-cover-controls-row-${item.id}">
+                        <!-- Ein/Aus Button -->
+                        <button class="new-light-control-btn power-on" 
+                                data-action="close" id="new-cover-toggle-${item.id}">
+                            🪟
+                        </button>
+                        
+                        <!-- Öffnen Button -->
+                        <button class="new-light-control-btn secondary visible" data-action="open">
+                            ⬆️
+                        </button>
+                        
+                        <!-- Stopp Button -->
+                        <button class="new-light-control-btn secondary visible" data-action="stop">
+                            ⏹️
+                        </button>
+                        
+                        <!-- Schließen Button -->
+                        <button class="new-light-control-btn secondary visible" data-action="close">
+                            ⬇️
+                        </button>
+                        
+                        <!-- Szenen Toggle Button -->
+                        <button class="new-light-control-btn secondary new-light-color-toggle visible" 
+                                id="new-cover-scenes-toggle-${item.id}" data-action="toggle-scenes">
+                            🎭
+                        </button>
+                    </div>
+                    
+                    <!-- Szenen-Auswahl (versteckt by default) -->
+                    <div class="new-light-colors" id="new-cover-scenes-${item.id}" data-is-open="false">
+                        <div class="new-light-colors-grid">
+                            <div class="new-light-color-preset" style="background: linear-gradient(45deg, #FF6B35, #F7931E);" data-position="20">20%</div>
+                            <div class="new-light-color-preset" style="background: linear-gradient(45deg, #F7931E, #FFD23F);" data-position="40">40%</div>
+                            <div class="new-light-color-preset" style="background: linear-gradient(45deg, #FFD23F, #06D6A0);" data-position="50">50%</div>
+                            <div class="new-light-color-preset" style="background: linear-gradient(45deg, #06D6A0, #118AB2);" data-position="60">60%</div>
+                            <div class="new-light-color-preset active" style="background: linear-gradient(45deg, #118AB2, #8E44AD);" data-position="80">80%</div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         `;
     }
 
 
+    setupHACoverControls(item) {
+        if (item.type !== 'cover') return;
+        
+        console.log('=== SETUP COVER CONTROLS ===');
+        
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        if (!replaceContainer) return;
+        
+        // DOM Elemente
+        const positionSlider = replaceContainer.querySelector(`[id="new-cover-position-slider-${item.id}"]`);
+        const positionValue = replaceContainer.querySelector(`[id="new-cover-position-value-${item.id}"]`);
+        const entityState = replaceContainer.querySelector(`[id="new-cover-state-${item.id}"]`);
+        
+        // Power Buttons
+        const powerButtonCenter = replaceContainer.querySelector(`[id="new-cover-toggle-center-${item.id}"]`);
+        const powerButtonRow = replaceContainer.querySelector(`[id="new-cover-toggle-${item.id}"]`);
+        
+        const scenesToggleButton = replaceContainer.querySelector(`[id="new-cover-scenes-toggle-${item.id}"]`);
+        const scenesContainer = replaceContainer.querySelector(`[id="new-cover-scenes-${item.id}"]`);
+        
+        // Position Slider Event Listener
+        if (positionSlider) {
+            positionSlider.addEventListener('input', (e) => {
+                const position = parseInt(e.target.value);
+                
+                const container = positionSlider.parentElement;
+                const track = container.querySelector('.new-light-slider-track');
+                
+                if (track) {
+                    track.style.width = position + '%';
+                }
+                
+                if (positionValue) {
+                    positionValue.textContent = position + '%';
+                }
+                if (entityState) {
+                    entityState.textContent = position > 0 ? `Offen • ${position}% Position` : 'Geschlossen';
+                }
+                
+                this.handleSliderChange(item, 'position', position);
+            });
+        }
+        
+        // Power Button Event Handler
+        const handlePowerClick = (action, button) => {
+            console.log('🪟 COVER BUTTON CLICKED:', action);
+            
+            this.executeReplaceAction(item, action, button).then(() => {
+                setTimeout(() => {
+                    this.animateCoverControls(item.id, action);
+                }, 300);
+            });
+        };
+        
+        // Center Power Button
+        if (powerButtonCenter) {
+            powerButtonCenter.addEventListener('click', () => {
+                handlePowerClick('open', powerButtonCenter);
+            });
+        }
+        
+        // Row Power Button
+        if (powerButtonRow) {
+            powerButtonRow.addEventListener('click', () => {
+                handlePowerClick('close', powerButtonRow);
+            });
+        }
+        
+        // Szenen Toggle Button
+        if (scenesToggleButton) {
+            scenesToggleButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🎭 SCENES TOGGLE CLICKED!');
+                
+                if (scenesContainer) {
+                    const isOpen = scenesContainer.getAttribute('data-is-open') === 'true';
+                    
+                    if (isOpen) {
+                        scenesContainer.classList.remove('visible');
+                        scenesContainer.setAttribute('data-is-open', 'false');
+                    } else {
+                        scenesContainer.classList.add('visible');
+                        scenesContainer.setAttribute('data-is-open', 'true');
+                    }
+                    
+                    scenesToggleButton.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        scenesToggleButton.style.transform = '';
+                    }, 150);
+                }
+            }, true);
+        }
+        
+        // Szenen Presets
+        const scenePresets = replaceContainer.querySelectorAll(`[id="new-cover-scenes-${item.id}"] .new-light-color-preset`);
+        
+        scenePresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                console.log('🎭 SCENE PRESET CLICKED!');
+                scenePresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+                
+                const targetPosition = parseInt(preset.getAttribute('data-position'));
+                
+                if (this._hass) {
+                    this._hass.callService('cover', 'set_cover_position', {
+                        entity_id: item.id,
+                        position: targetPosition
+                    }).then(() => {
+                        setTimeout(() => {
+                            const currentState = this._hass.states[item.id];
+                            if (currentState) {
+                                Object.assign(item, {
+                                    state: currentState.state,
+                                    attributes: currentState.attributes,
+                                    position: currentState.attributes.current_position || targetPosition
+                                });
+                                this.updateCoverControlUI(item);
+                            }
+                        }, 500);
+                    }).catch(error => {
+                        console.error('Cover position service call failed:', error);
+                    });
+                }
+            });
+        });
+    }
+    
 
     // Music Assistant Verfügbarkeit prüfen
     checkMusicAssistantAvailability() {
@@ -7176,6 +7425,11 @@ getQuickStats(item) {
         if (item.type === 'light') {
             this.updateHALightControlUI(item);
         }        
+
+        // Update Cover Control UI
+        if (item.type === 'cover') {
+            this.updateCoverControlUI(item);
+        }        
         
         // Spezielle Behandlung für Media Player Album Art Update
         if (item.type === 'media_player') {
@@ -7246,6 +7500,49 @@ getQuickStats(item) {
         // Update slider color
         this.updateNewLightSliderColor(item);
     }
+
+
+
+    updateCoverControlUI(item) {
+        const position = item.position || 0;
+        const isOpen = item.state === 'open' || position > 0;
+        
+        console.log('🔄 Updating cover UI:', { isOpen, position });
+        
+        // Update both power buttons
+        const powerButtonCenter = this.shadowRoot.getElementById(`new-cover-toggle-center-${item.id}`);
+        const powerButtonRow = this.shadowRoot.getElementById(`new-cover-toggle-${item.id}`);
+        
+        if (powerButtonCenter) {
+            powerButtonCenter.classList.toggle('power-on', isOpen);
+            powerButtonCenter.classList.toggle('power-off', !isOpen);
+        }
+        
+        if (powerButtonRow) {
+            powerButtonRow.classList.toggle('power-on', isOpen);
+            powerButtonRow.classList.toggle('power-off', !isOpen);
+        }
+        
+        // Update state text
+        const stateText = this.shadowRoot.getElementById(`new-cover-state-${item.id}`);
+        if (stateText) {
+            stateText.textContent = isOpen ? `Offen • ${position}% Position` : 'Geschlossen';
+        }
+        
+        // Update position slider and track
+        const slider = this.shadowRoot.getElementById(`new-cover-position-slider-${item.id}`);
+        const value = this.shadowRoot.getElementById(`new-cover-position-value-${item.id}`);
+        const track = this.shadowRoot.getElementById(`new-cover-track-${item.id}`);
+        
+        if (slider && value && track) {
+            slider.value = position;
+            value.textContent = position + '%';
+            track.style.width = position + '%';
+        }
+        
+        // Animate controls based on state
+        this.animateCoverControls(item.id, isOpen ? 'open' : 'close');
+    }    
     
     
     updateMediaPlayerAlbumArt(item) {
