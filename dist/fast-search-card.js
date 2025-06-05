@@ -3413,7 +3413,7 @@ class FastSearchCard extends HTMLElement {
                     visibility: hidden;
                     transform: translateY(-10px) scale(0.95);
                     transition: all 0.3s ease;
-                    z-index: 1000;
+                    z-index: 1002;
                     overflow: hidden;
                     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
                 }
@@ -3610,21 +3610,21 @@ class FastSearchCard extends HTMLElement {
                     gap: 16px;
                     margin-bottom: 20px;
                     position: relative;
-                    z-index: 50 !important; /* Basis für Header */
+                    z-index: 1;
                 }
                 
                 .entity-info {
-                    flex: 1; /* 50% */
+                    flex: 1;
                     position: relative;
-                    z-index: 51 !important;
+                    z-index: 1;
                 }
                 
                 .replace-dropdown-container {
-                    flex: 1; /* 50% */
+                    flex: 1;
                     display: flex;
                     justify-content: flex-end;
                     position: relative;
-                    z-index: 10 !important; /* Niedrig für Dropdown Container */
+                    z-index: 1000; /* HÖHER als alle anderen */
                 }
 
                 @media (max-width: 768px) {
@@ -3633,14 +3633,14 @@ class FastSearchCard extends HTMLElement {
                         align-items: center;
                         justify-content: space-between;
                         gap: 8px;
-                        z-index: 50 !important;
+                        z-index: 1;
                     }
                     
                     .entity-info {
                         flex: 1;
-                        min-width: 0; /* Wichtig für Text-Overflow */
+                        min-width: 0;
                         overflow: hidden;
-                        z-index: 51 !important;
+                        z-index: 1;
                     }
                     
                     .entity-title-large {
@@ -3659,19 +3659,21 @@ class FastSearchCard extends HTMLElement {
                     }
                     
                     .replace-dropdown-container {
-                        flex: 0 0 auto; /* Feste Breite, kein wachsen/schrumpfen */
-                        margin-left: auto; /* Schiebt den Dropdown ganz nach rechts */
-                        z-index: 10 !important;
+                        flex: 0 0 auto;
+                        margin-left: auto;
+                        z-index: 1000; /* HÖHER */
                     }
                     
                     .dropdown-container {
                         max-width: 130px;
+                        z-index: 1000; /* HÖHER */
                     }
                     
                     .dropdown-button {
                         min-width: 100px;
                         padding: 8px 12px;
                         font-size: 12px;
+                        z-index: 1001; /* HÖCHSTER */
                     }
                 }
 
