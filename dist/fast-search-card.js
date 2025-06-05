@@ -8651,13 +8651,16 @@ getQuickStats(item) {
         // Logic to determine if item should be highlighted
         switch (item.itemType) {
             case 'entity':
+                if (item.type === 'cover') {
+                    return (item.position || 0) > 0;
+                }
                 return ['light', 'switch', 'fan', 'media_player'].includes(item.type) && item.state === 'on';
             case 'automation':
                 return item.state === 'on';
             default:
                 return false;
         }
-    }
+    }        
 
     getGridItemHTML(item) {
         const stateText = this.getStateText(item);
@@ -9730,6 +9733,14 @@ getQuickStats(item) {
                     unit: item.attributes.unit_of_measurement || '',
                     status: 'Sensor'
                 };
+
+            case 'cover':
+                const position = item.position || 0;
+                return {
+                    value: position === 0 ? 'Geschlossen' : 'Geöffnet',
+                    status: position === 0 ? 'Geschlossen' : 'Geöffnet',
+                    unit: ''
+                };                
                 
             case 'media_player':
                 if (item.state === 'playing') {
@@ -9919,7 +9930,8 @@ getQuickStats(item) {
             case 'switch':
                 return device.state === 'on' ? 'Ein' : 'Aus';
             case 'cover':
-                return `${device.position || 0}% geöffnet`;
+                const position = device.position || 0;
+                return position === 0 ? 'Geschlossen' : `Geöffnet • ${position}%`;                
             case 'fan':
                 return device.state === 'on' ? `Geschwindigkeit ${device.speed}/${device.max_speed}` : 'Aus';
             case 'media_player':
