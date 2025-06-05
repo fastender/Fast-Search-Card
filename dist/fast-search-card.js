@@ -6802,38 +6802,35 @@ getQuickStats(item) {
                     <!-- Einstellungen-Menu (versteckt by default) -->
                     <div class="new-light-colors" id="new-climate-settings-${item.id}" data-is-open="false">
                         <div class="climate-settings-grid">
-                            <!-- Horizontale Oszillation -->
+                            ${(item.swing_modes && item.swing_modes.length > 0) ? `
+                            <!-- Swing Modi -->
                             <div class="climate-setting-row">
-                                <div class="climate-setting-label">Horizontal</div>
+                                <div class="climate-setting-label">Swing Modus</div>
                                 <div class="climate-setting-options">
-                                    <div class="climate-setting-option" data-swing="horizontal_off">Aus</div>
-                                    <div class="climate-setting-option" data-swing="horizontal_on">Ein</div>
-                                    <div class="climate-setting-option" data-swing="horizontal_auto">Auto</div>
+                                    ${item.swing_modes.map(mode => `
+                                        <div class="climate-setting-option ${item.swing_mode === mode ? 'active' : ''}" data-swing="${mode}">
+                                            ${this.getSwingModeDisplayName(mode)}
+                                        </div>
+                                    `).join('')}
                                 </div>
                             </div>
+                            ` : ''}
                             
-                            <!-- Vertikale Oszillation -->
-                            <div class="climate-setting-row">
-                                <div class="climate-setting-label">Vertikal</div>
-                                <div class="climate-setting-options">
-                                    <div class="climate-setting-option" data-swing="vertical_off">Aus</div>
-                                    <div class="climate-setting-option" data-swing="vertical_on">Ein</div>
-                                    <div class="climate-setting-option" data-swing="vertical_auto">Auto</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Lüfter-Geschwindigkeit -->
+                            ${(item.fan_modes && item.fan_modes.length > 0) ? `
+                            <!-- Lüfter Modi -->
                             <div class="climate-setting-row">
                                 <div class="climate-setting-label">Lüfter</div>
                                 <div class="climate-setting-options">
-                                    <div class="climate-setting-option" data-fan="low">Niedrig</div>
-                                    <div class="climate-setting-option" data-fan="medium">Mittel</div>
-                                    <div class="climate-setting-option" data-fan="high">Hoch</div>
-                                    <div class="climate-setting-option" data-fan="auto">Auto</div>
+                                    ${item.fan_modes.map(mode => `
+                                        <div class="climate-setting-option ${item.fan_mode === mode ? 'active' : ''}" data-fan="${mode}">
+                                            ${this.getFanModeDisplayName(mode)}
+                                        </div>
+                                    `).join('')}
                                 </div>
                             </div>
+                            ` : ''}
                         </div>
-                    </div>
+                    </div> 
                     
                 </div>
             </div>
@@ -10245,6 +10242,40 @@ getQuickStats(item) {
         
         return typeMap[item.itemType] || item.itemType;
     }
+
+
+    getSwingModeDisplayName(mode) {
+        const names = {
+            'auto': 'Auto',
+            '1_up': 'Position 1 (Oben)',
+            '2': 'Position 2',
+            '3': 'Position 3', 
+            '4': 'Position 4',
+            '5_down': 'Position 5 (Unten)',
+            'swing': 'Schwingen',
+            'off': 'Aus',
+            'on': 'Ein'
+        };
+        return names[mode] || mode;
+    }
+    
+    getFanModeDisplayName(mode) {
+        const names = {
+            'auto': 'Auto',
+            '1': 'Stufe 1',
+            '2': 'Stufe 2',
+            '3': 'Stufe 3',
+            '4': 'Stufe 4',
+            '5': 'Stufe 5',
+            'low': 'Niedrig',
+            'medium': 'Mittel', 
+            'high': 'Hoch',
+            'quiet': 'Leise',
+            'turbo': 'Turbo'
+        };
+        return names[mode] || mode;
+    }
+    
 
     // ENDE MORE-INFO DIALOG
 
