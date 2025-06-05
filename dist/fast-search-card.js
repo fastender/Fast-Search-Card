@@ -8653,10 +8653,18 @@ getQuickStats(item) {
             case 'light':
                 device.brightness = Math.round((state.attributes.brightness || 0) / 255 * 100);
                 break;
+
+
             case 'climate':
                 device.current_temperature = state.attributes.current_temperature;
-                device.target_temperature = state.attributes.temperature;
+                device.target_temperature = state.attributes.temperature || state.attributes.target_temp_high || state.attributes.target_temp_low || 20;
+                device.hvac_mode = state.state;
+                device.hvac_modes = state.attributes.hvac_modes || [];
+                device.fan_mode = state.attributes.fan_mode;
+                device.swing_mode = state.attributes.swing_mode;
                 break;
+
+                
             case 'cover':
                 device.position = state.attributes.current_position || 0;
                 break;
@@ -9052,9 +9060,12 @@ getQuickStats(item) {
                 if (item.type === 'cover') {
                     return (item.position || 0) > 0;
                 }
+
+
                 if (item.type === 'climate') {
-                    return ['heat', 'cool', 'auto', 'dry', 'fan_only'].includes(item.state);
-                }
+                    const mode = item.hvac_mode || item.state;
+                    return ['heat', 'cool', 'auto', 'dry', 'fan_only'].includes(mode);
+                }                
                 return ['light', 'switch', 'fan', 'media_player'].includes(item.type) && item.state === 'on';
             case 'automation':
                 return item.state === 'on';
@@ -10121,12 +10132,30 @@ getQuickStats(item) {
                 }
                 return { value: 'Aus', status: 'Aus', unit: '' };
                 
+
+
             case 'climate':
+                const currentTemp = item.current_temperature || '--';
+                const targetTemp = item.target_temperature || '--';
+                const mode = item.hvac_mode || item.state;
+                
+                let modeText = 'Aus';
+                switch(mode) {
+                    case 'heat': modeText = 'Heizbetrieb'; break;
+                    case 'cool': modeText = 'Kühlbetrieb'; break;
+                    case 'auto': modeText = 'Automatik'; break;
+                    case 'dry': modeText = 'Entfeuchtung'; break;
+                    case 'fan_only': modeText = 'Nur Lüfter'; break;
+                    case 'off': modeText = 'Aus'; break;
+                    default: modeText = mode; break;
+                }
+                
                 return {
-                    value: item.current_temperature || '--',
-                    unit: '°C',
-                    status: `Ziel: ${item.target_temperature || '--'}°C`
+                    value: `${currentTemp}°C`,
+                    status: modeText,
+                    unit: ''
                 };
+                
                 
             case 'sensor':
                 return {
