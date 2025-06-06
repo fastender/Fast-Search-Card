@@ -3140,10 +3140,10 @@ class FastSearchCard extends HTMLElement {
                 .new-light-colors {
                     width: 100%;
                     max-width: 280px;
-                    margin: 16px 0 0 0; /* Nur Abstand nach oben */
+                    margin: 16px 0 0 0;
                     max-height: 0;
                     opacity: 0;
-                    overflow: visible; /* NICHT hidden */
+                    overflow: hidden; /* Muss hidden sein für Animation */
                     transform: translateY(-10px);
                     transition: all 0.4s ease;
                     pointer-events: none;
@@ -3719,22 +3719,51 @@ class FastSearchCard extends HTMLElement {
                     border-color: rgba(255, 255, 255, 0.4);
                 }
                 
-                
-                /* Breitere Pulldown Container für TTS und Music */
+                /* WICHTIG: Für Media Player Pulldowns ANDERE Regel */
                 .media-player-pulldown {
-                    max-width: 400px; /* Erweitert von 280px auf 400px */
                     width: 100%;
-                    overflow: visible; /* WICHTIG: Nicht hidden! */
+                    max-width: 400px;
+                    margin: 16px 0 0 0;
+                    max-height: 0;
+                    opacity: 0;
+                    overflow: hidden; /* Für Animation */
+                    transform: translateY(-10px);
+                    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+                    pointer-events: none;
                 }
-                
-                /* Erweiterte max-height für Media Player Pulldowns */
+            
+                /* KRITISCH: Sichtbarer Zustand für Media Player */
                 .media-player-pulldown.visible {
-                    max-height: 500px; /* Größer als standard 400px für mehr Content */
+                    max-height: 1000px !important; /* VIEL HÖHER - 1000px statt 600px */
                     opacity: 1;
                     transform: translateY(0);
                     pointer-events: auto;
-                    overflow: visible; /* WICHTIG: Nicht hidden! */
+                    overflow: visible !important; /* NACH der Animation: overflow visible */
                 }
+
+                /* Suchergebnisse INNERHALB des Pulldowns */
+                .media-player-pulldown .ma-search-results {
+                    min-height: 200px;
+                    max-height: 350px !important;
+                    overflow-y: auto !important;
+                    overflow-x: hidden !important;
+                    
+                    /* Scrollbars verstecken */
+                    scrollbar-width: none !important;
+                    -ms-overflow-style: none !important;
+                    -webkit-overflow-scrolling: touch !important;
+                    scroll-behavior: smooth !important;
+                }            
+
+                /* Webkit Scrollbar verstecken */
+                .media-player-pulldown .ma-search-results::-webkit-scrollbar {
+                    display: none !important;
+                }
+                
+                /* Debug - Temporär hinzufügen um zu testen */
+                .ma-search-results {
+                    border: 1px solid rgba(255,255,255,0.3) !important; /* Siehst du den Rahmen? */
+                }                
                 
                 /* Media Player spezifische Controls Row */
                 .media-player-design .new-light-controls-row {
