@@ -3300,6 +3300,26 @@ class FastSearchCard extends HTMLElement {
                     overflow: hidden !important;
                 }
                 
+                /* ZUSÄTZLICH: Climate spezifisch */
+                [id*="new-climate-settings"].new-light-colors.visible {
+                    max-height: 400px !important;
+                    opacity: 1 !important;
+                    transform: translateY(0) !important;
+                    pointer-events: auto !important;
+                    overflow-y: auto !important;
+                    display: block !important;
+                }
+                
+                [id*="new-climate-settings"].new-light-colors {
+                    max-height: 0 !important;
+                    opacity: 0 !important;
+                    transform: translateY(-10px) !important;
+                    transition: all 0.4s ease !important;
+                    pointer-events: none !important;
+                    overflow: hidden !important;
+                    display: block !important;
+                }
+                
                 /* Farb-Preset Stagger Animation */
                 .new-light-color-preset {
                     opacity: 0;
@@ -7190,10 +7210,18 @@ getQuickStats(item) {
                     if (isOpen) {
                         settingsContainer.classList.remove('visible');
                         settingsContainer.setAttribute('data-is-open', 'false');
+                        // Inline Styles zum Schließen
+                        settingsContainer.style.maxHeight = '0px';
+                        settingsContainer.style.opacity = '0';
+                        settingsContainer.style.pointerEvents = 'none';
                         console.log('🔒 Closing settings');
                     } else {
                         settingsContainer.classList.add('visible');
                         settingsContainer.setAttribute('data-is-open', 'true');
+                        // Inline Styles zum Öffnen
+                        settingsContainer.style.maxHeight = '300px';
+                        settingsContainer.style.opacity = '1';
+                        settingsContainer.style.pointerEvents = 'auto';
                         console.log('🔓 Opening settings');
                     }
                     
