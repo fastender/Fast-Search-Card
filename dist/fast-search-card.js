@@ -2255,8 +2255,21 @@ class FastSearchCard extends HTMLElement {
                 
                 .ma-search-results {
                     min-height: 200px;
-                    max-height: 400px;
+                    max-height: 350px; /* Erhöht von 400px auf 350px für bessere Übersicht */
                     overflow-y: auto;
+                    
+                    /* Scrollbars verstecken - alle Browser */
+                    scrollbar-width: none; /* Firefox */
+                    -ms-overflow-style: none; /* Internet Explorer/Edge */
+                    -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+                    
+                    /* Smooth Scrolling */
+                    scroll-behavior: smooth;
+                }
+                
+                /* Webkit Scrollbar komplett verstecken */
+                .ma-search-results::-webkit-scrollbar {
+                    display: none; /* Chrome, Safari, Opera */
                 }
                 
                 .ma-grid-container {
@@ -3696,13 +3709,6 @@ class FastSearchCard extends HTMLElement {
                     border-color: rgba(255, 255, 255, 0.4);
                 }
                 
-
-                /* Media Player Design Anpassungen - Füge zu deinem CSS hinzu */
-                
-                /* Breitere Container für Media Player */
-                .media-player-design {
-                    max-width: 400px; /* Erweitert von 280px auf 400px */
-                }
                 
                 /* Breitere Pulldown Container für TTS und Music */
                 .media-player-pulldown {
