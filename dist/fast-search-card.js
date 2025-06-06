@@ -7248,20 +7248,18 @@ getQuickStats(item) {
             }, true); // Capture phase
         });
         
-        // Outside Click - nur für Settings Container
+        // Outside Click - AUSKOMMENTIERT
+        /*
         const settingsContainer = container.querySelector(`#new-climate-settings-${item.id}`);
         if (settingsContainer) {
             settingsContainer.addEventListener('click', (e) => {
-                // NUR schließen wenn das Event NICHT vom Button oder Menu kommt
-                if (!dropdownButton.contains(e.target) && 
-                    !dropdownMenu.contains(e.target) && 
-                    isOpen &&
-                    e.target !== dropdownButton) {  // NEUE BEDINGUNG
+                if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target) && isOpen) {
                     console.log(`🔒 Outside click - closing ${type} dropdown`);
                     closeDropdown();
                 }
             });
         }
+        */
         
         // ESC key support
         document.addEventListener('keydown', (e) => {
