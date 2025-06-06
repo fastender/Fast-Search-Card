@@ -3705,6 +3705,22 @@ class FastSearchCard extends HTMLElement {
                     gap: 12px;
                     padding: 8px 0;
                 }
+
+                /* Climate Dropdown spezifische z-index */
+                .new-light-colors .dropdown-container {
+                    position: relative;
+                    z-index: 2000 !important; /* Höher als andere Dropdowns */
+                }
+                
+                .new-light-colors .dropdown-menu {
+                    position: absolute;
+                    z-index: 2001 !important;
+                }
+                
+                .new-light-colors .dropdown-button {
+                    position: relative;
+                    z-index: 1999 !important;
+                }
                 
             </style>
             
