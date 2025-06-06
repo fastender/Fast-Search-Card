@@ -3706,20 +3706,53 @@ class FastSearchCard extends HTMLElement {
                     padding: 8px 0;
                 }
 
-                /* Climate Dropdown spezifische z-index */
-                .new-light-colors .dropdown-container {
-                    position: relative;
-                    z-index: 2000 !important; /* Höher als andere Dropdowns */
+                /* Climate Dropdown Fix */
+                .new-light-colors .dropdown-menu {
+                    position: absolute !important;
+                    top: 100% !important;
+                    left: 0 !important;
+                    right: 0 !important;
+                    background: rgba(0, 0, 0, 0.25) !important;
+                    backdrop-filter: blur(20px) !important;
+                    border-radius: 20px !important;
+                    border: 0px solid rgba(255, 255, 255, 0.1) !important;
+                    z-index: 9999 !important;
+                    
+                    /* Initial State: Versteckt */
+                    opacity: 0 !important;
+                    transform: scale(0.85) !important;
+                    visibility: hidden !important;
+                    
+                    /* Animation */
+                    transition: all 0.3s ease !important;
+                    overflow: hidden !important;
                 }
                 
-                .new-light-colors .dropdown-menu {
-                    position: absolute;
-                    z-index: 2001 !important;
+                .new-light-colors .dropdown-menu.open {
+                    opacity: 1 !important;
+                    transform: scale(1) !important;
+                    visibility: visible !important;
                 }
                 
                 .new-light-colors .dropdown-button {
+                    background: rgba(0, 0, 0, 0.15) !important;
+                    border: none !important;
+                    border-radius: 20px !important;
+                    color: white !important;
+                    padding: 16px 20px !important;
+                    font-size: 14px !important;
+                    cursor: pointer !important;
+                    width: 100% !important;
+                    position: relative !important;
+                }
+                
+                .new-light-colors .dropdown-button.open {
+                    opacity: 1 !important;
+                }
+                
+                .new-light-colors .dropdown-container {
                     position: relative;
-                    z-index: 1999 !important;
+                    z-index: 2000 !important;
                 }
                 
             </style>
