@@ -5342,7 +5342,6 @@ class FastSearchCard extends HTMLElement {
                 this.setupRemainingReplaceEventListeners(item);
             }
 
-            
             // Event Listeners in separater Methode für bessere Übersicht
             setupRemainingReplaceEventListeners(item) {
                 // Shortcut Buttons
@@ -5377,16 +5376,95 @@ class FastSearchCard extends HTMLElement {
                 
                 // TTS Event Listeners
                 this.setupTTSEventListeners(item);
-
+                
                 // HA Light Control Event Listeners
                 this.setupHALightControls(item);   
-
+                
                 // HA Cover Control Event Listeners
                 this.setupHACoverControls(item);
-
-                // HA Climate Control Event Listeners
-                this.setupHAClimateControls(item);                
                 
+                // HA Climate Control Event Listeners
+                this.setupHAClimateControls(item);
+                
+                // Media Player TTS und Music Toggle Buttons - NEU HINZUGEFÜGT
+                const mediaTTSToggle = this.shadowRoot.querySelector(`[id="new-media-tts-toggle-${item.id}"]`);
+                const mediaMusicToggle = this.shadowRoot.querySelector(`[id="new-media-music-toggle-${item.id}"]`);
+                const mediaTTSContainer = this.shadowRoot.querySelector(`[id="new-media-tts-${item.id}"]`);
+                const mediaMusicContainer = this.shadowRoot.querySelector(`[id="new-media-music-${item.id}"]`);
+            
+                // TTS Toggle Event Listener
+                if (mediaTTSToggle && mediaTTSContainer) {
+                    mediaTTSToggle.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log('🗣️ MEDIA TTS TOGGLE CLICKED!');
+                        
+                        const isOpen = mediaTTSContainer.getAttribute('data-is-open') === 'true';
+                        
+                        // Schließe Music Container falls offen
+                        if (mediaMusicContainer) {
+                            mediaMusicContainer.classList.remove('visible');
+                            mediaMusicContainer.setAttribute('data-is-open', 'false');
+                        }
+                        
+                        if (isOpen) {
+                            // TTS schließen
+                            mediaTTSContainer.classList.remove('visible');
+                            mediaTTSContainer.setAttribute('data-is-open', 'false');
+                        } else {
+                            // TTS öffnen
+                            mediaTTSContainer.classList.add('visible');
+                            mediaTTSContainer.setAttribute('data-is-open', 'true');
+                            
+                            // TTS Event Listeners setup
+                            setTimeout(() => this.setupTTSEventListeners(item), 150);
+                        }
+                        
+                        // Button Animation
+                        mediaTTSToggle.style.transform = 'scale(0.9)';
+                        setTimeout(() => {
+                            mediaTTSToggle.style.transform = '';
+                        }, 150);
+                    }, true);
+                }
+            
+                // Music Toggle Event Listener
+                if (mediaMusicToggle && mediaMusicContainer) {
+                    mediaMusicToggle.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log('🎵 MEDIA MUSIC TOGGLE CLICKED!');
+                        
+                        const isOpen = mediaMusicContainer.getAttribute('data-is-open') === 'true';
+                        
+                        // Schließe TTS Container falls offen
+                        if (mediaTTSContainer) {
+                            mediaTTSContainer.classList.remove('visible');
+                            mediaTTSContainer.setAttribute('data-is-open', 'false');
+                        }
+                        
+                        if (isOpen) {
+                            // Music schließen
+                            mediaMusicContainer.classList.remove('visible');
+                            mediaMusicContainer.setAttribute('data-is-open', 'false');
+                        } else {
+                            // Music öffnen
+                            mediaMusicContainer.classList.add('visible');
+                            mediaMusicContainer.setAttribute('data-is-open', 'true');
+                            
+                            // Music Assistant Event Listeners setup
+                            setTimeout(() => this.setupMusicAssistantEventListeners(item), 150);
+                        }
+                        
+                        // Button Animation
+                        mediaMusicToggle.style.transform = 'scale(0.9)';
+                        setTimeout(() => {
+                            mediaMusicToggle.style.transform = '';
+                        }, 150);
+                    }, true);
+                }
             }
 
 
@@ -7523,52 +7601,16 @@ getQuickStats(item) {
             </div>
         `;
     }    
+        
     
-
     getMediaReplaceControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
         
-        // Basis Mediensteuerung für Replace Mode
-        const basicControls = `
-            <div class="main-control-large">
-                <button class="toggle-button-large" data-action="play_pause">
-                    ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
-                </button>
-                <button class="toggle-button-large off" data-action="previous">⏮️ Zurück</button>
-                <button class="toggle-button-large off" data-action="next">⏭️ Weiter</button>
-            </div>
-            <div class="slider-control-large">
-                <div class="slider-label-large">
-                    <span>Lautstärke</span>
-                    <span class="value">${volume}%</span>
-                </div>
-                <input type="range" class="slider-large" data-control="volume" 
-                       min="0" max="100" value="${volume}">
-            </div>
-            ${item.media_title ? `
-                <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.1); border-radius: 12px;">
-                    <div style="font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 4px;">
-                        🎵 ${item.media_title}
-                    </div>
-                    ${item.attributes.media_artist ? `
-                        <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
-                            👤 ${item.attributes.media_artist}
-                        </div>
-                    ` : ''}
-                    ${item.attributes.media_album ? `
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px;">
-                            💿 ${item.attributes.media_album}
-                        </div>
-                    ` : ''}
-                </div>
-            ` : ''}
-        `;
-        
-        // TTS HTML für Replace Mode
+        // TTS HTML für Pulldown
         const ttsHTML = this.getTTSHTML(item);
         
-        // Music Assistant HTML für Replace Mode
+        // Music Assistant HTML für Pulldown
         const musicAssistantHTML = this.checkMusicAssistantAvailability() ? `
             <div class="ma-search-container">
                 <div class="ma-search-bar-container">
@@ -7615,10 +7657,93 @@ getQuickStats(item) {
         
         return `
             <div class="control-group-large">
-                ${basicControls}
+                <div class="new-light-design" id="new-media-${item.id}">
+                    
+                    <!-- Header -->
+                    <div class="new-light-header">
+                        <div class="new-light-name">${item.name}</div>
+                        <div class="new-light-state" id="new-media-state-${item.id}">
+                            ${isPlaying ? 'Spielt' : 'Gestoppt'} • ${volume}% Lautstärke
+                        </div>
+                    </div>
+                    
+                    <!-- Basis Media Controls -->
+                    <div class="main-control-large">
+                        <button class="toggle-button-large" data-action="play_pause">
+                            ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                        </button>
+                        <button class="toggle-button-large off" data-action="previous">⏮️ Zurück</button>
+                        <button class="toggle-button-large off" data-action="next">⏭️ Weiter</button>
+                    </div>
+                    
+                    <!-- Lautstärke Slider -->
+                    <div class="new-light-slider-container visible">
+                        <div class="new-light-slider-label">
+                            <span>Lautstärke</span>
+                            <span id="new-media-volume-value-${item.id}">${volume}%</span>
+                        </div>
+                        <div class="new-light-slider-track-container">
+                            <div class="new-light-slider-track" style="width: ${volume}%" id="new-media-track-${item.id}"></div>
+                            <input type="range" class="new-light-slider-input" data-control="volume" 
+                                   min="0" max="100" value="${volume}" id="new-media-volume-slider-${item.id}">
+                        </div>
+                    </div>
+                    
+                    <!-- Control Buttons Row mit TTS und Music -->
+                    <div class="new-light-controls-row visible" id="new-media-controls-row-${item.id}">
+                        <!-- Power Button (falls benötigt) -->
+                        <button class="new-light-control-btn secondary visible" data-action="toggle">
+                            🔌
+                        </button>
+                        
+                        <!-- TTS Toggle Button -->
+                        <button class="new-light-control-btn secondary new-light-color-toggle visible" 
+                                id="new-media-tts-toggle-${item.id}" data-action="toggle-tts">
+                            🗣️
+                        </button>
+                        
+                        <!-- Music Toggle Button -->
+                        <button class="new-light-control-btn secondary new-light-color-toggle visible" 
+                                id="new-media-music-toggle-${item.id}" data-action="toggle-music">
+                            🎵
+                        </button>
+                    </div>
+                    
+                    <!-- TTS Pulldown (versteckt by default) -->
+                    <div class="new-light-colors" id="new-media-tts-${item.id}" data-is-open="false">
+                        <div class="section-title" style="margin-bottom: 16px; color: rgba(255,255,255,0.9);">🗣️ Text-to-Speech</div>
+                        ${ttsHTML || '<div class="ma-empty-state">TTS nicht verfügbar</div>'}
+                    </div>
+                    
+                    <!-- Music Pulldown (versteckt by default) -->
+                    <div class="new-light-colors" id="new-media-music-${item.id}" data-is-open="false">
+                        <div class="section-title" style="margin-bottom: 16px; color: rgba(255,255,255,0.9);">🎵 Musik Suche</div>
+                        ${musicAssistantHTML}
+                    </div>
+                    
+                    <!-- Now Playing Info -->
+                    ${item.media_title ? `
+                        <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.1); border-radius: 12px;">
+                            <div style="font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 4px;">
+                                🎵 ${item.media_title}
+                            </div>
+                            ${item.attributes.media_artist ? `
+                                <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
+                                    👤 ${item.attributes.media_artist}
+                                </div>
+                            ` : ''}
+                            ${item.attributes.media_album ? `
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px;">
+                                    💿 ${item.attributes.media_album}
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                    
+                </div>
             </div>
         `;
-    }
+    }    
 
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
