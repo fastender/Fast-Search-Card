@@ -3697,6 +3697,55 @@ class FastSearchCard extends HTMLElement {
                 }
                 
 
+                /* Media Player Design Anpassungen - Füge zu deinem CSS hinzu */
+                
+                /* Breitere Container für Media Player */
+                .media-player-design {
+                    max-width: 400px; /* Erweitert von 280px auf 400px */
+                }
+                
+                /* Breitere Pulldown Container für TTS und Music */
+                .media-player-pulldown {
+                    max-width: 400px; /* Erweitert von 280px auf 400px */
+                    width: 100%;
+                }
+                
+                /* Erweiterte max-height für Media Player Pulldowns */
+                .media-player-pulldown.visible {
+                    max-height: 500px; /* Größer als standard 400px für mehr Content */
+                    opacity: 1;
+                    transform: translateY(0);
+                    pointer-events: auto;
+                }
+                
+                /* Media Player spezifische Controls Row */
+                .media-player-design .new-light-controls-row {
+                    gap: 8px; /* Kleinerer Gap wegen mehr Buttons */
+                    flex-wrap: wrap; /* Falls zu viele Buttons, wrap auf neue Zeile */
+                    justify-content: center;
+                }
+                
+                /* Mobile Anpassungen für Media Player */
+                @media (max-width: 768px) {
+                    .media-player-design {
+                        max-width: 100%;
+                        padding: 16px;
+                    }
+                    
+                    .media-player-pulldown {
+                        max-width: 100%;
+                    }
+                    
+                    .media-player-design .new-light-controls-row {
+                        gap: 6px;
+                    }
+                    
+                    .media-player-design .new-light-control-btn {
+                        width: 45px;
+                        height: 45px;
+                        font-size: 18px;
+                    }
+                }
                 
             </style>
             
@@ -7602,7 +7651,6 @@ getQuickStats(item) {
         `;
     }    
         
-    
     getMediaReplaceControls(item) {
         const volume = item.volume || 0;
         const isPlaying = item.state === 'playing';
@@ -7657,7 +7705,7 @@ getQuickStats(item) {
         
         return `
             <div class="control-group-large">
-                <div class="new-light-design" id="new-media-${item.id}">
+                <div class="new-light-design media-player-design" id="new-media-${item.id}">
                     
                     <!-- Header -->
                     <div class="new-light-header">
@@ -7665,15 +7713,6 @@ getQuickStats(item) {
                         <div class="new-light-state" id="new-media-state-${item.id}">
                             ${isPlaying ? 'Spielt' : 'Gestoppt'} • ${volume}% Lautstärke
                         </div>
-                    </div>
-                    
-                    <!-- Basis Media Controls -->
-                    <div class="main-control-large">
-                        <button class="toggle-button-large" data-action="play_pause">
-                            ${isPlaying ? '⏸️ Pause' : '▶️ Play'}
-                        </button>
-                        <button class="toggle-button-large off" data-action="previous">⏮️ Zurück</button>
-                        <button class="toggle-button-large off" data-action="next">⏭️ Weiter</button>
                     </div>
                     
                     <!-- Lautstärke Slider -->
@@ -7689,11 +7728,25 @@ getQuickStats(item) {
                         </div>
                     </div>
                     
-                    <!-- Control Buttons Row mit TTS und Music -->
+                    <!-- Control Buttons Row - NEUE ANORDNUNG -->
                     <div class="new-light-controls-row visible" id="new-media-controls-row-${item.id}">
-                        <!-- Power Button (falls benötigt) -->
+                        
+                        <!-- Power Button -->
                         <button class="new-light-control-btn secondary visible" data-action="toggle">
                             🔌
+                        </button>
+                        
+                        <!-- Media Control Buttons (Play/Pause/Previous/Next) -->
+                        <button class="new-light-control-btn secondary visible ${isPlaying ? 'active' : ''}" data-action="play_pause">
+                            ${isPlaying ? '⏸️' : '▶️'}
+                        </button>
+                        
+                        <button class="new-light-control-btn secondary visible" data-action="previous">
+                            ⏮️
+                        </button>
+                        
+                        <button class="new-light-control-btn secondary visible" data-action="next">
+                            ⏭️
                         </button>
                         
                         <!-- TTS Toggle Button -->
@@ -7707,43 +7760,25 @@ getQuickStats(item) {
                                 id="new-media-music-toggle-${item.id}" data-action="toggle-music">
                             🎵
                         </button>
+                        
                     </div>
                     
-                    <!-- TTS Pulldown (versteckt by default) -->
-                    <div class="new-light-colors" id="new-media-tts-${item.id}" data-is-open="false">
+                    <!-- TTS Pulldown (versteckt by default) - BREITERER CONTAINER -->
+                    <div class="new-light-colors media-player-pulldown" id="new-media-tts-${item.id}" data-is-open="false">
                         <div class="section-title" style="margin-bottom: 16px; color: rgba(255,255,255,0.9);">🗣️ Text-to-Speech</div>
                         ${ttsHTML || '<div class="ma-empty-state">TTS nicht verfügbar</div>'}
                     </div>
                     
-                    <!-- Music Pulldown (versteckt by default) -->
-                    <div class="new-light-colors" id="new-media-music-${item.id}" data-is-open="false">
+                    <!-- Music Pulldown (versteckt by default) - BREITERER CONTAINER -->
+                    <div class="new-light-colors media-player-pulldown" id="new-media-music-${item.id}" data-is-open="false">
                         <div class="section-title" style="margin-bottom: 16px; color: rgba(255,255,255,0.9);">🎵 Musik Suche</div>
                         ${musicAssistantHTML}
                     </div>
                     
-                    <!-- Now Playing Info -->
-                    ${item.media_title ? `
-                        <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.1); border-radius: 12px;">
-                            <div style="font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 4px;">
-                                🎵 ${item.media_title}
-                            </div>
-                            ${item.attributes.media_artist ? `
-                                <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
-                                    👤 ${item.attributes.media_artist}
-                                </div>
-                            ` : ''}
-                            ${item.attributes.media_album ? `
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px;">
-                                    💿 ${item.attributes.media_album}
-                                </div>
-                            ` : ''}
-                        </div>
-                    ` : ''}
-                    
                 </div>
             </div>
         `;
-    }    
+    }
 
     getNonEntityReplaceControls(item) {
         switch (item.itemType) {
