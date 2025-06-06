@@ -3930,7 +3930,9 @@ class FastSearchCard extends HTMLElement {
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
     
-        // Spezielle Behandlung für Media Player (mit Dropdown-System)
+        // In getReplaceContentHTML - Ersetze den Media Player Block:
+        
+        // Spezielle Behandlung für Media Player (mit vereinfachtem Dropdown-System)
         if (item.type === 'media_player') {
             const albumSection = this.getAlbumArtSectionHTML(item);
             const detailsSection = this.getReplaceTabDetailsSectionHTML(item);
@@ -3985,7 +3987,7 @@ class FastSearchCard extends HTMLElement {
         const history = this.getHistoryHTML(item);
         const shortcuts = this.getShortcutsHTML(item);
         
-
+    
         return `
             <div class="entity-header-row">
                 <div class="entity-info">
@@ -4008,16 +4010,6 @@ class FastSearchCard extends HTMLElement {
                                 <span class="dropdown-item-icon">${this.getControlIcon(item)}</span>
                                 <span>Steuerung</span>
                             </div>
-                            ${item.type === 'media_player' ? `
-                                <div class="dropdown-item" data-replace-section="tts">
-                                    <span class="dropdown-item-icon">🗣️</span>
-                                    <span>Sprechen</span>
-                                </div>
-                                <div class="dropdown-item" data-replace-section="music">
-                                    <span class="dropdown-item-icon">🎵</span>
-                                    <span>Musik</span>
-                                </div>
-                            ` : ''}
                             <div class="dropdown-item" data-replace-section="details">
                                 <span class="dropdown-item-icon">📊</span>
                                 <span>Details</span>
@@ -4038,18 +4030,6 @@ class FastSearchCard extends HTMLElement {
             <div class="replace-section-content active" data-replace-content="controls">
                 ${controls}
             </div>
-            
-            ${item.type === 'media_player' ? `
-                <div class="replace-section-content" data-replace-content="tts" style="display: none;">
-                    <h3 class="section-title">🗣️ Text-to-Speech</h3>
-                    ${this.getTTSHTML(item) || '<div class="ma-empty-state">TTS nicht verfügbar</div>'}
-                </div>
-                
-                <div class="replace-section-content" data-replace-content="music" style="display: none;">
-                    <h3 class="section-title">🎵 Musik Suche</h3>
-                    ${this.getMusicAssistantHTML(item)}
-                </div>
-            ` : ''}
             
             <div class="replace-section-content" data-replace-content="details" style="display: none;">
                 ${attributes}
@@ -10221,20 +10201,15 @@ getQuickStats(item) {
                     // Trigger reflow for animation
                     targetSectionElement.offsetHeight;
                     targetSectionElement.classList.add('fade-in');
-                    
+
                     // Spezielle Initialisierung für verschiedene Sektionen
                     if (targetSection === 'history') {
                         // Logbook neu laden wenn Sektion aktiviert wird
                         this.loadRealLogEntries(item);
-                    } else if (targetSection === 'tts' && item.type === 'media_player') {
-                        // TTS Event Listeners setup
+                    } else if (targetSection === 'shortcuts') {
+                        // Shortcuts Event Listeners setup
                         setTimeout(() => {
-                            this.setupTTSEventListeners(item);
-                        }, 150);
-                    } else if (targetSection === 'music' && item.type === 'media_player') {
-                        // Music Assistant Event Listeners setup
-                        setTimeout(() => {
-                            this.setupMusicAssistantEventListeners(item);
+                            this.setupShortcutEventListeners(item);
                         }, 150);
                     }
                 }
