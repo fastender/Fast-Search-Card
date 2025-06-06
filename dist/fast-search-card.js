@@ -3699,6 +3699,12 @@ class FastSearchCard extends HTMLElement {
                     border-color: rgba(255, 255, 255, 0.4);
                 }
 
+                .climate-settings-dropdowns {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    padding: 8px 0;
+                }
                 
             </style>
             
@@ -6821,15 +6827,17 @@ getQuickStats(item) {
                     
                     <!-- Einstellungen-Menu (versteckt by default) -->
                     <div class="new-light-colors" id="new-climate-settings-${item.id}" data-is-open="false">
-                        <div class="climate-settings-grid">
+                        <div class="climate-settings-dropdowns">
                             ${(item.swing_modes && item.swing_modes.length > 0) ? `
-                            <!-- Swing Modi -->
-                            <div class="climate-setting-row">
-                                <div class="climate-setting-label">Swing Modus</div>
-                                <div class="climate-setting-options">
+                            <div class="dropdown-container">
+                                <button class="dropdown-button" id="swing-dropdown-${item.id}">
+                                    <span>Swing: ${this.getSwingModeDisplayName(item.swing_mode || 'auto')}</span>
+                                    <span class="dropdown-icon">▼</span>
+                                </button>
+                                <div class="dropdown-menu" id="swing-menu-${item.id}">
                                     ${item.swing_modes.map(mode => `
-                                        <div class="climate-setting-option ${item.swing_mode === mode ? 'active' : ''}" data-swing="${mode}">
-                                            ${this.getSwingModeDisplayName(mode)}
+                                        <div class="dropdown-item ${item.swing_mode === mode ? 'active' : ''}" data-swing="${mode}">
+                                            <span>${this.getSwingModeDisplayName(mode)}</span>
                                         </div>
                                     `).join('')}
                                 </div>
@@ -6837,20 +6845,22 @@ getQuickStats(item) {
                             ` : ''}
                             
                             ${(item.fan_modes && item.fan_modes.length > 0) ? `
-                            <!-- Lüfter Modi -->
-                            <div class="climate-setting-row">
-                                <div class="climate-setting-label">Lüfter</div>
-                                <div class="climate-setting-options">
+                            <div class="dropdown-container" style="margin-top: 12px;">
+                                <button class="dropdown-button" id="fan-dropdown-${item.id}">
+                                    <span>Lüfter: ${this.getFanModeDisplayName(item.fan_mode || 'auto')}</span>
+                                    <span class="dropdown-icon">▼</span>
+                                </button>
+                                <div class="dropdown-menu" id="fan-menu-${item.id}">
                                     ${item.fan_modes.map(mode => `
-                                        <div class="climate-setting-option ${item.fan_mode === mode ? 'active' : ''}" data-fan="${mode}">
-                                            ${this.getFanModeDisplayName(mode)}
+                                        <div class="dropdown-item ${item.fan_mode === mode ? 'active' : ''}" data-fan="${mode}">
+                                            <span>${this.getFanModeDisplayName(mode)}</span>
                                         </div>
                                     `).join('')}
                                 </div>
                             </div>
                             ` : ''}
                         </div>
-                    </div> 
+                    </div>
                     
                 </div>
             </div>
@@ -7125,49 +7135,93 @@ getQuickStats(item) {
             }, true);
         }
         
-        // Einstellungs-Optionen
-        const settingOptions = replaceContainer.querySelectorAll(`[id="new-climate-settings-${item.id}"] .climate-setting-option`);
-        
-        settingOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                console.log('⚙️ SETTING OPTION CLICKED!');
-                
-                // Aktive Klasse in derselben Zeile togglen
-                const row = option.closest('.climate-setting-row');
-                const rowOptions = row.querySelectorAll('.climate-setting-option');
-                rowOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                
-                // Service Call für Einstellung
-                const swingMode = option.getAttribute('data-swing');
-                const fanMode = option.getAttribute('data-fan');
-                
-                if (this._hass) {
-                    let serviceCall;
-                    
-                    if (swingMode) {
-                        serviceCall = this._hass.callService('climate', 'set_swing_mode', {
-                            entity_id: item.id,
-                            swing_mode: swingMode
-                        });
-                    } else if (fanMode) {
-                        serviceCall = this._hass.callService('climate', 'set_fan_mode', {
-                            entity_id: item.id,
-                            fan_mode: fanMode
-                        });
-                    }
-                    
-                    if (serviceCall) {
-                        serviceCall.catch(error => {
-                            console.error('Climate setting service call failed:', error);
-                        });
-                    }
-                }
-            });
-        });
+        // Climate Dropdowns Setup
+                this.setupClimateDropdowns(item);
     }
     
 
+    setupClimateDropdowns(item) {
+        const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
+        if (!replaceContainer) return;
+        
+        // Swing Dropdown
+        this.setupSingleClimateDropdown(replaceContainer, `swing-dropdown-${item.id}`, `swing-menu-${item.id}`, 'swing', item);
+        
+        // Fan Dropdown  
+        this.setupSingleClimateDropdown(replaceContainer, `fan-dropdown-${item.id}`, `fan-menu-${item.id}`, 'fan', item);
+    }
+    
+    setupSingleClimateDropdown(container, buttonId, menuId, type, item) {
+        const dropdownButton = container.querySelector(`#${buttonId}`);
+        const dropdownMenu = container.querySelector(`#${menuId}`);
+        
+        if (!dropdownButton || !dropdownMenu) return;
+        
+        let isOpen = false;
+        
+        // Button Click Handler
+        dropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            if (isOpen) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        });
+        
+        const openDropdown = () => {
+            isOpen = true;
+            dropdownButton.classList.add('open');
+            dropdownMenu.classList.add('open');
+        };
+        
+        const closeDropdown = () => {
+            isOpen = false;
+            dropdownButton.classList.remove('open');
+            dropdownMenu.classList.remove('open');
+        };
+        
+        // Item Click Handlers
+        const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+        dropdownItems.forEach(dropdownItem => {
+            dropdownItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Update active state
+                dropdownItems.forEach(i => i.classList.remove('active'));
+                dropdownItem.classList.add('active');
+                
+                // Update button text
+                const selectedText = dropdownItem.querySelector('span').textContent;
+                const prefix = type === 'swing' ? 'Swing: ' : 'Lüfter: ';
+                dropdownButton.querySelector('span:first-child').textContent = prefix + selectedText;
+                
+                // Service Call
+                const modeValue = dropdownItem.getAttribute(`data-${type}`);
+                if (this._hass && modeValue) {
+                    const serviceType = type === 'swing' ? 'set_swing_mode' : 'set_fan_mode';
+                    const serviceData = { entity_id: item.id };
+                    serviceData[`${type}_mode`] = modeValue;
+                    
+                    this._hass.callService('climate', serviceType, serviceData).catch(error => {
+                        console.error(`Climate ${type} service call failed:`, error);
+                    });
+                }
+                
+                closeDropdown();
+            });
+        });
+        
+        // Outside Click
+        document.addEventListener('click', (e) => {
+            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target) && isOpen) {
+                closeDropdown();
+            }
+        });
+    }
+
+    
     // Music Assistant Verfügbarkeit prüfen
     checkMusicAssistantAvailability() {
         if (!this._hass) return false;
