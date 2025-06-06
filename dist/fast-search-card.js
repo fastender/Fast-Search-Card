@@ -3624,13 +3624,14 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
-
-                /* Climate Settings Grid */
+                /* Climate Settings Grid - Erweitert */
                 .climate-settings-grid {
                     display: flex;
                     flex-direction: column;
-                    gap: 12px;
+                    gap: 16px;
                     padding: 8px 0;
+                    max-height: 200px;
+                    overflow-y: auto;
                 }
                 
                 .climate-setting-row {
@@ -3645,17 +3646,41 @@ class FastSearchCard extends HTMLElement {
                     color: rgba(255, 255, 255, 0.8);
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
+                    flex-shrink: 0;
                 }
                 
                 .climate-setting-options {
                     display: flex;
                     gap: 8px;
-                    flex-wrap: wrap;
+                    overflow-x: auto;
+                    padding: 4px 0;
+                    scrollbar-width: thin;
+                    -webkit-overflow-scrolling: touch;
+                    min-height: 44px;
+                }
+                
+                /* Scrollbar Styling für Webkit */
+                .climate-setting-options::-webkit-scrollbar {
+                    height: 4px;
+                }
+                
+                .climate-setting-options::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 2px;
+                }
+                
+                .climate-setting-options::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 2px;
+                }
+                
+                .climate-setting-options::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.5);
                 }
                 
                 .climate-setting-option {
-                    flex: 1;
-                    min-width: 60px;
+                    flex-shrink: 0;
+                    min-width: 80px;
                     padding: 8px 12px;
                     background: rgba(255, 255, 255, 0.1);
                     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -3666,6 +3691,7 @@ class FastSearchCard extends HTMLElement {
                     text-align: center;
                     cursor: pointer;
                     transition: all 0.2s ease;
+                    white-space: nowrap;
                 }
                 
                 .climate-setting-option:hover {
@@ -3678,6 +3704,7 @@ class FastSearchCard extends HTMLElement {
                     color: white;
                     border-color: rgba(255, 255, 255, 0.4);
                 }
+                
 
                 
             </style>
@@ -6723,6 +6750,11 @@ getQuickStats(item) {
         const targetTemp = item.target_temperature || 20;
         const isOn = ['heat', 'cool', 'auto', 'dry', 'fan_only'].includes(item.state);
         
+        // Aktuelle Werte aus den Attributen holen
+        const currentSwingHorizontal = item.attributes.swing_horizontal || 'auto';
+        const currentSwingVertical = item.attributes.swing_vertical || 'auto';
+        const currentFanMode = item.attributes.fan_mode || 'auto';
+        
         return `
             <div class="control-group-large">
                 <div class="new-light-design" id="new-climate-${item.id}">
@@ -6799,39 +6831,53 @@ getQuickStats(item) {
                         </button>
                     </div>
                     
-                    <!-- Einstellungen-Menu (versteckt by default) -->
+                    <!-- Erweiterte Einstellungen-Menu (versteckt by default) -->
                     <div class="new-light-colors" id="new-climate-settings-${item.id}" data-is-open="false">
                         <div class="climate-settings-grid">
+                            
                             <!-- Horizontale Oszillation -->
                             <div class="climate-setting-row">
-                                <div class="climate-setting-label">Horizontal</div>
+                                <div class="climate-setting-label">Horizontal Oszillation</div>
                                 <div class="climate-setting-options">
-                                    <div class="climate-setting-option" data-swing="horizontal_off">Aus</div>
-                                    <div class="climate-setting-option" data-swing="horizontal_on">Ein</div>
-                                    <div class="climate-setting-option" data-swing="horizontal_auto">Auto</div>
+                                    <div class="climate-setting-option ${currentSwingHorizontal === 'auto' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="auto">Auto</div>
+                                    <div class="climate-setting-option ${currentSwingHorizontal === '1_left' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="1_left">1 Links</div>
+                                    <div class="climate-setting-option ${currentSwingHorizontal === '2' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="2">2</div>
+                                    <div class="climate-setting-option ${currentSwingHorizontal === '3' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="3">3</div>
+                                    <div class="climate-setting-option ${currentSwingHorizontal === '4' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="4">4</div>
+                                    <div class="climate-setting-option ${currentSwingHorizontal === '5_right' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="5_right">5 Rechts</div>
+                                    <div class="climate-setting-option ${currentSwingHorizontal === 'split' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="split">Split</div>
+                                    <div class="climate-setting-option ${currentSwingHorizontal === 'swing' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="swing">Swing</div>
                                 </div>
                             </div>
                             
                             <!-- Vertikale Oszillation -->
                             <div class="climate-setting-row">
-                                <div class="climate-setting-label">Vertikal</div>
+                                <div class="climate-setting-label">Vertikale Oszillation</div>
                                 <div class="climate-setting-options">
-                                    <div class="climate-setting-option" data-swing="vertical_off">Aus</div>
-                                    <div class="climate-setting-option" data-swing="vertical_on">Ein</div>
-                                    <div class="climate-setting-option" data-swing="vertical_auto">Auto</div>
+                                    <div class="climate-setting-option ${currentSwingVertical === 'auto' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="auto">Auto</div>
+                                    <div class="climate-setting-option ${currentSwingVertical === '1_up' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="1_up">1 Oben</div>
+                                    <div class="climate-setting-option ${currentSwingVertical === '2' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="2">2</div>
+                                    <div class="climate-setting-option ${currentSwingVertical === '3' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="3">3</div>
+                                    <div class="climate-setting-option ${currentSwingVertical === '4' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="4">4</div>
+                                    <div class="climate-setting-option ${currentSwingVertical === '5_down' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="5_down">5 Unten</div>
+                                    <div class="climate-setting-option ${currentSwingVertical === 'auto_swing' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="auto_swing">Auto Swing</div>
+                                    <div class="climate-setting-option ${currentSwingVertical === 'swing' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="swing">Swing</div>
                                 </div>
                             </div>
                             
                             <!-- Lüfter-Geschwindigkeit -->
                             <div class="climate-setting-row">
-                                <div class="climate-setting-label">Lüfter</div>
+                                <div class="climate-setting-label">Lüftermodus</div>
                                 <div class="climate-setting-options">
-                                    <div class="climate-setting-option" data-fan="low">Niedrig</div>
-                                    <div class="climate-setting-option" data-fan="medium">Mittel</div>
-                                    <div class="climate-setting-option" data-fan="high">Hoch</div>
-                                    <div class="climate-setting-option" data-fan="auto">Auto</div>
+                                    <div class="climate-setting-option ${currentFanMode === 'auto' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="auto">Auto</div>
+                                    <div class="climate-setting-option ${currentFanMode === '1' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="1">1</div>
+                                    <div class="climate-setting-option ${currentFanMode === '2' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="2">2</div>
+                                    <div class="climate-setting-option ${currentFanMode === '3' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="3">3</div>
+                                    <div class="climate-setting-option ${currentFanMode === '4' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="4">4</div>
+                                    <div class="climate-setting-option ${currentFanMode === '5' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="5">5</div>
                                 </div>
                             </div>
+                            
                         </div>
                     </div>
                     
@@ -7108,12 +7154,15 @@ getQuickStats(item) {
             }, true);
         }
         
-        // Einstellungs-Optionen
+        // Erweiterte Einstellungs-Optionen - Ersetze den bestehenden settingOptions Code
         const settingOptions = replaceContainer.querySelectorAll(`[id="new-climate-settings-${item.id}"] .climate-setting-option`);
         
         settingOptions.forEach(option => {
             option.addEventListener('click', () => {
-                console.log('⚙️ SETTING OPTION CLICKED!');
+                console.log('⚙️ CLIMATE SETTING OPTION CLICKED!');
+                
+                const settingType = option.getAttribute('data-climate-setting');
+                const settingValue = option.getAttribute('data-value');
                 
                 // Aktive Klasse in derselben Zeile togglen
                 const row = option.closest('.climate-setting-row');
@@ -7121,35 +7170,88 @@ getQuickStats(item) {
                 rowOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
                 
-                // Service Call für Einstellung
-                const swingMode = option.getAttribute('data-swing');
-                const fanMode = option.getAttribute('data-fan');
-                
+                // Service Call für erweiterte Einstellungen
                 if (this._hass) {
                     let serviceCall;
                     
-                    if (swingMode) {
-                        serviceCall = this._hass.callService('climate', 'set_swing_mode', {
-                            entity_id: item.id,
-                            swing_mode: swingMode
-                        });
-                    } else if (fanMode) {
-                        serviceCall = this._hass.callService('climate', 'set_fan_mode', {
-                            entity_id: item.id,
-                            fan_mode: fanMode
-                        });
+                    console.log(`🌡️ Setting ${settingType} to ${settingValue}`);
+                    
+                    switch (settingType) {
+                        case 'swing_horizontal':
+                            // Custom service call für horizontale Oszillation
+                            serviceCall = this._hass.callService('climate', 'set_swing_mode', {
+                                entity_id: item.id,
+                                swing_mode: settingValue
+                            });
+                            break;
+                            
+                        case 'swing_vertical':
+                            // Für manche Klimaanlagen ist das ein separates Attribut
+                            serviceCall = this._hass.callService('climate', 'set_swing_mode', {
+                                entity_id: item.id,
+                                swing_mode: settingValue
+                            });
+                            // Alternative: Falls deine Klimaanlage ein anderes Attribut nutzt:
+                            // serviceCall = this._hass.callService('climate', 'set_swing_mode_vertical', {
+                            //     entity_id: item.id,
+                            //     swing_mode_vertical: settingValue
+                            // });
+                            break;
+                            
+                        case 'fan_mode':
+                            serviceCall = this._hass.callService('climate', 'set_fan_mode', {
+                                entity_id: item.id,
+                                fan_mode: settingValue
+                            });
+                            break;
                     }
                     
                     if (serviceCall) {
-                        serviceCall.catch(error => {
-                            console.error('Climate setting service call failed:', error);
+                        serviceCall.then(() => {
+                            console.log(`✅ ${settingType} successfully set to ${settingValue}`);
+                            
+                            // UI nach 500ms aktualisieren
+                            setTimeout(() => {
+                                const currentState = this._hass.states[item.id];
+                                if (currentState) {
+                                    Object.assign(item, {
+                                        state: currentState.state,
+                                        attributes: currentState.attributes
+                                    });
+                                    this.updateClimateControlUI(item);
+                                }
+                            }, 500);
+                        }).catch(error => {
+                            console.error(`❌ ${settingType} setting failed:`, error);
+                            
+                            // Bei Fehler: Option wieder zurücksetzen
+                            rowOptions.forEach(opt => opt.classList.remove('active'));
+                            // Ursprüngliche aktive Option wieder finden und aktivieren
+                            const originalValue = this.getOriginalClimateSettingValue(item, settingType);
+                            const originalOption = row.querySelector(`[data-value="${originalValue}"]`);
+                            if (originalOption) {
+                                originalOption.classList.add('active');
+                            }
                         });
                     }
                 }
             });
         });
     }
-    
+
+    // Neue Hilfsmethode hinzufügen (nach setupHAClimateControls):
+    getOriginalClimateSettingValue(item, settingType) {
+        switch (settingType) {
+            case 'swing_horizontal':
+                return item.attributes.swing_horizontal || 'auto';
+            case 'swing_vertical':
+                return item.attributes.swing_vertical || 'auto';
+            case 'fan_mode':
+                return item.attributes.fan_mode || 'auto';
+            default:
+                return 'auto';
+        }
+    }    
 
     // Music Assistant Verfügbarkeit prüfen
     checkMusicAssistantAvailability() {
@@ -8679,8 +8781,8 @@ getQuickStats(item) {
             case 'light':
                 device.brightness = Math.round((state.attributes.brightness || 0) / 255 * 100);
                 break;
-
-
+            
+            
             case 'climate':
                 device.current_temperature = state.attributes.current_temperature;
                 device.target_temperature = state.attributes.temperature || state.attributes.target_temp_high || state.attributes.target_temp_low || 20;
@@ -8690,8 +8792,30 @@ getQuickStats(item) {
                 device.fan_modes = state.attributes.fan_modes || [];
                 device.swing_mode = state.attributes.swing_mode;
                 device.swing_modes = state.attributes.swing_modes || [];
+                
+                // Erweiterte Oszillations-Attribute
+                device.swing_horizontal = state.attributes.swing_horizontal || state.attributes.swing_mode;
+                device.swing_vertical = state.attributes.swing_vertical || state.attributes.swing_mode_vertical;
+                
+                // Verfügbare Modi aus den Attributen auslesen
+                device.swing_horizontal_modes = state.attributes.swing_horizontal_modes || 
+                    ['auto', '1_left', '2', '3', '4', '5_right', 'split', 'swing'];
+                device.swing_vertical_modes = state.attributes.swing_vertical_modes || 
+                    ['auto', '1_up', '2', '3', '4', '5_down', 'auto_swing', 'swing'];
+                device.fan_speed_modes = state.attributes.fan_modes || 
+                    ['auto', '1', '2', '3', '4', '5'];
+                
+                console.log('🌡️ Climate attributes loaded:', {
+                    swing_horizontal: device.swing_horizontal,
+                    swing_vertical: device.swing_vertical,
+                    fan_mode: device.fan_mode,
+                    available_modes: {
+                        horizontal: device.swing_horizontal_modes,
+                        vertical: device.swing_vertical_modes,
+                        fan: device.fan_speed_modes
+                    }
+                });
                 break;                
-
                 
             case 'cover':
                 device.position = state.attributes.current_position || 0;
