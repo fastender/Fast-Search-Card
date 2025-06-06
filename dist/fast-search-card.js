@@ -2256,7 +2256,9 @@ class FastSearchCard extends HTMLElement {
                 .ma-search-results {
                     min-height: 200px;
                     max-height: 350px; /* Erhöht von 400px auf 350px für bessere Übersicht */
-                    overflow-y: auto;
+                    overflow-y: auto !important; /* !important falls andere Regeln überschreiben */
+                    overflow-x: hidden; /* Nur horizontal verstecken */
+
                     
                     /* Scrollbars verstecken - alle Browser */
                     scrollbar-width: none; /* Firefox */
@@ -2271,6 +2273,13 @@ class FastSearchCard extends HTMLElement {
                 .ma-search-results::-webkit-scrollbar {
                     display: none; /* Chrome, Safari, Opera */
                 }
+
+                /* Container die das Scrollen NICHT beeinflussen sollen */
+                .ma-search-container,
+                .control-group-large,
+                .new-light-design {
+                    overflow: visible; /* Explizit sichtbar */
+                }                
                 
                 .ma-grid-container {
                     display: grid;
@@ -3134,7 +3143,7 @@ class FastSearchCard extends HTMLElement {
                     margin: 16px 0 0 0; /* Nur Abstand nach oben */
                     max-height: 0;
                     opacity: 0;
-                    overflow: hidden;
+                    overflow: visible; /* NICHT hidden */
                     transform: translateY(-10px);
                     transition: all 0.4s ease;
                     pointer-events: none;
@@ -3293,6 +3302,7 @@ class FastSearchCard extends HTMLElement {
                     opacity: 1;
                     transform: translateY(0);
                     pointer-events: auto;
+                    overflow: visible; /* NICHT hidden */
                 }
                 
                 /* Farb-Preset Stagger Animation */
@@ -3714,6 +3724,7 @@ class FastSearchCard extends HTMLElement {
                 .media-player-pulldown {
                     max-width: 400px; /* Erweitert von 280px auf 400px */
                     width: 100%;
+                    overflow: visible; /* WICHTIG: Nicht hidden! */
                 }
                 
                 /* Erweiterte max-height für Media Player Pulldowns */
@@ -3722,6 +3733,7 @@ class FastSearchCard extends HTMLElement {
                     opacity: 1;
                     transform: translateY(0);
                     pointer-events: auto;
+                    overflow: visible; /* WICHTIG: Nicht hidden! */
                 }
                 
                 /* Media Player spezifische Controls Row */
