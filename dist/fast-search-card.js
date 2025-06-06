@@ -3753,17 +3753,13 @@ class FastSearchCard extends HTMLElement {
                     -ms-overflow-style: none !important;
                     -webkit-overflow-scrolling: touch !important;
                     scroll-behavior: smooth !important;
+                    border-radius: 20px;
                 }            
 
                 /* Webkit Scrollbar verstecken */
                 .media-player-pulldown .ma-search-results::-webkit-scrollbar {
                     display: none !important;
-                }
-                
-                /* Debug - Temporär hinzufügen um zu testen */
-                .ma-search-results {
-                    border: 1px solid rgba(255,255,255,0.3) !important; /* Siehst du den Rahmen? */
-                }                
+                }                           
                 
                 /* Media Player spezifische Controls Row */
                 .media-player-design .new-light-controls-row {
