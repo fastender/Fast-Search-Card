@@ -6750,10 +6750,22 @@ getQuickStats(item) {
         const targetTemp = item.target_temperature || 20;
         const isOn = ['heat', 'cool', 'auto', 'dry', 'fan_only'].includes(item.state);
         
-        // Aktuelle Werte aus den Attributen holen
-        const currentSwingHorizontal = item.attributes.swing_horizontal || 'auto';
-        const currentSwingVertical = item.attributes.swing_vertical || 'auto';
+        // MELCloud spezifische Attribute
+        const currentVaneHorizontal = item.attributes.vane_horizontal || 'auto';
+        const currentVaneVertical = item.attributes.vane_vertical || 'auto';
         const currentFanMode = item.attributes.fan_mode || 'auto';
+        
+        // Verfügbare Positionen aus Attributen oder Defaults
+        const availableHorizontal = item.attributes.vane_horizontal_positions || ['auto', '1', '2', '3', '4', '5', 'split', 'swing'];
+        const availableVertical = item.attributes.vane_vertical_positions || ['auto', '1', '2', '3', '4', '5', 'swing'];
+        const availableFanModes = item.attributes.fan_modes || ['auto', 'quiet', '1', '2', '3', '4', '5'];
+        
+        console.log('🌡️ MELCloud Climate data:', {
+            vane_horizontal: currentVaneHorizontal,
+            vane_vertical: currentVaneVertical,
+            fan_mode: currentFanMode,
+            available: { horizontal: availableHorizontal, vertical: availableVertical, fan: availableFanModes }
+        });
         
         return `
             <div class="control-group-large">
@@ -6831,50 +6843,46 @@ getQuickStats(item) {
                         </button>
                     </div>
                     
-                    <!-- Erweiterte Einstellungen-Menu (versteckt by default) -->
+                    <!-- MELCloud Einstellungen-Menu -->
                     <div class="new-light-colors" id="new-climate-settings-${item.id}" data-is-open="false">
                         <div class="climate-settings-grid">
                             
-                            <!-- Horizontale Oszillation -->
+                            <!-- Horizontale Lamellen -->
                             <div class="climate-setting-row">
-                                <div class="climate-setting-label">Horizontal Oszillation</div>
+                                <div class="climate-setting-label">Horizontale Lamellen</div>
                                 <div class="climate-setting-options">
-                                    <div class="climate-setting-option ${currentSwingHorizontal === 'auto' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="auto">Auto</div>
-                                    <div class="climate-setting-option ${currentSwingHorizontal === '1_left' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="1_left">1 Links</div>
-                                    <div class="climate-setting-option ${currentSwingHorizontal === '2' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="2">2</div>
-                                    <div class="climate-setting-option ${currentSwingHorizontal === '3' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="3">3</div>
-                                    <div class="climate-setting-option ${currentSwingHorizontal === '4' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="4">4</div>
-                                    <div class="climate-setting-option ${currentSwingHorizontal === '5_right' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="5_right">5 Rechts</div>
-                                    <div class="climate-setting-option ${currentSwingHorizontal === 'split' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="split">Split</div>
-                                    <div class="climate-setting-option ${currentSwingHorizontal === 'swing' ? 'active' : ''}" data-climate-setting="swing_horizontal" data-value="swing">Swing</div>
+                                    ${availableHorizontal.map(mode => `
+                                        <div class="climate-setting-option ${currentVaneHorizontal === mode ? 'active' : ''}" 
+                                             data-climate-setting="vane_horizontal" data-value="${mode}">
+                                            ${this.getMELCloudModeLabel(mode, 'horizontal')}
+                                        </div>
+                                    `).join('')}
                                 </div>
                             </div>
                             
-                            <!-- Vertikale Oszillation -->
+                            <!-- Vertikale Lamellen -->
                             <div class="climate-setting-row">
-                                <div class="climate-setting-label">Vertikale Oszillation</div>
+                                <div class="climate-setting-label">Vertikale Lamellen</div>
                                 <div class="climate-setting-options">
-                                    <div class="climate-setting-option ${currentSwingVertical === 'auto' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="auto">Auto</div>
-                                    <div class="climate-setting-option ${currentSwingVertical === '1_up' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="1_up">1 Oben</div>
-                                    <div class="climate-setting-option ${currentSwingVertical === '2' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="2">2</div>
-                                    <div class="climate-setting-option ${currentSwingVertical === '3' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="3">3</div>
-                                    <div class="climate-setting-option ${currentSwingVertical === '4' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="4">4</div>
-                                    <div class="climate-setting-option ${currentSwingVertical === '5_down' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="5_down">5 Unten</div>
-                                    <div class="climate-setting-option ${currentSwingVertical === 'auto_swing' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="auto_swing">Auto Swing</div>
-                                    <div class="climate-setting-option ${currentSwingVertical === 'swing' ? 'active' : ''}" data-climate-setting="swing_vertical" data-value="swing">Swing</div>
+                                    ${availableVertical.map(mode => `
+                                        <div class="climate-setting-option ${currentVaneVertical === mode ? 'active' : ''}" 
+                                             data-climate-setting="vane_vertical" data-value="${mode}">
+                                            ${this.getMELCloudModeLabel(mode, 'vertical')}
+                                        </div>
+                                    `).join('')}
                                 </div>
                             </div>
                             
-                            <!-- Lüfter-Geschwindigkeit -->
+                            <!-- Lüftergeschwindigkeit -->
                             <div class="climate-setting-row">
-                                <div class="climate-setting-label">Lüftermodus</div>
+                                <div class="climate-setting-label">Lüftergeschwindigkeit</div>
                                 <div class="climate-setting-options">
-                                    <div class="climate-setting-option ${currentFanMode === 'auto' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="auto">Auto</div>
-                                    <div class="climate-setting-option ${currentFanMode === '1' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="1">1</div>
-                                    <div class="climate-setting-option ${currentFanMode === '2' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="2">2</div>
-                                    <div class="climate-setting-option ${currentFanMode === '3' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="3">3</div>
-                                    <div class="climate-setting-option ${currentFanMode === '4' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="4">4</div>
-                                    <div class="climate-setting-option ${currentFanMode === '5' ? 'active' : ''}" data-climate-setting="fan_mode" data-value="5">5</div>
+                                    ${availableFanModes.map(mode => `
+                                        <div class="climate-setting-option ${currentFanMode === mode ? 'active' : ''}" 
+                                             data-climate-setting="fan_mode" data-value="${mode}">
+                                            ${this.getMELCloudModeLabel(mode, 'fan')}
+                                        </div>
+                                    `).join('')}
                                 </div>
                             </div>
                             
@@ -6886,6 +6894,50 @@ getQuickStats(item) {
         `;
     }
 
+    // MELCloud Mode Label Helper - Nach getClimateReplaceControls einfügen
+    getMELCloudModeLabel(mode, type) {
+        switch (type) {
+            case 'horizontal':
+                switch (mode) {
+                    case 'auto': return 'Auto';
+                    case '1': return '← Links';
+                    case '2': return '←';
+                    case '3': return 'Mitte';
+                    case '4': return '→';
+                    case '5': return 'Rechts →';
+                    case 'split': return 'Split';
+                    case 'swing': return 'Swing';
+                    default: return mode;
+                }
+                
+            case 'vertical':
+                switch (mode) {
+                    case 'auto': return 'Auto';
+                    case '1': return '↑ Oben';
+                    case '2': return '↗';
+                    case '3': return '→';
+                    case '4': return '↘';
+                    case '5': return '↓ Unten';
+                    case 'swing': return 'Swing';
+                    default: return mode;
+                }
+                
+            case 'fan':
+                switch (mode) {
+                    case 'auto': return 'Auto';
+                    case 'quiet': return 'Leise';
+                    case '1': return 'Stufe 1';
+                    case '2': return 'Stufe 2';
+                    case '3': return 'Stufe 3';
+                    case '4': return 'Stufe 4';
+                    case '5': return 'Stufe 5';
+                    default: return mode;
+                }
+                
+            default:
+                return mode;
+        }
+    }
     
     getCoverReplaceControls(item) {
         const position = item.position || 0;
@@ -7176,29 +7228,26 @@ getQuickStats(item) {
                     
                     console.log(`🌡️ Setting ${settingType} to ${settingValue}`);
                     
+                    // Ersetze den switch-Block in setupHAClimateControls mit:
                     switch (settingType) {
-                        case 'swing_horizontal':
-                            // Custom service call für horizontale Oszillation
-                            serviceCall = this._hass.callService('climate', 'set_swing_mode', {
+                        case 'vane_horizontal':
+                            // MELCloud spezifischer Service Call
+                            serviceCall = this._hass.callService('melcloud', 'set_vane_horizontal', {
                                 entity_id: item.id,
-                                swing_mode: settingValue
+                                position: settingValue
                             });
                             break;
                             
-                        case 'swing_vertical':
-                            // Für manche Klimaanlagen ist das ein separates Attribut
-                            serviceCall = this._hass.callService('climate', 'set_swing_mode', {
+                        case 'vane_vertical':
+                            // MELCloud spezifischer Service Call
+                            serviceCall = this._hass.callService('melcloud', 'set_vane_vertical', {
                                 entity_id: item.id,
-                                swing_mode: settingValue
+                                position: settingValue
                             });
-                            // Alternative: Falls deine Klimaanlage ein anderes Attribut nutzt:
-                            // serviceCall = this._hass.callService('climate', 'set_swing_mode_vertical', {
-                            //     entity_id: item.id,
-                            //     swing_mode_vertical: settingValue
-                            // });
                             break;
                             
                         case 'fan_mode':
+                            // Standard Climate Service Call für Fan
                             serviceCall = this._hass.callService('climate', 'set_fan_mode', {
                                 entity_id: item.id,
                                 fan_mode: settingValue
@@ -7242,16 +7291,16 @@ getQuickStats(item) {
     // Neue Hilfsmethode hinzufügen (nach setupHAClimateControls):
     getOriginalClimateSettingValue(item, settingType) {
         switch (settingType) {
-            case 'swing_horizontal':
-                return item.attributes.swing_horizontal || 'auto';
-            case 'swing_vertical':
-                return item.attributes.swing_vertical || 'auto';
+            case 'vane_horizontal':
+                return item.attributes.vane_horizontal || 'auto';
+            case 'vane_vertical':
+                return item.attributes.vane_vertical || 'auto';
             case 'fan_mode':
                 return item.attributes.fan_mode || 'auto';
             default:
                 return 'auto';
         }
-    }    
+    }
 
     // Music Assistant Verfügbarkeit prüfen
     checkMusicAssistantAvailability() {
@@ -8782,8 +8831,7 @@ getQuickStats(item) {
                 device.brightness = Math.round((state.attributes.brightness || 0) / 255 * 100);
                 break;
             
-            
-            case 'climate':
+             case 'climate':
                 device.current_temperature = state.attributes.current_temperature;
                 device.target_temperature = state.attributes.temperature || state.attributes.target_temp_high || state.attributes.target_temp_low || 20;
                 device.hvac_mode = state.state;
@@ -8793,29 +8841,23 @@ getQuickStats(item) {
                 device.swing_mode = state.attributes.swing_mode;
                 device.swing_modes = state.attributes.swing_modes || [];
                 
-                // Erweiterte Oszillations-Attribute
-                device.swing_horizontal = state.attributes.swing_horizontal || state.attributes.swing_mode;
-                device.swing_vertical = state.attributes.swing_vertical || state.attributes.swing_mode_vertical;
+                // MELCloud spezifische Attribute
+                device.vane_horizontal = state.attributes.vane_horizontal;
+                device.vane_vertical = state.attributes.vane_vertical;
+                device.vane_horizontal_positions = state.attributes.vane_horizontal_positions || [];
+                device.vane_vertical_positions = state.attributes.vane_vertical_positions || [];
                 
-                // Verfügbare Modi aus den Attributen auslesen
-                device.swing_horizontal_modes = state.attributes.swing_horizontal_modes || 
-                    ['auto', '1_left', '2', '3', '4', '5_right', 'split', 'swing'];
-                device.swing_vertical_modes = state.attributes.swing_vertical_modes || 
-                    ['auto', '1_up', '2', '3', '4', '5_down', 'auto_swing', 'swing'];
-                device.fan_speed_modes = state.attributes.fan_modes || 
-                    ['auto', '1', '2', '3', '4', '5'];
-                
-                console.log('🌡️ Climate attributes loaded:', {
-                    swing_horizontal: device.swing_horizontal,
-                    swing_vertical: device.swing_vertical,
+                console.log('🌡️ MELCloud Climate attributes loaded:', {
+                    vane_horizontal: device.vane_horizontal,
+                    vane_vertical: device.vane_vertical,
                     fan_mode: device.fan_mode,
-                    available_modes: {
-                        horizontal: device.swing_horizontal_modes,
-                        vertical: device.swing_vertical_modes,
-                        fan: device.fan_speed_modes
+                    available_positions: {
+                        horizontal: device.vane_horizontal_positions,
+                        vertical: device.vane_vertical_positions,
+                        fan_modes: device.fan_modes
                     }
                 });
-                break;                
+                break;              
                 
             case 'cover':
                 device.position = state.attributes.current_position || 0;
