@@ -7210,7 +7210,8 @@ getQuickStats(item) {
                     if (isOpen) {
                         settingsContainer.classList.remove('visible');
                         settingsContainer.setAttribute('data-is-open', 'false');
-                        // Inline Styles zum Schließen
+                        // Transition und Styles zum Schließen
+                        settingsContainer.style.transition = 'all 0.4s ease';
                         settingsContainer.style.maxHeight = '0px';
                         settingsContainer.style.opacity = '0';
                         settingsContainer.style.pointerEvents = 'none';
@@ -7218,12 +7219,24 @@ getQuickStats(item) {
                     } else {
                         settingsContainer.classList.add('visible');
                         settingsContainer.setAttribute('data-is-open', 'true');
-                        // Inline Styles zum Öffnen
-                        settingsContainer.style.maxHeight = '300px';
+                        // Transition und Styles zum Öffnen
+                        settingsContainer.style.transition = 'all 0.4s ease';
+                        settingsContainer.style.maxHeight = '400px';
                         settingsContainer.style.opacity = '1';
                         settingsContainer.style.pointerEvents = 'auto';
+                        settingsContainer.style.transform = 'translateY(0)';
                         console.log('🔓 Opening settings');
                     }
+
+                    // Debug: Sofort nach dem Setzen prüfen
+                    setTimeout(() => {
+                        const computedStyle = getComputedStyle(settingsContainer);
+                        console.log('📏 After setting:', {
+                            maxHeight: computedStyle.maxHeight,
+                            opacity: computedStyle.opacity,
+                            transform: computedStyle.transform
+                        });
+                    }, 50);                    
                     
                     // Debug: Überprüfe CSS-Werte
                     const computedStyle = getComputedStyle(settingsContainer);
