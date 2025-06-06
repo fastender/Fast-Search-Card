@@ -4254,11 +4254,18 @@ class FastSearchCard extends HTMLElement {
             };
         });
 
-
         // Close on outside click - nur für diesen Container
         replaceContainer.addEventListener('click', function(e) {
-            // Klick außerhalb des Dropdowns
-            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            // Klick außerhalb des Dropdowns UND nicht auf Climate Tabs/Settings
+            const isClimateTab = e.target.closest('.climate-tab');
+            const isClimateSetting = e.target.closest('.climate-setting-option');
+            const isClimateContainer = e.target.closest('.climate-tabs-container');
+            
+            if (!dropdownButton.contains(e.target) && 
+                !dropdownMenu.contains(e.target) &&
+                !isClimateTab && 
+                !isClimateSetting && 
+                !isClimateContainer) {
                 console.log('🔒 Outside click - closing dropdown'); // Debug-Log
                 closeDropdown();
             }
