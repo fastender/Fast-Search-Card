@@ -4568,6 +4568,10 @@ class FastSearchCard extends HTMLElement {
         const artistName = item.attributes.media_artist || 'Unbekannter Künstler';
         const albumName = item.attributes.media_album || '';
         
+        // Status und Quick Stats für Media Player
+        const stateInfo = this.getDetailedStateText(item);
+        const quickStats = this.getMediaPlayerQuickStats(item);
+        
         const albumCoverStyle = albumArt ? `background-image: url('${albumArt}');` : 
             `background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);`;
         
@@ -4580,8 +4584,61 @@ class FastSearchCard extends HTMLElement {
                 <div class="artist-name-large">${artistName}</div>
                 ${albumName ? `<div class="album-name-large">${albumName}</div>` : ''}
             </div>
+            
+            <!-- Status Indicator und Quick Stats für Media Player -->
+            <div class="status-indicator-large ${isPlaying ? '' : 'off'}">${stateInfo.status}</div>
+            <div class="quick-stats">
+                ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
+            </div>
         `;
     }
+
+    getMediaPlayerQuickStats(item) {
+        const stats = [];
+        
+        // Lautstärke
+        const volume = item.volume || 0;
+        stats.push(`${volume}% Lautstärke`);
+        
+        // Wiedergabe-Modus
+        if (item.attributes.repeat) {
+            const repeatMode = item.attributes.repeat;
+            if (repeatMode === 'all') {
+                stats.push('🔁 Alle wiederholen');
+            } else if (repeatMode === 'one') {
+                stats.push('🔂 Titel wiederholen');
+            }
+        }
+        
+        // Shuffle-Modus
+        if (item.attributes.shuffle === true) {
+            stats.push('🔀 Zufällig');
+        }
+        
+        // Media Duration falls verfügbar
+        if (item.attributes.media_duration && item.state === 'playing') {
+            const duration = Math.round(item.attributes.media_duration / 60);
+            stats.push(`${duration} Min`);
+        }
+        
+        // Media Position falls verfügbar
+        if (item.attributes.media_position && item.state === 'playing') {
+            const position = Math.round(item.attributes.media_position / 60);
+            stats.push(`${position} Min gespielt`);
+        }
+        
+        // Source/Input falls verfügbar
+        if (item.attributes.source) {
+            stats.push(`📻 ${item.attributes.source}`);
+        }
+        
+        // Fallback: Entity ID
+        if (stats.length === 1) { // Nur Lautstärke
+            stats.push(`📺 ${item.id.split('.')[1]}`);
+        }
+        
+        return stats.slice(0, 3); // Maximal 3 Stats
+    }    
     
     getAlbumArtUrl(item) {
         // Verschiedene Attribute prüfen wo Album Art gespeichert sein könnte
