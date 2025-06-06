@@ -7252,7 +7252,11 @@ getQuickStats(item) {
         const settingsContainer = container.querySelector(`#new-climate-settings-${item.id}`);
         if (settingsContainer) {
             settingsContainer.addEventListener('click', (e) => {
-                if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target) && isOpen) {
+                // NUR schließen wenn das Event NICHT vom Button oder Menu kommt
+                if (!dropdownButton.contains(e.target) && 
+                    !dropdownMenu.contains(e.target) && 
+                    isOpen &&
+                    e.target !== dropdownButton) {  // NEUE BEDINGUNG
                     console.log(`🔒 Outside click - closing ${type} dropdown`);
                     closeDropdown();
                 }
