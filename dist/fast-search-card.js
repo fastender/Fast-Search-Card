@@ -7615,35 +7615,7 @@ getQuickStats(item) {
         
         return `
             <div class="control-group-large">
-                
-                <div class="replace-media-tabs-container">
-                    <div class="replace-media-tabs">
-                        <button class="replace-media-tab active" data-replace-tab="controls" data-entity="${item.id}">
-                            <span class="replace-media-tab-icon">🎮</span>
-                            <span>Steuerung</span>
-                        </button>
-                        <button class="replace-media-tab" data-replace-tab="tts" data-entity="${item.id}">
-                            <span class="replace-media-tab-icon">🗣️</span>
-                            <span>Sprechen</span>
-                        </button>
-                        <button class="replace-media-tab" data-replace-tab="music" data-entity="${item.id}">
-                            <span class="replace-media-tab-icon">🎵</span>
-                            <span>Musik</span>
-                        </button>
-                    </div>
-                    
-                    <div class="replace-media-tab-content active" data-replace-tab-content="controls">
-                        ${basicControls}
-                    </div>
-                    
-                    <div class="replace-media-tab-content" data-replace-tab-content="tts">
-                        ${ttsHTML || '<div class="ma-empty-state">Text-to-Speech nicht verfügbar</div>'}
-                    </div>
-                    
-                    <div class="replace-media-tab-content" data-replace-tab-content="music">
-                        ${musicAssistantHTML}
-                    </div>
-                </div>
+                ${basicControls}
             </div>
         `;
     }
