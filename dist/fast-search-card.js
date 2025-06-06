@@ -3789,6 +3789,97 @@ class FastSearchCard extends HTMLElement {
                         font-size: 18px;
                     }
                 }
+
+
+                /* Media Player Status Indicator und Quick Stats */
+                
+                /* Album Art Section Layout für Status */
+                .album-art-section {
+                    position: relative; /* Wichtig für absolute Positionierung */
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0px 20px 0px 20px;
+                    height: 100%;
+                    z-index: 1;
+                }
+                
+                /* Status Indicator für Media Player - Links unten */
+                .album-art-section .status-indicator-large {
+                    position: absolute;
+                    bottom: 20px;
+                    left: 20px;
+                    background: #007aff;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    border: 1px solid #007aff;
+                    z-index: 10;
+                    
+                    /* Eingangsanimation */
+                    opacity: 0;
+                    transform: translateX(-30px);
+                    animation: slideInLeft 0.8s ease-out 0.6s forwards;
+                }
+                
+                .album-art-section .status-indicator-large.off {
+                    background: rgba(255, 255, 255, 0.2);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                /* Quick Stats für Media Player - Rechts unten */
+                .album-art-section .quick-stats {
+                    position: absolute;
+                    bottom: 20px;
+                    right: 20px;
+                    z-index: 10;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    align-items: flex-end;
+                    
+                    /* Eingangsanimation */
+                    opacity: 0;
+                    transform: translateX(30px);
+                    animation: slideInRight 0.8s ease-out 0.8s forwards;
+                }
+                
+                .album-art-section .stat-item {
+                    background: transparent;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 20px;
+                    padding: 6px 12px;
+                    font-size: 11px;
+                    color: rgba(255, 255, 255, 0.9);
+                    font-weight: 500;
+                    white-space: nowrap;
+                    text-align: right;
+                }
+                
+                /* Mobile Anpassungen */
+                @media (max-width: 768px) {
+                    .album-art-section .status-indicator-large {
+                        bottom: 15px;
+                        left: 15px;
+                        font-size: 11px;
+                        padding: 6px 12px;
+                    }
+                    
+                    .album-art-section .quick-stats {
+                        bottom: 15px;
+                        right: 15px;
+                        gap: 4px;
+                    }
+                    
+                    .album-art-section .stat-item {
+                        font-size: 10px;
+                        padding: 4px 8px;
+                    }
+                }
                 
             </style>
             
