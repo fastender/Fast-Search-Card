@@ -3119,13 +3119,33 @@ class FastSearchCard extends HTMLElement {
                     width: 100%;
                     max-width: 280px;
                     margin: 16px 0 0 0; /* Nur Abstand nach oben */
-                    max-height: 0;
+                    max-height: 200px;
                     opacity: 0;
-                    overflow: hidden;
+                    overflow-y: auto; /* Scrollbar wenn zu hoch */
+                    overflow-x: hidden;
                     transform: translateY(-10px);
                     transition: all 0.4s ease;
                     pointer-events: none;
                 }
+
+                /* Scrollbar stylen (optional) */
+                .new-light-colors::-webkit-scrollbar {
+                    width: 4px;
+                }
+                
+                .new-light-colors::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 2px;
+                }
+                
+                .new-light-colors::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 2px;
+                }
+                
+                .new-light-colors::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.5);
+                }                
                 
                 .new-light-colors-grid {
                     display: grid;
