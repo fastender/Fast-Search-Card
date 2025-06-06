@@ -7171,38 +7171,55 @@ getQuickStats(item) {
         const dropdownButton = container.querySelector(`#${buttonId}`);
         const dropdownMenu = container.querySelector(`#${menuId}`);
         
-        if (!dropdownButton || !dropdownMenu) return;
+        if (!dropdownButton || !dropdownMenu) {
+            console.log(`❌ Climate dropdown not found: ${buttonId}`);
+            return;
+        }
+        
+        console.log(`✅ Setting up climate dropdown: ${type}`);
         
         let isOpen = false;
         
-        // Button Click Handler
+        // Button Click Handler mit mehr Debugging
         dropdownButton.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            console.log(`🔘 Climate ${type} dropdown clicked!`);
             
             if (isOpen) {
                 closeDropdown();
             } else {
                 openDropdown();
             }
-        });
+        }, true); // Capture phase
         
         const openDropdown = () => {
+            console.log(`📂 Opening ${type} dropdown`);
             isOpen = true;
             dropdownButton.classList.add('open');
             dropdownMenu.classList.add('open');
         };
         
         const closeDropdown = () => {
+            console.log(`📁 Closing ${type} dropdown`);
             isOpen = false;
             dropdownButton.classList.remove('open');
             dropdownMenu.classList.remove('open');
         };
         
-        // Item Click Handlers
+        // Item Click Handlers mit Debugging
         const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
-        dropdownItems.forEach(dropdownItem => {
+        console.log(`Found ${dropdownItems.length} dropdown items for ${type}`);
+        
+        dropdownItems.forEach((dropdownItem, index) => {
             dropdownItem.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                console.log(`🎯 Climate ${type} item ${index} clicked!`);
                 
                 // Update active state
                 dropdownItems.forEach(i => i.classList.remove('active'));
@@ -7215,6 +7232,8 @@ getQuickStats(item) {
                 
                 // Service Call
                 const modeValue = dropdownItem.getAttribute(`data-${type}`);
+                console.log(`🌡️ Setting climate ${type} to: ${modeValue}`);
+                
                 if (this._hass && modeValue) {
                     const serviceType = type === 'swing' ? 'set_swing_mode' : 'set_fan_mode';
                     const serviceData = { entity_id: item.id };
@@ -7226,12 +7245,24 @@ getQuickStats(item) {
                 }
                 
                 closeDropdown();
-            });
+            }, true); // Capture phase
         });
         
-        // Outside Click
-        document.addEventListener('click', (e) => {
-            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target) && isOpen) {
+        // Outside Click - nur für Settings Container
+        const settingsContainer = container.querySelector(`#new-climate-settings-${item.id}`);
+        if (settingsContainer) {
+            settingsContainer.addEventListener('click', (e) => {
+                if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target) && isOpen) {
+                    console.log(`🔒 Outside click - closing ${type} dropdown`);
+                    closeDropdown();
+                }
+            });
+        }
+        
+        // ESC key support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isOpen) {
+                console.log(`🔒 ESC pressed - closing ${type} dropdown`);
                 closeDropdown();
             }
         });
