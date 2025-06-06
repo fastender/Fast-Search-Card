@@ -3264,6 +3264,9 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Farbpalette Animation */
                 .new-light-colors {
+                    width: 100%;
+                    max-width: 280px;
+                    margin: 16px 0 0 0;
                     max-height: 0;
                     opacity: 0;
                     overflow: hidden;
@@ -3273,7 +3276,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .new-light-colors.visible {
-                    max-height: 180px;
+                    max-height: 400px;
                     opacity: 1;
                     transform: translateY(0);
                     pointer-events: auto;
@@ -3630,8 +3633,6 @@ class FastSearchCard extends HTMLElement {
                     flex-direction: column;
                     gap: 16px;
                     padding: 8px 0;
-                    max-height: 200px;
-                    overflow-y: auto;
                 }
                 
                 .climate-setting-row {
@@ -3649,34 +3650,24 @@ class FastSearchCard extends HTMLElement {
                     flex-shrink: 0;
                 }
                 
+                /* Climate Setting Options - Scrollbar verstecken */
                 .climate-setting-options {
                     display: flex;
                     gap: 8px;
                     overflow-x: auto;
                     padding: 4px 0;
-                    scrollbar-width: thin;
                     -webkit-overflow-scrolling: touch;
                     min-height: 44px;
+                    
+                    /* Scrollbar verstecken - wie bei filter-row */
+                    scrollbar-width: none;  /* Firefox */
+                    -ms-overflow-style: none;  /* Internet Explorer/Edge */
                 }
                 
-                /* Scrollbar Styling für Webkit */
+                /* Webkit Scrollbar verstecken */
                 .climate-setting-options::-webkit-scrollbar {
-                    height: 4px;
-                }
-                
-                .climate-setting-options::-webkit-scrollbar-track {
-                    background: rgba(255, 255, 255, 0.1);
-                    border-radius: 2px;
-                }
-                
-                .climate-setting-options::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.3);
-                    border-radius: 2px;
-                }
-                
-                .climate-setting-options::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.5);
-                }
+                    display: none;  /* Chrome, Safari, Opera */
+                }  
                 
                 .climate-setting-option {
                     flex-shrink: 0;
