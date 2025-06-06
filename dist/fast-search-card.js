@@ -3282,21 +3282,22 @@ class FastSearchCard extends HTMLElement {
                     box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
                 }
                 
-                /* Farbpalette Animation */
-                .new-light-colors {
-                    max-height: 0;
-                    opacity: 0;
-                    overflow: hidden;
-                    transform: translateY(-10px);
-                    transition: all 0.4s ease;
-                    pointer-events: none;
+                /* Climate Settings Visibility Fix */
+                .new-light-colors.visible {
+                    max-height: 300px !important;
+                    opacity: 1 !important;
+                    transform: translateY(0) !important;
+                    pointer-events: auto !important;
+                    overflow-y: auto !important;
                 }
                 
-                .new-light-colors.visible {
-                    max-height: 180px;
-                    opacity: 1;
-                    transform: translateY(0);
-                    pointer-events: auto;
+                .new-light-colors {
+                    max-height: 0 !important;
+                    opacity: 0 !important;
+                    transform: translateY(-10px) !important;
+                    transition: all 0.4s ease !important;
+                    pointer-events: none !important;
+                    overflow: hidden !important;
                 }
                 
                 /* Farb-Preset Stagger Animation */
@@ -7184,13 +7185,25 @@ getQuickStats(item) {
                 if (settingsContainer) {
                     const isOpen = settingsContainer.getAttribute('data-is-open') === 'true';
                     
+                    console.log('🔍 Settings state:', { isOpen, hasVisibleClass: settingsContainer.classList.contains('visible') });
+                    
                     if (isOpen) {
                         settingsContainer.classList.remove('visible');
                         settingsContainer.setAttribute('data-is-open', 'false');
+                        console.log('🔒 Closing settings');
                     } else {
                         settingsContainer.classList.add('visible');
                         settingsContainer.setAttribute('data-is-open', 'true');
+                        console.log('🔓 Opening settings');
                     }
+                    
+                    // Debug: Überprüfe CSS-Werte
+                    const computedStyle = getComputedStyle(settingsContainer);
+                    console.log('📏 Container styles:', {
+                        maxHeight: computedStyle.maxHeight,
+                        opacity: computedStyle.opacity,
+                        display: computedStyle.display
+                    });
                     
                     settingsToggleButton.style.transform = 'scale(0.9)';
                     setTimeout(() => {
