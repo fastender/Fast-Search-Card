@@ -3119,33 +3119,13 @@ class FastSearchCard extends HTMLElement {
                     width: 100%;
                     max-width: 280px;
                     margin: 16px 0 0 0; /* Nur Abstand nach oben */
-                    max-height: 200px;
+                    max-height: 0;
                     opacity: 0;
-                    overflow-y: auto; /* Scrollbar wenn zu hoch */
-                    overflow-x: hidden;
+                    overflow: hidden;
                     transform: translateY(-10px);
                     transition: all 0.4s ease;
                     pointer-events: none;
                 }
-
-                /* Scrollbar stylen (optional) */
-                .new-light-colors::-webkit-scrollbar {
-                    width: 4px;
-                }
-                
-                .new-light-colors::-webkit-scrollbar-track {
-                    background: rgba(255, 255, 255, 0.1);
-                    border-radius: 2px;
-                }
-                
-                .new-light-colors::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.3);
-                    border-radius: 2px;
-                }
-                
-                .new-light-colors::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.5);
-                }                
                 
                 .new-light-colors-grid {
                     display: grid;
@@ -3282,42 +3262,21 @@ class FastSearchCard extends HTMLElement {
                     box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
                 }
                 
-                /* Climate Settings Visibility Fix */
-                .new-light-colors.visible {
-                    max-height: 300px !important;
-                    opacity: 1 !important;
-                    transform: translateY(0) !important;
-                    pointer-events: auto !important;
-                    overflow-y: auto !important;
-                }
-                
+                /* Farbpalette Animation */
                 .new-light-colors {
-                    max-height: 0 !important;
-                    opacity: 0 !important;
-                    transform: translateY(-10px) !important;
-                    transition: all 0.4s ease !important;
-                    pointer-events: none !important;
-                    overflow: hidden !important;
+                    max-height: 0;
+                    opacity: 0;
+                    overflow: hidden;
+                    transform: translateY(-10px);
+                    transition: all 0.4s ease;
+                    pointer-events: none;
                 }
                 
-                /* ZUSÄTZLICH: Climate spezifisch */
-                [id*="new-climate-settings"].new-light-colors.visible {
-                    max-height: 400px !important;
-                    opacity: 1 !important;
-                    transform: translateY(0) !important;
-                    pointer-events: auto !important;
-                    overflow-y: auto !important;
-                    display: block !important;
-                }
-                
-                [id*="new-climate-settings"].new-light-colors {
-                    max-height: 0 !important;
-                    opacity: 0 !important;
-                    transform: translateY(-10px) !important;
-                    transition: all 0.4s ease !important;
-                    pointer-events: none !important;
-                    overflow: hidden !important;
-                    display: block !important;
+                .new-light-colors.visible {
+                    max-height: 180px;
+                    opacity: 1;
+                    transform: translateY(0);
+                    pointer-events: auto;
                 }
                 
                 /* Farb-Preset Stagger Animation */
@@ -3718,65 +3677,6 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(255, 255, 255, 0.25);
                     color: white;
                     border-color: rgba(255, 255, 255, 0.4);
-                }
-
-                .climate-settings-dropdowns {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                    padding: 8px 0;
-                }
-
-                /* Climate Tabs */
-                .climate-tabs-container {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 16px;
-                }
-                
-                .climate-tabs {
-                    display: flex;
-                    gap: 4px;
-                    background: rgba(0, 0, 0, 0.15);
-                    border-radius: 12px;
-                    padding: 4px;
-                }
-                
-                .climate-tab {
-                    flex: 1;
-                    padding: 12px 16px;
-                    background: transparent;
-                    border: none;
-                    border-radius: 8px;
-                    color: rgba(255, 255, 255, 0.7);
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                    font-size: 14px;
-                    font-weight: 500;
-                }
-                
-                .climate-tab:hover {
-                    background: rgba(255, 255, 255, 0.1);
-                    color: rgba(255, 255, 255, 0.9);
-                }
-                
-                .climate-tab.active {
-                    background: rgba(255, 255, 255, 0.15);
-                    color: white;
-                }
-                
-                .climate-setting-options {
-                    display: none;
-                    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-                    gap: 8px;
-                }
-                
-                .climate-setting-options.active {
-                    display: grid;
                 }
 
                 
@@ -4275,18 +4175,11 @@ class FastSearchCard extends HTMLElement {
             };
         });
 
+
         // Close on outside click - nur für diesen Container
         replaceContainer.addEventListener('click', function(e) {
-            // Klick außerhalb des Dropdowns UND nicht auf Climate Tabs/Settings
-            const isClimateTab = e.target.closest('.climate-tab');
-            const isClimateSetting = e.target.closest('.climate-setting-option');
-            const isClimateContainer = e.target.closest('.climate-tabs-container');
-            
-            if (!dropdownButton.contains(e.target) && 
-                !dropdownMenu.contains(e.target) &&
-                !isClimateTab && 
-                !isClimateSetting && 
-                !isClimateContainer) {
+            // Klick außerhalb des Dropdowns
+            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
                 console.log('🔒 Outside click - closing dropdown'); // Debug-Log
                 closeDropdown();
             }
@@ -6908,42 +6801,36 @@ getQuickStats(item) {
                     
                     <!-- Einstellungen-Menu (versteckt by default) -->
                     <div class="new-light-colors" id="new-climate-settings-${item.id}" data-is-open="false">
-                        <div class="climate-tabs-container">
-                            <div class="climate-tabs">
-                                ${(item.swing_modes && item.swing_modes.length > 0) ? `
-                                <button class="climate-tab active" data-climate-tab="swing">
-                                    <span class="climate-tab-icon">🌀</span>
-                                    <span>Swing</span>
-                                </button>
-                                ` : ''}
-                                ${(item.fan_modes && item.fan_modes.length > 0) ? `
-                                <button class="climate-tab" data-climate-tab="fan">
-                                    <span class="climate-tab-icon">💨</span>
-                                    <span>Lüfter</span>
-                                </button>
-                                ` : ''}
+                        <div class="climate-settings-grid">
+                            <!-- Horizontale Oszillation -->
+                            <div class="climate-setting-row">
+                                <div class="climate-setting-label">Horizontal</div>
+                                <div class="climate-setting-options">
+                                    <div class="climate-setting-option" data-swing="horizontal_off">Aus</div>
+                                    <div class="climate-setting-option" data-swing="horizontal_on">Ein</div>
+                                    <div class="climate-setting-option" data-swing="horizontal_auto">Auto</div>
+                                </div>
                             </div>
                             
-                            <div class="climate-tab-content">
-                                ${(item.swing_modes && item.swing_modes.length > 0) ? `
-                                <div class="climate-setting-options active" data-climate-content="swing">
-                                    ${item.swing_modes.map(mode => `
-                                        <div class="climate-setting-option ${item.swing_mode === mode ? 'active' : ''}" data-swing="${mode}">
-                                            ${this.getSwingModeDisplayName(mode)}
-                                        </div>
-                                    `).join('')}
+                            <!-- Vertikale Oszillation -->
+                            <div class="climate-setting-row">
+                                <div class="climate-setting-label">Vertikal</div>
+                                <div class="climate-setting-options">
+                                    <div class="climate-setting-option" data-swing="vertical_off">Aus</div>
+                                    <div class="climate-setting-option" data-swing="vertical_on">Ein</div>
+                                    <div class="climate-setting-option" data-swing="vertical_auto">Auto</div>
                                 </div>
-                                ` : ''}
-                                
-                                ${(item.fan_modes && item.fan_modes.length > 0) ? `
-                                <div class="climate-setting-options" data-climate-content="fan" style="display: none;">
-                                    ${item.fan_modes.map(mode => `
-                                        <div class="climate-setting-option ${item.fan_mode === mode ? 'active' : ''}" data-fan="${mode}">
-                                            ${this.getFanModeDisplayName(mode)}
-                                        </div>
-                                    `).join('')}
+                            </div>
+                            
+                            <!-- Lüfter-Geschwindigkeit -->
+                            <div class="climate-setting-row">
+                                <div class="climate-setting-label">Lüfter</div>
+                                <div class="climate-setting-options">
+                                    <div class="climate-setting-option" data-fan="low">Niedrig</div>
+                                    <div class="climate-setting-option" data-fan="medium">Mittel</div>
+                                    <div class="climate-setting-option" data-fan="high">Hoch</div>
+                                    <div class="climate-setting-option" data-fan="auto">Auto</div>
                                 </div>
-                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -7205,46 +7092,13 @@ getQuickStats(item) {
                 if (settingsContainer) {
                     const isOpen = settingsContainer.getAttribute('data-is-open') === 'true';
                     
-                    console.log('🔍 Settings state:', { isOpen, hasVisibleClass: settingsContainer.classList.contains('visible') });
-                    
                     if (isOpen) {
                         settingsContainer.classList.remove('visible');
                         settingsContainer.setAttribute('data-is-open', 'false');
-                        // Transition und Styles zum Schließen
-                        settingsContainer.style.transition = 'all 0.4s ease';
-                        settingsContainer.style.maxHeight = '0px';
-                        settingsContainer.style.opacity = '0';
-                        settingsContainer.style.pointerEvents = 'none';
-                        console.log('🔒 Closing settings');
                     } else {
                         settingsContainer.classList.add('visible');
                         settingsContainer.setAttribute('data-is-open', 'true');
-                        // Transition und Styles zum Öffnen
-                        settingsContainer.style.transition = 'all 0.4s ease';
-                        settingsContainer.style.maxHeight = '400px';
-                        settingsContainer.style.opacity = '1';
-                        settingsContainer.style.pointerEvents = 'auto';
-                        settingsContainer.style.transform = 'translateY(0)';
-                        console.log('🔓 Opening settings');
                     }
-
-                    // Debug: Sofort nach dem Setzen prüfen
-                    setTimeout(() => {
-                        const computedStyle = getComputedStyle(settingsContainer);
-                        console.log('📏 After setting:', {
-                            maxHeight: computedStyle.maxHeight,
-                            opacity: computedStyle.opacity,
-                            transform: computedStyle.transform
-                        });
-                    }, 50);                    
-                    
-                    // Debug: Überprüfe CSS-Werte
-                    const computedStyle = getComputedStyle(settingsContainer);
-                    console.log('📏 Container styles:', {
-                        maxHeight: computedStyle.maxHeight,
-                        opacity: computedStyle.opacity,
-                        display: computedStyle.display
-                    });
                     
                     settingsToggleButton.style.transform = 'scale(0.9)';
                     setTimeout(() => {
@@ -7254,85 +7108,49 @@ getQuickStats(item) {
             }, true);
         }
         
-        // Climate Tabs Setup
-                this.setupClimateTabs(item);
-        }
+        // Einstellungs-Optionen
+        const settingOptions = replaceContainer.querySelectorAll(`[id="new-climate-settings-${item.id}"] .climate-setting-option`);
         
-        setupClimateTabs(item) {
-            const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-            if (!replaceContainer) return;
-            
-            const settingsContainer = replaceContainer.querySelector(`#new-climate-settings-${item.id}`);
-            if (!settingsContainer) return;
-            
-            // Tab Buttons
-            const climateTabs = settingsContainer.querySelectorAll('.climate-tab');
-            const climateContents = settingsContainer.querySelectorAll('.climate-setting-options');
-            
-            climateTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const targetTab = tab.getAttribute('data-climate-tab');
+        settingOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                console.log('⚙️ SETTING OPTION CLICKED!');
+                
+                // Aktive Klasse in derselben Zeile togglen
+                const row = option.closest('.climate-setting-row');
+                const rowOptions = row.querySelectorAll('.climate-setting-option');
+                rowOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                // Service Call für Einstellung
+                const swingMode = option.getAttribute('data-swing');
+                const fanMode = option.getAttribute('data-fan');
+                
+                if (this._hass) {
+                    let serviceCall;
                     
-                    // Alle Tabs deaktivieren
-                    climateTabs.forEach(t => t.classList.remove('active'));
-                    climateContents.forEach(c => {
-                        c.classList.remove('active');
-                        c.style.display = 'none';
-                    });
-                    
-                    // Aktiven Tab aktivieren
-                    tab.classList.add('active');
-                    const targetContent = settingsContainer.querySelector(`[data-climate-content="${targetTab}"]`);
-                    if (targetContent) {
-                        targetContent.classList.add('active');
-                        targetContent.style.display = 'grid';
+                    if (swingMode) {
+                        serviceCall = this._hass.callService('climate', 'set_swing_mode', {
+                            entity_id: item.id,
+                            swing_mode: swingMode
+                        });
+                    } else if (fanMode) {
+                        serviceCall = this._hass.callService('climate', 'set_fan_mode', {
+                            entity_id: item.id,
+                            fan_mode: fanMode
+                        });
                     }
-                });
-            });
-            
-            // Setting Option Buttons
-            const settingOptions = settingsContainer.querySelectorAll('.climate-setting-option');
-            
-            settingOptions.forEach(option => {
-                option.addEventListener('click', () => {
-                    console.log('⚙️ CLIMATE SETTING CLICKED!');
                     
-                    // Aktive Klasse in derselben Container togglen
-                    const container = option.closest('.climate-setting-options');
-                    const containerOptions = container.querySelectorAll('.climate-setting-option');
-                    containerOptions.forEach(opt => opt.classList.remove('active'));
-                    option.classList.add('active');
-                    
-                    // Service Call
-                    const swingMode = option.getAttribute('data-swing');
-                    const fanMode = option.getAttribute('data-fan');
-                    
-                    if (this._hass) {
-                        let serviceCall;
-                        
-                        if (swingMode) {
-                            serviceCall = this._hass.callService('climate', 'set_swing_mode', {
-                                entity_id: item.id,
-                                swing_mode: swingMode
-                            });
-                        } else if (fanMode) {
-                            serviceCall = this._hass.callService('climate', 'set_fan_mode', {
-                                entity_id: item.id,
-                                fan_mode: fanMode
-                            });
-                        }
-                        
-                        if (serviceCall) {
-                            serviceCall.catch(error => {
-                                console.error('Climate setting service call failed:', error);
-                            });
-                        }
+                    if (serviceCall) {
+                        serviceCall.catch(error => {
+                            console.error('Climate setting service call failed:', error);
+                        });
                     }
-                });
+                }
             });
-        }
-
+        });
+    }
     
+
     // Music Assistant Verfügbarkeit prüfen
     checkMusicAssistantAvailability() {
         if (!this._hass) return false;
@@ -10427,40 +10245,6 @@ getQuickStats(item) {
         
         return typeMap[item.itemType] || item.itemType;
     }
-
-
-    getSwingModeDisplayName(mode) {
-        const names = {
-            'auto': 'Auto',
-            '1_up': 'Position 1 (Oben)',
-            '2': 'Position 2',
-            '3': 'Position 3', 
-            '4': 'Position 4',
-            '5_down': 'Position 5 (Unten)',
-            'swing': 'Schwingen',
-            'off': 'Aus',
-            'on': 'Ein'
-        };
-        return names[mode] || mode;
-    }
-    
-    getFanModeDisplayName(mode) {
-        const names = {
-            'auto': 'Auto',
-            '1': 'Stufe 1',
-            '2': 'Stufe 2',
-            '3': 'Stufe 3',
-            '4': 'Stufe 4',
-            '5': 'Stufe 5',
-            'low': 'Niedrig',
-            'medium': 'Mittel', 
-            'high': 'Hoch',
-            'quiet': 'Leise',
-            'turbo': 'Turbo'
-        };
-        return names[mode] || mode;
-    }
-    
 
     // ENDE MORE-INFO DIALOG
 
