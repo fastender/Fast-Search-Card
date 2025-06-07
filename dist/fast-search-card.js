@@ -3,6 +3,40 @@ class FastSearchCard extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
     }
+    
+    // 🎬 Card Animation mit Web Animation API
+    animateCardEntrance() {
+        console.log('🎬 Starting card animation with WAAPI');
+        
+        const cardContainer = this.shadowRoot.querySelector('.card-container');
+        if (!cardContainer) {
+            console.warn('Card container not found');
+            return;
+        }
+        
+        // WAAPI Animation
+        const animation = cardContainer.animate([
+            { 
+                opacity: 0, 
+                transform: 'translateY(40px)' 
+            },
+            { 
+                opacity: 1, 
+                transform: 'translateY(0)' 
+            }
+        ], {
+            duration: 600,
+            delay: 200,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        // Success Log
+        animation.finished.then(() => {
+            console.log('✅ Card animation completed');
+        });
+    }
+
 
     setConfig(config) {
         this.config = config;
@@ -44,7 +78,7 @@ class FastSearchCard extends HTMLElement {
                     
                     /* Card fade-in beim Laden */
                     opacity: 0;
-                    animation: cardFadeIn 0.6s ease-out 0.2s forwards;
+                    transform: translateY(40px);
                     
                     /* Glassmorphism Container - Neuer Hintergrund */
                     background: rgba(255, 255, 255, 0.1);
@@ -4023,8 +4057,19 @@ class FastSearchCard extends HTMLElement {
                 <!-- Content wird dynamisch generiert -->
             </div>
         `;        
+
+        
+        // 🎬 Animation starten nach dem Rendering
+        setTimeout(() => {
+            this.animateCardEntrance();
+        }, 100);
+        
         this.initializeCard();
-    }   
+    }
+
+
+
+    
     
     switchToReplaceMode(item) {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
