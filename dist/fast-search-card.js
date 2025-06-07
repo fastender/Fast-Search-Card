@@ -5,14 +5,17 @@ class FastSearchCard extends HTMLElement {
     }
     
     // 🎬 Card Animation mit Web Animation API
+
+
+    
     animateCardEntrance() {
         console.log('🎬 Starting card animation with WAAPI');
         
-        const cardContainer = this.shadowRoot.querySelector('.card-container');
+        const cardContainer = this.shadowRoot.querySelector('.search-container');
         if (!cardContainer) {
-            console.warn('Card container not found');
+            console.warn('Search container not found');
             return;
-        }
+        }        
         
         // WAAPI Animation
         const animation = cardContainer.animate([
