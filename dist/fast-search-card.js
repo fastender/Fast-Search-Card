@@ -69,19 +69,27 @@ class FastSearchCard extends HTMLElement {
                     padding: 0;
                     overflow: hidden;
 
-                    background: 
-                        /* Oberflächenreflektionen */
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
-                        /* Basis Material */
-                        rgba(28, 28, 30, 0.9);
 
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
+                    background: rgba(0, 0, 0, 0.15); /* bg-black/15 */
+                    backdrop-filter: blur(48px) saturate(1.8); /* backdrop-blur-3xl */
+                    -webkit-backdrop-filter: blur(48px) saturate(1.8);
                     
-                    /* Apple Design System Borders */
-                    border: 0.33px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
+                    /* SPATIAL UI BORDERS - asymmetrisch wie Apple */
+                    border-top: 1px solid rgba(255, 255, 255, 0.15); /* border-t-white/15 */
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.10); /* border-b-white/10 */
+                    border-left: 1px solid rgba(255, 255, 255, 0.12);
+                    border-right: 1px solid rgba(255, 255, 255, 0.12);
+                    border-radius: 32px; /* rounded-[2rem] */
+                    
+                    /* SPATIAL UI SHADOWS - exakt wie im Beispiel */
+                    box-shadow: 
+                        0 25px 50px -12px rgba(0, 0, 0, 0.30), /* shadow-xl shadow-black/30 */
+                        0 0 0 1px rgba(255, 255, 255, 0.05); /* Inner border */
+                    
+                    /* APPLE TYPOGRAPHY */
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;                    
+       
                     
                     /* Spatial Depth Shadows */
                     box-shadow: 
@@ -93,10 +101,7 @@ class FastSearchCard extends HTMLElement {
                         /* Inner Highlight */
                         inset 0 1px 0 rgba(255, 255, 255, 0.1),
                         inset 1px 0 0 rgba(255, 255, 255, 0.05);
-                    
-                    /* Apple Typography Enhancement */
-                    -webkit-font-smoothing: antialiased;
-                    -moz-osx-font-smoothing: grayscale;                    
+                                     
 
 
                     /* GLOBALE TOUCH-FIXES */
