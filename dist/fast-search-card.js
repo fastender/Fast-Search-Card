@@ -75,6 +75,21 @@ class FastSearchCard extends HTMLElement {
                         inset 0 1px 1px rgba(255, 255, 255, 0.2);
                     padding: 0;
                     overflow: hidden;
+
+
+                    /* GLOBALE TOUCH-FIXES */
+                    -webkit-tap-highlight-color: transparent !important;
+                    -webkit-touch-callout: none !important;
+                    -webkit-user-select: none !important;
+                    user-select: none !important;
+                    
+                }   
+
+                /* ALLE BUTTONS/CLICKABLE ELEMENTE */
+                .filter-chip, .filter-button, .view-toggle-btn {
+                    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+                    -webkit-tap-highlight-color: transparent !important;
+                    outline: none !important;
                 }                
                 .search-container {
                     background: transparent;
@@ -379,6 +394,25 @@ class FastSearchCard extends HTMLElement {
                     
                     font-weight: 500;
                     flex-shrink: 0;
+                    
+                    /* ANTI-FLICKER: Komplettes Touch-Highlight entfernen */
+                    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+                    -webkit-tap-highlight-color: transparent !important;
+                    
+                    /* ANTI-FLICKER: Alle Touch-Effekte entfernen */
+                    -webkit-touch-callout: none !important;
+                    -webkit-user-select: none !important;
+                    -khtml-user-select: none !important;
+                    -moz-user-select: none !important;
+                    -ms-user-select: none !important;
+                    user-select: none !important;
+                    
+                    /* ANTI-FLICKER: Hardware-Beschleunigung erzwingen */
+                    transform: translateZ(0) !important;
+                    -webkit-transform: translateZ(0) !important;
+                    
+                    /* ANTI-FLICKER: Verhindert Repaint-Probleme */
+                    contain: layout style paint !important;
                 }
                 
                 .filter-chip:hover {
