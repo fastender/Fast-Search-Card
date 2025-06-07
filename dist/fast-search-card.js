@@ -326,16 +326,28 @@ class FastSearchCard extends HTMLElement {
                         transform: translateX(-20px) scale(0.8);
                     }
                 }
-                
+
 
                 .filter-row {
                     display: flex;
                     gap: 12px;
                     overflow-x: auto;
+                    overflow-y: hidden; /* NEU: Verhindert vertikales Scrollen */
                     padding: 4px 0;
                     scrollbar-width: none;
                     -ms-overflow-style: none;
-                }
+                    
+                    /* NEU: Smooth Scrolling */
+                    scroll-behavior: smooth;
+                    -webkit-overflow-scrolling: touch; /* iOS smooth scroll */
+                    
+                    /* NEU: Verhindert Select-Probleme */
+                    user-select: none;
+                    -webkit-user-select: none;
+                    
+                    /* NEU: Bessere Touch-Behandlung */
+                    touch-action: pan-x; /* Nur horizontal scrollen erlauben */
+                }                
 
                 .filter-row::-webkit-scrollbar {
                     display: none;
@@ -354,6 +366,17 @@ class FastSearchCard extends HTMLElement {
                     align-items: center;
                     gap: 8px;
                     transition: all 0.2s;
+                    
+                    /* NEU: Verhindert Flackern */
+                    user-select: none;
+                    -webkit-user-select: none;
+                    -webkit-tap-highlight-color: transparent; /* Entfernt blaue Highlights auf Mobile */
+                    
+                    /* NEU: Stabilere Hover-States */
+                    will-change: background-color, transform;
+                    backface-visibility: hidden; /* Verhindert Flackern */
+                    -webkit-backface-visibility: hidden;
+                    
                     font-weight: 500;
                     flex-shrink: 0;
                 }
