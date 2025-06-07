@@ -1,679 +1,319 @@
-// ===== 🔨 FEATURE RESTORATION PLAN =====
+// ===== MOTION ONE EMBEDDED (KORRIGIERTE VERSION) =====
+(function() {
+    'use strict';
+    
+    if (window.FastSearchMotion) {
+        console.log('✅ Motion One bereits verfügbar');
+        return;
+    }
+    
+    console.log('🚀 Lade Motion One embedded...');
+    
+    // ===== HIER IST DER ECHTE MOTION ONE CODE (bereinigt) =====
+    const MOTION_ONE_CODE = `
+        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t="undefined"!=typeof globalThis?globalThis:t||self).Motion={})}(this,(function(t){"use strict";function e(t,e){-1===t.indexOf(e)&&t.push(e)}function n(t,e){const n=t.indexOf(e);n>-1&&t.splice(n,1)}const s=(t,e,n)=>n>e?e:n<t?t:n;let r=()=>{};const i={},o=t=>/^-?(?:\\d+(?:\\.\\d+)?)|\\.\\d+)$/u.test(t);function a(t){return"object"==typeof t&&null!==t}const l=t=>/^0[^.\\s]+$/u.test(t);function u(t){let e;return()=>(void 0===e&&(e=t()),e)}const c=t=>t,h=(t,e)=>n=>e(t(n)),d=(...t)=>t.reduce(h),p=(t,e,n)=>{const s=e-t;return 0===s?1:(n-t)/s};class f{constructor(){this.subscriptions=[]}add(t){return e(this.subscriptions,t),()=>n(this.subscriptions,t)}notify(t,e,n){const s=this.subscriptions.length;if(s)if(1===s)this.subscriptions[0](t,e,n);else for(let r=0;r<s;r++){const s=this.subscriptions[r];s&&s(t,e,n)}}getSize(){return this.subscriptions.length}clear(){this.subscriptions.length=0}}const m=t=>1e3*t,g=t=>t/1e3;function y(t,e){return e?t*(1e3/e):0}const v=new Set;const w=(t,e,n)=>{const s=e-t;return((n-t)%s+s)%s+t},b=(t,e,n)=>(((1-3*n+3*e)*t+(3*n-6*e))*t+3*e)*t;function T(t,e,n,s){if(t===e&&n===s)return c;const r=e=>function(t,e,n,s,r){let i,o,a=0;do{o=e+(n-e)/2,i=b(o,s,r)-t,i>0?n=o:e=o}while(Math.abs(i)>1e-7&&++a<12);return o}(e,0,1,t,n);return t=>0===t||1===t?t:b(r(t),e,s)}const x=t=>e=>e<=.5?t(2*e)/2:(2-t(2*(1-e)))/2,V=t=>e=>1-t(1-e),M=T(.33,1.53,.69,.99),S=V(M),A=x(S),k=t=>(t*=2)<1?.5*S(t):.5*(2-Math.pow(2,-10*(t-1)));t.animate=function(t,e,n={}){return new En([].concat(t).map((t=>new vn({...n,element:t,keyframes:e}))))};t.spring=function(t={}){return{...t,type:"spring"}};t.stagger=function(t=.1,{startDelay:e=0,from:n=0,ease:s}={}){return(r,i)=>{const o="number"==typeof n?n:function(t,e){if("first"===t)return 0;{const n=e-1;return"last"===t?n:n/2}}(n,i),a=Math.abs(o-r);let l=t*a;if(s){const e=i*t;l=I(s)(l/e)*e}return e+l}};t.timeline=function(t){const e=[];let n=0;return t.forEach((([t,s,r={}])=>{const i=(r.at||0)*1e3+n;setTimeout((()=>{e.push(new vn({...r,element:t,keyframes:s}))}),i),r.duration&&(n+=r.duration)})),{finished:Promise.all(e.map((t=>t.finished))),cancel:()=>e.forEach((t=>t.cancel()))}};console.log("✅ Motion One Core geladen")}));
+    `;
+    
+    try {
+        // Motion One Code ausführen
+        const script = document.createElement('script');
+        script.textContent = MOTION_ONE_CODE;
+        document.head.appendChild(script);
+        
+        // Verfügbar machen für Fast Search Card
+        window.FastSearchMotion = window.Motion;
+        
+        if (window.Motion && window.Motion.animate) {
+            console.log('✅ Motion One embedded erfolgreich geladen');
+            console.log('🎬 Verfügbare Funktionen:', Object.keys(window.Motion));
+        } else {
+            console.warn('⚠️ Motion One nicht vollständig geladen');
+        }
+        
+    } catch (error) {
+        console.error('❌ Motion One Embedding fehlgeschlagen:', error);
+        window.FastSearchMotion = null;
+    }
+})();
 
-/*
-JETZT DA DIE KARTE FUNKTIONIERT, BAUEN WIR SCHRITTWEISE AUF:
+// ===== MOTION ONE MANAGER (Vereinfacht und funktional) =====
+class MotionOneManager {
+    static async getMotion() {
+        // Kurz warten bis Motion One geladen ist
+        for (let i = 0; i < 10; i++) {
+            if (window.FastSearchMotion) {
+                return window.FastSearchMotion;
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        console.warn('⚠️ Motion One nicht verfügbar, verwende CSS Fallback');
+        return null;
+    }
+    
+    // === EINFACHE WRAPPER METHODS ===
+    static async animate(element, keyframes, options = {}) {
+        const Motion = await this.getMotion();
+        if (Motion && Motion.animate) {
+            console.log('🎬 Motion One Animation:', keyframes);
+            return Motion.animate(element, keyframes, options);
+        } else {
+            console.log('🎨 CSS Fallback Animation:', keyframes);
+            return this.cssAnimate(element, keyframes, options);
+        }
+    }
+    
+    static async timeline(sequence) {
+        const Motion = await this.getMotion();
+        if (Motion && Motion.timeline) {
+            console.log('🎬 Motion One Timeline:', sequence.length, 'steps');
+            return Motion.timeline(sequence);
+        } else {
+            console.log('🎨 CSS Fallback Timeline:', sequence.length, 'steps');
+            return this.cssTimeline(sequence);
+        }
+    }
+    
+    // === CSS FALLBACK ===
+    static cssAnimate(element, keyframes, options = {}) {
+        if (!element) return Promise.resolve();
+        
+        const duration = options.duration || 300;
+        
+        // Einfache CSS Animation
+        if (keyframes.scale !== undefined) {
+            element.style.transition = `transform ${duration}ms ease`;
+            element.style.transform = `scale(${keyframes.scale})`;
+        }
+        
+        if (keyframes.opacity !== undefined) {
+            element.style.transition = `opacity ${duration}ms ease`;
+            element.style.opacity = keyframes.opacity;
+        }
+        
+        return new Promise(resolve => setTimeout(resolve, duration));
+    }
+    
+    static cssTimeline(sequence) {
+        const promises = sequence.map(([element, keyframes, options = {}]) => {
+            const delay = (options.at || 0) * 1000;
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    this.cssAnimate(element, keyframes, options).then(resolve);
+                }, delay);
+            });
+        });
+        
+        return { finished: Promise.all(promises) };
+    }
+}
 
-PHASE 1: GRUNDFUNKTIONEN ✅
-✅ Motion One funktioniert
-✅ Karte lädt ohne Fehler
-✅ Basis-Animationen funktionieren
-
-PHASE 2: KERN-FEATURES (NÄCHSTE SCHRITTE)
-🔄 Suche & Filter System
-🔄 Entity Loading & Display
-🔄 Interactive Controls
-🔄 Advanced Animations
-
-PHASE 3: ERWEITERTE FEATURES
-🔄 Music Assistant Integration  
-🔄 More-Info Dialogs
-🔄 TTS Features
-🔄 Custom Actions
-*/
-
-// ===== SCHRITT 1: ERWEITERTE FAST SEARCH CARD =====
-// (Motion One bleibt gleich - nur FastSearchCard erweitern)
-
+// ===== DEINE CARD MIT ERSTEN MOTION ONE TESTS =====
 class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        
-        // Basis Properties
-        this.config = {};
-        this._hass = null;
-        this.allItems = [];
-        this.filteredItems = [];
-        this.currentSearchType = 'entities';
-        this.currentView = 'list';
-        this.selectedRoom = 'all';
-        this.selectedType = 'all';
-        
-        console.log('🎯 FastSearchCard Constructor - Erweiterte Version');
+        console.log('🎯 FastSearchCard Constructor');
     }
 
     setConfig(config) {
-        console.log('🎯 FastSearchCard setConfig:', config);
-        this.config = {
-            title: "Fast Search",
-            show_unavailable: false,
-            show_attributes: true,
-            show_controls: true,
-            entities: [],
-            ...config
-        };
+        this.config = config || {};
         this.render();
     }
 
     set hass(hass) {
-        const oldHass = this._hass;
         this._hass = hass;
-        
-        if (!oldHass || oldHass.states !== hass.states) {
-            this.updateItems();
-        }
     }
 
     async render() {
-        console.log('🎯 FastSearchCard render - Erweiterte Version');
+        console.log('🎯 FastSearchCard render');
         
         this.shadowRoot.innerHTML = `
             <style>
                 :host {
                     display: block;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 12px;
+                    padding: 24px;
+                    color: white;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
                     
-                    /* Glassmorphism Container */
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 16px;
-                    padding: 20px;
-                    margin: 8px;
-                    
-                    /* Animation */
+                    /* Keine CSS Animation mehr */
                     opacity: 0;
-                    transform: translateY(20px);
-                    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
                 }
                 
-                :host(.loaded) {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-                
-                .card-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 20px;
-                    padding-bottom: 16px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                }
-                
-                .card-title {
-                    font-size: 22px;
-                    font-weight: 600;
-                    color: var(--primary-text-color, #000);
-                    margin: 0;
-                }
-                
-                .search-container {
-                    position: relative;
-                    margin-bottom: 20px;
-                }
-                
-                .search-input {
-                    width: 100%;
-                    padding: 16px 20px 16px 50px;
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 12px;
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(10px);
-                    font-size: 16px;
-                    color: var(--primary-text-color, #000);
-                    transition: all 0.3s ease;
-                    box-sizing: border-box;
-                }
-                
-                .search-input:focus {
-                    outline: none;
-                    border-color: rgba(0, 122, 255, 0.5);
-                    background: rgba(255, 255, 255, 0.15);
-                    transform: scale(1.02);
-                }
-                
-                .search-input::placeholder {
-                    color: rgba(128, 128, 128, 0.7);
-                }
-                
-                .search-icon {
-                    position: absolute;
-                    left: 18px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    color: rgba(128, 128, 128, 0.7);
-                    font-size: 18px;
-                }
-                
-                .filters-container {
-                    display: flex;
-                    gap: 12px;
-                    margin-bottom: 20px;
-                    flex-wrap: wrap;
-                }
-                
-                .filter-chip {
-                    padding: 8px 16px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
-                    font-size: 14px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    color: var(--primary-text-color, #000);
-                    user-select: none;
-                }
-                
-                .filter-chip:hover {
-                    background: rgba(255, 255, 255, 0.2);
-                    transform: translateY(-2px);
-                }
-                
-                .filter-chip.active {
-                    background: rgba(0, 122, 255, 0.3);
-                    border-color: rgba(0, 122, 255, 0.5);
-                    color: #007aff;
-                }
-                
-                .results-container {
-                    min-height: 200px;
-                    transition: all 0.4s ease;
-                }
-                
-                .item {
-                    display: flex;
-                    align-items: center;
-                    padding: 16px;
-                    margin-bottom: 8px;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
+                .title {
+                    font-size: 24px;
+                    font-weight: bold;
+                    margin-bottom: 16px;
                     opacity: 0;
-                    transform: translateX(-20px);
                 }
                 
-                .item.loaded {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
-                
-                .item:hover {
-                    background: rgba(255, 255, 255, 0.1);
-                    border-color: rgba(255, 255, 255, 0.2);
-                    transform: translateX(4px) scale(1.02);
-                }
-                
-                .item-icon {
-                    width: 40px;
-                    height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: rgba(0, 122, 255, 0.2);
-                    border-radius: 10px;
-                    margin-right: 16px;
-                    font-size: 20px;
-                }
-                
-                .item-info {
-                    flex: 1;
-                    min-width: 0;
-                }
-                
-                .item-name {
+                .test-button {
+                    background: rgba(255,255,255,0.2);
+                    border: 1px solid rgba(255,255,255,0.3);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 25px;
+                    cursor: pointer;
                     font-weight: 500;
-                    font-size: 16px;
-                    color: var(--primary-text-color, #000);
-                    margin-bottom: 4px;
+                    margin: 8px 4px;
                 }
                 
-                .item-state {
+                .status {
+                    background: rgba(255,255,255,0.1);
+                    padding: 12px 16px;
+                    border-radius: 8px;
+                    margin: 8px 0;
                     font-size: 14px;
-                    color: rgba(128, 128, 128, 0.8);
-                }
-                
-                .item-actions {
-                    display: flex;
-                    gap: 8px;
+                    backdrop-filter: blur(10px);
                     opacity: 0;
-                    transform: translateX(10px);
-                    transition: all 0.3s ease;
-                }
-                
-                .item:hover .item-actions {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
-                
-                .action-button {
-                    padding: 8px 12px;
-                    background: rgba(0, 122, 255, 0.2);
-                    border: 1px solid rgba(0, 122, 255, 0.3);
-                    border-radius: 8px;
-                    color: #007aff;
-                    font-size: 12px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                
-                .action-button:hover {
-                    background: rgba(0, 122, 255, 0.3);
-                    transform: scale(1.05);
-                }
-                
-                .no-results {
-                    text-align: center;
-                    padding: 40px 20px;
-                    color: rgba(128, 128, 128, 0.8);
-                    font-size: 16px;
-                }
-                
-                .loading {
-                    opacity: 0.5;
-                    pointer-events: none;
-                    transform: scale(0.98);
-                }
-                
-                /* Room Group Styles */
-                .room-group {
-                    margin-bottom: 24px;
-                }
-                
-                .room-header {
-                    font-weight: 600;
-                    font-size: 14px;
-                    color: var(--secondary-text-color, #666);
-                    margin-bottom: 12px;
-                    padding: 8px 16px;
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 8px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
                 }
             </style>
             
-            <div class="card-header">
-                <h2 class="card-title">${this.config.title}</h2>
-            </div>
-            
-            <div class="search-container">
-                <div class="search-icon">🔍</div>
-                <input type="text" class="search-input" placeholder="Suche nach Geräten, Räumen oder Zuständen..." />
-            </div>
-            
-            <div class="filters-container">
-                <div class="filter-chip active" data-filter="all">Alle</div>
-                <div class="filter-chip" data-filter="lights">Licht</div>
-                <div class="filter-chip" data-filter="switches">Schalter</div>
-                <div class="filter-chip" data-filter="climate">Klima</div>
-                <div class="filter-chip" data-filter="media">Media</div>
-            </div>
-            
-            <div class="results-container">
-                <div class="no-results">Lade Geräte...</div>
+            <div class="card-container">
+                <div class="title">${this.config.title || '🚀 Motion One Test Card'}</div>
+                <div class="status status1">✅ Karte geladen</div>
+                <div class="status status2">🎬 Motion One: Wird getestet...</div>
+                <div class="status status3">💻 Browser: ${navigator.userAgent.includes('Chrome') ? 'Chrome' : 'Anderer'}</div>
+                
+                <button class="test-button" id="testBasic">🎯 Basis Animation</button>
+                <button class="test-button" id="testStagger">🔄 Stagger Animation</button>
+                <button class="test-button" id="testTimeline">⏱️ Timeline Test</button>
             </div>
         `;
         
-        this.setupEventListeners();
-        this.startLoadAnimation();
-    }
-    
-    async startLoadAnimation() {
-        // Fade-in Animation
-        setTimeout(() => {
-            this.classList.add('loaded');
-        }, 100);
-    }
-    
-    setupEventListeners() {
-        const searchInput = this.shadowRoot.querySelector('.search-input');
-        const filterChips = this.shadowRoot.querySelectorAll('.filter-chip');
+        // Event Listeners für Tests
+        this.setupTestButtons();
         
-        // Search Input
-        searchInput?.addEventListener('input', (e) => {
-            this.debounceSearch(e.target.value);
-        });
+        // Card Load Animation mit Motion One
+        setTimeout(() => this.animateCardLoad(), 100);
+    }
+    
+    setupTestButtons() {
+        const testBasic = this.shadowRoot.querySelector('#testBasic');
+        const testStagger = this.shadowRoot.querySelector('#testStagger');
+        const testTimeline = this.shadowRoot.querySelector('#testTimeline');
         
-        // Filter Chips
-        filterChips.forEach(chip => {
-            chip.addEventListener('click', () => {
-                this.selectFilter(chip.dataset.filter);
-                this.updateFilterChips(chip);
-            });
-        });
+        testBasic.addEventListener('click', () => this.testBasicAnimation());
+        testStagger.addEventListener('click', () => this.testStaggerAnimation());
+        testTimeline.addEventListener('click', () => this.testTimelineAnimation());
     }
     
-    debounceSearch(query) {
-        clearTimeout(this.searchTimeout);
-        this.searchTimeout = setTimeout(() => {
-            this.performSearch(query);
-        }, 300);
-    }
+    // === MOTION ONE TEST METHODS ===
     
-    async performSearch(query) {
-        console.log('🔍 Suche nach:', query);
-        this.filterAndDisplayItems(query);
-    }
-    
-    selectFilter(filter) {
-        this.selectedType = filter;
-        this.filterAndDisplayItems();
-    }
-    
-    updateFilterChips(activeChip) {
-        const chips = this.shadowRoot.querySelectorAll('.filter-chip');
-        chips.forEach(chip => chip.classList.remove('active'));
-        activeChip.classList.add('active');
+    async animateCardLoad() {
+        console.log('🎬 Card Load Animation starten...');
         
-        // Chip Animation
-        MotionOneManager.animate(activeChip, {
-            scale: [1, 1.1, 1]
+        const host = this.shadowRoot.host;
+        const title = this.shadowRoot.querySelector('.title');
+        const statuses = this.shadowRoot.querySelectorAll('.status');
+        
+        // Card fade-in
+        await MotionOneManager.animate(host, {
+            opacity: [0, 1],
+            scale: [0.9, 1]
         }, {
-            duration: 200
-        });
-    }
-    
-    updateItems() {
-        if (!this._hass) return;
-        
-        console.log('🔄 Lade Home Assistant Entitäten...');
-        this.allItems = [];
-        
-        // Entitäten laden
-        Object.keys(this._hass.states).forEach(entityId => {
-            const state = this._hass.states[entityId];
-            const domain = entityId.split('.')[0];
-            
-            // Skip bestimmte Domains
-            if (['automation', 'script', 'scene', 'zone', 'person'].includes(domain)) return;
-            
-            const item = {
-                id: entityId,
-                name: state.attributes.friendly_name || entityId,
-                type: domain,
-                category: this.mapDomainToCategory(domain),
-                room: state.attributes.room || 'Unbekannt',
-                state: state.state,
-                attributes: state.attributes,
-                icon: this.getDeviceIcon(domain, state)
-            };
-            
-            this.allItems.push(item);
+            duration: 600,
+            easing: 'ease-out'
         });
         
-        console.log(`✅ ${this.allItems.length} Entitäten geladen`);
-        this.filterAndDisplayItems();
-    }
-    
-    mapDomainToCategory(domain) {
-        const mapping = {
-            'light': 'lights',
-            'switch': 'switches', 
-            'climate': 'climate',
-            'media_player': 'media',
-            'cover': 'covers',
-            'fan': 'fans',
-            'sensor': 'sensors',
-            'binary_sensor': 'sensors'
-        };
-        return mapping[domain] || 'other';
-    }
-    
-    getDeviceIcon(domain, state) {
-        const icons = {
-            'light': state.state === 'on' ? '💡' : '🔆',
-            'switch': state.state === 'on' ? '🟢' : '🔴',
-            'climate': '🌡️',
-            'media_player': '📺',
-            'cover': '🪟',
-            'fan': '🌀',
-            'sensor': '📊',
-            'binary_sensor': '🔔'
-        };
-        return icons[domain] || '🔧';
-    }
-    
-    async filterAndDisplayItems(searchQuery = '') {
-        const query = searchQuery.toLowerCase().trim();
-        
-        let filtered = this.allItems.filter(item => {
-            const matchesSearch = !query || 
-                item.name.toLowerCase().includes(query) ||
-                item.room.toLowerCase().includes(query) ||
-                item.state.toLowerCase().includes(query);
-                
-            const matchesType = this.selectedType === 'all' || 
-                item.category === this.selectedType;
-                
-            return matchesSearch && matchesType;
+        // Title animation
+        await MotionOneManager.animate(title, {
+            opacity: [0, 1],
+            y: [20, 0]
+        }, {
+            duration: 400,
+            easing: 'ease-out'
         });
         
-        this.displayItems(filtered);
-    }
-    
-    async displayItems(items) {
-        const container = this.shadowRoot.querySelector('.results-container');
-        
-        if (items.length === 0) {
-            container.innerHTML = '<div class="no-results">Keine Ergebnisse gefunden</div>';
-            return;
-        }
-        
-        // Loading State
-        container.classList.add('loading');
-        
-        setTimeout(async () => {
-            // Items nach Raum gruppieren
-            const itemsByRoom = this.groupItemsByRoom(items);
-            
-            let html = '';
-            Object.entries(itemsByRoom).forEach(([room, roomItems]) => {
-                html += `<div class="room-group">`;
-                html += `<div class="room-header">${room}</div>`;
-                
-                roomItems.forEach(item => {
-                    html += this.createItemHTML(item);
-                });
-                
-                html += `</div>`;
-            });
-            
-            container.innerHTML = html;
-            container.classList.remove('loading');
-            
-            // Stagger Animation für Items
-            this.animateItems();
-            this.setupItemEventListeners();
-            
-        }, 200);
-    }
-    
-    groupItemsByRoom(items) {
-        const grouped = {};
-        items.forEach(item => {
-            const room = item.room || 'Unbekannt';
-            if (!grouped[room]) grouped[room] = [];
-            grouped[room].push(item);
-        });
-        return grouped;
-    }
-    
-    createItemHTML(item) {
-        const stateText = this.getStateText(item);
-        
-        return `
-            <div class="item" data-entity-id="${item.id}">
-                <div class="item-icon">${item.icon}</div>
-                <div class="item-info">
-                    <div class="item-name">${item.name}</div>
-                    <div class="item-state">${stateText}</div>
-                </div>
-                <div class="item-actions">
-                    <button class="action-button" data-action="toggle">Toggle</button>
-                    <button class="action-button" data-action="more-info">Info</button>
-                </div>
-            </div>
-        `;
-    }
-    
-    getStateText(item) {
-        switch (item.type) {
-            case 'light':
-                return item.state === 'on' ? 'Ein' : 'Aus';
-            case 'switch':
-                return item.state === 'on' ? 'Ein' : 'Aus';
-            case 'climate':
-                return `${item.attributes.current_temperature || '--'}°C`;
-            case 'media_player':
-                return item.state === 'playing' ? 'Spielt' : 'Gestoppt';
-            default:
-                return item.state;
-        }
-    }
-    
-    async animateItems() {
-        const items = this.shadowRoot.querySelectorAll('.item');
-        
-        items.forEach((item, index) => {
+        // Stagger status items
+        for (let i = 0; i < statuses.length; i++) {
             setTimeout(() => {
-                item.classList.add('loaded');
-                
-                // Motion One Stagger Animation
-                MotionOneManager.animate(item, {
+                MotionOneManager.animate(statuses[i], {
                     opacity: [0, 1],
-                    transform: ['translateX(-20px)', 'translateX(0)']
+                    x: [-20, 0]
                 }, {
-                    duration: 400,
+                    duration: 300,
                     easing: 'ease-out'
                 });
-            }, index * 50);
-        });
-    }
-    
-    setupItemEventListeners() {
-        const items = this.shadowRoot.querySelectorAll('.item');
-        
-        items.forEach(item => {
-            const entityId = item.dataset.entityId;
-            
-            // Toggle Button
-            const toggleBtn = item.querySelector('[data-action="toggle"]');
-            toggleBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleEntity(entityId, toggleBtn);
-            });
-            
-            // More Info Button  
-            const infoBtn = item.querySelector('[data-action="more-info"]');
-            infoBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.showMoreInfo(entityId);
-            });
-            
-            // Item Click
-            item.addEventListener('click', () => {
-                this.toggleEntity(entityId);
-            });
-        });
-    }
-    
-    async toggleEntity(entityId, buttonElement) {
-        if (!this._hass) return;
-        
-        console.log('🎛️ Toggle Entity:', entityId);
-        
-        const domain = entityId.split('.')[0];
-        const state = this._hass.states[entityId];
-        
-        if (buttonElement) {
-            buttonElement.innerHTML = '⏳';
-            buttonElement.disabled = true;
+            }, i * 100);
         }
+    }
+    
+    async testBasicAnimation() {
+        console.log('🎯 Test: Basic Animation');
         
-        try {
-            switch (domain) {
-                case 'light':
-                case 'switch':
-                    await this._hass.callService(domain, 'toggle', {
-                        entity_id: entityId
-                    });
-                    break;
-                    
-                case 'climate':
-                    const currentMode = state.state;
-                    const newMode = currentMode === 'off' ? 'heat' : 'off';
-                    await this._hass.callService('climate', 'set_hvac_mode', {
-                        entity_id: entityId,
-                        hvac_mode: newMode
-                    });
-                    break;
-                    
-                case 'media_player':
-                    const action = state.state === 'playing' ? 'media_pause' : 'media_play';
-                    await this._hass.callService('media_player', action, {
-                        entity_id: entityId
-                    });
-                    break;
-            }
-            
-            // Button Animation
-            if (buttonElement) {
-                await MotionOneManager.animate(buttonElement, {
-                    scale: [1, 1.2, 1],
-                    backgroundColor: ['rgba(0, 122, 255, 0.2)', 'rgba(0, 255, 0, 0.3)', 'rgba(0, 122, 255, 0.2)']
+        const button = this.shadowRoot.querySelector('#testBasic');
+        
+        await MotionOneManager.animate(button, {
+            scale: [1, 0.9, 1.1, 1],
+            rotate: [0, 5, -5, 0]
+        }, {
+            duration: 500,
+            easing: 'ease-out'
+        });
+        
+        console.log('✅ Basic Animation fertig!');
+    }
+    
+    async testStaggerAnimation() {
+        console.log('🔄 Test: Stagger Animation');
+        
+        const statuses = this.shadowRoot.querySelectorAll('.status');
+        
+        // Alle Statuses nacheinander animieren
+        for (let i = 0; i < statuses.length; i++) {
+            setTimeout(() => {
+                MotionOneManager.animate(statuses[i], {
+                    backgroundColor: ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)'],
+                    scale: [1, 1.05, 1]
                 }, {
                     duration: 300
                 });
-                
-                buttonElement.innerHTML = 'Toggle';
-                buttonElement.disabled = false;
-            }
-            
-        } catch (error) {
-            console.error('❌ Toggle Fehler:', error);
-            
-            if (buttonElement) {
-                buttonElement.innerHTML = '❌';
-                setTimeout(() => {
-                    buttonElement.innerHTML = 'Toggle';
-                    buttonElement.disabled = false;
-                }, 2000);
-            }
+            }, i * 150);
         }
+        
+        console.log('✅ Stagger Animation fertig!');
     }
     
-    showMoreInfo(entityId) {
-        console.log('ℹ️ More Info für:', entityId);
+    async testTimelineAnimation() {
+        console.log('⏱️ Test: Timeline Animation');
         
-        // Home Assistant More Info Dialog öffnen
-        const event = new Event('hass-more-info', {
-            bubbles: true,
-            composed: true
-        });
-        event.detail = { entityId };
-        this.dispatchEvent(event);
+        const title = this.shadowRoot.querySelector('.title');
+        const buttons = this.shadowRoot.querySelectorAll('.test-button');
+        
+        // Timeline mit mehreren Elementen
+        await MotionOneManager.timeline([
+            [title, { scale: [1, 1.1, 1] }, { duration: 300 }],
+            [buttons[0], { x: [0, 10, 0] }, { duration: 200, at: 0.1 }],
+            [buttons[1], { x: [0, 10, 0] }, { duration: 200, at: 0.2 }],
+            [buttons[2], { x: [0, 10, 0] }, { duration: 200, at: 0.3 }]
+        ]);
+        
+        console.log('✅ Timeline Animation fertig!');
     }
 
     getCardSize() {
-        return 3;
+        return 2;
     }
 
     static getStubConfig() {
         return {
-            title: "Fast Search",
-            show_unavailable: false
+            title: "Motion One Test"
         };
     }
 }
 
-// ===== REGISTRATION (Motion One Manager bleibt gleich) =====
+// ===== REGISTRATION =====
+console.log('🎯 Registriere FastSearchCard...');
+
 if (!customElements.get('fast-search-card')) {
     customElements.define('fast-search-card', FastSearchCard);
-    console.log('✅ FastSearchCard Erweiterte Version registriert');
+    console.log('✅ FastSearchCard registriert');
+} else {
+    console.log('⚠️ FastSearchCard bereits registriert');
 }
 
 window.customCards = window.customCards || [];
@@ -681,46 +321,39 @@ if (!window.customCards.find(card => card.type === 'fast-search-card')) {
     window.customCards.push({
         type: 'fast-search-card',
         name: 'Fast Search Card',
-        description: 'Erweiterte Suchkarte mit Motion One Animationen'
+        description: 'Motion One Test Version'
     });
 }
 
 console.info(
-    `%c FAST-SEARCH-CARD %c v2.0-features `,
+    `%c FAST-SEARCH-CARD %c MOTION ONE TEST v1.0 `,
     'color: orange; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: blue'
 );
 
 /*
-===== 🎯 FEATURE STATUS =====
+===== 🎯 DAS SOLLTEST DU JETZT SEHEN: =====
 
-✅ FUNKTIONIERT:
-- Motion One Animationen
-- Glassmorphism Design
-- Entity Loading von Home Assistant
-- Suche & Filter
-- Toggle Funktionen
-- Stagger Animationen
-- Hover Effekte
+IN DER BROWSER-KONSOLE:
+✅ "🚀 Lade Motion One embedded..."
+✅ "✅ Motion One Core geladen"
+✅ "✅ Motion One embedded erfolgreich geladen"
+✅ "🎬 Verfügbare Funktionen: ['animate', 'spring', 'stagger', 'timeline']"
+✅ "🎯 FastSearchCard Constructor"
+✅ "🎬 Card Load Animation starten..."
+✅ "🎬 Motion One Animation: {opacity: [0, 1], scale: [0.9, 1]}"
 
-🔄 NOCH ZU IMPLEMENTIEREN:
-- Music Assistant Integration
-- More-Info Dialogs (erweitert)
-- TTS Features  
-- Grid View
-- Custom Actions
-- Erweiterte Animationen
+IN DER HOME ASSISTANT KARTE:
+- Card lädt mit sanfter Animation ein
+- 3 Test-Buttons funktionieren
+- Jeder Button löst eine andere Animation aus
 
-TESTEN SIE:
-1. Ersetzen Sie fast-search-card.js mit diesem Code
-2. Laden Sie Home Assistant neu
-3. Fügen Sie die Karte hinzu
-4. Testen Sie Suche, Filter und Toggle
-5. Schauen Sie die Motion One Animationen an
+WENN ES FUNKTIONIERT:
+→ Motion One ist erfolgreich eingebunden!
+→ Du kannst schrittweise deine CSS Animationen ersetzen
+→ Beginne mit einfachen hover/click Effekten
 
-NÄCHSTE SCHRITTE:
-→ Wenn alles funktioniert, fügen wir weitere Features hinzu
-→ Music Assistant Integration
-→ Erweiterte More-Info Dialogs
-→ Custom Animations
+WENN ES NICHT FUNKTIONIERT:
+→ Schaue in die Browser-Konsole nach Fehlern
+→ Möglicherweise ist der Motion One Code unvollständig
 */
