@@ -360,7 +360,7 @@ class FastSearchCard extends HTMLElement {
                     
                     /* NUCLEAR ANTI-FLICKER */
                     will-change: scroll-position;
-                    contain: strict;
+                    contain: layout style;
                     transform: translateZ(0);
                     -webkit-transform: translateZ(0);
                     
