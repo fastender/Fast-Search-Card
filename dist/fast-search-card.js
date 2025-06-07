@@ -6,27 +6,11 @@ class FastSearchCard extends HTMLElement {
     
     // 🎬 Card Animation mit Web Animation API
     animateCardEntrance() {
-        console.log('🎬 Starting card animation with WAAPI');
-        
-        // 🎯 HOST Element animieren (das ist das Hauptelement)
         const hostElement = this;
         
-        console.log('🔍 Found host element:', hostElement);
-        console.log('🔍 Current styles:', {
-            opacity: getComputedStyle(hostElement).opacity,
-            transform: getComputedStyle(hostElement).transform
-        });
-        
-        // WAAPI Animation auf HOST Element
         const animation = hostElement.animate([
-            { 
-                opacity: 0, 
-                transform: 'translateY(40px)' 
-            },
-            { 
-                opacity: 1, 
-                transform: 'translateY(0)' 
-            }
+            { opacity: 0, transform: 'translateY(40px)' },
+            { opacity: 1, transform: 'translateY(0)' }
         ], {
             duration: 600,
             delay: 200,
@@ -34,14 +18,7 @@ class FastSearchCard extends HTMLElement {
             fill: 'forwards'
         });
         
-        // Success Log
-        animation.finished.then(() => {
-            console.log('✅ Card animation completed');
-            console.log('🔍 Final computed styles:', {
-                opacity: getComputedStyle(hostElement).opacity,
-                transform: getComputedStyle(hostElement).transform
-            });
-        });
+        return animation.finished;
     }
 
 
