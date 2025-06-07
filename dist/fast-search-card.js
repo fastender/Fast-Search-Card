@@ -1,8 +1,179 @@
+// ===== MOTION ONE EMBEDDED CODE SECTION =====
+(function() {
+    'use strict';
+    
+    // Prüfen ob Motion One bereits geladen ist
+    if (window.FastSearchMotion) {
+        console.log('✅ Motion One bereits verfügbar');
+        return;
+    }
+    
+    console.log('🚀 Lade Motion One embedded...');
+    
+    // HIER KOMMT DER MOTION ONE CODE REIN (Schritt 3)
+    const MOTION_ONE_CODE = `
+        // ===== MOTION ONE v11.0.3 - EMBEDDED =====
+        // HIER FÜGST DU IN SCHRITT 3 DEN KOMPLETTEN CODE EIN
+        // Den du von JSDelivr heruntergeladen hast
+        
+        // Placeholder für jetzt:
+        console.log('Motion One Code würde hier stehen...');
+    `;
+    
+    try {
+        // Motion One Code ausführen
+        const script = document.createElement('script');
+        script.textContent = MOTION_ONE_CODE;
+        document.head.appendChild(script);
+        
+        // Verfügbar machen für Fast Search Card
+        window.FastSearchMotion = window.Motion;
+        
+        console.log('✅ Motion One embedded erfolgreich geladen');
+        
+    } catch (error) {
+        console.error('❌ Motion One Embedding fehlgeschlagen:', error);
+        window.FastSearchMotion = null;
+    }
+})();
+
+// ===== MOTION ONE LOADER FÜR DEINE CARD =====
+class MotionOneManager {
+    static async getMotion() {
+        // Warte kurz falls Motion One noch lädt
+        let attempts = 0;
+        while (!window.FastSearchMotion && attempts < 10) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        if (window.FastSearchMotion) {
+            console.log('✅ Motion One ready to use');
+            return window.FastSearchMotion;
+        } else {
+            console.warn('⚠️ Motion One nicht verfügbar, verwende CSS Fallback');
+            return null;
+        }
+    }
+    
+    // Wrapper Methods für einfache Nutzung
+    static async animate(element, keyframes, options = {}) {
+        const Motion = await this.getMotion();
+        if (Motion) {
+            return Motion.animate(element, keyframes, options);
+        } else {
+            // CSS Fallback
+            return this.cssAnimate(element, keyframes, options);
+        }
+    }
+    
+    static async timeline(sequence) {
+        const Motion = await this.getMotion();
+        if (Motion) {
+            return Motion.timeline(sequence);
+        } else {
+            // CSS Fallback
+            return this.cssTimeline(sequence);
+        }
+    }
+    
+    // CSS Fallback Methods
+    static cssAnimate(element, keyframes, options = {}) {
+        if (!element) return Promise.resolve();
+        
+        const duration = options.duration || 300;
+        const easing = options.easing || 'ease';
+        
+        // Transform basierend auf keyframes
+        if (keyframes.scale !== undefined) {
+            element.style.transition = `transform ${duration}ms ${easing}`;
+            element.style.transform = `scale(${keyframes.scale})`;
+        }
+        
+        if (keyframes.opacity !== undefined) {
+            element.style.transition = `opacity ${duration}ms ${easing}`;
+            element.style.opacity = keyframes.opacity;
+        }
+        
+        if (keyframes.x !== undefined) {
+            element.style.transition = `transform ${duration}ms ${easing}`;
+            element.style.transform = `translateX(${keyframes.x}px)`;
+        }
+        
+        // Promise für Kompatibilität
+        return new Promise(resolve => setTimeout(resolve, duration));
+    }
+    
+    static cssTimeline(sequence) {
+        const promises = sequence.map(([element, keyframes, options]) => {
+            const delay = (options.at || 0) * 1000;
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    this.cssAnimate(element, keyframes, options).then(resolve);
+                }, delay);
+            });
+        });
+        
+        return { finished: Promise.all(promises) };
+    }
+}
+
+// ===== DEINE FAST SEARCH CARD KLASSE (Erweitert) =====
 class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        
+        // Motion One Setup
+        this.motionReady = MotionOneManager.getMotion();
+        this.animationsEnabled = true;
     }
+
+    // ===== NEUE ANIMATION METHODS =====
+    
+    // Einfache Wrapper für Motion One
+    async animate(element, keyframes, options = {}) {
+        return MotionOneManager.animate(element, keyframes, options);
+    }
+    
+    async timeline(sequence) {
+        return MotionOneManager.timeline(sequence);
+    }
+    
+    // Button Animation (Ersetzt deine CSS Animationen)
+    async animateButton(button) {
+        console.log('🎬 Animiere Button mit Motion One');
+        
+        await this.animate(button, 
+            { scale: [1, 0.9, 1.05, 1] }, 
+            { duration: 400, easing: "ease-out" }
+        );
+    }
+    
+    // Slider Animation
+    async animateSlider(track, percentage) {
+        await this.animate(track, 
+            { width: percentage + '%' }, 
+            { duration: 100, easing: "ease-out" }
+        );
+    }
+    
+    // Dropdown Animation
+    async animateDropdown(menu, items, isOpen = true) {
+        if (isOpen) {
+            await this.timeline([
+                [menu, { opacity: 1, scale: 1 }, { duration: 0.3 }],
+                [items, { opacity: 1, x: 0 }, { duration: 0.2, at: 0.1 }]
+            ]);
+        } else {
+            await this.timeline([
+                [items, { opacity: 0, x: -20 }, { duration: 0.15 }],
+                [menu, { opacity: 0, scale: 0.95 }, { duration: 0.2, at: 0.1 }]
+            ]);
+        }
+    }
+
+    // ===== DEINE BESTEHENDEN METHODS BLEIBEN GLEICH =====    
 
     setConfig(config) {
         this.config = config;
