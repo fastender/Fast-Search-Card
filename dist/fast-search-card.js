@@ -8,22 +8,17 @@ class FastSearchCard extends HTMLElement {
     animateCardEntrance() {
         console.log('🎬 Starting card animation with WAAPI');
         
-        const cardContainer = this.shadowRoot.querySelector('.search-container');
-        if (!cardContainer) {
-            console.warn('Search container not found');
-            return;
-        }
+        // 🎯 HOST Element animieren (das ist das Hauptelement)
+        const hostElement = this;
         
-        // 🔍 DEBUG: Element-Infos loggen
-        console.log('🔍 Found element:', cardContainer);
+        console.log('🔍 Found host element:', hostElement);
         console.log('🔍 Current styles:', {
-            opacity: cardContainer.style.opacity,
-            transform: cardContainer.style.transform,
-            display: cardContainer.style.display
+            opacity: getComputedStyle(hostElement).opacity,
+            transform: getComputedStyle(hostElement).transform
         });
         
-        // WAAPI Animation
-        const animation = cardContainer.animate([
+        // WAAPI Animation auf HOST Element
+        const animation = hostElement.animate([
             { 
                 opacity: 0, 
                 transform: 'translateY(40px)' 
@@ -42,10 +37,9 @@ class FastSearchCard extends HTMLElement {
         // Success Log
         animation.finished.then(() => {
             console.log('✅ Card animation completed');
-            // 🔍 DEBUG: Finale Styles loggen
-            console.log('🔍 Final styles:', {
-                opacity: cardContainer.style.opacity,
-                transform: cardContainer.style.transform
+            console.log('🔍 Final computed styles:', {
+                opacity: getComputedStyle(hostElement).opacity,
+                transform: getComputedStyle(hostElement).transform
             });
         });
     }
