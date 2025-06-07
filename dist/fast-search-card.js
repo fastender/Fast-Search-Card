@@ -342,27 +342,43 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
-
                 .filter-row {
                     display: flex;
                     gap: 12px;
                     overflow-x: auto;
-                    overflow-y: hidden; /* NEU: Verhindert vertikales Scrollen */
+                    overflow-y: hidden;
                     padding: 4px 0;
                     scrollbar-width: none;
                     -ms-overflow-style: none;
                     
-                    /* NEU: Smooth Scrolling */
+                    /* NUCLEAR TOUCH-FIXES */
                     scroll-behavior: smooth;
-                    -webkit-overflow-scrolling: touch; /* iOS smooth scroll */
-                    
-                    /* NEU: Verhindert Select-Probleme */
+                    -webkit-overflow-scrolling: touch;
+                    touch-action: pan-x;
                     user-select: none;
                     -webkit-user-select: none;
                     
-                    /* NEU: Bessere Touch-Behandlung */
-                    touch-action: pan-x; /* Nur horizontal scrollen erlauben */
-                }                
+                    /* NUCLEAR ANTI-FLICKER */
+                    will-change: scroll-position;
+                    contain: strict;
+                    transform: translateZ(0);
+                    -webkit-transform: translateZ(0);
+                    
+                    /* NUCLEAR ISOLATION */
+                    isolation: isolate;
+                    backface-visibility: hidden;
+                    -webkit-backface-visibility: hidden;
+                    
+                    /* NUCLEAR TOUCH-HIGHLIGHT KILLER */
+                    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+                    -webkit-touch-callout: none !important;
+                    
+                    /* NUCLEAR POINTER-EVENTS FIX */
+                    pointer-events: auto;
+                }
+
+
+                
 
                 .filter-row::-webkit-scrollbar {
                     display: none;
@@ -417,7 +433,16 @@ class FastSearchCard extends HTMLElement {
                 
                 .filter-chip:hover {
                     background: rgba(0, 0, 0, 0.25);
+                    
+                    /* MEGA-HOVER-FIX: Verhindert Mobile-Hover-Bugs */
+                    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+                    -webkit-touch-callout: none !important;
+                    outline: none !important;
+                    
+                    /* MEGA-HOVER-FIX: Erzwingt Repaint */
+                    transform: translateZ(0) scale(1.0001) !important;
                 }
+                
                 
                 .filter-chip.active {
                     background: rgba(255, 255, 255, 0.15);
