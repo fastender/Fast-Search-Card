@@ -65,16 +65,35 @@ class FastSearchCard extends HTMLElement {
                     transform: translateY(40px);
                     
                     /* Glassmorphism Container - Neuer Hintergrund */
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 24px;
-                    box-shadow: 
-                        0 8px 32px rgba(0, 0, 0, 0.1),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.2);
                     padding: 0;
                     overflow: hidden;
+
+                    background: 
+                        /* Oberflächenreflektionen */
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                        /* Basis Material */
+                        rgba(28, 28, 30, 0.9);
+                    
+                    /* Apple Design System Borders */
+                    border: 0.33px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 20px;
+                    
+                    /* Spatial Depth Shadows */
+                    box-shadow: 
+                        /* Ambient Shadow */
+                        0 2px 8px rgba(0, 0, 0, 0.08),
+                        0 12px 40px rgba(0, 0, 0, 0.12),
+                        /* Directional Shadow (von oben-links) */
+                        0 -1px 2px rgba(255, 255, 255, 0.05),
+                        /* Inner Highlight */
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
+                    
+                    /* Apple Typography Enhancement */
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;                    
 
 
                     /* GLOBALE TOUCH-FIXES */
