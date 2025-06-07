@@ -66,7 +66,8 @@ class FastSearchCard extends HTMLElement {
                     
                     /* Glassmorphism Container - Neuer Hintergrund */
                     background: rgba(255, 255, 255, 0.1);
-
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
                     border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 24px;
                     box-shadow: 
@@ -374,6 +375,9 @@ class FastSearchCard extends HTMLElement {
                     
                     /* NUCLEAR POINTER-EVENTS FIX */
                     pointer-events: auto;
+
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;                    
                 }
 
 
