@@ -5,9 +5,6 @@ class FastSearchCard extends HTMLElement {
     }
     
     // 🎬 Card Animation mit Web Animation API
-
-
-    
     animateCardEntrance() {
         console.log('🎬 Starting card animation with WAAPI');
         
@@ -15,7 +12,15 @@ class FastSearchCard extends HTMLElement {
         if (!cardContainer) {
             console.warn('Search container not found');
             return;
-        }        
+        }
+        
+        // 🔍 DEBUG: Element-Infos loggen
+        console.log('🔍 Found element:', cardContainer);
+        console.log('🔍 Current styles:', {
+            opacity: cardContainer.style.opacity,
+            transform: cardContainer.style.transform,
+            display: cardContainer.style.display
+        });
         
         // WAAPI Animation
         const animation = cardContainer.animate([
@@ -37,6 +42,11 @@ class FastSearchCard extends HTMLElement {
         // Success Log
         animation.finished.then(() => {
             console.log('✅ Card animation completed');
+            // 🔍 DEBUG: Finale Styles loggen
+            console.log('🔍 Final styles:', {
+                opacity: cardContainer.style.opacity,
+                transform: cardContainer.style.transform
+            });
         });
     }
 
