@@ -75,6 +75,9 @@ class FastSearchCard extends HTMLElement {
                         radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
                         /* Basis Material */
                         rgba(28, 28, 30, 0.9);
+
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
                     
                     /* Apple Design System Borders */
                     border: 0.33px solid rgba(255, 255, 255, 0.2);
