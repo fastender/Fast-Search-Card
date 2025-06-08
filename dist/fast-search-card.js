@@ -10289,7 +10289,7 @@ getQuickStats(item) {
     // 🍎 visionOS Content Morphing Animation
     animateViewContentMorph(viewType) {
         const resultsContainer = this.resultsContainer;
-
+        
         // 🔒 Verhindere mehrfache gleichzeitige Animationen
         if (resultsContainer.dataset.animating === 'true') {
             console.log('🍎 Animation bereits aktiv, überspringe');
@@ -10350,7 +10350,8 @@ getQuickStats(item) {
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
                     fill: 'forwards'
                 });
-
+                
+                // Enhanced Stagger für neue Items
                 setTimeout(() => {
                     this.animateVisionOSStagger();
                     
@@ -10358,6 +10359,7 @@ getQuickStats(item) {
                     resultsContainer.dataset.animating = 'false';
                 }, 100);
                 
+            }, 50);
         });
     }
     
