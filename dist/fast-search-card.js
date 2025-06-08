@@ -120,82 +120,98 @@ class FastSearchCard extends HTMLElement {
         return Promise.all(animations.map(anim => anim.finished));
     }
 
-    // 🎬 Filter Menu Open Animation
+    // 🎬 Filter Menu Open Animation (VERBESSERT)
     animateFilterMenuOpen() {
-        console.log('🎬 Animating filter menu open');
+        console.log('🎬 Animating filter menu open - improved');
         
         const overlay = this.shadowRoot.getElementById('filterOverlay');
         const menu = overlay.querySelector('.filter-menu');
         
         if (!overlay || !menu) return Promise.resolve();
         
-        // Overlay Fade In
-        const overlayAnimation = overlay.animate([
-            { opacity: 0 },
-            { opacity: 1 }
-        ], {
-            duration: 300,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
+        // Sofort sichtbar machen aber unsichtbar
+        overlay.style.display = 'flex';
+        overlay.style.opacity = '0';
+        menu.style.transform = 'scale(0.8) translateY(40px)';
+        menu.style.opacity = '0';
         
-        // Menu Scale + Slide Up
-        const menuAnimation = menu.animate([
-            { 
-                transform: 'scale(0.9) translateY(20px)',
-                opacity: 0
-            },
-            { 
-                transform: 'scale(1) translateY(0)',
-                opacity: 1
-            }
-        ], {
-            duration: 400,
-            delay: 100,
-            easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', // Bounce back
-            fill: 'forwards'
+        // Kleine Pause für Rendering
+        return new Promise(resolve => {
+            requestAnimationFrame(() => {
+                // Overlay Fade In
+                const overlayAnim = overlay.animate([
+                    { opacity: 0 },
+                    { opacity: 1 }
+                ], {
+                    duration: 200,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+                
+                // Menu Pop In
+                const menuAnim = menu.animate([
+                    { 
+                        transform: 'scale(0.8) translateY(40px)',
+                        opacity: 0
+                    },
+                    { 
+                        transform: 'scale(1) translateY(0)',
+                        opacity: 1
+                    }
+                ], {
+                    duration: 300,
+                    delay: 100,
+                    easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    fill: 'forwards'
+                });
+                
+                menuAnim.finished.then(resolve);
+            });
         });
-        
-        return Promise.all([overlayAnimation.finished, menuAnimation.finished]);
     }
     
-    // 🎬 Filter Menu Close Animation  
+    // 🎬 Filter Menu Close Animation (VERBESSERT)
     animateFilterMenuClose() {
-        console.log('🎬 Animating filter menu close');
+        console.log('🎬 Animating filter menu close - improved');
         
         const overlay = this.shadowRoot.getElementById('filterOverlay');
         const menu = overlay.querySelector('.filter-menu');
         
         if (!overlay || !menu) return Promise.resolve();
         
-        // Menu Scale Down + Slide Down (schneller)
-        const menuAnimation = menu.animate([
+        // Menu Pop Out
+        const menuAnim = menu.animate([
             { 
                 transform: 'scale(1) translateY(0)',
                 opacity: 1
             },
             { 
-                transform: 'scale(0.85) translateY(30px)', // 👈 Mehr Scale-Down
+                transform: 'scale(0.8) translateY(40px)',
                 opacity: 0
             }
         ], {
-            duration: 200, // 👈 Schneller
-            easing: 'cubic-bezier(0.4, 0, 1, 1)' // 👈 Schärferes Easing
+            duration: 200,
+            easing: 'cubic-bezier(0.4, 0, 1, 1)',
+            fill: 'forwards'
         });
         
-        // Overlay Fade Out (gleichzeitig)
-        const overlayAnimation = overlay.animate([
+        // Overlay Fade Out
+        const overlayAnim = overlay.animate([
             { opacity: 1 },
             { opacity: 0 }
         ], {
-            duration: 250,
-            delay: 50, // 👈 Kurzer Delay
-            easing: 'ease-out'
+            duration: 150,
+            delay: 50,
+            easing: 'ease-in',
+            fill: 'forwards'
         });
         
-        return Promise.all([menuAnimation.finished, overlayAnimation.finished]);
+        return overlayAnim.finished.then(() => {
+            // Komplett verstecken
+            overlay.style.display = 'none';
+        });
     }
-    
+  
     
     setConfig(config) {
         this.config = config;
@@ -8840,15 +8856,11 @@ getQuickStats(item) {
     
     openFilterMenu() {
         this.updateFilterMenuContent();
-        const overlay = this.shadowRoot.getElementById('filterOverlay');
         
-        // CSS-Klasse setzen (für Display)
-        overlay.classList.add('active');
-        
-        // 🎬 WAAPI Animation starten
+        // 🎬 Nur Animation - kein CSS
         this.animateFilterMenuOpen();
         
-        // ESC Key Listener hinzufügen
+        // ESC Key Listener
         this.escKeyListener = (e) => {
             if (e.key === 'Escape') {
                 this.closeFilterMenu();
@@ -8858,22 +8870,11 @@ getQuickStats(item) {
     }
     
     closeFilterMenu() {
-        const overlay = this.shadowRoot.getElementById('filterOverlay');
-        const menu = overlay.querySelector('.filter-menu');
         const button = this.shadowRoot.getElementById('filterButton');
-        
         button.classList.remove('active');
         
-        // 🎬 WAAPI Animation starten
-        this.animateFilterMenuClose().then(() => {
-            // NACH der Animation: CSS-Klasse entfernen
-            overlay.classList.remove('active');
-            
-            // 🔧 WICHTIG: Start-States für nächste Animation zurücksetzen
-            overlay.style.opacity = '0';
-            menu.style.transform = 'scale(0.9) translateY(20px)';
-            menu.style.opacity = '0';
-        });
+        // 🎬 Nur Animation - kein CSS
+        this.animateFilterMenuClose();
         
         // ESC Key Listener entfernen
         if (this.escKeyListener) {
@@ -8881,6 +8882,7 @@ getQuickStats(item) {
             this.escKeyListener = null;
         }
     }
+
     
     updateFilterMenuContent() {
         // Kategorie-Optionen aktualisieren
