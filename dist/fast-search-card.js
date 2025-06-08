@@ -9549,6 +9549,38 @@ getQuickStats(item) {
         
         this.applyFilters();
     }
+    
+    // 🎬 Filter-Chip Selection Animation  
+    animateFilterChipSelection(chip) {
+        console.log('🎬 Animating filter chip selection');
+        
+        // Bounce-Effekt bei Selection
+        const bounceAnimation = chip.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(0.95)' },
+            { transform: 'scale(1.1)' },
+            { transform: 'scale(1)' }
+        ], {
+            duration: 400,
+            easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+        });
+        
+        // Glow-Effekt für aktive Chips
+        if (chip.classList.contains('active')) {
+            chip.animate([
+                { boxShadow: '0 0 0 rgba(255, 255, 255, 0)' },
+                { boxShadow: '0 0 20px rgba(255, 255, 255, 0.3)' },
+                { boxShadow: '0 0 8px rgba(255, 255, 255, 0.15)' }
+            ], {
+                duration: 600,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+        }
+        
+        return bounceAnimation.finished;
+    }
+
 
     handleCategoryChipClick(chip) {
         // 🎬 ANIMATION HINZUFÜGEN
