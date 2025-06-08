@@ -11161,25 +11161,7 @@ getQuickStats(item) {
             fill: 'forwards'
         });
         
-        // Return to normal after selection
-        setTimeout(() => {
-            chip.animate([
-                { 
-                    transform: 'scale(1) translateZ(6px)',
-                    backdropFilter: 'blur(12px)',
-                    boxShadow: '0 6px 20px rgba(255, 255, 255, 0.25)'
-                },
-                { 
-                    transform: 'scale(1) translateZ(0px)',
-                    backdropFilter: 'blur(10px)',
-                    boxShadow: '0 0 0 rgba(255, 255, 255, 0)'
-                }
-            ], {
-                duration: 300,
-                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                fill: 'forwards'
-            });
-        }, 400);
+
         
         return selectionAnimation.finished; // NUR EINE return-Anweisung!
     }
