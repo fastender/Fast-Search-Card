@@ -2272,42 +2272,70 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .filter-menu {
-                    background: white;
-                    border-radius: 16px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+                    /* GLEICH WIE HAUPTKARTE - Apple Spatial Design */
+                    background: 
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.25) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        rgba(58, 58, 60, 0.9);
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                    
+                    /* Apple Design System Borders */
+                    border: 0.33px solid rgba(255, 255, 255, 0.35);
+                    border-radius: 20px;
+                    
+                    /* Spatial Depth Shadows */
+                    box-shadow: 
+                        0 2px 8px rgba(0, 0, 0, 0.05),
+                        0 12px 40px rgba(0, 0, 0, 0.08),
+                        0 -1px 2px rgba(255, 255, 255, 0.12),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.12);
+                    
+                    /* Größe und Position */
                     max-width: 500px;
-                    width: 100%;
-                    max-height: 80vh;
+                    width: 90%;
+                    max-height: 70vh; /* 👈 Maximale Höhe */
                     overflow: hidden;
                     
-                    /* 👈 START-STATE für Animation */
-                    transform: scale(0.9) translateY(20px);
+                    /* Anti-Touch-Flicker */
+                    -webkit-tap-highlight-color: transparent !important;
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;
+                    
+                    /* Start-State für Animation */
+                    transform: scale(0.8) translateY(40px);
                     opacity: 0;
-                    transition: none; /* 👈 KEINE CSS-Transition */
                 }
                 
                 .filter-overlay.active .filter-menu {
                     /* transform: scale(1); 👈 ENTFERNEN - WAAPI übernimmt das */
                     /* opacity: 1; 👈 ENTFERNEN - WAAPI übernimmt das */
                 }
-                
-                .filter-menu-header {
+
+                 .filter-menu-header {
                     padding: 24px;
-                    border-bottom: 1px solid #f1f3f4;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
+                    background: transparent;
+                    flex-shrink: 0; /* Für Scrolling */
                 }
                 
                 .filter-menu-title {
                     font-size: 18px;
                     font-weight: 600;
-                    color: #202124;
+                    color: rgba(255, 255, 255, 0.9);
                     margin: 0;
+                    flex: 1;
+                    text-align: center; /* Zentriert */
                 }
                 
                 .close-button {
-                    background: rgba(0, 0, 0, 0.08);
+                    /* LINKS statt rechts */
+                    order: -1; /* Vor dem Titel */
+                    background: rgba(0, 0, 0, 0.15);
                     border: none;
                     border-radius: 50%;
                     width: 32px;
@@ -2317,12 +2345,20 @@ class FastSearchCard extends HTMLElement {
                     justify-content: center;
                     cursor: pointer;
                     transition: all 0.2s;
-                    color: #5f6368;
+                    color: rgba(255, 255, 255, 0.8);
+                    margin-right: 16px; /* Abstand zum Titel */
+                    
+                    /* Anti-Touch-Flicker */
+                    -webkit-tap-highlight-color: transparent !important;
                 }
                 
                 .close-button:hover {
-                    background: rgba(0, 0, 0, 0.12);
-                }
+                    background: rgba(0, 0, 0, 0.25);
+                    color: white;
+                    transform: scale(1.1);
+                }                   
+
+
                 
                 .filter-menu-content {
                     padding: 24px;
