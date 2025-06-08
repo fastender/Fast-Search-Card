@@ -144,64 +144,58 @@ class FastSearchCard extends HTMLElement {
     
     // 🎬 Filter-Chip Hover Animation
     setupFilterChipAnimations() {
-        console.log('🎬 Setting up explosive filter chip animations');
+        console.log('🍎 Setting up visionOS glass chip animations');
         
         const filterChips = this.shadowRoot.querySelectorAll('.filter-chip');
         
         filterChips.forEach(chip => {
-            let magneticAnimation = null;
-            let explosionAnimation = null;
+            let hoverAnimation = null;
             
-            // 💥 Magnetic Hover Entrance
-            chip.addEventListener('mouseenter', (e) => {
-                if (magneticAnimation) magneticAnimation.cancel();
-                if (explosionAnimation) explosionAnimation.cancel();
+            // 🍎 visionOS Glass Lift
+            chip.addEventListener('mouseenter', () => {
+                if (hoverAnimation) hoverAnimation.cancel();
                 
-                // Magnetic Attraction Animation
-                magneticAnimation = chip.animate([
+                hoverAnimation = chip.animate([
                     { 
-                        transform: 'scale(1) rotate(0deg)',
-                        filter: 'brightness(1) saturate(1)',
+                        transform: 'scale(1) translateZ(0px)',
+                        filter: 'brightness(1)',
+                        backdropFilter: 'blur(10px)',
                         boxShadow: '0 0 0 rgba(255,255,255,0)'
                     },
                     { 
-                        transform: 'scale(1.08) rotate(2deg)',
-                        filter: 'brightness(1.2) saturate(1.2)',
-                        boxShadow: '0 8px 25px rgba(255,255,255,0.3)',
+                        transform: 'scale(1.02) translateZ(8px)',
+                        filter: 'brightness(1.1)',
+                        backdropFilter: 'blur(15px)',
+                        boxShadow: '0 8px 25px rgba(255,255,255,0.2)',
                         offset: 0.6
                     },
                     { 
-                        transform: 'scale(1.05) rotate(0deg)',
-                        filter: 'brightness(1.1) saturate(1.1)',
-                        boxShadow: '0 4px 15px rgba(255,255,255,0.2)'
+                        transform: 'scale(1.01) translateZ(4px)',
+                        filter: 'brightness(1.05)',
+                        backdropFilter: 'blur(12px)',
+                        boxShadow: '0 4px 15px rgba(255,255,255,0.15)'
                     }
                 ], {
                     duration: 400,
-                    easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple spring
                     fill: 'forwards'
                 });
-                
-                // Particle Trail Effect
-                this.createParticleTrail(chip, e);
             });
             
-            // 🌪️ Magnetic Release
+            // 🍎 visionOS Glass Float
             chip.addEventListener('mouseleave', () => {
-                if (magneticAnimation) magneticAnimation.cancel();
+                if (hoverAnimation) hoverAnimation.cancel();
                 
-                magneticAnimation = chip.animate([
+                hoverAnimation = chip.animate([
                     { 
-                        transform: 'scale(1.05) rotate(0deg)',
-                        filter: 'brightness(1.1) saturate(1.1)'
+                        transform: 'scale(1.01) translateZ(4px)',
+                        filter: 'brightness(1.05)',
+                        backdropFilter: 'blur(12px)'
                     },
                     { 
-                        transform: 'scale(0.98) rotate(-1deg)',
-                        filter: 'brightness(0.95) saturate(0.95)',
-                        offset: 0.3
-                    },
-                    { 
-                        transform: 'scale(1) rotate(0deg)',
-                        filter: 'brightness(1) saturate(1)'
+                        transform: 'scale(1) translateZ(0px)',
+                        filter: 'brightness(1)',
+                        backdropFilter: 'blur(10px)'
                     }
                 ], {
                     duration: 300,
@@ -210,162 +204,31 @@ class FastSearchCard extends HTMLElement {
                 });
             });
             
-            // 💥 Click Explosion
-            chip.addEventListener('click', (e) => {
-                this.createClickExplosion(chip, e);
+            // 🍎 visionOS Selection (subtle)
+            chip.addEventListener('click', () => {
+                const selectionAnimation = chip.animate([
+                    { 
+                        transform: 'scale(1) translateZ(4px)',
+                        filter: 'brightness(1.05)'
+                    },
+                    { 
+                        transform: 'scale(0.98) translateZ(-2px)',
+                        filter: 'brightness(1.2)',
+                        offset: 0.3
+                    },
+                    { 
+                        transform: 'scale(1) translateZ(4px)',
+                        filter: 'brightness(1.05)'
+                    }
+                ], {
+                    duration: 200,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                });
             });
         });
-    }
+    }        
 
 
-    // 💥 Particle Trail Effect
-    createParticleTrail(element, event) {
-        console.log('🌟 Creating particle trail');
-        
-        const rect = element.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        
-        // Erstelle 6 Partikel
-        for (let i = 0; i < 6; i++) {
-            const particle = document.createElement('div');
-            particle.style.cssText = `
-                position: fixed;
-                width: 4px;
-                height: 4px;
-                background: rgba(255,255,255,0.8);
-                border-radius: 50%;
-                pointer-events: none;
-                z-index: 9999;
-                left: ${centerX}px;
-                top: ${centerY}px;
-            `;
-            
-            document.body.appendChild(particle);
-            
-            // Zufällige Bewegungsrichtung
-            const angle = (Math.PI * 2 * i) / 6;
-            const distance = 50 + Math.random() * 30;
-            const endX = centerX + Math.cos(angle) * distance;
-            const endY = centerY + Math.sin(angle) * distance;
-            
-            // Partikel Animation
-            particle.animate([
-                {
-                    left: centerX + 'px',
-                    top: centerY + 'px',
-                    opacity: 1,
-                    transform: 'scale(1)'
-                },
-                {
-                    left: endX + 'px',
-                    top: endY + 'px',
-                    opacity: 0,
-                    transform: 'scale(0)'
-                }
-            ], {
-                duration: 800 + Math.random() * 400,
-                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-            }).finished.then(() => {
-                particle.remove();
-            });
-        }
-    }
-    
-    // 💥 Click Explosion Effect
-    createClickExplosion(element, event) {
-        console.log('💥 Creating click explosion');
-        
-        const rect = element.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        
-        // Ring Explosion
-        const explosion = document.createElement('div');
-        explosion.style.cssText = `
-            position: fixed;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.8);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            left: ${centerX - 10}px;
-            top: ${centerY - 10}px;
-        `;
-        
-        document.body.appendChild(explosion);
-        
-        // Ring Expansion Animation
-        explosion.animate([
-            {
-                width: '20px',
-                height: '20px',
-                opacity: 1,
-                borderWidth: '2px'
-            },
-            {
-                width: '100px',
-                height: '100px',
-                opacity: 0,
-                borderWidth: '0px',
-                left: (centerX - 50) + 'px',
-                top: (centerY - 50) + 'px'
-            }
-        ], {
-            duration: 500,
-            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-        }).finished.then(() => {
-            explosion.remove();
-        });
-        
-        // Zusätzliche Sparkle Partikel
-        this.createSparkleParticles(centerX, centerY);
-    }
-    
-    // ✨ Sparkle Particles
-    createSparkleParticles(centerX, centerY) {
-        for (let i = 0; i < 12; i++) {
-            const sparkle = document.createElement('div');
-            sparkle.style.cssText = `
-                position: fixed;
-                width: 2px;
-                height: 2px;
-                background: rgba(255,255,255,0.9);
-                pointer-events: none;
-                z-index: 9999;
-                left: ${centerX}px;
-                top: ${centerY}px;
-            `;
-            
-            document.body.appendChild(sparkle);
-            
-            const angle = (Math.PI * 2 * i) / 12;
-            const distance = 30 + Math.random() * 40;
-            const endX = centerX + Math.cos(angle) * distance;
-            const endY = centerY + Math.sin(angle) * distance;
-            
-            sparkle.animate([
-                {
-                    left: centerX + 'px',
-                    top: centerY + 'px',
-                    opacity: 1,
-                    transform: 'scale(1) rotate(0deg)'
-                },
-                {
-                    left: endX + 'px',
-                    top: endY + 'px',
-                    opacity: 0,
-                    transform: 'scale(0) rotate(360deg)'
-                }
-            ], {
-                duration: 600 + Math.random() * 300,
-                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-            }).finished.then(() => {
-                sparkle.remove();
-            });
-        }
-    }
     
     
     // 🎬 Grid Items Stagger Animation
@@ -985,19 +848,21 @@ class FastSearchCard extends HTMLElement {
                     transform-origin: center;                    
                 }
 
-                /* Particle System für Filter Chips */
+                /* visionOS Glass Morphism für Filter Chips */
                 .filter-chip::before {
                     content: '';
                     position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    width: 0;
-                    height: 0;
-                    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
-                    border-radius: 50%;
-                    transform: translate(-50%, -50%);
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(135deg, 
+                        rgba(255,255,255,0.1) 0%, 
+                        rgba(255,255,255,0.05) 100%);
+                    border-radius: inherit;
                     opacity: 0;
-                    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                    transform: scale(0.8);
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                     pointer-events: none;
                     z-index: -1;
                 }
@@ -1005,34 +870,33 @@ class FastSearchCard extends HTMLElement {
                 .filter-chip::after {
                     content: '';
                     position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(45deg, 
-                        rgba(255,255,255,0.1) 0%, 
-                        rgba(255,255,255,0.2) 50%, 
-                        rgba(255,255,255,0.1) 100%);
+                    top: -2px;
+                    left: -2px;
+                    right: -2px;
+                    bottom: -2px;
+                    background: linear-gradient(135deg, 
+                        rgba(255,255,255,0.2) 0%, 
+                        rgba(255,255,255,0.1) 50%,
+                        rgba(255,255,255,0.05) 100%);
                     border-radius: inherit;
-                    transform: translate(-50%, -50%) scale(0);
                     opacity: 0;
-                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    filter: blur(8px);
+                    transform: scale(0.9);
+                    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
                     pointer-events: none;
-                    z-index: -1;
+                    z-index: -2;
                 }
                 
-                /* Hover Explosion Effect */
+                /* visionOS Hover: Glass Lift + Glow */
                 .filter-chip:hover::before {
-                    width: 200%;
-                    height: 200%;
-                    opacity: 0.3;
-                    animation: particleExplosion 0.6s ease-out;
+                    opacity: 1;
+                    transform: scale(1);
                 }
                 
                 .filter-chip:hover::after {
-                    transform: translate(-50%, -50%) scale(1.2);
-                    opacity: 1;
-                    animation: magneticRipple 0.8s ease-out;
+                    opacity: 0.6;
+                    transform: scale(1.1);
+                    filter: blur(12px);
                 }
                 
                 
@@ -1094,67 +958,54 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
-                /* Button Explosion Animations */
-                @keyframes particleExplosion {
+                /* visionOS Glass Animations */
+                @keyframes visionOSGlassLift {
                     0% {
-                        width: 0;
-                        height: 0;
-                        opacity: 0;
-                        transform: translate(-50%, -50%) rotate(0deg);
+                        transform: scale(1) translateZ(0px);
+                        filter: brightness(1) blur(0px);
+                        box-shadow: 0 0 0 rgba(255,255,255,0);
                     }
                     50% {
-                        width: 250%;
-                        height: 250%;
-                        opacity: 0.6;
-                        transform: translate(-50%, -50%) rotate(180deg);
+                        transform: scale(1.02) translateZ(8px);
+                        filter: brightness(1.1) blur(0px);
+                        box-shadow: 0 8px 25px rgba(255,255,255,0.2);
                     }
                     100% {
-                        width: 300%;
-                        height: 300%;
-                        opacity: 0;
-                        transform: translate(-50%, -50%) rotate(360deg);
+                        transform: scale(1.01) translateZ(4px);
+                        filter: brightness(1.05) blur(0px);
+                        box-shadow: 0 4px 15px rgba(255,255,255,0.15);
                     }
                 }
                 
-                @keyframes magneticRipple {
+                @keyframes visionOSGlassFloat {
                     0% {
-                        transform: translate(-50%, -50%) scale(0) rotate(0deg);
-                        opacity: 0;
-                    }
-                    25% {
-                        transform: translate(-50%, -50%) scale(0.8) rotate(90deg);
-                        opacity: 0.8;
+                        transform: translateZ(4px) rotateY(0deg);
+                        backdrop-filter: blur(10px);
                     }
                     50% {
-                        transform: translate(-50%, -50%) scale(1.1) rotate(180deg);
-                        opacity: 0.6;
-                    }
-                    75% {
-                        transform: translate(-50%, -50%) scale(1.3) rotate(270deg);
-                        opacity: 0.3;
+                        transform: translateZ(6px) rotateY(1deg);
+                        backdrop-filter: blur(12px);
                     }
                     100% {
-                        transform: translate(-50%, -50%) scale(1.5) rotate(360deg);
-                        opacity: 0;
+                        transform: translateZ(4px) rotateY(0deg);
+                        backdrop-filter: blur(10px);
                     }
                 }
                 
-                /* Magnetic Attraction Effect */
-                @keyframes magneticPull {
+                @keyframes visionOSSelection {
                     0% {
-                        transform: scale(1) rotate(0deg);
-                        filter: brightness(1);
+                        transform: scale(1) translateZ(0px);
+                        background: rgba(0, 0, 0, 0.15);
                     }
-                    50% {
-                        transform: scale(1.08) rotate(2deg);
-                        filter: brightness(1.2);
+                    30% {
+                        transform: scale(0.98) translateZ(-2px);
+                        background: rgba(255, 255, 255, 0.1);
                     }
                     100% {
-                        transform: scale(1.05) rotate(0deg);
-                        filter: brightness(1.1);
+                        transform: scale(1) translateZ(4px);
+                        background: rgba(255, 255, 255, 0.15);
                     }
                 }
-
 
                 /* visionOS Spatial Room Transition */
                 @keyframes visionOSSlideOut {
