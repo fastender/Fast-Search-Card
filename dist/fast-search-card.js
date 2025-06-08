@@ -248,8 +248,6 @@ class FastSearchCard extends HTMLElement {
         return `
             <div class="filter-menu-header" style="padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center;">
 
-
-                // In der getFilterMenuHTML() Methode, ÄNDERE den Close-Button:
                 <button class="close-button" id="fullscreen-close-btn" style="background: rgba(0,0,0,0.15); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.8); margin-right: 16px;">
                     ←
                 </button>
