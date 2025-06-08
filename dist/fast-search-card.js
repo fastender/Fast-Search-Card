@@ -6,15 +6,35 @@ class FastSearchCard extends HTMLElement {
     
     // 🎬 Card Animation mit Web Animation API
     animateCardEntrance() {
+        console.log('🍎 visionOS card entrance animation');
+        
         const hostElement = this;
         
+        // 🍎 visionOS Spatial Card Entrance
         const animation = hostElement.animate([
-            { opacity: 0, transform: 'translateY(40px)' },
-            { opacity: 1, transform: 'translateY(0)' }
+            { 
+                opacity: 0, 
+                transform: 'translateY(60px) scale(0.9) rotateX(15deg) translateZ(-40px)',
+                filter: 'blur(8px)',
+                backdropFilter: 'blur(5px)'
+            },
+            { 
+                opacity: 0.6, 
+                transform: 'translateY(-10px) scale(1.02) rotateX(-3deg) translateZ(20px)',
+                filter: 'blur(3px)',
+                backdropFilter: 'blur(15px)',
+                offset: 0.6
+            },
+            { 
+                opacity: 1, 
+                transform: 'translateY(0) scale(1) rotateX(0deg) translateZ(0px)',
+                filter: 'blur(0px)',
+                backdropFilter: 'blur(20px)'
+            }
         ], {
-            duration: 600,
+            duration: 800,
             delay: 200,
-            easing: 'ease-out',
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
             fill: 'forwards'
         });
         
@@ -89,27 +109,31 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        // Typing Animation - Subtile Pulsierung
+        // 🍎 visionOS Typing Animation
         searchInput.addEventListener('input', () => {
             if (typingAnimation) typingAnimation.cancel();
             
-            // Typing Pulse Effect
+            // visionOS Spatial Typing Response
             typingAnimation = searchInput.animate([
                 { 
-                    transform: 'scale(1.02)',
+                    transform: 'scale(1.02) translateZ(0px)',
+                    backdropFilter: 'blur(15px)',
                     boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 2px rgba(255, 255, 255, 0.2), 0 4px 20px rgba(255, 255, 255, 0.1)'
                 },
                 { 
-                    transform: 'scale(1.025)',
-                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 3px rgba(255, 255, 255, 0.3), 0 6px 25px rgba(255, 255, 255, 0.15)'
+                    transform: 'scale(1.025) translateZ(4px)',
+                    backdropFilter: 'blur(20px)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 3px rgba(255, 255, 255, 0.3), 0 8px 30px rgba(255, 255, 255, 0.2)',
+                    offset: 0.6
                 },
                 { 
-                    transform: 'scale(1.02)',
-                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 2px rgba(255, 255, 255, 0.2), 0 4px 20px rgba(255, 255, 255, 0.1)'
+                    transform: 'scale(1.02) translateZ(2px)',
+                    backdropFilter: 'blur(18px)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 2px rgba(255, 255, 255, 0.2), 0 6px 25px rgba(255, 255, 255, 0.15)'
                 }
             ], {
-                duration: 300,
-                easing: 'ease-out',
+                duration: 400,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
                 fill: 'forwards'
             });
         });
@@ -233,63 +257,88 @@ class FastSearchCard extends HTMLElement {
     
     // 🎬 Grid Items Stagger Animation
     animateGridItems(items) {
-        console.log('🎬 Animating grid items with stagger');
+        console.log('🍎 visionOS grid items animation');
         
         if (!items || items.length === 0) return Promise.resolve();
         
         const animations = [];
         
         items.forEach((item, index) => {
-            // Jedes Item individuell animieren
+            // 🍎 visionOS Spatial Grid Animation
             const animation = item.animate([
                 { 
-                    opacity: 0, 
-                    transform: 'scale(0.8) translateY(30px)',
-                    filter: 'blur(4px)'
+                    opacity: 0,
+                    transform: 'translateY(40px) scale(0.8) rotateX(20deg) translateZ(-30px)',
+                    filter: 'blur(6px)',
+                    backdropFilter: 'blur(5px)'
                 },
                 { 
-                    opacity: 1, 
-                    transform: 'scale(1) translateY(0)',
-                    filter: 'blur(0px)'
+                    opacity: 0.6,
+                    transform: 'translateY(-5px) scale(1.02) rotateX(-3deg) translateZ(10px)',
+                    filter: 'blur(2px)',
+                    backdropFilter: 'blur(12px)',
+                    offset: 0.4
+                },
+                { 
+                    opacity: 0.9,
+                    transform: 'translateY(2px) scale(0.99) rotateX(1deg) translateZ(5px)',
+                    filter: 'blur(1px)',
+                    backdropFilter: 'blur(15px)',
+                    offset: 0.7
+                },
+                { 
+                    opacity: 1,
+                    transform: 'translateY(0) scale(1) rotateX(0deg) translateZ(0px)',
+                    filter: 'blur(0px)',
+                    backdropFilter: 'blur(10px)'
                 }
             ], {
-                duration: 500,
-                delay: index * 80, // Stagger Delay
-                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                duration: 600,
+                delay: index * 80, // visionOS Stagger Timing
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
                 fill: 'forwards'
             });
             
             animations.push(animation);
         });
         
-        // Alle Animationen abwarten
         return Promise.all(animations.map(anim => anim.finished));
     }
     
     // 🎬 List Items Stagger Animation
     animateListItems(items) {
-        console.log('🎬 Animating list items');
+        console.log('🍎 visionOS list items animation');
         
         if (!items || items.length === 0) return Promise.resolve();
         
         const animations = [];
         
         items.forEach((item, index) => {
+            // 🍎 visionOS Spatial List Animation
             const animation = item.animate([
                 { 
-                    opacity: 0, 
-                    transform: 'translateX(-30px)',
-                    filter: 'blur(2px)'
+                    opacity: 0,
+                    transform: 'translateX(-40px) scale(0.9) rotateY(-8deg) translateZ(-20px)',
+                    filter: 'blur(4px)',
+                    backdropFilter: 'blur(5px)'
                 },
                 { 
-                    opacity: 1, 
-                    transform: 'translateX(0)',
-                    filter: 'blur(0px)'
+                    opacity: 0.7,
+                    transform: 'translateX(5px) scale(1.01) rotateY(2deg) translateZ(8px)',
+                    filter: 'blur(1px)',
+                    backdropFilter: 'blur(12px)',
+                    offset: 0.5
+                },
+                { 
+                    opacity: 1,
+                    transform: 'translateX(0) scale(1) rotateY(0deg) translateZ(0px)',
+                    filter: 'blur(0px)',
+                    backdropFilter: 'blur(10px)'
                 }
             ], {
-                duration: 400,
-                delay: index * 50,
-                easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                duration: 500,
+                delay: index * 60, // visionOS List Stagger
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
                 fill: 'forwards'
             });
             
@@ -424,6 +473,14 @@ class FastSearchCard extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
 
+                :root {
+                    /* 🍎 visionOS Easing Curves */
+                    --visionos-spring: cubic-bezier(0.16, 1, 0.3, 1);
+                    --visionos-ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    --visionos-ease-in: cubic-bezier(0.42, 0, 1, 1);
+                    --visionos-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                }
+                
                 :host {
                     display: block;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -11044,32 +11101,57 @@ getQuickStats(item) {
     
     // 🎬 Filter-Chip Selection Animation  
     animateFilterChipSelection(chip) {
-        console.log('🎬 Animating filter chip selection');
+        console.log('🍎 visionOS filter chip selection');
         
-        // Bounce-Effekt bei Selection
-        const bounceAnimation = chip.animate([
-            { transform: 'scale(1)' },
-            { transform: 'scale(0.95)' },
-            { transform: 'scale(1.1)' },
-            { transform: 'scale(1)' }
+        // 🍎 visionOS Spatial Selection
+        const selectionAnimation = chip.animate([
+            { 
+                transform: 'scale(1) translateZ(0px)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 0 0 rgba(255, 255, 255, 0)'
+            },
+            { 
+                transform: 'scale(1.05) translateZ(8px)',
+                backdropFilter: 'blur(18px)',
+                boxShadow: '0 8px 25px rgba(255, 255, 255, 0.3)',
+                offset: 0.4
+            },
+            { 
+                transform: 'scale(0.98) translateZ(4px)',
+                backdropFilter: 'blur(15px)',
+                boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)',
+                offset: 0.7
+            },
+            { 
+                transform: 'scale(1) translateZ(6px)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: '0 6px 20px rgba(255, 255, 255, 0.25)'
+            }
         ], {
-            duration: 400,
-            easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+            duration: 500,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
+            fill: 'forwards'
         });
         
-        // Glow-Effekt für aktive Chips
-        if (chip.classList.contains('active')) {
+        // Return to normal after selection
+        setTimeout(() => {
             chip.animate([
-                { boxShadow: '0 0 0 rgba(255, 255, 255, 0)' },
-                { boxShadow: '0 0 20px rgba(255, 255, 255, 0.3)' },
-                { boxShadow: '0 0 8px rgba(255, 255, 255, 0.15)' }
+                { 
+                    transform: 'scale(1) translateZ(6px)',
+                    backdropFilter: 'blur(12px)'
+                },
+                { 
+                    transform: 'scale(1) translateZ(0px)',
+                    backdropFilter: 'blur(10px)'
+                }
             ], {
-                duration: 600,
-                easing: 'ease-out'
+                duration: 300,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                fill: 'forwards'
             });
-        }
+        }, 800);
         
-        return bounceAnimation.finished;
+        return selectionAnimation.finished;
     }
 
 
