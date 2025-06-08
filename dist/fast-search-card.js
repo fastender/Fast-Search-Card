@@ -2242,17 +2242,17 @@ class FastSearchCard extends HTMLElement {
                     backdrop-filter: blur(4px);
                     z-index: 1000;
                     display: none;
-                    opacity: 0;
-                    transition: all 0.3s ease;
+                    opacity: 0; /* 👈 START UNSICHTBAR */
+                    transition: none; /* 👈 KEINE CSS-Transition */
                 }
                 
                 .filter-overlay.active {
                     display: flex;
-                    opacity: 1;
                     align-items: center;
                     justify-content: center;
                     padding: 20px;
                     box-sizing: border-box;
+                    /* opacity: 1; 👈 ENTFERNEN - WAAPI übernimmt das */
                 }
                 
                 .filter-menu {
@@ -2263,12 +2263,16 @@ class FastSearchCard extends HTMLElement {
                     width: 100%;
                     max-height: 80vh;
                     overflow: hidden;
-                    transform: scale(0.9);
-                    transition: all 0.3s ease;
+                    
+                    /* 👈 START-STATE für Animation */
+                    transform: scale(0.9) translateY(20px);
+                    opacity: 0;
+                    transition: none; /* 👈 KEINE CSS-Transition */
                 }
                 
                 .filter-overlay.active .filter-menu {
-                    transform: scale(1);
+                    /* transform: scale(1); 👈 ENTFERNEN - WAAPI übernimmt das */
+                    /* opacity: 1; 👈 ENTFERNEN - WAAPI übernimmt das */
                 }
                 
                 .filter-menu-header {
