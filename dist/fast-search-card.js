@@ -958,6 +958,102 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
+                /* visionOS Loading Animations */
+                @keyframes visionOSShimmer {
+                    0% {
+                        left: -100%;
+                        opacity: 0;
+                    }
+                    50% {
+                        opacity: 1;
+                    }
+                    100% {
+                        left: 100%;
+                        opacity: 0;
+                    }
+                }
+                
+                @keyframes visionOSBreathing {
+                    0%, 100% {
+                        opacity: 0;
+                        transform: scale(1);
+                    }
+                    50% {
+                        opacity: 0.6;
+                        transform: scale(1.02);
+                    }
+                }
+                
+                @keyframes loadingFadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px) scale(0.95);
+                        filter: blur(4px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                        filter: blur(0px);
+                    }
+                }
+                
+                @keyframes visionOSPulse {
+                    0% {
+                        transform: scale(1) translateZ(0px);
+                        backdrop-filter: blur(10px);
+                    }
+                    50% {
+                        transform: scale(1.02) translateZ(4px);
+                        backdrop-filter: blur(15px);
+                    }
+                    100% {
+                        transform: scale(1) translateZ(0px);
+                        backdrop-filter: blur(10px);
+                    }
+                }
+                
+                @keyframes visionOSDepthShift {
+                    0% {
+                        transform: perspective(1000px) rotateX(0deg) translateZ(0px);
+                        filter: blur(0px);
+                    }
+                    25% {
+                        transform: perspective(1000px) rotateX(2deg) translateZ(10px);
+                        filter: blur(1px);
+                    }
+                    50% {
+                        transform: perspective(1000px) rotateX(0deg) translateZ(20px);
+                        filter: blur(0px);
+                    }
+                    75% {
+                        transform: perspective(1000px) rotateX(-2deg) translateZ(10px);
+                        filter: blur(1px);
+                    }
+                    100% {
+                        transform: perspective(1000px) rotateX(0deg) translateZ(0px);
+                        filter: blur(0px);
+                    }
+                }
+                
+                @keyframes progressiveReveal {
+                    0% {
+                        opacity: 0;
+                        transform: translateY(30px) scale(0.8) rotateX(15deg);
+                        filter: blur(8px);
+                    }
+                    60% {
+                        opacity: 0.8;
+                        transform: translateY(-5px) scale(1.02) rotateX(-2deg);
+                        filter: blur(2px);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translateY(0) scale(1) rotateX(0deg);
+                        filter: blur(0px);
+                    }
+                }
+
+
                 /* visionOS Glass Animations */
                 @keyframes visionOSGlassLift {
                     0% {
@@ -1508,6 +1604,111 @@ class FastSearchCard extends HTMLElement {
                     color: #999;
                     font-style: italic;
                 }
+
+
+                /* visionOS Loading States */
+                .visionos-loading {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                    padding: 24px;
+                    opacity: 0;
+                    animation: loadingFadeIn 0.5s ease-out forwards;
+                }
+                
+                .visionos-skeleton {
+                    position: relative;
+                    background: linear-gradient(90deg, 
+                        rgba(255,255,255,0.05) 0%, 
+                        rgba(255,255,255,0.1) 50%, 
+                        rgba(255,255,255,0.05) 100%);
+                    border-radius: 12px;
+                    overflow: hidden;
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border: 0.5px solid rgba(255,255,255,0.1);
+                }
+                
+                .visionos-skeleton::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, 
+                        transparent 0%, 
+                        rgba(255,255,255,0.2) 50%, 
+                        transparent 100%);
+                    animation: visionOSShimmer 2s infinite;
+                }
+                
+                .visionos-skeleton::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: radial-gradient(circle at center, 
+                        rgba(255,255,255,0.1) 0%, 
+                        transparent 70%);
+                    opacity: 0;
+                    animation: visionOSBreathing 3s ease-in-out infinite;
+                }
+                
+                /* Skeleton Varianten */
+                .skeleton-item {
+                    height: 80px;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    padding: 16px;
+                }
+                
+                .skeleton-icon {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 12px;
+                    background: rgba(255,255,255,0.08);
+                    flex-shrink: 0;
+                }
+                
+                .skeleton-content {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                
+                .skeleton-title {
+                    height: 16px;
+                    width: 70%;
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 8px;
+                }
+                
+                .skeleton-subtitle {
+                    height: 12px;
+                    width: 45%;
+                    background: rgba(255,255,255,0.06);
+                    border-radius: 6px;
+                }
+                
+                .skeleton-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                    gap: 16px;
+                    padding: 16px 0;
+                }
+                
+                .skeleton-grid-item {
+                    height: 120px;
+                    border-radius: 12px;
+                    position: relative;
+                }
+                
 
                 /* Loading dots component */
                 .loading-dots {
@@ -9827,12 +10028,141 @@ getQuickStats(item) {
     }
 
     showTypingIndicator() {
-        this.typingIndicator.classList.add('active');
+        // visionOS Loading statt einfacher Indicator
+        this.showVisionOSLoading();
+    }
+    
+    hideTypingIndicator() {
+        this.hideVisionOSLoading();
     }
 
-    hideTypingIndicator() {
-        this.typingIndicator.classList.remove('active');
+
+    // 🍎 visionOS Loading State
+    showVisionOSLoading() {
+        console.log('🍎 Starting visionOS loading state');
+        
+        const resultsContainer = this.resultsContainer;
+        
+        // Loading HTML generieren
+        const loadingHTML = this.generateVisionOSLoadingHTML();
+        
+        // Smooth Transition zu Loading
+        const fadeOut = resultsContainer.animate([
+            { 
+                opacity: 1,
+                transform: 'scale(1) translateZ(0px)',
+                filter: 'blur(0px)'
+            },
+            { 
+                opacity: 0,
+                transform: 'scale(0.95) translateZ(-10px)',
+                filter: 'blur(4px)'
+            }
+        ], {
+            duration: 200,
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        });
+        
+        fadeOut.finished.then(() => {
+            resultsContainer.innerHTML = loadingHTML;
+            
+            // Loading Fade In
+            resultsContainer.animate([
+                { 
+                    opacity: 0,
+                    transform: 'scale(0.95) translateZ(-10px)',
+                    filter: 'blur(4px)'
+                },
+                { 
+                    opacity: 1,
+                    transform: 'scale(1) translateZ(0px)',
+                    filter: 'blur(0px)'
+                }
+            ], {
+                duration: 300,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+            });
+            
+            // Stagger Animation für Skeleton Items
+            this.animateSkeletonItems();
+        });
     }
+    
+    hideVisionOSLoading() {
+        // Wird automatisch durch applyFilters() ersetzt
+    }
+    
+    // 🍎 visionOS Loading HTML Generator
+    generateVisionOSLoadingHTML() {
+        const currentView = this.currentView;
+        
+        if (currentView === 'grid') {
+            return `
+                <div class="visionos-loading">
+                    <div class="skeleton-grid">
+                        ${Array(8).fill().map((_, i) => `
+                            <div class="visionos-skeleton skeleton-grid-item" style="animation-delay: ${i * 0.1}s;">
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="visionos-loading">
+                    ${Array(6).fill().map((_, i) => `
+                        <div class="visionos-skeleton skeleton-item" style="animation-delay: ${i * 0.15}s;">
+                            <div class="skeleton-icon"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-subtitle"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+    }
+    
+    // 🍎 Skeleton Stagger Animation
+    animateSkeletonItems() {
+        console.log('🍎 Animating skeleton items');
+        
+        const skeletonItems = this.shadowRoot.querySelectorAll('.visionos-skeleton');
+        
+        skeletonItems.forEach((item, index) => {
+            // Progressive Reveal Animation
+            item.animate([
+                {
+                    opacity: 0,
+                    transform: 'translateY(30px) scale(0.8) rotateX(15deg)',
+                    filter: 'blur(8px)'
+                },
+                {
+                    opacity: 0.8,
+                    transform: 'translateY(-5px) scale(1.02) rotateX(-2deg)',
+                    filter: 'blur(2px)',
+                    offset: 0.6
+                },
+                {
+                    opacity: 1,
+                    transform: 'translateY(0) scale(1) rotateX(0deg)',
+                    filter: 'blur(0px)'
+                }
+            ], {
+                duration: 600,
+                delay: index * 100, // Stagger delay
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+            
+            // Continuous Breathing Animation
+            setTimeout(() => {
+                item.style.animation = `visionOSPulse 4s ease-in-out infinite`;
+                item.style.animationDelay = `${index * 0.2}s`;
+            }, 600 + (index * 100));
+        });
+    }    
 
     showLoadingDots(text) {
         return `${text}<span class="loading-dots"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span>`;
@@ -10399,14 +10729,22 @@ getQuickStats(item) {
             return;
         }
     
-        // 🎬 IMMER animieren - Filter UND Suche!
+        // 🍎 visionOS Results Transition
         const resultsContainer = this.shadowRoot.querySelector('.results-container');
         const fadeOut = resultsContainer.animate([
-            { opacity: 1 },
-            { opacity: 0 }
+            { 
+                opacity: 1,
+                transform: 'scale(1) translateZ(0px)',
+                filter: 'blur(0px)'
+            },
+            { 
+                opacity: 0,
+                transform: 'scale(0.98) translateZ(-8px)',
+                filter: 'blur(2px)'
+            }
         ], {
-            duration: 150,
-            easing: 'ease-in'
+            duration: 200,
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
         });
     
         fadeOut.finished.then(() => {
@@ -10417,11 +10755,19 @@ getQuickStats(item) {
             }
             
             resultsContainer.animate([
-                { opacity: 0 },
-                { opacity: 1 }
+                { 
+                    opacity: 0,
+                    transform: 'scale(0.98) translateZ(-8px)',
+                    filter: 'blur(2px)'
+                },
+                { 
+                    opacity: 1,
+                    transform: 'scale(1) translateZ(0px)',
+                    filter: 'blur(0px)'
+                }
             ], {
-                duration: 200,
-                easing: 'ease-out'
+                duration: 300,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
             });
         });
     }
