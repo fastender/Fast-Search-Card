@@ -168,29 +168,29 @@ class FastSearchCard extends HTMLElement {
         
         if (!overlay || !menu) return Promise.resolve();
         
-        // Menu Scale Down + Slide Down
+        // Menu Scale Down + Slide Down (schneller)
         const menuAnimation = menu.animate([
             { 
                 transform: 'scale(1) translateY(0)',
                 opacity: 1
             },
             { 
-                transform: 'scale(0.9) translateY(20px)',
+                transform: 'scale(0.85) translateY(30px)', // 👈 Mehr Scale-Down
                 opacity: 0
             }
         ], {
-            duration: 250,
-            easing: 'ease-in'
+            duration: 200, // 👈 Schneller
+            easing: 'cubic-bezier(0.4, 0, 1, 1)' // 👈 Schärferes Easing
         });
         
-        // Overlay Fade Out (später)
+        // Overlay Fade Out (gleichzeitig)
         const overlayAnimation = overlay.animate([
             { opacity: 1 },
             { opacity: 0 }
         ], {
-            duration: 200,
-            delay: 100,
-            easing: 'ease-in'
+            duration: 250,
+            delay: 50, // 👈 Kurzer Delay
+            easing: 'ease-out'
         });
         
         return Promise.all([menuAnimation.finished, overlayAnimation.finished]);
@@ -8859,6 +8859,7 @@ getQuickStats(item) {
     
     closeFilterMenu() {
         const overlay = this.shadowRoot.getElementById('filterOverlay');
+        const menu = overlay.querySelector('.filter-menu');
         const button = this.shadowRoot.getElementById('filterButton');
         
         button.classList.remove('active');
@@ -8867,6 +8868,11 @@ getQuickStats(item) {
         this.animateFilterMenuClose().then(() => {
             // NACH der Animation: CSS-Klasse entfernen
             overlay.classList.remove('active');
+            
+            // 🔧 WICHTIG: Start-States für nächste Animation zurücksetzen
+            overlay.style.opacity = '0';
+            menu.style.transform = 'scale(0.9) translateY(20px)';
+            menu.style.opacity = '0';
         });
         
         // ESC Key Listener entfernen
