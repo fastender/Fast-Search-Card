@@ -180,6 +180,33 @@ class FastSearchCard extends HTMLElement {
         document.body.appendChild(fullscreenOverlay);
         
         const menu = fullscreenOverlay.querySelector('.fullscreen-filter-menu');
+
+        
+        // ✅ EVENT LISTENERS HINZUFÜGEN
+        
+        // Close-Button Click
+        const closeBtn = fullscreenOverlay.querySelector('#fullscreen-close-btn');
+        closeBtn.addEventListener('click', () => {
+            this.closeFilterMenu();
+        });
+        
+        // Außerhalb klicken (auf Overlay)
+        fullscreenOverlay.addEventListener('click', (e) => {
+            if (e.target === fullscreenOverlay) {
+                this.closeFilterMenu();
+            }
+        });
+        
+        // ESC-Taste
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeFilterMenu();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+
+
         
         return new Promise(resolve => {
             requestAnimationFrame(() => {
@@ -220,9 +247,13 @@ class FastSearchCard extends HTMLElement {
     getFilterMenuHTML() {
         return `
             <div class="filter-menu-header" style="padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center;">
-                <button class="close-button" onclick="document.querySelector('fast-search-card').closeFilterMenu()" style="background: rgba(0,0,0,0.15); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.8); margin-right: 16px;">
+
+
+                // In der getFilterMenuHTML() Methode, ÄNDERE den Close-Button:
+                <button class="close-button" id="fullscreen-close-btn" style="background: rgba(0,0,0,0.15); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.8); margin-right: 16px;">
                     ←
                 </button>
+                
                 <h3 style="font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.9); margin: 0; flex: 1; text-align: center;">Filter & Suche</h3>
             </div>
             
@@ -315,47 +346,6 @@ class FastSearchCard extends HTMLElement {
     }
     
     
-    // 🎬 Filter Menu Close Animation (VERBESSERT)
-    animateFilterMenuClose() {
-        console.log('🎬 Animating filter menu close - improved');
-        
-        const overlay = this.shadowRoot.getElementById('filterOverlay');
-        const menu = overlay.querySelector('.filter-menu');
-        
-        if (!overlay || !menu) return Promise.resolve();
-        
-        // Menu Pop Out
-        const menuAnim = menu.animate([
-            { 
-                transform: 'scale(1) translateY(0)',
-                opacity: 1
-            },
-            { 
-                transform: 'scale(0.8) translateY(40px)',
-                opacity: 0
-            }
-        ], {
-            duration: 200,
-            easing: 'cubic-bezier(0.4, 0, 1, 1)',
-            fill: 'forwards'
-        });
-        
-        // Overlay Fade Out
-        const overlayAnim = overlay.animate([
-            { opacity: 1 },
-            { opacity: 0 }
-        ], {
-            duration: 150,
-            delay: 50,
-            easing: 'ease-in',
-            fill: 'forwards'
-        });
-        
-        return overlayAnim.finished.then(() => {
-            // Komplett verstecken
-            overlay.style.display = 'none';
-        });
-    }
   
     
     setConfig(config) {
@@ -9081,20 +9071,39 @@ getQuickStats(item) {
         };
         document.addEventListener('keydown', this.escKeyListener);
     }
+
     
     closeFilterMenu() {
         const button = this.shadowRoot.getElementById('filterButton');
-        button.classList.remove('active');
+        button?.classList.remove('active');
         
-        // 🎬 Nur Animation - kein CSS
-        this.animateFilterMenuClose();
+        // ✅ Fullscreen Overlay finden und schließen
+        const fullscreenOverlay = document.getElementById('fullscreen-filter-overlay');
+        if (fullscreenOverlay) {
+            const menu = fullscreenOverlay.querySelector('.fullscreen-filter-menu');
+            
+            // Animation
+            const menuAnim = menu.animate([
+                { transform: 'scale(1) translateY(0)', opacity: 1 },
+                { transform: 'scale(0.8) translateY(40px)', opacity: 0 }
+            ], { duration: 200, easing: 'ease-in', fill: 'forwards' });
+            
+            const overlayAnim = fullscreenOverlay.animate([
+                { opacity: 1 },
+                { opacity: 0 }
+            ], { duration: 150, delay: 50, easing: 'ease-in', fill: 'forwards' });
+            
+            overlayAnim.finished.then(() => {
+                fullscreenOverlay.remove(); // ✅ Komplett entfernen
+            });
+        }
         
         // ESC Key Listener entfernen
         if (this.escKeyListener) {
             document.removeEventListener('keydown', this.escKeyListener);
             this.escKeyListener = null;
         }
-    }
+    }    
 
     
     updateFilterMenuContent() {
