@@ -8837,7 +8837,12 @@ getQuickStats(item) {
     openFilterMenu() {
         this.updateFilterMenuContent();
         const overlay = this.shadowRoot.getElementById('filterOverlay');
+        
+        // CSS-Klasse setzen (für Display)
         overlay.classList.add('active');
+        
+        // 🎬 WAAPI Animation starten
+        this.animateFilterMenuOpen();
         
         // ESC Key Listener hinzufügen
         this.escKeyListener = (e) => {
@@ -8852,8 +8857,13 @@ getQuickStats(item) {
         const overlay = this.shadowRoot.getElementById('filterOverlay');
         const button = this.shadowRoot.getElementById('filterButton');
         
-        overlay.classList.remove('active');
         button.classList.remove('active');
+        
+        // 🎬 WAAPI Animation starten
+        this.animateFilterMenuClose().then(() => {
+            // NACH der Animation: CSS-Klasse entfernen
+            overlay.classList.remove('active');
+        });
         
         // ESC Key Listener entfernen
         if (this.escKeyListener) {
