@@ -526,19 +526,56 @@ class FastSearchCard extends HTMLElement {
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    transition: all 0.2s;
+                    transition: none; /* WAAPI übernimmt */
                     color: rgba(255, 255, 255, 0.8);
+                    position: relative;
+                    overflow: hidden;
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border: 0.5px solid rgba(255, 255, 255, 0.1);
+                    transform-style: preserve-3d;
+                    will-change: transform, filter, backdrop-filter;
                 }
                 
-                .view-toggle-btn:hover:not(.active) {
-                    background: rgba(0, 0, 0, 0.25);
-                    transform: scale(1.05);
+                .view-toggle-btn::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(135deg, 
+                        rgba(255,255,255,0.15) 0%, 
+                        rgba(255,255,255,0.05) 100%);
+                    border-radius: inherit;
+                    opacity: 0;
+                    transform: scale(0.8) translateZ(-2px);
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    pointer-events: none;
+                }
+                
+                .view-toggle-btn:hover:not(.active)::before {
+                    opacity: 1;
+                    transform: scale(1) translateZ(0px);
                 }
                 
                 .view-toggle-btn.active {
                     background: rgba(255, 255, 255, 0.15);
                     color: white;
+                    transform: translateZ(4px);
+                    backdrop-filter: blur(15px);
+                    -webkit-backdrop-filter: blur(15px);
+                    box-shadow: 
+                        0 4px 15px rgba(255,255,255,0.2),
+                        inset 0 1px 0 rgba(255,255,255,0.3);
                 }
+                
+                .view-toggle-btn.active::before {
+                    opacity: 1;
+                    transform: scale(1.1) translateZ(2px);
+                }
+
+                
 
                 .search-input-container {
                     flex: 1;
@@ -957,6 +994,108 @@ class FastSearchCard extends HTMLElement {
                     margin-top: 0px;
                 }
 
+
+                /* visionOS View Transition Animations */
+                @keyframes visionOSViewMorphOut {
+                    0% {
+                        opacity: 1;
+                        transform: scale(1) rotateX(0deg) translateZ(0px);
+                        filter: blur(0px);
+                    }
+                    50% {
+                        opacity: 0.5;
+                        transform: scale(0.95) rotateX(5deg) translateZ(-20px);
+                        filter: blur(4px);
+                    }
+                    100% {
+                        opacity: 0;
+                        transform: scale(0.9) rotateX(10deg) translateZ(-40px);
+                        filter: blur(8px);
+                    }
+                }
+                
+                @keyframes visionOSViewMorphIn {
+                    0% {
+                        opacity: 0;
+                        transform: scale(0.9) rotateX(-10deg) translateZ(40px);
+                        filter: blur(8px);
+                    }
+                    50% {
+                        opacity: 0.5;
+                        transform: scale(0.95) rotateX(-5deg) translateZ(20px);
+                        filter: blur(4px);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: scale(1) rotateX(0deg) translateZ(0px);
+                        filter: blur(0px);
+                    }
+                }
+                
+                @keyframes visionOSItemSelection {
+                    0% {
+                        transform: scale(1) translateZ(0px);
+                        background: rgba(0, 0, 0, 0.15);
+                        backdrop-filter: blur(10px);
+                        box-shadow: 0 0 0 rgba(255,255,255,0);
+                    }
+                    30% {
+                        transform: scale(1.02) translateZ(8px);
+                        background: rgba(255, 255, 255, 0.1);
+                        backdrop-filter: blur(15px);
+                        box-shadow: 0 8px 25px rgba(255,255,255,0.3);
+                    }
+                    60% {
+                        transform: scale(0.98) translateZ(4px);
+                        background: rgba(255, 255, 255, 0.15);
+                        backdrop-filter: blur(18px);
+                        box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+                    }
+                    100% {
+                        transform: scale(1) translateZ(6px);
+                        background: rgba(255, 255, 255, 0.12);
+                        backdrop-filter: blur(12px);
+                        box-shadow: 0 6px 20px rgba(255,255,255,0.25);
+                    }
+                }
+                
+                @keyframes visionOSSpatialStagger {
+                    0% {
+                        opacity: 0;
+                        transform: translateY(40px) scale(0.8) rotateX(20deg) translateZ(-30px);
+                        filter: blur(6px);
+                    }
+                    40% {
+                        opacity: 0.6;
+                        transform: translateY(-5px) scale(1.02) rotateX(-3deg) translateZ(10px);
+                        filter: blur(2px);
+                    }
+                    70% {
+                        opacity: 0.9;
+                        transform: translateY(2px) scale(0.99) rotateX(1deg) translateZ(5px);
+                        filter: blur(1px);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translateY(0) scale(1) rotateX(0deg) translateZ(0px);
+                        filter: blur(0px);
+                    }
+                }
+                
+                @keyframes visionOSGlassGlow {
+                    0% {
+                        box-shadow: 0 0 0 rgba(255,255,255,0);
+                        backdrop-filter: blur(10px);
+                    }
+                    50% {
+                        box-shadow: 0 8px 30px rgba(255,255,255,0.4);
+                        backdrop-filter: blur(20px);
+                    }
+                    100% {
+                        box-shadow: 0 4px 20px rgba(255,255,255,0.2);
+                        backdrop-filter: blur(15px);
+                    }
+                }
 
                 /* visionOS Loading Animations */
                 @keyframes visionOSShimmer {
@@ -10014,18 +10153,248 @@ getQuickStats(item) {
     
 
     setView(viewType) {
+        console.log('🍎 visionOS view transition:', viewType);
+        
         this.currentView = viewType;
         
-        // Toggle button states
+        // Toggle button states mit visionOS Animation
         const listBtn = this.shadowRoot.getElementById('listViewBtn');
         const gridBtn = this.shadowRoot.getElementById('gridViewBtn');
         
+        // 🍎 Button Transition Animation
+        this.animateViewToggleButtons(listBtn, gridBtn, viewType);
+        
+        // 🍎 Content Morphing Transition
+        this.animateViewContentMorph(viewType);
+    }
+
+
+    // 🍎 visionOS View Toggle Button Animation
+    animateViewToggleButtons(listBtn, gridBtn, viewType) {
+        const activeBtn = viewType === 'list' ? listBtn : gridBtn;
+        const inactiveBtn = viewType === 'list' ? gridBtn : listBtn;
+        
+        // Inactive Button Animation
+        inactiveBtn.animate([
+            {
+                transform: 'translateZ(4px) scale(1)',
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(15px)'
+            },
+            {
+                transform: 'translateZ(0px) scale(0.95)',
+                background: 'rgba(0, 0, 0, 0.15)',
+                backdropFilter: 'blur(10px)'
+            }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            fill: 'forwards'
+        });
+        
+        // Active Button Animation
+        activeBtn.animate([
+            {
+                transform: 'translateZ(0px) scale(0.95)',
+                background: 'rgba(0, 0, 0, 0.15)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 0 0 rgba(255,255,255,0)'
+            },
+            {
+                transform: 'translateZ(6px) scale(1.02)',
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(18px)',
+                boxShadow: '0 8px 25px rgba(255,255,255,0.3)',
+                offset: 0.6
+            },
+            {
+                transform: 'translateZ(4px) scale(1)',
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(15px)',
+                boxShadow: '0 4px 15px rgba(255,255,255,0.2)'
+            }
+        ], {
+            duration: 400,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+        
+        // Update CSS classes
         listBtn.classList.toggle('active', viewType === 'list');
         gridBtn.classList.toggle('active', viewType === 'grid');
-        
-        // Re-apply filters to refresh display
-        this.applyFilters();
     }
+    
+    // 🍎 visionOS Content Morphing Animation
+    animateViewContentMorph(viewType) {
+        const resultsContainer = this.resultsContainer;
+        
+        // Phase 1: Morph Out (aktueller Content)
+        const morphOut = resultsContainer.animate([
+            {
+                opacity: 1,
+                transform: 'scale(1) rotateX(0deg) translateZ(0px)',
+                filter: 'blur(0px)'
+            },
+            {
+                opacity: 0.5,
+                transform: 'scale(0.95) rotateX(5deg) translateZ(-20px)',
+                filter: 'blur(4px)',
+                offset: 0.5
+            },
+            {
+                opacity: 0,
+                transform: 'scale(0.9) rotateX(10deg) translateZ(-40px)',
+                filter: 'blur(8px)'
+            }
+        ], {
+            duration: 350,
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            fill: 'forwards'
+        });
+        
+        // Phase 2: Apply new view + Morph In
+        morphOut.finished.then(() => {
+            // Apply filters mit neuem View
+            this.applyFilters();
+            
+            // Morph In Animation
+            setTimeout(() => {
+                const morphIn = resultsContainer.animate([
+                    {
+                        opacity: 0,
+                        transform: 'scale(0.9) rotateX(-10deg) translateZ(40px)',
+                        filter: 'blur(8px)'
+                    },
+                    {
+                        opacity: 0.5,
+                        transform: 'scale(0.95) rotateX(-5deg) translateZ(20px)',
+                        filter: 'blur(4px)',
+                        offset: 0.5
+                    },
+                    {
+                        opacity: 1,
+                        transform: 'scale(1) rotateX(0deg) translateZ(0px)',
+                        filter: 'blur(0px)'
+                    }
+                ], {
+                    duration: 400,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    fill: 'forwards'
+                });
+                
+                // Enhanced Stagger für neue Items
+                setTimeout(() => {
+                    this.animateVisionOSStagger();
+                }, 100);
+                
+            }, 50);
+        });
+    }
+    
+    // 🍎 Enhanced visionOS Stagger Animation
+    animateVisionOSStagger() {
+        console.log('🍎 visionOS spatial stagger animation');
+        
+        const items = this.shadowRoot.querySelectorAll('.item, .grid-item');
+        
+        items.forEach((item, index) => {
+            // Spatial Stagger mit 3D Depth
+            item.animate([
+                {
+                    opacity: 0,
+                    transform: 'translateY(40px) scale(0.8) rotateX(20deg) translateZ(-30px)',
+                    filter: 'blur(6px)',
+                    backdropFilter: 'blur(5px)'
+                },
+                {
+                    opacity: 0.6,
+                    transform: 'translateY(-5px) scale(1.02) rotateX(-3deg) translateZ(10px)',
+                    filter: 'blur(2px)',
+                    backdropFilter: 'blur(12px)',
+                    offset: 0.4
+                },
+                {
+                    opacity: 0.9,
+                    transform: 'translateY(2px) scale(0.99) rotateX(1deg) translateZ(5px)',
+                    filter: 'blur(1px)',
+                    backdropFilter: 'blur(15px)',
+                    offset: 0.7
+                },
+                {
+                    opacity: 1,
+                    transform: 'translateY(0) scale(1) rotateX(0deg) translateZ(0px)',
+                    filter: 'blur(0px)',
+                    backdropFilter: 'blur(10px)'
+                }
+            ], {
+                duration: 600,
+                delay: index * 80, // Stagger delay
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+        });
+    }
+
+
+    // 🍎 visionOS Item Selection Animation
+    animateVisionOSSelection(element) {
+        console.log('🍎 visionOS item selection');
+        
+        // Selection Glow Effect
+        const selectionAnimation = element.animate([
+            {
+                transform: 'scale(1) translateZ(0px)',
+                background: 'rgba(0, 0, 0, 0.15)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 0 0 rgba(255,255,255,0)'
+            },
+            {
+                transform: 'scale(1.02) translateZ(8px)',
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(15px)',
+                boxShadow: '0 8px 25px rgba(255,255,255,0.3)',
+                offset: 0.3
+            },
+            {
+                transform: 'scale(0.98) translateZ(4px)',
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(18px)',
+                boxShadow: '0 4px 15px rgba(255,255,255,0.2)',
+                offset: 0.6
+            },
+            {
+                transform: 'scale(1) translateZ(6px)',
+                background: 'rgba(255, 255, 255, 0.12)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: '0 6px 20px rgba(255,255,255,0.25)'
+            }
+        ], {
+            duration: 400,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+        
+        // Return to normal after delay
+        setTimeout(() => {
+            element.animate([
+                {
+                    transform: 'scale(1) translateZ(6px)',
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    backdropFilter: 'blur(12px)'
+                },
+                {
+                    transform: 'scale(1) translateZ(0px)',
+                    background: '',
+                    backdropFilter: 'blur(10px)'
+                }
+            ], {
+                duration: 200,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                fill: 'forwards'
+            });
+        }, 1000);
+    }
+    
 
     handleSearchInput() {
         // Typing indicator anzeigen
@@ -11084,6 +11453,9 @@ getQuickStats(item) {
 
     handleItemClick(item, event) {
         event.stopPropagation();
+
+        // 🍎 visionOS Selection Animation
+        this.animateVisionOSSelection(event.currentTarget);        
         
         if (event.target.classList.contains('action-button') || event.target.classList.contains('grid-action-button')) {
             const action = event.target.getAttribute('data-action');
