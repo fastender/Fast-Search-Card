@@ -9670,14 +9670,30 @@ getQuickStats(item) {
             return;
         }
     
-        // 🎬 WAAPI TRANSITION statt CSS-Klassen
-        this.animateSearchTransition().then(() => {
-            // Nach der Transition: Neue Ergebnisse anzeigen
+        // 🎬 IMMER animieren - Filter UND Suche!
+        const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        const fadeOut = resultsContainer.animate([
+            { opacity: 1 },
+            { opacity: 0 }
+        ], {
+            duration: 150,
+            easing: 'ease-in'
+        });
+    
+        fadeOut.finished.then(() => {
             if (this.currentView === 'grid') {
                 this.displayItemsGrid(filteredItems);
             } else {
                 this.displayItemsList(filteredItems);
             }
+            
+            resultsContainer.animate([
+                { opacity: 0 },
+                { opacity: 1 }
+            ], {
+                duration: 200,
+                easing: 'ease-out'
+            });
         });
     }
 
