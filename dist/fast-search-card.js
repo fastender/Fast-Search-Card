@@ -372,6 +372,11 @@ class FastSearchCard extends HTMLElement {
                     /* Card fade-in beim Laden */
                     opacity: 0;
                     transform: translateY(40px);
+
+                    /* visionOS 3D Container */
+                    transform-style: preserve-3d;
+                    perspective: 1200px;
+                    perspective-origin: center center;                    
                     
                     /* Glassmorphism Container - Neuer Hintergrund */
                     border-radius: 24px;
@@ -427,6 +432,11 @@ class FastSearchCard extends HTMLElement {
                     border-radius: 0;
                     box-shadow: none;
                     overflow: hidden;
+
+                    transform-style: preserve-3d;
+                    perspective: 1000px;
+                    will-change: transform, filter, opacity;
+                    backface-visibility: hidden;                    
                 }                
 
                 .search-section {
@@ -830,6 +840,55 @@ class FastSearchCard extends HTMLElement {
                     font-size: 12px;
                     opacity: 0.8;
                     margin-top: 0px;
+                }
+
+
+                /* visionOS Spatial Room Transition */
+                @keyframes visionOSSlideOut {
+                    0% {
+                        transform: translateZ(0px) rotateY(0deg) scale(1);
+                        filter: blur(0px);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: translateZ(-200px) rotateY(-15deg) scale(0.95);
+                        filter: blur(8px);
+                        opacity: 0.3;
+                    }
+                }
+                
+                @keyframes visionOSSlideIn {
+                    0% {
+                        transform: translateZ(200px) rotateY(15deg) scale(1.05);
+                        filter: blur(8px);
+                        opacity: 0;
+                    }
+                    60% {
+                        transform: translateZ(50px) rotateY(5deg) scale(1.02);
+                        filter: blur(3px);
+                        opacity: 0.7;
+                    }
+                    100% {
+                        transform: translateZ(0px) rotateY(0deg) scale(1);
+                        filter: blur(0px);
+                        opacity: 1;
+                    }
+                }
+                
+                /* visionOS Spatial Background */
+                @keyframes spatialBackground {
+                    0% {
+                        transform: translateZ(-100px) scale(1.1);
+                        filter: blur(2px);
+                    }
+                    50% {
+                        transform: translateZ(-150px) scale(1.15);
+                        filter: blur(4px);
+                    }
+                    100% {
+                        transform: translateZ(-100px) scale(1.1);
+                        filter: blur(2px);
+                    }
                 }
 
                 /* Eingangs-Animationen */
@@ -1686,6 +1745,14 @@ class FastSearchCard extends HTMLElement {
                     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
                     overflow: hidden;
                     position: relative;
+
+                    transform-style: preserve-3d;
+                    perspective: 1000px;
+                    will-change: transform, filter, opacity;
+                    backface-visibility: hidden;
+                    transform: translateZ(200px) rotateY(15deg);
+                    filter: blur(8px);
+                    opacity: 0;                    
                 }
 
                 .more-info-replace.active {
@@ -4639,91 +4706,202 @@ class FastSearchCard extends HTMLElement {
 
 
 
-    
-    
     switchToReplaceMode(item) {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
         
-        // Replace-Content generieren ABER versteckt halten
+        console.log('🍎 Starting visionOS Spatial Room Transition');
+        
+        // Replace-Content generieren
         replaceContainer.innerHTML = this.getReplaceContentHTML(item);
         replaceContainer.classList.add('active');
         
-        // Replace initial komplett verstecken
-        replaceContainer.style.position = 'absolute';
-        replaceContainer.style.top = '0';
-        replaceContainer.style.left = '100%'; // Außerhalb rechts
-        replaceContainer.style.width = '100%';
-        replaceContainer.style.opacity = '0';
+        // 🎬 visionOS Spatial Animation mit WAAPI
+        this.animateVisionOSTransition(searchContainer, replaceContainer, item);
+    }        
+
+
+    // 🍎 visionOS Spatial Room Transition Animation
+    animateVisionOSTransition(searchContainer, replaceContainer, item) {
+        console.log('🍎 Executing visionOS spatial transition');
         
-        // Suche nach links rausschieben + fade-out
-        searchContainer.style.transition = 'transform 0.35s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.35s ease';
-        searchContainer.style.transform = 'translateX(-100%)';
-        searchContainer.style.opacity = '0';
+        // Phase 1: Current View Spatial Exit (300ms)
+        const searchExitAnimation = searchContainer.animate([
+            {
+                transform: 'translateZ(0px) rotateY(0deg) scale(1)',
+                filter: 'blur(0px)',
+                opacity: 1
+            },
+            {
+                transform: 'translateZ(-200px) rotateY(-15deg) scale(0.95)',
+                filter: 'blur(8px)',
+                opacity: 0.3
+            }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)', // Apple's easing
+            fill: 'forwards'
+        });
         
-        // Replace nach 250ms von rechts reinschieben + fade-in (GLEICHZEITIG)
+        // Phase 2: Spatial Camera Movement (100ms delay)
         setTimeout(() => {
-            replaceContainer.style.transition = 'left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.3s ease';
-            replaceContainer.style.left = '0%';
-            replaceContainer.style.opacity = '1';
+            // Spatial depth effect for the whole container
+            const hostElement = this;
+            const spatialAnimation = hostElement.animate([
+                {
+                    filter: 'contrast(1) brightness(1)',
+                    transform: 'perspective(1200px)'
+                },
+                {
+                    filter: 'contrast(1.1) brightness(1.05)',
+                    transform: 'perspective(800px)'
+                },
+                {
+                    filter: 'contrast(1) brightness(1)',
+                    transform: 'perspective(1200px)'
+                }
+            ], {
+                duration: 400,
+                easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)',
+                fill: 'forwards'
+            });
+        }, 200);
+        
+        // Phase 3: New View Spatial Entrance (250ms delay)
+        setTimeout(() => {
+            // Replace View Entrance
+            const replaceEntranceAnimation = replaceContainer.animate([
+                {
+                    transform: 'translateZ(200px) rotateY(15deg) scale(1.05)',
+                    filter: 'blur(8px)',
+                    opacity: 0
+                },
+                {
+                    transform: 'translateZ(50px) rotateY(5deg) scale(1.02)',
+                    filter: 'blur(3px)',
+                    opacity: 0.7,
+                    offset: 0.6
+                },
+                {
+                    transform: 'translateZ(0px) rotateY(0deg) scale(1)',
+                    filter: 'blur(0px)',
+                    opacity: 1
+                }
+            ], {
+                duration: 350,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple spring
+                fill: 'forwards'
+            });
+            
+            // Hide search after animation starts
+            setTimeout(() => {
+                searchContainer.style.display = 'none';
+            }, 100);
+            
         }, 250);
         
-        // Cleanup nach kompletter Animation
+        // Phase 4: Content Setup (600ms total)
         setTimeout(() => {
-            searchContainer.style.display = 'none';
+            // Cleanup and setup
             searchContainer.style.transform = '';
+            searchContainer.style.filter = '';
             searchContainer.style.opacity = '';
-            searchContainer.style.transition = '';
-            replaceContainer.style.position = '';
-            replaceContainer.style.transition = '';
+            
+            replaceContainer.style.transform = '';
+            replaceContainer.style.filter = '';
+            replaceContainer.style.opacity = '';
+            
+            // Setup event listeners for replace mode
+            this.setupReplaceEventListeners(item);
+            
+            console.log('🍎 visionOS transition completed');
         }, 600);
-        
-        // Event Listeners für Replace-Mode
-        this.setupReplaceEventListeners(item);
     }
 
+
+    // 🍎 visionOS Spatial Return Animation  
+    animateVisionOSReturn(searchContainer, replaceContainer) {
+        console.log('🍎 visionOS spatial return');
+        
+        // Phase 1: Replace View Exit
+        const replaceExitAnimation = replaceContainer.animate([
+            {
+                transform: 'translateZ(0px) rotateY(0deg) scale(1)',
+                filter: 'blur(0px)',
+                opacity: 1
+            },
+            {
+                transform: 'translateZ(200px) rotateY(15deg) scale(1.05)',
+                filter: 'blur(8px)',
+                opacity: 0
+            }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+            fill: 'forwards'
+        });
+        
+        // Phase 2: Search View Return
+        setTimeout(() => {
+            searchContainer.style.display = 'block';
+            
+            const searchReturnAnimation = searchContainer.animate([
+                {
+                    transform: 'translateZ(-200px) rotateY(-15deg) scale(0.95)',
+                    filter: 'blur(8px)',
+                    opacity: 0.3
+                },
+                {
+                    transform: 'translateZ(-50px) rotateY(-5deg) scale(0.98)',
+                    filter: 'blur(3px)',
+                    opacity: 0.7,
+                    offset: 0.6
+                },
+                {
+                    transform: 'translateZ(0px) rotateY(0deg) scale(1)',
+                    filter: 'blur(0px)',
+                    opacity: 1
+                }
+            ], {
+                duration: 350,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+            
+        }, 200);
+        
+        // Phase 3: Cleanup
+        setTimeout(() => {
+            replaceContainer.classList.remove('active');
+            replaceContainer.innerHTML = '';
+            
+            // Reset all transforms
+            searchContainer.style.transform = '';
+            searchContainer.style.filter = '';
+            searchContainer.style.opacity = '';
+            replaceContainer.style.transform = '';
+            replaceContainer.style.filter = '';
+            replaceContainer.style.opacity = '';
+            
+            console.log('🍎 visionOS return completed');
+        }, 550);
+    }    
+    
     switchBackToSearch() {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-
+    
+        console.log('🍎 visionOS spatial return transition');
+        
         // Cleanup: Album Art Update Timer stoppen
         const intervalId = replaceContainer.getAttribute('data-interval-id');
         if (intervalId) {
             clearInterval(parseInt(intervalId));
-        }        
+        }
         
-        // Replace nach rechts rausschieben + fade-out
-        replaceContainer.style.transition = 'left 0.3s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.3s ease';
-        replaceContainer.style.left = '100%';
-        replaceContainer.style.opacity = '0';
-        
-        // Suche nach 200ms von links reinschieben + fade-in
-        setTimeout(() => {
-            searchContainer.style.display = 'block';
-            searchContainer.style.transform = 'translateX(-100%)';
-            searchContainer.style.opacity = '0';
-            searchContainer.style.transition = 'transform 0.3s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.3s ease';
-            
-            // Animation starten
-            requestAnimationFrame(() => {
-                searchContainer.style.transform = 'translateX(0)';
-                searchContainer.style.opacity = '1';
-            });
-        }, 200);
-        
-        // Cleanup
-        setTimeout(() => {
-            replaceContainer.classList.remove('active');
-            replaceContainer.innerHTML = '';
-            replaceContainer.style.left = '';
-            replaceContainer.style.opacity = '';
-            replaceContainer.style.position = '';
-            replaceContainer.style.transition = '';
-            searchContainer.style.transform = '';
-            searchContainer.style.opacity = '';
-            searchContainer.style.transition = '';
-        }, 500);
-    }        
+        // 🍎 visionOS Return Animation
+        this.animateVisionOSReturn(searchContainer, replaceContainer);
+    }
 
     getReplaceContentHTML(item) {
         const breadcrumb = this.getBreadcrumbHTML(item);
