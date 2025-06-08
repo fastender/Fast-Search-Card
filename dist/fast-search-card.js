@@ -561,11 +561,13 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
+         
+
                 .search-header {
                     display: flex;
-                    gap: 16px;
+                    gap: 0; /* Von 16px auf 0 */
                     align-items: center;
-                    justify-content: space-between;
+                    justify-content: center; /* Von space-between auf center */
                 }                
 
                 .view-toggle {
@@ -577,8 +579,8 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
                     border-radius: 60px;
-                    width: 48px;
-                    height: 48px;
+                    width: 36px;
+                    height: 36px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -631,16 +633,27 @@ class FastSearchCard extends HTMLElement {
                     transform: scale(1) translateZ(0px); /* Kein Z-Transform */
                 }
 
-                
+                .search-controls {
+                    position: absolute;
+                    bottom: 8px;
+                    left: 20px;
+                    right: 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    z-index: 2;
+                }                
 
                 .search-input-container {
                     flex: 1;
                     position: relative;
+                    width: 100%; /* Neue Zeile */
                 }
                 
                 .search-input {
                     width: 100%;
-                    padding: 14px 20px;
+                    padding: 14px 20px 50px 20px;
+                    height: 80px;
                     border: none;
                     background: rgba(0, 0, 0, 0.15);
                     border-radius: 16px;
@@ -718,8 +731,8 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
                     border-radius: 60px;
-                    width: 48px;
-                    height: 48px;
+                    width: 36px;
+                    height: 36px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -5128,14 +5141,6 @@ class FastSearchCard extends HTMLElement {
          
                 <div class="search-section">
                     <div class="search-header">
-
-                        <button class="filter-button" id="filterButton">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
-                            </svg>
-                            <span class="filter-badge" id="filterBadge">0</span>
-                        </button>                        
-                        
                         <div class="search-input-container">
                             <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
                             <div class="typing-indicator" id="typingIndicator">
@@ -5143,19 +5148,27 @@ class FastSearchCard extends HTMLElement {
                                 <div class="typing-dot"></div>
                                 <div class="typing-dot"></div>
                             </div>
-                        </div>
-                        
-                        <div class="view-toggle">
-                            <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-                                </svg>
-                            </button>
-                            <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
-                                </svg>
-                            </button>
+                            <div class="search-controls">
+                                <button class="filter-button" id="filterButton">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                                    </svg>
+                                    <span class="filter-badge" id="filterBadge">0</span>
+                                </button>
+                                
+                                <div class="view-toggle">
+                                    <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
