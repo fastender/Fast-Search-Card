@@ -21,16 +21,6 @@ class FastSearchCard extends HTMLElement {
         return animation.finished;
     }
 
-    // Animation starten nach dem Rendering
-    setTimeout(() => {
-        this.animateCardEntrance();
-        
-        // Filter-Chip Animationen setup
-        setTimeout(() => {
-            this.setupFilterChipAnimations();
-        }, 800); // Nach Card-Animation
-    }, 100);    
-
 
     // 🎬 Filter-Chip Hover Animation
     setupFilterChipAnimations() {
