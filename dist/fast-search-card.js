@@ -4930,20 +4930,7 @@ class FastSearchCard extends HTMLElement {
             </style>
             
             <div class="search-container">
-
-                <!-- 🍎 visionOS Loading Demo -->
-                <div style="padding: 10px 24px;">
-                    <button id="visionOSLoadingDemo" style="
-                        background: rgba(0,122,255,0.8);
-                        color: white;
-                        border: none;
-                        border-radius: 8px;
-                        padding: 8px 16px;
-                        font-size: 12px;
-                        cursor: pointer;
-                        backdrop-filter: blur(10px);
-                    ">🍎 visionOS Loading Demo</button>
-                </div>            
+         
                 <div class="search-section">
                     <div class="search-header">
 
@@ -9553,21 +9540,7 @@ getQuickStats(item) {
         this.selectedType = '';
         this.isInitialized = false; // Flag für Initialisierung
         this.currentView = 'list'; // Neue Property für View-Mode
-
-
-        // 🍎 visionOS Loading Demo Button
-        const demoButton = this.shadowRoot.getElementById('visionOSLoadingDemo');
-        if (demoButton) {
-            demoButton.addEventListener('click', () => {
-                console.log('🍎 Starting visionOS loading demo');
-                this.showVisionOSLoading();
-                
-                // Nach 4 Sekunden wieder normale Ansicht
-                setTimeout(() => {
-                    this.applyFilters();
-                }, 4000);
-            });
-        }        
+  
         
         // Definitionen für verschiedene Suchtypen
         this.searchTypeConfigs = {
@@ -10063,7 +10036,7 @@ getQuickStats(item) {
         this.searchTimeout = setTimeout(() => {
             this.applyFilters();
             this.hideTypingIndicator();
-        }, 1500); // 🍎 Länger für visionOS Demo
+        }, 1000); // 🍎 Länger für visionOS Demo
     }
 
     showTypingIndicator() {
