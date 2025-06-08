@@ -52,6 +52,74 @@ class FastSearchCard extends HTMLElement {
         });
     }    
 
+    // 🎬 Grid Items Stagger Animation
+    animateGridItems(items) {
+        console.log('🎬 Animating grid items with stagger');
+        
+        if (!items || items.length === 0) return Promise.resolve();
+        
+        const animations = [];
+        
+        items.forEach((item, index) => {
+            // Jedes Item individuell animieren
+            const animation = item.animate([
+                { 
+                    opacity: 0, 
+                    transform: 'scale(0.8) translateY(30px)',
+                    filter: 'blur(4px)'
+                },
+                { 
+                    opacity: 1, 
+                    transform: 'scale(1) translateY(0)',
+                    filter: 'blur(0px)'
+                }
+            ], {
+                duration: 500,
+                delay: index * 80, // Stagger Delay
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                fill: 'forwards'
+            });
+            
+            animations.push(animation);
+        });
+        
+        // Alle Animationen abwarten
+        return Promise.all(animations.map(anim => anim.finished));
+    }
+    
+    // 🎬 List Items Stagger Animation
+    animateListItems(items) {
+        console.log('🎬 Animating list items');
+        
+        if (!items || items.length === 0) return Promise.resolve();
+        
+        const animations = [];
+        
+        items.forEach((item, index) => {
+            const animation = item.animate([
+                { 
+                    opacity: 0, 
+                    transform: 'translateX(-30px)',
+                    filter: 'blur(2px)'
+                },
+                { 
+                    opacity: 1, 
+                    transform: 'translateX(0)',
+                    filter: 'blur(0px)'
+                }
+            ], {
+                duration: 400,
+                delay: index * 50,
+                easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                fill: 'forwards'
+            });
+            
+            animations.push(animation);
+        });
+        
+        return Promise.all(animations.map(anim => anim.finished));
+    }
+    
     setConfig(config) {
         this.config = config;
         
@@ -9643,6 +9711,9 @@ getQuickStats(item) {
             itemsByRoom[item.room].push(item);
         });
         
+        // 🎬 Array für alle List Items sammeln
+        const allListItems = [];
+        
         Object.keys(itemsByRoom).forEach(room => {
             const roomGroup = document.createElement('div');
             roomGroup.className = 'room-group';
@@ -9653,12 +9724,26 @@ getQuickStats(item) {
             roomGroup.appendChild(roomHeader);
             
             itemsByRoom[room].forEach(item => {
-                const itemElement = this.createListItemElement(item, true); // true = animate
+                const itemElement = this.createListItemElement(item, true);
+                
+                // 🎬 START UNSICHTBAR für Animation
+                itemElement.style.opacity = '0';
+                itemElement.style.transform = 'translateX(-30px)';
+                itemElement.style.filter = 'blur(2px)';
+                
+                // 🎬 Zu Animation-Array hinzufügen
+                allListItems.push(itemElement);
+                
                 roomGroup.appendChild(itemElement);
             });
             
             this.resultsContainer.appendChild(roomGroup);
         });
+        
+        // 🎬 WAAPI Animation für ALLE List Items
+        setTimeout(() => {
+            this.animateListItems(allListItems);
+        }, 100);
     }
 
     displayItemsGrid(itemList) {
@@ -9682,6 +9767,9 @@ getQuickStats(item) {
         const gridContainer = document.createElement('div');
         gridContainer.className = 'grid-container';
         
+        // 🎬 Array für alle Grid Items sammeln
+        const allGridItems = [];
+        
         Object.keys(itemsByRoom).forEach(room => {
             const roomGroup = document.createElement('div');
             roomGroup.className = 'grid-room-group';
@@ -9695,7 +9783,16 @@ getQuickStats(item) {
             gridScroll.className = 'grid-scroll';
             
             itemsByRoom[room].forEach(item => {
-                const itemElement = this.createGridItemElement(item, true); // true = animate
+                const itemElement = this.createGridItemElement(item, true);
+                
+                // 🎬 START UNSICHTBAR für Animation
+                itemElement.style.opacity = '0';
+                itemElement.style.transform = 'scale(0.8) translateY(30px)';
+                itemElement.style.filter = 'blur(4px)';
+                
+                // 🎬 Zu Animation-Array hinzufügen
+                allGridItems.push(itemElement);
+                
                 gridScroll.appendChild(itemElement);
             });
             
@@ -9704,8 +9801,13 @@ getQuickStats(item) {
         });
         
         this.resultsContainer.appendChild(gridContainer);
+        
+        // 🎬 WAAPI Animation für ALLE Grid Items
+        setTimeout(() => {
+            this.animateGridItems(allGridItems);
+        }, 100);
     }
-
+    
     createListItemElement(item, animate = false) {
         const element = document.createElement('div');
         element.className = animate ? 'item fade-in' : 'item';
