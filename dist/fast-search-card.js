@@ -2262,14 +2262,16 @@ class FastSearchCard extends HTMLElement {
                     transition: none; /* 👈 KEINE CSS-Transition */
                 }
                 
+
+
                 .filter-overlay.active {
                     display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    align-items: center; /* ✅ Vertikal zentriert */
+                    justify-content: center; /* ✅ Horizontal zentriert */
                     padding: 20px;
                     box-sizing: border-box;
-                    /* opacity: 1; 👈 ENTFERNEN - WAAPI übernimmt das */
                 }
+                
                 
                 .filter-menu {
                     /* GLEICH WIE HAUPTKARTE - Apple Spatial Design */
@@ -2306,6 +2308,10 @@ class FastSearchCard extends HTMLElement {
                     /* Start-State für Animation */
                     transform: scale(0.8) translateY(40px);
                     opacity: 0;
+                
+                /* ✅ Flexbox für Layout */
+                    display: flex;
+                    flex-direction: column;                    
                 }
                 
                 .filter-overlay.active .filter-menu {
@@ -2359,12 +2365,31 @@ class FastSearchCard extends HTMLElement {
                 }                   
 
 
-                
+
+
                 .filter-menu-content {
                     padding: 24px;
-                    max-height: calc(80vh - 160px);
+                    max-height: calc(70vh - 160px); /* ✅ Platz für Header + Actions */
                     overflow-y: auto;
+                    flex: 1; /* ✅ Nimmt verfügbaren Platz */
+                    
+                    /* Scrollbar stylen */
+                    scrollbar-width: thin;
+                    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
                 }
+                
+                .filter-menu-content::-webkit-scrollbar {
+                    width: 6px;
+                }
+                
+                .filter-menu-content::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                
+                .filter-menu-content::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 3px;
+                }                
                 
                 .filter-section-menu {
                     margin-bottom: 32px;
@@ -2440,10 +2465,12 @@ class FastSearchCard extends HTMLElement {
                 
                 .filter-actions {
                     padding: 16px 24px;
-                    border-top: 1px solid #f1f3f4;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
                     display: flex;
                     gap: 12px;
                     justify-content: flex-end;
+                    flex-shrink: 0; /* ✅ Immer sichtbar */
+                    background: transparent;
                 }
                 
                 .filter-action-button {
