@@ -122,24 +122,69 @@ class FastSearchCard extends HTMLElement {
 
     // 🎬 Filter Menu Open Animation (VERBESSERT)
     animateFilterMenuOpen() {
-        console.log('🎬 Animating filter menu open - improved');
+        console.log('🎬 Animating filter menu open - fullscreen overlay');
         
-        const overlay = this.shadowRoot.getElementById('filterOverlay');
-        const menu = overlay.querySelector('.filter-menu');
+        // ✅ Overlay AUSSERHALB der Card erstellen
+        const fullscreenOverlay = document.createElement('div');
+        fullscreenOverlay.id = 'fullscreen-filter-overlay';
+        fullscreenOverlay.innerHTML = `
+            <style>
+                #fullscreen-filter-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.6);
+                    backdrop-filter: blur(8px);
+                    z-index: 9999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                    box-sizing: border-box;
+                    opacity: 0;
+                }
+                
+                .fullscreen-filter-menu {
+                    background: 
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.25) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        rgba(58, 58, 60, 0.9);
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                    border: 0.33px solid rgba(255, 255, 255, 0.35);
+                    border-radius: 20px;
+                    box-shadow: 
+                        0 2px 8px rgba(0, 0, 0, 0.05),
+                        0 12px 40px rgba(0, 0, 0, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                    max-width: 500px;
+                    width: 90%;
+                    max-height: 70vh;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    transform: scale(0.8) translateY(40px);
+                    opacity: 0;
+                    color: white;
+                }
+            </style>
+            
+            <div class="fullscreen-filter-menu">
+                ${this.getFilterMenuHTML()}
+            </div>
+        `;
         
-        if (!overlay || !menu) return Promise.resolve();
+        // Zum Body hinzufügen
+        document.body.appendChild(fullscreenOverlay);
         
-        // Sofort sichtbar machen aber unsichtbar
-        overlay.style.display = 'flex';
-        overlay.style.opacity = '0';
-        menu.style.transform = 'scale(0.8) translateY(40px)';
-        menu.style.opacity = '0';
+        const menu = fullscreenOverlay.querySelector('.fullscreen-filter-menu');
         
-        // Kleine Pause für Rendering
         return new Promise(resolve => {
             requestAnimationFrame(() => {
                 // Overlay Fade In
-                const overlayAnim = overlay.animate([
+                const overlayAnim = fullscreenOverlay.animate([
                     { opacity: 0 },
                     { opacity: 1 }
                 ], {
@@ -169,6 +214,34 @@ class FastSearchCard extends HTMLElement {
             });
         });
     }
+
+
+    
+    // ✅ NEUE METHODE HIER HINZUFÜGEN
+    getFilterMenuHTML() {
+        return `
+            <div class="filter-menu-header">
+                <button class="close-button" onclick="this.closest('fast-search-card').closeFilterMenu()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+                <h3 class="filter-menu-title">Filter & Suche</h3>
+            </div>
+            
+            <div class="filter-menu-content">
+                <p style="color: rgba(255,255,255,0.8); text-align: center; padding: 40px;">
+                    Filter Menu Content hier...
+                </p>
+            </div>
+            
+            <div class="filter-actions">
+                <button class="filter-action-button">Zurücksetzen</button>
+                <button class="filter-action-button primary">Anwenden</button>
+            </div>
+        `;
+    }
+    
     
     // 🎬 Filter Menu Close Animation (VERBESSERT)
     animateFilterMenuClose() {
@@ -2257,19 +2330,24 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(0, 0, 0, 0.4);
                     backdrop-filter: blur(4px);
                     z-index: 1000;
-                    display: none;
-                    opacity: 0; /* 👈 START UNSICHTBAR */
-                    transition: none; /* 👈 KEINE CSS-Transition */
-                }
-                
-
-
-                .filter-overlay.active {
-                    display: flex;
-                    align-items: center; /* ✅ Vertikal zentriert */
-                    justify-content: center; /* ✅ Horizontal zentriert */
+                    
+                    /* ✅ IMMER MITTIG - FESTE ZENTRIERUNG */
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
                     padding: 20px;
                     box-sizing: border-box;
+                    
+                    /* Start unsichtbar für Animation */
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: none;
+                }
+                
+                .filter-overlay.active {
+                    /* Nur Sichtbarkeit ändern */
+                    visibility: visible;
+                    /* Opacity wird von WAAPI gesteuert */
                 }
                 
                 
