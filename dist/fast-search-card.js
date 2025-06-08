@@ -9664,25 +9664,21 @@ getQuickStats(item) {
             
             return matchesSearch && matchesRoom && matchesType;
         });
-
+    
         if (filteredItems.length === 0) {
             this.showNoResults('Keine Ergebnisse gefunden');
             return;
         }
-
-        // Animation für Container beim Wechsel
-        this.resultsContainer.classList.add('loading');
-        
-        // Animation-Klasse nach kurzer Zeit entfernen
-        setTimeout(() => {
-            this.resultsContainer.classList.remove('loading');
-        }, 400);
-
-        if (this.currentView === 'grid') {
-            this.displayItemsGrid(filteredItems);
-        } else {
-            this.displayItemsList(filteredItems);
-        }
+    
+        // 🎬 WAAPI TRANSITION statt CSS-Klassen
+        this.animateSearchTransition().then(() => {
+            // Nach der Transition: Neue Ergebnisse anzeigen
+            if (this.currentView === 'grid') {
+                this.displayItemsGrid(filteredItems);
+            } else {
+                this.displayItemsList(filteredItems);
+            }
+        });
     }
 
     showNoResults(message) {
@@ -9746,6 +9742,41 @@ getQuickStats(item) {
         }, 100);
     }
 
+
+    // 🎬 Search Results Transition Animation
+    animateSearchTransition() {
+        console.log('🎬 Animating search transition');
+        
+        const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        if (!resultsContainer) return Promise.resolve();
+        
+        // Fade Out → Fade In Transition
+        const fadeOut = resultsContainer.animate([
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-10px)' }
+        ], {
+            duration: 200,
+            easing: 'ease-in'
+        });
+        
+        return fadeOut.finished.then(() => {
+            // Nach Fade Out: Content wird ersetzt (passiert in display methods)
+            
+            // Dann Fade In
+            const fadeIn = resultsContainer.animate([
+                { opacity: 0, transform: 'translateY(10px)' },
+                { opacity: 1, transform: 'translateY(0)' }
+            ], {
+                duration: 300,
+                easing: 'ease-out'
+            });
+            
+            return fadeIn.finished;
+        });
+    }
+
+
+    
     displayItemsGrid(itemList) {
         this.resultsContainer.innerHTML = '';
         
