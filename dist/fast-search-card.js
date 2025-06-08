@@ -186,9 +186,11 @@ class FastSearchCard extends HTMLElement {
         
         // Close-Button Click
         const closeBtn = fullscreenOverlay.querySelector('#fullscreen-close-btn');
-        closeBtn.addEventListener('click', () => {
-            this.closeFilterMenu();
-        });
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.closeFilterMenu();
+            });
+        }
         
         // Außerhalb klicken (auf Overlay)
         fullscreenOverlay.addEventListener('click', (e) => {
@@ -206,7 +208,8 @@ class FastSearchCard extends HTMLElement {
         };
         document.addEventListener('keydown', escHandler);
 
-
+        // ✅ FILTER OPTION EVENT LISTENERS SETUP
+        this.setupFullscreenFilterOptionListeners(fullscreenOverlay);
         
         return new Promise(resolve => {
             requestAnimationFrame(() => {
@@ -241,7 +244,6 @@ class FastSearchCard extends HTMLElement {
             });
         });
     }
-
 
 
     getFilterMenuHTML() {
