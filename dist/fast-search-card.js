@@ -7293,7 +7293,7 @@ class FastSearchCard extends HTMLElement {
                         
                         const language = ttsLanguage ? ttsLanguage.value : 'de';
                         const isSpeaking = ttsSpeakButton.classList.contains('speaking');
-                        
+
                         if (isSpeaking) {
                             // Stoppen
                             await this.stopTTS(item.id);
@@ -7303,22 +7303,10 @@ class FastSearchCard extends HTMLElement {
                             const success = await this.speakTTS(item.id, text, language, ttsSpeakButton);
                             if (success) {
                                 this.updateTTSButton(ttsSpeakButton, true);
-                                
-                                // Geschätzte Spieldauer (ca. 150 Wörter pro Minute)
-                                const wordCount = text.split(' ').length;
-                                const estimatedDuration = Math.max(3000, (wordCount / 150) * 60 * 1000);
-                                
-                                // Button nach geschätzter Zeit zurücksetzen
-                                setTimeout(() => {
-                                    this.updateTTSButton(ttsSpeakButton, false);
-                                }, estimatedDuration);
                             }
                         }
                     });
-                }
-
-
-
+                } // <-- Diese schließende Klammer fehlt!
                 
 
         
