@@ -21,7 +21,127 @@ class FastSearchCard extends HTMLElement {
         return animation.finished;
     }
 
-
+    // 🎬 Search Input Focus Animation mit Web Animation API
+    setupSearchInputAnimations() {
+        console.log('🎬 Setting up search input animations');
+        
+        const searchInput = this.searchInput;
+        let focusAnimation = null;
+        let typingAnimation = null;
+        
+        // Focus Event - Elastischer Eingang
+        searchInput.addEventListener('focus', () => {
+            console.log('🎬 Search input focused');
+            
+            // Vorherige Animation stoppen
+            if (focusAnimation) focusAnimation.cancel();
+            
+            // Elastic Focus Animation
+            focusAnimation = searchInput.animate([
+                { 
+                    transform: 'scale(1)',
+                    filter: 'brightness(1)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.1), 0 0 0 0px rgba(255, 255, 255, 0)'
+                },
+                { 
+                    transform: 'scale(1.04)',
+                    filter: 'brightness(1.1)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 6px rgba(255, 255, 255, 0.4), 0 8px 30px rgba(255, 255, 255, 0.2)'
+                },
+                { 
+                    transform: 'scale(1.01)',
+                    filter: 'brightness(1.05)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 3px rgba(255, 255, 255, 0.25)'
+                },
+                { 
+                    transform: 'scale(1.02)',
+                    filter: 'brightness(1.02)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 2px rgba(255, 255, 255, 0.2), 0 4px 20px rgba(255, 255, 255, 0.1)'
+                }
+            ], {
+                duration: 800,
+                easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+                fill: 'forwards'
+            });
+        });
+        
+        // Blur Event - Sanfter Ausgang
+        searchInput.addEventListener('blur', () => {
+            console.log('🎬 Search input blurred');
+            
+            if (focusAnimation) focusAnimation.cancel();
+            if (typingAnimation) typingAnimation.cancel();
+            
+            // Smooth Blur Animation
+            focusAnimation = searchInput.animate([
+                { 
+                    transform: 'scale(1.02)',
+                    filter: 'brightness(1.02)'
+                },
+                { 
+                    transform: 'scale(1)',
+                    filter: 'brightness(1)'
+                }
+            ], {
+                duration: 400,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                fill: 'forwards'
+            });
+        });
+        
+        // Typing Animation - Subtile Pulsierung
+        searchInput.addEventListener('input', () => {
+            if (typingAnimation) typingAnimation.cancel();
+            
+            // Typing Pulse Effect
+            typingAnimation = searchInput.animate([
+                { 
+                    transform: 'scale(1.02)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 2px rgba(255, 255, 255, 0.2), 0 4px 20px rgba(255, 255, 255, 0.1)'
+                },
+                { 
+                    transform: 'scale(1.025)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 3px rgba(255, 255, 255, 0.3), 0 6px 25px rgba(255, 255, 255, 0.15)'
+                },
+                { 
+                    transform: 'scale(1.02)',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 2px rgba(255, 255, 255, 0.2), 0 4px 20px rgba(255, 255, 255, 0.1)'
+                }
+            ], {
+                duration: 300,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+        });
+        
+        // Hover Animation (nur wenn nicht fokussiert)
+        searchInput.addEventListener('mouseenter', () => {
+            if (document.activeElement !== searchInput) {
+                searchInput.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.01)' }
+                ], {
+                    duration: 200,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+            }
+        });
+        
+        searchInput.addEventListener('mouseleave', () => {
+            if (document.activeElement !== searchInput) {
+                searchInput.animate([
+                    { transform: 'scale(1.01)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 200,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+            }
+        });
+    }
+    
     // 🎬 Filter-Chip Hover Animation
     setupFilterChipAnimations() {
         console.log('🎬 Setting up filter chip animations');
@@ -365,17 +485,27 @@ class FastSearchCard extends HTMLElement {
                     font-size: 16px;
                     outline: none;
                     box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
-                    transition: all 0.2s;
+                    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
                     box-sizing: border-box;
                     color: white;
+                    transform: scale(1);
+                    will-change: transform, box-shadow, background;                    
                 }                
                 
                 .search-input:focus {
                     background: rgba(0, 0, 0, 0.25);
                     box-shadow: 
                         inset 0 2px 8px rgba(0,0,0,0.15),
-                        0 0 0 2px rgba(255, 255, 255, 0.2);
+                        0 0 0 2px rgba(255, 255, 255, 0.2),
+                        0 4px 20px rgba(255, 255, 255, 0.1);
+                    transform: scale(1.02);
+                    animation: elasticFocusGlow 0.6s ease-out;                        
                 }
+
+                .search-input:hover:not(:focus) {
+                    background: rgba(0, 0, 0, 0.2);
+                    transform: scale(1.01);
+                }                
                 
                 .search-input::placeholder {
                     color: rgba(255, 255, 255, 0.6);
@@ -787,19 +917,36 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
-                /* Elastic focus */
-                @keyframes elasticFocus {
+                /* Enhanced Elastic Focus with Glow */
+                @keyframes elasticFocusGlow {
                     0% {
                         transform: scale(1);
+                        box-shadow: 
+                            inset 0 2px 8px rgba(0,0,0,0.1),
+                            0 0 0 0px rgba(255, 255, 255, 0);
+                    }
+                    25% {
+                        transform: scale(1.03);
+                        box-shadow: 
+                            inset 0 2px 8px rgba(0,0,0,0.15),
+                            0 0 0 4px rgba(255, 255, 255, 0.3),
+                            0 8px 25px rgba(255, 255, 255, 0.2);
                     }
                     50% {
-                        transform: scale(1.02);
+                        transform: scale(1.01);
+                        box-shadow: 
+                            inset 0 2px 8px rgba(0,0,0,0.15),
+                            0 0 0 3px rgba(255, 255, 255, 0.25),
+                            0 6px 20px rgba(255, 255, 255, 0.15);
                     }
                     100% {
-                        transform: scale(1);
+                        transform: scale(1.02);
+                        box-shadow: 
+                            inset 0 2px 8px rgba(0,0,0,0.15),
+                            0 0 0 2px rgba(255, 255, 255, 0.2),
+                            0 4px 20px rgba(255, 255, 255, 0.1);
                     }
                 }
-
                 /* Hover glow */
                 @keyframes hoverGlow {
                     0% {
@@ -8859,6 +9006,9 @@ getQuickStats(item) {
         this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
 
         this.searchInput.addEventListener('input', () => this.handleSearchInput());
+
+        // 🎬 Search Input Focus Animations mit WAAPI
+        this.setupSearchInputAnimations();        
 
         // Filter Button Event Listener
         this.shadowRoot.getElementById('filterButton').addEventListener('click', () => this.toggleFilterMenu());
