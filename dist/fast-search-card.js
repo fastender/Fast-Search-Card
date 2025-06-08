@@ -622,9 +622,7 @@ class FastSearchCard extends HTMLElement {
                     transform: translateZ(4px);
                     backdrop-filter: blur(15px);
                     -webkit-backdrop-filter: blur(15px);
-                    box-shadow: 
-                        0 4px 15px rgba(255,255,255,0.2),
-                        inset 0 1px 0 rgba(255,255,255,0.3);
+                    /* Entferne: box-shadow */
                 }
                 
                 .view-toggle-btn.active::before {
@@ -10249,6 +10247,13 @@ getQuickStats(item) {
             fill: 'forwards'
         });
         
+        // Anti-Glow: Reset nach Animation
+        setTimeout(() => {
+            activeBtn.style.boxShadow = '';
+            activeBtn.style.transform = '';
+            activeBtn.style.backdropFilter = '';
+        }, 500);        
+        
         // Active Button Animation
         activeBtn.animate([
             {
@@ -10284,6 +10289,13 @@ getQuickStats(item) {
     // 🍎 visionOS Content Morphing Animation
     animateViewContentMorph(viewType) {
         const resultsContainer = this.resultsContainer;
+
+        // 🔒 Verhindere mehrfache gleichzeitige Animationen
+        if (resultsContainer.dataset.animating === 'true') {
+            console.log('🍎 Animation bereits aktiv, überspringe');
+            return;
+        }
+        resultsContainer.dataset.animating = 'true';        
         
         // Phase 1: Morph Out (aktueller Content)
         const morphOut = resultsContainer.animate([
@@ -10342,9 +10354,10 @@ getQuickStats(item) {
                 // Enhanced Stagger für neue Items
                 setTimeout(() => {
                     this.animateVisionOSStagger();
+                    
+                    // 🔒 Animation beendet
+                    resultsContainer.dataset.animating = 'false';
                 }, 100);
-                
-            }, 50);
         });
     }
     
@@ -10353,6 +10366,13 @@ getQuickStats(item) {
         console.log('🍎 visionOS spatial stagger animation');
         
         const items = this.shadowRoot.querySelectorAll('.item, .grid-item');
+        
+        // 🔒 Reset: Entferne vorherige Animationen
+        items.forEach(item => {
+            if (item.getAnimations) {
+                item.getAnimations().forEach(anim => anim.cancel());
+            }
+        });
         
         items.forEach((item, index) => {
             // Spatial Stagger mit 3D Depth
@@ -10437,19 +10457,21 @@ getQuickStats(item) {
                 {
                     transform: 'scale(1) translateZ(6px)',
                     background: 'rgba(255, 255, 255, 0.12)',
-                    backdropFilter: 'blur(12px)'
+                    backdropFilter: 'blur(12px)',
+                    boxShadow: '0 6px 20px rgba(255, 255, 255, 0.25)'
                 },
                 {
                     transform: 'scale(1) translateZ(0px)',
                     background: '',
-                    backdropFilter: 'blur(10px)'
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 0 0 rgba(255, 255, 255, 0)' // ← Glow komplett entfernen
                 }
             ], {
                 duration: 200,
                 easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                 fill: 'forwards'
             });
-        }, 1000);
+        }, 600); // ← Kürzer: 600ms statt 1000ms
     }
     
 
@@ -11138,18 +11160,20 @@ getQuickStats(item) {
             chip.animate([
                 { 
                     transform: 'scale(1) translateZ(6px)',
-                    backdropFilter: 'blur(12px)'
+                    backdropFilter: 'blur(12px)',
+                    boxShadow: '0 6px 20px rgba(255, 255, 255, 0.25)'
                 },
                 { 
                     transform: 'scale(1) translateZ(0px)',
-                    backdropFilter: 'blur(10px)'
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 0 0 rgba(255, 255, 255, 0)' // ← Glow komplett entfernen
                 }
             ], {
                 duration: 300,
                 easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                 fill: 'forwards'
             });
-        }, 800);
+        }, 400); // ← Kürzer: 400ms statt 800ms
         
         return selectionAnimation.finished;
     }
