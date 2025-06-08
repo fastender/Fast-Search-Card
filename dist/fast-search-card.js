@@ -9624,8 +9624,7 @@ getQuickStats(item) {
                 { boxShadow: '0 0 8px rgba(255, 255, 255, 0.15)' }
             ], {
                 duration: 600,
-                easing: 'ease-out',
-                fill: 'forwards'
+                easing: 'ease-out'
             });
         }
         
