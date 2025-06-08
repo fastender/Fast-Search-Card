@@ -6002,6 +6002,10 @@ class FastSearchCard extends HTMLElement {
         getLogStateClass(item) {
             return item.state === 'on' || item.state === 'playing' ? 'on' : 'off';
         }
+
+
+
+    
     
         createMockLogEntry(item, time, index) {
             const isOn = index % 2 === 0; // Alternierend
@@ -8331,9 +8335,9 @@ getQuickStats(item) {
         return ttsServices.length > 0;
     }
     
-    /**
-     * Ermittelt den besten verfügbaren TTS Service - NUR POLLY
-     */
+
+
+    // Vollständiger Code für getBestTTSService()
     getBestTTSService() {
         if (!this._hass || !this._hass.services) return null;
         
@@ -8344,29 +8348,30 @@ getQuickStats(item) {
             const ttsMethods = Object.keys(this._hass.services.tts);
             console.log('🔍 Verfügbare TTS Methoden:', ttsMethods);
             
-            // Amazon Polly bevorzugen
-            if (this._hass.services.tts.amazon_polly_say) {
-                console.log('✅ Amazon Polly gefunden: tts.amazon_polly_say');
-                return { domain: 'tts', service: 'amazon_polly_say' };
+            // Priorität: Amazon Polly
+            if (ttsMethods.includes('amazon_polly_say')) {
+                console.log('✅ Amazon Polly Service ausgewählt');
+                return {
+                    domain: 'tts',
+                    service: 'amazon_polly_say',
+                    name: 'Amazon Polly'
+                };
             }
             
-            // Fallback: Cloud TTS
-            if (this._hass.services.tts.cloud_say) {
-                console.log('✅ Cloud TTS gefunden: tts.cloud_say');
-                return { domain: 'tts', service: 'cloud_say' };
-            }
-            
-            // Fallback: Erster TTS Service
+            // Fallback auf ersten verfügbaren TTS Service
             if (ttsMethods.length > 0) {
-                const firstMethod = ttsMethods[0];
-                console.log(`✅ Fallback TTS: tts.${firstMethod}`);
-                return { domain: 'tts', service: firstMethod };
+                console.log(`⚠️ Polly nicht verfügbar, verwende: ${ttsMethods[0]}`);
+                return {
+                    domain: 'tts',
+                    service: ttsMethods[0],
+                    name: ttsMethods[0]
+                };
             }
         }
         
-        console.log('❌ Kein TTS Service gefunden');
+        console.log('❌ Keine TTS Services verfügbar');
         return null;
-    }
+    }        
     
     
     
