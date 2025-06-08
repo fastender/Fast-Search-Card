@@ -616,18 +616,19 @@ class FastSearchCard extends HTMLElement {
                     transform: scale(1) translateZ(0px);
                 }
                 
+
                 .view-toggle-btn.active {
                     background: rgba(255, 255, 255, 0.15);
                     color: white;
-                    transform: translateZ(4px);
+                    transform: none; /* Entferne translateZ */
                     backdrop-filter: blur(15px);
                     -webkit-backdrop-filter: blur(15px);
-                    /* Entferne: box-shadow */
+                    /* KEIN box-shadow */
                 }
                 
                 .view-toggle-btn.active::before {
                     opacity: 1;
-                    transform: scale(1.1) translateZ(2px);
+                    transform: scale(1) translateZ(0px); /* Kein Z-Transform */
                 }
 
                 
@@ -10207,20 +10208,30 @@ getQuickStats(item) {
 
     
 
+
     setView(viewType) {
         console.log('🍎 visionOS view transition:', viewType);
         
+        // Verhindere mehrfache Aufrufe
+        if (this.isViewChanging) return;
+        this.isViewChanging = true;
+        
         this.currentView = viewType;
         
-        // Toggle button states mit visionOS Animation
+        // Toggle button states OHNE Animation
         const listBtn = this.shadowRoot.getElementById('listViewBtn');
         const gridBtn = this.shadowRoot.getElementById('gridViewBtn');
         
-        // 🍎 Button Transition Animation
-        this.animateViewToggleButtons(listBtn, gridBtn, viewType);
+        listBtn.classList.toggle('active', viewType === 'list');
+        gridBtn.classList.toggle('active', viewType === 'grid');
         
-        // 🍎 Content Morphing Transition
-        this.animateViewContentMorph(viewType);
+        // Nur applyFilters aufrufen
+        this.applyFilters();
+        
+        // Reset Flag nach kurzer Zeit
+        setTimeout(() => {
+            this.isViewChanging = false;
+        }, 500);
     }
 
 
@@ -11127,7 +11138,7 @@ getQuickStats(item) {
     animateFilterChipSelection(chip) {
         console.log('🍎 visionOS filter chip selection');
         
-        // 🍎 visionOS Spatial Selection
+        // 🍎 visionOS Spatial Selection (ohne persistenten Glow)
         const selectionAnimation = chip.animate([
             { 
                 transform: 'scale(1) translateZ(0px)',
@@ -11141,21 +11152,18 @@ getQuickStats(item) {
                 offset: 0.4
             },
             { 
-                transform: 'scale(0.98) translateZ(4px)',
-                backdropFilter: 'blur(15px)',
-                boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)',
-                offset: 0.7
-            },
-            { 
-                transform: 'scale(1) translateZ(6px)',
-                backdropFilter: 'blur(12px)',
-                boxShadow: '0 6px 20px rgba(255, 255, 255, 0.25)'
+                transform: 'scale(1) translateZ(0px)', // Direkt zurück
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 0 0 rgba(255, 255, 255, 0)' // Glow sofort weg
             }
         ], {
-            duration: 500,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
+            duration: 300, // Kürzer
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
             fill: 'forwards'
         });
+        
+        return selectionAnimation.finished;
+    }
         
         // Return to normal after selection
         setTimeout(() => {
