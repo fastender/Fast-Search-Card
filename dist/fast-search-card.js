@@ -553,7 +553,96 @@ class FastSearchCard extends HTMLElement {
                     perspective: 1000px;
                     will-change: transform, filter, opacity;
                     backface-visibility: hidden;                    
-                }                
+                }     
+
+
+
+                .search-container {
+                    background: transparent;
+                    border-radius: 0;
+                    box-shadow: none;
+                    overflow: hidden;
+                    transform-style: preserve-3d;
+                    perspective: 1000px;
+                    will-change: transform, filter, opacity;
+                    backface-visibility: hidden;                    
+                }    
+                
+                /* 👈 HIER die neuen Styles einfügen! */
+                /* ===== NEUE FENSTER STYLES ===== */
+                
+                /* Erstes Fenster: Nur Suche */
+                .search-window {
+                    background: rgba(255, 255, 255, 0.95);
+                    backdrop-filter: blur(20px);
+                    border-radius: 20px;
+                    padding: 20px;
+                    margin-bottom: 20px;
+                    box-shadow: 
+                        0 8px 32px rgba(0, 0, 0, 0.1),
+                        0 2px 8px rgba(0, 0, 0, 0.05),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    transition: all 0.3s ease;
+                }
+                
+                .search-window:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 
+                        0 12px 40px rgba(0, 0, 0, 0.15),
+                        0 4px 12px rgba(0, 0, 0, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                }
+                
+                /* Zweites Fenster: Filter + Ergebnisse */
+                .filter-results-window {
+                    background: rgba(255, 255, 255, 0.95);
+                    backdrop-filter: blur(20px);
+                    border-radius: 20px;
+                    padding: 20px;
+                    box-shadow: 
+                        0 8px 32px rgba(0, 0, 0, 0.1),
+                        0 2px 8px rgba(0, 0, 0, 0.05),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    min-height: 400px;
+                    transition: all 0.3s ease;
+                }
+                
+                .filter-results-window:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 
+                        0 12px 40px rgba(0, 0, 0, 0.15),
+                        0 4px 12px rgba(0, 0, 0, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                }
+                
+                /* Mobile Anpassungen für beide Fenster */
+                @media (max-width: 768px) {
+                    .search-window,
+                    .filter-results-window {
+                        margin-bottom: 16px;
+                        padding: 16px;
+                        border-radius: 16px;
+                    }
+                    
+                    .filter-results-window {
+                        min-height: 300px;
+                    }
+                    
+                    .search-window:hover,
+                    .filter-results-window:hover {
+                        transform: none;
+                    }
+                }
+                
+                /* Alte search-container deaktivieren */
+                .search-container {
+                    display: none !important;
+                }
+
+
+                
 
                 .search-section {
                     background: transparent;
@@ -5124,17 +5213,17 @@ class FastSearchCard extends HTMLElement {
                 
             </style>
             
-            <div class="search-container">
-         
+
+            <!-- ERSTES FENSTER: Nur die Suche -->
+            <div class="search-window">
                 <div class="search-section">
                     <div class="search-header">
-
                         <button class="filter-button" id="filterButton">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
                             </svg>
                             <span class="filter-badge" id="filterBadge">0</span>
-                        </button>                        
+                        </button>
                         
                         <div class="search-input-container">
                             <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
@@ -5159,14 +5248,17 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     </div>
                 </div>
-
+            </div>
+            
+            <!-- ZWEITES FENSTER: Filter + Ergebnisse -->
+            <div class="filter-results-window">
                 <!-- Aktive Filter Tags -->
                 <div class="active-filters" id="activeFilters" style="display: none;">
                     <div class="active-filters-container">
                         <!-- Tags werden dynamisch eingefügt -->
                     </div>
-                </div>                
-            
+                </div>
+                
                 <div class="filter-section">
                     <div class="filter-row" id="typeFilterChips">
                         <div class="filter-chip all active" data-value="">
