@@ -9551,13 +9551,16 @@ getQuickStats(item) {
     }
 
     handleCategoryChipClick(chip) {
+        // 🎬 ANIMATION HINZUFÜGEN
+        this.animateFilterChipSelection(chip);
+        
         const chips = this.shadowRoot.querySelectorAll('#typeFilterChips .filter-chip');
         chips.forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
         
         this.selectedType = chip.getAttribute('data-value');
         this.applyFilters();
-
+    
         // Badge und Tags aktualisieren
         this.updateFilterBadge();
         this.updateActiveFilterTags();        
