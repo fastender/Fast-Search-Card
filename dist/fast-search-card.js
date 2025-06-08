@@ -482,7 +482,58 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 :host {
-                    background: transparent !important;
+                    display: block;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    
+                    /* Card fade-in beim Laden */
+                    opacity: 0;
+                    transform: translateY(40px);
+
+                    /* visionOS 3D Container */
+                    transform-style: preserve-3d;
+                    perspective: 1200px;
+                    perspective-origin: center center;                    
+                    
+                    /* Glassmorphism Container - Neuer Hintergrund */
+                    border-radius: 24px;
+                    padding: 0;
+                    overflow: hidden;
+
+                    background: 
+                        /* Oberflächenreflektionen */
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                        /* Basis Material */
+                        rgba(28, 28, 30, 0.9);
+
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
+                    
+                    /* Apple Design System Borders */
+                    border: 0.33px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 20px;
+                    
+                    /* Spatial Depth Shadows */
+                    box-shadow: 
+                        /* Ambient Shadow */
+                        0 2px 8px rgba(0, 0, 0, 0.08),
+                        0 12px 40px rgba(0, 0, 0, 0.12),
+                        /* Directional Shadow (von oben-links) */
+                        0 -1px 2px rgba(255, 255, 255, 0.05),
+                        /* Inner Highlight */
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
+                    
+                    /* Apple Typography Enhancement */
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;                    
+
+
+                    /* GLOBALE TOUCH-FIXES */
+                    -webkit-tap-highlight-color: transparent !important;
+                    -webkit-touch-callout: none !important;
+                    -webkit-user-select: none !important;
+                    user-select: none !important;
                     
                 }   
 
@@ -502,131 +553,7 @@ class FastSearchCard extends HTMLElement {
                     perspective: 1000px;
                     will-change: transform, filter, opacity;
                     backface-visibility: hidden;                    
-                }     
-
-
-
-                .search-container {
-                    background: transparent;
-                    border-radius: 0;
-                    box-shadow: none;
-                    overflow: hidden;
-                    transform-style: preserve-3d;
-                    perspective: 1000px;
-                    will-change: transform, filter, opacity;
-                    backface-visibility: hidden;                    
-                }    
-                
-                /* 👈 HIER die neuen Styles einfügen! */
-                /* ===== NEUE FENSTER STYLES ===== */
-                
-                /* Erstes Fenster: Nur Suche - visionOS Style */
-                .search-window {
-                    /* visionOS Glassmorphism Background */
-                    background: 
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
-                        rgba(28, 28, 30, 0.75); /* Mehr transparent für Wallpaper */
-                
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
-                    
-                    /* Apple Design System */
-                    border: 0.33px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
-                    padding: 20px;
-                    margin-bottom: 20px;
-                    
-                    /* Spatial Depth Shadows */
-                    box-shadow: 
-                        0 2px 8px rgba(0, 0, 0, 0.08),
-                        0 12px 40px rgba(0, 0, 0, 0.12),
-                        0 -1px 2px rgba(255, 255, 255, 0.05),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
-                    
-                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                    transform-style: preserve-3d;
-                }
-                
-                .search-window:hover {
-                    transform: translateY(-2px) translateZ(4px);
-                    box-shadow: 
-                        0 8px 25px rgba(0, 0, 0, 0.15),
-                        0 16px 50px rgba(0, 0, 0, 0.18),
-                        0 -1px 2px rgba(255, 255, 255, 0.08),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.08);
-                }
-                
-                /* Zweites Fenster: Filter + Ergebnisse - visionOS Style */
-                .filter-results-window {
-                    /* visionOS Glassmorphism Background */
-                    background: 
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
-                        rgba(28, 28, 30, 0.75); /* Mehr transparent für Wallpaper */
-                
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
-                    
-                    /* Apple Design System */
-                    border: 0.33px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
-                    padding: 20px;
-                    
-                    /* Spatial Depth Shadows */
-                    box-shadow: 
-                        0 2px 8px rgba(0, 0, 0, 0.08),
-                        0 12px 40px rgba(0, 0, 0, 0.12),
-                        0 -1px 2px rgba(255, 255, 255, 0.05),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
-                    
-                    min-height: 400px;
-                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                    transform-style: preserve-3d;
-                }
-                
-                .filter-results-window:hover {
-                    transform: translateY(-2px) translateZ(4px);
-                    box-shadow: 
-                        0 8px 25px rgba(0, 0, 0, 0.15),
-                        0 16px 50px rgba(0, 0, 0, 0.18),
-                        0 -1px 2px rgba(255, 255, 255, 0.08),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.08);
-                }
-                
-                /* Mobile Anpassungen */
-                @media (max-width: 768px) {
-                    .search-window,
-                    .filter-results-window {
-                        margin-bottom: 16px;
-                        padding: 16px;
-                        border-radius: 16px;
-                        backdrop-filter: blur(15px) saturate(1.5);
-                        -webkit-backdrop-filter: blur(15px) saturate(1.5);
-                    }
-                    
-                    .filter-results-window {
-                        min-height: 300px;
-                    }
-                    
-                    .search-window:hover,
-                    .filter-results-window:hover {
-                        transform: none; /* Keine Hover-Effekte auf Mobile */
-                    }
-                }
-                
-                /* Alte search-container komplett ausblenden */
-                .search-container {
-                    display: none !important;
-                }
-
-
-
-                
+                }                
 
                 .search-section {
                     background: transparent;
@@ -5197,17 +5124,17 @@ class FastSearchCard extends HTMLElement {
                 
             </style>
             
-
-            <!-- ERSTES FENSTER: Nur die Suche -->
-            <div class="search-window">
+            <div class="search-container">
+         
                 <div class="search-section">
                     <div class="search-header">
+
                         <button class="filter-button" id="filterButton">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
                             </svg>
                             <span class="filter-badge" id="filterBadge">0</span>
-                        </button>
+                        </button>                        
                         
                         <div class="search-input-container">
                             <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
@@ -5232,17 +5159,14 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- ZWEITES FENSTER: Filter + Ergebnisse -->
-            <div class="filter-results-window">
+
                 <!-- Aktive Filter Tags -->
                 <div class="active-filters" id="activeFilters" style="display: none;">
                     <div class="active-filters-container">
                         <!-- Tags werden dynamisch eingefügt -->
                     </div>
-                </div>
-                
+                </div>                
+            
                 <div class="filter-section">
                     <div class="filter-row" id="typeFilterChips">
                         <div class="filter-chip all active" data-value="">
