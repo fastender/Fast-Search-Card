@@ -120,102 +120,26 @@ class FastSearchCard extends HTMLElement {
         return Promise.all(animations.map(anim => anim.finished));
     }
 
-
     // 🎬 Filter Menu Open Animation (VERBESSERT)
     animateFilterMenuOpen() {
-        console.log('🎬 Animating filter menu open - fullscreen overlay');
+        console.log('🎬 Animating filter menu open - improved');
         
-        // ✅ Overlay AUSSERHALB der Card erstellen
-        const fullscreenOverlay = document.createElement('div');
-        fullscreenOverlay.id = 'fullscreen-filter-overlay';
-        fullscreenOverlay.innerHTML = `
-            <style>
-                #fullscreen-filter-overlay {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 0.6);
-                    backdrop-filter: blur(8px);
-                    z-index: 9999;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 20px;
-                    box-sizing: border-box;
-                    opacity: 0;
-                }
-                
-                .fullscreen-filter-menu {
-                    background: 
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.25) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-                        rgba(58, 58, 60, 0.9);
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                    border: 0.33px solid rgba(255, 255, 255, 0.35);
-                    border-radius: 20px;
-                    box-shadow: 
-                        0 2px 8px rgba(0, 0, 0, 0.05),
-                        0 12px 40px rgba(0, 0, 0, 0.08),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-                    max-width: 500px;
-                    width: 90%;
-                    max-height: 70vh;
-                    overflow: hidden;
-                    display: flex;
-                    flex-direction: column;
-                    transform: scale(0.8) translateY(40px);
-                    opacity: 0;
-                    color: white;
-                }
-            </style>
-            
-            <div class="fullscreen-filter-menu">
-                ${this.getFilterMenuHTML()}
-            </div>
-        `;
+        const overlay = this.shadowRoot.getElementById('filterOverlay');
+        const menu = overlay.querySelector('.filter-menu');
         
-        // Zum Body hinzufügen
-        document.body.appendChild(fullscreenOverlay);
+        if (!overlay || !menu) return Promise.resolve();
         
-        const menu = fullscreenOverlay.querySelector('.fullscreen-filter-menu');
-
+        // Sofort sichtbar machen aber unsichtbar
+        overlay.style.display = 'flex';
+        overlay.style.opacity = '0';
+        menu.style.transform = 'scale(0.8) translateY(40px)';
+        menu.style.opacity = '0';
         
-        // ✅ EVENT LISTENERS HINZUFÜGEN
-        
-        // Close-Button Click
-        const closeBtn = fullscreenOverlay.querySelector('#fullscreen-close-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                this.closeFilterMenu();
-            });
-        }
-        
-        // Außerhalb klicken (auf Overlay)
-        fullscreenOverlay.addEventListener('click', (e) => {
-            if (e.target === fullscreenOverlay) {
-                this.closeFilterMenu();
-            }
-        });
-        
-        // ESC-Taste
-        const escHandler = (e) => {
-            if (e.key === 'Escape') {
-                this.closeFilterMenu();
-                document.removeEventListener('keydown', escHandler);
-            }
-        };
-        document.addEventListener('keydown', escHandler);
-
-        // ✅ FILTER OPTION EVENT LISTENERS SETUP
-        this.setupFullscreenFilterOptionListeners(fullscreenOverlay);
-        
+        // Kleine Pause für Rendering
         return new Promise(resolve => {
             requestAnimationFrame(() => {
                 // Overlay Fade In
-                const overlayAnim = fullscreenOverlay.animate([
+                const overlayAnim = overlay.animate([
                     { opacity: 0 },
                     { opacity: 1 }
                 ], {
@@ -245,263 +169,48 @@ class FastSearchCard extends HTMLElement {
             });
         });
     }
-
-    // ✅ NEUE Methode für Fullscreen Filter Option Event Listeners
-    setupFullscreenFilterOptionListeners(fullscreenOverlay) {
-        console.log('🎛️ Setting up fullscreen filter option listeners');
-        
-        // Kategorie-Optionen im Fullscreen Overlay
-        const categoryOptions = fullscreenOverlay.querySelectorAll('.filter-option[data-type]');
-        categoryOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                console.log('🎯 Category option clicked:', option.getAttribute('data-type'));
-                
-                // Visual feedback
-                option.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    option.style.transform = 'scale(1)';
-                }, 150);
-                
-                // Alle anderen in dieser Gruppe deselektieren
-                categoryOptions.forEach(opt => opt.classList.remove('selected'));
-                
-                // Diese Option selektieren
-                option.classList.add('selected');
-            });
-        });
-        
-        // Raum-Optionen im Fullscreen Overlay
-        const roomOptions = fullscreenOverlay.querySelectorAll('.filter-option[data-room]');
-        roomOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const roomName = option.getAttribute('data-room');
-                console.log('🏠 Room option clicked:', roomName);
-                
-                // Visual feedback
-                option.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    option.style.transform = 'scale(1)';
-                }, 150);
-                
-                const isAlleOption = roomName === '';
-                
-                if (isAlleOption) {
-                    // "Alle" wurde geklickt - alle anderen deselektieren
-                    roomOptions.forEach(opt => opt.classList.remove('selected'));
-                    option.classList.add('selected');
-                } else {
-                    // Spezifischer Raum wurde geklickt
-                    const alleOption = fullscreenOverlay.querySelector('.filter-option[data-room=""]');
-                    if (alleOption) {
-                        alleOption.classList.remove('selected');
-                    }
-                    
-                    option.classList.toggle('selected');
-                    
-                    // Wenn keine Räume mehr selektiert sind, "Alle" wieder aktivieren
-                    const hasSelected = fullscreenOverlay.querySelectorAll('.filter-option[data-room]:not([data-room=""]).selected').length > 0;
-                    if (!hasSelected && alleOption) {
-                        alleOption.classList.add('selected');
-                    }
-                }
-            });
-        });
-        
-        // Reset Button im Fullscreen Overlay
-        const resetBtn = fullscreenOverlay.querySelector('#resetFiltersButton');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('🔄 Reset filters clicked');
-                
-                // Alle Optionen zurücksetzen
-                fullscreenOverlay.querySelectorAll('.filter-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                
-                // "Alle" Optionen wieder aktivieren
-                const alleKategorie = fullscreenOverlay.querySelector('.filter-option[data-type="entities"]');
-                const alleRaum = fullscreenOverlay.querySelector('.filter-option[data-room=""]');
-                
-                if (alleKategorie) alleKategorie.classList.add('selected');
-                if (alleRaum) alleRaum.classList.add('selected');
-                
-                // Visual feedback
-                resetBtn.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    resetBtn.style.transform = 'scale(1)';
-                }, 150);
-            });
-        }
-        
-        // Apply Button im Fullscreen Overlay
-        const applyBtn = fullscreenOverlay.querySelector('#applyFiltersButton');
-        if (applyBtn) {
-            applyBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('✅ Apply filters clicked');
-                
-                // Filter anwenden basierend auf Auswahl
-                this.applyFullscreenFilters(fullscreenOverlay);
-                
-                // Visual feedback
-                applyBtn.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    applyBtn.style.transform = 'scale(1)';
-                }, 150);
-            });
-        }
-    }
     
-    // ✅ NEUE Methode um Filter aus Fullscreen Overlay anzuwenden
-    applyFullscreenFilters(fullscreenOverlay) {
-        console.log('🎯 Applying fullscreen filters');
+    // 🎬 Filter Menu Close Animation (VERBESSERT)
+    animateFilterMenuClose() {
+        console.log('🎬 Animating filter menu close - improved');
         
-        // Gewählte Kategorie ermitteln
-        const selectedCategory = fullscreenOverlay.querySelector('.filter-option[data-type].selected');
-        if (selectedCategory) {
-            const newType = selectedCategory.getAttribute('data-type');
-            console.log('📋 Selected category:', newType);
-            
-            if (newType !== this.currentSearchType) {
-                this.currentSearchType = newType;
-                this.onSearchTypeChange();
+        const overlay = this.shadowRoot.getElementById('filterOverlay');
+        const menu = overlay.querySelector('.filter-menu');
+        
+        if (!overlay || !menu) return Promise.resolve();
+        
+        // Menu Pop Out
+        const menuAnim = menu.animate([
+            { 
+                transform: 'scale(1) translateY(0)',
+                opacity: 1
+            },
+            { 
+                transform: 'scale(0.8) translateY(40px)',
+                opacity: 0
             }
-        }
-        
-        // Gewählte Räume ermitteln
-        const selectedRooms = fullscreenOverlay.querySelectorAll('.filter-option[data-room]:not([data-room=""]).selected');
-        this.selectedRooms.clear();
-        
-        selectedRooms.forEach(room => {
-            const roomName = room.getAttribute('data-room');
-            if (roomName) {
-                this.selectedRooms.add(roomName);
-                console.log('🏠 Selected room:', roomName);
-            }
+        ], {
+            duration: 200,
+            easing: 'cubic-bezier(0.4, 0, 1, 1)',
+            fill: 'forwards'
         });
         
-        console.log('📊 Final filter state:', {
-            searchType: this.currentSearchType,
-            rooms: Array.from(this.selectedRooms)
+        // Overlay Fade Out
+        const overlayAnim = overlay.animate([
+            { opacity: 1 },
+            { opacity: 0 }
+        ], {
+            duration: 150,
+            delay: 50,
+            easing: 'ease-in',
+            fill: 'forwards'
         });
         
-        // Filter anwenden und Menu schließen
-        this.applyFilters();
-        this.closeFilterMenu();
-
-        // Badge und Tags aktualisieren
-        this.updateFilterBadge();
-        this.updateActiveFilterTags();
+        return overlayAnim.finished.then(() => {
+            // Komplett verstecken
+            overlay.style.display = 'none';
+        });
     }
-
-
-    getFilterMenuHTML() {
-        return `
-            <div class="filter-menu-header" style="padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center;">
-
-                <button class="close-button" id="fullscreen-close-btn" style="background: rgba(0,0,0,0.15); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.8); margin-right: 16px;">
-                    ←
-                </button>
-                
-                <h3 style="font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.9); margin: 0; flex: 1; text-align: center;">Filter & Suche</h3>
-            </div>
-            
-            <div class="filter-menu-content" style="padding: 24px; max-height: calc(70vh - 160px); overflow-y: auto; flex: 1;">
-                
-                <!-- Suchkategorien -->
-                <div style="margin-bottom: 32px;">
-                    <h4 style="font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">Kategorien</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                        
-                        <div class="filter-option selected" style="background: rgba(255,255,255,0.15); border: 2px solid rgba(66,133,244,1); border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
-                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🏠</div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Alle Geräte</div>
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">45 Geräte</div>
-                            </div>
-                        </div>
-                        
-                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
-                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🤖</div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Automationen</div>
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">12 Verfügbar</div>
-                            </div>
-                        </div>
-                        
-                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
-                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">📜</div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Skripte</div>
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">8 Verfügbar</div>
-                            </div>
-                        </div>
-                        
-                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
-                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🎭</div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Szenen</div>
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">15 Verfügbar</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Räume -->
-                <div>
-                    <h4 style="font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">Räume</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                        
-                        <div class="filter-option selected" style="background: rgba(255,255,255,0.15); border: 2px solid rgba(66,133,244,1); border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
-                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🏠</div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Alle Räume</div>
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">8 Räume</div>
-                            </div>
-                        </div>
-                        
-                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
-                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🛏️</div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Schlafzimmer</div>
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">8 Geräte</div>
-                            </div>
-                        </div>
-                        
-                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
-                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🍽️</div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Küche</div>
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">12 Geräte</div>
-                            </div>
-                        </div>
-                        
-                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
-                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🛋️</div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Wohnzimmer</div>
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">15 Geräte</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="filter-actions" style="padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 12px; justify-content: flex-end; flex-shrink: 0;">
-                <button onclick="document.querySelector('fast-search-card').resetFilters()" style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer;">Zurücksetzen</button>
-                <button onclick="document.querySelector('fast-search-card').applyFilterMenu()" style="background: #4285f4; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer;">Anwenden</button>
-            </div>
-        `;
-    }
-    
-    
   
     
     setConfig(config) {
@@ -2548,24 +2257,19 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(0, 0, 0, 0.4);
                     backdrop-filter: blur(4px);
                     z-index: 1000;
-                    
-                    /* ✅ IMMER MITTIG - FESTE ZENTRIERUNG */
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    padding: 20px;
-                    box-sizing: border-box;
-                    
-                    /* Start unsichtbar für Animation */
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: none;
+                    display: none;
+                    opacity: 0; /* 👈 START UNSICHTBAR */
+                    transition: none; /* 👈 KEINE CSS-Transition */
                 }
                 
+
+
                 .filter-overlay.active {
-                    /* Nur Sichtbarkeit ändern */
-                    visibility: visible;
-                    /* Opacity wird von WAAPI gesteuert */
+                    display: flex;
+                    align-items: center; /* ✅ Vertikal zentriert */
+                    justify-content: center; /* ✅ Horizontal zentriert */
+                    padding: 20px;
+                    box-sizing: border-box;
                 }
                 
                 
@@ -6002,10 +5706,6 @@ class FastSearchCard extends HTMLElement {
         getLogStateClass(item) {
             return item.state === 'on' || item.state === 'playing' ? 'on' : 'off';
         }
-
-
-
-    
     
         createMockLogEntry(item, time, index) {
             const isOn = index % 2 === 0; // Alternierend
@@ -7293,7 +6993,7 @@ class FastSearchCard extends HTMLElement {
                         
                         const language = ttsLanguage ? ttsLanguage.value : 'de';
                         const isSpeaking = ttsSpeakButton.classList.contains('speaking');
-
+                        
                         if (isSpeaking) {
                             // Stoppen
                             await this.stopTTS(item.id);
@@ -7303,10 +7003,22 @@ class FastSearchCard extends HTMLElement {
                             const success = await this.speakTTS(item.id, text, language, ttsSpeakButton);
                             if (success) {
                                 this.updateTTSButton(ttsSpeakButton, true);
+                                
+                                // Geschätzte Spieldauer (ca. 150 Wörter pro Minute)
+                                const wordCount = text.split(' ').length;
+                                const estimatedDuration = Math.max(3000, (wordCount / 150) * 60 * 1000);
+                                
+                                // Button nach geschätzter Zeit zurücksetzen
+                                setTimeout(() => {
+                                    this.updateTTSButton(ttsSpeakButton, false);
+                                }, estimatedDuration);
                             }
                         }
                     });
-                } // <-- Diese schließende Klammer fehlt!
+                }
+
+
+
                 
 
         
@@ -8323,9 +8035,9 @@ getQuickStats(item) {
         return ttsServices.length > 0;
     }
     
-
-
-    // Vollständiger Code für getBestTTSService()
+    /**
+     * Ermittelt den besten verfügbaren TTS Service - NUR POLLY
+     */
     getBestTTSService() {
         if (!this._hass || !this._hass.services) return null;
         
@@ -8336,30 +8048,29 @@ getQuickStats(item) {
             const ttsMethods = Object.keys(this._hass.services.tts);
             console.log('🔍 Verfügbare TTS Methoden:', ttsMethods);
             
-            // Priorität: Amazon Polly
-            if (ttsMethods.includes('amazon_polly_say')) {
-                console.log('✅ Amazon Polly Service ausgewählt');
-                return {
-                    domain: 'tts',
-                    service: 'amazon_polly_say',
-                    name: 'Amazon Polly'
-                };
+            // Amazon Polly bevorzugen
+            if (this._hass.services.tts.amazon_polly_say) {
+                console.log('✅ Amazon Polly gefunden: tts.amazon_polly_say');
+                return { domain: 'tts', service: 'amazon_polly_say' };
             }
             
-            // Fallback auf ersten verfügbaren TTS Service
+            // Fallback: Cloud TTS
+            if (this._hass.services.tts.cloud_say) {
+                console.log('✅ Cloud TTS gefunden: tts.cloud_say');
+                return { domain: 'tts', service: 'cloud_say' };
+            }
+            
+            // Fallback: Erster TTS Service
             if (ttsMethods.length > 0) {
-                console.log(`⚠️ Polly nicht verfügbar, verwende: ${ttsMethods[0]}`);
-                return {
-                    domain: 'tts',
-                    service: ttsMethods[0],
-                    name: ttsMethods[0]
-                };
+                const firstMethod = ttsMethods[0];
+                console.log(`✅ Fallback TTS: tts.${firstMethod}`);
+                return { domain: 'tts', service: firstMethod };
             }
         }
         
-        console.log('❌ Keine TTS Services verfügbar');
+        console.log('❌ Kein TTS Service gefunden');
         return null;
-    }        
+    }
     
     
     
@@ -9220,39 +8931,20 @@ getQuickStats(item) {
         };
         document.addEventListener('keydown', this.escKeyListener);
     }
-
     
     closeFilterMenu() {
         const button = this.shadowRoot.getElementById('filterButton');
-        button?.classList.remove('active');
+        button.classList.remove('active');
         
-        // ✅ Fullscreen Overlay finden und schließen
-        const fullscreenOverlay = document.getElementById('fullscreen-filter-overlay');
-        if (fullscreenOverlay) {
-            const menu = fullscreenOverlay.querySelector('.fullscreen-filter-menu');
-            
-            // Animation
-            const menuAnim = menu.animate([
-                { transform: 'scale(1) translateY(0)', opacity: 1 },
-                { transform: 'scale(0.8) translateY(40px)', opacity: 0 }
-            ], { duration: 200, easing: 'ease-in', fill: 'forwards' });
-            
-            const overlayAnim = fullscreenOverlay.animate([
-                { opacity: 1 },
-                { opacity: 0 }
-            ], { duration: 150, delay: 50, easing: 'ease-in', fill: 'forwards' });
-            
-            overlayAnim.finished.then(() => {
-                fullscreenOverlay.remove(); // ✅ Komplett entfernen
-            });
-        }
+        // 🎬 Nur Animation - kein CSS
+        this.animateFilterMenuClose();
         
         // ESC Key Listener entfernen
         if (this.escKeyListener) {
             document.removeEventListener('keydown', this.escKeyListener);
             this.escKeyListener = null;
         }
-    }    
+    }
 
     
     updateFilterMenuContent() {
