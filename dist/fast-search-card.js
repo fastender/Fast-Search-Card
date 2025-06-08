@@ -119,6 +119,83 @@ class FastSearchCard extends HTMLElement {
         
         return Promise.all(animations.map(anim => anim.finished));
     }
+
+    // 🎬 Filter Menu Open Animation
+    animateFilterMenuOpen() {
+        console.log('🎬 Animating filter menu open');
+        
+        const overlay = this.shadowRoot.getElementById('filterOverlay');
+        const menu = overlay.querySelector('.filter-menu');
+        
+        if (!overlay || !menu) return Promise.resolve();
+        
+        // Overlay Fade In
+        const overlayAnimation = overlay.animate([
+            { opacity: 0 },
+            { opacity: 1 }
+        ], {
+            duration: 300,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        // Menu Scale + Slide Up
+        const menuAnimation = menu.animate([
+            { 
+                transform: 'scale(0.9) translateY(20px)',
+                opacity: 0
+            },
+            { 
+                transform: 'scale(1) translateY(0)',
+                opacity: 1
+            }
+        ], {
+            duration: 400,
+            delay: 100,
+            easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', // Bounce back
+            fill: 'forwards'
+        });
+        
+        return Promise.all([overlayAnimation.finished, menuAnimation.finished]);
+    }
+    
+    // 🎬 Filter Menu Close Animation  
+    animateFilterMenuClose() {
+        console.log('🎬 Animating filter menu close');
+        
+        const overlay = this.shadowRoot.getElementById('filterOverlay');
+        const menu = overlay.querySelector('.filter-menu');
+        
+        if (!overlay || !menu) return Promise.resolve();
+        
+        // Menu Scale Down + Slide Down
+        const menuAnimation = menu.animate([
+            { 
+                transform: 'scale(1) translateY(0)',
+                opacity: 1
+            },
+            { 
+                transform: 'scale(0.9) translateY(20px)',
+                opacity: 0
+            }
+        ], {
+            duration: 250,
+            easing: 'ease-in'
+        });
+        
+        // Overlay Fade Out (später)
+        const overlayAnimation = overlay.animate([
+            { opacity: 1 },
+            { opacity: 0 }
+        ], {
+            duration: 200,
+            delay: 100,
+            easing: 'ease-in'
+        });
+        
+        return Promise.all([menuAnimation.finished, overlayAnimation.finished]);
+    }
+    
     
     setConfig(config) {
         this.config = config;
