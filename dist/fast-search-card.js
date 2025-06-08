@@ -10350,14 +10350,14 @@ getQuickStats(item) {
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
                     fill: 'forwards'
                 });
-                
-                // Enhanced Stagger für neue Items
+
                 setTimeout(() => {
                     this.animateVisionOSStagger();
                     
                     // 🔒 Animation beendet
                     resultsContainer.dataset.animating = 'false';
                 }, 100);
+                
         });
     }
     
