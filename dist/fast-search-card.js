@@ -11138,7 +11138,6 @@ getQuickStats(item) {
     animateFilterChipSelection(chip) {
         console.log('🍎 visionOS filter chip selection');
         
-        // 🍎 visionOS Spatial Selection (ohne persistenten Glow)
         const selectionAnimation = chip.animate([
             { 
                 transform: 'scale(1) translateZ(0px)',
@@ -11152,18 +11151,15 @@ getQuickStats(item) {
                 offset: 0.4
             },
             { 
-                transform: 'scale(1) translateZ(0px)', // Direkt zurück
+                transform: 'scale(1) translateZ(0px)',
                 backdropFilter: 'blur(10px)',
-                boxShadow: '0 0 0 rgba(255, 255, 255, 0)' // Glow sofort weg
+                boxShadow: '0 0 0 rgba(255, 255, 255, 0)'
             }
         ], {
-            duration: 300, // Kürzer
+            duration: 300,
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
             fill: 'forwards'
         });
-        
-        return selectionAnimation.finished;
-    }
         
         // Return to normal after selection
         setTimeout(() => {
@@ -11176,17 +11172,18 @@ getQuickStats(item) {
                 { 
                     transform: 'scale(1) translateZ(0px)',
                     backdropFilter: 'blur(10px)',
-                    boxShadow: '0 0 0 rgba(255, 255, 255, 0)' // ← Glow komplett entfernen
+                    boxShadow: '0 0 0 rgba(255, 255, 255, 0)'
                 }
             ], {
                 duration: 300,
                 easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                 fill: 'forwards'
             });
-        }, 400); // ← Kürzer: 400ms statt 800ms
+        }, 400);
         
-        return selectionAnimation.finished;
+        return selectionAnimation.finished; // NUR EINE return-Anweisung!
     }
+        
 
 
     handleCategoryChipClick(chip) {
