@@ -120,6 +120,7 @@ class FastSearchCard extends HTMLElement {
         return Promise.all(animations.map(anim => anim.finished));
     }
 
+
     // 🎬 Filter Menu Open Animation (VERBESSERT)
     animateFilterMenuOpen() {
         console.log('🎬 Animating filter menu open - fullscreen overlay');
