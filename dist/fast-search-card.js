@@ -961,26 +961,31 @@ class FastSearchCard extends HTMLElement {
                 /* visionOS Loading Animations */
                 @keyframes visionOSShimmer {
                     0% {
-                        left: -100%;
+                        left: -150%;
                         opacity: 0;
                     }
-                    50% {
-                        opacity: 1;
+                    20% {
+                        opacity: 0.8;
+                    }
+                    80% {
+                        opacity: 0.8;
                     }
                     100% {
-                        left: 100%;
+                        left: 150%;
                         opacity: 0;
                     }
                 }
                 
                 @keyframes visionOSBreathing {
                     0%, 100% {
-                        opacity: 0;
-                        transform: scale(1);
+                        opacity: 0.3;
+                        transform: scale(1) translateZ(0px);
+                        backdrop-filter: blur(10px);
                     }
                     50% {
-                        opacity: 0.6;
-                        transform: scale(1.02);
+                        opacity: 0.8;
+                        transform: scale(1.03) translateZ(6px);
+                        backdrop-filter: blur(18px);
                     }
                 }
                 
@@ -1616,31 +1621,36 @@ class FastSearchCard extends HTMLElement {
                     animation: loadingFadeIn 0.5s ease-out forwards;
                 }
                 
+
                 .visionos-skeleton {
                     position: relative;
                     background: linear-gradient(90deg, 
-                        rgba(255,255,255,0.05) 0%, 
-                        rgba(255,255,255,0.1) 50%, 
-                        rgba(255,255,255,0.05) 100%);
+                        rgba(255,255,255,0.08) 0%, 
+                        rgba(255,255,255,0.15) 50%, 
+                        rgba(255,255,255,0.08) 100%);
                     border-radius: 12px;
                     overflow: hidden;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    border: 0.5px solid rgba(255,255,255,0.1);
+                    backdrop-filter: blur(15px);
+                    -webkit-backdrop-filter: blur(15px);
+                    border: 1px solid rgba(255,255,255,0.15);
+                    animation: visionOSPulse 2s ease-in-out infinite;
                 }
                 
                 .visionos-skeleton::before {
                     content: '';
                     position: absolute;
                     top: 0;
-                    left: -100%;
-                    width: 100%;
+                    left: -150%;
+                    width: 150%;
                     height: 100%;
                     background: linear-gradient(90deg, 
                         transparent 0%, 
-                        rgba(255,255,255,0.2) 50%, 
+                        rgba(255,255,255,0.4) 30%,
+                        rgba(255,255,255,0.6) 50%,
+                        rgba(255,255,255,0.4) 70%,
                         transparent 100%);
-                    animation: visionOSShimmer 2s infinite;
+                    animation: visionOSShimmer 3s infinite;
+                    z-index: 1;
                 }
                 
                 .visionos-skeleton::after {
@@ -4920,6 +4930,20 @@ class FastSearchCard extends HTMLElement {
             </style>
             
             <div class="search-container">
+
+                <!-- 🍎 visionOS Loading Demo -->
+                <div style="padding: 10px 24px;">
+                    <button id="visionOSLoadingDemo" style="
+                        background: rgba(0,122,255,0.8);
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        padding: 8px 16px;
+                        font-size: 12px;
+                        cursor: pointer;
+                        backdrop-filter: blur(10px);
+                    ">🍎 visionOS Loading Demo</button>
+                </div>            
                 <div class="search-section">
                     <div class="search-header">
 
@@ -9529,6 +9553,21 @@ getQuickStats(item) {
         this.selectedType = '';
         this.isInitialized = false; // Flag für Initialisierung
         this.currentView = 'list'; // Neue Property für View-Mode
+
+
+        // 🍎 visionOS Loading Demo Button
+        const demoButton = this.shadowRoot.getElementById('visionOSLoadingDemo');
+        if (demoButton) {
+            demoButton.addEventListener('click', () => {
+                console.log('🍎 Starting visionOS loading demo');
+                this.showVisionOSLoading();
+                
+                // Nach 4 Sekunden wieder normale Ansicht
+                setTimeout(() => {
+                    this.applyFilters();
+                }, 4000);
+            });
+        }        
         
         // Definitionen für verschiedene Suchtypen
         this.searchTypeConfigs = {
@@ -10024,7 +10063,7 @@ getQuickStats(item) {
         this.searchTimeout = setTimeout(() => {
             this.applyFilters();
             this.hideTypingIndicator();
-        }, 300);
+        }, 1500); // 🍎 Länger für visionOS Demo
     }
 
     showTypingIndicator() {
