@@ -216,28 +216,100 @@ class FastSearchCard extends HTMLElement {
     }
 
 
-    
-    // ✅ NEUE METHODE HIER HINZUFÜGEN
+
     getFilterMenuHTML() {
         return `
-            <div class="filter-menu-header">
-                <button class="close-button" onclick="this.closest('fast-search-card').closeFilterMenu()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                    </svg>
+            <div class="filter-menu-header" style="padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center;">
+                <button class="close-button" onclick="document.querySelector('fast-search-card').closeFilterMenu()" style="background: rgba(0,0,0,0.15); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.8); margin-right: 16px;">
+                    ←
                 </button>
-                <h3 class="filter-menu-title">Filter & Suche</h3>
+                <h3 style="font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.9); margin: 0; flex: 1; text-align: center;">Filter & Suche</h3>
             </div>
             
-            <div class="filter-menu-content">
-                <p style="color: rgba(255,255,255,0.8); text-align: center; padding: 40px;">
-                    Filter Menu Content hier...
-                </p>
+            <div class="filter-menu-content" style="padding: 24px; max-height: calc(70vh - 160px); overflow-y: auto; flex: 1;">
+                
+                <!-- Suchkategorien -->
+                <div style="margin-bottom: 32px;">
+                    <h4 style="font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">Kategorien</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                        
+                        <div class="filter-option selected" style="background: rgba(255,255,255,0.15); border: 2px solid rgba(66,133,244,1); border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🏠</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Alle Geräte</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">45 Geräte</div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🤖</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Automationen</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">12 Verfügbar</div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">📜</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Skripte</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">8 Verfügbar</div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🎭</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Szenen</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">15 Verfügbar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Räume -->
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">Räume</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                        
+                        <div class="filter-option selected" style="background: rgba(255,255,255,0.15); border: 2px solid rgba(66,133,244,1); border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🏠</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Alle Räume</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">8 Räume</div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🛏️</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Schlafzimmer</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">8 Geräte</div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🍽️</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Küche</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">12 Geräte</div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-option" style="background: rgba(255,255,255,0.1); border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 20px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">🛋️</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);">Wohnzimmer</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">15 Geräte</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="filter-actions">
-                <button class="filter-action-button">Zurücksetzen</button>
-                <button class="filter-action-button primary">Anwenden</button>
+            <div class="filter-actions" style="padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 12px; justify-content: flex-end; flex-shrink: 0;">
+                <button onclick="document.querySelector('fast-search-card').resetFilters()" style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer;">Zurücksetzen</button>
+                <button onclick="document.querySelector('fast-search-card').applyFilterMenu()" style="background: #4285f4; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer;">Anwenden</button>
             </div>
         `;
     }
