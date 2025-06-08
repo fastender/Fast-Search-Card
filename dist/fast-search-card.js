@@ -957,6 +957,74 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
+
+                /* Modal Backdrop Animation */
+                @keyframes modalBackdropBlur {
+                    from {
+                        opacity: 0;
+                        backdrop-filter: blur(0px);
+                        -webkit-backdrop-filter: blur(0px);
+                    }
+                    to {
+                        opacity: 1;
+                        backdrop-filter: blur(8px);
+                        -webkit-backdrop-filter: blur(8px);
+                    }
+                }
+                
+                /* Modal Spring Entrance */
+                @keyframes modalSpringIn {
+                    0% {
+                        transform: scale(0.7) translateY(50px) rotateX(15deg);
+                        opacity: 0;
+                        filter: blur(4px);
+                    }
+                    60% {
+                        transform: scale(1.05) translateY(-10px) rotateX(-2deg);
+                        opacity: 0.9;
+                        filter: blur(1px);
+                    }
+                    80% {
+                        transform: scale(0.98) translateY(5px) rotateX(1deg);
+                        opacity: 0.95;
+                        filter: blur(0.5px);
+                    }
+                    100% {
+                        transform: scale(1) translateY(0) rotateX(0deg);
+                        opacity: 1;
+                        filter: blur(0px);
+                    }
+                }
+                
+                /* Modal Exit Animation */
+                @keyframes modalExitSpin {
+                    0% {
+                        transform: scale(1) translateY(0) rotateX(0deg);
+                        opacity: 1;
+                        filter: blur(0px);
+                    }
+                    100% {
+                        transform: scale(0.6) translateY(30px) rotateX(-10deg) rotateZ(5deg);
+                        opacity: 0;
+                        filter: blur(8px);
+                    }
+                }
+                
+                /* Content Stagger Animation */
+                @keyframes contentStaggerIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px) scale(0.95);
+                        filter: blur(2px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                        filter: blur(0px);
+                    }
+                }
+                
+
                 /* Animation für Suchergebnisse */
                 .results-container {
                     max-height: 600px;
@@ -1287,16 +1355,19 @@ class FastSearchCard extends HTMLElement {
                     right: 0;
                     bottom: 0;
                     background: rgba(0, 0, 0, 0.7);
-                    backdrop-filter: blur(8px);
                     z-index: 1000;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     opacity: 0;
                     visibility: hidden;
-                    transition: all 0.3s ease;
+                    transition: none; /* Wir verwenden WAAPI statt CSS transitions */
+                    transform: scale(0.8);
+                    filter: blur(0px);                    
                     padding: 20px;
                     box-sizing: border-box;
+                    backdrop-filter: blur(0px);
+                    -webkit-backdrop-filter: blur(0px);                    
                 }
 
                 .more-info-overlay.active {
@@ -1319,14 +1390,19 @@ class FastSearchCard extends HTMLElement {
                     width: 100%;
                     max-height: 80vh;
                     overflow: hidden;
-                    transform: scale(0.9) translateY(20px);
-                    transition: all 0.3s ease;
+
+
                     position: relative;
                     padding: 0;
+                    transform: scale(0.7) translateY(50px) rotateX(15deg);
+                    opacity: 0;
+                    transition: none;
+                    will-change: transform, opacity;
+                    perspective: 1000px;                    
                 }
 
                 .more-info-overlay.active .more-info-dialog {
-                    transform: scale(1) translateY(0);
+                    opacity: 1;
                 }
 
                 .more-info-header {
@@ -10355,12 +10431,144 @@ getQuickStats(item) {
         // Dialog anzeigen
         this.shadowRoot.appendChild(overlay);
         
-        // Animation starten
-        requestAnimationFrame(() => {
-            overlay.classList.add('active');
-        });
+        // 🎬 Advanced Modal Animation mit WAAPI
+        this.animateModalEntrance(overlay);
+        
     }
 
+
+// 🎬 Modal Entrance Animation
+animateModalEntrance(overlay) {
+    console.log('🎬 Starting modal entrance animation');
+    
+    const dialog = overlay.querySelector('.more-info-dialog');
+    const sections = overlay.querySelectorAll('.more-info-section');
+    
+    // Sofort sichtbar machen
+    overlay.classList.add('active');
+    
+    // 1. Backdrop Blur Animation
+    const backdropAnimation = overlay.animate([
+        { 
+            opacity: 0,
+            backdropFilter: 'blur(0px)',
+            filter: 'blur(0px)'
+        },
+        { 
+            opacity: 1,
+            backdropFilter: 'blur(8px)',
+            filter: 'blur(0px)'
+        }
+    ], {
+        duration: 400,
+        easing: 'ease-out',
+        fill: 'forwards'
+    });
+    
+    // 2. Dialog Spring-In Animation
+    const dialogAnimation = dialog.animate([
+        { 
+            transform: 'scale(0.7) translateY(50px) rotateX(15deg)',
+            opacity: 0,
+            filter: 'blur(4px)'
+        },
+        { 
+            transform: 'scale(1.05) translateY(-10px) rotateX(-2deg)',
+            opacity: 0.9,
+            filter: 'blur(1px)',
+            offset: 0.6
+        },
+        { 
+            transform: 'scale(0.98) translateY(5px) rotateX(1deg)',
+            opacity: 0.95,
+            filter: 'blur(0.5px)',
+            offset: 0.8
+        },
+        { 
+            transform: 'scale(1) translateY(0) rotateX(0deg)',
+            opacity: 1,
+            filter: 'blur(0px)'
+        }
+    ], {
+        duration: 800,
+        delay: 100,
+        easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        fill: 'forwards'
+    });
+    
+    // 3. Content Stagger Animation
+    sections.forEach((section, index) => {
+        section.animate([
+            {
+                opacity: 0,
+                transform: 'translateY(20px) scale(0.95)',
+                filter: 'blur(2px)'
+            },
+            {
+                opacity: 1,
+                transform: 'translateY(0) scale(1)',
+                filter: 'blur(0px)'
+            }
+        ], {
+            duration: 500,
+            delay: 200 + (index * 100), // Stagger delay
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            fill: 'forwards'
+        });
+    });
+    
+    return Promise.all([
+        backdropAnimation.finished,
+        dialogAnimation.finished
+    ]);
+}
+
+// 🎬 Modal Exit Animation
+animateModalExit(overlay) {
+    console.log('🎬 Starting modal exit animation');
+    
+    const dialog = overlay.querySelector('.more-info-dialog');
+    
+    // Dialog Exit Animation
+    const dialogExitAnimation = dialog.animate([
+        { 
+            transform: 'scale(1) translateY(0) rotateX(0deg)',
+            opacity: 1,
+            filter: 'blur(0px)'
+        },
+        { 
+            transform: 'scale(0.6) translateY(30px) rotateX(-10deg) rotateZ(5deg)',
+            opacity: 0,
+            filter: 'blur(8px)'
+        }
+    ], {
+        duration: 300,
+        easing: 'cubic-bezier(0.55, 0.055, 0.675, 0.19)',
+        fill: 'forwards'
+    });
+    
+    // Backdrop Fade Out
+    const backdropExitAnimation = overlay.animate([
+        { 
+            opacity: 1,
+            backdropFilter: 'blur(8px)'
+        },
+        { 
+            opacity: 0,
+            backdropFilter: 'blur(0px)'
+        }
+    ], {
+        duration: 200,
+        delay: 100,
+        easing: 'ease-in',
+        fill: 'forwards'
+    });
+    
+    return Promise.all([
+        dialogExitAnimation.finished,
+        backdropExitAnimation.finished
+    ]);
+}    
 
     getMoreInfoHTML(item) {
         const stateInfo = this.getStateInfo(item);
@@ -11221,15 +11429,17 @@ getQuickStats(item) {
     }        
     
 
+
+    
     closeMoreInfo() {
         const overlay = this.shadowRoot.querySelector('.more-info-overlay');
         if (overlay) {
-            overlay.classList.remove('active');
-            setTimeout(() => {
+            // 🎬 Animated Close
+            this.animateModalExit(overlay).then(() => {
                 overlay.remove();
-            }, 300);
+            });
         }
-    }
+    }    
 
     getDetailedStateText(item) {
         switch (item.itemType) {
