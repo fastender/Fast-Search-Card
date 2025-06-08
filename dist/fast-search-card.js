@@ -501,14 +501,11 @@ class FastSearchCard extends HTMLElement {
             <button id="applyFiltersButton" style="background: #4285f4; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; z-index: 10000; position: relative; -webkit-tap-highlight-color: transparent;">Anwenden</button>
         </div>
     `;
-    }
+}
+
+setConfig(config) {
+    this.config = config;
     
-    
-  
-    
-    setConfig(config) {
-        this.config = config;
-        
         // Validierung der Konfiguration
         if (!config) {
             throw new Error('Konfiguration ist erforderlich');
