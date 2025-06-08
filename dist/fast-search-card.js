@@ -21,6 +21,46 @@ class FastSearchCard extends HTMLElement {
         return animation.finished;
     }
 
+    // Animation starten nach dem Rendering
+    setTimeout(() => {
+        this.animateCardEntrance();
+        
+        // Filter-Chip Animationen setup
+        setTimeout(() => {
+            this.setupFilterChipAnimations();
+        }, 800); // Nach Card-Animation
+    }, 100);    
+
+
+    // 🎬 Filter-Chip Hover Animation
+    setupFilterChipAnimations() {
+        console.log('🎬 Setting up filter chip animations');
+        
+        const filterChips = this.shadowRoot.querySelectorAll('.filter-chip');
+        
+        filterChips.forEach(chip => {
+            let hoverAnimation = null;
+            
+            chip.addEventListener('mouseenter', () => {
+                if (hoverAnimation) hoverAnimation.cancel();
+                
+                hoverAnimation = chip.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.05)' }
+                ], {
+                    duration: 200,
+                    easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                    fill: 'forwards'
+                });
+            });
+            
+            chip.addEventListener('mouseleave', () => {
+                if (hoverAnimation) {
+                    hoverAnimation.reverse();
+                }
+            });
+        });
+    }    
 
     setConfig(config) {
         this.config = config;
