@@ -246,6 +246,161 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
+    // ✅ NEUE Methode für Fullscreen Filter Option Event Listeners
+    setupFullscreenFilterOptionListeners(fullscreenOverlay) {
+        console.log('🎛️ Setting up fullscreen filter option listeners');
+        
+        // Kategorie-Optionen im Fullscreen Overlay
+        const categoryOptions = fullscreenOverlay.querySelectorAll('.filter-option[data-type]');
+        categoryOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🎯 Category option clicked:', option.getAttribute('data-type'));
+                
+                // Visual feedback
+                option.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    option.style.transform = 'scale(1)';
+                }, 150);
+                
+                // Alle anderen in dieser Gruppe deselektieren
+                categoryOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Diese Option selektieren
+                option.classList.add('selected');
+            });
+        });
+        
+        // Raum-Optionen im Fullscreen Overlay
+        const roomOptions = fullscreenOverlay.querySelectorAll('.filter-option[data-room]');
+        roomOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const roomName = option.getAttribute('data-room');
+                console.log('🏠 Room option clicked:', roomName);
+                
+                // Visual feedback
+                option.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    option.style.transform = 'scale(1)';
+                }, 150);
+                
+                const isAlleOption = roomName === '';
+                
+                if (isAlleOption) {
+                    // "Alle" wurde geklickt - alle anderen deselektieren
+                    roomOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                } else {
+                    // Spezifischer Raum wurde geklickt
+                    const alleOption = fullscreenOverlay.querySelector('.filter-option[data-room=""]');
+                    if (alleOption) {
+                        alleOption.classList.remove('selected');
+                    }
+                    
+                    option.classList.toggle('selected');
+                    
+                    // Wenn keine Räume mehr selektiert sind, "Alle" wieder aktivieren
+                    const hasSelected = fullscreenOverlay.querySelectorAll('.filter-option[data-room]:not([data-room=""]).selected').length > 0;
+                    if (!hasSelected && alleOption) {
+                        alleOption.classList.add('selected');
+                    }
+                }
+            });
+        });
+        
+        // Reset Button im Fullscreen Overlay
+        const resetBtn = fullscreenOverlay.querySelector('#resetFiltersButton');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('🔄 Reset filters clicked');
+                
+                // Alle Optionen zurücksetzen
+                fullscreenOverlay.querySelectorAll('.filter-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // "Alle" Optionen wieder aktivieren
+                const alleKategorie = fullscreenOverlay.querySelector('.filter-option[data-type="entities"]');
+                const alleRaum = fullscreenOverlay.querySelector('.filter-option[data-room=""]');
+                
+                if (alleKategorie) alleKategorie.classList.add('selected');
+                if (alleRaum) alleRaum.classList.add('selected');
+                
+                // Visual feedback
+                resetBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    resetBtn.style.transform = 'scale(1)';
+                }, 150);
+            });
+        }
+        
+        // Apply Button im Fullscreen Overlay
+        const applyBtn = fullscreenOverlay.querySelector('#applyFiltersButton');
+        if (applyBtn) {
+            applyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('✅ Apply filters clicked');
+                
+                // Filter anwenden basierend auf Auswahl
+                this.applyFullscreenFilters(fullscreenOverlay);
+                
+                // Visual feedback
+                applyBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    applyBtn.style.transform = 'scale(1)';
+                }, 150);
+            });
+        }
+    }
+    
+    // ✅ NEUE Methode um Filter aus Fullscreen Overlay anzuwenden
+    applyFullscreenFilters(fullscreenOverlay) {
+        console.log('🎯 Applying fullscreen filters');
+        
+        // Gewählte Kategorie ermitteln
+        const selectedCategory = fullscreenOverlay.querySelector('.filter-option[data-type].selected');
+        if (selectedCategory) {
+            const newType = selectedCategory.getAttribute('data-type');
+            console.log('📋 Selected category:', newType);
+            
+            if (newType !== this.currentSearchType) {
+                this.currentSearchType = newType;
+                this.onSearchTypeChange();
+            }
+        }
+        
+        // Gewählte Räume ermitteln
+        const selectedRooms = fullscreenOverlay.querySelectorAll('.filter-option[data-room]:not([data-room=""]).selected');
+        this.selectedRooms.clear();
+        
+        selectedRooms.forEach(room => {
+            const roomName = room.getAttribute('data-room');
+            if (roomName) {
+                this.selectedRooms.add(roomName);
+                console.log('🏠 Selected room:', roomName);
+            }
+        });
+        
+        console.log('📊 Final filter state:', {
+            searchType: this.currentSearchType,
+            rooms: Array.from(this.selectedRooms)
+        });
+        
+        // Filter anwenden und Menu schließen
+        this.applyFilters();
+        this.closeFilterMenu();
+
+        // Badge und Tags aktualisieren
+        this.updateFilterBadge();
+        this.updateActiveFilterTags();
+    }
+
 
     getFilterMenuHTML() {
         return `
