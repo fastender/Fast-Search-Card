@@ -10202,6 +10202,27 @@ getQuickStats(item) {
 
         // Filter Button Event Listener
         this.shadowRoot.getElementById('filterButton').addEventListener('click', () => this.toggleFilterMenu());
+
+        // Search Type Dropdown (NEU)
+        this.shadowRoot.getElementById('searchTypeButton').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleDropdown('searchType');
+        });
+        
+        // Dropdown Items Event Listeners (NEU)
+        this.shadowRoot.querySelectorAll('#searchTypeDropdown .dropdown-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const type = e.currentTarget.dataset.type;
+                this.selectSearchType(type);
+            });
+        });
+        
+        // Close dropdown when clicking outside (NEU)
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown-trigger') && !e.target.closest('.dropdown-container')) {
+                this.closeAllDropdowns();
+            }
+        });
         
         // Close Filter Button Event Listener  
         this.shadowRoot.getElementById('closeFilterButton').addEventListener('click', () => this.closeFilterMenu());
@@ -13362,7 +13383,129 @@ animateModalExit(overlay) {
             ]
         };
     }
-}
+
+
+    // ==========================================
+    // MODULARE DROPDOWN SYSTEM METHODEN
+    // ==========================================
+
+    toggleDropdown(dropdownType) {
+        const dropdown = this.shadowRoot.getElementById(`${dropdownType}Dropdown`);
+        const button = this.shadowRoot.getElementById(`${dropdownType}Button`);
+        
+        if (dropdown.classList.contains('active')) {
+            this.closeDropdown(dropdownType);
+        } else {
+            this.closeAllDropdowns(); // Andere schließen
+            this.openDropdown(dropdownType);
+        }
+    }
+
+    openDropdown(dropdownType) {
+        const dropdown = this.shadowRoot.getElementById(`${dropdownType}Dropdown`);
+        const button = this.shadowRoot.getElementById(`${dropdownType}Button`);
+        
+        // Counts aktualisieren
+        this.updateSearchTypeCounts();
+        
+        // Animation
+        dropdown.classList.add('active');
+        button.classList.add('active');
+        
+        // ESC Key Listener
+        this.escKeyListener = (e) => {
+            if (e.key === 'Escape') {
+                this.closeDropdown(dropdownType);
+            }
+        };
+        document.addEventListener('keydown', this.escKeyListener);
+    }
+
+    closeDropdown(dropdownType) {
+        const dropdown = this.shadowRoot.getElementById(`${dropdownType}Dropdown`);
+        const button = this.shadowRoot.getElementById(`${dropdownType}Button`);
+        
+        dropdown.classList.remove('active');
+        button.classList.remove('active');
+        
+        // ESC Listener entfernen
+        if (this.escKeyListener) {
+            document.removeEventListener('keydown', this.escKeyListener);
+            this.escKeyListener = null;
+        }
+    }
+
+    closeAllDropdowns() {
+        const dropdowns = this.shadowRoot.querySelectorAll('.dropdown-container');
+        const buttons = this.shadowRoot.querySelectorAll('.dropdown-trigger');
+        
+        dropdowns.forEach(dropdown => dropdown.classList.remove('active'));
+        buttons.forEach(button => button.classList.remove('active'));
+        
+        if (this.escKeyListener) {
+            document.removeEventListener('keydown', this.escKeyListener);
+            this.escKeyListener = null;
+        }
+    }
+
+    selectSearchType(type) {
+        // Aktive Items in Dropdown aktualisieren
+        this.shadowRoot.querySelectorAll('#searchTypeDropdown .dropdown-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        this.shadowRoot.querySelector(`#searchTypeDropdown .dropdown-item[data-type="${type}"]`).classList.add('active');
+        
+        // Search Type setzen
+        this.currentSearchType = type;
+        
+        // UI aktualisieren
+        this.updateSearchPlaceholder();
+        this.onSearchTypeChange();
+        
+        // Dropdown schließen
+        this.closeDropdown('searchType');
+    }
+
+    updateSearchTypeCounts() {
+        // Entities count
+        const entitiesCount = this.allItems.filter(item => item.searchType === 'entities').length;
+        const entitiesElement = this.shadowRoot.getElementById('count-entities');
+        if (entitiesElement) {
+            entitiesElement.textContent = `${entitiesCount} verfügbar`;
+        }
+        
+        // Automations count (wenn Sie diese haben)
+        const automationsElement = this.shadowRoot.getElementById('count-automations');
+        if (automationsElement) {
+            automationsElement.textContent = `0 verfügbar`; // Später implementieren
+        }
+        
+        // Scripts count
+        const scriptsElement = this.shadowRoot.getElementById('count-scripts');
+        if (scriptsElement) {
+            scriptsElement.textContent = `0 verfügbar`; // Später implementieren
+        }
+        
+        // Scenes count
+        const scenesElement = this.shadowRoot.getElementById('count-scenes');
+        if (scenesElement) {
+            scenesElement.textContent = `0 verfügbar`; // Später implementieren
+        }
+    }
+
+    updateSearchPlaceholder() {
+        const searchInput = this.shadowRoot.getElementById('searchInput');
+        const config = this.searchTypeConfigs[this.currentSearchType];
+        
+        if (searchInput && config) {
+            searchInput.placeholder = config.placeholder;
+        }
+    }
+
+} // ← Das ist die schließende Klammer der Klasse
+
+
 
 customElements.define('fast-search-card', FastSearchCard);
 
