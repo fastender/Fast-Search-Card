@@ -9756,6 +9756,7 @@ getQuickStats(item) {
                 placeholder: 'Gerät suchen...',
                 filterLabel: 'Kategorien',
                 categoryNames: {
+                    'none': 'Keine',
                     'lights': 'Lichter',
                     'climate': 'Klima', 
                     'switches': 'Schalter',
@@ -9767,6 +9768,7 @@ getQuickStats(item) {
                     'other': 'Sonstiges'
                 },
                 categoryIcons: {
+                    'none': '🚫',
                     'lights': '💡',
                     'climate': '🌡️',
                     'switches': '🔌',
@@ -11199,6 +11201,12 @@ getQuickStats(item) {
 
     applyFilters() {
         const query = this.searchInput.value.toLowerCase().trim();
+
+        // 👈 NEU: Spezialbehandlung für "none" Kategorie
+        if (this.selectedType === 'none') {
+            this.showNoResults('Kategorie "Keine" ausgewählt - keine Ergebnisse anzeigen');
+            return;
+        }        
         
         let filteredItems = this.allItems.filter(item => {
             const matchesSearch = !query || 
