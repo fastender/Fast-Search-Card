@@ -11334,7 +11334,7 @@ getQuickStats(item) {
                 roomGroup.appendChild(itemElement);
             });
             
-            this.resultsContainer.appendChild(roomGroup);
+            this.resultsContent.appendChild(roomGroup);
         });
         
         // 🎬 WAAPI Animation für ALLE List Items
@@ -11432,7 +11432,7 @@ getQuickStats(item) {
             gridContainer.appendChild(roomGroup);
         });
         
-        this.resultsContainer.appendChild(gridContainer);
+        this.resultsContent.appendChild(gridContainer);
         
         // 🎬 WAAPI Animation für ALLE Grid Items
         setTimeout(() => {
