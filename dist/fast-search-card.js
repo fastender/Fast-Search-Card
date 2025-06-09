@@ -861,6 +861,195 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
+                /* =========================
+                   DROPDOWN CSS FIXES
+                   ========================= */
+                
+                /* 1. VERTIKAL SCROLLEN STATT HORIZONTAL */
+                .dropdown-content {
+                    padding: 12px 16px;
+                    max-height: 300px; /* Maximale Höhe */
+                    overflow-y: auto; /* Nur vertikal scrollen */
+                    overflow-x: hidden; /* Horizontal scrollen verhindern */
+                    
+                    /* Touch-Navigation für Mobile */
+                    -webkit-overflow-scrolling: touch;
+                    scroll-behavior: smooth;
+                }
+                
+                /* 2. SCROLL-INDIKATOREN (Chevrons) */
+                .dropdown-content::before {
+                    content: "⌄";
+                    position: sticky;
+                    top: 0;
+                    display: block;
+                    text-align: center;
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.4);
+                    background: linear-gradient(to bottom, rgba(30, 30, 30, 0.9), transparent);
+                    padding: 4px 0 8px 0;
+                    z-index: 10;
+                    pointer-events: none;
+                }
+                
+                .dropdown-content::after {
+                    content: "⌄";
+                    position: sticky;
+                    bottom: 0;
+                    display: block;
+                    text-align: center;
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.4);
+                    background: linear-gradient(to top, rgba(30, 30, 30, 0.9), transparent);
+                    padding: 8px 0 4px 0;
+                    transform: rotate(180deg);
+                    z-index: 10;
+                    pointer-events: none;
+                }
+                
+                /* Chevrons nur anzeigen wenn scrollbar */
+                .dropdown-content:not([data-scrollable])::before,
+                .dropdown-content:not([data-scrollable])::after {
+                    display: none;
+                }
+                
+                /* 3. RADIOBUTTON STYLE FÜR AKTIVE ITEMS */
+                .search-controls .dropdown-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px 16px;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    position: relative;
+                    
+                    /* Border entfernen */
+                    border-left: none;
+                    
+                    /* Initial State für Animation */
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
+                
+                .search-controls .dropdown-item::after {
+                    content: "";
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    margin-left: auto;
+                    flex-shrink: 0;
+                    transition: all 0.2s;
+                }
+                
+                .search-controls .dropdown-item.active::after {
+                    background: #FF8A00;
+                    border-color: #FF8A00;
+                    position: relative;
+                }
+                
+                .search-controls .dropdown-item.active::before {
+                    content: "";
+                    position: absolute;
+                    right: 20px;
+                    width: 6px;
+                    height: 6px;
+                    background: white;
+                    border-radius: 50%;
+                    z-index: 1;
+                }
+                
+                /* 4. DROPDOWN-TRIGGER WIE VIEW-TOGGLE STYLE */
+                .dropdown-trigger {
+                    background: rgba(255, 255, 255, 0.08);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 50%; /* Rund wie view-toggle */
+                    padding: 0;
+                    cursor: pointer;
+                    color: rgba(255, 255, 255, 0.7);
+                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 44px; /* Gleiche Größe wie view-toggle */
+                    height: 44px;
+                    position: relative;
+                    
+                    /* Anti-Touch-Flicker */
+                    -webkit-tap-highlight-color: transparent;
+                }
+                
+                .dropdown-trigger::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 50%;
+                    opacity: 0;
+                    transform: scale(0.8);
+                    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                }
+                
+                .dropdown-trigger:hover {
+                    background: rgba(255, 255, 255, 0.12);
+                    color: rgba(255, 255, 255, 0.9);
+                    border-color: rgba(255, 255, 255, 0.25);
+                    transform: scale(1.05);
+                }
+                
+                .dropdown-trigger:hover::before {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                
+                .dropdown-trigger.active {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    border-color: rgba(255, 255, 255, 0.3);
+                    backdrop-filter: blur(15px);
+                    -webkit-backdrop-filter: blur(15px);
+                }
+                
+                .dropdown-trigger.active::before {
+                    opacity: 1;
+                    transform: scale(1);
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                /* 5. MOBILE TOUCH OPTIMIERUNGEN */
+                @media (max-width: 768px) {
+                    .dropdown-trigger {
+                        width: 40px;
+                        height: 40px;
+                    }
+                    
+                    .search-controls .dropdown-item {
+                        padding: 16px 20px; /* Größere Touch-Targets */
+                        min-height: 48px;
+                    }
+                    
+                    .dropdown-content {
+                        max-height: 250px; /* Weniger Höhe auf Mobile */
+                    }
+                }
+                
+                /* 6. AUTOMATISCHE SCROLLBAR-ERKENNUNG */
+                .dropdown-content.has-scroll::before,
+                .dropdown-content.has-scroll::after {
+                    display: block;
+                }
+
+
+
+
+
+
 
 
                 .search-input-container {
@@ -10342,8 +10531,25 @@ getQuickStats(item) {
             if (item) {
                 item.textContent = `${counts[type]} Verfügbar`;
             }
-        });
-    }
+
+        }); // ← DIESE Klammer schließt die forEach Schleife
+
+        // Scroll-Erkennung AM ENDE der Methode
+        setTimeout(() => {
+            const content = dropdown.querySelector('.dropdown-content');
+            if (content) {
+                // Prüfen ob Scroll nötig ist
+                const hasScroll = content.scrollHeight > content.clientHeight;
+                content.classList.toggle('has-scroll', hasScroll);
+                
+                if (hasScroll) {
+                    content.setAttribute('data-scrollable', 'true');
+                } else {
+                    content.removeAttribute('data-scrollable');
+                }
+            }
+        }, 100);
+    }    
 
     getItemsByType(type) {
         switch(type) {
@@ -10421,12 +10627,14 @@ getQuickStats(item) {
         this.setRoomsDropdownOpen(false);
     }
     
+
+
     updateRoomsDropdown() {
         const dropdown = this.shadowRoot.getElementById('roomsFilterDropdown');
         const content = dropdown.querySelector('.dropdown-content');
         
         if (!content) return;
-
+    
         // "Alle Räume" Handler hinzufügen
         const allRoomsItem = content.querySelector('[data-room=""]');
         if (allRoomsItem) {
@@ -10482,7 +10690,6 @@ getQuickStats(item) {
                 </div>
             `;
             
-
             roomItem.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
@@ -10501,7 +10708,23 @@ getQuickStats(item) {
             });
             
             content.appendChild(roomItem);
-        });
+        }); // ← DIESE Klammer schließt die forEach Schleife
+    
+        // Scroll-Erkennung AM ENDE der Methode
+        setTimeout(() => {
+            const content = dropdown.querySelector('.dropdown-content');
+            if (content) {
+                // Prüfen ob Scroll nötig ist
+                const hasScroll = content.scrollHeight > content.clientHeight;
+                content.classList.toggle('has-scroll', hasScroll);
+                
+                if (hasScroll) {
+                    content.setAttribute('data-scrollable', 'true');
+                } else {
+                    content.removeAttribute('data-scrollable');
+                }
+            }
+        }, 100);
     }
     
     getRoomIcon(room) {
@@ -10591,6 +10814,40 @@ getQuickStats(item) {
         const content = dropdown.querySelector('.dropdown-content');
         
         if (!content) return;
+
+
+        // "Alle Kategorien" Handler hinzufügen
+        const allCategoriesItem = content.querySelector('[data-category=""]');
+        if (allCategoriesItem) {
+            // Alten Event Listener entfernen falls vorhanden
+            allCategoriesItem.replaceWith(allCategoriesItem.cloneNode(true));
+            const newAllCategoriesItem = content.querySelector('[data-category=""]');
+            
+            newAllCategoriesItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Update active state
+                content.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                newAllCategoriesItem.classList.add('active');
+                
+                // Reset category filter
+                this.selectedCategory = '';
+                console.log('⭐ All categories selected');
+                
+                // Filter anwenden
+                this.applyAllFilters();
+                
+                this.closeCategoriesDropdown();
+            });
+            
+            // Count für "Alle Kategorien" aktualisieren
+            const allCategoriesCount = newAllCategoriesItem.querySelector('.dropdown-count');
+            if (allCategoriesCount) {
+                const categories = this.getCategoriesForCurrentFilter();
+                allCategoriesCount.textContent = `${categories.length} Kategorien`;
+            }
+        }
+        
         
         // Kategorien basierend auf aktuellem Suchfilter
         const categories = this.getCategoriesForCurrentFilter();
@@ -10635,8 +10892,28 @@ getQuickStats(item) {
 
             
             content.appendChild(categoryItem);
-        });
+
+        }); // ← DIESE Klammer schließt die forEach Schleife
+
+        // Scroll-Erkennung AM ENDE der Methode
+        setTimeout(() => {
+            const content = dropdown.querySelector('.dropdown-content');
+            if (content) {
+                // Prüfen ob Scroll nötig ist
+                const hasScroll = content.scrollHeight > content.clientHeight;
+                content.classList.toggle('has-scroll', hasScroll);
+                
+                if (hasScroll) {
+                    content.setAttribute('data-scrollable', 'true');
+                } else {
+                    content.removeAttribute('data-scrollable');
+                }
+            }
+        }, 100);
     }
+
+
+    
     
     getCategoriesForCurrentFilter() {
         const categories = {
