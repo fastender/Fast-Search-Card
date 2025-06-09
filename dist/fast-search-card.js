@@ -11056,6 +11056,12 @@ getQuickStats(item) {
 
     setupCategoryChips(categories) {
         const categoryChips = this.shadowRoot.getElementById('typeFilterChips');
+
+        // 👈 NEU: "none" Kategorie immer hinzufügen
+        const categoriesWithNone = [...categories];
+        if (!categoriesWithNone.includes('none')) {
+            categoriesWithNone.push('none');
+        }
         
         // Bei Typ-Wechsel alle Chips außer "Alle" entfernen
         if (!this.isInitialized) {
@@ -11079,7 +11085,7 @@ getQuickStats(item) {
         
         const config = this.searchTypeConfigs[this.currentSearchType];
         
-        categories.forEach(category => {
+        categoriesWithNone.forEach(category => {
             if (!existingCategoryValues.includes(category)) {
                 const chip = document.createElement('div');
                 chip.className = 'filter-chip';
