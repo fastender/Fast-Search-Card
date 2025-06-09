@@ -881,19 +881,19 @@ class FastSearchCard extends HTMLElement {
                 
                 /* Radiobutton (markiert) */
                 .search-controls .dropdown-item.active::after {
-                    background: #FF8A00;
-                    border-color: #FF8A00;
+                    background: rgba(255, 255, 255, 0.9);
+                    border-color: rgba(255, 255, 255, 0.9);
                 }
                 
                 .search-controls .dropdown-item.active::before {
                     content: "";
                     position: absolute;
-                    right: 24px;
+                    right: 23px;
                     top: 50%;
                     transform: translateY(-50%);
-                    width: 6px;
-                    height: 6px;
-                    background: white;
+                    width: 7px;
+                    height: 7px;
+                    background: black;
                     border-radius: 50%;
                     z-index: 10;
                 }
@@ -915,6 +915,7 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     flex-direction: column;
                     gap: 2px;
+                    line-height: 1.1em;
                 }
                 
                 /* Dropdown Title */
@@ -922,7 +923,6 @@ class FastSearchCard extends HTMLElement {
                     font-size: 15px;
                     font-weight: 500;
                     color: rgba(255, 255, 255, 0.9);
-                    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
                 }
                 
                 /* Dropdown Count */
@@ -5033,9 +5033,30 @@ class FastSearchCard extends HTMLElement {
                     top: 50px;
                     left: 0;
                     right: 0;
-                    background: rgba(0, 0, 0, 0.25);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
+
+
+                    background: 
+                        /* Oberflächenreflektionen */
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                        /* Basis Material */
+                        rgba(28, 28, 30, 0.9);
+
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
+                    
+                    
+                    /* Spatial Depth Shadows */
+                    box-shadow: 
+                        /* Ambient Shadow */
+                        0 2px 8px rgba(0, 0, 0, 0.08),
+                        0 12px 40px rgba(0, 0, 0, 0.12),
+                        /* Directional Shadow (von oben-links) */
+                        0 -1px 2px rgba(255, 255, 255, 0.05),
+                        /* Inner Highlight */
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
+                    
                     border-radius: 20px;
                     border: 0px solid rgba(255, 255, 255, 0.1);
                     z-index: 1001; /* HÖCHSTER */
