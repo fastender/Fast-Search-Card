@@ -5445,6 +5445,7 @@ class FastSearchCard extends HTMLElement {
 
           
 
+                   
                             <div class="search-controls">
                                 <div class="control-group-left">
                                     <!-- Dropdown 1: Suchfilter -->
@@ -5461,51 +5462,51 @@ class FastSearchCard extends HTMLElement {
                                         </svg>
                                         <span class="filter-badge" id="filterBadge">0</span>
                                     </button>
-                                </div>
-                                
-                                <!-- Dropdown Container MUSS in control-group-left -->
-                                <div class="dropdown-container" id="searchTypeDropdown">
-                                    <div class="dropdown-header">
-                                        <span class="dropdown-title">Suchfilter</span>
+                            
+                                    <!-- DROPDOWN HIER REIN VERSCHIEBEN! -->
+                                    <div class="dropdown-container" id="searchTypeDropdown">
+                                        <div class="dropdown-header">
+                                            <span class="dropdown-title">Suchfilter</span>
+                                        </div>
+                                        <div class="dropdown-content">
+                                            <div class="dropdown-item active" data-type="entities">
+                                                <div class="item-icon">🏠</div>
+                                                <div class="item-content">
+                                                    <div class="item-label">Geräte</div>
+                                                    <div class="item-count" id="count-entities">0 verfügbar</div>
+                                                </div>
+                                                <div class="item-radio"></div>
+                                            </div>
+                                            
+                                            <div class="dropdown-item" data-type="automations">
+                                                <div class="item-icon">⚡</div>
+                                                <div class="item-content">
+                                                    <div class="item-label">Automationen</div>
+                                                    <div class="item-count" id="count-automations">0 verfügbar</div>
+                                                </div>
+                                                <div class="item-radio"></div>
+                                            </div>
+                                            
+                                            <div class="dropdown-item" data-type="scripts">
+                                                <div class="item-icon">📝</div>
+                                                <div class="item-content">
+                                                    <div class="item-label">Skripte</div>
+                                                    <div class="item-count" id="count-scripts">0 verfügbar</div>
+                                                </div>
+                                                <div class="item-radio"></div>
+                                            </div>
+                                            
+                                            <div class="dropdown-item" data-type="scenes">
+                                                <div class="item-icon">🎬</div>
+                                                <div class="item-content">
+                                                    <div class="item-label">Szenen</div>
+                                                    <div class="item-count" id="count-scenes">0 verfügbar</div>
+                                                </div>
+                                                <div class="item-radio"></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-item active" data-type="entities">
-                                            <div class="item-icon">🏠</div>
-                                            <div class="item-content">
-                                                <div class="item-label">Geräte</div>
-                                                <div class="item-count" id="count-entities">0 verfügbar</div>
-                                            </div>
-                                            <div class="item-radio"></div>
-                                        </div>
-                                        
-                                        <div class="dropdown-item" data-type="automations">
-                                            <div class="item-icon">⚡</div>
-                                            <div class="item-content">
-                                                <div class="item-label">Automationen</div>
-                                                <div class="item-count" id="count-automations">0 verfügbar</div>
-                                            </div>
-                                            <div class="item-radio"></div>
-                                        </div>
-                                        
-                                        <div class="dropdown-item" data-type="scripts">
-                                            <div class="item-icon">📝</div>
-                                            <div class="item-content">
-                                                <div class="item-label">Skripte</div>
-                                                <div class="item-count" id="count-scripts">0 verfügbar</div>
-                                            </div>
-                                            <div class="item-radio"></div>
-                                        </div>
-                                        
-                                        <div class="dropdown-item" data-type="scenes">
-                                            <div class="item-icon">🎬</div>
-                                            <div class="item-content">
-                                                <div class="item-label">Szenen</div>
-                                                <div class="item-count" id="count-scenes">0 verfügbar</div>
-                                            </div>
-                                            <div class="item-radio"></div>
-                                        </div>
-                                    </div>
-                                </div>
+                                </div> <!-- control-group-left ENDE -->
                                 
                                 <div class="view-toggle">
                                     <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
@@ -5519,7 +5520,9 @@ class FastSearchCard extends HTMLElement {
                                         </svg>
                                     </button>
                                 </div>
-                            </div>
+                            </div>       
+                                
+
                                 
 
                                 
