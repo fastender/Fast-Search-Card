@@ -5190,7 +5190,7 @@ class FastSearchCard extends HTMLElement {
                 </div>
                 
                 <div class="results-container" id="resultsContainer">
-                    <div class="no-results" id="noResults">Wählen Sie eine Kategorie oder geben Sie einen Suchbegriff ein...</div>
+                    <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                 </div>
             </div>
 
@@ -5213,7 +5213,7 @@ class FastSearchCard extends HTMLElement {
                         <div class="filter-section-menu">
                             <div class="filter-section-title">Kategorien</div>
                             <div class="filter-options" id="categoryOptions">
-                                <div class="filter-option" data-type="entities">
+                                <div class="filter-option selected" data-type="entities">
                                     <div class="filter-option-icon">🏠</div>
                                     <div class="filter-option-info">
                                         <div class="filter-option-name">Alle Geräte</div>
@@ -9743,7 +9743,7 @@ getQuickStats(item) {
     
     initializeCard() {
         this.allItems = [];
-        this.currentSearchType = null;
+        this.currentSearchType = 'entities';
         this.selectedRooms = new Set();
         this.selectedType = '';
         this.isInitialized = false; // Flag für Initialisierung
@@ -9951,11 +9951,16 @@ getQuickStats(item) {
         const categoryOptions = this.shadowRoot.getElementById('categoryOptions');
         const currentType = this.currentSearchType;
         
-        // Aktuelle Auswahl markieren (nur wenn currentType nicht null ist)
+        // Aktuelle Auswahl markieren
         categoryOptions.querySelectorAll('.filter-option').forEach(option => {
             const type = option.getAttribute('data-type');
-            option.classList.toggle('selected', currentType !== null && type === currentType);
-            // ...
+            option.classList.toggle('selected', type === currentType);
+            
+            // Count aktualisieren (vereinfacht - können Sie später erweitern)
+            const countElement = option.querySelector('.filter-option-count');
+            if (type === currentType) {
+                countElement.textContent = `${this.allItems.length} Verfügbar`;
+            }
         });
     }
     
@@ -10651,15 +10656,9 @@ getQuickStats(item) {
 
 
     updateSearchUI() {
-        // Sicherheitsprüfung hinzufügen
-        if (!this.currentSearchType || !this.searchTypeConfigs[this.currentSearchType]) {
-            // Standard-Werte für den Fall, dass keine Kategorie ausgewählt ist
-            this.searchInput.placeholder = 'Wählen Sie zuerst eine Kategorie...';
-            return;
-        }
-        
         const config = this.searchTypeConfigs[this.currentSearchType];
         this.searchInput.placeholder = config.placeholder;
+        
         
         // Filter chips zurücksetzen
         this.setupCategoryChips([]);
@@ -10667,13 +10666,6 @@ getQuickStats(item) {
 
     updateItems() {
         if (!this._hass) return;
-
-        // Wenn noch keine Kategorie ausgewählt ist, leere Ergebnisse anzeigen
-        if (this.currentSearchType === null) {
-            this.allItems = [];
-            this.displayItems([]);
-            return;
-        }        
 
         try {
             this.allItems = [];
