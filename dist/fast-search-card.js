@@ -5367,6 +5367,10 @@ class FastSearchCard extends HTMLElement {
 
 
                             
+
+
+
+
                             <div class="search-controls">
                                 <!-- Neue Dropdown-Container -->
                                 <div class="filter-dropdowns">
@@ -5411,6 +5415,50 @@ class FastSearchCard extends HTMLElement {
                                             </div>
                                         </div>
                                     </div>
+                            
+                                    <!-- Räume Dropdown -->
+                                    <div class="dropdown-container">
+                                        <button class="dropdown-trigger" id="roomsFilterTrigger">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                                            </svg>
+                                        </button>
+                                        <div class="dropdown-menu filter-dropdown" id="roomsFilterDropdown">
+                                            <div class="dropdown-header">Räume</div>
+                                            <div class="dropdown-content">
+                                                <div class="dropdown-item active" data-room="">
+                                                    <div class="dropdown-icon">🏠</div>
+                                                    <div class="dropdown-text">
+                                                        <div class="dropdown-title">Alle Räume</div>
+                                                        <div class="dropdown-count">-- Räume</div>
+                                                    </div>
+                                                </div>
+                                                <!-- Räume werden dynamisch eingefügt -->
+                                            </div>
+                                        </div>
+                                    </div>
+                            
+                                    <!-- Kategorien Dropdown -->
+                                    <div class="dropdown-container">
+                                        <button class="dropdown-trigger" id="categoriesFilterTrigger">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                            </svg>
+                                        </button>
+                                        <div class="dropdown-menu filter-dropdown" id="categoriesFilterDropdown">
+                                            <div class="dropdown-header">Kategorien</div>
+                                            <div class="dropdown-content">
+                                                <div class="dropdown-item active" data-category="">
+                                                    <div class="dropdown-icon">📋</div>
+                                                    <div class="dropdown-text">
+                                                        <div class="dropdown-title">Alle Kategorien</div>
+                                                        <div class="dropdown-count">-- Kategorien</div>
+                                                    </div>
+                                                </div>
+                                                <!-- Kategorien werden dynamisch eingefügt -->
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <!-- Alter Filter Button (bleibt vorerst) -->
@@ -5434,6 +5482,11 @@ class FastSearchCard extends HTMLElement {
                                     </button>
                                 </div>
                             </div>
+
+
+
+                                
+
 
                                 
 
@@ -10160,9 +10213,12 @@ getQuickStats(item) {
     
 
     // ===== NEUE METHODEN: Filter Dropdown =====
+
+
     setupFilterDropdownEvents() {
         console.log('🔧 Setting up filter dropdown events');
         
+        // ===== SUCHFILTER DROPDOWN =====
         const searchFilterTrigger = this.shadowRoot.getElementById('searchFilterTrigger');
         const searchFilterDropdown = this.shadowRoot.getElementById('searchFilterDropdown');
         
@@ -10221,7 +10277,17 @@ getQuickStats(item) {
         // Store state reference
         this.isFilterDropdownOpen = () => isDropdownOpen;
         this.setFilterDropdownOpen = (state) => { isDropdownOpen = state; };
+        
+        // ===== RÄUME DROPDOWN =====
+        this.setupRoomsDropdown();
+        
+        // ===== KATEGORIEN DROPDOWN =====
+        this.setupCategoriesDropdown();
     }
+
+
+
+    
 
     openFilterDropdown() {
         console.log('📂 Opening filter dropdown');
@@ -10287,7 +10353,282 @@ getQuickStats(item) {
     }
 
     
+    
+    setupRoomsDropdown() {
+        const roomsFilterTrigger = this.shadowRoot.getElementById('roomsFilterTrigger');
+        const roomsFilterDropdown = this.shadowRoot.getElementById('roomsFilterDropdown');
+        
+        if (!roomsFilterTrigger || !roomsFilterDropdown) return;
+        
+        let isRoomsDropdownOpen = false;
+        
+        // Trigger Button Click
+        roomsFilterTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            if (isRoomsDropdownOpen) {
+                this.closeRoomsDropdown();
+            } else {
+                this.openRoomsDropdown();
+            }
+        });
+        
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (isRoomsDropdownOpen && 
+                !roomsFilterTrigger.contains(e.target) && 
+                !roomsFilterDropdown.contains(e.target)) {
+                this.closeRoomsDropdown();
+            }
+        });
+        
+        this.isRoomsDropdownOpen = () => isRoomsDropdownOpen;
+        this.setRoomsDropdownOpen = (state) => { isRoomsDropdownOpen = state; };
+    }
+    
+    openRoomsDropdown() {
+        const trigger = this.shadowRoot.getElementById('roomsFilterTrigger');
+        const dropdown = this.shadowRoot.getElementById('roomsFilterDropdown');
+        
+        if (!trigger || !dropdown) return;
+        
+        trigger.classList.add('active');
+        this.updateRoomsDropdown();
+        dropdown.classList.add('open');
+        this.setRoomsDropdownOpen(true);
+    }
+    
+    closeRoomsDropdown() {
+        const trigger = this.shadowRoot.getElementById('roomsFilterTrigger');
+        const dropdown = this.shadowRoot.getElementById('roomsFilterDropdown');
+        
+        if (!trigger || !dropdown) return;
+        
+        trigger.classList.remove('active');
+        dropdown.classList.remove('open');
+        this.setRoomsDropdownOpen(false);
+    }
+    
+    updateRoomsDropdown() {
+        const dropdown = this.shadowRoot.getElementById('roomsFilterDropdown');
+        const content = dropdown.querySelector('.dropdown-content');
+        
+        if (!content) return;
+        
+        // Alle Räume sammeln
+        const rooms = [...new Set(this.allItems.map(item => item.room))].sort();
+        
+        // Bestehende dynamische Räume entfernen
+        const existingRooms = content.querySelectorAll('.dropdown-item:not([data-room=""])');
+        existingRooms.forEach(room => room.remove());
+        
+        // Neue Räume hinzufügen
+        rooms.forEach(room => {
+            const roomCount = this.allItems.filter(item => item.room === room).length;
+            const roomIcon = this.getRoomIcon(room);
+            
+            const roomItem = document.createElement('div');
+            roomItem.className = 'dropdown-item';
+            roomItem.setAttribute('data-room', room);
+            roomItem.innerHTML = `
+                <div class="dropdown-icon">${roomIcon}</div>
+                <div class="dropdown-text">
+                    <div class="dropdown-title">${room}</div>
+                    <div class="dropdown-count">${roomCount} Geräte</div>
+                </div>
+            `;
+            
+            roomItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Update active state
+                content.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                roomItem.classList.add('active');
+                
+                // Apply room filter
+                console.log('🏠 Room selected:', room);
+                
+                this.closeRoomsDropdown();
+            });
+            
+            content.appendChild(roomItem);
+        });
+    }
+    
+    getRoomIcon(room) {
+        const roomIcons = {
+            'Wohnzimmer': '🛋️',
+            'Schlafzimmer': '🛏️',
+            'Küche': '🍳',
+            'Bad': '🚿',
+            'Badezimmer': '🚿',
+            'Büro': '💼',
+            'Arbeitszimmer': '💼',
+            'Kinderzimmer': '🧸',
+            'Flur': '🚪',
+            'Diele': '🚪',
+            'Garage': '🚗',
+            'Keller': '🏠',
+            'Dachboden': '🏠',
+            'Garten': '🌱',
+            'Terrasse': '🌿',
+            'Balkon': '🌿'
+        };
+        
+        return roomIcons[room] || '🏠';
+    }
+    
+    setupCategoriesDropdown() {
+        const categoriesFilterTrigger = this.shadowRoot.getElementById('categoriesFilterTrigger');
+        const categoriesFilterDropdown = this.shadowRoot.getElementById('categoriesFilterDropdown');
+        
+        if (!categoriesFilterTrigger || !categoriesFilterDropdown) return;
+        
+        let isCategoriesDropdownOpen = false;
+        
+        // Trigger Button Click
+        categoriesFilterTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            if (isCategoriesDropdownOpen) {
+                this.closeCategoriesDropdown();
+            } else {
+                this.openCategoriesDropdown();
+            }
+        });
+        
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (isCategoriesDropdownOpen && 
+                !categoriesFilterTrigger.contains(e.target) && 
+                !categoriesFilterDropdown.contains(e.target)) {
+                this.closeCategoriesDropdown();
+            }
+        });
+        
+        this.isCategoriesDropdownOpen = () => isCategoriesDropdownOpen;
+        this.setCategoriesDropdownOpen = (state) => { isCategoriesDropdownOpen = state; };
+    }
+    
+    openCategoriesDropdown() {
+        const trigger = this.shadowRoot.getElementById('categoriesFilterTrigger');
+        const dropdown = this.shadowRoot.getElementById('categoriesFilterDropdown');
+        
+        if (!trigger || !dropdown) return;
+        
+        trigger.classList.add('active');
+        this.updateCategoriesDropdown();
+        dropdown.classList.add('open');
+        this.setCategoriesDropdownOpen(true);
+    }
+    
+    closeCategoriesDropdown() {
+        const trigger = this.shadowRoot.getElementById('categoriesFilterTrigger');
+        const dropdown = this.shadowRoot.getElementById('categoriesFilterDropdown');
+        
+        if (!trigger || !dropdown) return;
+        
+        trigger.classList.remove('active');
+        dropdown.classList.remove('open');
+        this.setCategoriesDropdownOpen(false);
+    }
+    
+    updateCategoriesDropdown() {
+        const dropdown = this.shadowRoot.getElementById('categoriesFilterDropdown');
+        const content = dropdown.querySelector('.dropdown-content');
+        
+        if (!content) return;
+        
+        // Kategorien basierend auf aktuellem Suchfilter
+        const categories = this.getCategoriesForCurrentFilter();
+        
+        // Bestehende dynamische Kategorien entfernen
+        const existingCategories = content.querySelectorAll('.dropdown-item:not([data-category=""])');
+        existingCategories.forEach(cat => cat.remove());
+        
+        // Neue Kategorien hinzufügen
+        categories.forEach(category => {
+            const categoryCount = this.getItemsForCategory(category.key).length;
+            
+            const categoryItem = document.createElement('div');
+            categoryItem.className = 'dropdown-item';
+            categoryItem.setAttribute('data-category', category.key);
+            categoryItem.innerHTML = `
+                <div class="dropdown-icon">${category.icon}</div>
+                <div class="dropdown-text">
+                    <div class="dropdown-title">${category.name}</div>
+                    <div class="dropdown-count">${categoryCount} Geräte</div>
+                </div>
+            `;
+            
+            categoryItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Update active state
+                content.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                categoryItem.classList.add('active');
+                
+                // Apply category filter
+                console.log('⭐ Category selected:', category.key);
+                
+                this.closeCategoriesDropdown();
+            });
+            
+            content.appendChild(categoryItem);
+        });
+    }
+    
+    getCategoriesForCurrentFilter() {
+        const categories = {
+            entities: [
+                { key: 'lights', name: 'Lichter', icon: '💡' },
+                { key: 'climate', name: 'Klima', icon: '🌡️' },
+                { key: 'switches', name: 'Schalter', icon: '🔌' },
+                { key: 'sensors', name: 'Sensoren', icon: '📊' },
+                { key: 'media', name: 'Medien', icon: '📺' }
+            ],
+            automations: [
+                { key: 'lighting', name: 'Beleuchtung', icon: '💡' },
+                { key: 'climate', name: 'Klima', icon: '🌡️' },
+                { key: 'security', name: 'Sicherheit', icon: '🔒' },
+                { key: 'maintenance', name: 'Wartung', icon: '🔧' }
+            ],
+            scripts: [
+                { key: 'lighting', name: 'Beleuchtung', icon: '💡' },
+                { key: 'climate', name: 'Klima', icon: '🌡️' },
+                { key: 'media', name: 'Medien', icon: '📺' },
+                { key: 'other', name: 'Sonstiges', icon: '📜' }
+            ],
+            scenes: [
+                { key: 'morning', name: 'Morgen', icon: '🌅' },
+                { key: 'evening', name: 'Abend', icon: '🌆' },
+                { key: 'night', name: 'Nacht', icon: '🌙' },
+                { key: 'entertainment', name: 'Unterhaltung', icon: '🎬' }
+            ]
+        };
+        
+        return categories[this.currentSearchType] || categories.entities;
+    }
+    
+    getItemsForCategory(categoryKey) {
+        return this.allItems.filter(item => {
+            switch(categoryKey) {
+                case 'lights': return item.type === 'light';
+                case 'climate': return item.type === 'climate';
+                case 'switches': return item.type === 'switch';
+                case 'sensors': return item.type === 'sensor';
+                case 'media': return item.type === 'media_player';
+                default: return true;
+            }
+        });
+    }    
+    
 
+
+
+
+
+    
     onSearchTypeChange() {
         // currentSearchType wird jetzt über das Filter-Menu gesetzt
         this.selectedRooms.clear();
