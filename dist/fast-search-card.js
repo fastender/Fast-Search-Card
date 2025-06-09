@@ -782,7 +782,6 @@ class FastSearchCard extends HTMLElement {
                 
                 .search-controls .dropdown-item.active {
                     background: rgba(255, 255, 255, 0.15);
-                    border-left: 3px solid #FF8A00;
                 }
                 
                 /* Dropdown Icon */
@@ -952,12 +951,14 @@ class FastSearchCard extends HTMLElement {
                 .search-controls .dropdown-item.active::before {
                     content: "";
                     position: absolute;
-                    right: 20px;
+                    right: 24px; /* Position angepasst */
+                    top: 50%;
+                    transform: translateY(-50%); /* Vertikal zentriert */
                     width: 6px;
                     height: 6px;
                     background: white;
                     border-radius: 50%;
-                    z-index: 1;
+                    z-index: 10; /* Höher als andere Elemente */
                 }
                 
                 /* 4. DROPDOWN-TRIGGER WIE VIEW-TOGGLE STYLE */
@@ -10867,7 +10868,7 @@ getQuickStats(item) {
                 <div class="dropdown-icon">${category.icon}</div>
                 <div class="dropdown-text">
                     <div class="dropdown-title">${category.name}</div>
-                    <div class="dropdown-count">${categoryCount} Geräte</div>
+                    <div class="dropdown-count">${categoryCount} ${this.getCategoryCountLabel(category.key, categoryCount)}</div>
                 </div>
             `;
             
@@ -10912,7 +10913,17 @@ getQuickStats(item) {
         }, 100);
     }
 
-
+    getCategoryCountLabel(categoryKey, count) {
+        switch(categoryKey) {
+            case 'lights': return count === 1 ? 'Licht' : 'Lichter';
+            case 'climate': return count === 1 ? 'Klima' : 'Klimas';
+            case 'covers': return count === 1 ? 'Rollo' : 'Rollos';
+            case 'switches': return count === 1 ? 'Schalter' : 'Schalter';
+            case 'sensors': return count === 1 ? 'Sensor' : 'Sensoren';
+            case 'media': return count === 1 ? 'Player' : 'Player';
+            default: return count === 1 ? 'Element' : 'Elemente';
+        }
+    }
     
     
     getCategoriesForCurrentFilter() {
@@ -10948,19 +10959,67 @@ getQuickStats(item) {
         return categories[this.currentSearchType] || categories.entities;
     }
     
+ 
+
+
     getItemsForCategory(categoryKey) {
-        return this.allItems.filter(item => {
+        const currentItems = this.getItemsByType(this.currentSearchType);
+        
+        return currentItems.filter(item => {
             switch(categoryKey) {
-                case 'lights': return item.type === 'light';
-                case 'climate': return item.type === 'climate';
-                case 'switches': return item.type === 'switch';
-                case 'sensors': return item.type === 'sensor';
-                case 'media': return item.type === 'media_player';
-                default: return true;
+                // Für Entities (Geräte)
+                case 'lights': 
+                    return item.type === 'light';
+                case 'climate': 
+                    return item.type === 'climate';
+                case 'switches': 
+                    return item.type === 'switch';
+                case 'sensors': 
+                    return item.type === 'sensor';
+                case 'media': 
+                    return item.type === 'media_player';
+                case 'covers': 
+                    return item.type === 'cover';
+                    
+                // Für Automations
+                case 'lighting': 
+                    return item.name.toLowerCase().includes('licht') || 
+                           item.name.toLowerCase().includes('light') ||
+                           item.category === 'lighting';
+                case 'security': 
+                    return item.name.toLowerCase().includes('sicherheit') || 
+                           item.name.toLowerCase().includes('security') ||
+                           item.category === 'security';
+                case 'maintenance': 
+                    return item.name.toLowerCase().includes('wartung') || 
+                           item.name.toLowerCase().includes('maintenance') ||
+                           item.category === 'maintenance';
+                           
+                // Für Scripts  
+                case 'other': 
+                    return !['lighting', 'climate', 'media'].some(cat => 
+                        item.name.toLowerCase().includes(cat));
+                        
+                // Für Scenes
+                case 'morning': 
+                    return item.name.toLowerCase().includes('morgen') || 
+                           item.name.toLowerCase().includes('morning');
+                case 'evening': 
+                    return item.name.toLowerCase().includes('abend') || 
+                           item.name.toLowerCase().includes('evening');
+                case 'night': 
+                    return item.name.toLowerCase().includes('nacht') || 
+                           item.name.toLowerCase().includes('night');
+                case 'entertainment': 
+                    return item.name.toLowerCase().includes('tv') || 
+                           item.name.toLowerCase().includes('entertainment') ||
+                           item.name.toLowerCase().includes('kino');
+                           
+                default: 
+                    return true;
             }
         });
     }    
-    
 
 
     applyAllFilters() {
