@@ -5134,6 +5134,299 @@ class FastSearchCard extends HTMLElement {
                         padding: 4px 8px;
                     }
                 }
+
+                /* ===========================================
+                   MODULARE DROPDOWN SYSTEM - GLASSMORPHISM
+                   =========================================== */
+                
+                /* Control Group Layout */
+                .control-group-left {
+                    display: flex;
+                    gap: 6px;
+                    align-items: center;
+                    position: relative;
+                }
+                
+                /* Universal Dropdown Trigger Buttons */
+                .dropdown-trigger {
+                    width: 32px;
+                    height: 32px;
+                    background: rgba(0, 0, 0, 0.15);
+                    border: none;
+                    border-radius: 50px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    color: rgba(255, 255, 255, 0.8);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border: 0.5px solid rgba(255, 255, 255, 0.1);
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .dropdown-trigger::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(135deg, 
+                        rgba(255,255,255,0.1) 0%, 
+                        rgba(255,255,255,0.05) 100%);
+                    border-radius: inherit;
+                    opacity: 0;
+                    transform: scale(0.8);
+                    transition: all 0.3s ease;
+                    pointer-events: none;
+                }
+                
+                .dropdown-trigger:hover::before {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                
+                .dropdown-trigger:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    transform: scale(1.05);
+                    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+                }
+                
+                .dropdown-trigger.active {
+                    background: rgba(255, 138, 0, 0.2);
+                    color: #FF8A00;
+                    box-shadow: 0 0 20px rgba(255, 138, 0, 0.3);
+                }
+                
+                .dropdown-trigger.active::before {
+                    background: linear-gradient(135deg, 
+                        rgba(255, 138, 0, 0.2) 0%, 
+                        rgba(255, 138, 0, 0.1) 100%);
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                
+                /* Universal Glassmorphism Dropdown Container */
+                .dropdown-container {
+                    position: absolute;
+                    top: 40px;
+                    left: 0;
+                    background: rgba(30, 30, 30, 0.7);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    border-radius: 18px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 
+                        0 8px 32px rgba(0, 0, 0, 0.3),
+                        0 2px 16px rgba(0, 0, 0, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    opacity: 0;
+                    visibility: hidden;
+                    transform: translateY(-10px) scale(0.95);
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    z-index: 1000;
+                    min-width: 240px;
+                    max-height: 320px;
+                    overflow: hidden;
+                    pointer-events: none;
+                }
+                
+                .dropdown-container.active {
+                    opacity: 1;
+                    visibility: visible;
+                    transform: translateY(0) scale(1);
+                    pointer-events: auto;
+                }
+                
+                /* Dropdown Header */
+                .dropdown-header {
+                    padding: 14px 18px 10px 18px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    background: rgba(255, 255, 255, 0.02);
+                }
+                
+                .dropdown-title {
+                    font-family: 'SF Pro Display', 'Inter', -apple-system, sans-serif;
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.9);
+                    letter-spacing: 0.3px;
+                    text-transform: uppercase;
+                }
+                
+                /* Dropdown Content */
+                .dropdown-content {
+                    padding: 8px;
+                    max-height: 260px;
+                    overflow-y: auto;
+                    scrollbar-width: thin;
+                    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+                }
+                
+                .dropdown-content::-webkit-scrollbar {
+                    width: 4px;
+                }
+                
+                .dropdown-content::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                
+                .dropdown-content::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.15);
+                    border-radius: 2px;
+                }
+                
+                .dropdown-content::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.25);
+                }
+                
+                /* Dropdown Items */
+                .dropdown-item {
+                    display: flex;
+                    align-items: center;
+                    padding: 12px 14px;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                    gap: 12px;
+                    position: relative;
+                    margin-bottom: 2px;
+                }
+                
+                .dropdown-item::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: inherit;
+                    opacity: 0;
+                    transform: scale(0.8);
+                    transition: all 0.3s ease;
+                    pointer-events: none;
+                }
+                
+                .dropdown-item:hover::before {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                
+                .dropdown-item:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    transform: translateX(3px);
+                }
+                
+                .dropdown-item.active {
+                    background: rgba(255, 138, 0, 0.15);
+                    border-left: 3px solid #FF8A00;
+                    padding-left: 11px;
+                }
+                
+                .dropdown-item.active::before {
+                    background: rgba(255, 138, 0, 0.1);
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                
+                /* Item Components */
+                .item-icon {
+                    font-size: 20px;
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+                
+                .item-content {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    min-width: 0;
+                }
+                
+                .item-label {
+                    font-family: 'SF Pro Display', 'Inter', -apple-system, sans-serif;
+                    font-size: 15px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.95);
+                    line-height: 1.3;
+                }
+                
+                .item-count {
+                    font-family: 'SF Pro Display', 'Inter', -apple-system, sans-serif;
+                    font-size: 11px;
+                    font-weight: 400;
+                    color: rgba(255, 255, 255, 0.6);
+                    line-height: 1.2;
+                }
+                
+                .dropdown-item.active .item-count {
+                    color: rgba(255, 138, 0, 0.8);
+                }
+                
+                /* Radio Button */
+                .item-radio {
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    position: relative;
+                    transition: all 0.3s ease;
+                    flex-shrink: 0;
+                }
+                
+                .item-radio::after {
+                    content: '';
+                    position: absolute;
+                    top: 2px;
+                    left: 2px;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: #FF8A00;
+                    opacity: 0;
+                    transform: scale(0);
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                
+                .dropdown-item.active .item-radio {
+                    border-color: #FF8A00;
+                    box-shadow: 0 0 8px rgba(255, 138, 0, 0.3);
+                }
+                
+                .dropdown-item.active .item-radio::after {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                
+                /* Responsive für kleine Bildschirme */
+                @media (max-width: 480px) {
+                    .dropdown-container {
+                        min-width: 200px;
+                        max-height: 280px;
+                    }
+                    
+                    .dropdown-item {
+                        padding: 10px 12px;
+                    }
+                    
+                    .item-label {
+                        font-size: 14px;
+                    }
+                    
+                    .item-count {
+                        font-size: 10px;
+                    }
+                }
+
                 
             </style>
             
@@ -5148,13 +5441,69 @@ class FastSearchCard extends HTMLElement {
                                 <div class="typing-dot"></div>
                                 <div class="typing-dot"></div>
                             </div>
+
+
                             <div class="search-controls">
-                                <button class="filter-button" id="filterButton">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
-                                    </svg>
-                                    <span class="filter-badge" id="filterBadge">0</span>
-                                </button>
+                                <div class="control-group-left">
+                                    <!-- Dropdown 1: Suchfilter -->
+                                    <button class="dropdown-trigger" id="searchTypeButton" data-dropdown="searchType">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                    </button>
+                                    
+                                    <!-- Filter Button (wird später entfernt) -->
+                                    <button class="filter-button" id="filterButton">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                                        </svg>
+                                        <span class="filter-badge" id="filterBadge">0</span>
+                                    </button>
+                                    
+                                    <!-- Dropdown Container -->
+                                    <div class="dropdown-container" id="searchTypeDropdown">
+                                        <div class="dropdown-header">
+                                            <span class="dropdown-title">Suchfilter</span>
+                                        </div>
+                                        <div class="dropdown-content">
+                                            <div class="dropdown-item active" data-type="entities">
+                                                <div class="item-icon">🏠</div>
+                                                <div class="item-content">
+                                                    <div class="item-label">Geräte</div>
+                                                    <div class="item-count" id="count-entities">0 verfügbar</div>
+                                                </div>
+                                                <div class="item-radio"></div>
+                                            </div>
+                                            
+                                            <div class="dropdown-item" data-type="automations">
+                                                <div class="item-icon">⚡</div>
+                                                <div class="item-content">
+                                                    <div class="item-label">Automationen</div>
+                                                    <div class="item-count" id="count-automations">0 verfügbar</div>
+                                                </div>
+                                                <div class="item-radio"></div>
+                                            </div>
+                                            
+                                            <div class="dropdown-item" data-type="scripts">
+                                                <div class="item-icon">📝</div>
+                                                <div class="item-content">
+                                                    <div class="item-label">Skripte</div>
+                                                    <div class="item-count" id="count-scripts">0 verfügbar</div>
+                                                </div>
+                                                <div class="item-radio"></div>
+                                            </div>
+                                            
+                                            <div class="dropdown-item" data-type="scenes">
+                                                <div class="item-icon">🎬</div>
+                                                <div class="item-content">
+                                                    <div class="item-label">Szenen</div>
+                                                    <div class="item-count" id="count-scenes">0 verfügbar</div>
+                                                </div>
+                                                <div class="item-radio"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 
                                 <div class="view-toggle">
                                     <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
@@ -5168,6 +5517,8 @@ class FastSearchCard extends HTMLElement {
                                         </svg>
                                     </button>
                                 </div>
+
+                                
                             </div>
                         </div>
                     </div>
