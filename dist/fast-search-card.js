@@ -670,24 +670,28 @@ class FastSearchCard extends HTMLElement {
                     z-index: 100;
                 }
                 
-                /* Dropdown Trigger Button - Rund wie view-toggle */
+                /* Dropdown Trigger Button - Jetzt wie view-toggle-btn */
                 .dropdown-trigger {
-                    background: rgba(255, 255, 255, 0.08);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    border-radius: 50%;
-                    padding: 0;
-                    cursor: pointer;
-                    color: rgba(255, 255, 255, 0.7);
-                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    background: rgba(0, 0, 0, 0.15);  /* Wie view-toggle-btn */
+                    border: none;                      /* Wie view-toggle-btn */
+                    border-radius: 60px;              /* Wie view-toggle-btn - war 50% */
+                    width: 36px;                       /* Wie view-toggle-btn - war 44px */
+                    height: 36px;                      /* Wie view-toggle-btn - war 44px */
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    width: 44px;
-                    height: 44px;
+                    cursor: pointer;
+                    transition: none; /* WAAPI übernimmt - wie view-toggle-btn */
+                    color: rgba(255, 255, 255, 0.8);  /* Wie view-toggle-btn - war 0.7 */
                     position: relative;
+                    overflow: hidden;
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border: 0.5px solid rgba(255, 255, 255, 0.1); /* Wie view-toggle-btn */
+                    transform-style: preserve-3d;
+                    will-change: transform, filter, backdrop-filter;
                     -webkit-tap-highlight-color: transparent;
+                    padding: 0;
                 }
                 
                 .dropdown-trigger::before {
@@ -697,48 +701,50 @@ class FastSearchCard extends HTMLElement {
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 50%;
+                    background: linear-gradient(135deg, 
+                        rgba(255,255,255,0.15) 0%, 
+                        rgba(255,255,255,0.05) 100%);  /* Wie view-toggle-btn */
+                    border-radius: inherit;
                     opacity: 0;
-                    transform: scale(0.8);
-                    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                    transform: scale(0.8) translateZ(-2px);
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    pointer-events: none;
                 }
                 
-                .dropdown-trigger:hover {
-                    background: rgba(255, 255, 255, 0.12);
-                    color: rgba(255, 255, 255, 0.9);
-                    border-color: rgba(255, 255, 255, 0.25);
-                    transform: scale(1.05);
-                }
-                
-                .dropdown-trigger:hover::before {
+                .dropdown-trigger:hover:not(.active)::before {
                     opacity: 1;
-                    transform: scale(1);
+                    transform: scale(1) translateZ(0px);
                 }
                 
                 .dropdown-trigger.active {
-                    background: rgba(255, 255, 255, 0.15);
+                    background: rgba(255, 255, 255, 0.15); /* Wie view-toggle-btn.active */
                     color: white;
-                    border-color: rgba(255, 255, 255, 0.3);
+                    transform: none;
                     backdrop-filter: blur(15px);
                     -webkit-backdrop-filter: blur(15px);
                 }
                 
                 .dropdown-trigger.active::before {
                     opacity: 1;
-                    transform: scale(1);
-                    background: rgba(255, 255, 255, 0.1);
+                    transform: scale(1) translateZ(0px);
                 }
                 
-                /* Filter Dropdown Menu */
+
+                /* Filter Dropdown Menu - Neuer Hintergrund wie search-container */
                 .filter-dropdown {
                     position: absolute;
                     top: calc(100% + 8px);
                     left: 0;
                     min-width: 280px;
-                    background: rgba(30, 30, 30, 0.7);
-                    backdrop-filter: blur(16px);
-                    -webkit-backdrop-filter: blur(16px);
+                    /* Neuer Hintergrund wie search-container */
+                    background: 
+                        /* Oberflächenreflektionen */
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                        /* Basis Material */
+                        rgba(28, 28, 30, 0.9);
+                    backdrop-filter: blur(20px) saturate(1.8); /* Wie search-container */
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
                     border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: 18px;
                     box-shadow: 
@@ -767,6 +773,7 @@ class FastSearchCard extends HTMLElement {
                     font-weight: 600;
                     color: rgba(255, 255, 255, 0.9);
                     text-align: left;
+                    /* position: relative; */ /* Nicht mehr fixed */
                 }
                 
                 /* Dropdown Content mit Scroll */
@@ -804,6 +811,7 @@ class FastSearchCard extends HTMLElement {
                     color: rgba(255, 255, 255, 0.4);
                     background: linear-gradient(to bottom, rgba(30, 30, 30, 0.9), transparent);
                     padding: 4px 0 8px 0;
+                    transform: rotate(180deg);
                     z-index: 10;
                     pointer-events: none;
                 }
@@ -818,7 +826,7 @@ class FastSearchCard extends HTMLElement {
                     color: rgba(255, 255, 255, 0.4);
                     background: linear-gradient(to top, rgba(30, 30, 30, 0.9), transparent);
                     padding: 8px 0 4px 0;
-                    transform: rotate(180deg);
+                    
                     z-index: 10;
                     pointer-events: none;
                 }
@@ -994,8 +1002,8 @@ class FastSearchCard extends HTMLElement {
                 
                 .search-input {
                     width: 100%;
-                    padding: 14px 20px 50px 20px;
-                    height: 80px;
+                    padding: 14px 20px 60px 20px; 
+                    height: 110px;
                     border: none;
                     background: rgba(0, 0, 0, 0.15);
                     border-radius: 16px;
