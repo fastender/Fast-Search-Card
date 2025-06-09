@@ -481,6 +481,8 @@ class FastSearchCard extends HTMLElement {
                     --visionos-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
                 }
                 
+
+
                 :host {
                     display: block;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -488,54 +490,26 @@ class FastSearchCard extends HTMLElement {
                     /* Card fade-in beim Laden */
                     opacity: 0;
                     transform: translateY(40px);
-
                     /* visionOS 3D Container */
                     transform-style: preserve-3d;
                     perspective: 1200px;
                     perspective-origin: center center;                    
                     
-                    /* Glassmorphism Container - Neuer Hintergrund */
-                    border-radius: 24px;
+                    /* 👈 NEU: NUR MINIMAL STYLING - KEIN Glassmorphism hier */
                     padding: 0;
-                    overflow: hidden;
-
-                    background: 
-                        /* Oberflächenreflektionen */
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
-                        /* Basis Material */
-                        rgba(28, 28, 30, 0.9);
-
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
+                    overflow: visible; /* 👈 Wichtig: visible statt hidden */
                     
-                    /* Apple Design System Borders */
-                    border: 0.33px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
-                    
-                    /* Spatial Depth Shadows */
-                    box-shadow: 
-                        /* Ambient Shadow */
-                        0 2px 8px rgba(0, 0, 0, 0.08),
-                        0 12px 40px rgba(0, 0, 0, 0.12),
-                        /* Directional Shadow (von oben-links) */
-                        0 -1px 2px rgba(255, 255, 255, 0.05),
-                        /* Inner Highlight */
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
+                    /* 👈 ENTFERNT: Alle background, backdrop-filter, border, box-shadow */
                     
                     /* Apple Typography Enhancement */
                     -webkit-font-smoothing: antialiased;
                     -moz-osx-font-smoothing: grayscale;                    
-
-
                     /* GLOBALE TOUCH-FIXES */
                     -webkit-tap-highlight-color: transparent !important;
                     -webkit-touch-callout: none !important;
                     -webkit-user-select: none !important;
                     user-select: none !important;
-                    
-                }   
+                }                    
 
                 /* ALLE BUTTONS/CLICKABLE ELEMENTE */
                 .filter-chip, .filter-button, .view-toggle-btn {
@@ -555,9 +529,42 @@ class FastSearchCard extends HTMLElement {
                     backface-visibility: hidden;                    
                 }                
 
+
                 .search-section {
-                    background: transparent;
+                    /* 👈 NEU: Der Glassmorphism vom :host hierher verschieben */
+                    background: 
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                        rgba(28, 28, 30, 0.9);
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
+                    border: 0.33px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 20px;
+                    box-shadow: 
+                        0 2px 8px rgba(0, 0, 0, 0.08),
+                        0 12px 40px rgba(0, 0, 0, 0.12),
+                        0 -1px 2px rgba(255, 255, 255, 0.05),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
                     padding: 24px;
+                }
+                
+                .results-container {
+                    /* 👈 NEU: Gleicher Hintergrund für results */
+                    background: 
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                        rgba(28, 28, 30, 0.9);
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
+                    border: 0.33px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 20px;
+                    box-shadow: 
+                        0 2px 8px rgba(0, 0, 0, 0.08),
+                        0 12px 40px rgba(0, 0, 0, 0.12),
+                        0 -1px 2px rgba(255, 255, 255, 0.05),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
                 }
 
 
