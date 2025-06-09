@@ -2,7 +2,11 @@ class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-    }
+        
+        // Neue Filter-Eigenschaften
+        this.selectedRoom = '';
+        this.selectedCategory = '';
+    
     
     // 🎬 Card Animation mit Web Animation API
     animateCardEntrance() {
@@ -10438,6 +10442,7 @@ getQuickStats(item) {
                 </div>
             `;
             
+
             roomItem.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
@@ -10446,7 +10451,11 @@ getQuickStats(item) {
                 roomItem.classList.add('active');
                 
                 // Apply room filter
+                this.selectedRoom = room;
                 console.log('🏠 Room selected:', room);
+                
+                // Filter anwenden
+                this.applyAllFilters();
                 
                 this.closeRoomsDropdown();
             });
@@ -10561,6 +10570,8 @@ getQuickStats(item) {
                 </div>
             `;
             
+
+
             categoryItem.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
@@ -10569,10 +10580,15 @@ getQuickStats(item) {
                 categoryItem.classList.add('active');
                 
                 // Apply category filter
+                this.selectedCategory = category.key;
                 console.log('⭐ Category selected:', category.key);
                 
+                // Filter anwenden
+                this.applyAllFilters();
+                
                 this.closeCategoriesDropdown();
-            });
+            });                
+
             
             content.appendChild(categoryItem);
         });
@@ -10625,14 +10641,82 @@ getQuickStats(item) {
     
 
 
-
-
-
+    applyAllFilters() {
+        console.log('🔍 Applying all filters:', {
+            searchType: this.currentSearchType,
+            room: this.selectedRoom,
+            category: this.selectedCategory,
+            searchText: this.searchInput.value
+        });
+        
+        // Basis-Items basierend auf Suchtyp
+        let filteredItems = this.getItemsByType(this.currentSearchType);
+        
+        // Raum-Filter anwenden
+        if (this.selectedRoom) {
+            filteredItems = filteredItems.filter(item => item.room === this.selectedRoom);
+            console.log(`🏠 Room filter: ${filteredItems.length} items in ${this.selectedRoom}`);
+        }
+        
+        // Kategorie-Filter anwenden
+        if (this.selectedCategory) {
+            filteredItems = this.filterItemsByCategory(filteredItems, this.selectedCategory);
+            console.log(`⭐ Category filter: ${filteredItems.length} items in ${this.selectedCategory}`);
+        }
+        
+        // Suchtext-Filter anwenden
+        const searchText = this.searchInput.value.toLowerCase().trim();
+        if (searchText) {
+            filteredItems = filteredItems.filter(item => 
+                item.name.toLowerCase().includes(searchText) ||
+                item.room.toLowerCase().includes(searchText) ||
+                item.id.toLowerCase().includes(searchText)
+            );
+            console.log(`🔤 Search filter: ${filteredItems.length} items matching "${searchText}"`);
+        }
+        
+        // Ergebnisse anzeigen
+        if (filteredItems.length === 0) {
+            this.showNoResults(`Keine Ergebnisse für die aktuelle Filterung gefunden.`);
+        } else {
+            if (this.currentView === 'grid') {
+                this.displayItemsGrid(filteredItems);
+            } else {
+                this.displayItemsList(filteredItems);
+            }
+        }
+    }
     
+    filterItemsByCategory(items, categoryKey) {
+        return items.filter(item => {
+            switch(categoryKey) {
+                case 'lights': return item.type === 'light';
+                case 'climate': return item.type === 'climate';
+                case 'switches': return item.type === 'switch';
+                case 'sensors': return item.type === 'sensor';
+                case 'media': return item.type === 'media_player';
+                case 'lighting': return item.category === 'lighting' || item.type === 'light';
+                case 'security': return item.category === 'security';
+                case 'maintenance': return item.category === 'maintenance';
+                case 'morning': return item.category === 'morning';
+                case 'evening': return item.category === 'evening';
+                case 'night': return item.category === 'night';
+                case 'entertainment': return item.category === 'entertainment';
+                default: return true;
+            }
+        });
+    }
+
+
+
+
+
     onSearchTypeChange() {
         // currentSearchType wird jetzt über das Filter-Menu gesetzt
         this.selectedRooms.clear();
         this.selectedType = '';
+        this.selectedRoom = ''; // NEU: Für Räume-Filter
+        this.selectedCategory = ''; // NEU: Für Kategorien-Filter
         this.isInitialized = false; // Reset bei Typ-Änderung
         this.updateSearchUI();
         this.updateItems();
