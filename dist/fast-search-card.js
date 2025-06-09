@@ -5209,6 +5209,7 @@ class FastSearchCard extends HTMLElement {
                     transform: scale(1);
                 }
                 
+
                 /* Universal Glassmorphism Dropdown Container */
                 .dropdown-container {
                     position: absolute;
@@ -5230,7 +5231,7 @@ class FastSearchCard extends HTMLElement {
                     z-index: 1000;
                     min-width: 240px;
                     max-height: 320px;
-                    overflow: hidden;
+                    overflow: visible; /* GEÄNDERT von hidden */
                     pointer-events: none;
                 }
                 
@@ -5239,6 +5240,7 @@ class FastSearchCard extends HTMLElement {
                     visibility: visible;
                     transform: translateY(0) scale(1);
                     pointer-events: auto;
+                    overflow: visible; /* HINZUGEFÜGT */
                 }
                 
                 /* Dropdown Header */
@@ -5257,11 +5259,12 @@ class FastSearchCard extends HTMLElement {
                     text-transform: uppercase;
                 }
                 
+
                 /* Dropdown Content */
                 .dropdown-content {
                     padding: 8px;
                     max-height: 260px;
-                    overflow-y: auto;
+                    overflow: visible; /* GEÄNDERT von overflow-y: auto */
                     scrollbar-width: thin;
                     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
                 }
