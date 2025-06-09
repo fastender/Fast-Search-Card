@@ -10204,23 +10204,24 @@ getQuickStats(item) {
         // Filter Button Event Listener
         this.shadowRoot.getElementById('filterButton').addEventListener('click', () => this.toggleFilterMenu());
 
-        // Search Type Dropdown (NEU)
+
+        // Search Type Dropdown (KORRIGIERT)
         this.shadowRoot.getElementById('searchTypeButton').addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown('searchType');
         });
         
-        // Dropdown Items Event Listeners (NEU)
-        this.shadowRoot.querySelectorAll('#searchTypeDropdown .dropdown-item').forEach(item => {
+        // Dropdown Items Event Listeners (KORRIGIERT - neue Klassennamen!)
+        this.shadowRoot.querySelectorAll('#searchTypeDropdown .search-type-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 const type = e.currentTarget.dataset.type;
                 this.selectSearchType(type);
             });
         });
         
-        // Close dropdown when clicking outside (NEU)
+        // Close dropdown when clicking outside (KORRIGIERT - neue Klassennamen!)
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.dropdown-trigger') && !e.target.closest('.dropdown-container')) {
+            if (!e.target.closest('.dropdown-trigger') && !e.target.closest('.search-type-dropdown')) {
                 this.closeAllDropdowns();
             }
         });
