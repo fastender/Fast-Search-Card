@@ -6,7 +6,7 @@ class FastSearchCard extends HTMLElement {
         // Neue Filter-Eigenschaften
         this.selectedRoom = '';
         this.selectedCategory = '';
-    
+    } 
     
     // 🎬 Card Animation mit Web Animation API
     animateCardEntrance() {
