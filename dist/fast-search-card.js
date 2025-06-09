@@ -10651,9 +10651,15 @@ getQuickStats(item) {
 
 
     updateSearchUI() {
+        // Sicherheitsprüfung hinzufügen
+        if (!this.currentSearchType || !this.searchTypeConfigs[this.currentSearchType]) {
+            // Standard-Werte für den Fall, dass keine Kategorie ausgewählt ist
+            this.searchInput.placeholder = 'Wählen Sie zuerst eine Kategorie...';
+            return;
+        }
+        
         const config = this.searchTypeConfigs[this.currentSearchType];
         this.searchInput.placeholder = config.placeholder;
-        
         
         // Filter chips zurücksetzen
         this.setupCategoryChips([]);
