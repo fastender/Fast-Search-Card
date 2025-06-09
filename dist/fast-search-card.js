@@ -736,8 +736,8 @@ class FastSearchCard extends HTMLElement {
                     font-size: 14px;
                     font-weight: 600;
                     color: rgba(255, 255, 255, 0.9);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    text-align: center;
+                    border-bottom: 0px solid rgba(255, 255, 255, 0.1);
+                    text-align: left;
                 }
                 
                 /* Dropdown Content */
@@ -774,10 +774,12 @@ class FastSearchCard extends HTMLElement {
                     /* Initial State für Animation */
                     opacity: 0;
                     transform: translateY(-8px);
+
+                    width: 220px;
                 }
                 
                 .search-controls .dropdown-item:hover {
-                    background: rgba(255, 255, 255, 0.1);
+                    background: rgba(255, 255, 255, 0.25);
                 }
                 
                 .search-controls .dropdown-item.active {
@@ -5089,7 +5091,7 @@ class FastSearchCard extends HTMLElement {
                 
                 .dropdown-menu {
                     position: absolute;
-                    top: 0; /* Exakt an gleicher Position wie Button */
+                    top: 50px;
                     left: 0;
                     right: 0;
                     background: rgba(0, 0, 0, 0.25);
