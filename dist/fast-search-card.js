@@ -5174,15 +5174,16 @@ class FastSearchCard extends HTMLElement {
                 </div>
 
 
-                <!-- Aktive Filter Tags bleiben hier -->
-                <div class="active-filters" id="activeFilters" style="display: none;">
-                    <div class="active-filters-container">
-                        <!-- Tags werden dynamisch eingefügt -->
-                    </div>
-                </div>                
-                
+
                 <div class="results-container" id="resultsContainer">
-                    <!-- 👈 NEU: Filter-Section INNERHALB der results-container -->
+                    <!-- 👈 NEU: Aktive Filter Tags auch rein -->
+                    <div class="active-filters" id="activeFilters" style="display: none;">
+                        <div class="active-filters-container">
+                            <!-- Tags werden dynamisch eingefügt -->
+                        </div>
+                    </div>
+                    
+                    <!-- Filter-Section INNERHALB der results-container -->
                     <div class="filter-section">
                         <div class="filter-row" id="typeFilterChips">
                             <div class="filter-chip all active" data-value="">
@@ -5192,7 +5193,7 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     </div>
                     
-                    <!-- 👈 NEU: Content-Container für die eigentlichen Ergebnisse -->
+                    <!-- Content-Container für die eigentlichen Ergebnisse -->
                     <div class="results-content">
                         <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                     </div>
