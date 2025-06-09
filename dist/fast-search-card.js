@@ -644,6 +644,221 @@ class FastSearchCard extends HTMLElement {
                     z-index: 2;
                 }                
 
+
+                
+                /* =========================
+                   NEUE FILTER DROPDOWNS 
+                   ========================= */
+                
+                /* Container für alle Filter Dropdowns */
+                .filter-dropdowns {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-right: 12px;
+                }
+                
+                /* Search Dropdown Container */
+                .search-controls .dropdown-container {
+                    position: relative;
+                    z-index: 100;
+                }
+                
+                /* Dropdown Trigger Button */
+                .dropdown-trigger {
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
+                    padding: 8px;
+                    cursor: pointer;
+                    color: rgba(255, 255, 255, 0.8);
+                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 36px;
+                    height: 36px;
+                }
+                
+                .dropdown-trigger:hover {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    transform: scale(1.05);
+                }
+                
+                .dropdown-trigger.active {
+                    background: rgba(255, 255, 255, 0.2);
+                    color: white;
+                    border-color: rgba(255, 255, 255, 0.3);
+                }
+                
+                /* Filter Dropdown Menu */
+                .filter-dropdown {
+                    position: absolute;
+                    top: calc(100% + 8px);
+                    left: 0;
+                    min-width: 280px;
+                    background: rgba(30, 30, 30, 0.7);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 18px;
+                    box-shadow: 
+                        0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    z-index: 1000;
+                    
+                    /* Initial State: unsichtbar */
+                    opacity: 0;
+                    transform: translateY(-10px) scale(0.95);
+                    visibility: hidden;
+                    
+                    /* Smooth Animation */
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                    will-change: transform, opacity;
+                }
+                
+                .filter-dropdown.open {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                    visibility: visible;
+                }
+                
+                /* Dropdown Header */
+                .dropdown-header {
+                    padding: 16px 20px 12px 20px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.9);
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    text-align: center;
+                }
+                
+                /* Dropdown Content */
+                .dropdown-content {
+                    padding: 12px 16px;
+                    max-height: 280px;
+                    overflow-y: auto;
+                }
+                
+                /* Scrollbar stylen */
+                .dropdown-content::-webkit-scrollbar {
+                    width: 4px;
+                }
+                
+                .dropdown-content::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                
+                .dropdown-content::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.2);
+                    border-radius: 2px;
+                }
+                
+                /* Dropdown Items */
+                .search-controls .dropdown-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px 16px;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    
+                    /* Initial State für Animation */
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
+                
+                .search-controls .dropdown-item:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                .search-controls .dropdown-item.active {
+                    background: rgba(255, 255, 255, 0.15);
+                    border-left: 3px solid #FF8A00;
+                }
+                
+                /* Dropdown Icon */
+                .search-controls .dropdown-icon {
+                    font-size: 20px;
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+                
+                /* Dropdown Text Container */
+                .dropdown-text {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                }
+                
+                /* Dropdown Title */
+                .dropdown-title {
+                    font-size: 15px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.9);
+                    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+                }
+                
+                /* Dropdown Count */
+                .dropdown-count {
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.6);
+                    font-weight: 400;
+                }
+                
+                /* Staggered Animation für Items */
+                .filter-dropdown.open .dropdown-item:nth-child(1) {
+                    opacity: 1;
+                    transform: translateY(0);
+                    transition-delay: 0.1s;
+                }
+                
+                .filter-dropdown.open .dropdown-item:nth-child(2) {
+                    opacity: 1;
+                    transform: translateY(0);
+                    transition-delay: 0.15s;
+                }
+                
+                .filter-dropdown.open .dropdown-item:nth-child(3) {
+                    opacity: 1;
+                    transform: translateY(0);
+                    transition-delay: 0.2s;
+                }
+                
+                .filter-dropdown.open .dropdown-item:nth-child(4) {
+                    opacity: 1;
+                    transform: translateY(0);
+                    transition-delay: 0.25s;
+                }
+                
+                /* Mobile Anpassungen */
+                @media (max-width: 768px) {
+                    .filter-dropdown {
+                        min-width: 260px;
+                        right: 0;
+                        left: auto;
+                    }
+                    
+                    .dropdown-title {
+                        font-size: 14px;
+                    }
+                    
+                    .dropdown-count {
+                        font-size: 11px;
+                    }
+                }
+
+
+
                 .search-input-container {
                     flex: 1;
                     position: relative;
@@ -5148,7 +5363,57 @@ class FastSearchCard extends HTMLElement {
                                 <div class="typing-dot"></div>
                                 <div class="typing-dot"></div>
                             </div>
+                            
+
+
+                            
                             <div class="search-controls">
+                                <!-- Neue Dropdown-Container -->
+                                <div class="filter-dropdowns">
+                                    <!-- Suchfilter Dropdown -->
+                                    <div class="dropdown-container">
+                                        <button class="dropdown-trigger" id="searchFilterTrigger">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                                            </svg>
+                                        </button>
+                                        <div class="dropdown-menu filter-dropdown" id="searchFilterDropdown">
+                                            <div class="dropdown-header">Suchfilter</div>
+                                            <div class="dropdown-content">
+                                                <div class="dropdown-item active" data-filter="entities">
+                                                    <div class="dropdown-icon">🏠</div>
+                                                    <div class="dropdown-text">
+                                                        <div class="dropdown-title">Geräte</div>
+                                                        <div class="dropdown-count">-- Verfügbar</div>
+                                                    </div>
+                                                </div>
+                                                <div class="dropdown-item" data-filter="automations">
+                                                    <div class="dropdown-icon">🤖</div>
+                                                    <div class="dropdown-text">
+                                                        <div class="dropdown-title">Automationen</div>
+                                                        <div class="dropdown-count">-- Verfügbar</div>
+                                                    </div>
+                                                </div>
+                                                <div class="dropdown-item" data-filter="scripts">
+                                                    <div class="dropdown-icon">📜</div>
+                                                    <div class="dropdown-text">
+                                                        <div class="dropdown-title">Skripte</div>
+                                                        <div class="dropdown-count">-- Verfügbar</div>
+                                                    </div>
+                                                </div>
+                                                <div class="dropdown-item" data-filter="scenes">
+                                                    <div class="dropdown-icon">🎭</div>
+                                                    <div class="dropdown-text">
+                                                        <div class="dropdown-title">Szenen</div>
+                                                        <div class="dropdown-count">-- Verfügbar</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Alter Filter Button (bleibt vorerst) -->
                                 <button class="filter-button" id="filterButton">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
@@ -5169,6 +5434,9 @@ class FastSearchCard extends HTMLElement {
                                     </button>
                                 </div>
                             </div>
+
+                                
+
                         </div>
                     </div>
                 </div>
@@ -9879,10 +10147,146 @@ getQuickStats(item) {
             }
         });
         
+
+
+
+        // ===== NEUE FILTER DROPDOWN EVENT LISTENERS =====
+        this.setupFilterDropdownEvents();
+        
         this.setupChipFilters();
         this.updateSearchUI();
     }
 
+    
+
+    // ===== NEUE METHODEN: Filter Dropdown =====
+    setupFilterDropdownEvents() {
+        console.log('🔧 Setting up filter dropdown events');
+        
+        const searchFilterTrigger = this.shadowRoot.getElementById('searchFilterTrigger');
+        const searchFilterDropdown = this.shadowRoot.getElementById('searchFilterDropdown');
+        
+        if (!searchFilterTrigger || !searchFilterDropdown) {
+            console.log('❌ Filter dropdown elements not found');
+            return;
+        }
+        
+        let isDropdownOpen = false;
+        
+        // Trigger Button Click
+        searchFilterTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            if (isDropdownOpen) {
+                this.closeFilterDropdown();
+            } else {
+                this.openFilterDropdown();
+            }
+        });
+        
+        // Dropdown Items Click
+        const dropdownItems = searchFilterDropdown.querySelectorAll('.dropdown-item');
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                const filterType = item.getAttribute('data-filter');
+                console.log('🎯 Filter selected:', filterType);
+                
+                // Update active state
+                dropdownItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                
+                // Update search type
+                this.currentSearchType = filterType;
+                
+                // Update counts and close dropdown
+                this.updateFilterCounts();
+                this.closeFilterDropdown();
+                
+                // Apply filters
+                this.onSearchTypeChange();
+            });
+        });
+        
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (isDropdownOpen && 
+                !searchFilterTrigger.contains(e.target) && 
+                !searchFilterDropdown.contains(e.target)) {
+                this.closeFilterDropdown();
+            }
+        });
+        
+        // Store state reference
+        this.isFilterDropdownOpen = () => isDropdownOpen;
+        this.setFilterDropdownOpen = (state) => { isDropdownOpen = state; };
+    }
+
+    openFilterDropdown() {
+        console.log('📂 Opening filter dropdown');
+        
+        const trigger = this.shadowRoot.getElementById('searchFilterTrigger');
+        const dropdown = this.shadowRoot.getElementById('searchFilterDropdown');
+        
+        if (!trigger || !dropdown) return;
+        
+        trigger.classList.add('active');
+        this.updateFilterCounts();
+        dropdown.classList.add('open');
+        this.setFilterDropdownOpen(true);
+    }
+
+    closeFilterDropdown() {
+        console.log('📁 Closing filter dropdown');
+        
+        const trigger = this.shadowRoot.getElementById('searchFilterTrigger');
+        const dropdown = this.shadowRoot.getElementById('searchFilterDropdown');
+        
+        if (!trigger || !dropdown) return;
+        
+        trigger.classList.remove('active');
+        dropdown.classList.remove('open');
+        this.setFilterDropdownOpen(false);
+    }
+
+    updateFilterCounts() {
+        console.log('🔢 Updating filter counts');
+        
+        const dropdown = this.shadowRoot.getElementById('searchFilterDropdown');
+        if (!dropdown) return;
+        
+        const counts = {
+            entities: this.getItemsByType('entities').length,
+            automations: this.getItemsByType('automations').length,
+            scripts: this.getItemsByType('scripts').length,
+            scenes: this.getItemsByType('scenes').length
+        };
+        
+        Object.keys(counts).forEach(type => {
+            const item = dropdown.querySelector(`[data-filter="${type}"] .dropdown-count`);
+            if (item) {
+                item.textContent = `${counts[type]} Verfügbar`;
+            }
+        });
+    }
+
+    getItemsByType(type) {
+        switch(type) {
+            case 'entities':
+                return this.allItems.filter(item => !['automation', 'script', 'scene'].includes(item.type));
+            case 'automations':
+                return this.allItems.filter(item => item.type === 'automation');
+            case 'scripts':
+                return this.allItems.filter(item => item.type === 'script');
+            case 'scenes':
+                return this.allItems.filter(item => item.type === 'scene');
+            default:
+                return this.allItems;
+        }
+    }
+
+    
 
     onSearchTypeChange() {
         // currentSearchType wird jetzt über das Filter-Menu gesetzt
