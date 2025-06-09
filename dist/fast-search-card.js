@@ -5173,25 +5173,31 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
 
-                <!-- Aktive Filter Tags -->
+
+                <!-- Aktive Filter Tags bleiben hier -->
                 <div class="active-filters" id="activeFilters" style="display: none;">
                     <div class="active-filters-container">
                         <!-- Tags werden dynamisch eingefügt -->
                     </div>
                 </div>                
-            
-                <div class="filter-section">
-                    <div class="filter-row" id="typeFilterChips">
-                        <div class="filter-chip all active" data-value="">
-                            <span class="chip-icon">📋</span>
-                            <span class="chip-name">Alle</span>
+                
+                <div class="results-container" id="resultsContainer">
+                    <!-- 👈 NEU: Filter-Section INNERHALB der results-container -->
+                    <div class="filter-section">
+                        <div class="filter-row" id="typeFilterChips">
+                            <div class="filter-chip all active" data-value="">
+                                <span class="chip-icon">📋</span>
+                                <span class="chip-name">Alle</span>
+                            </div>
                         </div>
+                    </div>
+                    
+                    <!-- 👈 NEU: Content-Container für die eigentlichen Ergebnisse -->
+                    <div class="results-content">
+                        <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                     </div>
                 </div>
                 
-                <div class="results-container" id="resultsContainer">
-                    <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
-                </div>
             </div>
 
 
@@ -9842,6 +9848,7 @@ getQuickStats(item) {
         this.filterOverlay = this.shadowRoot.getElementById('filterOverlay');
         
         this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
+        this.resultsContent = this.shadowRoot.querySelector('.results-content'); // 👈 NEU hinzufügen
         this.noResults = this.shadowRoot.getElementById('noResults');
 
         this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
@@ -11276,15 +11283,15 @@ getQuickStats(item) {
     }
 
     showNoResults(message) {
-        this.resultsContainer.innerHTML = `<div class="no-results">${message}</div>`;
+        this.resultsContent.innerHTML = `<div class="no-results">${message}</div>`;
     }
 
     showConfigError(message) {
-        this.resultsContainer.innerHTML = `<div class="config-error">${message}</div>`;
+        this.resultsContent.innerHTML = `<div class="config-error">${message}</div>`;
     }
 
     displayItemsList(itemList) {
-        this.resultsContainer.innerHTML = '';
+        this.resultsContent.innerHTML = '';
         
         const sortedItems = itemList.sort((a, b) => {
             if (a.room !== b.room) {
@@ -11372,7 +11379,7 @@ getQuickStats(item) {
 
     
     displayItemsGrid(itemList) {
-        this.resultsContainer.innerHTML = '';
+        this.resultsContent.innerHTML = '';
         
         const sortedItems = itemList.sort((a, b) => {
             if (a.room !== b.room) {
