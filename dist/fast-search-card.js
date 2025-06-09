@@ -649,6 +649,8 @@ class FastSearchCard extends HTMLElement {
                 }                
 
 
+
+                
                 
                 /* =========================
                    NEUE FILTER DROPDOWNS 
@@ -668,308 +670,13 @@ class FastSearchCard extends HTMLElement {
                     z-index: 100;
                 }
                 
-                /* Dropdown Trigger Button */
-                .dropdown-trigger {
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 12px;
-                    padding: 8px;
-                    cursor: pointer;
-                    color: rgba(255, 255, 255, 0.8);
-                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 36px;
-                    height: 36px;
-                }
-                
-                .dropdown-trigger:hover {
-                    background: rgba(255, 255, 255, 0.15);
-                    color: white;
-                    transform: scale(1.05);
-                }
-                
-                .dropdown-trigger.active {
-                    background: rgba(255, 255, 255, 0.2);
-                    color: white;
-                    border-color: rgba(255, 255, 255, 0.3);
-                }
-                
-                /* Filter Dropdown Menu */
-                .filter-dropdown {
-                    position: absolute;
-                    top: calc(100% + 8px);
-                    left: 0;
-                    min-width: 280px;
-                    background: rgba(30, 30, 30, 0.7);
-                    backdrop-filter: blur(16px);
-                    -webkit-backdrop-filter: blur(16px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 18px;
-                    box-shadow: 
-                        0 8px 32px rgba(0, 0, 0, 0.3),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-                    z-index: 1000;
-                    
-                    /* Initial State: unsichtbar */
-                    opacity: 0;
-                    transform: translateY(-10px) scale(0.95);
-                    visibility: hidden;
-                    
-                    /* Smooth Animation */
-                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                    will-change: transform, opacity;
-                }
-                
-                .filter-dropdown.open {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                    visibility: visible;
-                }
-                
-                /* Dropdown Header */
-                .dropdown-header {
-                    padding: 16px 20px 12px 20px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: rgba(255, 255, 255, 0.9);
-                    border-bottom: 0px solid rgba(255, 255, 255, 0.1);
-                    text-align: left;
-                }
-                
-                /* Dropdown Content */
-                .dropdown-content {
-                    padding: 12px 16px;
-                    max-height: 280px;
-                    overflow-y: auto;
-                }
-                
-                /* Scrollbar stylen */
-                .dropdown-content::-webkit-scrollbar {
-                    width: 4px;
-                }
-                
-                .dropdown-content::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                
-                .dropdown-content::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.2);
-                    border-radius: 2px;
-                }
-                
-                /* Dropdown Items */
-                .search-controls .dropdown-item {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 12px 16px;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                    
-                    /* Initial State für Animation */
-                    opacity: 0;
-                    transform: translateY(-8px);
-
-                    width: 220px;
-                }
-                
-                .search-controls .dropdown-item:hover {
-                    background: rgba(255, 255, 255, 0.25);
-                }
-                
-                .search-controls .dropdown-item.active {
-                    background: rgba(255, 255, 255, 0.15);
-                }
-                
-                /* Dropdown Icon */
-                .search-controls .dropdown-icon {
-                    font-size: 20px;
-                    width: 24px;
-                    height: 24px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                }
-                
-                /* Dropdown Text Container */
-                .dropdown-text {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
-                }
-                
-                /* Dropdown Title */
-                .dropdown-title {
-                    font-size: 15px;
-                    font-weight: 500;
-                    color: rgba(255, 255, 255, 0.9);
-                    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-                }
-                
-                /* Dropdown Count */
-                .dropdown-count {
-                    font-size: 12px;
-                    color: rgba(255, 255, 255, 0.6);
-                    font-weight: 400;
-                }
-                
-                /* Staggered Animation für Items */
-                .filter-dropdown.open .dropdown-item:nth-child(1) {
-                    opacity: 1;
-                    transform: translateY(0);
-                    transition-delay: 0.1s;
-                }
-                
-                .filter-dropdown.open .dropdown-item:nth-child(2) {
-                    opacity: 1;
-                    transform: translateY(0);
-                    transition-delay: 0.15s;
-                }
-                
-                .filter-dropdown.open .dropdown-item:nth-child(3) {
-                    opacity: 1;
-                    transform: translateY(0);
-                    transition-delay: 0.2s;
-                }
-                
-                .filter-dropdown.open .dropdown-item:nth-child(4) {
-                    opacity: 1;
-                    transform: translateY(0);
-                    transition-delay: 0.25s;
-                }
-                
-                /* Mobile Anpassungen */
-                @media (max-width: 768px) {
-                    .filter-dropdown {
-                        min-width: 260px;
-                        right: 0;
-                        left: auto;
-                    }
-                    
-                    .dropdown-title {
-                        font-size: 14px;
-                    }
-                    
-                    .dropdown-count {
-                        font-size: 11px;
-                    }
-                }
-
-                /* =========================
-                   DROPDOWN CSS FIXES
-                   ========================= */
-                
-                /* 1. VERTIKAL SCROLLEN STATT HORIZONTAL */
-                .dropdown-content {
-                    padding: 12px 16px;
-                    max-height: 300px; /* Maximale Höhe */
-                    overflow-y: auto; /* Nur vertikal scrollen */
-                    overflow-x: hidden; /* Horizontal scrollen verhindern */
-                    
-                    /* Touch-Navigation für Mobile */
-                    -webkit-overflow-scrolling: touch;
-                    scroll-behavior: smooth;
-                }
-                
-                /* 2. SCROLL-INDIKATOREN (Chevrons) */
-                .dropdown-content::before {
-                    content: "⌄";
-                    position: sticky;
-                    top: 0;
-                    display: block;
-                    text-align: center;
-                    font-size: 12px;
-                    color: rgba(255, 255, 255, 0.4);
-                    background: linear-gradient(to bottom, rgba(30, 30, 30, 0.9), transparent);
-                    padding: 4px 0 8px 0;
-                    z-index: 10;
-                    pointer-events: none;
-                }
-                
-                .dropdown-content::after {
-                    content: "⌄";
-                    position: sticky;
-                    bottom: 0;
-                    display: block;
-                    text-align: center;
-                    font-size: 12px;
-                    color: rgba(255, 255, 255, 0.4);
-                    background: linear-gradient(to top, rgba(30, 30, 30, 0.9), transparent);
-                    padding: 8px 0 4px 0;
-                    transform: rotate(180deg);
-                    z-index: 10;
-                    pointer-events: none;
-                }
-                
-                /* Chevrons nur anzeigen wenn scrollbar */
-                .dropdown-content:not([data-scrollable])::before,
-                .dropdown-content:not([data-scrollable])::after {
-                    display: none;
-                }
-                
-                /* 3. RADIOBUTTON STYLE FÜR AKTIVE ITEMS */
-                .search-controls .dropdown-item {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 12px 16px;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                    position: relative;
-                    
-                    /* Border entfernen */
-                    border-left: none;
-                    
-                    /* Initial State für Animation */
-                    opacity: 0;
-                    transform: translateY(-8px);
-                }
-                
-                .search-controls .dropdown-item::after {
-                    content: "";
-                    width: 16px;
-                    height: 16px;
-                    border: 2px solid rgba(255, 255, 255, 0.3);
-                    border-radius: 50%;
-                    margin-left: auto;
-                    flex-shrink: 0;
-                    transition: all 0.2s;
-                }
-                
-                .search-controls .dropdown-item.active::after {
-                    background: #FF8A00;
-                    border-color: #FF8A00;
-                    position: relative;
-                }
-                
-                .search-controls .dropdown-item.active::before {
-                    content: "";
-                    position: absolute;
-                    right: 24px; /* Position angepasst */
-                    top: 50%;
-                    transform: translateY(-50%); /* Vertikal zentriert */
-                    width: 6px;
-                    height: 6px;
-                    background: white;
-                    border-radius: 50%;
-                    z-index: 10; /* Höher als andere Elemente */
-                }
-                
-                /* 4. DROPDOWN-TRIGGER WIE VIEW-TOGGLE STYLE */
+                /* Dropdown Trigger Button - Rund wie view-toggle */
                 .dropdown-trigger {
                     background: rgba(255, 255, 255, 0.08);
                     backdrop-filter: blur(10px);
                     -webkit-backdrop-filter: blur(10px);
                     border: 1px solid rgba(255, 255, 255, 0.15);
-                    border-radius: 50%; /* Rund wie view-toggle */
+                    border-radius: 50%;
                     padding: 0;
                     cursor: pointer;
                     color: rgba(255, 255, 255, 0.7);
@@ -977,11 +684,9 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    width: 44px; /* Gleiche Größe wie view-toggle */
+                    width: 44px;
                     height: 44px;
                     position: relative;
-                    
-                    /* Anti-Touch-Flicker */
                     -webkit-tap-highlight-color: transparent;
                 }
                 
@@ -1025,29 +730,255 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(255, 255, 255, 0.1);
                 }
                 
-                /* 5. MOBILE TOUCH OPTIMIERUNGEN */
+                /* Filter Dropdown Menu */
+                .filter-dropdown {
+                    position: absolute;
+                    top: calc(100% + 8px);
+                    left: 0;
+                    min-width: 280px;
+                    background: rgba(30, 30, 30, 0.7);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 18px;
+                    box-shadow: 
+                        0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    z-index: 1000;
+                    
+                    /* Initial State */
+                    opacity: 0;
+                    transform: translateY(-10px) scale(0.95);
+                    visibility: hidden;
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                    will-change: transform, opacity;
+                }
+                
+                .filter-dropdown.open {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                    visibility: visible;
+                }
+                
+                /* Dropdown Header */
+                .dropdown-header {
+                    padding: 16px 20px 12px 20px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.9);
+                    text-align: left;
+                }
+                
+                /* Dropdown Content mit Scroll */
+                .dropdown-content {
+                    padding: 12px 16px;
+                    max-height: 300px;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    -webkit-overflow-scrolling: touch;
+                    scroll-behavior: smooth;
+                }
+                
+                /* Scrollbar stylen */
+                .dropdown-content::-webkit-scrollbar {
+                    width: 4px;
+                }
+                
+                .dropdown-content::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                
+                .dropdown-content::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.2);
+                    border-radius: 2px;
+                }
+                
+                /* Scroll-Indikatoren (Chevrons) */
+                .dropdown-content::before {
+                    content: "⌄";
+                    position: sticky;
+                    top: 0;
+                    display: block;
+                    text-align: center;
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.4);
+                    background: linear-gradient(to bottom, rgba(30, 30, 30, 0.9), transparent);
+                    padding: 4px 0 8px 0;
+                    z-index: 10;
+                    pointer-events: none;
+                }
+                
+                .dropdown-content::after {
+                    content: "⌄";
+                    position: sticky;
+                    bottom: 0;
+                    display: block;
+                    text-align: center;
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.4);
+                    background: linear-gradient(to top, rgba(30, 30, 30, 0.9), transparent);
+                    padding: 8px 0 4px 0;
+                    transform: rotate(180deg);
+                    z-index: 10;
+                    pointer-events: none;
+                }
+                
+                /* Chevrons nur anzeigen wenn scrollbar */
+                .dropdown-content:not([data-scrollable])::before,
+                .dropdown-content:not([data-scrollable])::after {
+                    display: none;
+                }
+                
+                .dropdown-content.has-scroll::before,
+                .dropdown-content.has-scroll::after {
+                    display: block;
+                }
+                
+                /* Dropdown Items */
+                .search-controls .dropdown-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px 16px;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    position: relative;
+                    width: 220px;
+                    
+                    /* Initial State für Animation */
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
+                
+                .search-controls .dropdown-item:hover {
+                    background: rgba(255, 255, 255, 0.25);
+                }
+                
+                .search-controls .dropdown-item.active {
+                    background: rgba(255, 255, 255, 0.15);
+                }
+                
+                /* Radiobutton (unmarkiert) */
+                .search-controls .dropdown-item::after {
+                    content: "";
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    margin-left: auto; /* Hier können Sie ändern: margin-left: 20px; für weniger Abstand */
+                    flex-shrink: 0;
+                    transition: all 0.2s;
+                }
+                
+                /* Radiobutton (markiert) */
+                .search-controls .dropdown-item.active::after {
+                    background: #FF8A00;
+                    border-color: #FF8A00;
+                }
+                
+                .search-controls .dropdown-item.active::before {
+                    content: "";
+                    position: absolute;
+                    right: 24px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 6px;
+                    height: 6px;
+                    background: white;
+                    border-radius: 50%;
+                    z-index: 10;
+                }
+                
+                /* Dropdown Icon */
+                .search-controls .dropdown-icon {
+                    font-size: 20px;
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+                
+                /* Dropdown Text Container */
+                .dropdown-text {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                }
+                
+                /* Dropdown Title */
+                .dropdown-title {
+                    font-size: 15px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.9);
+                    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+                }
+                
+                /* Dropdown Count */
+                .dropdown-count {
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.6);
+                    font-weight: 400;
+                }
+                
+                /* Staggered Animation */
+                .filter-dropdown.open .dropdown-item:nth-child(1) {
+                    opacity: 1;
+                    transform: translateY(0);
+                    transition-delay: 0.1s;
+                }
+                
+                .filter-dropdown.open .dropdown-item:nth-child(2) {
+                    opacity: 1;
+                    transform: translateY(0);
+                    transition-delay: 0.15s;
+                }
+                
+                .filter-dropdown.open .dropdown-item:nth-child(3) {
+                    opacity: 1;
+                    transform: translateY(0);
+                    transition-delay: 0.2s;
+                }
+                
+                .filter-dropdown.open .dropdown-item:nth-child(4) {
+                    opacity: 1;
+                    transform: translateY(0);
+                    transition-delay: 0.25s;
+                }
+                
+                /* Mobile Anpassungen */
                 @media (max-width: 768px) {
                     .dropdown-trigger {
                         width: 40px;
                         height: 40px;
                     }
                     
+                    .filter-dropdown {
+                        min-width: 260px;
+                        right: 0;
+                        left: auto;
+                    }
+                    
                     .search-controls .dropdown-item {
-                        padding: 16px 20px; /* Größere Touch-Targets */
+                        padding: 16px 20px;
                         min-height: 48px;
                     }
                     
                     .dropdown-content {
-                        max-height: 250px; /* Weniger Höhe auf Mobile */
+                        max-height: 250px;
+                    }
+                    
+                    .dropdown-title {
+                        font-size: 14px;
+                    }
+                    
+                    .dropdown-count {
+                        font-size: 11px;
                     }
                 }
-                
-                /* 6. AUTOMATISCHE SCROLLBAR-ERKENNUNG */
-                .dropdown-content.has-scroll::before,
-                .dropdown-content.has-scroll::after {
-                    display: block;
-                }
-
 
 
 
