@@ -5135,6 +5135,8 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
+
+                
                 /* ===========================================
                    MODULARE DROPDOWN SYSTEM - GLASSMORPHISM
                    =========================================== */
@@ -5209,9 +5211,8 @@ class FastSearchCard extends HTMLElement {
                     transform: scale(1);
                 }
                 
-
-                /* Universal Glassmorphism Dropdown Container */
-                .dropdown-container {
+                /* Search Type Dropdown Container */
+                .search-type-dropdown {
                     position: absolute;
                     top: 40px;
                     left: 0;
@@ -5231,26 +5232,25 @@ class FastSearchCard extends HTMLElement {
                     z-index: 1000;
                     min-width: 240px;
                     max-height: 320px;
-                    overflow: visible; /* GEÄNDERT von hidden */
+                    overflow: hidden;
                     pointer-events: none;
                 }
                 
-                .dropdown-container.active {
+                .search-type-dropdown.active {
                     opacity: 1;
                     visibility: visible;
                     transform: translateY(0) scale(1);
                     pointer-events: auto;
-                    overflow: visible; /* HINZUGEFÜGT */
                 }
                 
-                /* Dropdown Header */
-                .dropdown-header {
+                /* Search Type Header */
+                .search-type-header {
                     padding: 14px 18px 10px 18px;
                     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
                     background: rgba(255, 255, 255, 0.02);
                 }
                 
-                .dropdown-title {
+                .search-type-title {
                     font-family: 'SF Pro Display', 'Inter', -apple-system, sans-serif;
                     font-size: 13px;
                     font-weight: 600;
@@ -5259,35 +5259,34 @@ class FastSearchCard extends HTMLElement {
                     text-transform: uppercase;
                 }
                 
-
-                /* Dropdown Content */
-                .dropdown-content {
+                /* Search Type Content */
+                .search-type-content {
                     padding: 8px;
                     max-height: 260px;
-                    overflow: visible; /* GEÄNDERT von overflow-y: auto */
+                    overflow-y: auto;
                     scrollbar-width: thin;
                     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
                 }
                 
-                .dropdown-content::-webkit-scrollbar {
+                .search-type-content::-webkit-scrollbar {
                     width: 4px;
                 }
                 
-                .dropdown-content::-webkit-scrollbar-track {
+                .search-type-content::-webkit-scrollbar-track {
                     background: transparent;
                 }
                 
-                .dropdown-content::-webkit-scrollbar-thumb {
+                .search-type-content::-webkit-scrollbar-thumb {
                     background: rgba(255, 255, 255, 0.15);
                     border-radius: 2px;
                 }
                 
-                .dropdown-content::-webkit-scrollbar-thumb:hover {
+                .search-type-content::-webkit-scrollbar-thumb:hover {
                     background: rgba(255, 255, 255, 0.25);
                 }
                 
-                /* Dropdown Items */
-                .dropdown-item {
+                /* Search Type Items */
+                .search-type-item {
                     display: flex;
                     align-items: center;
                     padding: 12px 14px;
@@ -5299,7 +5298,7 @@ class FastSearchCard extends HTMLElement {
                     margin-bottom: 2px;
                 }
                 
-                .dropdown-item::before {
+                .search-type-item::before {
                     content: '';
                     position: absolute;
                     top: 0;
@@ -5314,23 +5313,23 @@ class FastSearchCard extends HTMLElement {
                     pointer-events: none;
                 }
                 
-                .dropdown-item:hover::before {
+                .search-type-item:hover::before {
                     opacity: 1;
                     transform: scale(1);
                 }
                 
-                .dropdown-item:hover {
+                .search-type-item:hover {
                     background: rgba(255, 255, 255, 0.1);
                     transform: translateX(3px);
                 }
                 
-                .dropdown-item.active {
+                .search-type-item.active {
                     background: rgba(255, 138, 0, 0.15);
                     border-left: 3px solid #FF8A00;
                     padding-left: 11px;
                 }
                 
-                .dropdown-item.active::before {
+                .search-type-item.active::before {
                     background: rgba(255, 138, 0, 0.1);
                     opacity: 1;
                     transform: scale(1);
@@ -5371,7 +5370,7 @@ class FastSearchCard extends HTMLElement {
                     line-height: 1.2;
                 }
                 
-                .dropdown-item.active .item-count {
+                .search-type-item.active .item-count {
                     color: rgba(255, 138, 0, 0.8);
                 }
                 
@@ -5400,24 +5399,24 @@ class FastSearchCard extends HTMLElement {
                     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 }
                 
-                .dropdown-item.active .item-radio {
+                .search-type-item.active .item-radio {
                     border-color: #FF8A00;
                     box-shadow: 0 0 8px rgba(255, 138, 0, 0.3);
                 }
                 
-                .dropdown-item.active .item-radio::after {
+                .search-type-item.active .item-radio::after {
                     opacity: 1;
                     transform: scale(1);
                 }
                 
                 /* Responsive für kleine Bildschirme */
                 @media (max-width: 480px) {
-                    .dropdown-container {
+                    .search-type-dropdown {
                         min-width: 200px;
                         max-height: 280px;
                     }
                     
-                    .dropdown-item {
+                    .search-type-item {
                         padding: 10px 12px;
                     }
                     
@@ -5449,16 +5448,16 @@ class FastSearchCard extends HTMLElement {
           
 
                    
+
+                            
                             <div class="search-controls">
                                 <div class="control-group-left">
-                                    <!-- Dropdown 1: Suchfilter -->
-                                    <button class="dropdown-trigger" id="searchTypeButton" data-dropdown="searchType">
+                                    <button class="dropdown-trigger" id="searchTypeButton">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                                         </svg>
                                     </button>
                                     
-                                    <!-- Filter Button (wird später entfernt) -->
                                     <button class="filter-button" id="filterButton">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
@@ -5466,13 +5465,13 @@ class FastSearchCard extends HTMLElement {
                                         <span class="filter-badge" id="filterBadge">0</span>
                                     </button>
                             
-                                    <!-- DROPDOWN HIER REIN VERSCHIEBEN! -->
-                                    <div class="dropdown-container" id="searchTypeDropdown">
-                                        <div class="dropdown-header">
-                                            <span class="dropdown-title">Suchfilter</span>
+                                    <!-- NEUE EINDEUTIGE KLASSENNAMEN -->
+                                    <div class="search-type-dropdown" id="searchTypeDropdown">
+                                        <div class="search-type-header">
+                                            <span class="search-type-title">Suchfilter</span>
                                         </div>
-                                        <div class="dropdown-content">
-                                            <div class="dropdown-item active" data-type="entities">
+                                        <div class="search-type-content">
+                                            <div class="search-type-item active" data-type="entities">
                                                 <div class="item-icon">🏠</div>
                                                 <div class="item-content">
                                                     <div class="item-label">Geräte</div>
@@ -5481,7 +5480,7 @@ class FastSearchCard extends HTMLElement {
                                                 <div class="item-radio"></div>
                                             </div>
                                             
-                                            <div class="dropdown-item" data-type="automations">
+                                            <div class="search-type-item" data-type="automations">
                                                 <div class="item-icon">⚡</div>
                                                 <div class="item-content">
                                                     <div class="item-label">Automationen</div>
@@ -5490,7 +5489,7 @@ class FastSearchCard extends HTMLElement {
                                                 <div class="item-radio"></div>
                                             </div>
                                             
-                                            <div class="dropdown-item" data-type="scripts">
+                                            <div class="search-type-item" data-type="scripts">
                                                 <div class="item-icon">📝</div>
                                                 <div class="item-content">
                                                     <div class="item-label">Skripte</div>
@@ -5499,7 +5498,7 @@ class FastSearchCard extends HTMLElement {
                                                 <div class="item-radio"></div>
                                             </div>
                                             
-                                            <div class="dropdown-item" data-type="scenes">
+                                            <div class="search-type-item" data-type="scenes">
                                                 <div class="item-icon">🎬</div>
                                                 <div class="item-content">
                                                     <div class="item-label">Szenen</div>
@@ -5509,21 +5508,13 @@ class FastSearchCard extends HTMLElement {
                                             </div>
                                         </div>
                                     </div>
-                                </div> <!-- control-group-left ENDE -->
+                                </div>
                                 
                                 <div class="view-toggle">
-                                    <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-                                        </svg>
-                                    </button>
-                                    <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
-                                        </svg>
-                                    </button>
+                                    <!-- view toggle buttons -->
                                 </div>
-                            </div>       
+                            </div>
+  
                                 
 
                                 
@@ -13399,6 +13390,7 @@ animateModalExit(overlay) {
     // MODULARE DROPDOWN SYSTEM METHODEN
     // ==========================================
 
+
     toggleDropdown(dropdownType) {
         const dropdown = this.shadowRoot.getElementById(`${dropdownType}Dropdown`);
         const button = this.shadowRoot.getElementById(`${dropdownType}Button`);
@@ -13406,7 +13398,7 @@ animateModalExit(overlay) {
         if (dropdown.classList.contains('active')) {
             this.closeDropdown(dropdownType);
         } else {
-            this.closeAllDropdowns(); // Andere schließen
+            this.closeAllDropdowns();
             this.openDropdown(dropdownType);
         }
     }
@@ -13445,8 +13437,9 @@ animateModalExit(overlay) {
         }
     }
 
+
     closeAllDropdowns() {
-        const dropdowns = this.shadowRoot.querySelectorAll('.dropdown-container');
+        const dropdowns = this.shadowRoot.querySelectorAll('.search-type-dropdown'); // GEÄNDERT
         const buttons = this.shadowRoot.querySelectorAll('.dropdown-trigger');
         
         dropdowns.forEach(dropdown => dropdown.classList.remove('active'));
@@ -13458,22 +13451,21 @@ animateModalExit(overlay) {
         }
     }
 
+
     selectSearchType(type) {
-        // Aktive Items in Dropdown aktualisieren
-        this.shadowRoot.querySelectorAll('#searchTypeDropdown .dropdown-item').forEach(item => {
-            item.classList.remove('active');
+        // Search Type Dropdown Items Event Listeners (KORRIGIERT)
+        this.shadowRoot.querySelectorAll('#searchTypeDropdown .search-type-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const type = e.currentTarget.dataset.type;
+                this.selectSearchType(type);
+            });
         });
         
-        this.shadowRoot.querySelector(`#searchTypeDropdown .dropdown-item[data-type="${type}"]`).classList.add('active');
+        this.shadowRoot.querySelector(`#searchTypeDropdown .search-type-item[data-type="${type}"]`).classList.add('active');
         
-        // Search Type setzen
         this.currentSearchType = type;
-        
-        // UI aktualisieren
         this.updateSearchPlaceholder();
         this.onSearchTypeChange();
-        
-        // Dropdown schließen
         this.closeDropdown('searchType');
     }
 
