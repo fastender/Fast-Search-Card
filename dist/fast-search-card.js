@@ -5134,6 +5134,12 @@ class FastSearchCard extends HTMLElement {
                         padding: 4px 8px;
                     }
                 }
+
+
+                .section-spacer {
+                    height: 50px;
+                    background: transparent;
+                }                
                 
             </style>
             
@@ -5172,6 +5178,11 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
             </div>
+
+
+            <!-- 👈 NEU: Transparenter Spacer -->
+            <div class="section-spacer"></div>
+
             
             <!-- 👈 NEU: Results-Container als separater Top-Level Container -->
             <div class="results-container" id="resultsContainer">
