@@ -10295,6 +10295,10 @@ getQuickStats(item) {
 
     openFilterDropdown() {
         console.log('📂 Opening filter dropdown');
+
+        // Andere Dropdowns schließen
+        this.closeRoomsDropdown();
+        this.closeCategoriesDropdown();        
         
         const trigger = this.shadowRoot.getElementById('searchFilterTrigger');
         const dropdown = this.shadowRoot.getElementById('searchFilterDropdown');
@@ -10395,6 +10399,10 @@ getQuickStats(item) {
         const dropdown = this.shadowRoot.getElementById('roomsFilterDropdown');
         
         if (!trigger || !dropdown) return;
+
+        // Andere Dropdowns schließen
+        this.closeFilterDropdown();
+        this.closeCategoriesDropdown();        
         
         trigger.classList.add('active');
         this.updateRoomsDropdown();
@@ -10418,6 +10426,38 @@ getQuickStats(item) {
         const content = dropdown.querySelector('.dropdown-content');
         
         if (!content) return;
+
+        // "Alle Räume" Handler hinzufügen
+        const allRoomsItem = content.querySelector('[data-room=""]');
+        if (allRoomsItem) {
+            // Alten Event Listener entfernen falls vorhanden
+            allRoomsItem.replaceWith(allRoomsItem.cloneNode(true));
+            const newAllRoomsItem = content.querySelector('[data-room=""]');
+            
+            newAllRoomsItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Update active state
+                content.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                newAllRoomsItem.classList.add('active');
+                
+                // Reset room filter
+                this.selectedRoom = '';
+                console.log('🏠 All rooms selected');
+                
+                // Filter anwenden
+                this.applyAllFilters();
+                
+                this.closeRoomsDropdown();
+            });
+            
+            // Count für "Alle Räume" aktualisieren
+            const allRoomsCount = newAllRoomsItem.querySelector('.dropdown-count');
+            if (allRoomsCount) {
+                const totalRooms = [...new Set(this.allItems.map(item => item.room))].length;
+                allRoomsCount.textContent = `${totalRooms} Räume`;
+            }
+        }        
         
         // Alle Räume sammeln
         const rooms = [...new Set(this.allItems.map(item => item.room))].sort();
@@ -10524,6 +10564,10 @@ getQuickStats(item) {
         const dropdown = this.shadowRoot.getElementById('categoriesFilterDropdown');
         
         if (!trigger || !dropdown) return;
+
+        // Andere Dropdowns schließen
+        this.closeFilterDropdown();
+        this.closeRoomsDropdown();        
         
         trigger.classList.add('active');
         this.updateCategoriesDropdown();
@@ -10601,7 +10645,8 @@ getQuickStats(item) {
                 { key: 'climate', name: 'Klima', icon: '🌡️' },
                 { key: 'switches', name: 'Schalter', icon: '🔌' },
                 { key: 'sensors', name: 'Sensoren', icon: '📊' },
-                { key: 'media', name: 'Medien', icon: '📺' }
+                { key: 'media', name: 'Medien', icon: '📺' },
+                { key: 'covers', name: 'Rollos', icon: '🪟' }  // ← NEU HINZUGEFÜGT
             ],
             automations: [
                 { key: 'lighting', name: 'Beleuchtung', icon: '💡' },
@@ -10695,6 +10740,7 @@ getQuickStats(item) {
                 case 'switches': return item.type === 'switch';
                 case 'sensors': return item.type === 'sensor';
                 case 'media': return item.type === 'media_player';
+                case 'covers': return item.type === 'cover';  // ← NEU HINZUGEFÜGT
                 case 'lighting': return item.category === 'lighting' || item.type === 'light';
                 case 'security': return item.category === 'security';
                 case 'maintenance': return item.category === 'maintenance';
