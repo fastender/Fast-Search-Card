@@ -5162,12 +5162,7 @@ class FastSearchCard extends HTMLElement {
                                 <div class="typing-dot"></div>
                                 <div class="typing-dot"></div>
                             </div>
-                            <button class="filter-button" id="filterButton">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
-                                </svg>
-                                <span class="filter-badge" id="filterBadge">0</span>
-                            </button>                            
+                           
                             <div class="search-controls">
 
                                 <!-- HIER den filter-button einfügen -->
