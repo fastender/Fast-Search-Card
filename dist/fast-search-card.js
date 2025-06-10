@@ -711,7 +711,7 @@ class FastSearchCard extends HTMLElement {
 
                 .typing-indicator {
                     position: absolute;
-                    right: 80px;
+                    right: 20px;
                     top: 20px;
                     display: flex;
                     gap: 3px;
@@ -740,6 +740,10 @@ class FastSearchCard extends HTMLElement {
 
 
                 .filter-button {
+                    position: absolute;
+                    left: 12px;  /* LINKS statt right */
+                    top: 50%;
+                    transform: translateY(-50%);
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
                     border-radius: 60px;
@@ -751,8 +755,8 @@ class FastSearchCard extends HTMLElement {
                     cursor: pointer;
                     transition: all 0.2s;
                     color: rgba(255, 255, 255, 0.8);
-                    position: relative;
-                }              
+                    z-index: 10;
+                }         
                 
                 .filter-button:hover {
                     background: rgba(0, 0, 0, 0.25);
@@ -5160,7 +5164,7 @@ class FastSearchCard extends HTMLElement {
                         <div class="search-input-container">
                             <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
                             
-                            <!-- Filter-Button direkt neben dem Sucheingabefeld -->
+                            <!-- Filter-Button LINKS innerhalb des Suchfeldes -->
                             <button class="filter-button" id="filterButton">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
@@ -5185,6 +5189,7 @@ class FastSearchCard extends HTMLElement {
                                 </div>
                             </div>
                         </div>
+
 
         
                         
