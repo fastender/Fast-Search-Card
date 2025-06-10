@@ -798,7 +798,6 @@ class FastSearchCard extends HTMLElement {
                 .filter-section {
                     flex: 1;
                     min-width: 200px;
-                    padding: 0 24px 24px 24px;
                     background: transparent;
                 }
 
