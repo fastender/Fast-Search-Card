@@ -640,8 +640,8 @@ class FastSearchCard extends HTMLElement {
 
                 .search-controls {
                     position: absolute;
-                    top: 50px;
-                    left: 20px;
+                    top: 65px;
+                    left: 15px;
                     right: 0px;
                     display: flex;
                     justify-content: center;
@@ -662,8 +662,8 @@ class FastSearchCard extends HTMLElement {
                 .search-input {
                     width: 100%;
                     flex: 1;
-                    padding: 5px 20px 60px 20px;
-                    height: 110px;
+                    padding: 5px 20px 55px 65px;
+                    height: 120px;
                     border: none;
                     background: rgba(0, 0, 0, 0.15);
                     border-radius: 16px;
@@ -741,14 +741,14 @@ class FastSearchCard extends HTMLElement {
 
                 .filter-button {
                     position: absolute;
-                    left: 12px;  /* LINKS statt right */
-                    top: 50%;
+                    left: 15px;
+                    top: 35px;
                     transform: translateY(-50%);
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
                     border-radius: 60px;
-                    width: 36px;
-                    height: 36px;
+                    width: 40px;
+                    height: 40px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -759,14 +759,11 @@ class FastSearchCard extends HTMLElement {
                 }         
                 
                 .filter-button:hover {
-                    background: rgba(0, 0, 0, 0.25);
-                    transform: scale(1.05);
-                    
+                    background: rgba(0, 0, 0, 0.25);                    
                 }
 
                 .filter-button:hover:not(.active) {
                     background: rgba(0, 0, 0, 0.25);
-                    transform: scale(1.05);
                 }
                 
                 
