@@ -656,11 +656,12 @@ class FastSearchCard extends HTMLElement {
                     width: 100%; /* Neue Zeile */
                     display: flex;
                     align-items: center;
-                    gap: 8px;
+                    gap: 12px;
                 }
                 
                 .search-input {
                     width: 100%;
+                    flex: 1;
                     padding: 5px 20px 60px 20px;
                     height: 110px;
                     border: none;
@@ -710,7 +711,7 @@ class FastSearchCard extends HTMLElement {
 
                 .typing-indicator {
                     position: absolute;
-                    right: 20px;
+                    right: 80px;
                     top: 20px;
                     display: flex;
                     gap: 3px;
@@ -5153,8 +5154,20 @@ class FastSearchCard extends HTMLElement {
          
                 <div class="search-section">
                     <div class="search-header">
+                    
+  
+
                         <div class="search-input-container">
                             <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
+                            
+                            <!-- Filter-Button direkt neben dem Sucheingabefeld -->
+                            <button class="filter-button" id="filterButton">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                                </svg>
+                                <span class="filter-badge" id="filterBadge">0</span>
+                            </button>
+                            
                             <div class="typing-indicator" id="typingIndicator">
                                 <div class="typing-dot"></div>
                                 <div class="typing-dot"></div>
@@ -5162,15 +5175,6 @@ class FastSearchCard extends HTMLElement {
                             </div>
                            
                             <div class="search-controls">
-
-                                <!-- HIER den filter-button einfügen -->
-                                <button class="filter-button" id="filterButton">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
-                                    </svg>
-                                    <span class="filter-badge" id="filterBadge">0</span>
-                                </button>
-
                                 <div class="filter-section">
                                     <div class="filter-row" id="typeFilterChips">
                                         <div class="filter-chip all active" data-value="">
@@ -5179,10 +5183,11 @@ class FastSearchCard extends HTMLElement {
                                         </div>
                                     </div>
                                 </div>
-                                
-
                             </div>
                         </div>
+
+        
+                        
                     </div>
                 </div>
 
