@@ -476,13 +476,12 @@ class FastSearchCard extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
 
-
-                /* visionOS CSS Variables */
                 :root {
+                    /* 🍎 visionOS Easing Curves */
+                    --visionos-spring: cubic-bezier(0.16, 1, 0.3, 1);
                     --visionos-ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
                     --visionos-ease-in: cubic-bezier(0.42, 0, 1, 1);
                     --visionos-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                    --apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
                 }
                 
                 :host {
@@ -492,259 +491,54 @@ class FastSearchCard extends HTMLElement {
                     /* Card fade-in beim Laden */
                     opacity: 0;
                     transform: translateY(40px);
-                
+
                     /* visionOS 3D Container */
                     transform-style: preserve-3d;
                     perspective: 1200px;
                     perspective-origin: center center;                    
                     
-                    /* macOS Liquid Glass Integration */
+                    /* Glassmorphism Container - Neuer Hintergrund */
                     border-radius: 24px;
                     padding: 0;
                     overflow: hidden;
-                
-                    /* ENHANCED Glassmorphism Container mit macOS Liquid Glass */
-
 
                     background: 
-                        /* Oberflächenreflektionen - von 0.15/0.08 auf 0.03/0.016 */
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.03) 0%, transparent 50%), 
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.016) 0%, transparent 50%), 
-                        /* Tint Layer - von 0.4/0.2/0.1 auf 0.08/0.04/0.02 */
-                        linear-gradient(135deg, 
-                            rgba(255, 255, 255, 0.08) 0%, 
-                            rgba(255, 255, 255, 0.04) 50%, 
-                            rgba(255, 255, 255, 0.02) 100%
-                        ), 
-                        /* Basis Material - von 0.85 auf 0.17 */
-                        rgba(28, 28, 30, 0.17);                        
-                
-                    /* Enhanced Backdrop Filter für Liquid Glass Effect */
-                    backdrop-filter: blur(25px) saturate(1.8) brightness(1.1);
-                    -webkit-backdrop-filter: blur(25px) saturate(1.8) brightness(1.1);           
+                        /* Oberflächenreflektionen */
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                        /* Basis Material */
+                        rgba(28, 28, 30, 0.9);
+
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
                     
-                    /* Apple Design System Borders mit Liquid Glass Enhancement */
-                    border: 0.5px solid rgba(255, 255, 255, 0.25);
+                    /* Apple Design System Borders */
+                    border: 0.33px solid rgba(255, 255, 255, 0.2);
                     border-radius: 20px;
                     
-                    /* macOS Liquid Glass Spatial Depth Shadows */
+                    /* Spatial Depth Shadows */
                     box-shadow: 
                         /* Ambient Shadow */
-                        0 2px 8px rgba(0, 0, 0, 0.1),
-                        0 12px 40px rgba(0, 0, 0, 0.15),
-                        /* Liquid Glass Directional Shadow */
-                        0 -1px 2px rgba(255, 255, 255, 0.08),
-                        /* Liquid Glass Inner Highlights */
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.08),
-                        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.12),
-                        /* macOS Liquid Glass Outer Glow */
-                        0 0 20px rgba(255, 255, 255, 0.05);
+                        0 2px 8px rgba(0, 0, 0, 0.08),
+                        0 12px 40px rgba(0, 0, 0, 0.12),
+                        /* Directional Shadow (von oben-links) */
+                        0 -1px 2px rgba(255, 255, 255, 0.05),
+                        /* Inner Highlight */
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
                     
                     /* Apple Typography Enhancement */
                     -webkit-font-smoothing: antialiased;
                     -moz-osx-font-smoothing: grayscale;                    
-                
+
+
                     /* GLOBALE TOUCH-FIXES */
                     -webkit-tap-highlight-color: transparent !important;
                     -webkit-touch-callout: none !important;
                     -webkit-user-select: none !important;
                     user-select: none !important;
                     
-                    /* ANTI-FLICKER: Hardware-Beschleunigung erzwingen */
-                    transform: translateZ(0) !important;
-                    -webkit-transform: translateZ(0) !important;
-                    
-                    /* ANTI-FLICKER: Verhindert Repaint-Probleme */
-                    contain: layout style paint !important;
-                    position: relative;
-                    overflow: visible;
-                    transform-origin: center;
-                    
-                    /* macOS Liquid Glass Transition */
-                    transition: all 0.4s var(--apple-spring);
-                    will-change: transform, filter, backdrop-filter, box-shadow;
-                }
-                
-                /* macOS Liquid Glass Pseudo-Elemente für Enhanced Effects */
-                :host::before {
-                    content: '';
-                    position: absolute;
-                    top: -2px;
-                    left: -2px;
-                    right: -2px;
-                    bottom: -2px;
-                    background: 
-                        /* Liquid Glass Outer Reflection */
-                        linear-gradient(135deg, 
-                            rgba(255, 255, 255, 0.2) 0%, 
-                            rgba(255, 255, 255, 0.1) 50%,
-                            rgba(255, 255, 255, 0.05) 100%);
-                    border-radius: inherit;
-                    opacity: 0;
-                    filter: blur(8px);
-                    transform: scale(0.9);
-                    transition: all 0.5s var(--apple-spring);
-                    pointer-events: none;
-                    z-index: -2;
-                }
-                
-                :host::after {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: 
-                        /* Liquid Glass Shine Effect */
-                        linear-gradient(135deg,
-                            rgba(255, 255, 255, 0.3) 0%,
-                            transparent 30%,
-                            transparent 70%,
-                            rgba(255, 255, 255, 0.1) 100%);
-                    border-radius: inherit;
-                    opacity: 0;
-                    transform: scale(0.8);
-                    transition: all 0.4s var(--apple-spring);
-                    pointer-events: none;
-                    z-index: -1;
-                    
-                    /* macOS Liquid Glass Distortion Filter */
-                    filter: url(#liquid-glass-distortion);
-                }
-                
-                /* macOS Liquid Glass Hover States */
-                :host(:hover)::before {
-                    opacity: 1;
-                    transform: scale(1);
-                }
-                
-                :host(:hover)::after {
-                    opacity: 1;
-                    transform: scale(1);
-                }
-                
-                :host(:hover) {
-                    /* Enhanced Liquid Glass Hover Effect */
-                    transform: translateY(-2px) scale(1.01);
-                    box-shadow: 
-                        0 4px 12px rgba(0, 0, 0, 0.12),
-                        0 16px 48px rgba(0, 0, 0, 0.18),
-                        0 -1px 2px rgba(255, 255, 255, 0.1),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.1),
-                        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.15),
-                        0 0 30px rgba(255, 255, 255, 0.08);
-                    
-                    /* Enhanced Backdrop Filter on Hover */
-                    backdrop-filter: blur(30px) saturate(2.0) brightness(1.15);
-                    -webkit-backdrop-filter: blur(30px) saturate(2.0) brightness(1.15);
-                }
-                
-                /* macOS Liquid Glass SVG Filter Definition */
-                .liquid-glass-svg {
-                    position: absolute;
-                    width: 0;
-                    height: 0;
-                    opacity: 0;
-                    pointer-events: none;
-                }
-                
-                /* Focus States für Accessibility */
-                :host(:focus-within) {
-                    outline: 2px solid rgba(0, 122, 255, 0.8);
-                    outline-offset: 2px;
-                }
-                
-                /* Reduced Motion Support */
-                @media (prefers-reduced-motion: reduce) {
-                    :host,
-                    :host::before,
-                    :host::after {
-                        transition: none;
-                        animation: none;
-                        transform: none !important;
-                    }
-                }
-                
-                /* macOS Liquid Glass Animation Keyframes */
-                @keyframes liquidGlassEntrance {
-                    0% {
-                        opacity: 0;
-                        transform: translateY(60px) scale(0.9) rotateX(15deg) translateZ(-40px);
-                        filter: blur(8px);
-                        backdrop-filter: blur(5px);
-                    }
-                    60% {
-                        opacity: 0.6;
-                        transform: translateY(-10px) scale(1.02) rotateX(-3deg) translateZ(20px);
-                        filter: blur(3px);
-                        backdrop-filter: blur(15px);
-                    }
-                    100% {
-                        opacity: 1;
-                        transform: translateY(0) scale(1) rotateX(0deg) translateZ(0px);
-                        filter: blur(0px);
-                        backdrop-filter: blur(25px);
-                    }
-                }
-                
-                @keyframes liquidGlassHover {
-                    0% {
-                        transform: scale(1) translateZ(0px);
-                        filter: brightness(1);
-                        box-shadow: 0 0 0 rgba(255,255,255,0);
-                    }
-                    50% {
-                        transform: scale(1.02) translateZ(8px);
-                        filter: brightness(1.1);
-                        box-shadow: 0 8px 25px rgba(255,255,255,0.2);
-                    }
-                    100% {
-                        transform: scale(1.01) translateZ(4px);
-                        filter: brightness(1.05);
-                        box-shadow: 0 4px 15px rgba(255,255,255,0.15);
-                    }
-                }
-                
-                /* macOS Liquid Glass Utility Classes */
-                .liquid-glass-element {
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(20px);
-                    border: 0.5px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 12px;
-                    box-shadow: 
-                        0 2px 8px rgba(0, 0, 0, 0.1),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
-                }
-                
-                .liquid-glass-button {
-                    background: linear-gradient(135deg, 
-                        rgba(255, 255, 255, 0.4) 0%, 
-                        rgba(255, 255, 255, 0.2) 50%, 
-                        rgba(255, 255, 255, 0.1) 100%);
-                    backdrop-filter: blur(15px);
-                    border: 0.5px solid rgba(255, 255, 255, 0.3);
-                    transition: all 0.3s var(--apple-spring);
-                }
-                
-                .liquid-glass-button:hover {
-                    background: linear-gradient(135deg, 
-                        rgba(255, 255, 255, 0.5) 0%, 
-                        rgba(255, 255, 255, 0.3) 50%, 
-                        rgba(255, 255, 255, 0.2) 100%);
-                    backdrop-filter: blur(20px);
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
-                }
-
-
-
-
-
-
-                    
+                }   
 
                 /* ALLE BUTTONS/CLICKABLE ELEMENTE */
                 .filter-chip, .filter-button, .view-toggle-btn {
@@ -5508,196 +5302,7 @@ class FastSearchCard extends HTMLElement {
             <div class="more-info-replace" id="moreInfoReplace">
                 <!-- Content wird dynamisch generiert -->
             </div>
-
-
-<!-- Filter Overlay -->
-            <div class="filter-overlay" id="filterOverlay">
-                <div class="filter-menu">
-                    <div class="filter-menu-header">
-                        <h3 class="filter-menu-title">Filter & Suche</h3>
-                        <button class="close-button" id="closeFilterButton">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    
-                    <div class="filter-menu-content">
-                        <!-- Gerätekategorien -->
-                        <div class="filter-section-menu">
-                            <div class="filter-section-title">Kategorien</div>
-                            <div class="filter-options" id="categoryOptions">
-                                <div class="filter-option selected" data-type="entities">
-                                    <div class="filter-option-icon">🏠</div>
-                                    <div class="filter-option-info">
-                                        <div class="filter-option-name">Alle Geräte</div>
-                                        <div class="filter-option-count">-- Geräte</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="filter-option" data-type="automations">
-                                    <div class="filter-option-icon">🤖</div>
-                                    <div class="filter-option-info">
-                                        <div class="filter-option-name">Automationen</div>
-                                        <div class="filter-option-count">-- Verfügbar</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="filter-option" data-type="scripts">
-                                    <div class="filter-option-icon">📜</div>
-                                    <div class="filter-option-info">
-                                        <div class="filter-option-name">Skripte</div>
-                                        <div class="filter-option-count">-- Verfügbar</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="filter-option" data-type="scenes">
-                                    <div class="filter-option-icon">🎭</div>
-                                    <div class="filter-option-info">
-                                        <div class="filter-option-name">Szenen</div>
-                                        <div class="filter-option-count">-- Verfügbar</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Räume -->
-                        <div class="filter-section-menu">
-                            <div class="filter-section-title">Räume</div>
-                            <div class="filter-options" id="roomOptions">
-                                <div class="filter-option selected" data-room="">
-                                    <div class="filter-option-icon">🏠</div>
-                                    <div class="filter-option-info">
-                                        <div class="filter-option-name">Alle Räume</div>
-                                        <div class="filter-option-count">-- Räume</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="filter-actions">
-                        <button class="filter-action-button" id="resetFiltersButton">Zurücksetzen</button>
-                        <button class="filter-action-button primary" id="applyFiltersButton">Anwenden</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- More-Info Replace Mode -->
-            <div class="more-info-replace" id="moreInfoReplace">
-                <!-- Content wird dynamisch generiert -->
-            </div>
-
-            <!-- 🎯 HIER DEN SVG-FILTER EINFÜGEN -->
-            <!-- macOS Liquid Glass SVG Filters -->
-            <svg class="liquid-glass-svg" style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none;">
-                <defs>
-                    <!-- Main Liquid Glass Distortion Filter -->
-                    <filter id="liquid-glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
-                        <feTurbulence
-                            type="fractalNoise"
-                            baseFrequency="0.008 0.012"
-                            numOctaves="2"
-                            seed="5"
-                            result="turbulence" />
-                        
-                        <feComponentTransfer in="turbulence" result="mapped">
-                            <feFuncR type="gamma" amplitude="1" exponent="8" offset="0.5" />
-                            <feFuncG type="gamma" amplitude="0.5" exponent="1" offset="0.2" />
-                            <feFuncB type="gamma" amplitude="0.3" exponent="1" offset="0.4" />
-                        </feComponentTransfer>
-
-                        <feGaussianBlur in="turbulence" stdDeviation="2.5" result="softMap" />
-
-                        <feSpecularLighting
-                            in="softMap"
-                            surfaceScale="4"
-                            specularConstant="1.2"
-                            specularExponent="80"
-                            lighting-color="rgba(255, 255, 255, 0.8)"
-                            result="specLight">
-                            <fePointLight x="-150" y="-150" z="250" />
-                        </feSpecularLighting>
-
-                        <feComposite
-                            in="specLight"
-                            operator="arithmetic"
-                            k1="0"
-                            k2="1"
-                            k3="1"
-                            k4="0"
-                            result="litImage" />
-
-                        <feDisplacementMap
-                            in="SourceGraphic"
-                            in2="softMap"
-                            scale="120"
-                            xChannelSelector="R"
-                            yChannelSelector="G" />
-                    </filter>
-
-                    <!-- Enhanced Shine Filter -->
-                    <filter id="liquid-glass-shine" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox">
-                        <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
-                        <feSpecularLighting 
-                            in="blur" 
-                            result="specOut" 
-                            lighting-color="white" 
-                            specularConstant="1.5" 
-                            specularExponent="20" 
-                            surfaceScale="5">
-                            <fePointLight x="-50" y="-50" z="200" />
-                        </feSpecularLighting>
-                        <feComposite in="specOut" in2="SourceAlpha" operator="in" result="specOut2" />
-                        <feComposite in="SourceGraphic" in2="specOut2" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" />
-                    </filter>
-
-                    <!-- Subtle Glow Filter -->
-                    <filter id="liquid-glass-glow" x="-50%" y="-50%" width="200%" height="200%" filterUnits="objectBoundingBox">
-                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-                        <feMerge> 
-                            <feMergeNode in="coloredBlur"/>
-                            <feMergeNode in="SourceGraphic"/> 
-                        </feMerge>
-                    </filter>
-
-                    <!-- Glass Surface Reflection Gradient -->
-                    <linearGradient id="glass-reflection" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:rgba(255,255,255,0.4);stop-opacity:1" />
-                        <stop offset="30%" style="stop-color:rgba(255,255,255,0.2);stop-opacity:1" />
-                        <stop offset="70%" style="stop-color:rgba(255,255,255,0.05);stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:rgba(255,255,255,0.1);stop-opacity:1" />
-                    </linearGradient>
-
-                    <!-- Radial Glass Highlight -->
-                    <radialGradient id="glass-highlight" cx="30%" cy="20%" r="60%">
-                        <stop offset="0%" style="stop-color:rgba(255,255,255,0.6);stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:rgba(255,255,255,0.2);stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
-                    </radialGradient>
-
-                    <!-- Animated Shimmer Effect -->
-                    <linearGradient id="liquid-shimmer" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
-                        <stop offset="40%" style="stop-color:rgba(255,255,255,0.3);stop-opacity:1" />
-                        <stop offset="60%" style="stop-color:rgba(255,255,255,0.6);stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="-200 0;200 0;-200 0"
-                            dur="3s"
-                            repeatCount="indefinite" />
-                    </linearGradient>
-                </defs>
-            </svg>
-
         `;        
-
-
-
-            
-   
 
         
         // 🎬 Animation starten nach dem Rendering
