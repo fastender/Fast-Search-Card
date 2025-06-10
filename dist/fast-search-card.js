@@ -5691,7 +5691,7 @@ class FastSearchCard extends HTMLElement {
 
 
             
-        `;        
+   
 
         
         // 🎬 Animation starten nach dem Rendering
