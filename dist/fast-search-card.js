@@ -9850,7 +9850,7 @@ getQuickStats(item) {
         this.filterOverlay = this.shadowRoot.getElementById('filterOverlay');
         
         this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
-        this.resultsContent = this.shadowRoot.querySelector('.results-content'); // 👈 NEU hinzufügen
+        this.initializeDOMElements();
         this.noResults = this.shadowRoot.getElementById('noResults');
 
         this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
@@ -9894,6 +9894,55 @@ getQuickStats(item) {
         this.updateSearchUI();
     }
 
+
+    // NEUE METHODE 1: DOM Elemente sicher initialisieren
+    initializeDOMElements() {
+        console.log('🔧 Initialisiere DOM Elemente...');
+        
+        // Basis-Elemente
+        this.searchInput = this.shadowRoot.getElementById('searchInput');
+        this.filterButton = this.shadowRoot.getElementById('filterButton');
+        this.filterOverlay = this.shadowRoot.getElementById('filterOverlay');
+        this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
+        this.noResults = this.shadowRoot.getElementById('noResults');
+        this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
+
+        // Sichere Initialisierung für resultsContent
+        this.ensureResultsContent();
+        
+        console.log('✅ DOM Elemente initialisiert');
+    }
+
+    // NEUE METHODE 2: resultsContent sicher finden/erstellen
+    ensureResultsContent() {
+        if (!this.resultsContent) {
+            this.resultsContent = this.shadowRoot.querySelector('.results-content');
+            
+            console.log('🔍 resultsContent gesucht:', this.resultsContent);
+            
+            if (!this.resultsContent) {
+                console.warn('⚠️ resultsContent nicht gefunden, erstelle Fallback');
+                this.createResultsContentFallback();
+            }
+        }
+    }
+
+    // NEUE METHODE 3: Fallback Element erstellen
+    createResultsContentFallback() {
+        const resultsContainer = this.shadowRoot.getElementById('resultsContainer');
+        if (resultsContainer) {
+            let resultsContent = resultsContainer.querySelector('.results-content');
+            
+            if (!resultsContent) {
+                resultsContent = document.createElement('div');
+                resultsContent.className = 'results-content';
+                resultsContainer.appendChild(resultsContent);
+                console.log('✅ resultsContent als Fallback erstellt');
+            }
+            
+            this.resultsContent = resultsContent;
+        }
+    }    
 
     onSearchTypeChange() {
         // currentSearchType wird jetzt über das Filter-Menu gesetzt
