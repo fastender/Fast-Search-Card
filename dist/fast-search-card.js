@@ -485,8 +485,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
            
-                
-                
+                                
                 /* ERSETZE den :host Block in deiner fast-search-card.js mit diesem Code */
                 
                 :host {
@@ -508,22 +507,14 @@ class FastSearchCard extends HTMLElement {
                     overflow: hidden;
                     position: relative;
                 
-                    /* iOS-Style Milchglas-Effekt */
+                    /* Vereinfachter iOS Milchglas-Effekt (Safari-optimiert) */
                     background: 
-                        /* Starke weiße Lichtreflexion oben */
-                        radial-gradient(ellipse at 30% -10%, rgba(255, 255, 255, 0.6) 0%, transparent 35%),
-                        /* Seitlicher Glanz links */
-                        radial-gradient(ellipse at -10% 50%, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
-                        /* Zentraler Glow */
-                        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 60%),
-                        /* Milchiger Basis-Gradient */
+                        /* Nur EIN einfacher Gradient */
                         linear-gradient(135deg, 
-                            rgba(255, 255, 255, 0.7) 0%, 
-                            rgba(255, 255, 255, 0.5) 25%,
-                            rgba(255, 255, 255, 0.4) 50%, 
-                            rgba(255, 255, 255, 0.3) 100%),
-                        /* Sehr heller, transparenter Hintergrund */
-                        rgba(248, 248, 250, 0.3);
+                            rgba(255, 255, 255, 0.6) 0%, 
+                            rgba(255, 255, 255, 0.4) 100%),
+                        /* Milchiger Basis-Ton */
+                        rgba(250, 250, 252, 0.4);
                     
                     /* Keine problematischen Filter! */
                     /* backdrop-filter: REMOVED */
@@ -558,23 +549,8 @@ class FastSearchCard extends HTMLElement {
                     user-select: none !important;
                 }
                 
-                /* Zusätzlicher Milchglas-Effekt mit Pseudo-Element */
-                :host::before {
-                    content: '';
-                    position: absolute;
-                    inset: 0;
-                    background: 
-                        /* Weißer Schleier */
-                        linear-gradient(to bottom, 
-                            rgba(255, 255, 255, 0.4) 0%, 
-                            rgba(255, 255, 255, 0.2) 100%);
-                    /* Leichter Blur für Milchglas-Look */
-                    filter: blur(1px);
-                    opacity: 0.6;
-                    z-index: -1;
-                    pointer-events: none;
-                    border-radius: inherit;
-                }
+                /* Pseudo-Element komplett entfernt für bessere Performance */
+                /* :host::before REMOVED */
                 
                 /* Animation-Safe Klassen */
                 .view-container.animating * {
@@ -583,15 +559,11 @@ class FastSearchCard extends HTMLElement {
                     filter: none !important;
                 }
                 
-                /* Optimierte Icon-Section - heller und milchiger */
+                /* Icon-Section - Einfacher ohne Flackern */
                 .icon-section {
                     flex: 1;
-                    /* Milchiger Overlay */
-                    background: 
-                        linear-gradient(135deg, 
-                            rgba(255, 255, 255, 0.2) 0%, 
-                            rgba(255, 255, 255, 0.1) 100%),
-                        rgba(255, 255, 255, 0.15);
+                    /* Nur ein einfacher semi-transparenter Overlay */
+                    background: rgba(255, 255, 255, 0.2);
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -601,74 +573,29 @@ class FastSearchCard extends HTMLElement {
                     overflow: hidden;
                 }
                 
-                /* Filter Menu - iOS-Style Milchglas */
+                /* Filter Menu - Vereinfacht */
                 .filter-menu {
-                    background: 
-                        /* Starke weiße Reflexion */
-                        radial-gradient(ellipse at 40% -20%, rgba(255, 255, 255, 0.8) 0%, transparent 40%),
-                        /* Milchiger Gradient */
-                        linear-gradient(135deg, 
-                            rgba(255, 255, 255, 0.75) 0%, 
-                            rgba(255, 255, 255, 0.6) 50%,
-                            rgba(255, 255, 255, 0.5) 100%),
-                        /* Heller Basis-Ton */
-                        rgba(250, 250, 252, 0.7);
+                    /* Einfacher Milchglas-Look */
+                    background: rgba(255, 255, 255, 0.7);
                     
                     border: 0.5px solid rgba(255, 255, 255, 0.8);
                     border-radius: 20px;
                     
                     box-shadow: 
-                        0 10px 40px rgba(0, 0, 0, 0.1),
-                        inset 0 2px 3px rgba(255, 255, 255, 0.9);
+                        0 10px 30px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.9);
                 }
                 
-                /* More-Info Dialog - iOS-Style */
+                /* More-Info Dialog - Vereinfacht */
                 .more-info-dialog {
-                    background: 
-                        /* Obere Lichtreflexion */
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.9) 0%, transparent 40%),
-                        /* Milchglas-Gradient */
-                        linear-gradient(135deg, 
-                            rgba(255, 255, 255, 0.8) 0%,
-                            rgba(255, 255, 255, 0.6) 50%,
-                            rgba(255, 255, 255, 0.5) 100%),
-                        /* Sehr heller Basis-Ton */
-                        rgba(252, 252, 254, 0.8);
+                    /* Einfacher heller Hintergrund */
+                    background: rgba(255, 255, 255, 0.75);
                     
                     border: 0.5px solid rgba(255, 255, 255, 0.85);
                     border-radius: 24px;
                     box-shadow: 
-                        0 8px 32px rgba(0, 0, 0, 0.08),
-                        inset 0 2px 2px rgba(255, 255, 255, 0.95);
-                }
-
-
-
-        
-
-                
-
-                /* ALLE BUTTONS/CLICKABLE ELEMENTE */
-                .filter-chip, .filter-button, .view-toggle-btn {
-                    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
-                    -webkit-tap-highlight-color: transparent !important;
-                    outline: none !important;
-                }                
-                .search-container {
-                    background: transparent;
-                    border-radius: 0;
-                    box-shadow: none;
-                    overflow: hidden;
-
-                    transform-style: preserve-3d;
-                    perspective: 1000px;
-                    will-change: transform, filter, opacity;
-                    backface-visibility: hidden;                    
-                }                
-
-                .search-section {
-                    background: transparent;
-                    padding: 24px;
+                        0 8px 24px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.95);
                 }
 
 
