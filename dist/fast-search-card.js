@@ -487,31 +487,147 @@ class FastSearchCard extends HTMLElement {
            
         
         
+                /* ERSETZE den :host Block in deiner fast-search-card.js mit diesem Code */
+                
                 :host {
-                  display: block;
-                  position: relative;
-                  border: 0.33px solid rgba(255,255,255,0.2);
-                  border-radius: 20px;
-                  overflow: hidden;
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    display: block;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    
+                    /* Card fade-in beim Laden */
+                    opacity: 0;
+                    transform: translateY(40px);
+                
+                    /* visionOS 3D Container */
+                    transform-style: preserve-3d;
+                    perspective: 1200px;
+                    perspective-origin: center center;                    
+                    
+                    /* Safari-optimierter Glassmorphism OHNE backdrop-filter */
+                    border-radius: 24px;
+                    padding: 0;
+                    overflow: hidden;
+                    position: relative;
+                
+                    /* Mehrschichtiger Hintergrund für Glass-Effekt */
+                    background: 
+                        /* Licht-Reflektion oben */
+                        radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.3) 0%, transparent 40%),
+                        /* Highlight in der Mitte */
+                        radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%),
+                        /* Basis-Gradient */
+                        linear-gradient(135deg, 
+                            rgba(255, 255, 255, 0.25) 0%, 
+                            rgba(255, 255, 255, 0.15) 30%,
+                            rgba(255, 255, 255, 0.1) 60%, 
+                            rgba(255, 255, 255, 0.05) 100%),
+                        /* Dunkler Hintergrund */
+                        rgba(28, 28, 30, 0.85);
+                    
+                    /* Keine problematischen Filter! */
+                    /* backdrop-filter: REMOVED */
+                    /* -webkit-backdrop-filter: REMOVED */
+                    
+                    /* Optimierte Borders */
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    box-shadow: 
+                        /* Äußere Schatten */
+                        0 20px 60px rgba(0, 0, 0, 0.3),
+                        0 8px 16px rgba(0, 0, 0, 0.2),
+                        /* Innere Highlights */
+                        inset 0 2px 4px rgba(255, 255, 255, 0.4),
+                        inset 0 -1px 2px rgba(0, 0, 0, 0.2);
+                    
+                    /* Performance-Optimierungen für Safari */
+                    -webkit-transform: translateZ(0);
+                    -webkit-backface-visibility: hidden;
+                    backface-visibility: hidden;
+                    will-change: transform, opacity;
+                    
+                    /* Typography */
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;                    
+                
+                    /* Touch-Optimierungen */
+                    -webkit-tap-highlight-color: transparent !important;
+                    -webkit-touch-callout: none !important;
+                    -webkit-user-select: none !important;
+                    user-select: none !important;
                 }
-                /* Canvas-Backdrop statt backdrop-filter */
-                .canvas-backdrop {
-                  position: absolute;
-                  inset: 0;
-                  background: rgba(0,0,0,0.2);
-                  background-size: cover;
-                  background-position: center;
-                  pointer-events: none;
-                  z-index: -1;
+                
+                /* Zusätzlicher Blur-Effekt mit Pseudo-Element (Optional) */
+                :host::before {
+                    content: '';
+                    position: absolute;
+                    inset: -50px;
+                    background: inherit;
+                    filter: blur(50px);
+                    opacity: 0.5;
+                    z-index: -1;
+                    /* Verhindere Flackern */
+                    transform: translateZ(-1px);
+                    pointer-events: none;
                 }
-                .card {
-                  position: relative;
-                  z-index: 1;
-                  padding: 16px;
-                  backface-visibility: hidden;
-                  transform: translate3d(0,0,0);
-                  will-change: opacity, transform;
+                
+                /* Animation-Safe Klassen */
+                .view-container.animating * {
+                    /* Vereinfache Rendering während Animationen */
+                    will-change: auto !important;
+                    filter: none !important;
+                }
+                
+                /* Optimierte Icon-Section ohne backdrop-filter */
+                .icon-section {
+                    flex: 1;
+                    /* Dunklerer Overlay statt backdrop-filter */
+                    background: 
+                        radial-gradient(ellipse at center, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 100%),
+                        rgba(0, 0, 0, 0.15);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 40px 20px;
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                /* Filter Menu ohne backdrop-filter */
+                .filter-menu {
+                    /* Gleicher Stil wie Hauptkarte aber Safari-optimiert */
+                    background: 
+                        radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.3) 0%, transparent 40%),
+                        radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%),
+                        linear-gradient(135deg, 
+                            rgba(58, 58, 60, 0.95) 0%, 
+                            rgba(58, 58, 60, 0.9) 50%,
+                            rgba(58, 58, 60, 0.85) 100%);
+                    
+                    /* Kein backdrop-filter! */
+                    
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 20px;
+                    
+                    box-shadow: 
+                        0 20px 60px rgba(0, 0, 0, 0.4),
+                        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+                }
+                
+                /* More-Info Dialog ohne backdrop-filter */
+                .more-info-dialog {
+                    background: 
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.25) 0%, transparent 50%),
+                        linear-gradient(135deg, 
+                            rgba(255, 255, 255, 0.2) 0%,
+                            rgba(255, 255, 255, 0.1) 100%),
+                        rgba(28, 28, 30, 0.95);
+                    
+                    /* Kein backdrop-filter! */
+                    
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 24px;
+                    box-shadow: 
+                        0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.3);
                 }
 
                 
