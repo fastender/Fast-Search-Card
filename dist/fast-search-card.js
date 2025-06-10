@@ -491,25 +491,35 @@ class FastSearchCard extends HTMLElement {
                   display: block;
                   position: relative;
                   z-index: 0;
+                  contain: paint; /* Isoliert Paint, verhindert Flackern */
                   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                   border: 0.33px solid rgba(255, 255, 255, 0.2);
                   border-radius: 20px;
                   overflow: hidden;
-                  /* Host ohne Filter, um Flackern bei Animationen zu vermeiden */
                 }
         
-                /* Pseudo-Element für den Glas-Effekt: separate GPU-Ebene */
+                /* Glas-Effekt im separaten Pseudo-Element für eigene GPU-Ebene */
                 :host::before {
                   content: '';
                   position: absolute;
                   inset: 0;
-                  background: rgba(28, 28, 30, 0.6);
+                  background: rgba(28,28,30,0.6);
                   -webkit-backdrop-filter: blur(20px) saturate(1.8);
                   backdrop-filter: blur(20px) saturate(1.8);
                   transform: translateZ(0);
-                  will-change: backdrop-filter;
+                  will-change: backdrop-filter, transform;
+                  pointer-events: none;
                   z-index: -1;
-                }                
+                }
+        
+                /* Inhaltsebene: eigene GPU-Ebene für flüssige Animationen */
+                .card {
+                  position: relative;
+                  padding: 16px;
+                  backface-visibility: hidden;
+                  transform: translateZ(0);
+                  will-change: opacity, transform;
+                }          
 
                 /* ALLE BUTTONS/CLICKABLE ELEMENTE */
                 .filter-chip, .filter-button, .view-toggle-btn {
