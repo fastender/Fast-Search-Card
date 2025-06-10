@@ -640,15 +640,14 @@ class FastSearchCard extends HTMLElement {
 
                 .search-controls {
                     position: absolute;
-                    top: 20px;
-                    left: 0px;
+                    top: 50px;
+                    left: 20px;
                     right: 0px;
                     display: flex;
                     justify-content: center;
                     align-items: center;
                     flex-wrap: wrap;
                     z-index: 2;
-                    margin-top: 16px;
                 }                
 
                 .search-input-container {
@@ -662,12 +661,12 @@ class FastSearchCard extends HTMLElement {
                 
                 .search-input {
                     width: 100%;
-                    padding: 14px 20px 50px 20px;
-                    height: 80px;
+                    padding: 5px 20px 60px 20px;
+                    height: 110px;
                     border: none;
                     background: rgba(0, 0, 0, 0.15);
                     border-radius: 16px;
-                    font-size: 16px;
+                    font-size: 18px;
                     outline: none;
                     box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
                     transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -1067,13 +1066,13 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .chip-name {
-                    line-height: 1.0;
+                    line-height: 1.2;
                 }
                 
                 .chip-count {
                     font-size: 12px;
                     opacity: 0.8;
-                    margin-top: 0px;
+                    line-height: 1.1;
                 }
 
 
