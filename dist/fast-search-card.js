@@ -503,19 +503,7 @@ class FastSearchCard extends HTMLElement {
                     padding: 0;
                     overflow: hidden;
                 
-                    /* ENHANCED Glassmorphism Container mit macOS Liquid Glass */
-                    background: 
-                        /* macOS Liquid Glass Oberflächenreflektionen */
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
-                        /* Liquid Glass Tint Layer */
-                        linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 100%),
-                        /* Basis Material */
-                        rgba(28, 28, 30, 0.85);
-                
-                    /* Enhanced Backdrop Filter für Liquid Glass Effect */
-                    backdrop-filter: blur(25px) saturate(1.8) brightness(1.1);
-                    -webkit-backdrop-filter: blur(25px) saturate(1.8) brightness(1.1);           
+     
                     
                     /* Apple Design System Borders mit Liquid Glass Enhancement */
                     border: 0.5px solid rgba(255, 255, 255, 0.25);
