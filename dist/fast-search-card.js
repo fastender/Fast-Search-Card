@@ -640,9 +640,9 @@ class FastSearchCard extends HTMLElement {
 
                 .search-controls {
                     position: absolute;
-                    bottom: 8px;
-                    left: 20px;
-                    right: 20px;
+                    top: 20px;
+                    left: 0px;
+                    right: 0px;
                     display: flex;
                     justify-content: center;
                     align-items: center;
@@ -919,8 +919,8 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
                     border-radius: 60px;
-                    padding: 12px 20px;
-                    font-size: 14px;
+                    padding: 6px 12px 6px 12px;
+                    font-size: 12px;
                     color: rgba(255, 255, 255, 0.9);
                     cursor: pointer;
                     white-space: nowrap;
@@ -1066,7 +1066,7 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .chip-name {
-                    line-height: 1.2;
+                    line-height: 1.0;
                 }
                 
                 .chip-count {
