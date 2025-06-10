@@ -505,13 +505,7 @@ class FastSearchCard extends HTMLElement {
                     border-radius: 20px; /* Reduziert von 24px */
                     padding: 0;
                     overflow: hidden;
-                
-                    /* SAFARI FIX: Vereinfachter Hintergrund */
-                    background: 
-                        /* Nur ein Gradient statt drei */
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.1) 0%, transparent 60%),
-                        rgba(28, 28, 30, 0.88); /* Leicht reduzierte Opacity */
-                
+                                
                     /* SAFARI OPTIMIERT: Backdrop Filter */
                     backdrop-filter: blur(20px) saturate(1.5); /* Reduzierte Werte */
                     -webkit-backdrop-filter: blur(20px) saturate(1.5);
