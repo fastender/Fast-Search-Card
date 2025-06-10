@@ -9874,6 +9874,11 @@ getQuickStats(item) {
         // View Toggle Event Listeners
         this.shadowRoot.getElementById('listViewBtn').addEventListener('click', () => this.setView('list'));
         this.shadowRoot.getElementById('gridViewBtn').addEventListener('click', () => this.setView('grid'));
+
+        // NEU: Buttons beim Start korrekt setzen
+        setTimeout(() => {
+            this.setView(this.currentView);
+        }, 100);        
         
         // Keyboard Event Listener für ESC-Taste
         document.addEventListener('keydown', (e) => {
