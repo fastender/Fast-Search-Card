@@ -487,40 +487,24 @@ class FastSearchCard extends HTMLElement {
            
         
         
-
-               :host {
+                :host {
                   display: block;
                   position: relative;
-                  isolation: isolate;            /* Stellt eigene Kompositing-Gruppe her */
-                  contain: layout style paint;   /* Isoliert Paint, Style und Layout */
                   border: 0.33px solid rgba(255,255,255,0.2);
                   border-radius: 20px;
                   overflow: hidden;
                   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 }
-        
-                /* Statisches Backdrop-Element: separate Ebene, CSS-Fallback */
-                .backdrop {
+                /* Canvas-Backdrop statt backdrop-filter */
+                .canvas-backdrop {
                   position: absolute;
                   inset: 0;
-                  background: inherit;           /* Erbt Hintergrund von übergeordnetem Element */
-                  background-repeat: no-repeat;
+                  background: rgba(0,0,0,0.2);
                   background-size: cover;
-        
-                  /* Safari-Filter mit Prefix */
-                  -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                  backdrop-filter: blur(20px) saturate(1.8);
-        
-                  /* Fallback für Safari-Flicker: zusätzlicher Filter */
-                  filter: blur(20px) saturate(1.8);
-        
-                  transform: translate3d(0,0,0);
-                  will-change: transform, filter;
+                  background-position: center;
                   pointer-events: none;
                   z-index: -1;
                 }
-        
-                /* Wrapper für Inhalt mit eigener Ebene */
                 .card {
                   position: relative;
                   z-index: 1;
@@ -529,7 +513,6 @@ class FastSearchCard extends HTMLElement {
                   transform: translate3d(0,0,0);
                   will-change: opacity, transform;
                 }
-
 
                 
 
