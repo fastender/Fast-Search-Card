@@ -481,7 +481,6 @@ class FastSearchCard extends HTMLElement {
                     --visionos-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
                 }
                 
-
                 :host {
                     display: block;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -489,54 +488,54 @@ class FastSearchCard extends HTMLElement {
                     /* Card fade-in beim Laden */
                     opacity: 0;
                     transform: translateY(40px);
-                    
+
                     /* visionOS 3D Container */
                     transform-style: preserve-3d;
                     perspective: 1200px;
                     perspective-origin: center center;                    
                     
-                    /* VisionOS Glassmorphism Container */
+                    /* Glassmorphism Container - Neuer Hintergrund */
                     border-radius: 24px;
                     padding: 0;
                     overflow: hidden;
-                    
+
                     background: 
                         /* Oberflächenreflektionen */
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.15) 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-                        /* Basis Material - Transparent */
-                        rgba(255, 255, 255, 0.25);
-                        
-                    backdrop-filter: blur(40px) saturate(2.2) brightness(1.15);
-                    -webkit-backdrop-filter: blur(40px) saturate(2.2) brightness(1.15);           
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                        /* Basis Material */
+                        rgba(28, 28, 30, 0.9);
+
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
                     
                     /* Apple Design System Borders */
-                    border: 0.5px solid rgba(255, 255, 255, 0.4);
+                    border: 0.33px solid rgba(255, 255, 255, 0.2);
                     border-radius: 20px;
                     
                     /* Spatial Depth Shadows */
                     box-shadow: 
                         /* Ambient Shadow */
-                        0 4px 16px rgba(0, 0, 0, 0.08),
-                        0 24px 80px rgba(0, 0, 0, 0.12),
-                        /* Directional Shadow */
-                        0 -1px 2px rgba(255, 255, 255, 0.8),
+                        0 2px 8px rgba(0, 0, 0, 0.08),
+                        0 12px 40px rgba(0, 0, 0, 0.12),
+                        /* Directional Shadow (von oben-links) */
+                        0 -1px 2px rgba(255, 255, 255, 0.05),
                         /* Inner Highlight */
-                        inset 0 1px 0 rgba(255, 255, 255, 0.9),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.7);
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
                     
                     /* Apple Typography Enhancement */
                     -webkit-font-smoothing: antialiased;
                     -moz-osx-font-smoothing: grayscale;                    
-                
+
+
                     /* GLOBALE TOUCH-FIXES */
                     -webkit-tap-highlight-color: transparent !important;
                     -webkit-touch-callout: none !important;
                     -webkit-user-select: none !important;
                     user-select: none !important;
                     
-                    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-                }
+                }   
 
                 /* ALLE BUTTONS/CLICKABLE ELEMENTE */
                 .filter-chip, .filter-button, .view-toggle-btn {
@@ -5174,32 +5173,25 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
 
-
-
-                <div class="results-container" id="resultsContainer">
-                    <!-- 👈 NEU: Aktive Filter Tags auch rein -->
-                    <div class="active-filters" id="activeFilters" style="display: none;">
-                        <div class="active-filters-container">
-                            <!-- Tags werden dynamisch eingefügt -->
-                        </div>
+                <!-- Aktive Filter Tags -->
+                <div class="active-filters" id="activeFilters" style="display: none;">
+                    <div class="active-filters-container">
+                        <!-- Tags werden dynamisch eingefügt -->
                     </div>
-                    
-                    <!-- Filter-Section INNERHALB der results-container -->
-                    <div class="filter-section">
-                        <div class="filter-row" id="typeFilterChips">
-                            <div class="filter-chip all active" data-value="">
-                                <span class="chip-icon">📋</span>
-                                <span class="chip-name">Alle</span>
-                            </div>
+                </div>                
+            
+                <div class="filter-section">
+                    <div class="filter-row" id="typeFilterChips">
+                        <div class="filter-chip all active" data-value="">
+                            <span class="chip-icon">📋</span>
+                            <span class="chip-name">Alle</span>
                         </div>
-                    </div>
-                    
-                    <!-- Content-Container für die eigentlichen Ergebnisse -->
-                    <div class="results-content">
-                        <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                     </div>
                 </div>
                 
+                <div class="results-container" id="resultsContainer">
+                    <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
+                </div>
             </div>
 
 
@@ -9764,7 +9756,6 @@ getQuickStats(item) {
                 placeholder: 'Gerät suchen...',
                 filterLabel: 'Kategorien',
                 categoryNames: {
-                    'none': 'Keine',
                     'lights': 'Lichter',
                     'climate': 'Klima', 
                     'switches': 'Schalter',
@@ -9776,7 +9767,6 @@ getQuickStats(item) {
                     'other': 'Sonstiges'
                 },
                 categoryIcons: {
-                    'none': '🚫',
                     'lights': '💡',
                     'climate': '🌡️',
                     'switches': '🔌',
@@ -9850,7 +9840,6 @@ getQuickStats(item) {
         this.filterOverlay = this.shadowRoot.getElementById('filterOverlay');
         
         this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
-        this.initializeDOMElements();
         this.noResults = this.shadowRoot.getElementById('noResults');
 
         this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
@@ -9894,55 +9883,6 @@ getQuickStats(item) {
         this.updateSearchUI();
     }
 
-
-    // NEUE METHODE 1: DOM Elemente sicher initialisieren
-    initializeDOMElements() {
-        console.log('🔧 Initialisiere DOM Elemente...');
-        
-        // Basis-Elemente
-        this.searchInput = this.shadowRoot.getElementById('searchInput');
-        this.filterButton = this.shadowRoot.getElementById('filterButton');
-        this.filterOverlay = this.shadowRoot.getElementById('filterOverlay');
-        this.resultsContainer = this.shadowRoot.getElementById('resultsContainer');
-        this.noResults = this.shadowRoot.getElementById('noResults');
-        this.typingIndicator = this.shadowRoot.getElementById('typingIndicator');
-
-        // Sichere Initialisierung für resultsContent
-        this.ensureResultsContent();
-        
-        console.log('✅ DOM Elemente initialisiert');
-    }
-
-    // NEUE METHODE 2: resultsContent sicher finden/erstellen
-    ensureResultsContent() {
-        if (!this.resultsContent) {
-            this.resultsContent = this.shadowRoot.querySelector('.results-content');
-            
-            console.log('🔍 resultsContent gesucht:', this.resultsContent);
-            
-            if (!this.resultsContent) {
-                console.warn('⚠️ resultsContent nicht gefunden, erstelle Fallback');
-                this.createResultsContentFallback();
-            }
-        }
-    }
-
-    // NEUE METHODE 3: Fallback Element erstellen
-    createResultsContentFallback() {
-        const resultsContainer = this.shadowRoot.getElementById('resultsContainer');
-        if (resultsContainer) {
-            let resultsContent = resultsContainer.querySelector('.results-content');
-            
-            if (!resultsContent) {
-                resultsContent = document.createElement('div');
-                resultsContent.className = 'results-content';
-                resultsContainer.appendChild(resultsContent);
-                console.log('✅ resultsContent als Fallback erstellt');
-            }
-            
-            this.resultsContent = resultsContent;
-        }
-    }    
 
     onSearchTypeChange() {
         // currentSearchType wird jetzt über das Filter-Menu gesetzt
@@ -11114,12 +11054,6 @@ getQuickStats(item) {
 
     setupCategoryChips(categories) {
         const categoryChips = this.shadowRoot.getElementById('typeFilterChips');
-
-        // 👈 NEU: "none" Kategorie immer hinzufügen
-        const categoriesWithNone = [...categories];
-        if (!categoriesWithNone.includes('none')) {
-            categoriesWithNone.push('none');
-        }
         
         // Bei Typ-Wechsel alle Chips außer "Alle" entfernen
         if (!this.isInitialized) {
@@ -11143,7 +11077,7 @@ getQuickStats(item) {
         
         const config = this.searchTypeConfigs[this.currentSearchType];
         
-        categoriesWithNone.forEach(category => {
+        categories.forEach(category => {
             if (!existingCategoryValues.includes(category)) {
                 const chip = document.createElement('div');
                 chip.className = 'filter-chip';
@@ -11265,12 +11199,6 @@ getQuickStats(item) {
 
     applyFilters() {
         const query = this.searchInput.value.toLowerCase().trim();
-
-        // 👈 NEU: Spezialbehandlung für "none" Kategorie
-        if (this.selectedType === 'none') {
-            this.showNoResults('Kategorie "Keine" ausgewählt - keine Ergebnisse anzeigen');
-            return;
-        }        
         
         let filteredItems = this.allItems.filter(item => {
             const matchesSearch = !query || 
@@ -11334,15 +11262,15 @@ getQuickStats(item) {
     }
 
     showNoResults(message) {
-        this.resultsContent.innerHTML = `<div class="no-results">${message}</div>`;
+        this.resultsContainer.innerHTML = `<div class="no-results">${message}</div>`;
     }
 
     showConfigError(message) {
-        this.resultsContent.innerHTML = `<div class="config-error">${message}</div>`;
+        this.resultsContainer.innerHTML = `<div class="config-error">${message}</div>`;
     }
 
     displayItemsList(itemList) {
-        this.resultsContent.innerHTML = '';
+        this.resultsContainer.innerHTML = '';
         
         const sortedItems = itemList.sort((a, b) => {
             if (a.room !== b.room) {
@@ -11385,7 +11313,7 @@ getQuickStats(item) {
                 roomGroup.appendChild(itemElement);
             });
             
-            this.resultsContent.appendChild(roomGroup);
+            this.resultsContainer.appendChild(roomGroup);
         });
         
         // 🎬 WAAPI Animation für ALLE List Items
@@ -11430,7 +11358,7 @@ getQuickStats(item) {
 
     
     displayItemsGrid(itemList) {
-        this.resultsContent.innerHTML = '';
+        this.resultsContainer.innerHTML = '';
         
         const sortedItems = itemList.sort((a, b) => {
             if (a.room !== b.room) {
@@ -11483,7 +11411,7 @@ getQuickStats(item) {
             gridContainer.appendChild(roomGroup);
         });
         
-        this.resultsContent.appendChild(gridContainer);
+        this.resultsContainer.appendChild(gridContainer);
         
         // 🎬 WAAPI Animation für ALLE Grid Items
         setTimeout(() => {
