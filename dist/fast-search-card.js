@@ -457,6 +457,9 @@ class FastSearchCard extends HTMLElement {
             customActions: config.custom_actions || [],        // Benutzerdefinierte Aktionen
             displayMode: config.more_info_mode || 'popup', // Neue Option: 'popup' oder 'replace' 
         };
+
+        // NEU: Default View Konfiguration
+        this.defaultView = config.default_view || 'list';        
         
         // Entities können entweder als Array oder automatisch geladen werden
         this.useManualEntities = config.entities && Array.isArray(config.entities);
@@ -9747,7 +9750,7 @@ getQuickStats(item) {
         this.selectedRooms = new Set();
         this.selectedType = '';
         this.isInitialized = false; // Flag für Initialisierung
-        this.currentView = 'list'; // Neue Property für View-Mode
+        this.currentView = this.defaultView || 'list'; // Neue Property für View-Mode
   
         
         // Definitionen für verschiedene Suchtypen
@@ -13000,6 +13003,7 @@ animateModalExit(overlay) {
             show_controls: true,
             show_history: false,
             more_info_mode: 'popup',        // NEU: 'popup' oder 'replace'
+            default_view: 'list',
             custom_actions: [],
             entities: [
                 {
