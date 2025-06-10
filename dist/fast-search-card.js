@@ -5158,6 +5158,15 @@ class FastSearchCard extends HTMLElement {
                                     </svg>
                                     <span class="filter-badge" id="filterBadge">0</span>
                                 </button>
+
+                                <div class="filter-section">
+                                    <div class="filter-row" id="typeFilterChips">
+                                        <div class="filter-chip all active" data-value="">
+                                            <span class="chip-icon">📋</span>
+                                            <span class="chip-name">Alle</span>
+                                        </div>
+                                    </div>
+                                </div>
                                 
                                 <div class="view-toggle">
                                     <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
@@ -5183,14 +5192,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>                
             
-                <div class="filter-section">
-                    <div class="filter-row" id="typeFilterChips">
-                        <div class="filter-chip all active" data-value="">
-                            <span class="chip-icon">📋</span>
-                            <span class="chip-name">Alle</span>
-                        </div>
-                    </div>
-                </div>
+
                 
                 <div class="results-container" id="resultsContainer">
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
