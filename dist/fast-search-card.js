@@ -485,6 +485,9 @@ class FastSearchCard extends HTMLElement {
                     --apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
                 }
                 
+
+
+                /* SAFARI ANTI-FLICKER FIX für :host */
                 :host {
                     display: block;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -493,136 +496,113 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0;
                     transform: translateY(40px);
                 
-                    /* visionOS 3D Container */
+                    /* SAFARI FIX: 3D Container mit reduzierter Komplexität */
                     transform-style: preserve-3d;
-                    perspective: 1200px;
+                    perspective: 1000px; /* Reduziert von 1200px */
                     perspective-origin: center center;                    
                     
-                    /* macOS Liquid Glass Integration */
-                    border-radius: 24px;
+                    /* SAFARI OPTIMIERT: Glassmorphism Container */
+                    border-radius: 20px; /* Reduziert von 24px */
                     padding: 0;
                     overflow: hidden;
                 
-     
-                    
-                    /* Apple Design System Borders mit Liquid Glass Enhancement */
-                    border: 0.5px solid rgba(255, 255, 255, 0.25);
-                    border-radius: 20px;
-                    
-                    /* macOS Liquid Glass Spatial Depth Shadows */
-                    box-shadow: 
-                        /* Ambient Shadow */
-                        0 2px 8px rgba(0, 0, 0, 0.1),
-                        0 12px 40px rgba(0, 0, 0, 0.15),
-                        /* Liquid Glass Directional Shadow */
-                        0 -1px 2px rgba(255, 255, 255, 0.08),
-                        /* Liquid Glass Inner Highlights */
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.08),
-                        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.12),
-                        /* macOS Liquid Glass Outer Glow */
-                        0 0 20px rgba(255, 255, 255, 0.05);
-                    
-                    /* Apple Typography Enhancement */
-                    -webkit-font-smoothing: antialiased;
-                    -moz-osx-font-smoothing: grayscale;                    
+                    /* SAFARI FIX: Vereinfachter Hintergrund */
+                    background: 
+                        /* Nur ein Gradient statt drei */
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.1) 0%, transparent 60%),
+                        rgba(28, 28, 30, 0.88); /* Leicht reduzierte Opacity */
                 
-                    /* GLOBALE TOUCH-FIXES */
+                    /* SAFARI OPTIMIERT: Backdrop Filter */
+                    backdrop-filter: blur(20px) saturate(1.5); /* Reduzierte Werte */
+                    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+                    
+                    /* SAFARI FIX: Einfachere Borders */
+                    border: 0.5px solid rgba(255, 255, 255, 0.2);
+                    
+                    /* SAFARI OPTIMIERT: Reduzierte Schatten */
+                    box-shadow: 
+                        0 4px 16px rgba(0, 0, 0, 0.1),
+                        0 8px 32px rgba(0, 0, 0, 0.15),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    
+                    /* SAFARI CRITICAL: Hardware-Beschleunigung ERZWINGEN */
+                    -webkit-transform: translateZ(0) !important;
+                    -webkit-backface-visibility: hidden !important;
+                    -webkit-perspective: 1000 !important;
+                    
+                    /* SAFARI FIX: Verhindert Repaint-Probleme */
+                    contain: layout style paint !important;
+                    isolation: isolate !important;
+                    
+                    /* SAFARI OPTIMIERT: Transitions */
+                    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                                opacity 0.3s ease-out; /* Getrennte, einfachere Transitions */
+                    
+                    will-change: transform, opacity; /* Reduziert - nur das Nötigste */
+                    
+                    /* SAFARI FIX: Touch-Optimierungen */
                     -webkit-tap-highlight-color: transparent !important;
                     -webkit-touch-callout: none !important;
                     -webkit-user-select: none !important;
                     user-select: none !important;
-                    
-                    /* ANTI-FLICKER: Hardware-Beschleunigung erzwingen */
-                    transform: translateZ(0) !important;
-                    -webkit-transform: translateZ(0) !important;
-                    
-                    /* ANTI-FLICKER: Verhindert Repaint-Probleme */
-                    contain: layout style paint !important;
-                    position: relative;
-                    overflow: visible;
-                    transform-origin: center;
-                    
-                    /* macOS Liquid Glass Transition */
-                    transition: all 0.4s var(--apple-spring);
-                    will-change: transform, filter, backdrop-filter, box-shadow;
                 }
                 
-                /* macOS Liquid Glass Pseudo-Elemente für Enhanced Effects */
+                /* SAFARI FIX: Vereinfachte Pseudo-Elemente */
                 :host::before {
                     content: '';
                     position: absolute;
-                    top: -2px;
-                    left: -2px;
-                    right: -2px;
-                    bottom: -2px;
-                    background: 
-                        /* Liquid Glass Outer Reflection */
-                        linear-gradient(135deg, 
-                            rgba(255, 255, 255, 0.2) 0%, 
-                            rgba(255, 255, 255, 0.1) 50%,
-                            rgba(255, 255, 255, 0.05) 100%);
+                    top: -1px;
+                    left: -1px;
+                    right: -1px;
+                    bottom: -1px;
+                    background: linear-gradient(135deg, 
+                        rgba(255, 255, 255, 0.15) 0%, 
+                        rgba(255, 255, 255, 0.05) 100%);
                     border-radius: inherit;
                     opacity: 0;
-                    filter: blur(8px);
-                    transform: scale(0.9);
-                    transition: all 0.5s var(--apple-spring);
-                    pointer-events: none;
-                    z-index: -2;
-                }
-                
-                :host::after {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: 
-                        /* Liquid Glass Shine Effect */
-                        linear-gradient(135deg,
-                            rgba(255, 255, 255, 0.3) 0%,
-                            transparent 30%,
-                            transparent 70%,
-                            rgba(255, 255, 255, 0.1) 100%);
-                    border-radius: inherit;
-                    opacity: 0;
-                    transform: scale(0.8);
-                    transition: all 0.4s var(--apple-spring);
+                    transition: opacity 0.3s ease; /* Einfache Transition */
                     pointer-events: none;
                     z-index: -1;
                     
-                    /* macOS Liquid Glass Distortion Filter */
-                    filter: url(#liquid-glass-distortion);
+                    /* SAFARI FIX */
+                    -webkit-transform: translateZ(-1px);
+                    will-change: opacity;
                 }
                 
-                /* macOS Liquid Glass Hover States */
-                :host(:hover)::before {
-                    opacity: 1;
-                    transform: scale(1);
-                }
-                
-                :host(:hover)::after {
-                    opacity: 1;
-                    transform: scale(1);
-                }
-                
+                /* SAFARI OPTIMIERT: Reduzierte Hover-Effekte */
                 :host(:hover) {
-                    /* Enhanced Liquid Glass Hover Effect */
-                    transform: translateY(-2px) scale(1.01);
+                    transform: translateY(-1px) translateZ(0); /* Reduziert von -2px */
                     box-shadow: 
-                        0 4px 12px rgba(0, 0, 0, 0.12),
-                        0 16px 48px rgba(0, 0, 0, 0.18),
-                        0 -1px 2px rgba(255, 255, 255, 0.1),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.1),
-                        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.15),
-                        0 0 30px rgba(255, 255, 255, 0.08);
+                        0 6px 20px rgba(0, 0, 0, 0.12),
+                        0 12px 40px rgba(0, 0, 0, 0.18),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
                     
-                    /* Enhanced Backdrop Filter on Hover */
-                    backdrop-filter: blur(30px) saturate(2.0) brightness(1.15);
-                    -webkit-backdrop-filter: blur(30px) saturate(2.0) brightness(1.15);
+                    /* SAFARI FIX: Vorsichtige Backdrop-Filter Änderung */
+                    backdrop-filter: blur(22px) saturate(1.6);
+                    -webkit-backdrop-filter: blur(22px) saturate(1.6);
                 }
+                
+                :host(:hover)::before {
+                    opacity: 0.8; /* Reduziert von 1 */
+                }
+                
+                /* SAFARI SPECIFIC: Media Query für Safari-spezifische Fixes */
+                @supports (-webkit-backdrop-filter: blur(1px)) {
+                    :host {
+                        /* Safari-spezifische Optimierungen */
+                        -webkit-backdrop-filter: blur(18px) saturate(1.4) !important;
+                        backdrop-filter: blur(18px) saturate(1.4) !important;
+                        
+                        /* Safari GPU Layer Forcing */
+                        -webkit-transform: translate3d(0, 0, 0) !important;
+                        transform: translate3d(0, 0, 0) !important;
+                    }
+                    
+                    :host(:hover) {
+                        -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
+                        backdrop-filter: blur(20px) saturate(1.5) !important;
+                    }
+                }                    
                 
                 /* macOS Liquid Glass SVG Filter Definition */
                 .liquid-glass-svg {
