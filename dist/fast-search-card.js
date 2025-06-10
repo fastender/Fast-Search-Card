@@ -576,6 +576,8 @@ class FastSearchCard extends HTMLElement {
                 .view-toggle {
                     display: flex;
                     gap: 4px;
+                    justify-content: flex-end;
+                    margin-bottom: 16px;
                 }
 
                 .view-toggle-btn {
@@ -642,15 +644,20 @@ class FastSearchCard extends HTMLElement {
                     left: 20px;
                     right: 20px;
                     display: flex;
-                    justify-content: space-between;
+                    justify-content: center;
                     align-items: center;
+                    flex-wrap: wrap;
                     z-index: 2;
+                    margin-top: 16px;
                 }                
 
                 .search-input-container {
                     flex: 1;
                     position: relative;
                     width: 100%; /* Neue Zeile */
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
                 }
                 
                 .search-input {
@@ -787,6 +794,8 @@ class FastSearchCard extends HTMLElement {
                 }                
 
                 .filter-section {
+                    flex: 1;
+                    min-width: 200px;
                     padding: 0 24px 24px 24px;
                     background: transparent;
                 }
@@ -5151,13 +5160,14 @@ class FastSearchCard extends HTMLElement {
                                 <div class="typing-dot"></div>
                                 <div class="typing-dot"></div>
                             </div>
+                            <button class="filter-button" id="filterButton">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                                </svg>
+                                <span class="filter-badge" id="filterBadge">0</span>
+                            </button>                            
                             <div class="search-controls">
-                                <button class="filter-button" id="filterButton">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
-                                    </svg>
-                                    <span class="filter-badge" id="filterBadge">0</span>
-                                </button>
+
 
                                 <div class="filter-section">
                                     <div class="filter-row" id="typeFilterChips">
@@ -5168,18 +5178,7 @@ class FastSearchCard extends HTMLElement {
                                     </div>
                                 </div>
                                 
-                                <div class="view-toggle">
-                                    <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-                                        </svg>
-                                    </button>
-                                    <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
-                                        </svg>
-                                    </button>
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -5193,6 +5192,18 @@ class FastSearchCard extends HTMLElement {
                 </div>                
             
 
+                <div class="view-toggle">
+                    <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                        </svg>
+                    </button>
+                    <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+                        </svg>
+                    </button>
+                </div>
                 
                 <div class="results-container" id="resultsContainer">
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
