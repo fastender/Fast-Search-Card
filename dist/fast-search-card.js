@@ -485,58 +485,26 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 :host {
-                    display: block;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    
-                    /* Card fade-in beim Laden */
-                    opacity: 0;
-                    transform: translateY(40px);
-
-                    /* visionOS 3D Container */
-                    transform-style: preserve-3d;
-                    perspective: 1200px;
-                    perspective-origin: center center;                    
-                    
-                    /* Glassmorphism Container - Neuer Hintergrund */
-                    border-radius: 24px;
-                    padding: 0;
-                    overflow: hidden;
-
-                    background: 
-                        /* Oberflächenreflektionen */
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
-                        /* Basis Material */
-                        rgba(28, 28, 30, 0.9);
-
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
-                    
-                    /* Apple Design System Borders */
-                    border: 0.33px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
-                    
-                    /* Spatial Depth Shadows */
-                    box-shadow: 
-                        /* Ambient Shadow */
-                        0 2px 8px rgba(0, 0, 0, 0.08),
-                        0 12px 40px rgba(0, 0, 0, 0.12),
-                        /* Directional Shadow (von oben-links) */
-                        0 -1px 2px rgba(255, 255, 255, 0.05),
-                        /* Inner Highlight */
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
-                    
-                    /* Apple Typography Enhancement */
-                    -webkit-font-smoothing: antialiased;
-                    -moz-osx-font-smoothing: grayscale;                    
-
-
-                    /* GLOBALE TOUCH-FIXES */
-                    -webkit-tap-highlight-color: transparent !important;
-                    -webkit-touch-callout: none !important;
-                    -webkit-user-select: none !important;
-                    user-select: none !important;
+                      display: block;
+                      position: relative;
+                      z-index: 0;
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            
+                      /* Glas-Effekt */
+                      background: rgba(28, 28, 30, 0.9);
+                      /* Safari-Prefix + Standard */
+                      -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                      backdrop-filter: blur(20px) saturate(1.8);
+                      /* Fallback, falls backdrop-filter nicht unterstützt wird */
+                      background-color: rgba(255, 255, 255, 0.3);
+            
+                      /* Flimmer-Workaround für Safari */
+                      transform: translateZ(0);
+                      will-change: backdrop-filter, transform, opacity;
+            
+                      border: 0.33px solid rgba(255, 255, 255, 0.2);
+                      border-radius: 20px;
+                      overflow: hidden;
                     
                 }   
 
