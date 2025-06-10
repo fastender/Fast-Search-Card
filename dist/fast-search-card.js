@@ -481,8 +481,6 @@ class FastSearchCard extends HTMLElement {
                     --visionos-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
                 }
                 
-
-
                 :host {
                     display: block;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -490,26 +488,54 @@ class FastSearchCard extends HTMLElement {
                     /* Card fade-in beim Laden */
                     opacity: 0;
                     transform: translateY(40px);
+
                     /* visionOS 3D Container */
                     transform-style: preserve-3d;
                     perspective: 1200px;
                     perspective-origin: center center;                    
                     
-                    /* 👈 NEU: NUR MINIMAL STYLING - KEIN Glassmorphism hier */
+                    /* Glassmorphism Container - Neuer Hintergrund */
+                    border-radius: 24px;
                     padding: 0;
-                    overflow: visible; /* 👈 Wichtig: visible statt hidden */
+                    overflow: hidden;
+
+                    background: 
+                        /* Oberflächenreflektionen */
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                        /* Basis Material */
+                        rgba(28, 28, 30, 0.9);
+
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
                     
-                    /* 👈 ENTFERNT: Alle background, backdrop-filter, border, box-shadow */
+                    /* Apple Design System Borders */
+                    border: 0.33px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 20px;
+                    
+                    /* Spatial Depth Shadows */
+                    box-shadow: 
+                        /* Ambient Shadow */
+                        0 2px 8px rgba(0, 0, 0, 0.08),
+                        0 12px 40px rgba(0, 0, 0, 0.12),
+                        /* Directional Shadow (von oben-links) */
+                        0 -1px 2px rgba(255, 255, 255, 0.05),
+                        /* Inner Highlight */
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
                     
                     /* Apple Typography Enhancement */
                     -webkit-font-smoothing: antialiased;
                     -moz-osx-font-smoothing: grayscale;                    
+
+
                     /* GLOBALE TOUCH-FIXES */
                     -webkit-tap-highlight-color: transparent !important;
                     -webkit-touch-callout: none !important;
                     -webkit-user-select: none !important;
                     user-select: none !important;
-                }                    
+                    
+                }   
 
                 /* ALLE BUTTONS/CLICKABLE ELEMENTE */
                 .filter-chip, .filter-button, .view-toggle-btn {
@@ -529,42 +555,9 @@ class FastSearchCard extends HTMLElement {
                     backface-visibility: hidden;                    
                 }                
 
-
                 .search-section {
-                    /* 👈 NEU: Der Glassmorphism vom :host hierher verschieben */
-                    background: 
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
-                        rgba(28, 28, 30, 0.9);
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
-                    border: 0.33px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
-                    box-shadow: 
-                        0 2px 8px rgba(0, 0, 0, 0.08),
-                        0 12px 40px rgba(0, 0, 0, 0.12),
-                        0 -1px 2px rgba(255, 255, 255, 0.05),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
+                    background: transparent;
                     padding: 24px;
-                }
-                
-                .results-container {
-                    /* 👈 NEU: Gleicher Hintergrund für results */
-                    background: 
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
-                        rgba(28, 28, 30, 0.9);
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
-                    border: 0.33px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
-                    box-shadow: 
-                        0 2px 8px rgba(0, 0, 0, 0.08),
-                        0 12px 40px rgba(0, 0, 0, 0.12),
-                        0 -1px 2px rgba(255, 255, 255, 0.05),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
                 }
 
 
@@ -5141,80 +5134,44 @@ class FastSearchCard extends HTMLElement {
                         padding: 4px 8px;
                     }
                 }
-
-
-                .section-spacer {
-                    height: 50px;
-                    background: transparent;
-                }                
                 
             </style>
             
-
-            <!-- 👈 NEU: Search-Section als separater Top-Level Container -->
-            <div class="search-section">
-                <div class="search-header">
-                    <div class="search-input-container">
-                        <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
-                        <div class="typing-indicator" id="typingIndicator">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                        </div>
-                        <div class="search-controls">
-                            <button class="filter-button" id="filterButton">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
-                                </svg>
-                                <span class="filter-badge" id="filterBadge">0</span>
-                            </button>
-                            
-                            <div class="view-toggle">
-                                <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
+            <div class="search-container">
+         
+                <div class="search-section">
+                    <div class="search-header">
+                        <div class="search-input-container">
+                            <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
+                            <div class="typing-indicator" id="typingIndicator">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                            <div class="search-controls">
+                                <button class="filter-button" id="filterButton">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                                        <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
                                     </svg>
+                                    <span class="filter-badge" id="filterBadge">0</span>
                                 </button>
-                                <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
-                                    </svg>
-                                </button>
+                                
+                                <div class="view-toggle">
+                                    <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="view-toggle-btn" id="gridViewBtn" data-view="grid">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-
-            <!-- 👈 NEU: Transparenter Spacer -->
-            <div class="section-spacer"></div>
-
-            
-            <!-- 👈 NEU: Results-Container als separater Top-Level Container -->
-            <div class="results-container" id="resultsContainer">
-                <!-- Aktive Filter Tags -->
-                <div class="active-filters" id="activeFilters" style="display: none;">
-                    <div class="active-filters-container">
-                        <!-- Tags werden dynamisch eingefügt -->
-                    </div>
-                </div>
-                
-                <!-- Filter-Section -->
-                <div class="filter-section">
-                    <div class="filter-row" id="typeFilterChips">
-                        <div class="filter-chip all active" data-value="">
-                            <span class="chip-icon">📋</span>
-                            <span class="chip-name">Alle</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Content-Container für die eigentlichen Ergebnisse -->
-                <div class="results-content">
-                    <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
-                </div>
-            </div>
 
 
 
