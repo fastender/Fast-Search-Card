@@ -481,6 +481,7 @@ class FastSearchCard extends HTMLElement {
                     --visionos-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
                 }
                 
+
                 :host {
                     display: block;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -488,54 +489,54 @@ class FastSearchCard extends HTMLElement {
                     /* Card fade-in beim Laden */
                     opacity: 0;
                     transform: translateY(40px);
-
+                    
                     /* visionOS 3D Container */
                     transform-style: preserve-3d;
                     perspective: 1200px;
                     perspective-origin: center center;                    
                     
-                    /* Glassmorphism Container - Neuer Hintergrund */
+                    /* VisionOS Glassmorphism Container */
                     border-radius: 24px;
                     padding: 0;
                     overflow: hidden;
-
+                    
                     background: 
                         /* Oberflächenreflektionen */
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
-                        /* Basis Material */
-                        rgba(28, 28, 30, 0.9);
-
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.15) 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        /* Basis Material - Transparent */
+                        rgba(255, 255, 255, 0.25);
+                        
+                    backdrop-filter: blur(40px) saturate(2.2) brightness(1.15);
+                    -webkit-backdrop-filter: blur(40px) saturate(2.2) brightness(1.15);           
                     
                     /* Apple Design System Borders */
-                    border: 0.33px solid rgba(255, 255, 255, 0.2);
+                    border: 0.5px solid rgba(255, 255, 255, 0.4);
                     border-radius: 20px;
                     
                     /* Spatial Depth Shadows */
                     box-shadow: 
                         /* Ambient Shadow */
-                        0 2px 8px rgba(0, 0, 0, 0.08),
-                        0 12px 40px rgba(0, 0, 0, 0.12),
-                        /* Directional Shadow (von oben-links) */
-                        0 -1px 2px rgba(255, 255, 255, 0.05),
+                        0 4px 16px rgba(0, 0, 0, 0.08),
+                        0 24px 80px rgba(0, 0, 0, 0.12),
+                        /* Directional Shadow */
+                        0 -1px 2px rgba(255, 255, 255, 0.8),
                         /* Inner Highlight */
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
+                        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.7);
                     
                     /* Apple Typography Enhancement */
                     -webkit-font-smoothing: antialiased;
                     -moz-osx-font-smoothing: grayscale;                    
-
-
+                
                     /* GLOBALE TOUCH-FIXES */
                     -webkit-tap-highlight-color: transparent !important;
                     -webkit-touch-callout: none !important;
                     -webkit-user-select: none !important;
                     user-select: none !important;
                     
-                }   
+                    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+                }
 
                 /* ALLE BUTTONS/CLICKABLE ELEMENTE */
                 .filter-chip, .filter-button, .view-toggle-btn {
