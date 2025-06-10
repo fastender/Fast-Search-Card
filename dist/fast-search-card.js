@@ -484,29 +484,32 @@ class FastSearchCard extends HTMLElement {
                     --visionos-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
                 }
                 
+   
+
+
                 :host {
-                      display: block;
-                      position: relative;
-                      z-index: 0;
-                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            
-                      /* Glas-Effekt */
-                      background: rgba(28, 28, 30, 0.9);
-                      /* Safari-Prefix + Standard */
-                      -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                      backdrop-filter: blur(20px) saturate(1.8);
-                      /* Fallback, falls backdrop-filter nicht unterstützt wird */
-                      background-color: rgba(255, 255, 255, 0.3);
-            
-                      /* Flimmer-Workaround für Safari */
-                      transform: translateZ(0);
-                      will-change: backdrop-filter, transform, opacity;
-            
-                      border: 0.33px solid rgba(255, 255, 255, 0.2);
-                      border-radius: 20px;
-                      overflow: hidden;
-                    
-                }   
+                  display: block;
+                  position: relative;
+                  z-index: 0;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  border: 0.33px solid rgba(255, 255, 255, 0.2);
+                  border-radius: 20px;
+                  overflow: hidden;
+                  /* Host ohne Filter, um Flackern bei Animationen zu vermeiden */
+                }
+        
+                /* Pseudo-Element für den Glas-Effekt: separate GPU-Ebene */
+                :host::before {
+                  content: '';
+                  position: absolute;
+                  inset: 0;
+                  background: rgba(28, 28, 30, 0.6);
+                  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                  backdrop-filter: blur(20px) saturate(1.8);
+                  transform: translateZ(0);
+                  will-change: backdrop-filter;
+                  z-index: -1;
+                }                
 
                 /* ALLE BUTTONS/CLICKABLE ELEMENTE */
                 .filter-chip, .filter-button, .view-toggle-btn {
