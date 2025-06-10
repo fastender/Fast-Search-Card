@@ -484,42 +484,44 @@ class FastSearchCard extends HTMLElement {
                     --visionos-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
                 }
                 
-   
-
-
+           
+        
+        
                 :host {
                   display: block;
                   position: relative;
-                  z-index: 0;
-                  contain: paint; /* Isoliert Paint, verhindert Flackern */
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  contain: layout style paint; /* Isoliert Layout, Style und Paint */
                   border: 0.33px solid rgba(255, 255, 255, 0.2);
                   border-radius: 20px;
                   overflow: hidden;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 }
         
-                /* Glas-Effekt im separaten Pseudo-Element für eigene GPU-Ebene */
-                :host::before {
-                  content: '';
+                /* Separates Backdrop-Element für Glas-Effekt auf eigener GPU-Ebene */
+                .backdrop {
                   position: absolute;
                   inset: 0;
-                  background: rgba(28,28,30,0.6);
+                  background: rgba(28, 28, 30, 0.6);
                   -webkit-backdrop-filter: blur(20px) saturate(1.8);
                   backdrop-filter: blur(20px) saturate(1.8);
-                  transform: translateZ(0);
-                  will-change: backdrop-filter, transform;
+                  transform: translate3d(0, 0, 0);
+                  will-change: transform, filter;
                   pointer-events: none;
                   z-index: -1;
                 }
         
-                /* Inhaltsebene: eigene GPU-Ebene für flüssige Animationen */
+                /* Inhaltsebene mit eigener Kompositing-Gruppe */
                 .card {
                   position: relative;
+                  z-index: 1;
                   padding: 16px;
                   backface-visibility: hidden;
-                  transform: translateZ(0);
+                  transform: translate3d(0, 0, 0);
                   will-change: opacity, transform;
-                }          
+                } 
+
+
+                
 
                 /* ALLE BUTTONS/CLICKABLE ELEMENTE */
                 .filter-chip, .filter-button, .view-toggle-btn {
