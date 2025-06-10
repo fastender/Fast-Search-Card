@@ -485,8 +485,8 @@ class FastSearchCard extends HTMLElement {
                 }
                 
            
-        
-        
+                
+                
                 /* ERSETZE den :host Block in deiner fast-search-card.js mit diesem Code */
                 
                 :host {
@@ -508,34 +508,38 @@ class FastSearchCard extends HTMLElement {
                     overflow: hidden;
                     position: relative;
                 
-                    /* Mehrschichtiger Hintergrund für Glass-Effekt */
+                    /* iOS-Style Milchglas-Effekt */
                     background: 
-                        /* Licht-Reflektion oben */
-                        radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.3) 0%, transparent 40%),
-                        /* Highlight in der Mitte */
-                        radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%),
-                        /* Basis-Gradient */
+                        /* Starke weiße Lichtreflexion oben */
+                        radial-gradient(ellipse at 30% -10%, rgba(255, 255, 255, 0.6) 0%, transparent 35%),
+                        /* Seitlicher Glanz links */
+                        radial-gradient(ellipse at -10% 50%, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
+                        /* Zentraler Glow */
+                        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 60%),
+                        /* Milchiger Basis-Gradient */
                         linear-gradient(135deg, 
-                            rgba(255, 255, 255, 0.25) 0%, 
-                            rgba(255, 255, 255, 0.15) 30%,
-                            rgba(255, 255, 255, 0.1) 60%, 
-                            rgba(255, 255, 255, 0.05) 100%),
-                        /* Dunkler Hintergrund */
-                        rgba(28, 28, 30, 0.85);
+                            rgba(255, 255, 255, 0.7) 0%, 
+                            rgba(255, 255, 255, 0.5) 25%,
+                            rgba(255, 255, 255, 0.4) 50%, 
+                            rgba(255, 255, 255, 0.3) 100%),
+                        /* Sehr heller, transparenter Hintergrund */
+                        rgba(248, 248, 250, 0.3);
                     
                     /* Keine problematischen Filter! */
                     /* backdrop-filter: REMOVED */
                     /* -webkit-backdrop-filter: REMOVED */
                     
-                    /* Optimierte Borders */
-                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    /* iOS-Style Borders - heller und subtiler */
+                    border: 0.5px solid rgba(255, 255, 255, 0.6);
                     box-shadow: 
-                        /* Äußere Schatten */
-                        0 20px 60px rgba(0, 0, 0, 0.3),
-                        0 8px 16px rgba(0, 0, 0, 0.2),
-                        /* Innere Highlights */
-                        inset 0 2px 4px rgba(255, 255, 255, 0.4),
-                        inset 0 -1px 2px rgba(0, 0, 0, 0.2);
+                        /* Weiche äußere Schatten */
+                        0 10px 40px rgba(0, 0, 0, 0.08),
+                        0 2px 10px rgba(0, 0, 0, 0.06),
+                        /* Starke innere Highlights für Glaseffekt */
+                        inset 0 2px 4px rgba(255, 255, 255, 0.8),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.9),
+                        /* Subtiler innerer Schatten nur am Boden */
+                        inset 0 -1px 1px rgba(0, 0, 0, 0.05);
                     
                     /* Performance-Optimierungen für Safari */
                     -webkit-transform: translateZ(0);
@@ -554,18 +558,22 @@ class FastSearchCard extends HTMLElement {
                     user-select: none !important;
                 }
                 
-                /* Zusätzlicher Blur-Effekt mit Pseudo-Element (Optional) */
+                /* Zusätzlicher Milchglas-Effekt mit Pseudo-Element */
                 :host::before {
                     content: '';
                     position: absolute;
-                    inset: -50px;
-                    background: inherit;
-                    filter: blur(50px);
-                    opacity: 0.5;
+                    inset: 0;
+                    background: 
+                        /* Weißer Schleier */
+                        linear-gradient(to bottom, 
+                            rgba(255, 255, 255, 0.4) 0%, 
+                            rgba(255, 255, 255, 0.2) 100%);
+                    /* Leichter Blur für Milchglas-Look */
+                    filter: blur(1px);
+                    opacity: 0.6;
                     z-index: -1;
-                    /* Verhindere Flackern */
-                    transform: translateZ(-1px);
                     pointer-events: none;
+                    border-radius: inherit;
                 }
                 
                 /* Animation-Safe Klassen */
@@ -575,13 +583,15 @@ class FastSearchCard extends HTMLElement {
                     filter: none !important;
                 }
                 
-                /* Optimierte Icon-Section ohne backdrop-filter */
+                /* Optimierte Icon-Section - heller und milchiger */
                 .icon-section {
                     flex: 1;
-                    /* Dunklerer Overlay statt backdrop-filter */
+                    /* Milchiger Overlay */
                     background: 
-                        radial-gradient(ellipse at center, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 100%),
-                        rgba(0, 0, 0, 0.15);
+                        linear-gradient(135deg, 
+                            rgba(255, 255, 255, 0.2) 0%, 
+                            rgba(255, 255, 255, 0.1) 100%),
+                        rgba(255, 255, 255, 0.15);
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -591,44 +601,50 @@ class FastSearchCard extends HTMLElement {
                     overflow: hidden;
                 }
                 
-                /* Filter Menu ohne backdrop-filter */
+                /* Filter Menu - iOS-Style Milchglas */
                 .filter-menu {
-                    /* Gleicher Stil wie Hauptkarte aber Safari-optimiert */
                     background: 
-                        radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.3) 0%, transparent 40%),
-                        radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%),
+                        /* Starke weiße Reflexion */
+                        radial-gradient(ellipse at 40% -20%, rgba(255, 255, 255, 0.8) 0%, transparent 40%),
+                        /* Milchiger Gradient */
                         linear-gradient(135deg, 
-                            rgba(58, 58, 60, 0.95) 0%, 
-                            rgba(58, 58, 60, 0.9) 50%,
-                            rgba(58, 58, 60, 0.85) 100%);
+                            rgba(255, 255, 255, 0.75) 0%, 
+                            rgba(255, 255, 255, 0.6) 50%,
+                            rgba(255, 255, 255, 0.5) 100%),
+                        /* Heller Basis-Ton */
+                        rgba(250, 250, 252, 0.7);
                     
-                    /* Kein backdrop-filter! */
-                    
-                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border: 0.5px solid rgba(255, 255, 255, 0.8);
                     border-radius: 20px;
                     
                     box-shadow: 
-                        0 20px 60px rgba(0, 0, 0, 0.4),
-                        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+                        0 10px 40px rgba(0, 0, 0, 0.1),
+                        inset 0 2px 3px rgba(255, 255, 255, 0.9);
                 }
                 
-                /* More-Info Dialog ohne backdrop-filter */
+                /* More-Info Dialog - iOS-Style */
                 .more-info-dialog {
                     background: 
-                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.25) 0%, transparent 50%),
+                        /* Obere Lichtreflexion */
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.9) 0%, transparent 40%),
+                        /* Milchglas-Gradient */
                         linear-gradient(135deg, 
-                            rgba(255, 255, 255, 0.2) 0%,
-                            rgba(255, 255, 255, 0.1) 100%),
-                        rgba(28, 28, 30, 0.95);
+                            rgba(255, 255, 255, 0.8) 0%,
+                            rgba(255, 255, 255, 0.6) 50%,
+                            rgba(255, 255, 255, 0.5) 100%),
+                        /* Sehr heller Basis-Ton */
+                        rgba(252, 252, 254, 0.8);
                     
-                    /* Kein backdrop-filter! */
-                    
-                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border: 0.5px solid rgba(255, 255, 255, 0.85);
                     border-radius: 24px;
                     box-shadow: 
-                        0 8px 32px rgba(0, 0, 0, 0.3),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.3);
+                        0 8px 32px rgba(0, 0, 0, 0.08),
+                        inset 0 2px 2px rgba(255, 255, 255, 0.95);
                 }
+
+
+
+        
 
                 
 
