@@ -738,6 +738,7 @@ class FastSearchCard extends HTMLElement {
 
 
 
+
                 .filter-button {
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
@@ -750,12 +751,8 @@ class FastSearchCard extends HTMLElement {
                     cursor: pointer;
                     transition: all 0.2s;
                     color: rgba(255, 255, 255, 0.8);
-                    position: absolute;
-                    right: 8px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    z-index: 2;
-                }                
+                    position: relative;
+                }              
                 
                 .filter-button:hover {
                     background: rgba(0, 0, 0, 0.25);
@@ -5173,6 +5170,13 @@ class FastSearchCard extends HTMLElement {
                             </button>                            
                             <div class="search-controls">
 
+                                <!-- HIER den filter-button einfügen -->
+                                <button class="filter-button" id="filterButton">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                                    </svg>
+                                    <span class="filter-badge" id="filterBadge">0</span>
+                                </button>
 
                                 <div class="filter-section">
                                     <div class="filter-row" id="typeFilterChips">
