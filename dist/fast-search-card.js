@@ -737,6 +737,7 @@ class FastSearchCard extends HTMLElement {
 
 
 
+
                 .filter-button {
                     background: rgba(0, 0, 0, 0.15);
                     border: none;
@@ -749,8 +750,12 @@ class FastSearchCard extends HTMLElement {
                     cursor: pointer;
                     transition: all 0.2s;
                     color: rgba(255, 255, 255, 0.8);
-                    position: relative;
-                }
+                    position: absolute;
+                    right: 8px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    z-index: 2;
+                }                
                 
                 .filter-button:hover {
                     background: rgba(0, 0, 0, 0.25);
