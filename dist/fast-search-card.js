@@ -5760,14 +5760,13 @@ class FastSearchCard extends HTMLElement {
                                 }
                             }
                         }, 200);
-                    }                        
-                    } else if (targetSection === 'shortcuts') {
+                    } else if (targetSection === 'shortcuts') {  // ← NUR EINE } hier!
                         console.log('⚡ Setting up Shortcuts'); // Debug-Log
                         setTimeout(() => this.setupShortcutEventListeners(item), 150);
                     }
-                }
+                }  // ← NUR EINE schließende Klammer für das if (targetElement)
                 
-                console.log('🔒 Closing dropdown for:', targetSection); // Debug-Log
+                console.log('🔒 Closing dropdown for:', targetSection);
                 // Close dropdown
                 closeDropdown();
             };
