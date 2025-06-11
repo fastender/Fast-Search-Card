@@ -811,7 +811,127 @@ class FastSearchCard extends HTMLElement {
     // ENDER
 
 
+        
     
+    // 🎨 visionOS Color Preset Stagger Animation - Web Animations API
+    animateColorPresetStagger(container, colorPresets, isOpening = true) {
+        console.log('🎨 Starting visionOS Color Preset Stagger animation', isOpening ? 'OPEN' : 'CLOSE');
+        
+        if (!container || !colorPresets || colorPresets.length === 0) return [];
+        
+        const animations = [];
+        
+        if (isOpening) {
+            // Container öffnen Animation
+            const containerAnimation = container.animate([
+                {
+                    maxHeight: '0px',
+                    opacity: 0,
+                    transform: 'translateY(-10px)',
+                    overflow: 'hidden'
+                },
+                {
+                    maxHeight: '400px',
+                    opacity: 1,
+                    transform: 'translateY(0)',
+                    overflow: 'visible'
+                }
+            ], {
+                duration: 400,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+            
+            animations.push(containerAnimation);
+            
+            // Color Presets Stagger Animation
+            Array.from(colorPresets).forEach((preset, index) => {
+                const presetAnimation = preset.animate([
+                    {
+                        opacity: 0,
+                        transform: 'scale(0.7) translateZ(-20px)',
+                        filter: 'blur(4px)'
+                    },
+                    {
+                        opacity: 0.8,
+                        transform: 'scale(1.05) translateZ(5px)',
+                        filter: 'blur(1px)',
+                        offset: 0.7
+                    },
+                    {
+                        opacity: 1,
+                        transform: 'scale(1) translateZ(0px)',
+                        filter: 'blur(0px)'
+                    }
+                ], {
+                    duration: 500,
+                    delay: 200 + (index * 50), // Staggered delay after container
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
+                    fill: 'forwards'
+                });
+                
+                animations.push(presetAnimation);
+            });
+            
+            // CSS Klasse nach Animation setzen
+            containerAnimation.finished.then(() => {
+                container.classList.add('visible');
+            });
+            
+        } else {
+            // Closing Animation - Presets zuerst, dann Container
+            Array.from(colorPresets).reverse().forEach((preset, index) => {
+                const presetAnimation = preset.animate([
+                    {
+                        opacity: 1,
+                        transform: 'scale(1) translateZ(0px)',
+                        filter: 'blur(0px)'
+                    },
+                    {
+                        opacity: 0,
+                        transform: 'scale(0.7) translateZ(-20px)',
+                        filter: 'blur(4px)'
+                    }
+                ], {
+                    duration: 200,
+                    delay: index * 30, // Reverse stagger
+                    easing: 'ease-in',
+                    fill: 'forwards'
+                });
+                
+                animations.push(presetAnimation);
+            });
+            
+            // Container schließen nach Presets
+            const containerAnimation = container.animate([
+                {
+                    maxHeight: '400px',
+                    opacity: 1,
+                    transform: 'translateY(0)'
+                },
+                {
+                    maxHeight: '0px',
+                    opacity: 0,
+                    transform: 'translateY(-10px)'
+                }
+            ], {
+                duration: 300,
+                delay: colorPresets.length * 30 + 100,
+                easing: 'ease-in',
+                fill: 'forwards'
+            });
+            
+            animations.push(containerAnimation);
+            
+            // CSS Klasse nach Animation entfernen
+            containerAnimation.finished.then(() => {
+                container.classList.remove('visible');
+            });
+        }
+        
+        return animations;
+    }
+
     
     // 💡 visionOS Light Control Slider Transition - Web Animations API
     animateLightControlsTransition(element, isVisible = true, elementType = 'slider') {
@@ -4564,7 +4684,6 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0;
                     overflow: hidden; /* Muss hidden sein für Animation */
                     transform: translateY(-10px);
-                    transition: all 0.4s ease;
                     pointer-events: none;
                 }
                 
@@ -4581,7 +4700,6 @@ class FastSearchCard extends HTMLElement {
                     border-radius: 50%;
                     cursor: pointer;
                     border: 2px solid rgba(255, 255, 255, 0.2);
-                    transition: all 0.2s ease;
                     position: relative;
                     justify-self: center;
                 }
@@ -4703,7 +4821,6 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0;
                     overflow: hidden;
                     transform: translateY(-10px);
-                    transition: all 0.4s ease;
                     pointer-events: none;
                 }
                 
@@ -4719,22 +4836,12 @@ class FastSearchCard extends HTMLElement {
                 .new-light-color-preset {
                     opacity: 0;
                     transform: scale(0.7);
-                    transition: all 0.3s ease;
                 }
                 
                 .new-light-colors.visible .new-light-color-preset {
                     opacity: 1;
                     transform: scale(1);
                 }
-                
-                .new-light-colors.visible .new-light-color-preset:nth-child(1) { transition-delay: 0.05s; }
-                .new-light-colors.visible .new-light-color-preset:nth-child(2) { transition-delay: 0.1s; }
-                .new-light-colors.visible .new-light-color-preset:nth-child(3) { transition-delay: 0.15s; }
-                .new-light-colors.visible .new-light-color-preset:nth-child(4) { transition-delay: 0.2s; }
-                .new-light-colors.visible .new-light-color-preset:nth-child(5) { transition-delay: 0.25s; }
-                .new-light-colors.visible .new-light-color-preset:nth-child(6) { transition-delay: 0.3s; }
-                .new-light-colors.visible .new-light-color-preset:nth-child(7) { transition-delay: 0.35s; }
-                .new-light-colors.visible .new-light-color-preset:nth-child(8) { transition-delay: 0.4s; }
                 
                 /* Kompakte Buttons für mehr Platz */
                 @media (max-width: 768px) {
@@ -7346,16 +7453,16 @@ class FastSearchCard extends HTMLElement {
                             console.log('🎨 Current state:', { isOpen });
                             
                             if (isOpen) {
-                                // Schließen
-                                colorsContainer.classList.remove('visible');
+                                // Schließen mit Animation
+                                const colorPresets = colorsContainer.querySelectorAll('.new-light-color-preset');
+                                this.animateColorPresetStagger(colorsContainer, colorPresets, false);
                                 colorsContainer.setAttribute('data-is-open', 'false');
-                                console.log('🎨 Farbpalette geschlossen');
                             } else {
-                                // Öffnen
-                                colorsContainer.classList.add('visible');
+                                // Öffnen mit Animation
+                                const colorPresets = colorsContainer.querySelectorAll('.new-light-color-preset');
+                                this.animateColorPresetStagger(colorsContainer, colorPresets, true);
                                 colorsContainer.setAttribute('data-is-open', 'true');
-                                console.log('🎨 Farbpalette geöffnet');
-                            }
+                            }                                
                             
                             // Button Animation
                             colorToggleButton.style.transform = 'scale(0.9)';
