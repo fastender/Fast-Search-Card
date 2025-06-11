@@ -5934,10 +5934,20 @@ class FastSearchCard extends HTMLElement {
                 console.log('🔥 Section clicked:', targetSection); // Debug-Log
                 
                 // Subtle scale animation on click
-                item.style.transform = 'translateY(0) scale(0.98)';
-                setTimeout(() => {
-                    item.style.transform = '';
-                }, 100);
+                item.animate([
+                    {
+                        transform: 'translateY(0) scale(1)'      // Start: normale Position & Größe
+                    },
+                    {
+                        transform: 'translateY(0) scale(0.98)'   // Mitte: etwas kleiner
+                    },
+                    {
+                        transform: 'translateY(0) scale(1)'      // Ende: wieder normal
+                    }
+                ], {
+                    duration: 100,                               // 100ms wie vorher
+                    easing: 'ease-out'                           // sanfte Animation
+                });
                 
                 // Update active state
                 dropdownItems.forEach(i => i.classList.remove('active'));
@@ -9036,10 +9046,20 @@ getQuickStats(item) {
                         scenesContainer.setAttribute('data-is-open', 'true');
                     }
                     
-                    scenesToggleButton.style.transform = 'scale(0.9)';
-                    setTimeout(() => {
-                        scenesToggleButton.style.transform = '';
-                    }, 150);
+                    scenesToggleButton.animate([
+                        {
+                            transform: 'scale(1)'          // Start: normale Größe
+                        },
+                        {
+                            transform: 'scale(0.9)'        // Mitte: kleiner machen  
+                        },
+                        {
+                            transform: 'scale(1)'          // Ende: wieder normale Größe
+                        }
+                    ], {
+                        duration: 150,                     // 150ms wie vorher
+                        easing: 'ease-out'                 // sanfte Animation
+                    });
                 }
             }, true);
         }
@@ -9169,10 +9189,20 @@ getQuickStats(item) {
                         settingsContainer.setAttribute('data-is-open', 'true');
                     }
                     
-                    settingsToggleButton.style.transform = 'scale(0.9)';
-                    setTimeout(() => {
-                        settingsToggleButton.style.transform = '';
-                    }, 150);
+                    settingsToggleButton.animate([
+                        {
+                            transform: 'scale(1)'          // Start: normale Größe
+                        },
+                        {
+                            transform: 'scale(0.9)'        // Mitte: kleiner machen
+                        },
+                        {
+                            transform: 'scale(1)'          // Ende: wieder normale Größe
+                        }
+                    ], {
+                        duration: 150,                     // 150ms wie vorher
+                        easing: 'ease-out'                 // sanfte Animation
+                    });
                 }
             }, true);
         }
@@ -10627,11 +10657,30 @@ getQuickStats(item) {
         });
         
         // Anti-Glow: Reset nach Animation
-        setTimeout(() => {
+        const resetAnimation = activeBtn.animate([
+            {
+                boxShadow: '0 4px 15px rgba(255,255,255,0.2)',      // Start: mit Schatten
+                transform: 'translateZ(4px) scale(1)',               // Start: erhöht
+                backdropFilter: 'blur(15px)'                         // Start: unscharf
+            },
+            {
+                boxShadow: '0 0 0 rgba(255,255,255,0)',             // Ende: kein Schatten
+                transform: 'translateZ(0px) scale(1)',               // Ende: normal
+                backdropFilter: 'blur(10px)'                         // Ende: weniger unscharf
+            }
+        ], {
+            duration: 500,                                           // 500ms wie vorher
+            delay: 0,                                               // sofort starten
+            easing: 'ease-out',                                     // sanfte Animation
+            fill: 'forwards'                                        // Ende-Zustand beibehalten
+        }); 
+
+        // Optional: Nach Animation properties komplett zurücksetzen
+        resetAnimation.finished.then(() => {
             activeBtn.style.boxShadow = '';
             activeBtn.style.transform = '';
             activeBtn.style.backdropFilter = '';
-        }, 500);        
+        });        
         
         // Active Button Animation
         activeBtn.animate([
@@ -13088,9 +13137,22 @@ animateModalExit(overlay) {
                     targetSectionElement.style.display = 'block';
                     targetSectionElement.classList.add('active');
                     
-                    // Trigger reflow for animation
-                    targetSectionElement.offsetHeight;
-                    targetSectionElement.classList.add('fade-in');
+                    // Web Animation API statt CSS
+                    targetSectionElement.animate([
+                        {
+                            opacity: 0,                    // Start: unsichtbar
+                            transform: 'translateY(10px)'  // Start: etwas nach unten versetzt
+                        },
+                        {
+                            opacity: 1,                    // Ende: sichtbar
+                            transform: 'translateY(0)'     // Ende: normale Position
+                        }
+                    ], {
+                        duration: 300,                     // 300ms Animation
+                        easing: 'ease-out',               // sanfte Animation
+                        fill: 'forwards'                  // Ende-Zustand beibehalten
+                    });
+                }
 
                     // Spezielle Initialisierung für verschiedene Sektionen
                     if (targetSection === 'history') {
