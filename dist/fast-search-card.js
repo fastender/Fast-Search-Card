@@ -10214,9 +10214,6 @@ getQuickStats(item) {
         });
     }
 
-    
-
-
     setView(viewType) {
         console.log('🍎 visionOS view transition:', viewType);
         
@@ -10226,20 +10223,18 @@ getQuickStats(item) {
         
         this.currentView = viewType;
         
-        // Toggle button states OHNE Animation
+        // Button Animation
         const listBtn = this.shadowRoot.getElementById('listViewBtn');
         const gridBtn = this.shadowRoot.getElementById('gridViewBtn');
         
-        listBtn.classList.toggle('active', viewType === 'list');
-        gridBtn.classList.toggle('active', viewType === 'grid');
+        // 🎬 Button States mit Animation
+        this.animateViewToggleButtons(listBtn, gridBtn, viewType);
         
-        // Nur applyFilters aufrufen
-        this.applyFilters();
-        
-        // Reset Flag nach kurzer Zeit
-        setTimeout(() => {
+        // 🎬 Content Morph Animation verwenden (existiert bereits!)
+        this.animateViewContentMorph(viewType).then(() => {
+            // Reset Flag nach Animation
             this.isViewChanging = false;
-        }, 500);
+        });
     }
 
 
@@ -10312,7 +10307,7 @@ getQuickStats(item) {
         // 🔒 Verhindere mehrfache gleichzeitige Animationen
         if (resultsContainer.dataset.animating === 'true') {
             console.log('🍎 Animation bereits aktiv, überspringe');
-            return;
+            return Promise.resolve();
         }
         resultsContainer.dataset.animating = 'true';        
         
@@ -10341,46 +10336,180 @@ getQuickStats(item) {
         });
         
         // Phase 2: Apply new view + Morph In
-        morphOut.finished.then(() => {
-            // Apply filters mit neuem View
-            this.applyFilters();
+        return morphOut.finished.then(() => {
+            // 🔧 FIX: applyFiltersWithoutAnimation verwenden
+            this.applyFiltersWithoutAnimation();
             
             // Morph In Animation
-            setTimeout(() => {
-                const morphIn = resultsContainer.animate([
-                    {
-                        opacity: 0,
-                        transform: 'scale(0.9) rotateX(-10deg) translateZ(40px)',
-                        filter: 'blur(8px)'
-                    },
-                    {
-                        opacity: 0.5,
-                        transform: 'scale(0.95) rotateX(-5deg) translateZ(20px)',
-                        filter: 'blur(4px)',
-                        offset: 0.5
-                    },
-                    {
-                        opacity: 1,
-                        transform: 'scale(1) rotateX(0deg) translateZ(0px)',
-                        filter: 'blur(0px)'
-                    }
-                ], {
-                    duration: 400,
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                    fill: 'forwards'
-                });
+            const morphIn = resultsContainer.animate([
+                {
+                    opacity: 0,
+                    transform: 'scale(0.9) rotateX(-10deg) translateZ(40px)',
+                    filter: 'blur(8px)'
+                },
+                {
+                    opacity: 0.5,
+                    transform: 'scale(0.95) rotateX(-5deg) translateZ(20px)',
+                    filter: 'blur(4px)',
+                    offset: 0.5
+                },
+                {
+                    opacity: 1,
+                    transform: 'scale(1) rotateX(0deg) translateZ(0px)',
+                    filter: 'blur(0px)'
+                }
+            ], {
+                duration: 400,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+            
+            // Enhanced Stagger für neue Items NACH Morph In
+            return morphIn.finished.then(() => {
+                // Animation-Flag reset
+                resultsContainer.dataset.animating = 'false';
                 
-                // Enhanced Stagger für neue Items
+                // Items animieren
                 setTimeout(() => {
-                    this.animateVisionOSStagger();
-                    
-                    // 🔒 Animation beendet
-                    resultsContainer.dataset.animating = 'false';
-                }, 100);
-                
-            }, 50);
+                    this.animateVisibleItems();
+                }, 50);
+            });
         });
     }
+
+
+    applyFiltersWithoutAnimation() {
+        const query = this.searchInput.value.toLowerCase().trim();
+        
+        let filteredItems = this.allItems.filter(item => {
+            const matchesSearch = !query || 
+                item.name.toLowerCase().includes(query) ||
+                item.type.toLowerCase().includes(query) ||
+                item.room.toLowerCase().includes(query) ||
+                item.category.toLowerCase().includes(query);
+            
+            const matchesRoom = this.selectedRooms.size === 0 || this.selectedRooms.has(item.room);
+            const matchesType = !this.selectedType || 
+                (this.selectedType === 'none' ? 
+                    !this.typeFilterConfig.categories.includes(item.category) : 
+                    item.category === this.selectedType);
+            
+            return matchesSearch && matchesRoom && matchesType;
+        });
+        
+        // UI aktualisieren
+        this.updateSearchResultsCount(filteredItems.length);
+        
+        // 🔧 FIX: Display-Methoden OHNE Item-Animationen aufrufen
+        if (this.currentView === 'list') {
+            this.displayItemsListWithoutAnimation(filteredItems);
+        } else {
+            this.displayItemsGridWithoutAnimation(filteredItems);
+        }
+    }    
+
+
+    displayItemsListWithoutAnimation(itemList) {
+        this.resultsContainer.innerHTML = '';
+        
+        const sortedItems = itemList.sort((a, b) => {
+            if (a.room !== b.room) {
+                return a.room.localeCompare(b.room);
+            }
+            return a.name.localeCompare(b.name);
+        });
+        
+        const itemsByRoom = {};
+        sortedItems.forEach(item => {
+            if (!itemsByRoom[item.room]) {
+                itemsByRoom[item.room] = [];
+            }
+            itemsByRoom[item.room].push(item);
+        });
+        
+        Object.keys(itemsByRoom).sort().forEach(room => {
+            // Room Header
+            const roomHeader = document.createElement('div');
+            roomHeader.className = 'room-header';
+            roomHeader.innerHTML = `
+                <div class="room-title">${room}</div>
+                <div class="room-count">${itemsByRoom[room].length} Geräte</div>
+            `;
+            this.resultsContainer.appendChild(roomHeader);
+            
+            // Items - OHNE Animation
+            itemsByRoom[room].forEach(item => {
+                const itemElement = this.createItemElement(item);
+                // 🔧 FIX: Elemente sind sofort sichtbar
+                itemElement.style.opacity = '1';
+                itemElement.style.transform = 'none';
+                this.resultsContainer.appendChild(itemElement);
+            });
+        });
+    }
+    
+    displayItemsGridWithoutAnimation(itemList) {
+        this.resultsContainer.innerHTML = '';
+        
+        const sortedItems = itemList.sort((a, b) => {
+            if (a.room !== b.room) {
+                return a.room.localeCompare(b.room);
+            }
+            return a.name.localeCompare(b.name);
+        });
+        
+        const itemsByRoom = {};
+        sortedItems.forEach(item => {
+            if (!itemsByRoom[item.room]) {
+                itemsByRoom[item.room] = [];
+            }
+            itemsByRoom[item.room].push(item);
+        });
+        
+        const gridContainer = document.createElement('div');
+        gridContainer.className = 'grid-container';
+        
+        Object.keys(itemsByRoom).sort().forEach(room => {
+            // Room Section
+            const roomSection = document.createElement('div');
+            roomSection.className = 'room-section';
+            roomSection.innerHTML = `
+                <div class="room-header">
+                    <div class="room-title">${room}</div>
+                    <div class="room-count">${itemsByRoom[room].length} Geräte</div>
+                </div>
+                <div class="room-grid">
+                    ${itemsByRoom[room].map(item => {
+                        const element = this.createItemElement(item);
+                        // 🔧 FIX: Elemente sind sofort sichtbar
+                        element.style.opacity = '1';
+                        element.style.transform = 'none';
+                        return element.outerHTML;
+                    }).join('')}
+                </div>
+            `;
+            gridContainer.appendChild(roomSection);
+        });
+        
+        this.resultsContainer.appendChild(gridContainer);
+        
+        // Event Listeners für neue Elemente
+        this.setupItemEventListeners();
+    }
+
+
+    animateVisibleItems() {
+        const currentView = this.currentView;
+        
+        if (currentView === 'list') {
+            const items = this.resultsContainer.querySelectorAll('.item, .entity-item, .automation-item, .script-item, .scene-item');
+            this.animateListItems(Array.from(items));
+        } else {
+            const items = this.resultsContainer.querySelectorAll('.item, .entity-item, .automation-item, .script-item, .scene-item');
+            this.animateGridItems(Array.from(items));
+        }
+    }
+    
     
     // 🍎 Enhanced visionOS Stagger Animation
     animateVisionOSStagger() {
