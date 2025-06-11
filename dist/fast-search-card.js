@@ -248,11 +248,117 @@ class FastSearchCard extends HTMLElement {
                     duration: 200,
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
                 });
-            });
+            });   
+
+            // 🍎 Erweitere Glass Effekte auf andere Elemente
+            this.setupGlassEffectsForOtherElements();
+            
         });
     }        
 
 
+
+    // 🍎 visionOS Glass Effects für andere Elemente
+    setupGlassEffectsForOtherElements() {
+        console.log('🍎 Setting up glass effects for other elements');
+        
+        // Glass Effects für Grid Items
+        const gridItems = this.shadowRoot.querySelectorAll('.grid-item');
+        gridItems.forEach(item => this.addGlassEffects(item));
+        
+        // Glass Effects für List Items  
+        const listItems = this.shadowRoot.querySelectorAll('.item');
+        listItems.forEach(item => this.addGlassEffects(item));
+        
+        // Glass Effects für Buttons
+        const buttons = this.shadowRoot.querySelectorAll('.action-button, .view-toggle-btn');
+        buttons.forEach(button => this.addGlassEffects(button, 'subtle'));
+    }
+    
+    // 🍎 Universelle Glass Effects Methode
+    addGlassEffects(element, intensity = 'normal') {
+        let hoverAnimation = null;
+        
+        const intensitySettings = {
+            subtle: {
+                scale: 1.01,
+                translateZ: 2,
+                brightness: 1.02,
+                duration: 200
+            },
+            normal: {
+                scale: 1.02,
+                translateZ: 8,
+                brightness: 1.1,
+                duration: 400
+            },
+            strong: {
+                scale: 1.03,
+                translateZ: 12,
+                brightness: 1.15,
+                duration: 500
+            }
+        };
+        
+        const settings = intensitySettings[intensity];
+        
+        element.addEventListener('mouseenter', () => {
+            if (hoverAnimation) hoverAnimation.cancel();
+            
+            hoverAnimation = element.animate([
+                { 
+                    transform: 'scale(1) translateZ(0px)',
+                    filter: 'brightness(1)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 0 0 rgba(255,255,255,0)'
+                },
+                { 
+                    transform: `scale(${settings.scale}) translateZ(${settings.translateZ}px)`,
+                    filter: `brightness(${settings.brightness})`,
+                    backdropFilter: 'blur(15px)',
+                    boxShadow: '0 8px 25px rgba(255,255,255,0.2)',
+                    offset: 0.6
+                },
+                { 
+                    transform: `scale(${settings.scale - 0.01}) translateZ(${settings.translateZ / 2}px)`,
+                    filter: `brightness(${settings.brightness - 0.05})`,
+                    backdropFilter: 'blur(12px)',
+                    boxShadow: '0 4px 15px rgba(255,255,255,0.15)'
+                }
+            ], {
+                duration: settings.duration,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+        });
+        
+        element.addEventListener('mouseleave', () => {
+            if (hoverAnimation) hoverAnimation.cancel();
+            
+            hoverAnimation = element.animate([
+                { 
+                    transform: `scale(${settings.scale - 0.01}) translateZ(${settings.translateZ / 2}px)`,
+                    filter: `brightness(${settings.brightness - 0.05})`,
+                    backdropFilter: 'blur(12px)'
+                },
+                { 
+                    transform: 'scale(1) translateZ(0px)',
+                    filter: 'brightness(1)',
+                    backdropFilter: 'blur(10px)'
+                }
+            ], {
+                duration: 300,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                fill: 'forwards'
+            });
+        });
+    }
+
+    
+
+
+
+    
     
     
     // 🎬 Grid Items Stagger Animation
@@ -1165,79 +1271,6 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
                 
-                @keyframes visionOSGlassGlow {
-                    0% {
-                        box-shadow: 0 0 0 rgba(255,255,255,0);
-                        backdrop-filter: blur(10px);
-                    }
-                    50% {
-                        box-shadow: 0 8px 30px rgba(255,255,255,0.4);
-                        backdrop-filter: blur(20px);
-                    }
-                    100% {
-                        box-shadow: 0 4px 20px rgba(255,255,255,0.2);
-                        backdrop-filter: blur(15px);
-                    }
-                }
-
-                /* visionOS Loading Animations */
-                @keyframes visionOSShimmer {
-                    0% {
-                        left: -150%;
-                        opacity: 0;
-                    }
-                    20% {
-                        opacity: 0.8;
-                    }
-                    80% {
-                        opacity: 0.8;
-                    }
-                    100% {
-                        left: 150%;
-                        opacity: 0;
-                    }
-                }
-                
-                @keyframes visionOSBreathing {
-                    0%, 100% {
-                        opacity: 0.3;
-                        transform: scale(1) translateZ(0px);
-                        backdrop-filter: blur(10px);
-                    }
-                    50% {
-                        opacity: 0.8;
-                        transform: scale(1.03) translateZ(6px);
-                        backdrop-filter: blur(18px);
-                    }
-                }
-                
-                @keyframes loadingFadeIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(20px) scale(0.95);
-                        filter: blur(4px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0) scale(1);
-                        filter: blur(0px);
-                    }
-                }
-                
-                @keyframes visionOSPulse {
-                    0% {
-                        transform: scale(1) translateZ(0px);
-                        backdrop-filter: blur(10px);
-                    }
-                    50% {
-                        transform: scale(1.02) translateZ(4px);
-                        backdrop-filter: blur(15px);
-                    }
-                    100% {
-                        transform: scale(1) translateZ(0px);
-                        backdrop-filter: blur(10px);
-                    }
-                }
                 
                 @keyframes visionOSDepthShift {
                     0% {
@@ -1280,87 +1313,6 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
-
-                /* visionOS Glass Animations */
-                @keyframes visionOSGlassLift {
-                    0% {
-                        transform: scale(1) translateZ(0px);
-                        filter: brightness(1) blur(0px);
-                        box-shadow: 0 0 0 rgba(255,255,255,0);
-                    }
-                    50% {
-                        transform: scale(1.02) translateZ(8px);
-                        filter: brightness(1.1) blur(0px);
-                        box-shadow: 0 8px 25px rgba(255,255,255,0.2);
-                    }
-                    100% {
-                        transform: scale(1.01) translateZ(4px);
-                        filter: brightness(1.05) blur(0px);
-                        box-shadow: 0 4px 15px rgba(255,255,255,0.15);
-                    }
-                }
-                
-                @keyframes visionOSGlassFloat {
-                    0% {
-                        transform: translateZ(4px) rotateY(0deg);
-                        backdrop-filter: blur(10px);
-                    }
-                    50% {
-                        transform: translateZ(6px) rotateY(1deg);
-                        backdrop-filter: blur(12px);
-                    }
-                    100% {
-                        transform: translateZ(4px) rotateY(0deg);
-                        backdrop-filter: blur(10px);
-                    }
-                }
-                
-                @keyframes visionOSSelection {
-                    0% {
-                        transform: scale(1) translateZ(0px);
-                        background: rgba(0, 0, 0, 0.15);
-                    }
-                    30% {
-                        transform: scale(0.98) translateZ(-2px);
-                        background: rgba(255, 255, 255, 0.1);
-                    }
-                    100% {
-                        transform: scale(1) translateZ(4px);
-                        background: rgba(255, 255, 255, 0.15);
-                    }
-                }
-
-                /* visionOS Spatial Room Transition */
-                @keyframes visionOSSlideOut {
-                    0% {
-                        transform: translateZ(0px) rotateY(0deg) scale(1);
-                        filter: blur(0px);
-                        opacity: 1;
-                    }
-                    100% {
-                        transform: translateZ(-200px) rotateY(-15deg) scale(0.95);
-                        filter: blur(8px);
-                        opacity: 0.3;
-                    }
-                }
-                
-                @keyframes visionOSSlideIn {
-                    0% {
-                        transform: translateZ(200px) rotateY(15deg) scale(1.05);
-                        filter: blur(8px);
-                        opacity: 0;
-                    }
-                    60% {
-                        transform: translateZ(50px) rotateY(5deg) scale(1.02);
-                        filter: blur(3px);
-                        opacity: 0.7;
-                    }
-                    100% {
-                        transform: translateZ(0px) rotateY(0deg) scale(1);
-                        filter: blur(0px);
-                        opacity: 1;
-                    }
-                }
                 
                 /* visionOS Spatial Background */
                 @keyframes spatialBackground {
@@ -1390,16 +1342,7 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
-                @keyframes fadeInStagger {
-                    from {
-                        opacity: 0;
-                        transform: translateY(15px) scale(0.9);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0) scale(1);
-                    }
-                }
+
 
                 @keyframes scaleIn {
                     from {
@@ -1493,68 +1436,9 @@ class FastSearchCard extends HTMLElement {
                             0 4px 20px rgba(255, 255, 255, 0.1);
                     }
                 }
-                /* Hover glow */
-                @keyframes hoverGlow {
-                    0% {
-                        box-shadow: 0 0 0 rgba(0, 122, 255, 0);
-                    }
-                    100% {
-                        box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
-                    }
-                }
 
+                
 
-                /* Modal Backdrop Animation */
-                @keyframes modalBackdropBlur {
-                    from {
-                        opacity: 0;
-                        backdrop-filter: blur(0px);
-                        -webkit-backdrop-filter: blur(0px);
-                    }
-                    to {
-                        opacity: 1;
-                        backdrop-filter: blur(8px);
-                        -webkit-backdrop-filter: blur(8px);
-                    }
-                }
-                
-                /* Modal Spring Entrance */
-                @keyframes modalSpringIn {
-                    0% {
-                        transform: scale(0.7) translateY(50px) rotateX(15deg);
-                        opacity: 0;
-                        filter: blur(4px);
-                    }
-                    60% {
-                        transform: scale(1.05) translateY(-10px) rotateX(-2deg);
-                        opacity: 0.9;
-                        filter: blur(1px);
-                    }
-                    80% {
-                        transform: scale(0.98) translateY(5px) rotateX(1deg);
-                        opacity: 0.95;
-                        filter: blur(0.5px);
-                    }
-                    100% {
-                        transform: scale(1) translateY(0) rotateX(0deg);
-                        opacity: 1;
-                        filter: blur(0px);
-                    }
-                }
-                
-                /* Modal Exit Animation */
-                @keyframes modalExitSpin {
-                    0% {
-                        transform: scale(1) translateY(0) rotateX(0deg);
-                        opacity: 1;
-                        filter: blur(0px);
-                    }
-                    100% {
-                        transform: scale(0.6) translateY(30px) rotateX(-10deg) rotateZ(5deg);
-                        opacity: 0;
-                        filter: blur(8px);
-                    }
-                }
                 
                 /* Content Stagger Animation */
                 @keyframes contentStaggerIn {
@@ -1617,23 +1501,7 @@ class FastSearchCard extends HTMLElement {
                     will-change: transform, box-shadow;
                 }
 
-                /* Animation nur für neue Grid-Items beim ersten Laden */
-                .grid-item.fade-in {
-                    opacity: 0;
-                    animation: fadeInStagger 0.5s ease-out forwards;
-                }
 
-                /* Stagger-Delays für Grid-Items - nur bei fade-in Klasse */
-                .grid-item.fade-in:nth-child(1) { animation-delay: 0.1s; }
-                .grid-item.fade-in:nth-child(2) { animation-delay: 0.15s; }
-                .grid-item.fade-in:nth-child(3) { animation-delay: 0.2s; }
-                .grid-item.fade-in:nth-child(4) { animation-delay: 0.25s; }
-                .grid-item.fade-in:nth-child(5) { animation-delay: 0.3s; }
-                .grid-item.fade-in:nth-child(6) { animation-delay: 0.35s; }
-                .grid-item.fade-in:nth-child(7) { animation-delay: 0.4s; }
-                .grid-item.fade-in:nth-child(8) { animation-delay: 0.45s; }
-                .grid-item.fade-in:nth-child(9) { animation-delay: 0.5s; }
-                .grid-item.fade-in:nth-child(10) { animation-delay: 0.55s; }
 
                 .grid-item:hover {
                     transform: translateY(-4px);
@@ -1833,61 +1701,7 @@ class FastSearchCard extends HTMLElement {
                 }
 
 
-                /* visionOS Loading States */
-                .visionos-loading {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 16px;
-                    padding: 24px;
-                    opacity: 0;
-                    animation: loadingFadeIn 0.5s ease-out forwards;
-                }
-                
 
-                .visionos-skeleton {
-                    position: relative;
-                    background: linear-gradient(90deg, 
-                        rgba(255,255,255,0.08) 0%, 
-                        rgba(255,255,255,0.15) 50%, 
-                        rgba(255,255,255,0.08) 100%);
-                    border-radius: 12px;
-                    overflow: hidden;
-                    backdrop-filter: blur(15px);
-                    -webkit-backdrop-filter: blur(15px);
-                    border: 1px solid rgba(255,255,255,0.15);
-                    animation: visionOSPulse 2s ease-in-out infinite;
-                }
-                
-                .visionos-skeleton::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -150%;
-                    width: 150%;
-                    height: 100%;
-                    background: linear-gradient(90deg, 
-                        transparent 0%, 
-                        rgba(255,255,255,0.4) 30%,
-                        rgba(255,255,255,0.6) 50%,
-                        rgba(255,255,255,0.4) 70%,
-                        transparent 100%);
-                    animation: visionOSShimmer 3s infinite;
-                    z-index: 1;
-                }
-                
-                .visionos-skeleton::after {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: radial-gradient(circle at center, 
-                        rgba(255,255,255,0.1) 0%, 
-                        transparent 70%);
-                    opacity: 0;
-                    animation: visionOSBreathing 3s ease-in-out infinite;
-                }
                 
                 /* Skeleton Varianten */
                 .skeleton-item {
@@ -10585,23 +10399,11 @@ getQuickStats(item) {
         
         fadeOut.finished.then(() => {
             resultsContainer.innerHTML = loadingHTML;
+
+            // Loading Container Animation
+            this.animateLoadingFadeIn(resultsContainer.querySelector('.visionos-loading'));            
             
-            // Loading Fade In
-            resultsContainer.animate([
-                { 
-                    opacity: 0,
-                    transform: 'scale(0.95) translateZ(-10px)',
-                    filter: 'blur(4px)'
-                },
-                { 
-                    opacity: 1,
-                    transform: 'scale(1) translateZ(0px)',
-                    filter: 'blur(0px)'
-                }
-            ], {
-                duration: 300,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-            });
+
             
             // Stagger Animation für Skeleton Items
             this.animateSkeletonItems();
@@ -10678,11 +10480,140 @@ getQuickStats(item) {
             
             // Continuous Breathing Animation
             setTimeout(() => {
-                item.style.animation = `visionOSPulse 4s ease-in-out infinite`;
-                item.style.animationDelay = `${index * 0.2}s`;
+                this.startSkeletonAnimations(item, index);
             }, 600 + (index * 100));
         });
     }    
+
+
+    // 🍎 Skeleton Shimmer Animation 
+    startSkeletonAnimations(skeletonElement, index) {
+        // 1. Shimmer Effect (::before Ersatz)
+        this.createShimmerAnimation(skeletonElement, index);
+        
+        // 2. Breathing Effect (::after Ersatz)  
+        this.createBreathingAnimation(skeletonElement, index);
+        
+        // 3. Pulse Animation
+        this.createPulseAnimation(skeletonElement, index);
+    }
+    
+    createShimmerAnimation(element, index) {
+        // Shimmer für ::before Pseudoelement simulieren
+        const shimmer = document.createElement('div');
+        shimmer.className = 'shimmer-overlay';
+        shimmer.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 150%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.4) 30%,
+                rgba(255,255,255,0.6) 50%,
+                rgba(255,255,255,0.4) 70%,
+                transparent 100%);
+            z-index: 1;
+            pointer-events: none;
+        `;
+        
+        element.appendChild(shimmer);
+        
+        // Shimmer Animation
+        function animateShimmer() {
+            shimmer.animate([
+                { left: '-150%', opacity: 0 },
+                { left: '-50%', opacity: 0.8, offset: 0.2 },
+                { left: '50%', opacity: 0.8, offset: 0.8 },
+                { left: '150%', opacity: 0 }
+            ], {
+                duration: 3000,
+                easing: 'ease-in-out',
+                iterations: Infinity
+            });
+        }
+        
+        setTimeout(animateShimmer, index * 200);
+    }
+    
+    createBreathingAnimation(element, index) {
+        // Breathing Animation für das Element
+        function animateBreathing() {
+            element.animate([
+                { 
+                    opacity: 0.3,
+                    transform: 'scale(1) translateZ(0px)',
+                    backdropFilter: 'blur(10px)'
+                },
+                { 
+                    opacity: 0.8,
+                    transform: 'scale(1.03) translateZ(6px)',
+                    backdropFilter: 'blur(18px)'
+                },
+                { 
+                    opacity: 0.3,
+                    transform: 'scale(1) translateZ(0px)',
+                    backdropFilter: 'blur(10px)'
+                }
+            ], {
+                duration: 3000,
+                easing: 'ease-in-out',
+                iterations: Infinity
+            });
+        }
+        
+        setTimeout(animateBreathing, index * 200);
+    }
+    
+    createPulseAnimation(element, index) {
+        // Pulse Animation
+        function animatePulse() {
+            element.animate([
+                {
+                    transform: 'scale(1) translateZ(0px)',
+                    backdropFilter: 'blur(10px)'
+                },
+                {
+                    transform: 'scale(1.02) translateZ(4px)',
+                    backdropFilter: 'blur(15px)'
+                },
+                {
+                    transform: 'scale(1) translateZ(0px)',
+                    backdropFilter: 'blur(10px)'
+                }
+            ], {
+                duration: 4000,
+                easing: 'ease-in-out',
+                iterations: Infinity
+            });
+        }
+        
+        setTimeout(animatePulse, 600 + (index * 100));
+    }
+    
+    // 🍎 Loading Container Fade In
+    animateLoadingFadeIn(container) {
+        return container.animate([
+            {
+                opacity: 0,
+                transform: 'translateY(20px) scale(0.95)',
+                filter: 'blur(4px)'
+            },
+            {
+                opacity: 1,
+                transform: 'translateY(0) scale(1)',
+                filter: 'blur(0px)'
+            }
+        ], {
+            duration: 500,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+    }    
+
+
+    
 
     showLoadingDots(text) {
         return `${text}<span class="loading-dots"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span>`;
@@ -11463,7 +11394,7 @@ getQuickStats(item) {
     
     createListItemElement(item, animate = false) {
         const element = document.createElement('div');
-        element.className = animate ? 'item fade-in' : 'item';
+        element.className = 'item';
         element.setAttribute('data-item-id', item.id); // ID für spätere Updates
         element.innerHTML = this.getItemHTML(item);
         
@@ -11476,7 +11407,7 @@ getQuickStats(item) {
 
     createGridItemElement(item, animate = false) {
         const element = document.createElement('div');
-        element.className = animate ? 'grid-item fade-in' : 'grid-item';
+        element.className = 'grid-item';
         element.setAttribute('data-item-id', item.id); // ID für spätere Updates
         
         // Check if item should be highlighted as active
