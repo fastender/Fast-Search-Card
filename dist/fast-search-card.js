@@ -808,6 +808,25 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
+
+
+    // 🎬 Album Pulse Animation mit Web Animations API
+    animateAlbumPulse(albumElement) {
+        console.log('🎬 Starting album pulse animation');
+        
+        const pulseAnimation = albumElement.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.02)', offset: 0.5 },
+            { transform: 'scale(1)' }
+        ], {
+            duration: 3000,
+            easing: 'ease-in-out',
+            iterations: Infinity
+        });
+        
+        return pulseAnimation;
+    }    
+
     
     
     
@@ -4064,15 +4083,7 @@ class FastSearchCard extends HTMLElement {
                     border-radius: inherit;
                 }
                 
-                /* Pulsing animation for playing state */
-                @keyframes albumPulse {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.02); }
-                }
-                
-                .album-cover-large.playing {
-                    animation: albumPulse 3s ease-in-out infinite;
-                }
+
                 
                 /* Now Playing Info */
                 .now-playing-info {
@@ -7609,12 +7620,28 @@ class FastSearchCard extends HTMLElement {
                         lastMediaImageUrl = currentMediaImageUrl;
                     }
                     
-                    // Playing State Animation updaten
+
+                    // 🎬 Playing State Animation mit Web Animations API updaten
                     const albumCover = this.shadowRoot.querySelector('.album-cover-large');
                     if (albumCover) {
                         const isPlaying = currentState.state === 'playing';
-                        albumCover.classList.toggle('playing', isPlaying);
+                        
+                        if (isPlaying) {
+                            albumCover.classList.add('playing');
+                            // Nur starten wenn noch nicht animiert
+                            const existingAnimations = albumCover.getAnimations();
+                            if (existingAnimations.length === 0) {
+                                this.animateAlbumPulse(albumCover);
+                            }
+                        } else {
+                            albumCover.classList.remove('playing');
+                            // Animation stoppen
+                            const animations = albumCover.getAnimations();
+                            animations.forEach(anim => anim.cancel());
+                        }
                     }
+
+                    
                     
                 }, 2000); // Alle 2 Sekunden prüfen
                 
@@ -9681,10 +9708,19 @@ getQuickStats(item) {
             albumCover.style.background = gradient;
             albumBackground.style.backgroundImage = 'none';
             albumCover.style.backgroundImage = 'none';
-        }
-        
-        // Animation State aktualisieren
-        albumCover.classList.toggle('playing', isPlaying);
+        }        
+
+        // 🎬 Web Animations API statt CSS-Klasse
+        if (isPlaying) {
+            albumCover.classList.add('playing');
+            // Animation starten
+            this.animateAlbumPulse(albumCover);
+        } else {
+            albumCover.classList.remove('playing');
+            // Animation stoppen
+            const animations = albumCover.getAnimations();
+            animations.forEach(anim => anim.cancel());
+        }        
         
         // Text Updates
         if (songTitle) {
