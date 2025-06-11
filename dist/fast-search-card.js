@@ -2010,9 +2010,7 @@ class FastSearchCard extends HTMLElement {
                     background: rgba(0, 0, 0, 0.15);
                 }
 
-                .filter-chip.all:hover {
-                    background: rgba(0, 0, 0, 0.25);
-                }                
+             
                 
                 .filter-chip.all.active {
                     background: rgba(255, 255, 255, 0.15);
