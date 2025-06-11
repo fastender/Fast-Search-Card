@@ -49,58 +49,64 @@ class FastSearchCard extends HTMLElement {
         let focusAnimation = null;
         let typingAnimation = null;
         
-        // Focus Event - Elastischer Eingang
+        // ✅ NEUE GLASMORPHISM FOCUS ANIMATION:
+        // 🌟 Glasmorphism Glow Focus Animation
         searchInput.addEventListener('focus', () => {
-            console.log('🎬 Search input focused');
+            console.log('🎬 Search input focused - Glasmorphism');
             
             // Vorherige Animation stoppen
             if (focusAnimation) focusAnimation.cancel();
             
-            // Elastic Focus Animation
+            // Intensive Glasmorphism Focus Animation
             focusAnimation = searchInput.animate([
-                { 
-                    transform: 'scale(1)',
-                    filter: 'brightness(1)',
-                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.1), 0 0 0 0px rgba(255, 255, 255, 0)'
+                {
+                    boxShadow: '0 0 0 0px rgba(255, 255, 255, 0), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)'
                 },
-                { 
-                    transform: 'scale(1.04)',
-                    filter: 'brightness(1.1)',
-                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 6px rgba(255, 255, 255, 0.4), 0 8px 30px rgba(255, 255, 255, 0.2)'
+                {
+                    boxShadow: '0 0 50px 12px rgba(255, 255, 255, 0.3), inset 0 0 0 2px rgba(255, 255, 255, 0.5)',
+                    backdropFilter: 'blur(25px) saturate(1.2)',
+                    background: 'rgba(255, 255, 255, 0.25)',
+                    border: '1px solid rgba(255, 255, 255, 0.6)',
+                    offset: 0.6
                 },
-                { 
-                    transform: 'scale(1.01)',
-                    filter: 'brightness(1.05)',
-                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 3px rgba(255, 255, 255, 0.25)'
-                },
-                { 
-                    transform: 'scale(1.02)',
-                    filter: 'brightness(1.02)',
-                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), 0 0 0 2px rgba(255, 255, 255, 0.2), 0 4px 20px rgba(255, 255, 255, 0.1)'
+                {
+                    boxShadow: '0 0 40px 10px rgba(255, 255, 255, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.4)',
+                    backdropFilter: 'blur(22px) saturate(1.1)',
+                    background: 'rgba(255, 255, 255, 0.22)',
+                    border: '1px solid rgba(255, 255, 255, 0.5)'
                 }
             ], {
-                duration: 800,
-                easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+                duration: 500,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 fill: 'forwards'
             });
         });
         
-        // Blur Event - Sanfter Ausgang
+
+        // ✅ NEUE GLASMORPHISM BLUR ANIMATION:
+        // 🌟 Glasmorphism Glow Blur Animation
         searchInput.addEventListener('blur', () => {
-            console.log('🎬 Search input blurred');
+            console.log('🎬 Search input blurred - Glasmorphism');
             
             if (focusAnimation) focusAnimation.cancel();
             if (typingAnimation) typingAnimation.cancel();
             
-            // Smooth Blur Animation
+            // Sanfte Glasmorphism Blur Animation
             focusAnimation = searchInput.animate([
-                { 
-                    transform: 'scale(1.02)',
-                    filter: 'brightness(1.02)'
+                {
+                    boxShadow: '0 0 40px 10px rgba(255, 255, 255, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.4)',
+                    backdropFilter: 'blur(22px) saturate(1.1)',
+                    background: 'rgba(255, 255, 255, 0.22)',
+                    border: '1px solid rgba(255, 255, 255, 0.5)'
                 },
-                { 
-                    transform: 'scale(1)',
-                    filter: 'brightness(1)'
+                {
+                    boxShadow: '0 0 0 0px rgba(255, 255, 255, 0), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px) saturate(1)',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)'
                 }
             ], {
                 duration: 400,
@@ -138,27 +144,45 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        // Hover Animation (nur wenn nicht fokussiert)
+        // ✅ NEUE GLASMORPHISM GLOW ANIMATION - Diese 20 Zeilen einfügen:
+        // 🌟 Glasmorphism Glow Hover Animation
         searchInput.addEventListener('mouseenter', () => {
             if (document.activeElement !== searchInput) {
                 searchInput.animate([
-                    { transform: 'scale(1)' },
-                    { transform: 'scale(1.01)' }
+                    {
+                        boxShadow: '0 0 0 0px rgba(255, 255, 255, 0), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        background: 'rgba(255, 255, 255, 0.08)'
+                    },
+                    {
+                        boxShadow: '0 0 30px 8px rgba(255, 255, 255, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.3)',
+                        backdropFilter: 'blur(20px)',
+                        background: 'rgba(255, 255, 255, 0.15)'
+                    }
                 ], {
-                    duration: 200,
-                    easing: 'ease-out',
+                    duration: 400,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
                     fill: 'forwards'
                 });
             }
         });
         
+        // ✅ NEUE GLASMORPHISM GLOW MOUSELEAVE - Diese 20 Zeilen einfügen:
         searchInput.addEventListener('mouseleave', () => {
             if (document.activeElement !== searchInput) {
                 searchInput.animate([
-                    { transform: 'scale(1.01)' },
-                    { transform: 'scale(1)' }
+                    {
+                        boxShadow: '0 0 30px 8px rgba(255, 255, 255, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.3)',
+                        backdropFilter: 'blur(20px)',
+                        background: 'rgba(255, 255, 255, 0.15)'
+                    },
+                    {
+                        boxShadow: '0 0 0 0px rgba(255, 255, 255, 0), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        background: 'rgba(255, 255, 255, 0.08)'
+                    }
                 ], {
-                    duration: 200,
+                    duration: 300,
                     easing: 'ease-out',
                     fill: 'forwards'
                 });
