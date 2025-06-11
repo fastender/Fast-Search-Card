@@ -810,8 +810,85 @@ class FastSearchCard extends HTMLElement {
 
     // ENDER
 
-
+    
+    // 👁️ visionOS View Toggle Hover Effects - Web Animations API
+    setupViewToggleHoverEffects() {
+        console.log('👁️ Setting up visionOS View Toggle Hover Effects');
         
+        const listBtn = this.shadowRoot.getElementById('listViewBtn');
+        const gridBtn = this.shadowRoot.getElementById('gridViewBtn');
+        
+        if (!listBtn || !gridBtn) return;
+        
+        [listBtn, gridBtn].forEach(button => {
+            let hoverAnimation = null;
+            
+            button.addEventListener('mouseenter', () => {
+                // Nur animieren wenn Button nicht aktiv ist
+                if (button.classList.contains('active')) return;
+                
+                if (hoverAnimation) hoverAnimation.cancel();
+                
+                // Hover In Animation
+                hoverAnimation = button.animate([
+                    {
+                        transform: 'scale(1) translateZ(0px)',
+                        background: 'rgba(0, 0, 0, 0.15)',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 0 0 rgba(255,255,255,0)'
+                    },
+                    {
+                        transform: 'scale(1.05) translateZ(8px)',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(15px)',
+                        boxShadow: '0 8px 25px rgba(255,255,255,0.2)'
+                    }
+                ], {
+                    duration: 300,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
+                    fill: 'forwards'
+                });
+                
+                // Pseudo-Element Animation (::before)
+                const beforeElement = button;
+                beforeElement.style.setProperty('--before-opacity', '1');
+                beforeElement.style.setProperty('--before-transform', 'scale(1) translateZ(0px)');
+            });
+            
+            button.addEventListener('mouseleave', () => {
+                // Nur animieren wenn Button nicht aktiv ist
+                if (button.classList.contains('active')) return;
+                
+                if (hoverAnimation) hoverAnimation.cancel();
+                
+                // Hover Out Animation
+                hoverAnimation = button.animate([
+                    {
+                        transform: 'scale(1.05) translateZ(8px)',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(15px)',
+                        boxShadow: '0 8px 25px rgba(255,255,255,0.2)'
+                    },
+                    {
+                        transform: 'scale(1) translateZ(0px)',
+                        background: 'rgba(0, 0, 0, 0.15)',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 0 0 rgba(255,255,255,0)'
+                    }
+                ], {
+                    duration: 200,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+                
+                // Pseudo-Element zurücksetzen
+                const beforeElement = button;
+                beforeElement.style.setProperty('--before-opacity', '0');
+                beforeElement.style.setProperty('--before-transform', 'scale(0.8) translateZ(-2px)');
+            });
+        });
+    }
+    
     
     // 🎨 visionOS Color Preset Stagger Animation - Web Animations API
     animateColorPresetStagger(container, colorPresets, isOpening = true) {
@@ -1566,16 +1643,9 @@ class FastSearchCard extends HTMLElement {
                     border-radius: inherit;
                     opacity: 0;
                     transform: scale(0.8) translateZ(-2px);
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                     pointer-events: none;
                 }
-                
-                .view-toggle-btn:hover:not(.active)::before {
-                    opacity: 1;
-                    transform: scale(1) translateZ(0px);
-                }
-                
-
+                                
                 .view-toggle-btn.active {
                     background: rgba(255, 255, 255, 0.15);
                     color: white;
@@ -10167,6 +10237,9 @@ getQuickStats(item) {
         this.shadowRoot.getElementById('listViewBtn').addEventListener('click', () => this.setView('list'));
         this.shadowRoot.getElementById('gridViewBtn').addEventListener('click', () => this.setView('grid'));
 
+        // 👁️ View Toggle Hover Effects initialisieren
+        this.setupViewToggleHoverEffects();
+        
         // NEU: Buttons beim Start korrekt setzen
         setTimeout(() => {
             this.setView(this.currentView);
