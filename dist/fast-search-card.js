@@ -5774,9 +5774,12 @@ class FastSearchCard extends HTMLElement {
             }
         });
         
+
         // Container fokussierbar machen
         replaceContainer.setAttribute('tabindex', '-1');
-    }
+        } // ← DIESE KLAMMER FEHLT!
+        
+        // NEUE Methode für Media Player Tab-Layout        
 
     
 
