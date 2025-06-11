@@ -812,6 +812,79 @@ class FastSearchCard extends HTMLElement {
 
 
     
+    
+    // 💡 visionOS Light Control Slider Transition - Web Animations API
+    animateLightControlsTransition(element, isVisible = true, elementType = 'slider') {
+        console.log('💡 Starting visionOS Light Controls transition', elementType, isVisible ? 'SHOW' : 'HIDE');
+        
+        if (!element) return null;
+        
+        if (isVisible) {
+            // Show Animation
+            element.style.display = element.style.display === 'none' ? 'flex' : element.style.display;
+            
+            const showAnimation = element.animate([
+                {
+                    opacity: 0,
+                    transform: elementType === 'button' ? 'scale(0.8) translateY(-10px)' : 'translateY(-20px)',
+                    backdropFilter: 'blur(5px)'
+                },
+                {
+                    opacity: 0.8,
+                    transform: elementType === 'button' ? 'scale(1.02) translateY(-2px)' : 'translateY(-5px)',
+                    backdropFilter: 'blur(15px)',
+                    offset: 0.6
+                },
+                {
+                    opacity: 1,
+                    transform: elementType === 'button' ? 'scale(1) translateY(0)' : 'translateY(0)',
+                    backdropFilter: 'blur(10px)'
+                }
+            ], {
+                duration: 400,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
+                fill: 'forwards'
+            });
+            
+            // CSS Klasse nach Animation setzen
+            showAnimation.finished.then(() => {
+                element.classList.add('visible');
+                element.style.pointerEvents = 'auto';
+            });
+            
+            return showAnimation;
+            
+        } else {
+            // Hide Animation
+            const hideAnimation = element.animate([
+                {
+                    opacity: 1,
+                    transform: elementType === 'button' ? 'scale(1) translateY(0)' : 'translateY(0)',
+                    backdropFilter: 'blur(10px)'
+                },
+                {
+                    opacity: 0,
+                    transform: elementType === 'button' ? 'scale(0.8) translateY(-10px)' : 'translateY(-20px)',
+                    backdropFilter: 'blur(5px)'
+                }
+            ], {
+                duration: 300,
+                easing: 'ease-in',
+                fill: 'forwards'
+            });
+            
+            // CSS Klasse und Visibility nach Animation entfernen
+            hideAnimation.finished.then(() => {
+                element.classList.remove('visible');
+                element.style.pointerEvents = 'none';
+            });
+            
+            return hideAnimation;
+        }
+    }
+    
+
+    
     // 📋 visionOS Dropdown Item Stagger Animation - Web Animations API
     animateDropdownItems(dropdownItems, isOpening = true) {
         console.log('📋 Starting visionOS Dropdown Items animation', isOpening ? 'OPEN' : 'CLOSE');
@@ -4369,7 +4442,6 @@ class FastSearchCard extends HTMLElement {
                     margin: 0 0 16px 0; /* Nur Abstand nach unten */
                     opacity: 0;
                     transform: translateY(-20px);
-                    transition: all 0.4s ease;
                     pointer-events: none;
                 }
                 
@@ -4576,7 +4648,6 @@ class FastSearchCard extends HTMLElement {
                 .new-light-slider-container {
                     opacity: 0;
                     transform: translateY(-20px);
-                    transition: all 0.4s ease;
                     pointer-events: none;
                 }
                 
@@ -4595,7 +4666,6 @@ class FastSearchCard extends HTMLElement {
                     justify-content: center;
                     opacity: 0;
                     transform: translateY(-20px);
-                    transition: all 0.4s ease;
                     pointer-events: none;
                 }
                 
@@ -4603,7 +4673,6 @@ class FastSearchCard extends HTMLElement {
                 .new-light-control-btn.secondary {
                     opacity: 0;
                     transform: scale(0.8);
-                    transition: all 0.3s ease;
                     pointer-events: none;
                 }
                 
@@ -7409,42 +7478,44 @@ class FastSearchCard extends HTMLElement {
                 const controlsRow = replaceContainer.querySelector(`[id="new-light-controls-row-${itemId}"]`);
                 const powerCenter = replaceContainer.querySelector(`[id="new-light-power-center-${itemId}"]`);
                 const colorsContainer = replaceContainer.querySelector(`[id="new-light-colors-${itemId}"]`);
-                
+
                 if (isOn) {
-                    // Licht an: Zeige Row-Controls, verstecke Center Power
+                    // Licht an: Verstecke Center Power, zeige Slider und Controls
                     if (powerCenter) {
-                        powerCenter.classList.remove('visible');
+                        this.animateLightControlsTransition(powerCenter, false, 'button');
                     }
                     
                     setTimeout(() => {
                         if (sliderContainer) {
-                            sliderContainer.classList.add('visible');
+                            this.animateLightControlsTransition(sliderContainer, true, 'slider');
                         }
                         if (controlsRow) {
-                            controlsRow.classList.add('visible');
+                            controlsRow.style.display = 'flex'; // Erst display setzen
+                            this.animateLightControlsTransition(controlsRow, true, 'controls');
                         }
-                    }, 200);
+                    }, 150);
                     
                 } else {
-                    // Licht aus: Zeige Center Power, verstecke Row-Controls
+                    // Licht aus: Verstecke alles, zeige Center Power
                     if (colorsContainer) {
-                        colorsContainer.classList.remove('visible'); // Nur visible entfernen
+                        this.animateLightControlsTransition(colorsContainer, false, 'colors');
                         colorsContainer.setAttribute('data-is-open', 'false');
                     }
                     
                     if (controlsRow) {
-                        controlsRow.classList.remove('visible');
+                        this.animateLightControlsTransition(controlsRow, false, 'controls');
                     }
                     if (sliderContainer) {
-                        sliderContainer.classList.remove('visible');
+                        this.animateLightControlsTransition(sliderContainer, false, 'slider');
                     }
                     
                     setTimeout(() => {
                         if (powerCenter) {
-                            powerCenter.classList.add('visible');
+                            powerCenter.style.display = 'flex'; // Erst display setzen
+                            this.animateLightControlsTransition(powerCenter, true, 'button');
                         }
-                    }, 200);
-                }
+                    }, 150);  
+                }                
             }  
 
 
@@ -9682,7 +9753,6 @@ getQuickStats(item) {
         }
     }    
 
-
     animateClimateControls(itemId, action) {
         console.log('🎬 Animating climate controls:', { itemId, action });
         
@@ -9697,39 +9767,41 @@ getQuickStats(item) {
         const isTurningOn = ['heat', 'cool', 'auto', 'dry', 'fan_only'].includes(action);
         
         if (isTurningOn) {
-            // Einschalten: Zeige Row-Controls, verstecke Center Power
+            // Einschalten: Verstecke Center Power, zeige Slider und Controls
             if (powerCenter) {
-                powerCenter.classList.remove('visible');
+                this.animateLightControlsTransition(powerCenter, false, 'button');
             }
             
             setTimeout(() => {
                 if (sliderContainer) {
-                    sliderContainer.classList.add('visible');
+                    this.animateLightControlsTransition(sliderContainer, true, 'slider');
                 }
                 if (controlsRow) {
-                    controlsRow.classList.add('visible');
+                    controlsRow.style.display = 'flex'; // Erst display setzen
+                    this.animateLightControlsTransition(controlsRow, true, 'controls');
                 }
-            }, 200);
+            }, 150);
             
         } else {
-            // Ausschalten: Zeige Center Power, verstecke Row-Controls
+            // Ausschalten: Verstecke alles, zeige Center Power
             if (settingsContainer) {
-                settingsContainer.classList.remove('visible');
+                this.animateLightControlsTransition(settingsContainer, false, 'settings');
                 settingsContainer.setAttribute('data-is-open', 'false');
             }
             
             if (controlsRow) {
-                controlsRow.classList.remove('visible');
+                this.animateLightControlsTransition(controlsRow, false, 'controls');
             }
             if (sliderContainer) {
-                sliderContainer.classList.remove('visible');
+                this.animateLightControlsTransition(sliderContainer, false, 'slider');
             }
             
             setTimeout(() => {
                 if (powerCenter) {
-                    powerCenter.classList.add('visible');
+                    powerCenter.style.display = 'flex'; // Erst display setzen
+                    this.animateLightControlsTransition(powerCenter, true, 'button');
                 }
-            }, 200);
+            }, 150);
         }
     }
 
