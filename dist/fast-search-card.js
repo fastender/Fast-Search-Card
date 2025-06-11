@@ -1542,12 +1542,12 @@ class FastSearchCard extends HTMLElement {
                     padding: 0;
                     overflow: hidden;
 
-                    background: 
+                    /* background: 
                         /* Oberflächenreflektionen */
                         radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
                         radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
                         /* Basis Material */
-                        rgba(28, 28, 30, 0.9);
+                        rgba(28, 28, 30, 0.9); */
 
                     backdrop-filter: blur(20px) saturate(1.8);
                     -webkit-backdrop-filter: blur(20px) saturate(1.8);           
