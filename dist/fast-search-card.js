@@ -10223,19 +10223,21 @@ getQuickStats(item) {
         
         this.currentView = viewType;
         
-        // Button Animation
+        // Toggle button states
         const listBtn = this.shadowRoot.getElementById('listViewBtn');
         const gridBtn = this.shadowRoot.getElementById('gridViewBtn');
         
-        // 🎬 Button States mit Animation
-        this.animateViewToggleButtons(listBtn, gridBtn, viewType);
+        listBtn.classList.toggle('active', viewType === 'list');
+        gridBtn.classList.toggle('active', viewType === 'grid');
         
-        // 🎬 Content Morph Animation verwenden (existiert bereits!)
-        this.animateViewContentMorph(viewType).then(() => {
-            // Reset Flag nach Animation
+        // 🔧 FIX: Verwende die normale applyFilters() Funktion
+        this.applyFilters();
+        
+        // Reset Flag nach kurzer Zeit
+        setTimeout(() => {
             this.isViewChanging = false;
-        });
-    }
+        }, 500);
+    }        
 
 
     // 🍎 visionOS View Toggle Button Animation
@@ -10337,8 +10339,7 @@ getQuickStats(item) {
         
         // Phase 2: Apply new view + Morph In
         return morphOut.finished.then(() => {
-            // 🔧 FIX: applyFiltersWithoutAnimation verwenden
-            this.applyFiltersWithoutAnimation();
+            this.applyFilters();
             
             // Morph In Animation
             const morphIn = resultsContainer.animate([
@@ -10378,124 +10379,7 @@ getQuickStats(item) {
     }
 
 
-    applyFiltersWithoutAnimation() {
-        const query = this.searchInput.value.toLowerCase().trim();
-        
-        let filteredItems = this.allItems.filter(item => {
-            const matchesSearch = !query || 
-                item.name.toLowerCase().includes(query) ||
-                item.type.toLowerCase().includes(query) ||
-                item.room.toLowerCase().includes(query) ||
-                item.category.toLowerCase().includes(query);
-            
-            const matchesRoom = this.selectedRooms.size === 0 || this.selectedRooms.has(item.room);
-            const matchesType = !this.selectedType || 
-                (this.selectedType === 'none' ? 
-                    !this.typeFilterConfig.categories.includes(item.category) : 
-                    item.category === this.selectedType);
-            
-            return matchesSearch && matchesRoom && matchesType;
-        });
-        
-        // UI aktualisieren
-        this.updateSearchResultsCount(filteredItems.length);
-        
-        // 🔧 FIX: Display-Methoden OHNE Item-Animationen aufrufen
-        if (this.currentView === 'list') {
-            this.displayItemsListWithoutAnimation(filteredItems);
-        } else {
-            this.displayItemsGridWithoutAnimation(filteredItems);
-        }
-    }    
 
-
-    displayItemsListWithoutAnimation(itemList) {
-        this.resultsContainer.innerHTML = '';
-        
-        const sortedItems = itemList.sort((a, b) => {
-            if (a.room !== b.room) {
-                return a.room.localeCompare(b.room);
-            }
-            return a.name.localeCompare(b.name);
-        });
-        
-        const itemsByRoom = {};
-        sortedItems.forEach(item => {
-            if (!itemsByRoom[item.room]) {
-                itemsByRoom[item.room] = [];
-            }
-            itemsByRoom[item.room].push(item);
-        });
-        
-        Object.keys(itemsByRoom).sort().forEach(room => {
-            // Room Header
-            const roomHeader = document.createElement('div');
-            roomHeader.className = 'room-header';
-            roomHeader.innerHTML = `
-                <div class="room-title">${room}</div>
-                <div class="room-count">${itemsByRoom[room].length} Geräte</div>
-            `;
-            this.resultsContainer.appendChild(roomHeader);
-            
-            // Items - OHNE Animation
-            itemsByRoom[room].forEach(item => {
-                const itemElement = this.createItemElement(item);
-                // 🔧 FIX: Elemente sind sofort sichtbar
-                itemElement.style.opacity = '1';
-                itemElement.style.transform = 'none';
-                this.resultsContainer.appendChild(itemElement);
-            });
-        });
-    }
-    
-    displayItemsGridWithoutAnimation(itemList) {
-        this.resultsContainer.innerHTML = '';
-        
-        const sortedItems = itemList.sort((a, b) => {
-            if (a.room !== b.room) {
-                return a.room.localeCompare(b.room);
-            }
-            return a.name.localeCompare(b.name);
-        });
-        
-        const itemsByRoom = {};
-        sortedItems.forEach(item => {
-            if (!itemsByRoom[item.room]) {
-                itemsByRoom[item.room] = [];
-            }
-            itemsByRoom[item.room].push(item);
-        });
-        
-        const gridContainer = document.createElement('div');
-        gridContainer.className = 'grid-container';
-        
-        Object.keys(itemsByRoom).sort().forEach(room => {
-            // Room Section
-            const roomSection = document.createElement('div');
-            roomSection.className = 'room-section';
-            roomSection.innerHTML = `
-                <div class="room-header">
-                    <div class="room-title">${room}</div>
-                    <div class="room-count">${itemsByRoom[room].length} Geräte</div>
-                </div>
-                <div class="room-grid">
-                    ${itemsByRoom[room].map(item => {
-                        const element = this.createItemElement(item);
-                        // 🔧 FIX: Elemente sind sofort sichtbar
-                        element.style.opacity = '1';
-                        element.style.transform = 'none';
-                        return element.outerHTML;
-                    }).join('')}
-                </div>
-            `;
-            gridContainer.appendChild(roomSection);
-        });
-        
-        this.resultsContainer.appendChild(gridContainer);
-        
-        // Event Listeners für neue Elemente
-        this.setupItemEventListeners();
-    }
 
 
     animateVisibleItems() {
