@@ -620,6 +620,30 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
+    // More-Info Elements Animation
+    animateMoreInfoElements(moreInfoContainer) {
+        // Status Indicator animieren (war slideInLeft)
+        const statusIndicator = moreInfoContainer.querySelector('.status-indicator-large');
+        if (statusIndicator) {
+            // Element initial unsichtbar
+            statusIndicator.style.opacity = '0';
+            statusIndicator.style.transform = 'translateX(-30px)';
+            
+            // Animation mit 600ms delay (war 0.6s)
+            this.animateSlideInLeft(statusIndicator, 600);
+        }
+        
+        // Quick Stats animieren (war slideInRight)  
+        const quickStats = moreInfoContainer.querySelector('.quick-stats');
+        if (quickStats) {
+            // Element initial unsichtbar
+            quickStats.style.opacity = '0';
+            quickStats.style.transform = 'translateX(30px)';
+            
+            // Animation mit 800ms delay (war 0.8s)
+            this.animateSlideInRight(quickStats, 800);
+        }
+    }    
     
     
     // 🟢 NEU: Web Animations API verwenden
@@ -660,6 +684,100 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+
+
+    // 🟢 HINZUFÜGEN: Web Animations API Ersatz
+    
+    // 1. visionOS View Morph Out Animation
+    animateVisionOSViewMorphOut(element) {
+        return element.animate([
+            {
+                opacity: 1,
+                transform: 'scale(1) rotateX(0deg) translateZ(0px)',
+                filter: 'blur(0px)'
+            },
+            {
+                opacity: 0.5,
+                transform: 'scale(0.95) rotateX(5deg) translateZ(-20px)',
+                filter: 'blur(4px)',
+                offset: 0.5
+            },
+            {
+                opacity: 0,
+                transform: 'scale(0.9) rotateX(10deg) translateZ(-40px)',
+                filter: 'blur(8px)'
+            }
+        ], {
+            duration: 500,
+            easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+            fill: 'forwards'
+        });
+    }
+    
+    // 2. visionOS View Morph In Animation
+    animateVisionOSViewMorphIn(element) {
+        return element.animate([
+            {
+                opacity: 0,
+                transform: 'scale(0.9) rotateX(-10deg) translateZ(40px)',
+                filter: 'blur(8px)'
+            },
+            {
+                opacity: 0.5,
+                transform: 'scale(0.95) rotateX(-5deg) translateZ(20px)',
+                filter: 'blur(4px)',
+                offset: 0.5
+            },
+            {
+                opacity: 1,
+                transform: 'scale(1) rotateX(0deg) translateZ(0px)',
+                filter: 'blur(0px)'
+            }
+        ], {
+            duration: 500,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
+            fill: 'forwards'
+        });
+    }
+    
+    // 3. visionOS Item Selection Animation (für Filter Chips, Buttons etc.)
+    animateVisionOSItemSelection(element) {
+        return element.animate([
+            {
+                transform: 'scale(1) translateZ(0px)',
+                background: 'rgba(0, 0, 0, 0.15)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 0 0 rgba(255,255,255,0)'
+            },
+            {
+                transform: 'scale(1.02) translateZ(8px)',
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(15px)',
+                boxShadow: '0 8px 25px rgba(255,255,255,0.3)',
+                offset: 0.3
+            },
+            {
+                transform: 'scale(0.98) translateZ(4px)',
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(18px)',
+                boxShadow: '0 4px 15px rgba(255,255,255,0.2)',
+                offset: 0.6
+            },
+            {
+                transform: 'scale(1) translateZ(6px)',
+                background: 'rgba(255, 255, 255, 0.12)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: '0 6px 20px rgba(255,255,255,0.25)'
+            }
+        ], {
+            duration: 400,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+    }
+
+    
+    
     
     // 🟢 HINZUFÜGEN: Web Animations API Ersatz
     
@@ -1260,7 +1378,6 @@ class FastSearchCard extends HTMLElement {
                     font-size: 12px;
                     font-weight: 500;
                     gap: 6px;
-                    animation: slideInTag 0.3s ease-out;
                 }
                 
                 .active-filter-tag .tag-remove {
@@ -1489,75 +1606,6 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0.8;
                     line-height: 1.1;
                 }
-
-
-                /* visionOS View Transition Animations */
-                @keyframes visionOSViewMorphOut {
-                    0% {
-                        opacity: 1;
-                        transform: scale(1) rotateX(0deg) translateZ(0px);
-                        filter: blur(0px);
-                    }
-                    50% {
-                        opacity: 0.5;
-                        transform: scale(0.95) rotateX(5deg) translateZ(-20px);
-                        filter: blur(4px);
-                    }
-                    100% {
-                        opacity: 0;
-                        transform: scale(0.9) rotateX(10deg) translateZ(-40px);
-                        filter: blur(8px);
-                    }
-                }
-                
-                @keyframes visionOSViewMorphIn {
-                    0% {
-                        opacity: 0;
-                        transform: scale(0.9) rotateX(-10deg) translateZ(40px);
-                        filter: blur(8px);
-                    }
-                    50% {
-                        opacity: 0.5;
-                        transform: scale(0.95) rotateX(-5deg) translateZ(20px);
-                        filter: blur(4px);
-                    }
-                    100% {
-                        opacity: 1;
-                        transform: scale(1) rotateX(0deg) translateZ(0px);
-                        filter: blur(0px);
-                    }
-                }
-                
-                @keyframes visionOSItemSelection {
-                    0% {
-                        transform: scale(1) translateZ(0px);
-                        background: rgba(0, 0, 0, 0.15);
-                        backdrop-filter: blur(10px);
-                        box-shadow: 0 0 0 rgba(255,255,255,0);
-                    }
-                    30% {
-                        transform: scale(1.02) translateZ(8px);
-                        background: rgba(255, 255, 255, 0.1);
-                        backdrop-filter: blur(15px);
-                        box-shadow: 0 8px 25px rgba(255,255,255,0.3);
-                    }
-                    60% {
-                        transform: scale(0.98) translateZ(4px);
-                        background: rgba(255, 255, 255, 0.15);
-                        backdrop-filter: blur(18px);
-                        box-shadow: 0 4px 15px rgba(255,255,255,0.2);
-                    }
-                    100% {
-                        transform: scale(1) translateZ(6px);
-                        background: rgba(255, 255, 255, 0.12);
-                        backdrop-filter: blur(12px);
-                        box-shadow: 0 6px 20px rgba(255,255,255,0.25);
-                    }
-                }
-                
-    
-                 
-
 
                 /* Animation für Suchergebnisse */
                 .results-container {
@@ -4936,11 +4984,6 @@ class FastSearchCard extends HTMLElement {
                     font-weight: 500;
                     border: 1px solid #007aff;
                     z-index: 10;
-                    
-                    /* Eingangsanimation */
-                    opacity: 0;
-                    transform: translateX(-30px);
-                    animation: slideInLeft 0.8s ease-out 0.6s forwards;
                 }
                 
                 .album-art-section .status-indicator-large.off {
@@ -4958,12 +5001,7 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     flex-direction: column;
                     gap: 6px;
-                    align-items: flex-end;
-                    
-                    /* Eingangsanimation */
-                    opacity: 0;
-                    transform: translateX(30px);
-                    animation: slideInRight 0.8s ease-out 0.8s forwards;
+                    align-items: flex-end;                
                 }
                 
                 .album-art-section .stat-item {
@@ -5167,8 +5205,7 @@ class FastSearchCard extends HTMLElement {
         this.initializeCard();
     }
 
-
-
+    // 🟢 RICHTIG: Nach der Transition animieren
     switchToReplaceMode(item) {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
@@ -5180,8 +5217,11 @@ class FastSearchCard extends HTMLElement {
         replaceContainer.classList.add('active');
         
         // 🎬 visionOS Spatial Animation mit WAAPI
-        this.animateVisionOSTransition(searchContainer, replaceContainer, item);
-    }        
+        this.animateVisionOSTransition(searchContainer, replaceContainer, item).then(() => {
+            // ✅ RICHTIG: NACH der Transition animieren
+            this.animateMoreInfoElements(replaceContainer);
+        });
+    }   
 
 
     // 🍎 visionOS Spatial Room Transition Animation
@@ -9915,6 +9955,10 @@ getQuickStats(item) {
         // Kategorie-Optionen
         this.shadowRoot.querySelectorAll('#categoryOptions .filter-option').forEach(option => {
             option.addEventListener('click', () => {
+
+                // ✨ NEU: visionOS Selection Animation
+                this.animateVisionOSItemSelection(option);
+                
                 // Alle anderen deselektieren
                 this.shadowRoot.querySelectorAll('#categoryOptions .filter-option').forEach(opt => {
                     opt.classList.remove('selected');
@@ -9927,6 +9971,9 @@ getQuickStats(item) {
         // Raum-Optionen
         this.shadowRoot.querySelectorAll('#roomOptions .filter-option').forEach(option => {
             option.addEventListener('click', () => {
+                // ✨ NEU: visionOS Selection Animation
+                this.animateVisionOSItemSelection(option);        
+                
                 const isAlleOption = option.getAttribute('data-room') === '';
                 
                 if (isAlleOption) {
