@@ -809,6 +809,39 @@ class FastSearchCard extends HTMLElement {
     }
 
 
+
+    // 🎵 visionOS Album Pulse Animation - Web Animations API
+    animateAlbumPulse(albumElement) {
+        console.log('🎵 Starting visionOS Album Pulse animation');
+
+        // Vorherige Animation stoppen
+        if (albumElement.currentAnimation) {
+            albumElement.currentAnimation.cancel();
+        }
+        
+        const albumPulseAnimation = albumElement.animate([
+            {
+                transform: 'scale(1)',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+            },
+            {
+                transform: 'scale(1.02)',
+                boxShadow: '0 25px 70px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15)'
+            },
+            {
+                transform: 'scale(1)',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+            }
+        ], {
+            duration: 3000,
+            iterations: Infinity,
+            easing: 'ease-in-out'
+        });
+        
+        return albumPulseAnimation;
+    }  
+
+
     // 🌈 visionOS Color Shift Animation - Web Animations API
     animateColorShift(element) {
         console.log('🌈 Starting visionOS Color Shift animation');
@@ -4085,17 +4118,7 @@ class FastSearchCard extends HTMLElement {
                         rgba(0, 0, 0, 0.1) 100%
                     );
                     border-radius: inherit;
-                }
-                
-                /* Pulsing animation for playing state */
-                @keyframes albumPulse {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.02); }
-                }
-                
-                .album-cover-large.playing {
-                    animation: albumPulse 3s ease-in-out infinite;
-                }
+                }                
                 
                 /* Now Playing Info */
                 .now-playing-info {
@@ -7630,14 +7653,22 @@ class FastSearchCard extends HTMLElement {
                         lastMediaTitle = currentMediaTitle;
                         lastEntityPicture = currentEntityPicture;
                         lastMediaImageUrl = currentMediaImageUrl;
-                    }
-                    
-                    // Playing State Animation updaten
+                    }                
+
+                    // 🎵 Playing State Animation updaten - Web Animations API
                     const albumCover = this.shadowRoot.querySelector('.album-cover-large');
                     if (albumCover) {
                         const isPlaying = currentState.state === 'playing';
-                        albumCover.classList.toggle('playing', isPlaying);
-                    }
+                        albumCover.classList.remove('playing'); // CSS class entfernen
+                        if (isPlaying) {
+                            this.animateAlbumPulse(albumCover);
+                        } else {
+                            // Animation stoppen wenn nicht playing
+                            if (albumCover.currentAnimation) {
+                                albumCover.currentAnimation.cancel();
+                            }
+                        }
+                    }                    
                     
                 }, 2000); // Alle 2 Sekunden prüfen
                 
@@ -9706,8 +9737,16 @@ getQuickStats(item) {
             albumCover.style.backgroundImage = 'none';
         }
         
-        // Animation State aktualisieren
-        albumCover.classList.toggle('playing', isPlaying);
+        // 🎵 Web Animations API statt CSS Class
+        albumCover.classList.remove('playing'); // CSS class entfernen
+        if (isPlaying) {
+            this.animateAlbumPulse(albumCover);
+        } else {
+            // Animation stoppen wenn nicht playing
+            if (albumCover.currentAnimation) {
+                albumCover.currentAnimation.cancel();
+            }
+        }        
         
         // Text Updates
         if (songTitle) {
