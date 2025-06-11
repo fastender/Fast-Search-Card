@@ -1974,7 +1974,6 @@ class FastSearchCard extends HTMLElement {
                     border-radius: inherit;
                     opacity: 0;
                     transform: scale(0.8);
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                     pointer-events: none;
                     z-index: -1;
                 }
@@ -1994,35 +1993,12 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0;
                     filter: blur(8px);
                     transform: scale(0.9);
-                    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
                     pointer-events: none;
                     z-index: -2;
                 }
                 
-                /* visionOS Hover: Glass Lift + Glow */
-                .filter-chip:hover::before {
-                    opacity: 1;
-                    transform: scale(1);
-                }
-                
-                .filter-chip:hover::after {
-                    opacity: 0.6;
-                    transform: scale(1.1);
-                    filter: blur(12px);
-                }
-                
-                
-                .filter-chip:hover {
-                    background: rgba(0, 0, 0, 0.25);
-                    
-                    /* MEGA-HOVER-FIX: Verhindert Mobile-Hover-Bugs */
-                    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
-                    -webkit-touch-callout: none !important;
-                    outline: none !important;
-                    
-                    /* MEGA-HOVER-FIX: Erzwingt Repaint */
-                    transform: translateZ(0) scale(1.0001) !important;
-                }
+
+ 
                 
                 
                 .filter-chip.active {
@@ -10239,6 +10215,9 @@ getQuickStats(item) {
 
         // 👁️ View Toggle Hover Effects initialisieren
         this.setupViewToggleHoverEffects();
+
+        // 🎪 Filter Chip Hover Effects initialisieren
+        this.setupFilterChipAnimations();        
         
         // NEU: Buttons beim Start korrekt setzen
         setTimeout(() => {
