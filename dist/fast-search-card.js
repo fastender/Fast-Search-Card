@@ -1271,64 +1271,10 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
                 
-                
-                @keyframes visionOSDepthShift {
-                    0% {
-                        transform: perspective(1000px) rotateX(0deg) translateZ(0px);
-                        filter: blur(0px);
-                    }
-                    25% {
-                        transform: perspective(1000px) rotateX(2deg) translateZ(10px);
-                        filter: blur(1px);
-                    }
-                    50% {
-                        transform: perspective(1000px) rotateX(0deg) translateZ(20px);
-                        filter: blur(0px);
-                    }
-                    75% {
-                        transform: perspective(1000px) rotateX(-2deg) translateZ(10px);
-                        filter: blur(1px);
-                    }
-                    100% {
-                        transform: perspective(1000px) rotateX(0deg) translateZ(0px);
-                        filter: blur(0px);
-                    }
-                }
-                
-                @keyframes progressiveReveal {
-                    0% {
-                        opacity: 0;
-                        transform: translateY(30px) scale(0.8) rotateX(15deg);
-                        filter: blur(8px);
-                    }
-                    60% {
-                        opacity: 0.8;
-                        transform: translateY(-5px) scale(1.02) rotateX(-2deg);
-                        filter: blur(2px);
-                    }
-                    100% {
-                        opacity: 1;
-                        transform: translateY(0) scale(1) rotateX(0deg);
-                        filter: blur(0px);
-                    }
-                }
 
-                
-                /* visionOS Spatial Background */
-                @keyframes spatialBackground {
-                    0% {
-                        transform: translateZ(-100px) scale(1.1);
-                        filter: blur(2px);
-                    }
-                    50% {
-                        transform: translateZ(-150px) scale(1.15);
-                        filter: blur(4px);
-                    }
-                    100% {
-                        transform: translateZ(-100px) scale(1.1);
-                        filter: blur(2px);
-                    }
-                }
+
+
+
 
                 /* Eingangs-Animationen */
                 @keyframes fadeInUp {
@@ -4010,28 +3956,17 @@ class FastSearchCard extends HTMLElement {
                     height: 4px;
                     background: rgba(255, 255, 255, 0.3);
                     border-radius: 50%;
-                    animation: float 6s ease-in-out infinite;
                 }
+
                 
-                @keyframes float {
-                    0%, 100% { 
-                        transform: translateY(0px) rotate(0deg);
-                        opacity: 0.3;
-                    }
-                    50% { 
-                        transform: translateY(-20px) rotate(180deg);
-                        opacity: 0.8;
-                    }
-                }
-                
-                .particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
-                .particle:nth-child(2) { left: 20%; top: 40%; animation-delay: 1s; }
-                .particle:nth-child(3) { left: 30%; top: 60%; animation-delay: 2s; }
-                .particle:nth-child(4) { left: 40%; top: 80%; animation-delay: 3s; }
-                .particle:nth-child(5) { left: 60%; top: 30%; animation-delay: 4s; }
-                .particle:nth-child(6) { left: 70%; top: 50%; animation-delay: 5s; }
-                .particle:nth-child(7) { left: 80%; top: 70%; animation-delay: 0.5s; }
-                .particle:nth-child(8) { left: 90%; top: 90%; animation-delay: 1.5s; }
+                .particle:nth-child(1) { left: 10%; top: 20%; }
+                .particle:nth-child(2) { left: 20%; top: 40%; }
+                .particle:nth-child(3) { left: 30%; top: 60%; }
+                .particle:nth-child(4) { left: 40%; top: 80%; }
+                .particle:nth-child(5) { left: 60%; top: 30%; }
+                .particle:nth-child(6) { left: 70%; top: 50%; }
+                .particle:nth-child(7) { left: 80%; top: 70%; }
+                .particle:nth-child(8) { left: 90%; top: 90%; }
                 
                 /* Mobile Responsive */
                 @media (max-width: 768px) {
