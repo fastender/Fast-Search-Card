@@ -355,7 +355,24 @@ class FastSearchCard extends HTMLElement {
     }
 
     
-
+    // 🍎 Slide In From Bottom Animation
+    animateSlideInFromBottom(element, delay = 0) {
+        return element.animate([
+            {
+                opacity: 0,
+                transform: 'translateY(30px)'
+            },
+            {
+                opacity: 1,
+                transform: 'translateY(0)'
+            }
+        ], {
+            duration: 400,
+            delay: delay,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+    }
 
 
     
@@ -1276,53 +1293,6 @@ class FastSearchCard extends HTMLElement {
 
 
 
-                /* Eingangs-Animationen */
-                @keyframes fadeInUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-
-
-
-                @keyframes scaleIn {
-                    from {
-                        opacity: 0;
-                        transform: scale(0.8);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                }
-
-                @keyframes slideInFromBottom {
-                    from {
-                        opacity: 0;
-                        transform: translateY(30px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-
-                /* Card fade-in Animation */
-                @keyframes cardFadeIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(40px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
 
                 /* Typing indicator */
                 @keyframes typing {
@@ -1352,53 +1322,9 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
 
-                /* Enhanced Elastic Focus with Glow */
-                @keyframes elasticFocusGlow {
-                    0% {
-                        transform: scale(1);
-                        box-shadow: 
-                            inset 0 2px 8px rgba(0,0,0,0.1),
-                            0 0 0 0px rgba(255, 255, 255, 0);
-                    }
-                    25% {
-                        transform: scale(1.03);
-                        box-shadow: 
-                            inset 0 2px 8px rgba(0,0,0,0.15),
-                            0 0 0 4px rgba(255, 255, 255, 0.3),
-                            0 8px 25px rgba(255, 255, 255, 0.2);
-                    }
-                    50% {
-                        transform: scale(1.01);
-                        box-shadow: 
-                            inset 0 2px 8px rgba(0,0,0,0.15),
-                            0 0 0 3px rgba(255, 255, 255, 0.25),
-                            0 6px 20px rgba(255, 255, 255, 0.15);
-                    }
-                    100% {
-                        transform: scale(1.02);
-                        box-shadow: 
-                            inset 0 2px 8px rgba(0,0,0,0.15),
-                            0 0 0 2px rgba(255, 255, 255, 0.2),
-                            0 4px 20px rgba(255, 255, 255, 0.1);
-                    }
-                }
 
-                
 
-                
-                /* Content Stagger Animation */
-                @keyframes contentStaggerIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(20px) scale(0.95);
-                        filter: blur(2px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0) scale(1);
-                        filter: blur(0px);
-                    }
-                }
+            
                 
 
                 /* Animation für Suchergebnisse */
@@ -1407,15 +1333,6 @@ class FastSearchCard extends HTMLElement {
                     overflow-y: auto;
                 }
 
-                .results-container.loading {
-                    animation: slideInFromBottom 0.4s ease-out;
-                }
-
-                /* Grid View Styles */
-                .grid-container {
-                    padding: 20px;
-                    animation: slideInFromBottom 0.4s ease-out;
-                }
 
                 .grid-scroll {
                     display: flex;
@@ -2310,21 +2227,7 @@ class FastSearchCard extends HTMLElement {
                     white-space: nowrap;
                 }
                 
-                /* Animationen */
-                @keyframes fadeInBounce {
-                    0% {
-                        opacity: 0;
-                        transform: translate(-50%, -50%) scale(0.8);
-                    }
-                    60% {
-                        opacity: 0.8;
-                        transform: translate(-50%, -50%) scale(1.05);
-                    }
-                    100% {
-                        opacity: 1;
-                        transform: translate(-50%, -50%) scale(1);
-                    }
-                }
+
                 
                 @keyframes slideInLeft {
                     0% {
@@ -11223,6 +11126,12 @@ getQuickStats(item) {
             
             this.resultsContainer.appendChild(roomGroup);
         });
+
+
+        // Slide In Animation für Results Container, dann List Items
+        this.animateSlideInFromBottom(this.resultsContainer).finished.then(() => {
+            this.animateListItems(allListItems);
+        });        
         
         // 🎬 WAAPI Animation für ALLE List Items
         setTimeout(() => {
@@ -11320,11 +11229,12 @@ getQuickStats(item) {
         });
         
         this.resultsContainer.appendChild(gridContainer);
-        
-        // 🎬 WAAPI Animation für ALLE Grid Items
-        setTimeout(() => {
+
+        // Slide In Animation für Grid Container, dann Grid Items
+        this.animateSlideInFromBottom(gridContainer).finished.then(() => {
             this.animateGridItems(allGridItems);
-        }, 100);
+        });                     
+        
     }
     
     createListItemElement(item, animate = false) {
