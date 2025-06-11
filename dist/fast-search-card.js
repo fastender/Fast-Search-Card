@@ -808,9 +808,75 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    // 📝 ENDER
+    // ENDER
 
 
+    
+    // 📋 visionOS Dropdown Item Stagger Animation - Web Animations API
+    animateDropdownItems(dropdownItems, isOpening = true) {
+        console.log('📋 Starting visionOS Dropdown Items animation', isOpening ? 'OPEN' : 'CLOSE');
+        
+        if (!dropdownItems || dropdownItems.length === 0) return [];
+        
+        const animations = [];
+        const itemsArray = Array.from(dropdownItems);
+        
+        if (isOpening) {
+            // Opening Animation - Items erscheinen staggered
+            itemsArray.forEach((item, index) => {
+                const animation = item.animate([
+                    {
+                        opacity: 0,
+                        transform: 'translateY(-12px) scale(0.9)',
+                        backdropFilter: 'blur(5px)'
+                    },
+                    {
+                        opacity: 0.8,
+                        transform: 'translateY(-2px) scale(0.98)',
+                        backdropFilter: 'blur(12px)',
+                        offset: 0.6
+                    },
+                    {
+                        opacity: 1,
+                        transform: 'translateY(0) scale(1)',
+                        backdropFilter: 'blur(10px)'
+                    }
+                ], {
+                    duration: 400,
+                    delay: index * 80, // Staggered delay
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
+                    fill: 'forwards'
+                });
+                
+                animations.push(animation);
+            });
+        } else {
+            // Closing Animation - Items verschwinden in umgekehrter Reihenfolge
+            itemsArray.reverse().forEach((item, index) => {
+                const animation = item.animate([
+                    {
+                        opacity: 1,
+                        transform: 'translateY(0) scale(1)',
+                        backdropFilter: 'blur(10px)'
+                    },
+                    {
+                        opacity: 0,
+                        transform: 'translateY(-12px) scale(0.9)',
+                        backdropFilter: 'blur(5px)'
+                    }
+                ], {
+                    duration: 200,
+                    delay: index * 60, // Reverse stagger
+                    easing: 'ease-in',
+                    fill: 'forwards'
+                });
+                
+                animations.push(animation);
+            });
+        }
+        
+        return animations;
+    }    
 
 
 
@@ -4739,8 +4805,7 @@ class FastSearchCard extends HTMLElement {
                     background: transparent;
                     width: 100%;
                     text-align: left;
-                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                    
+                  
                     /* Items starten unsichtbar und verschoben */
                     opacity: 0;
                     transform: translateY(-12px) scale(0.9); /* Startet weiter oben und kleiner */
@@ -4767,57 +4832,7 @@ class FastSearchCard extends HTMLElement {
                 
                 .replace-dropdown-container .dropdown-item-icon {
                     display: none;
-                }
-                
-                /* Staggered Animation für Items */
-                .dropdown-menu.open .dropdown-item {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                }
-                
-                .dropdown-menu.open .dropdown-item:nth-child(1) { 
-                    transition-delay: 0.1s; /* Längere Delays */
-                }
-                .dropdown-menu.open .dropdown-item:nth-child(2) { 
-                    transition-delay: 0.18s; 
-                }
-                .dropdown-menu.open .dropdown-item:nth-child(3) { 
-                    transition-delay: 0.26s; 
-                }
-                .dropdown-menu.open .dropdown-item:nth-child(4) { 
-                    transition-delay: 0.34s; 
-                }
-                .dropdown-menu.open .dropdown-item:nth-child(5) { 
-                    transition-delay: 0.42s; 
-                }
-                .dropdown-menu.open .dropdown-item:nth-child(6) { 
-                    transition-delay: 0.5s; 
-                }
-                
-                /* Closing Animation: Items verschwinden in umgekehrter Reihenfolge */
-                .dropdown-menu:not(.open) .dropdown-item {
-                    transition-delay: 0s;
-                    transition-duration: 0.2s;
-                }
-                
-                .dropdown-menu:not(.open) .dropdown-item:nth-child(1) { 
-                    transition-delay: 0.4s; /* Letztes Item verschwindet zuerst */
-                }
-                .dropdown-menu:not(.open) .dropdown-item:nth-child(2) { 
-                    transition-delay: 0.32s; 
-                }
-                .dropdown-menu:not(.open) .dropdown-item:nth-child(3) { 
-                    transition-delay: 0.24s; 
-                }
-                .dropdown-menu:not(.open) .dropdown-item:nth-child(4) { 
-                    transition-delay: 0.16s; 
-                }
-                .dropdown-menu:not(.open) .dropdown-item:nth-child(5) { 
-                    transition-delay: 0.08s; 
-                }
-                .dropdown-menu:not(.open) .dropdown-item:nth-child(6) { 
-                    transition-delay: 0s; /* Erstes Item verschwindet zuletzt */
-                }
+                }                
                 
                 /* ===== ANDERE ELEMENTE HÖHER SETZEN ===== */
                 
@@ -5674,18 +5689,24 @@ class FastSearchCard extends HTMLElement {
             setTimeout(() => {
                 dropdownMenu.classList.add('open');
                 
+                // 📋 Dropdown Items Animation starten
+                this.animateDropdownItems(dropdownItems, true);
+                
                 // Animation beendet nach 800ms (wegen längerer Animation)
                 setTimeout(() => {
                     animating = false;
                 }, 800);
-            }, 150); // Etwas längere Verzögerung
-        };
-        
+            }, 150);
+        };            
+                
         const closeDropdown = () => {
             if (animating || !isOpen) return;
             
             animating = true;
             isOpen = false;
+            
+            // 📋 Dropdown Items Animation starten (Closing)
+            this.animateDropdownItems(dropdownItems, false);
             
             // Menu verschwindet zuerst
             dropdownMenu.classList.remove('open');
@@ -5694,7 +5715,7 @@ class FastSearchCard extends HTMLElement {
             setTimeout(() => {
                 dropdownButton.classList.remove('open');
                 animating = false;
-            }, 400); // Längere Wartezeit wegen reverse animation
+            }, 400);
         };
         
         // Item Click Handlers mit Haptic Feedback
