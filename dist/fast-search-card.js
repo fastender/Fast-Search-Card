@@ -476,114 +476,91 @@ class FastSearchCard extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
 
-
-                /* Host bleibt minimal */
+                :root {
+                    /* 🍎 visionOS Easing Curves */
+                    --visionos-spring: cubic-bezier(0.16, 1, 0.3, 1);
+                    --visionos-ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    --visionos-ease-in: cubic-bezier(0.42, 0, 1, 1);
+                    --visionos-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                }
+                
                 :host {
                     display: block;
-                    position: relative;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                     
-                    /* Initiale Animation */
+                    /* Card fade-in beim Laden */
                     opacity: 0;
                     transform: translateY(40px);
-                    animation: cardFadeIn 0.6s ease-out forwards;
-                }
-                
-                @keyframes cardFadeIn {
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                
-                /* Glass Background Container */
-                .glass-background {
-                    position: absolute;
-                    inset: 0;
-                    z-index: 0;
+
+                    /* visionOS 3D Container */
+                    transform-style: preserve-3d;
+                    perspective: 1200px;
+                    perspective-origin: center center;                    
+                    
+                    /* Glassmorphism Container - Neuer Hintergrund */
                     border-radius: 24px;
+                    padding: 0;
                     overflow: hidden;
-                    pointer-events: none;
-                    isolation: isolate;
-                    transform: translateZ(0);
-                    -webkit-transform: translateZ(0);
-                }
-                
-                /* Glass Layers für Safari-optimierten Milchglas-Effekt */
-                .glass-base {
-                    position: absolute;
-                    inset: 0;
-                    background: rgba(255, 255, 255, 0.4);
-                    /* Backdrop-filter nur wenn nicht animiert */
-                }
-                
-                /* Fallback für Browser ohne backdrop-filter */
-                @supports (backdrop-filter: blur(20px)) {
-                    :host:not(.animating) .glass-base {
-                        backdrop-filter: blur(20px) saturate(1.8);
-                        -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                    }
-                }
-                
-                .glass-gradient {
-                    position: absolute;
-                    inset: 0;
-                    background: linear-gradient(
-                        135deg,
-                        rgba(255, 255, 255, 0.3) 0%,
-                        rgba(255, 255, 255, 0.1) 100%
-                    );
-                    mix-blend-mode: overlay;
-                }
-                
-                .glass-shine {
-                    position: absolute;
-                    inset: 0;
-                    background: radial-gradient(
-                        ellipse at 30% 0%,
-                        rgba(255, 255, 255, 0.5) 0%,
-                        transparent 40%
-                    );
-                    opacity: 0.6;
-                }
-                
-                /* Main Container */
-                .main-container {
-                    position: relative;
-                    z-index: 1;
-                    background: transparent;
-                    border-radius: 24px;
-                    border: 0.5px solid rgba(255, 255, 255, 0.6);
+
+                    background: 
+                        /* Oberflächenreflektionen */
+                        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                        /* Basis Material */
+                        rgba(28, 28, 30, 0.9);
+
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);           
+                    
+                    /* Apple Design System Borders */
+                    border: 0.33px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 20px;
+                    
+                    /* Spatial Depth Shadows */
                     box-shadow: 
-                        0 8px 32px rgba(0, 0, 0, 0.08),
-                        inset 0 2px 4px rgba(255, 255, 255, 0.8);
+                        /* Ambient Shadow */
+                        0 2px 8px rgba(0, 0, 0, 0.08),
+                        0 12px 40px rgba(0, 0, 0, 0.12),
+                        /* Directional Shadow (von oben-links) */
+                        0 -1px 2px rgba(255, 255, 255, 0.05),
+                        /* Inner Highlight */
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 1px 0 0 rgba(255, 255, 255, 0.05);
+                    
+                    /* Apple Typography Enhancement */
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;                    
+
+
+                    /* GLOBALE TOUCH-FIXES */
+                    -webkit-tap-highlight-color: transparent !important;
+                    -webkit-touch-callout: none !important;
+                    -webkit-user-select: none !important;
+                    user-select: none !important;
+                    
+                }   
+
+                /* ALLE BUTTONS/CLICKABLE ELEMENTE */
+                .filter-chip, .filter-button, .view-toggle-btn {
+                    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+                    -webkit-tap-highlight-color: transparent !important;
+                    outline: none !important;
+                }                
+                .search-container {
+                    background: transparent;
+                    border-radius: 0;
+                    box-shadow: none;
                     overflow: hidden;
-                    transform: translateZ(0);
-                }
-                
-                /* Vereinfachter Modus während Animationen */
-                :host(.animating) .glass-base {
-                    background: rgba(248, 248, 250, 0.9);
-                    transition: background 0.2s ease;
-                }
-                
-                :host(.animating) .glass-gradient,
-                :host(.animating) .glass-shine {
-                    opacity: 0;
-                    transition: opacity 0.2s ease;
-                }
-                
-                /* Überschreibe problematische Styles */
-                .filter-menu {
-                    background: rgba(255, 255, 255, 0.85);
-                    backdrop-filter: none;
-                    -webkit-backdrop-filter: none;
-                }
-                
-                .more-info-dialog {
-                    background: rgba(255, 255, 255, 0.9);
-                    backdrop-filter: none;
-                    -webkit-backdrop-filter: none;
+
+                    transform-style: preserve-3d;
+                    perspective: 1000px;
+                    will-change: transform, filter, opacity;
+                    backface-visibility: hidden;                    
+                }                
+
+                .search-section {
+                    background: transparent;
+                    padding: 24px;
                 }
 
 
@@ -5173,20 +5150,14 @@ class FastSearchCard extends HTMLElement {
                 }
                 
             </style>
-
-
-        <!-- Glass Background Layers -->
-        <div class="glass-background">
-            <div class="glass-base"></div>
-            <div class="glass-gradient"></div>
-            <div class="glass-shine"></div>
-        </div>
-        
-        <!-- Main Content Container - umschließt alles -->
-        <div class="main-container">
+            
             <div class="search-container">
+         
                 <div class="search-section">
                     <div class="search-header">
+                    
+  
+
                         <div class="search-input-container">
                             <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
                             
@@ -5215,6 +5186,10 @@ class FastSearchCard extends HTMLElement {
                                 </div>
                             </div>
                         </div>
+
+
+        
+                        
                     </div>
                 </div>
 
@@ -5224,6 +5199,7 @@ class FastSearchCard extends HTMLElement {
                         <!-- Tags werden dynamisch eingefügt -->
                     </div>
                 </div>                
+            
 
                 <div class="view-toggle">
                     <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
@@ -5242,6 +5218,8 @@ class FastSearchCard extends HTMLElement {
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                 </div>
             </div>
+
+
 
             <!-- Filter Overlay -->
             <div class="filter-overlay" id="filterOverlay">
@@ -5316,58 +5294,26 @@ class FastSearchCard extends HTMLElement {
                 </div>
             </div>
 
+
+
+
+
             <!-- More-Info Replace Mode -->
             <div class="more-info-replace" id="moreInfoReplace">
                 <!-- Content wird dynamisch generiert -->
             </div>
-        </div>
-    `;
+        `;        
 
-
-
+        
         // 🎬 Animation starten nach dem Rendering
         setTimeout(() => {
             this.animateCardEntrance();
         }, 100);
         
-        // Safari-Optimierungen aktivieren
-        this.setupSafariOptimizations();
-        
         this.initializeCard();
     }
 
-    setupSafariOptimizations() {
-        // Erkenne Safari
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        if (!isSafari) return;
-        
-        // Animation Detection
-        let animationTimeout;
-        const handleAnimation = () => {
-            this.classList.add('animating');
-            clearTimeout(animationTimeout);
-            animationTimeout = setTimeout(() => {
-                this.classList.remove('animating');
-            }, 400);
-        };
-        
-        // Überwache Animationen
-        this.shadowRoot.addEventListener('transitionstart', handleAnimation);
-        this.shadowRoot.addEventListener('animationstart', handleAnimation);
-        
-        // View-Toggle
-        const viewButtons = this.shadowRoot.querySelectorAll('.view-toggle-btn');
-        viewButtons.forEach(btn => {
-            btn.addEventListener('click', handleAnimation);
-        });
-        
-        // Filter-Button
-        const filterButton = this.shadowRoot.querySelector('#filterButton');
-        if (filterButton) {
-            filterButton.addEventListener('click', handleAnimation);
-        }
-    }
-    
+
 
     switchToReplaceMode(item) {
         const searchContainer = this.shadowRoot.querySelector('.search-container');
