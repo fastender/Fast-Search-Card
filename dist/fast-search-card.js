@@ -808,7 +808,52 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
+    // 📝 ENDER
 
+
+
+
+
+    
+
+    // 📝 visionOS Logbook Pulse Animation - Web Animations API
+    animateLogbookPulse(logEntries) {
+        console.log('📝 Starting visionOS Logbook Pulse animation');
+        
+        if (!logEntries || logEntries.length === 0) return [];
+        
+        const animations = [];
+        
+        logEntries.forEach((logEntry, index) => {
+            const pulseAnimation = logEntry.animate([
+                {
+                    opacity: 0.7,
+                    transform: 'scale(1) translateZ(0px)',
+                    backdropFilter: 'blur(10px)'
+                },
+                {
+                    opacity: 1,
+                    transform: 'scale(1.01) translateZ(2px)',
+                    backdropFilter: 'blur(12px)'
+                },
+                {
+                    opacity: 0.7,
+                    transform: 'scale(1) translateZ(0px)',
+                    backdropFilter: 'blur(10px)'
+                }
+            ], {
+                duration: 2000,
+                iterations: Infinity,
+                easing: 'ease-in-out',
+                delay: index * 100  // Staggered animation
+            });
+            
+            animations.push(pulseAnimation);
+        });
+        
+        return animations;
+    }
+    
 
     // 🎵 visionOS Album Pulse Animation - Web Animations API
     animateAlbumPulse(albumElement) {
@@ -3019,7 +3064,6 @@ class FastSearchCard extends HTMLElement {
                 
                 .log-loading .log-entry {
                     opacity: 0.7;
-                    animation: logbookPulse 2s ease-in-out infinite;
                 }
                 
                 .log-entries-container {
@@ -3029,12 +3073,6 @@ class FastSearchCard extends HTMLElement {
                     max-height: 250px;
                     overflow-y: auto;
                 }
-                
-                @keyframes logbookPulse {
-                    0%, 100% { opacity: 0.7; }
-                    50% { opacity: 1; }
-                }
-                
                 
                 .shortcuts-grid {
                     display: grid;
@@ -5710,7 +5748,19 @@ class FastSearchCard extends HTMLElement {
                         setTimeout(() => this.setupMusicAssistantEventListeners(item), 150);
                     } else if (targetSection === 'history') {
                         console.log('📈 Loading Logbook'); // Debug-Log
-                        this.loadRealLogEntries(item); // ← Jetzt funktioniert das `this`
+                        this.loadRealLogEntries(item);
+                        
+                        // 📝 Logbook Pulse Animation für bereits geladene Einträge
+                        setTimeout(() => {
+                            const logContainer = replaceContainer.querySelector(`#logContainer-${item.id}`);
+                            if (logContainer && logContainer.style.display !== 'none') {
+                                const logEntries = logContainer.querySelectorAll('.log-entry');
+                                if (logEntries.length > 0) {
+                                    this.animateLogbookPulse(logEntries);
+                                }
+                            }
+                        }, 200);
+                    }                        
                     } else if (targetSection === 'shortcuts') {
                         console.log('⚡ Setting up Shortcuts'); // Debug-Log
                         setTimeout(() => this.setupShortcutEventListeners(item), 150);
@@ -6238,6 +6288,15 @@ class FastSearchCard extends HTMLElement {
             // Zeige Loading-Indikator während des Ladens
             this.loadRealLogEntries(item);
             
+            // 📝 Loading Animation nach kurzer Verzögerung starten
+            setTimeout(() => {
+                const loadingElement = this.shadowRoot.getElementById(`logLoading-${item.id}`);
+                if (loadingElement) {
+                    const loadingEntries = loadingElement.querySelectorAll('.log-entry');
+                    this.animateLogbookPulse(loadingEntries);
+                }
+            }, 100);
+            
             return `
                 <div class="log-loading" id="logLoading-${item.id}">
                     <div class="log-entry">
@@ -6536,6 +6595,12 @@ class FastSearchCard extends HTMLElement {
             // Loading verstecken, Container zeigen
             loadingElement.style.display = 'none';
             containerElement.style.display = 'block';
+
+            // 📝 Logbook Pulse Animation starten
+            const logEntries = containerElement.querySelectorAll('.log-entry');
+            if (logEntries.length > 0) {
+                this.animateLogbookPulse(logEntries);
+            }            
         }
         
         showLogbookError(itemId) {
@@ -12789,7 +12854,16 @@ animateModalExit(overlay) {
                     if (targetSection === 'history') {
                         // Logbook neu laden wenn Sektion aktiviert wird
                         this.loadRealLogEntries(item);
+                        
+                        // 📝 Logbook Pulse Animation für bereits geladene Einträge
+                        setTimeout(() => {
+                            const logEntries = overlay.querySelectorAll('.log-entry');
+                            if (logEntries.length > 0) {
+                                this.animateLogbookPulse(logEntries);
+                            }
+                        }, 200);
                     } else if (targetSection === 'shortcuts') {
+                        
                         // Shortcuts Event Listeners setup
                         setTimeout(() => {
                             this.setupShortcutEventListeners(item);
