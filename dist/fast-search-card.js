@@ -166,95 +166,82 @@ class FastSearchCard extends HTMLElement {
         });
     }
     
-    // 🎬 Filter-Chip Hover Animation
+    // 🎪 Filter Chip Hover Effects - Web Animations API
     setupFilterChipAnimations() {
         console.log('🍎 Setting up visionOS glass chip animations');
         
-        const filterChips = this.shadowRoot.querySelectorAll('.filter-chip');
-        
-        filterChips.forEach(chip => {
-            let hoverAnimation = null;
+        // Warte auf DOM-Update
+        setTimeout(() => {
+            const filterChips = this.shadowRoot.querySelectorAll('.filter-chip');
+            console.log('Found filter chips:', filterChips.length);
             
-            // 🍎 visionOS Glass Lift
-            chip.addEventListener('mouseenter', () => {
-                if (hoverAnimation) hoverAnimation.cancel();
+            filterChips.forEach(chip => {
+                // Entferne alte Event Listener (falls vorhanden)
+                chip.removeEventListener('mouseenter', chip._hoverEnter);
+                chip.removeEventListener('mouseleave', chip._hoverLeave);
                 
-                hoverAnimation = chip.animate([
-                    { 
-                        transform: 'scale(1) translateZ(0px)',
-                        filter: 'brightness(1)',
-                        backdropFilter: 'blur(10px)',
-                        boxShadow: '0 0 0 rgba(255,255,255,0)'
-                    },
-                    { 
-                        transform: 'scale(1.02) translateZ(8px)',
-                        filter: 'brightness(1.1)',
-                        backdropFilter: 'blur(15px)',
-                        boxShadow: '0 8px 25px rgba(255,255,255,0.2)',
-                        offset: 0.6
-                    },
-                    { 
-                        transform: 'scale(1.01) translateZ(4px)',
-                        filter: 'brightness(1.05)',
-                        backdropFilter: 'blur(12px)',
-                        boxShadow: '0 4px 15px rgba(255,255,255,0.15)'
-                    }
-                ], {
-                    duration: 400,
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple spring
-                    fill: 'forwards'
-                });
-            });
-            
-            // 🍎 visionOS Glass Float
-            chip.addEventListener('mouseleave', () => {
-                if (hoverAnimation) hoverAnimation.cancel();
+                let hoverAnimation = null;
                 
-                hoverAnimation = chip.animate([
-                    { 
-                        transform: 'scale(1.01) translateZ(4px)',
-                        filter: 'brightness(1.05)',
-                        backdropFilter: 'blur(12px)'
-                    },
-                    { 
-                        transform: 'scale(1) translateZ(0px)',
-                        filter: 'brightness(1)',
-                        backdropFilter: 'blur(10px)'
-                    }
-                ], {
-                    duration: 300,
-                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                    fill: 'forwards'
-                });
+                // 🍎 visionOS Glass Lift
+                const hoverEnter = () => {
+                    if (hoverAnimation) hoverAnimation.cancel();
+                    
+                    hoverAnimation = chip.animate([
+                        { 
+                            transform: 'scale(1) translateZ(0px)',
+                            filter: 'brightness(1)',
+                            backdropFilter: 'blur(10px)',
+                            boxShadow: '0 0 0 rgba(255,255,255,0)'
+                        },
+                        { 
+                            transform: 'scale(1.02) translateZ(8px)',
+                            filter: 'brightness(1.1)',
+                            backdropFilter: 'blur(15px)',
+                            boxShadow: '0 8px 25px rgba(255,255,255,0.2)',
+                            offset: 0.6
+                        },
+                        { 
+                            transform: 'scale(1.01) translateZ(4px)',
+                            filter: 'brightness(1.05)',
+                            backdropFilter: 'blur(12px)',
+                            boxShadow: '0 4px 15px rgba(255,255,255,0.15)'
+                        }
+                    ], {
+                        duration: 400,
+                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                        fill: 'forwards'
+                    });
+                };
+                
+                const hoverLeave = () => {
+                    if (hoverAnimation) hoverAnimation.cancel();
+                    
+                    hoverAnimation = chip.animate([
+                        { 
+                            transform: 'scale(1.01) translateZ(4px)',
+                            filter: 'brightness(1.05)',
+                            backdropFilter: 'blur(12px)'
+                        },
+                        { 
+                            transform: 'scale(1) translateZ(0px)',
+                            filter: 'brightness(1)',
+                            backdropFilter: 'blur(10px)'
+                        }
+                    ], {
+                        duration: 300,
+                        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                        fill: 'forwards'
+                    });
+                };
+                
+                // Event Listener hinzufügen und Referenz speichern
+                chip._hoverEnter = hoverEnter;
+                chip._hoverLeave = hoverLeave;
+                chip.addEventListener('mouseenter', hoverEnter);
+                chip.addEventListener('mouseleave', hoverLeave);
             });
-            
-            // 🍎 visionOS Selection (subtle)
-            chip.addEventListener('click', () => {
-                const selectionAnimation = chip.animate([
-                    { 
-                        transform: 'scale(1) translateZ(4px)',
-                        filter: 'brightness(1.05)'
-                    },
-                    { 
-                        transform: 'scale(0.98) translateZ(-2px)',
-                        filter: 'brightness(1.2)',
-                        offset: 0.3
-                    },
-                    { 
-                        transform: 'scale(1) translateZ(4px)',
-                        filter: 'brightness(1.05)'
-                    }
-                ], {
-                    duration: 200,
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                });
-            });   
-
-            // 🍎 Erweitere Glass Effekte auf andere Elemente
-            this.setupGlassEffectsForOtherElements();
-            
-        });
-    }        
+        }, 100);
+    }
 
 
 
@@ -11612,8 +11599,11 @@ getQuickStats(item) {
                 chip.style.animationDelay = `${categories.indexOf(category) * 0.1}s`;
                 
                 categoryChips.appendChild(chip);
-            }
+            }         
         });
+
+        // 🎪 Filter Chip Animations nach Chip-Erstellung initialisieren
+        this.setupFilterChipAnimations();           
     }
 
     setupChipFilters() {
@@ -11777,6 +11767,9 @@ getQuickStats(item) {
                 duration: 300,
                 easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
             });
+
+            // 🎪 Filter Chip Animations nach Update neu initialisieren
+            this.setupFilterChipAnimations();
         });
     }
 
