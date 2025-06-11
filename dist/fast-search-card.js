@@ -5182,6 +5182,10 @@ class FastSearchCard extends HTMLElement {
                                             <span class="chip-icon">📋</span>
                                             <span class="chip-name">Alle</span>
                                         </div>
+                                        <div class="filter-chip" data-value="none">
+                                            <span class="chip-icon">🚫</span>
+                                            <span class="chip-name">Keine</span>
+                                        </div>                                        
                                     </div>
                                 </div>
                             </div>
@@ -11087,7 +11091,7 @@ getQuickStats(item) {
         
         // Bei Typ-Wechsel alle Chips außer "Alle" entfernen
         if (!this.isInitialized) {
-            const existingChips = categoryChips.querySelectorAll('.filter-chip:not([data-value=""])');
+            const existingChips = categoryChips.querySelectorAll('.filter-chip:not([data-value=""]):not([data-value="none"])');
             existingChips.forEach(chip => chip.remove());
             
             // "Alle" Chip wieder aktivieren
@@ -11103,7 +11107,8 @@ getQuickStats(item) {
         
         // Vorhandene Kategorien ermitteln
         const existingCategoryValues = Array.from(categoryChips.querySelectorAll('.filter-chip'))
-            .map(chip => chip.getAttribute('data-value'));
+            .map(chip => chip.getAttribute('data-value'))
+            .filter(value => value !== '' && value !== 'none');        
         
         const config = this.searchTypeConfigs[this.currentSearchType];
         
@@ -11238,11 +11243,18 @@ getQuickStats(item) {
                 item.category.toLowerCase().includes(query);
             
             const matchesRoom = this.selectedRooms.size === 0 || this.selectedRooms.has(item.room);
-            const matchesType = !this.selectedType || item.category === this.selectedType;
+            const matchesType = !this.selectedType || 
+                (this.selectedType === 'none' ? false : item.category === this.selectedType);
             
             return matchesSearch && matchesRoom && matchesType;
         });
-    
+        
+        // Spezielle Behandlung wenn "Keine" ausgewählt ist
+        if (this.selectedType === 'none') {
+            this.showNoResults('Filter "Keine" ausgewählt - keine Ergebnisse angezeigt');
+            return;
+        }
+        
         if (filteredItems.length === 0) {
             this.showNoResults('Keine Ergebnisse gefunden');
             return;
