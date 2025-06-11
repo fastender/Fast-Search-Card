@@ -375,6 +375,47 @@ class FastSearchCard extends HTMLElement {
     }
 
 
+
+    // 🍎 Loading Dots Animation
+    startLoadingDotsAnimation(container) {
+        const dots = container.querySelectorAll('.loading-dot');
+        
+        dots.forEach((dot, index) => {
+            // Jeder Punkt bekommt seine eigene Animation mit Delay
+            function animateDot() {
+                dot.animate([
+                    { 
+                        opacity: 0,
+                        transform: 'scale(0.8)'
+                    },
+                    { 
+                        opacity: 1,
+                        transform: 'scale(1)',
+                        offset: 0.5
+                    },
+                    { 
+                        opacity: 0,
+                        transform: 'scale(0.8)'
+                    }
+                ], {
+                    duration: 1400,
+                    easing: 'ease-in-out',
+                    iterations: Infinity
+                });
+            }
+            
+            // Staggered start
+            setTimeout(animateDot, index * 200);
+        });
+    }
+    
+    stopLoadingDotsAnimation(container) {
+        const dots = container.querySelectorAll('.loading-dot');
+        dots.forEach(dot => {
+            const animations = dot.getAnimations();
+            animations.forEach(anim => anim.cancel());
+        });
+    }    
     
     
     
@@ -471,6 +512,57 @@ class FastSearchCard extends HTMLElement {
         return Promise.all(animations.map(anim => anim.finished));
     }
 
+
+    // 🍎 Typing Indicator Animation
+    startTypingAnimation() {
+        console.log('🍎 Starting typing animation');
+        
+        const typingDots = this.shadowRoot.querySelectorAll('.typing-dot');
+        
+        typingDots.forEach((dot, index) => {
+            // Jeder Punkt bekommt seine eigene Animation mit Delay
+            function animateDot() {
+                dot.animate([
+                    { 
+                        transform: 'translateY(0)',
+                        opacity: 0.4
+                    },
+                    { 
+                        transform: 'translateY(-10px)',
+                        opacity: 1,
+                        offset: 0.3
+                    },
+                    { 
+                        transform: 'translateY(0)',
+                        opacity: 0.4,
+                        offset: 0.6
+                    },
+                    { 
+                        transform: 'translateY(0)',
+                        opacity: 0.4
+                    }
+                ], {
+                    duration: 1500,
+                    easing: 'ease-in-out',
+                    iterations: Infinity
+                });
+            }
+            
+            // Staggered start
+            setTimeout(animateDot, index * 200);
+        });
+    }
+    
+    stopTypingAnimation() {
+        const typingDots = this.shadowRoot.querySelectorAll('.typing-dot');
+        typingDots.forEach(dot => {
+            const animations = dot.getAnimations();
+            animations.forEach(anim => anim.cancel());
+        });
+    }
+
+
+    
     // 🎬 Filter Menu Open Animation (VERBESSERT)
     animateFilterMenuOpen() {
         console.log('🎬 Animating filter menu open - improved');
@@ -829,7 +921,6 @@ class FastSearchCard extends HTMLElement {
                     height: 4px;
                     background: #007aff;
                     border-radius: 50%;
-                    animation: typing 1.5s infinite;
                 }
 
                 .typing-indicator {
@@ -851,15 +942,7 @@ class FastSearchCard extends HTMLElement {
                     height: 4px;
                     background: #007aff;
                     border-radius: 50%;
-                    animation: typing 1.5s infinite;
                 }
-
-                .typing-dot:nth-child(1) { animation-delay: 0s; }
-                .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-                .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-
-
 
 
                 .filter-button {
@@ -1287,45 +1370,8 @@ class FastSearchCard extends HTMLElement {
                         filter: blur(0px);
                     }
                 }
-                
+                 
 
-
-
-
-
-
-                /* Typing indicator */
-                @keyframes typing {
-                    0%, 60%, 100% {
-                        transform: translateY(0);
-                        opacity: 0.4;
-                    }
-                    30% {
-                        transform: translateY(-10px);
-                        opacity: 1;
-                    }
-                }
-
-                /* Loading dots */
-                @keyframes loadingDots {
-                    0%, 20% {
-                        opacity: 0;
-                        transform: scale(0.8);
-                    }
-                    50% {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                    100% {
-                        opacity: 0;
-                        transform: scale(0.8);
-                    }
-                }
-
-
-
-            
-                
 
                 /* Animation für Suchergebnisse */
                 .results-container {
@@ -1631,12 +1677,8 @@ class FastSearchCard extends HTMLElement {
                     height: 4px;
                     background: #007aff;
                     border-radius: 50%;
-                    animation: loadingDots 1.4s infinite;
                 }
 
-                .loading-dot:nth-child(1) { animation-delay: 0s; }
-                .loading-dot:nth-child(2) { animation-delay: 0.2s; }
-                .loading-dot:nth-child(3) { animation-delay: 0.4s; }
 
                 .config-error {
                     padding: 20px;
@@ -10454,8 +10496,18 @@ getQuickStats(item) {
     
 
     showLoadingDots(text) {
-        return `${text}<span class="loading-dots"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span>`;
-    }
+        const html = `${text}<span class="loading-dots"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span>`;
+        
+        // Animation starten nach dem Einfügen
+        setTimeout(() => {
+            const loadingContainer = document.querySelector('.loading-dots');
+            if (loadingContainer) {
+                this.startLoadingDotsAnimation(loadingContainer);
+            }
+        }, 10);
+        
+        return html;
+    }    
 
 
     updateSearchUI() {
