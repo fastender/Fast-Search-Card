@@ -513,6 +513,38 @@ class FastSearchCard extends HTMLElement {
     }
 
 
+    
+    // 2. SCHRITT: Web Animations API Funktion für fadeInBounce hinzufügen
+    animateIconBackgroundFadeIn(backgroundElement) {
+        console.log('🎬 Starting icon background Web Animation');
+        
+        const fadeInBounceAnimation = backgroundElement.animate([
+            {
+                opacity: 0,
+                transform: 'translate(-50%, -50%) scale(0.7)',
+                filter: 'blur(4px)'
+            },
+            {
+                opacity: 0.8,
+                transform: 'translate(-50%, -50%) scale(1.1)',
+                filter: 'blur(1px)',
+                offset: 0.6
+            },
+            {
+                opacity: 1,
+                transform: 'translate(-50%, -50%) scale(1)',
+                filter: 'blur(0px)'
+            }
+        ], {
+            duration: 1200,
+            delay: 300,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple spring easing
+            fill: 'forwards'
+        });
+        
+        return fadeInBounceAnimation;
+    }    
+
 
     // 🟢 HINZUFÜGEN: Web Animations API Ersatz
     
@@ -2417,7 +2449,6 @@ class FastSearchCard extends HTMLElement {
                     
                     /* Eingangsanimation */
                     opacity: 0;
-                    animation: fadeInBounce 1.2s ease-out 0.3s forwards;
                 }
                 
                 /* Content über dem Background */
@@ -6876,6 +6907,13 @@ class FastSearchCard extends HTMLElement {
                 
                 // Restliche Event Listeners
                 this.setupRemainingReplaceEventListeners(item);
+
+                // Am Ende der setupReplaceEventListeners Funktion hinzufügen:
+                if (item.type === 'light' || item.type === 'cover' || item.type === 'climate') {
+                    setTimeout(() => {
+                        this.updateIconSectionBackground(item);
+                    }, 100);
+                }                
             }
 
             // Event Listeners in separater Methode für bessere Übersicht
@@ -9409,16 +9447,28 @@ getQuickStats(item) {
 
     updateIconSectionBackground(item) {
         const replaceContainer = this.shadowRoot.getElementById('moreInfoReplace');
-        if (!replaceContainer) return;
+        if (!replaceContainer) {
+            console.log('❌ Replace container not found');
+            return;
+        }
         
         const backgroundElement = replaceContainer.querySelector('.icon-background');
-        if (!backgroundElement) return;
+        if (!backgroundElement) {
+            console.log('❌ Background element not found');
+            return;
+        }
         
         const newBackgroundImage = this.getBackgroundImageForItem(item);
+        console.log('🔄 Updating background for:', item.id, 'URL:', newBackgroundImage);
+        
+        // Background Image setzen
         backgroundElement.style.backgroundImage = `url('${newBackgroundImage}')`;
         
-        console.log('✅ Background Image aktualisiert für:', item.id, 'Neue URL:', newBackgroundImage);
-    }    
+        // 🎬 Web Animations API statt CSS Animation
+        this.animateIconBackgroundFadeIn(backgroundElement);
+        
+        console.log('✅ Background Image aktualisiert mit Web Animation für:', item.id, 'Neue URL:', newBackgroundImage);
+    }
 
 
     updateHALightControlUI(item) {
