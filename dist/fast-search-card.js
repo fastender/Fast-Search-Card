@@ -808,6 +808,29 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
+
+    // 🌈 visionOS Color Shift Animation - Web Animations API
+    animateColorShift(element) {
+        console.log('🌈 Starting visionOS Color Shift animation');
+        
+        const colorShiftAnimation = element.animate([
+            {
+                backgroundPosition: '0% 50%'
+            },
+            {
+                backgroundPosition: '100% 50%'
+            },
+            {
+                backgroundPosition: '0% 50%'
+            }
+        ], {
+            duration: 3000,
+            iterations: Infinity,
+            easing: 'ease-in-out'
+        });
+        
+        return colorShiftAnimation;
+    }    
     
     
     
@@ -4467,15 +4490,9 @@ class FastSearchCard extends HTMLElement {
                 .new-light-color-toggle {
                     background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd23f, #06d6a0, #118ab2, #8e44ad, #e91e63, #ffffff);
                     background-size: 200% 200%;
-                    animation: colorShift 3s ease infinite;
                 }
-                
-                @keyframes colorShift {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
-                }
-                
+
+
                 .new-light-color-toggle:hover {
                     transform: scale(1.05);
                     box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
@@ -7067,6 +7084,12 @@ class FastSearchCard extends HTMLElement {
                 const powerButtonRow = replaceContainer.querySelector(`[id="new-light-toggle-${item.id}"]`);
                 
                 const colorToggleButton = replaceContainer.querySelector(`[id="new-light-color-toggle-${item.id}"]`);
+                
+                // 🌈 Color Shift Animation starten
+                if (colorToggleButton) {
+                    this.animateColorShift(colorToggleButton);
+                }
+                
                 const colorsContainer = replaceContainer.querySelector(`[id="new-light-colors-${item.id}"]`);
                 
                 console.log('DOM Elements found:', {
