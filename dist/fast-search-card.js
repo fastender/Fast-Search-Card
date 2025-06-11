@@ -487,116 +487,135 @@ class FastSearchCard extends HTMLElement {
            
                                 
                 /* ERSETZE den :host Block in deiner fast-search-card.js mit diesem Code */
-                
+
                 :host {
                     display: block;
+                    position: relative;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    /* KEINE Hintergrund-Styles! */
                     
-                    /* Card fade-in beim Laden */
+                    /* Initiale Animation */
                     opacity: 0;
                     transform: translateY(40px);
+                    animation: cardFadeIn 0.6s ease-out forwards;
+                }
                 
-                    /* visionOS 3D Container */
-                    transform-style: preserve-3d;
-                    perspective: 1200px;
-                    perspective-origin: center center;                    
-                    
-                    /* Safari-optimierter Glassmorphism OHNE backdrop-filter */
+                @keyframes cardFadeIn {
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                /* Glass Background Container */
+                .glass-background {
+                    position: absolute;
+                    inset: 0;
+                    z-index: 0;
                     border-radius: 24px;
-                    padding: 0;
                     overflow: hidden;
-                    position: relative;
+                    pointer-events: none;
+                    isolation: isolate;
+                    
+                    /* Verhindere Flackern in Safari */
+                    transform: translateZ(0);
+                    -webkit-transform: translateZ(0);
+                    will-change: transform;
+                }
                 
-                    /* Vereinfachter iOS Milchglas-Effekt (Safari-optimiert) */
-                    background: 
-                        /* Nur EIN einfacher Gradient */
-                        linear-gradient(135deg, 
-                            rgba(255, 255, 255, 0.6) 0%, 
-                            rgba(255, 255, 255, 0.4) 100%),
-                        /* Milchiger Basis-Ton */
-                        rgba(250, 250, 252, 0.4);
-                    
-                    /* Keine problematischen Filter! */
-                    /* backdrop-filter: REMOVED */
-                    /* -webkit-backdrop-filter: REMOVED */
-                    
-                    /* iOS-Style Borders - heller und subtiler */
+                /* Glass Layers für Milchglas-Effekt */
+                .glass-base {
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(255, 255, 255, 0.3);
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                }
+                
+                /* Fallback wenn backdrop-filter nicht unterstützt wird */
+                @supports not (backdrop-filter: blur(20px)) {
+                    .glass-base {
+                        background: rgba(248, 248, 250, 0.85);
+                    }
+                }
+                
+                .glass-gradient {
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(
+                        135deg,
+                        rgba(255, 255, 255, 0.4) 0%,
+                        rgba(255, 255, 255, 0.1) 100%
+                    );
+                    mix-blend-mode: overlay;
+                }
+                
+                .glass-shine {
+                    position: absolute;
+                    inset: 0;
+                    background: radial-gradient(
+                        ellipse at 30% 0%,
+                        rgba(255, 255, 255, 0.6) 0%,
+                        transparent 40%
+                    );
+                    opacity: 0.7;
+                }
+                
+                /* Main Container */
+                .main-container {
+                    position: relative;
+                    z-index: 1;
+                    background: transparent;
+                    border-radius: 24px;
                     border: 0.5px solid rgba(255, 255, 255, 0.6);
                     box-shadow: 
-                        /* Weiche äußere Schatten */
-                        0 10px 40px rgba(0, 0, 0, 0.08),
-                        0 2px 10px rgba(0, 0, 0, 0.06),
-                        /* Starke innere Highlights für Glaseffekt */
+                        0 8px 32px rgba(0, 0, 0, 0.08),
                         inset 0 2px 4px rgba(255, 255, 255, 0.8),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.9),
-                        /* Subtiler innerer Schatten nur am Boden */
-                        inset 0 -1px 1px rgba(0, 0, 0, 0.05);
-                    
-                    /* Performance-Optimierungen für Safari */
-                    -webkit-transform: translateZ(0);
-                    -webkit-backface-visibility: hidden;
-                    backface-visibility: hidden;
-                    will-change: transform, opacity;
-                    
-                    /* Typography */
-                    -webkit-font-smoothing: antialiased;
-                    -moz-osx-font-smoothing: grayscale;                    
-                
-                    /* Touch-Optimierungen */
-                    -webkit-tap-highlight-color: transparent !important;
-                    -webkit-touch-callout: none !important;
-                    -webkit-user-select: none !important;
-                    user-select: none !important;
-                }
-                
-                /* Pseudo-Element komplett entfernt für bessere Performance */
-                /* :host::before REMOVED */
-                
-                /* Animation-Safe Klassen */
-                .view-container.animating * {
-                    /* Vereinfache Rendering während Animationen */
-                    will-change: auto !important;
-                    filter: none !important;
-                }
-                
-                /* Icon-Section - Einfacher ohne Flackern */
-                .icon-section {
-                    flex: 1;
-                    /* Nur ein einfacher semi-transparenter Overlay */
-                    background: rgba(255, 255, 255, 0.2);
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 40px 20px;
-                    position: relative;
+                        inset 0 1px 1px rgba(255, 255, 255, 0.9);
                     overflow: hidden;
+                    
+                    /* Smooth rendering */
+                    transform: translateZ(0);
+                    -webkit-font-smoothing: antialiased;
                 }
                 
-                /* Filter Menu - Vereinfacht */
+                /* Safari Animation Mode - Vereinfache Glass während Animationen */
+                :host(.animating) .glass-base {
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                    background: rgba(248, 248, 250, 0.9);
+                    transition: background 0.2s ease;
+                }
+                
+                :host(.animating) .glass-gradient,
+                :host(.animating) .glass-shine {
+                    opacity: 0;
+                    transition: opacity 0.2s ease;
+                }
+                
+                /* Deine bestehenden Styles bleiben gleich */
+                .search-container {
+                    /* Deine search-container styles */
+                }
+                
                 .filter-menu {
-                    /* Einfacher Milchglas-Look */
-                    background: rgba(255, 255, 255, 0.7);
-                    
-                    border: 0.5px solid rgba(255, 255, 255, 0.8);
-                    border-radius: 20px;
-                    
-                    box-shadow: 
-                        0 10px 30px rgba(0, 0, 0, 0.1),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                    /* Überschreibe mit einfacherem Glass */
+                    background: rgba(255, 255, 255, 0.8);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
                 }
                 
-                /* More-Info Dialog - Vereinfacht */
                 .more-info-dialog {
-                    /* Einfacher heller Hintergrund */
-                    background: rgba(255, 255, 255, 0.75);
-                    
-                    border: 0.5px solid rgba(255, 255, 255, 0.85);
-                    border-radius: 24px;
-                    box-shadow: 
-                        0 8px 24px rgba(0, 0, 0, 0.1),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+                    /* Überschreibe mit einfacherem Glass */
+                    background: rgba(255, 255, 255, 0.85);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
                 }
+                
+                /* Icon Section anpassen */
+                .icon-section {
+                    background: rgba(255, 255, 255, 0.1);
+                }         
 
 
          
@@ -5185,14 +5204,23 @@ class FastSearchCard extends HTMLElement {
                 }
                 
             </style>
-            
+
+
+
+
+        <!-- Glass Background Layers - NEUE ZEILEN -->
+        <div class="glass-background">
+            <div class="glass-base"></div>
+            <div class="glass-gradient"></div>
+            <div class="glass-shine"></div>
+        </div>
+        
+        <!-- Main Content Container - WRAPPER UM ALLES -->
+        <div class="main-container">
+            <!-- Ab hier dein bisheriger Code -->
             <div class="search-container">
-         
                 <div class="search-section">
                     <div class="search-header">
-                    
-  
-
                         <div class="search-input-container">
                             <input type="text" class="search-input" placeholder="Gerät suchen..." id="searchInput">
                             
@@ -5221,10 +5249,6 @@ class FastSearchCard extends HTMLElement {
                                 </div>
                             </div>
                         </div>
-
-
-        
-                        
                     </div>
                 </div>
 
@@ -5234,7 +5258,6 @@ class FastSearchCard extends HTMLElement {
                         <!-- Tags werden dynamisch eingefügt -->
                     </div>
                 </div>                
-            
 
                 <div class="view-toggle">
                     <button class="view-toggle-btn active" id="listViewBtn" data-view="list">
@@ -5253,8 +5276,6 @@ class FastSearchCard extends HTMLElement {
                     <div class="no-results" id="noResults">Wählen Sie eine Kategorie und geben Sie einen Suchbegriff ein...</div>
                 </div>
             </div>
-
-
 
             <!-- Filter Overlay -->
             <div class="filter-overlay" id="filterOverlay">
@@ -5329,15 +5350,15 @@ class FastSearchCard extends HTMLElement {
                 </div>
             </div>
 
-
-
-
-
             <!-- More-Info Replace Mode -->
             <div class="more-info-replace" id="moreInfoReplace">
                 <!-- Content wird dynamisch generiert -->
             </div>
-        `;        
+        </div> <!-- SCHLIESST main-container -->
+    `;
+}
+
+
 
         
         // 🎬 Animation starten nach dem Rendering
