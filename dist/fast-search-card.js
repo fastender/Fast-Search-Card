@@ -11412,6 +11412,7 @@ getQuickStats(item) {
         this.resultsContainer.innerHTML = `<div class="config-error">${message}</div>`;
     }
 
+
     displayItemsList(itemList) {
         this.resultsContainer.innerHTML = '';
         
@@ -11429,6 +11430,10 @@ getQuickStats(item) {
             }
             itemsByRoom[item.room].push(item);
         });
+        
+        // 🔧 FIX: Wie Grid - einen eigenen Container erstellen
+        const listContainer = document.createElement('div');
+        listContainer.className = 'list-container';
         
         // 🎬 Array für alle List Items sammeln
         const allListItems = [];
@@ -11456,19 +11461,15 @@ getQuickStats(item) {
                 roomGroup.appendChild(itemElement);
             });
             
-            this.resultsContainer.appendChild(roomGroup);
+            listContainer.appendChild(roomGroup);
         });
-
-
-        // Slide In Animation für Results Container, dann List Items
-        this.animateSlideInFromBottom(this.resultsContainer).finished.then(() => {
-            this.animateListItems(allListItems);
-        });        
         
-        // 🎬 WAAPI Animation für ALLE List Items
-        setTimeout(() => {
+        this.resultsContainer.appendChild(listContainer);
+    
+        // 🔧 FIX: Genau wie Grid - Container animieren, dann Items
+        this.animateSlideInFromBottom(listContainer).finished.then(() => {
             this.animateListItems(allListItems);
-        }, 100);
+        });
     }
 
 
