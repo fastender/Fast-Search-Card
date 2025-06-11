@@ -13152,7 +13152,6 @@ animateModalExit(overlay) {
                         easing: 'ease-out',               // sanfte Animation
                         fill: 'forwards'                  // Ende-Zustand beibehalten
                     });
-                }
 
                     // Spezielle Initialisierung für verschiedene Sektionen
                     if (targetSection === 'history') {
