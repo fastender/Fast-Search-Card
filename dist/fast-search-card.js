@@ -808,108 +808,7 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-
-
-    // 🎬 Album Pulse Animation mit Web Animations API
-    animateAlbumPulse(albumElement) {
-        console.log('🎬 Starting album pulse animation');
-        
-        const pulseAnimation = albumElement.animate([
-            { transform: 'scale(1)' },
-            { transform: 'scale(1.02)', offset: 0.5 },
-            { transform: 'scale(1)' }
-        ], {
-            duration: 3000,
-            easing: 'ease-in-out',
-            iterations: Infinity
-        });
-        
-        return pulseAnimation;
-    }    
-
-
-    // 🎬 Color Shift Animation mit Web Animations API
-    animateColorShift(element) {
-        console.log('🎬 Starting color shift animation');
-        
-        const colorShiftAnimation = element.animate([
-            { backgroundPosition: '0% 50%' },
-            { backgroundPosition: '100% 50%', offset: 0.5 },
-            { backgroundPosition: '0% 50%' }
-        ], {
-            duration: 3000,
-            easing: 'ease',
-            iterations: Infinity
-        });
-        
-        return colorShiftAnimation;
-    }    
-
-    // 🎬 Dropdown Items Stagger Animation mit Web Animations API
-    animateDropdownItems(dropdownItems) {
-        console.log('🎬 Starting dropdown items animation');
-        
-        const animations = [];
-        
-        dropdownItems.forEach((item, index) => {
-            // Items initial unsichtbar setzen
-            item.style.opacity = '0';
-            item.style.transform = 'translateY(-12px) scale(0.9)';
-            
-            const animation = item.animate([
-                {
-                    opacity: 0,
-                    transform: 'translateY(-12px) scale(0.9)'
-                },
-                {
-                    opacity: 1,
-                    transform: 'translateY(0) scale(1)'
-                }
-            ], {
-                duration: 200,
-                delay: 100 + (index * 80), // Start delay + stagger (0.1s + index * 0.08s)
-                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                fill: 'forwards'
-            });
-            
-            animations.push(animation);
-        });
-        
-        return Promise.all(animations.map(anim => anim.finished));
-    }
-
-
     
-    // 🎬 Dropdown Menu Container Animation
-    animateDropdownMenu(dropdownMenu) {
-        console.log('🎬 Starting dropdown menu animation');
-        
-        // Menu initial unsichtbar setzen
-        dropdownMenu.style.opacity = '0';
-        dropdownMenu.style.transform = 'scale(0.85)';
-        dropdownMenu.style.visibility = 'hidden';
-        
-        const menuAnimation = dropdownMenu.animate([
-            {
-                opacity: 0,
-                transform: 'scale(0.85)',
-                visibility: 'hidden'
-            },
-            {
-                opacity: 1,
-                transform: 'scale(1)',
-                visibility: 'visible'
-            }
-        ], {
-            duration: 550,
-            easing: 'cubic-bezier(0.16, 1.08, 0.38, 0.98)',
-            fill: 'forwards'
-        });
-        
-        return menuAnimation;
-    }
-
-
     
     
     // 🟢 HINZUFÜGEN: Web Animations API Ersatz
@@ -4165,7 +4064,15 @@ class FastSearchCard extends HTMLElement {
                     border-radius: inherit;
                 }
                 
-
+                /* Pulsing animation for playing state */
+                @keyframes albumPulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.02); }
+                }
+                
+                .album-cover-large.playing {
+                    animation: albumPulse 3s ease-in-out infinite;
+                }
                 
                 /* Now Playing Info */
                 .now-playing-info {
@@ -4560,8 +4467,14 @@ class FastSearchCard extends HTMLElement {
                 .new-light-color-toggle {
                     background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd23f, #06d6a0, #118ab2, #8e44ad, #e91e63, #ffffff);
                     background-size: 200% 200%;
+                    animation: colorShift 3s ease infinite;
                 }
                 
+                @keyframes colorShift {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
                 
                 .new-light-color-toggle:hover {
                     transform: scale(1.05);
@@ -4723,10 +4636,19 @@ class FastSearchCard extends HTMLElement {
                     /* Initial State: Unsichtbar und kleiner */
                     opacity: 0;
                     transform: scale(0.85); /* Startet kleiner für dramatischeren Effekt */
-                    visibility: hidden;                    
+                    visibility: hidden;
+                    
+                    /* iOS spring animation */
+                    transition: all 0.55s cubic-bezier(0.16, 1.08, 0.38, 0.98); /* Langsamerer Spring mit Überschwingen */
                     
                     overflow: hidden;
-                }                
+                }
+                
+                .dropdown-menu.open {
+                    opacity: 1;
+                    transform: scale(1);
+                    visibility: visible;
+                }
                 
                 .dropdown-item {
                     padding: 13px 20px 13px 20px;
@@ -4739,6 +4661,7 @@ class FastSearchCard extends HTMLElement {
                     background: transparent;
                     width: 100%;
                     text-align: left;
+                    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
                     
                     /* Items starten unsichtbar und verschoben */
                     opacity: 0;
@@ -4766,7 +4689,32 @@ class FastSearchCard extends HTMLElement {
                 
                 .replace-dropdown-container .dropdown-item-icon {
                     display: none;
-                }            
+                }
+                
+                /* Staggered Animation für Items */
+                .dropdown-menu.open .dropdown-item {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+                
+                .dropdown-menu.open .dropdown-item:nth-child(1) { 
+                    transition-delay: 0.1s; /* Längere Delays */
+                }
+                .dropdown-menu.open .dropdown-item:nth-child(2) { 
+                    transition-delay: 0.18s; 
+                }
+                .dropdown-menu.open .dropdown-item:nth-child(3) { 
+                    transition-delay: 0.26s; 
+                }
+                .dropdown-menu.open .dropdown-item:nth-child(4) { 
+                    transition-delay: 0.34s; 
+                }
+                .dropdown-menu.open .dropdown-item:nth-child(5) { 
+                    transition-delay: 0.42s; 
+                }
+                .dropdown-menu.open .dropdown-item:nth-child(6) { 
+                    transition-delay: 0.5s; 
+                }
                 
                 /* Closing Animation: Items verschwinden in umgekehrter Reihenfolge */
                 .dropdown-menu:not(.open) .dropdown-item {
@@ -5644,22 +5592,16 @@ class FastSearchCard extends HTMLElement {
             // Button fade-out
             dropdownButton.classList.add('open');
             
-            // 🎬 Menu Animation mit Web Animations API nach Verzögerung
+            // Menu erscheint nach etwas längerer Verzögerung für dramatischen Effekt
             setTimeout(() => {
-                // Menu Container Animation
-                this.animateDropdownMenu(dropdownMenu);
+                dropdownMenu.classList.add('open');
                 
-                // Items Animation nach kurzer Verzögerung
-                setTimeout(() => {
-                    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
-                    this.animateDropdownItems(dropdownItems);
-                }, 100);
-                
-                // Animation beendet nach 800ms
+                // Animation beendet nach 800ms (wegen längerer Animation)
                 setTimeout(() => {
                     animating = false;
                 }, 800);
-            }, 150);        
+            }, 150); // Etwas längere Verzögerung
+        };
         
         const closeDropdown = () => {
             if (animating || !isOpen) return;
@@ -5667,30 +5609,15 @@ class FastSearchCard extends HTMLElement {
             animating = true;
             isOpen = false;
             
-            // 🎬 Menu Close Animation mit Web Animations API
-            const closeAnimation = dropdownMenu.animate([
-                {
-                    opacity: 1,
-                    transform: 'scale(1)',
-                    visibility: 'visible'
-                },
-                {
-                    opacity: 0,
-                    transform: 'scale(0.85)',
-                    visibility: 'hidden'
-                }
-            ], {
-                duration: 400,
-                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                fill: 'forwards'
-            });
+            // Menu verschwindet zuerst
+            dropdownMenu.classList.remove('open');
             
             // Button erscheint wieder nach Animation
-            closeAnimation.finished.then(() => {
+            setTimeout(() => {
                 dropdownButton.classList.remove('open');
                 animating = false;
-            });
-        };            
+            }, 400); // Längere Wartezeit wegen reverse animation
+        };
         
         // Item Click Handlers mit Haptic Feedback
         dropdownItems.forEach((item, index) => {
@@ -5774,12 +5701,9 @@ class FastSearchCard extends HTMLElement {
             }
         });
         
-
         // Container fokussierbar machen
         replaceContainer.setAttribute('tabindex', '-1');
-        } // ← DIESE KLAMMER FEHLT!
-        
-        // NEUE Methode für Media Player Tab-Layout        
+    }
 
     
 
@@ -7143,20 +7067,6 @@ class FastSearchCard extends HTMLElement {
                 const powerButtonRow = replaceContainer.querySelector(`[id="new-light-toggle-${item.id}"]`);
                 
                 const colorToggleButton = replaceContainer.querySelector(`[id="new-light-color-toggle-${item.id}"]`);
-
-                console.log('DOM Elements found:', {
-                    brightnessSlider: !!brightnessSlider,
-                    powerButtonCenter: !!powerButtonCenter,
-                    powerButtonRow: !!powerButtonRow,
-                    colorToggleButton: !!colorToggleButton,
-                    colorsContainer: !!colorsContainer
-                });
-                
-                // 🎬 Color Shift Animation starten
-                if (colorToggleButton) {
-                    this.animateColorShift(colorToggleButton);
-                }
-                
                 const colorsContainer = replaceContainer.querySelector(`[id="new-light-colors-${item.id}"]`);
                 
                 console.log('DOM Elements found:', {
@@ -7699,28 +7609,12 @@ class FastSearchCard extends HTMLElement {
                         lastMediaImageUrl = currentMediaImageUrl;
                     }
                     
-
-                    // 🎬 Playing State Animation mit Web Animations API updaten
+                    // Playing State Animation updaten
                     const albumCover = this.shadowRoot.querySelector('.album-cover-large');
                     if (albumCover) {
                         const isPlaying = currentState.state === 'playing';
-                        
-                        if (isPlaying) {
-                            albumCover.classList.add('playing');
-                            // Nur starten wenn noch nicht animiert
-                            const existingAnimations = albumCover.getAnimations();
-                            if (existingAnimations.length === 0) {
-                                this.animateAlbumPulse(albumCover);
-                            }
-                        } else {
-                            albumCover.classList.remove('playing');
-                            // Animation stoppen
-                            const animations = albumCover.getAnimations();
-                            animations.forEach(anim => anim.cancel());
-                        }
+                        albumCover.classList.toggle('playing', isPlaying);
                     }
-
-                    
                     
                 }, 2000); // Alle 2 Sekunden prüfen
                 
@@ -9787,19 +9681,10 @@ getQuickStats(item) {
             albumCover.style.background = gradient;
             albumBackground.style.backgroundImage = 'none';
             albumCover.style.backgroundImage = 'none';
-        }        
-
-        // 🎬 Web Animations API statt CSS-Klasse
-        if (isPlaying) {
-            albumCover.classList.add('playing');
-            // Animation starten
-            this.animateAlbumPulse(albumCover);
-        } else {
-            albumCover.classList.remove('playing');
-            // Animation stoppen
-            const animations = albumCover.getAnimations();
-            animations.forEach(anim => anim.cancel());
-        }        
+        }
+        
+        // Animation State aktualisieren
+        albumCover.classList.toggle('playing', isPlaying);
         
         // Text Updates
         if (songTitle) {
@@ -12750,21 +12635,13 @@ animateModalExit(overlay) {
             dropdownMenu.style.top = top + 'px';
             dropdownMenu.style.left = left + 'px';
             
-            // 🎬 Menu Container Animation mit Web Animations API
-            this.animateDropdownMenu(dropdownMenu);
-            
-            // 🎬 Dropdown Items Animation nach Container-Animation
-            setTimeout(() => {
-                const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
-                this.animateDropdownItems(dropdownItems);
-            }, 100); // Kurze Verzögerung für besseren Effekt
+            // Menu öffnen
+            dropdownMenu.classList.add('open');
             
             // Focus Management
             dropdownMenu.focus();
-            
         };
         
-
         // Schließe Popover
         const closePopover = () => {
             if (!isDropdownOpen) return;
@@ -12777,32 +12654,9 @@ animateModalExit(overlay) {
             // Button State
             dropdownButton.classList.remove('open');
             
-            // 🎬 Menu Close Animation mit Web Animations API
-            const closeAnimation = dropdownMenu.animate([
-                {
-                    opacity: 1,
-                    transform: 'scale(1)',
-                    visibility: 'visible'
-                },
-                {
-                    opacity: 0,
-                    transform: 'scale(0.85)',
-                    visibility: 'hidden'
-                }
-            ], {
-                duration: 400,
-                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                fill: 'forwards'
-            });
-            
-            // Reset nach Animation
-            closeAnimation.finished.then(() => {
-                dropdownMenu.style.opacity = '';
-                dropdownMenu.style.transform = '';
-                dropdownMenu.style.visibility = '';
-            });
+            // Menu schließen
+            dropdownMenu.classList.remove('open');
         };
-
         
         // Toggle Dropdown
         dropdownButton.addEventListener('click', (e) => {
