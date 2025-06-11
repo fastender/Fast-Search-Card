@@ -424,7 +424,7 @@ class FastSearchCard extends HTMLElement {
         console.log('🍎 visionOS grid items animation');
         
         if (!items || items.length === 0) return Promise.resolve();
-        
+            
         const animations = [];
         
         items.forEach((item, index) => {
@@ -512,6 +512,226 @@ class FastSearchCard extends HTMLElement {
         return Promise.all(animations.map(anim => anim.finished));
     }
 
+
+
+    // 🟢 HINZUFÜGEN: Web Animations API Ersatz
+    
+    // 1. Slide In Tag Animation (Ersatz für slideInTag)
+    animateSlideInTag(tagElement) {
+        return tagElement.animate([
+            {
+                opacity: 0,
+                transform: 'translateX(-20px) scale(0.8)'
+            },
+            {
+                opacity: 1,
+                transform: 'translateX(0) scale(1)'
+            }
+        ], {
+            duration: 300, // War CSS animation-duration
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+    }
+    
+    // 2. Slide Out Tag Animation (Ersatz für slideOutTag)
+    animateSlideOutTag(tagElement) {
+        return tagElement.animate([
+            {
+                opacity: 1,
+                transform: 'translateX(0) scale(1)'
+            },
+            {
+                opacity: 0,
+                transform: 'translateX(-20px) scale(0.8)'
+            }
+        ], {
+            duration: 200, // War 0.2s in CSS
+            easing: 'ease-in',
+            fill: 'forwards'
+        });
+    }
+
+
+    // 🟢 NEU: Web Animations API verwenden
+    removeFilterTag(tagElement) {
+        // Animation starten
+        this.animateSlideOutTag(tagElement).finished.then(() => {
+            // Nach Animation: Element entfernen
+            tagElement.remove();
+            // Weitere Cleanup-Logik hier...
+        });
+    }
+    
+    // 🟢 NEU: Tag hinzufügen mit Animation
+    addFilterTag(tagData) {
+        const tagElement = this.createFilterTagElement(tagData);
+        
+        // Element zuerst unsichtbar hinzufügen
+        tagElement.style.opacity = '0';
+        tagElement.style.transform = 'translateX(-20px) scale(0.8)';
+        
+        // Zum DOM hinzufügen
+        this.filterTagsContainer.appendChild(tagElement);
+        
+        // Slide In Animation starten
+        this.animateSlideInTag(tagElement);
+    }
+    
+    
+    
+    // 🟢 HINZUFÜGEN: Web Animations API Ersatz
+    
+    // 1. Slide In From Left Animation
+    animateSlideInLeft(element, delay = 0) {
+        return element.animate([
+            {
+                opacity: 0,
+                transform: 'translateX(-30px)'
+            },
+            {
+                opacity: 1,
+                transform: 'translateX(0)'
+            }
+        ], {
+            duration: 800,
+            delay: delay,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+    }
+    
+    // 2. Slide In From Right Animation  
+    animateSlideInRight(element, delay = 0) {
+        return element.animate([
+            {
+                opacity: 0,
+                transform: 'translateX(30px)'
+            },
+            {
+                opacity: 1,
+                transform: 'translateX(0)'
+            }
+        ], {
+            duration: 800,
+            delay: delay,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+    }
+
+    
+    
+    // 🟢 NEU: Web Animations API verwenden
+    
+    // Status Indicator animieren (war slideInLeft)
+    animateStatusIndicator(statusElement) {
+        // Element initial unsichtbar
+        statusElement.style.opacity = '0';
+        statusElement.style.transform = 'translateX(-30px)';
+        
+        // Animation mit 600ms delay (war 0.6s)
+        return this.animateSlideInLeft(statusElement, 600);
+    }
+    
+    // Quick Stats animieren (war slideInRight)  
+    animateQuickStats(quickStatsElement) {
+        // Element initial unsichtbar
+        quickStatsElement.style.opacity = '0';
+        quickStatsElement.style.transform = 'translateX(30px)';
+        
+        // Animation mit 800ms delay (war 0.8s)
+        return this.animateSlideInRight(quickStatsElement, 800);
+    }
+    
+    // ===== BEISPIEL: More-Info Modal Animationen =====
+    
+    // In der More-Info Funktionalität verwenden
+    animateMoreInfoContent(item) {
+        const statusIndicator = this.shadowRoot.querySelector('.status-indicator-large');
+        const quickStats = this.shadowRoot.querySelector('.quick-stats');
+        
+        if (statusIndicator) {
+            this.animateStatusIndicator(statusIndicator);
+        }
+        
+        if (quickStats) {
+            this.animateQuickStats(quickStats);
+        }
+    }
+
+    
+    // 🟢 HINZUFÜGEN: Web Animations API Ersatz
+    
+    // Enhanced visionOS Spatial Stagger Animation
+    animateVisionOSSpatialStagger(elements, options = {}) {
+        const defaults = {
+            staggerDelay: 80,
+            duration: 600,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple Spring
+        };
+        
+        const settings = { ...defaults, ...options };
+        const animations = [];
+        
+        elements.forEach((element, index) => {
+            // Element initial unsichtbar setzen
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(40px) scale(0.8) rotateX(20deg) translateZ(-30px)';
+            element.style.filter = 'blur(6px)';
+            element.style.backdropFilter = 'blur(5px)';
+            
+            // visionOS Spatial Animation mit komplexen Keyframes
+            const animation = element.animate([
+                {
+                    opacity: 0,
+                    transform: 'translateY(40px) scale(0.8) rotateX(20deg) translateZ(-30px)',
+                    filter: 'blur(6px)',
+                    backdropFilter: 'blur(5px)'
+                },
+                {
+                    opacity: 0.6,
+                    transform: 'translateY(-5px) scale(1.02) rotateX(-3deg) translateZ(10px)',
+                    filter: 'blur(2px)',
+                    backdropFilter: 'blur(12px)',
+                    offset: 0.4 // 40% position
+                },
+                {
+                    opacity: 0.9,
+                    transform: 'translateY(2px) scale(0.99) rotateX(1deg) translateZ(5px)',
+                    filter: 'blur(1px)',
+                    backdropFilter: 'blur(15px)',
+                    offset: 0.7 // 70% position
+                },
+                {
+                    opacity: 1,
+                    transform: 'translateY(0) scale(1) rotateX(0deg) translateZ(0px)',
+                    filter: 'blur(0px)',
+                    backdropFilter: 'blur(10px)'
+                }
+            ], {
+                duration: settings.duration,
+                delay: index * settings.staggerDelay, // Stagger effect
+                easing: settings.easing,
+                fill: 'forwards'
+            });
+            
+            animations.push(animation);
+        });
+        
+        return Promise.all(animations.map(anim => anim.finished));
+    }
+
+
+    // 2. FILTER MENU ITEMS ANIMATION
+    animateFilterMenuItems(menuItems) {
+        return this.animateVisionOSSpatialStagger(menuItems, {
+            staggerDelay: 50,
+            duration: 400,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        });
+    }
+    
 
     // 🍎 Typing Indicator Animation
     startTypingAnimation() {
@@ -607,8 +827,15 @@ class FastSearchCard extends HTMLElement {
                     easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                     fill: 'forwards'
                 });
-                
-                menuAnim.finished.then(resolve);
+
+                // ✨ NEU: Menu Items Animation nach Menu Animation
+                menuAnim.finished.then(() => {
+                    const menuItems = menu.querySelectorAll('.filter-option');
+                    if (menuItems.length > 0) {
+                        this.animateFilterMenuItems(menuItems);
+                    }
+                    resolve();
+                });                            
             });
         });
     }
@@ -1056,27 +1283,7 @@ class FastSearchCard extends HTMLElement {
                     transform: scale(1.1);
                 }
                 
-                .active-filter-tag.removing {
-                    animation: slideOutTag 0.2s ease-in forwards;
-                }
-                
-                @keyframes slideInTag {
-                    from {
-                        opacity: 0;
-                        transform: translateX(-20px) scale(0.8);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateX(0) scale(1);
-                    }
-                }
-                
-                @keyframes slideOutTag {
-                    to {
-                        opacity: 0;
-                        transform: translateX(-20px) scale(0.8);
-                    }
-                }
+
 
                 .filter-row {
                     display: flex;
@@ -1348,28 +1555,7 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
                 
-                @keyframes visionOSSpatialStagger {
-                    0% {
-                        opacity: 0;
-                        transform: translateY(40px) scale(0.8) rotateX(20deg) translateZ(-30px);
-                        filter: blur(6px);
-                    }
-                    40% {
-                        opacity: 0.6;
-                        transform: translateY(-5px) scale(1.02) rotateX(-3deg) translateZ(10px);
-                        filter: blur(2px);
-                    }
-                    70% {
-                        opacity: 0.9;
-                        transform: translateY(2px) scale(0.99) rotateX(1deg) translateZ(5px);
-                        filter: blur(1px);
-                    }
-                    100% {
-                        opacity: 1;
-                        transform: translateY(0) scale(1) rotateX(0deg) translateZ(0px);
-                        filter: blur(0px);
-                    }
-                }
+    
                  
 
 
@@ -2215,12 +2401,7 @@ class FastSearchCard extends HTMLElement {
                     border-radius: 20px;
                     font-size: 12px;
                     font-weight: 500;
-                    border: 1px solid #007aff;
-                    
-                    /* Eingangsanimation */
-                    opacity: 0;
-                    transform: translateX(-30px);
-                    animation: slideInLeft 0.8s ease-out 0.6s forwards;
+                    border: 1px solid #007aff;                    
                 }
                 
                 .status-indicator-large.off {
@@ -2236,10 +2417,6 @@ class FastSearchCard extends HTMLElement {
                     display: flex;
                     flex-direction: row;
                     gap: 8px;
-                    
-                    /* Eingangsanimation */
-                    opacity: 0;
-                    animation: slideInRight 0.8s ease-out 0.8s forwards;
                 }
 
                 /* Licht AUS: Quick-Stats rechts unten (bleibt unverändert) */
@@ -2270,28 +2447,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
 
-                
-                @keyframes slideInLeft {
-                    0% {
-                        opacity: 0;
-                        transform: translateX(-30px);
-                    }
-                    100% {
-                        opacity: 1;
-                        transform: translateX(0);
-                    }
-                }
-                
-                @keyframes slideInRight {
-                    0% {
-                        opacity: 0;
-                        transform: translateX(30px);
-                    }
-                    100% {
-                        opacity: 1;
-                        transform: translateX(0);
-                    }
-                }
+            
                 
 
 
@@ -9919,11 +10075,26 @@ getQuickStats(item) {
         return tag;
     }
     
+
     removeFilter(type, value, tagElement) {
-        // Animation vor dem Entfernen
-        tagElement.classList.add('removing');
+        // 🎬 Web Animations API statt CSS Klasse
+        const slideOutAnimation = tagElement.animate([
+            {
+                opacity: 1,
+                transform: 'translateX(0) scale(1)'
+            },
+            {
+                opacity: 0,
+                transform: 'translateX(-20px) scale(0.8)'
+            }
+        ], {
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards'
+        });
         
-        setTimeout(() => {
+        // 🎬 Warten auf echtes Animation-Ende
+        slideOutAnimation.finished.then(() => {
             switch (type) {
                 case 'searchType':
                     this.currentSearchType = 'entities';
@@ -9943,9 +10114,8 @@ getQuickStats(item) {
             this.updateFilterBadge();
             this.updateActiveFilterTags();
             this.applyFilters();
-            
-        }, 200); // Warten auf Animation
-    }    
+        });
+    }
 
     
 
