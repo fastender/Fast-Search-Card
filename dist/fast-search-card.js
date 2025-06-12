@@ -983,7 +983,9 @@ class FastSearchCard extends HTMLElement {
 
     hideResults() {
         const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        const subcategories = this.shadowRoot.querySelector('.subcategories');
         
+        // Results verstecken
         if (resultsContainer) {
             resultsContainer.animate([
                 { opacity: 1, transform: 'translateY(0)' },
@@ -997,8 +999,22 @@ class FastSearchCard extends HTMLElement {
             });
         }
         
-        console.log('Results hidden');
-    }    
+        // Subcategories auch verstecken
+        if (subcategories) {
+            subcategories.animate([
+                { opacity: 1 },
+                { opacity: 0 }
+            ], {
+                duration: 200,
+                easing: 'ease-in',
+                fill: 'forwards'
+            }).finished.then(() => {
+                subcategories.style.display = 'none';
+            });
+        }
+        
+        console.log('Results and subcategories hidden');
+    }
 
     onCategoryButtonSelect(button) {
         const category = button.dataset.category;
