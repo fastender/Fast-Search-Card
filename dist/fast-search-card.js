@@ -69,7 +69,7 @@ class FastSearchCard extends HTMLElement {
             
             .main-container {
                 width: 100%;
-                max-width: 600px;
+                max-width: none;
                 margin: 0 auto;
                 display: flex;
                 flex-direction: column;
@@ -87,12 +87,12 @@ class FastSearchCard extends HTMLElement {
                 box-shadow: 
                     0 8px 32px rgba(0, 0, 0, 0.12),
                     inset 0 1px 0 rgba(255, 255, 255, 0.5);
-                overflow: visible;
+                overflow: hidden;
                 transition: none;
-                max-height: none;
-                min-height: 300px;
+                max-height: 500px;
+                min-height: auto;
                 position: relative;
-                padding: 16px;
+                padding: 0px;
             }
             
             .search-wrapper {
@@ -309,6 +309,8 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 gap: 12px;
+                max-height: 350px;
+                overflow-y: auto;
             }
             
             .room-section {
@@ -1593,10 +1595,10 @@ class FastSearchCard extends HTMLElement {
 
     filterByDomain(subcategory) {
         if (subcategory === 'all') {
-            this.filteredItems = this.allItems;
+            this.filteredItems = [...this.allItems];  // ← KOPIE erstellen
         } else {
             const domainMap = {
-                'lights': ['light'],
+                'lights': ['light', 'switch'],      // ← lights UND switches
                 'climate': ['climate'],
                 'covers': ['cover'],
                 'media': ['media_player']
@@ -1604,12 +1606,13 @@ class FastSearchCard extends HTMLElement {
             
             const domains = domainMap[subcategory] || [];
             this.filteredItems = this.allItems.filter(item => {
+                console.log(`Checking item: ${item.name}, domain: ${item.domain}, subcategory: ${subcategory}`);
                 return domains.includes(item.domain);
             });
         }
         
+        console.log(`🔍 filterByDomain(${subcategory}): ${this.filteredItems.length} items found`);
         this.renderResults();
-        console.log(`Filtered by ${subcategory}: ${this.filteredItems.length} items`);
     }
     
     onDeviceClick(item) {
