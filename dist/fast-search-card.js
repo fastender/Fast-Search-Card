@@ -655,23 +655,33 @@ class FastSearchCard extends HTMLElement {
         subcategoryChips.forEach(chip => {
             chip.addEventListener('click', (event) => {
                 event.preventDefault();
-                event.stopPropagation(); // ← Verhindert Panel-Schließung
-                event.stopImmediatePropagation(); // ← ZUSÄTZLICH: Stoppt alle Event Handler
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                
+                // FLAG setzen um Document Handler zu deaktivieren
+                this._isSubcategoryClick = true;
+                
                 this.onSubcategorySelect(chip, event);
+                
+                // FLAG nach kurzer Zeit zurücksetzen
+                setTimeout(() => {
+                    this._isSubcategoryClick = false;
+                }, 10);
             });
         });
 
         document.addEventListener('click', (e) => {
+            // Ignoriere wenn Subcategory geklickt wurde
+            if (this._isSubcategoryClick) return;
+            
             const searchPanel = e.target.closest('.search-panel');
             const categoryButtons = e.target.closest('.category-buttons');
-            const subcategories = e.target.closest('.subcategories'); // ← NEU!
+            const subcategories = e.target.closest('.subcategories');
             
-            // Nur schließen wenn außerhalb ALLER Komponenten geklickt
             if (!searchPanel && !categoryButtons && !subcategories) {
                 if (this.isMenuView) {
                     this.hideCategoryButtons();
                 }
-                // Panel offen lassen beim Filtern
             }
         });
     }
