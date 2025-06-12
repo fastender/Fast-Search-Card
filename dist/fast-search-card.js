@@ -83,8 +83,16 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 gap: 0;
             }
+
+            .search-row {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                width: 100%;
+            }
             
             .search-panel {
+                flex: 1;
                 background: 
                     linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
                     rgba(255, 255, 255, 0.7);
@@ -103,11 +111,15 @@ class FastSearchCard extends HTMLElement {
                 padding: 0px;
             }
 
+            .search-panel.shrunk {
+                flex: 0 0 auto;
+                max-width: 60%;
+            }            
+
             .search-content {
                 display: flex;
                 align-items: center;
                 gap: 16px;
-                padding: 14px 16px;
                 width: 100%;
                 box-sizing: border-box;
             }            
@@ -118,21 +130,17 @@ class FastSearchCard extends HTMLElement {
             }            
             
             .search-wrapper {
-                flex: 1 1 auto;
+                flex: 1;
                 display: flex;
                 flex-direction: row;
                 align-items: center;
                 gap: 0;
+                padding: 14px 16px;
                 position: relative;
                 min-height: 48px;
                 box-sizing: border-box;
                 transition: none; /* KEINE CSS Transitions! */
-                width: 100%;
-            }
-
-            .search-wrapper.shrunk {
-                flex: 0 0 auto;
-            }            
+            }    
             
             .category-icon {
                 order: 1;
@@ -454,7 +462,6 @@ class FastSearchCard extends HTMLElement {
             @media (max-width: 768px) {
                 .search-wrapper {
                     gap: 12px;
-                    padding: 14px 16px;
                 }
                 
                 .category-buttons {
@@ -498,99 +505,101 @@ class FastSearchCard extends HTMLElement {
             </style>
 
             <div class="main-container">
-                <div class="search-panel collapsed">
-                    <div class="search-content"> <!-- NEUER CONTAINER! -->
-                        <div class="search-wrapper">
-                            <div class="category-icon category-devices">
-                                <svg viewBox="0 0 24 24">
-                                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                    <path d="M12 18h.01"/>
-                                </svg>
-                            </div>
-                            
-                            <div class="searchbar-container">
-                                <input 
-                                    type="text" 
-                                    class="searchbar" 
-                                    placeholder="Geräte suchen..."
-                                    autocomplete="off"
-                                    spellcheck="false"
-                                >
-                            </div>
-                            
-                            <div class="close-icon">
-                                <svg viewBox="0 0 24 24">
-                                    <line x1="18" y1="6" x2="6" y2="18"/>
-                                    <line x1="6" y1="6" x2="18" y2="18"/>
-                                </svg>
-                            </div>
+                <div class="search-row"> <!-- NEUER CONTAINER für die Zeile! -->
+                    <div class="search-panel collapsed">
+                        <div class="search-content">
+                            <div class="search-wrapper">
+                                <div class="category-icon category-devices">
+                                    <svg viewBox="0 0 24 24">
+                                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                        <path d="M12 18h.01"/>
+                                    </svg>
+                                </div>
+                                
+                                <div class="searchbar-container">
+                                    <input 
+                                        type="text" 
+                                        class="searchbar" 
+                                        placeholder="Geräte suchen..."
+                                        autocomplete="off"
+                                        spellcheck="false"
+                                    >
+                                </div>
+                                
+                                <div class="close-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </div>
             
-                            <div class="filter-icon">
-                                <svg viewBox="0 0 24 24">
-                                    <line x1="4" y1="21" x2="4" y2="14"/>
-                                    <line x1="4" y1="10" x2="4" y2="3"/>
-                                    <line x1="12" y1="21" x2="12" y2="12"/>
-                                    <line x1="12" y1="8" x2="12" y2="3"/>
-                                    <line x1="20" y1="21" x2="20" y2="16"/>
-                                    <line x1="20" y1="12" x2="20" y2="3"/>
-                                    <line x1="1" y1="14" x2="7" y2="14"/>
-                                    <line x1="9" y1="8" x2="15" y2="8"/>
-                                    <line x1="17" y1="16" x2="23" y2="16"/>
-                                </svg>
+                                <div class="filter-icon">
+                                    <svg viewBox="0 0 24 24">
+                                        <line x1="4" y1="21" x2="4" y2="14"/>
+                                        <line x1="4" y1="10" x2="4" y2="3"/>
+                                        <line x1="12" y1="21" x2="12" y2="12"/>
+                                        <line x1="12" y1="8" x2="12" y2="3"/>
+                                        <line x1="20" y1="21" x2="20" y2="16"/>
+                                        <line x1="20" y1="12" x2="20" y2="3"/>
+                                        <line x1="1" y1="14" x2="7" y2="14"/>
+                                        <line x1="9" y1="8" x2="15" y2="8"/>
+                                        <line x1="17" y1="16" x2="23" y2="16"/>
+                                    </svg>
+                                </div>
                             </div>
-                        </div> <!-- search-wrapper Ende -->
-                        
-                        <!-- Category Buttons AUSSERHALB! -->
-                        <div class="category-buttons">
-                            <button class="category-button category-devices" data-category="devices" title="Geräte">
-                                <svg viewBox="0 0 24 24">
-                                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                    <path d="M12 18h.01"/>
-                                </svg>
-                            </button>
-                            
-                            <button class="category-button category-scripts" data-category="scripts" title="Skripte">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                    <polyline points="14,2 14,8 20,8"/>
-                                    <line x1="16" y1="13" x2="8" y2="13"/>
-                                    <line x1="16" y1="17" x2="8" y2="17"/>
-                                    <polyline points="10,9 9,9 8,9"/>
-                                </svg>
-                            </button>
-                            
-                            <button class="category-button category-automations" data-category="automations" title="Automationen">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M12 2v6l3-3 3 3"/>
-                                    <path d="M12 18v4"/>
-                                    <path d="M8 8v8"/>
-                                    <path d="M16 8v8"/>
-                                    <circle cx="12" cy="12" r="2"/>
-                                </svg>
-                            </button>
-                            
-                            <button class="category-button category-scenes" data-category="scenes" title="Szenen">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
-                                    <path d="M8 3v4"/>
-                                    <path d="M16 8v4"/>
-                                </svg>
-                            </button>
                         </div>
-                    </div> <!-- search-content Ende -->
+                        
+                        <div class="subcategories">
+                            <div class="subcategory-chip active" data-subcategory="all">Alle</div>
+                            <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
+                            <div class="subcategory-chip" data-subcategory="climate">Klima</div>
+                            <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
+                            <div class="subcategory-chip" data-subcategory="media">Medien</div>
+                        </div>
             
-                    <div class="subcategories">
-                        <div class="subcategory-chip active" data-subcategory="all">Alle</div>
-                        <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
-                        <div class="subcategory-chip" data-subcategory="climate">Klima</div>
-                        <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
-                        <div class="subcategory-chip" data-subcategory="media">Medien</div>
+                        <div class="results-container">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div> <!-- search-panel Ende -->
+                    
+                    <!-- Category Buttons AUSSERHALB von search-panel! -->
+                    <div class="category-buttons">
+                        <button class="category-button category-devices" data-category="devices" title="Geräte">
+                            <svg viewBox="0 0 24 24">
+                                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                <path d="M12 18h.01"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="category-button category-scripts" data-category="scripts" title="Skripte">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10,9 9,9 8,9"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="category-button category-automations" data-category="automations" title="Automationen">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2v6l3-3 3 3"/>
+                                <path d="M12 18v4"/>
+                                <path d="M8 8v8"/>
+                                <path d="M16 8v8"/>
+                                <circle cx="12" cy="12" r="2"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="category-button category-scenes" data-category="scenes" title="Szenen">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
+                                <path d="M8 3v4"/>
+                                <path d="M16 8v4"/>
+                            </svg>
+                        </button>
                     </div>
-            
-                    <div class="results-container">
-                        <!-- Results will be populated here -->
-                    </div>
-                </div>
+                </div> <!-- search-row Ende -->
             </div>
         `;
 
@@ -1240,18 +1249,15 @@ class FastSearchCard extends HTMLElement {
         console.log('Filter clicked');
     }    
 
+
     showCategoryButtons() {
-        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         
         this.isMenuView = true;
         
-        // Aktuelle Breite messen
-        const currentWidth = searchWrapper.offsetWidth;
-        const targetWidth = Math.floor(currentWidth * 0.6); // 60% der Breite
-        
-        // 1. Filter Icon ausblenden
+        // 1. Filter Icon verstecken
         filterIcon.animate([
             { opacity: 1 },
             { opacity: 0 }
@@ -1262,16 +1268,16 @@ class FastSearchCard extends HTMLElement {
             filterIcon.style.display = 'none';
         });
         
-        // 2. Search-wrapper verkleinern durch flex-grow Animation
-        searchWrapper.style.flex = '1 1 auto'; // Sicherstellen dass es bei 1 startet
-        searchWrapper.animate([
+        // 2. GANZES SEARCH-PANEL verkleinern
+        searchPanel.classList.add('shrunk');
+        searchPanel.animate([
             { 
-                flexGrow: 1,
-                flexBasis: 'auto'
+                flex: '1 1 auto',
+                maxWidth: '100%'
             },
             { 
-                flexGrow: 0,
-                flexBasis: '60%'
+                flex: '0 0 auto',
+                maxWidth: '60%'
             }
         ], {
             duration: 400,
@@ -1279,112 +1285,63 @@ class FastSearchCard extends HTMLElement {
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
         });
         
-        // 3. Category Buttons vorbereiten und anzeigen
+        // 3. Category Buttons einblenden
         categoryButtons.style.display = 'flex';
-        categoryButtons.style.opacity = '0';
-        
-        // 4. Buttons Container einblenden
-        setTimeout(() => {
-            categoryButtons.animate([
-                { 
-                    opacity: 0,
-                    width: '0px',
-                    transform: 'translateX(-20px)'
-                },
-                { 
-                    opacity: 1,
-                    width: '240px',
-                    transform: 'translateX(0)'
-                }
-            ], {
-                duration: 400,
-                fill: 'forwards',
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-            });
-            
-            // 5. Einzelne Buttons animieren
-            const buttons = categoryButtons.querySelectorAll('.category-button');
-            buttons.forEach((button, index) => {
-                button.style.opacity = '0';
-                setTimeout(() => {
-                    button.animate([
-                        { 
-                            opacity: 0, 
-                            transform: 'scale(0.5) rotate(-180deg)' 
-                        },
-                        { 
-                            opacity: 1, 
-                            transform: 'scale(1) rotate(0deg)' 
-                        }
-                    ], {
-                        duration: 300,
-                        fill: 'forwards',
-                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                    });
-                }, 100 + (index * 50));
-            });
-        }, 200); // Warte bis search-wrapper Animation begonnen hat
-        
-        console.log('Category buttons showing - search wrapper shrinking');
-    }             
-    
-    hideCategoryButtons() {
-        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        
-        // 1. Einzelne Buttons ausblenden
-        buttons.forEach((button, index) => {
-            button.animate([
-                { 
-                    opacity: 1,
-                    transform: 'scale(1) rotate(0deg)'
-                },
-                { 
-                    opacity: 0,
-                    transform: 'scale(0.5) rotate(180deg)'
-                }
-            ], {
-                duration: 200,
-                delay: index * 30,
-                fill: 'forwards',
-                easing: 'ease-in'
-            });
-        });
-        
-        // 2. Buttons Container ausblenden
-        setTimeout(() => {
-            categoryButtons.animate([
-                { 
-                    opacity: 1,
-                    width: '240px',
-                    transform: 'translateX(0)'
-                },
-                { 
-                    opacity: 0,
-                    width: '0px',
-                    transform: 'translateX(-20px)'
-                }
-            ], {
-                duration: 300,
-                fill: 'forwards',
-                easing: 'ease-in'
-            }).finished.then(() => {
-                categoryButtons.style.display = 'none';
-                this.isMenuView = false;
-            });
-        }, buttons.length * 30);
-        
-        // 3. Search-wrapper wieder vergrößern
-        searchWrapper.animate([
+        categoryButtons.animate([
             { 
-                flexGrow: 0,
-                flexBasis: '60%'
+                opacity: 0,
+                width: '0px',
+                transform: 'translateX(-20px)'
             },
             { 
-                flexGrow: 1,
-                flexBasis: 'auto'
+                opacity: 1,
+                width: '240px',
+                transform: 'translateX(0)'
+            }
+        ], {
+            duration: 400,
+            delay: 200,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        });
+    }      
+    
+    hideCategoryButtons() {
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
+        
+        // 1. Category Buttons ausblenden
+        categoryButtons.animate([
+            { 
+                opacity: 1,
+                width: '240px',
+                transform: 'translateX(0)'
+            },
+            { 
+                opacity: 0,
+                width: '0px',
+                transform: 'translateX(-20px)'
+            }
+        ], {
+            duration: 300,
+            fill: 'forwards',
+            easing: 'ease-in'
+        }).finished.then(() => {
+            categoryButtons.style.display = 'none';
+            this.isMenuView = false;
+        });
+        
+        // 2. GANZES SEARCH-PANEL wieder vergrößern
+        searchPanel.classList.remove('shrunk');
+        searchPanel.animate([
+            { 
+                flex: '0 0 auto',
+                maxWidth: '60%'
+            },
+            { 
+                flex: '1 1 auto',
+                maxWidth: '100%'
             }
         ], {
             duration: 400,
@@ -1393,7 +1350,7 @@ class FastSearchCard extends HTMLElement {
             easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
         });
         
-        // 4. Filter Icon wieder einblenden
+        // 3. Filter Icon wieder zeigen
         setTimeout(() => {
             filterIcon.style.display = 'flex';
             filterIcon.animate([
@@ -1404,10 +1361,8 @@ class FastSearchCard extends HTMLElement {
                 fill: 'forwards'
             });
         }, 300);
+    }
         
-        console.log('Category buttons hiding - search wrapper expanding');
-    }        
-    
 
     onCategorySelect(button) {
         const category = button.dataset.category;
