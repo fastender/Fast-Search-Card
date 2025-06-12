@@ -210,16 +210,14 @@ class FastSearchCard extends HTMLElement {
             }
             
             .category-buttons {
-                position: absolute;
-                right: 16px;
-                top: 50%;
-                transform: translateY(-50%);
                 display: flex;
                 gap: 8px;
                 opacity: 0;
                 pointer-events: none;
                 transition: none;
-                z-index: 10;
+                margin-top: 12px;           /* ← Abstand zur Suchleiste */
+                justify-content: flex-end;  /* ← Rechts ausrichten */
+                padding: 0 16px;            /* ← Padding wie search-wrapper */
             }
             
             .category-buttons.visible {
