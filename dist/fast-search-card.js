@@ -652,20 +652,23 @@ class FastSearchCard extends HTMLElement {
             button.addEventListener('mouseleave', () => this.animateButtonHover(button, false));
         });
 
-        // Subcategory Events
         subcategoryChips.forEach(chip => {
-            chip.addEventListener('click', (event) => this.onSubcategorySelect(chip, event));
-        });
+            chip.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.onSubcategorySelect(chip, event);
+            });
+        });        
 
         document.addEventListener('click', (e) => {
-            const searchWrapper = e.target.closest('.search-wrapper');
             const searchPanel = e.target.closest('.search-panel');
+            const categoryButtons = e.target.closest('.category-buttons');
             
-            if (!searchWrapper && !searchPanel) {
+            if (!searchPanel && !categoryButtons) {
                 if (this.isMenuView) {
                     this.hideCategoryButtons();
                 }
-                // Panel bleibt offen wenn bereits expandiert
+                // Panel NICHT automatisch schließen
             }
         });
     }
@@ -1063,8 +1066,7 @@ class FastSearchCard extends HTMLElement {
             
             // Initial "Alle" anzeigen wenn noch keine Ergebnisse da sind
             if (this.filteredItems.length === 0 && !this.searchValue.trim()) {
-                this.activeSubcategory = 'all';  // ← NEU HINZUFÜGEN
-                this.showAllDevices();  // ← NEU HINZUFÜGEN
+                this.showAllDevices();
             }
         }
         
@@ -1116,55 +1118,6 @@ class FastSearchCard extends HTMLElement {
         
         this.animateTypingFeedback();
         this.performSearch(value);
-    }
-
-    performSearch(query) {
-        const searchTerm = query.trim().toLowerCase();
-        
-        console.log('🔍 Searching for:', searchTerm);
-        console.log('📦 All items count:', this.allItems.length);
-        console.log('📦 All items:', this.allItems);
-        
-        if (searchTerm.length === 0) {
-            this.showAllDevices();
-            return;
-        }
-        
-        // Filter items basierend auf Search Query
-        this.filteredItems = this.allItems.filter(item => {
-            const nameMatch = item.name.toLowerCase().includes(searchTerm);
-            const areaMatch = item.area.toLowerCase().includes(searchTerm);
-            const idMatch = item.id.toLowerCase().includes(searchTerm);
-            
-            const match = nameMatch || areaMatch || idMatch;
-            
-            if (match) {
-                console.log('✅ Match found:', {
-                    name: item.name,
-                    area: item.area,
-                    id: item.id,
-                    matchType: nameMatch ? 'name' : areaMatch ? 'area' : 'id'
-                });
-            }
-            
-            return match;
-        });
-        
-        // Results anzeigen
-        this.renderResults();
-        
-        console.log(`Search for "${searchTerm}" returned ${this.filteredItems.length} results`);
-        console.log('📋 Filtered results:', this.filteredItems);
-    }
-
-    showAllDevices() {
-        // Bei "Alle" -> alle Items der aktuellen Kategorie anzeigen
-        this.filteredItems = [...this.allItems];  // ← Alle Items kopieren
-        
-        console.log(`Showing all devices: ${this.filteredItems.length} items`);
-        console.log('All items:', this.filteredItems);
-        
-        this.renderResults();
     }
 
     showCloseIcon() {
@@ -1445,7 +1398,7 @@ class FastSearchCard extends HTMLElement {
     onSubcategorySelect(chip, event) {
         const subcategory = chip.dataset.subcategory;
         
-        // Event Propagation stoppen
+        // Event Propagation stoppen - WICHTIG!
         if (event) {
             event.preventDefault();
             event.stopPropagation();
@@ -1468,7 +1421,7 @@ class FastSearchCard extends HTMLElement {
             easing: 'ease-out'
         });
         
-        // Filter entities
+        // Filter entities - DIREKT aufrufen
         this.filterByDomain(subcategory);
         
         console.log(`✅ Selected subcategory: ${subcategory}`);
@@ -1479,11 +1432,11 @@ class FastSearchCard extends HTMLElement {
         console.log(`📦 Available items: ${this.allItems.length}`);
         
         if (subcategory === 'all') {
-            this.filteredItems = [...this.allItems];  // ← Kopie aller Items
+            this.filteredItems = [...this.allItems];
         } else {
             const domainMap = {
-                'lights': ['light', 'switch'],
-                'climate': ['climate', 'fan'],  // ← fan hinzugefügt
+                'lights': ['light'],        // ← Nur 'light', nicht 'switch'
+                'climate': ['climate'],     // ← Nur 'climate', nicht 'fan'
                 'covers': ['cover'],
                 'media': ['media_player']
             };
@@ -1592,9 +1545,13 @@ class FastSearchCard extends HTMLElement {
     }
 
     showAllDevices() {
-        this.filteredItems = [];
+        // Bei "Alle" -> alle Items der aktuellen Kategorie anzeigen
+        this.filteredItems = [...this.allItems];
+        this.activeSubcategory = 'all';  // ← Wichtig: Subcategory zurücksetzen
+        
+        console.log(`Showing all devices: ${this.filteredItems.length} items`);
         this.renderResults();
-    }
+    }    
 
     getCardSize() {
         return 3;
