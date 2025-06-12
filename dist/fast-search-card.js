@@ -386,9 +386,12 @@ class FastSearchCard extends HTMLElement {
         // Clear Button
         clearButton.addEventListener('click', () => this.clearSearch());
         
-        // Filter Chips
-        filterChips.forEach(chip => {
-            chip.addEventListener('click', () => this.handleFilterSelect(chip));
+        // Filter Chips - EINMALIG mit Delegation
+        this.shadowRoot.querySelector('.filter-chips').addEventListener('click', (e) => {
+            const chip = e.target.closest('.filter-chip');
+            if (chip) {
+                this.handleFilterSelect(chip);
+            }
         });
     }
 
@@ -498,7 +501,12 @@ class FastSearchCard extends HTMLElement {
             };
         }).filter(Boolean);
 
-        this.showAllItems();
+        // Only show all items if no active filter
+        if (this.activeFilter === 'all') {
+            this.showAllItems();
+        } else {
+            this.filterItems();
+        }
     }
 
     updateStates() {
@@ -637,6 +645,7 @@ class FastSearchCard extends HTMLElement {
             return;
         }
 
+        // Clear grid WITHOUT re-rendering filter chips
         resultsGrid.innerHTML = '';
         
         this.filteredItems.forEach((item, index) => {
@@ -775,7 +784,7 @@ customElements.define('fast-search-card', FastSearchCard);
 // Register with Home Assistant
 window.customCards = window.customCards || [];
 window.customCards.push({
-    type: 'fast-search-card',
+    type: 'fast-search-card-2025',
     name: 'Fast Search Card',
     description: 'Modern Apple Vision OS inspired search card'
 });
