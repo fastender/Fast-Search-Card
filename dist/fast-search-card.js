@@ -210,15 +210,16 @@ class FastSearchCard extends HTMLElement {
             }
             
             .category-buttons {
-                order: 5;
-                flex-shrink: 0;
+                position: absolute;
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
                 display: flex;
                 gap: 8px;
                 opacity: 0;
                 pointer-events: none;
                 transition: none;
-                position: static;        /* ← HINZUFÜGEN: nicht absolut positioniert */
-                margin-left: 8px;       /* ← HINZUFÜGEN: Abstand zur Suchleiste */
+                z-index: 10;
             }
             
             .category-buttons.visible {
@@ -895,7 +896,6 @@ class FastSearchCard extends HTMLElement {
     }
 
     showCompactSearchWithButtons() {
-        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         const resultsContainer = this.shadowRoot.querySelector('.results-container');
@@ -907,18 +907,9 @@ class FastSearchCard extends HTMLElement {
         }
         
         // Filter Icon verstecken
-        filterIcon.animate([
-            { opacity: 1, transform: 'scale(1)' },
-            { opacity: 0, transform: 'scale(0.8)' }
-        ], {
-            duration: 200,
-            easing: 'ease-in',
-            fill: 'forwards'
-        }).finished.then(() => {
-            filterIcon.style.display = 'none';
-        });
+        filterIcon.style.display = 'none';
         
-        // Searchbar Container verkleinern (statt search wrapper)
+        // Searchbar Container verkleinern
         searchbarContainer.animate([
             { flex: '1' },
             { flex: '0.6' }
@@ -928,16 +919,8 @@ class FastSearchCard extends HTMLElement {
             fill: 'forwards'
         });
         
-        // Category Buttons neben der Suchleiste anzeigen
+        // Category Buttons anzeigen (absolute positioniert)
         categoryButtons.classList.add('visible');
-        categoryButtons.animate([
-            { opacity: 0, transform: 'translateX(-20px)' },
-            { opacity: 1, transform: 'translateX(0)' }
-        ], {
-            duration: 300,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
         
         this.isMenuView = true;
         console.log('Compact search with buttons shown');
