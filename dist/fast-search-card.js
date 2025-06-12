@@ -665,7 +665,7 @@ class FastSearchCard extends HTMLElement {
             if (!this.isPanelExpanded) {
                 this.expandPanel();
             } else {
-                this.toggleExpansion();
+                this.toggleCategoryView();  // ← NEUE FUNKTION
             }
         });
         
