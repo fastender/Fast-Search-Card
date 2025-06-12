@@ -229,25 +229,12 @@ class FastSearchCard extends HTMLElement {
             }
             
             .category-buttons {
-                display: flex;
+                display: none;
                 gap: 12px;
                 flex-shrink: 0;
-                width: 0;
                 overflow: hidden;
-                opacity: 0;
-                pointer-events: none;
-                transition: none;
-                order: 6;
-                margin-left: 0;  /* WICHTIG: Kein Margin */
             }
-            
-            .category-buttons.visible {
-                width: auto;  /* Automatische Breite */
-                opacity: 1;
-                pointer-events: all;
-                margin-left: 16px;  /* Abstand zur Searchbar */
-            }
-            
+                        
             .category-button {
                 width: 52px;
                 height: 52px;
@@ -910,34 +897,6 @@ class FastSearchCard extends HTMLElement {
         console.log('Panel collapsed');
     }
 
-    showCompactSearchWithButtons() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        const resultsContainer = this.shadowRoot.querySelector('.results-container');
-        
-        // Results verstecken
-        if (resultsContainer) {
-            resultsContainer.style.display = 'none';
-        }
-        
-        // Filter Icon verstecken
-        filterIcon.style.display = 'none';
-        
-        // Category Buttons anzeigen (CSS Animation übernimmt)
-        categoryButtons.classList.add('visible');
-        
-        this.isMenuView = true;
-        console.log('Compact search with buttons shown');
-    }
-    
-    toggleExpansion() {
-        if (this.isExpanded) {
-            this.collapseButtons();
-        } else {
-            this.expandButtons();
-        }
-    }
-
     hideResults() {
         const resultsContainer = this.shadowRoot.querySelector('.results-container');
         const subcategories = this.shadowRoot.querySelector('.subcategories');
@@ -991,23 +950,6 @@ class FastSearchCard extends HTMLElement {
             this.showCategoryResults(category);
         }, 400);
     }
-
-    hideCategoryButtons() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        
-        categoryButtons.animate([
-            { opacity: 1, transform: 'translateX(0)' },
-            { opacity: 0, transform: 'translateX(20px)' }
-        ], {
-            duration: 200,
-            easing: 'ease-in',
-            fill: 'forwards'
-        }).finished.then(() => {
-            categoryButtons.classList.remove('visible');
-        });
-        
-        console.log('Category buttons hidden');
-    }    
 
     expandSearchbar() {
         const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
@@ -1079,86 +1021,7 @@ class FastSearchCard extends HTMLElement {
         
         this.renderResults();
         console.log(`Filtered by category ${category}: ${this.filteredItems.length} items`);
-    }    
-    
-    expandButtons() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const searchbar = this.shadowRoot.querySelector('.searchbar');
-        
-        // Category Buttons sichtbar machen
-        categoryButtons.classList.add('visible');
-        
-        // Searchbar verkleinern und Category Buttons zeigen
-        categoryButtons.animate([
-            { opacity: 0, transform: 'scale(0.8)' },
-            { opacity: 1, transform: 'scale(1)' }
-        ], {
-            duration: 300,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
-        
-        searchbar.animate([
-            { width: '100%' },
-            { width: '60%' }
-        ], {
-            duration: 300,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
-        
-        console.log('Expanded category buttons');
-    }
-
-    collapseButtons() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const searchbar = this.shadowRoot.querySelector('.searchbar');
-        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        
-        // Category Buttons ausblenden
-        const collapseAnimation = categoryButtons.animate([
-            { 
-                opacity: 1,
-                transform: 'scale(1)'
-            },
-            { 
-                opacity: 0,
-                transform: 'scale(0.8)'
-            }
-        ], {
-            duration: 300,
-            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            fill: 'forwards'
-        });
-        
-        // Searchbar zurück auf volle Breite
-        searchbar.animate([
-            { width: '60%' },
-            { width: '100%' }
-        ], {
-            duration: 300,
-            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            fill: 'forwards'
-        });
-        
-        // Filter Icon wieder sichtbar machen
-        filterIcon.animate([
-            { opacity: 0, transform: 'scale(0.8)' },
-            { opacity: 1, transform: 'scale(1)' }
-        ], {
-            duration: 300,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
-        
-        // Nach Animation aufräumen
-        collapseAnimation.finished.then(() => {
-            categoryButtons.classList.remove('visible');
-            this.isMenuView = false;
-        });
-        
-        console.log('Collapsed category buttons');
-    }
+    }        
 
     onFocus() {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
@@ -1367,17 +1230,52 @@ class FastSearchCard extends HTMLElement {
         
         this.isMenuView = true;
         
-        // 1. Filter Icon verstecken
-        filterIcon.style.opacity = '0';
-        filterIcon.style.pointerEvents = 'none';
+        // Aktuelle Breite messen
+        const currentWidth = searchbarContainer.offsetWidth;
+        const targetWidth = Math.floor(currentWidth * 0.5); // 50% der Breite
         
-        // 2. Searchbar Container verkleinern
-        searchbarContainer.classList.add('shrunk');
+        // 1. Filter Icon ausblenden
+        filterIcon.animate([
+            { opacity: 1, transform: 'scale(1)' },
+            { opacity: 0, transform: 'scale(0.8)' }
+        ], {
+            duration: 200,
+            fill: 'forwards',
+            easing: 'ease-in'
+        });
         
-        // 3. Category Buttons sichtbar machen
-        categoryButtons.classList.add('visible');
+        // 2. Searchbar verkleinern
+        searchbarContainer.animate([
+            { width: `${currentWidth}px` },
+            { width: `${targetWidth}px` }
+        ], {
+            duration: 400,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        });
         
-        // 4. Animiere die Buttons einzeln für schönen Effekt
+        // 3. Category Buttons Container vorbereiten und einblenden
+        categoryButtons.style.display = 'flex'; // Muss sichtbar sein für Animation
+        
+        categoryButtons.animate([
+            { 
+                width: '0px',
+                opacity: 0,
+                marginLeft: '0px'
+            },
+            { 
+                width: '240px', // 4 buttons * 52px + 3 gaps * 12px
+                opacity: 1,
+                marginLeft: '16px'
+            }
+        ], {
+            duration: 400,
+            delay: 200,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        });
+        
+        // 4. Buttons einzeln animieren
         const buttons = categoryButtons.querySelectorAll('.category-button');
         buttons.forEach((button, index) => {
             button.animate([
@@ -1391,24 +1289,25 @@ class FastSearchCard extends HTMLElement {
                 }
             ], {
                 duration: 300,
-                delay: index * 50,  // Gestaffeltes Erscheinen
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                fill: 'forwards'
+                delay: 300 + (index * 50),
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
             });
         });
         
-        console.log('Category buttons shown');
+        console.log('Category buttons shown with Web Animations API');
     }
     
     hideCategoryButtons() {
         const searchbarContainer = this.shadowRoot.querySelector('.searchbar-container');
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        
-        // 1. Buttons ausblenden
         const buttons = categoryButtons.querySelectorAll('.category-button');
+        
+        // 1. Buttons einzeln ausblenden
+        const buttonAnimations = [];
         buttons.forEach((button, index) => {
-            button.animate([
+            const animation = button.animate([
                 { 
                     opacity: 1,
                     transform: 'scale(1) translateX(0)'
@@ -1418,30 +1317,62 @@ class FastSearchCard extends HTMLElement {
                     transform: 'scale(0.5) translateX(-20px)'
                 }
             ], {
-                duration: 300,
-                delay: index * 50,
-                easing: 'ease-in',
-                fill: 'forwards'
+                duration: 200,
+                delay: index * 30,
+                fill: 'forwards',
+                easing: 'ease-in'
             });
+            buttonAnimations.push(animation);
         });
         
-        // 2. Nach Animation aufräumen
-        setTimeout(() => {
-            categoryButtons.classList.remove('visible');
-            searchbarContainer.classList.remove('shrunk');
-            
-            // 3. Filter Icon wieder zeigen
-            filterIcon.style.opacity = '1';
-            filterIcon.style.pointerEvents = 'auto';
-            
-            this.isMenuView = false;
-        }, 300 + (buttons.length * 50));
+        // 2. Category Buttons Container ausblenden
+        const containerAnimation = categoryButtons.animate([
+            { 
+                width: '240px',
+                opacity: 1,
+                marginLeft: '16px'
+            },
+            { 
+                width: '0px',
+                opacity: 0,
+                marginLeft: '0px'
+            }
+        ], {
+            duration: 300,
+            delay: 150,
+            fill: 'forwards',
+            easing: 'ease-in'
+        });
         
-        console.log('Category buttons hidden');
+        // 3. Searchbar wieder vergrößern
+        searchbarContainer.animate([
+            { width: searchbarContainer.offsetWidth + 'px' },
+            { width: '100%' }
+        ], {
+            duration: 400,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        });
+        
+        // 4. Filter Icon wieder einblenden
+        filterIcon.animate([
+            { opacity: 0, transform: 'scale(0.8)' },
+            { opacity: 1, transform: 'scale(1)' }
+        ], {
+            duration: 300,
+            delay: 300,
+            fill: 'forwards',
+            easing: 'ease-out'
+        });
+        
+        // 5. Cleanup nach allen Animationen
+        Promise.all([containerAnimation.finished, ...buttonAnimations.map(a => a.finished)])
+            .then(() => {
+                categoryButtons.style.display = 'none';
+                this.isMenuView = false;
+                console.log('Category buttons hidden with Web Animations API');
+            });
     }
-    
-
-
 
     
 
@@ -1458,91 +1389,6 @@ class FastSearchCard extends HTMLElement {
         setTimeout(() => {
             this.collapseButtons();
         }, 200);
-    }
-
-    toggleCategoryView() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const searchbar = this.shadowRoot.querySelector('.searchbar');
-        
-        if (this.isMenuView) {
-            // Zurück zur Device View
-            this.collapseButtons();
-            this.isMenuView = false;
-        } else {
-            // Zu Menu View wechseln
-            this.expandButtons();
-            this.isMenuView = true;
-            searchbar.blur(); // Fokus entfernen
-        }
-    }
-
-    expandButtons() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const searchbar = this.shadowRoot.querySelector('.searchbar');
-        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        
-        // Category Buttons sichtbar machen
-        categoryButtons.classList.add('visible');
-        
-        // Filter Icon verstecken
-        filterIcon.animate([
-            { opacity: 1, transform: 'scale(1)' },
-            { opacity: 0, transform: 'scale(0.8)' }
-        ], {
-            duration: 200,
-            easing: 'ease-in',
-            fill: 'forwards'
-        });
-        
-        // Searchbar verkleinern und Category Buttons zeigen
-        categoryButtons.animate([
-            { opacity: 0, transform: 'scale(0.8)' },
-            { opacity: 1, transform: 'scale(1)' }
-        ], {
-            duration: 300,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
-        
-        searchbar.animate([
-            { width: '100%' },
-            { width: '60%' }
-        ], {
-            duration: 300,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
-        
-        this.isMenuView = true;
-        console.log('Expanded category buttons');
-    }
-    
-    collapseButtons() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const searchbar = this.shadowRoot.querySelector('.searchbar');
-        
-        const collapseAnimation = categoryButtons.animate([
-            { opacity: 1, transform: 'scale(1)' },
-            { opacity: 0, transform: 'scale(0.8)' }
-        ], {
-            duration: 200,
-            easing: 'ease-in',
-            fill: 'forwards'
-        });
-        
-        searchbar.animate([
-            { width: '60%' },
-            { width: '100%' }
-        ], {
-            duration: 200,
-            easing: 'ease-in',
-            fill: 'forwards'
-        });
-        
-        // Nach Animation Category Buttons verstecken
-        collapseAnimation.finished.then(() => {
-            categoryButtons.classList.remove('visible');
-        });
     }
     
     setActiveCategory(category) {
