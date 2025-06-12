@@ -1262,15 +1262,16 @@ class FastSearchCard extends HTMLElement {
             filterIcon.style.display = 'none';
         });
         
-        // 2. Search-wrapper mit WIDTH animieren (nicht flex!)
+        // 2. Search-wrapper verkleinern durch flex-grow Animation
+        searchWrapper.style.flex = '1 1 auto'; // Sicherstellen dass es bei 1 startet
         searchWrapper.animate([
             { 
-                width: `${currentWidth}px`,
-                minWidth: `${currentWidth}px`
+                flexGrow: 1,
+                flexBasis: 'auto'
             },
             { 
-                width: `${targetWidth}px`,
-                minWidth: `${targetWidth}px`
+                flexGrow: 0,
+                flexBasis: '60%'
             }
         ], {
             duration: 400,
@@ -1378,12 +1379,12 @@ class FastSearchCard extends HTMLElement {
         // 3. Search-wrapper wieder vergrößern
         searchWrapper.animate([
             { 
-                width: searchWrapper.offsetWidth + 'px',
-                minWidth: searchWrapper.offsetWidth + 'px'
+                flexGrow: 0,
+                flexBasis: '60%'
             },
             { 
-                width: '100%',
-                minWidth: 'auto'
+                flexGrow: 1,
+                flexBasis: 'auto'
             }
         ], {
             duration: 400,
