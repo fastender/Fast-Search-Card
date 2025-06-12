@@ -1,26 +1,15 @@
-class FastSearchCard extends HTMLElement {
+class FastSearchCard2025 extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
         
-        // State
+        // Minimal State - nur das Nötige!
         this._hass = null;
         this._config = {};
         this.allItems = [];
         this.filteredItems = [];
-        this.currentSearchType = 'entities';
+        this.activeFilter = 'all';
         this.isSearching = false;
-        this.searchValue = '';
-        this.selectedFilters = new Set();
-        this.isExpanded = false;
-        this.isPanelExpanded = false;
-        this.activeCategory = 'devices';
-        this.activeSubcategory = 'all';
-        this.isMenuView = false;
-        this.isTyping = false;
-        
-        // Animation references
-        this.animations = new Map();
     }
 
     setConfig(config) {
@@ -30,571 +19,355 @@ class FastSearchCard extends HTMLElement {
 
         this._config = {
             title: 'Fast Search',
-            show_unavailable: false,
-            search_types: ['entities', 'automations', 'scripts', 'scenes'],
-            default_search_type: 'entities',
-            categories: ['all', 'lights', 'climate', 'covers', 'media'],
             entities: config.entities,
             ...config
         };
         
-        this.currentSearchType = this._config.default_search_type;
         this.render();
-
-        // Stelle sicher dass Panel initial collapsed ist
-        setTimeout(() => {
-            const searchPanel = this.shadowRoot.querySelector('.search-panel');
-            searchPanel.classList.add('collapsed');
-            const resultsContainer = this.shadowRoot.querySelector('.results-container');
-            resultsContainer.style.display = 'none';
-        }, 0);        
     }
 
     set hass(hass) {
         if (!hass) return;
         this._hass = hass;
         this.updateItems();
-        this.updateDeviceStates();
+        this.updateStates();
     }
 
     render() {
         this.shadowRoot.innerHTML = `
-
-
             <style>
             :host {
                 display: block;
-                --vision-primary: rgba(10, 132, 255, 1);
-                --vision-secondary: rgba(48, 209, 88, 1);
-                --vision-surface: rgba(28, 28, 30, 0.68);
-                --vision-surface-light: rgba(58, 58, 60, 0.4);
-                --vision-text-primary: rgba(255, 255, 255, 0.95);
-                --vision-text-secondary: rgba(255, 255, 255, 0.7);
-                --vision-border: rgba(255, 255, 255, 0.15);
-                --vision-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                --vision-blur: blur(20px);
-            }
-            
-            .main-container {
-                width: 100%;
-                max-width: none;
-                margin: 0 auto;
-                display: flex;
-                flex-direction: column;
-                gap: 0;
+                --glass-primary: rgba(255, 255, 255, 0.15);
+                --glass-secondary: rgba(255, 255, 255, 0.1);
+                --glass-border: rgba(255, 255, 255, 0.2);
+                --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+                --glass-blur: blur(20px);
+                --accent: #007AFF;
+                --accent-light: rgba(0, 122, 255, 0.15);
+                --text-primary: rgba(255, 255, 255, 0.95);
+                --text-secondary: rgba(255, 255, 255, 0.7);
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
 
-            .search-row {
-                display: flex;
-                align-items: center;
-                gap: 20px;
-                width: 100%;
-            }
-            
-            .search-panel {
-                flex: 1;
-                min-width: 200px;
+            .search-container {
                 background: 
                     linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.7);
-                backdrop-filter: blur(20px) saturate(1.8);
-                -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                border: 1px solid rgba(255, 255, 255, 0.3);
+                    rgba(255, 255, 255, 0.08);
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                border: 1px solid var(--glass-border);
                 border-radius: 24px;
-                box-shadow: 
-                    0 8px 32px rgba(0, 0, 0, 0.12),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+                padding: 20px;
+                box-shadow: var(--glass-shadow);
                 overflow: hidden;
-                transition: none;
-                max-height: 72px;
-                min-height: auto;
                 position: relative;
-                padding: 0px;
             }
 
-            .search-panel.shrunk {
-                flex: 1;
-            }            
+            .search-container::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                opacity: 0.6;
+            }
 
-            .search-content {
+            .search-bar {
                 display: flex;
                 align-items: center;
-                gap: 16px;
-                width: 100%;
-                box-sizing: border-box;
-            }            
-
-            .search-panel.collapsed {
-                max-height: 72px;  /* Nur Searchbar sichtbar */
-                overflow: hidden;
-            }            
-            
-            .search-wrapper {
-                flex: 1;
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                gap: 0;
-                padding: 14px 16px;
-                position: relative;
-                min-height: 48px;
-                box-sizing: border-box;
-                transition: none; /* KEINE CSS Transitions! */
-            }    
-            
-            .category-icon {
-                order: 1;
-                flex-shrink: 0;
-                width: 24px;
-                height: 24px;
-                background: rgba(0, 0, 0, 0.1);
-                border-radius: 6px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
+                gap: 12px;
+                margin-bottom: 16px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 16px;
+                padding: 12px 16px;
                 transition: none;
             }
-            
-            .category-icon svg {
+
+            .search-icon {
                 width: 20px;
                 height: 20px;
-                fill: none;
-                stroke: currentColor;
-                stroke-width: 2;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-                color: rgba(29, 29, 31, 0.7);
+                opacity: 0.7;
+                flex-shrink: 0;
             }
-            
-            .searchbar-container {
+
+            .search-input {
                 flex: 1;
-                min-width: 0;
-                order: 2;
-                transition: none;
-            }
-            
-            .searchbar {
-                width: 100%;
-                height: 44px;
                 border: none;
                 background: transparent;
                 outline: none;
                 font-size: 17px;
-                color: rgba(29, 29, 31, 0.9);
-                padding: 0;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                display: block;
-                visibility: visible;
+                color: var(--text-primary);
+                font-family: inherit;
+                min-width: 0;
             }
-            
-            .searchbar:focus {
-                background: transparent;
+
+            .search-input::placeholder {
+                color: var(--text-secondary);
             }
-            
-            .searchbar::placeholder {
-                color: rgba(29, 29, 31, 0.6);
-            }
-            
-            .close-icon {
-                order: 3;
-                flex-shrink: 0;
-                width: 24px;
-                height: 24px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                opacity: 0;
-                pointer-events: none;
-                transition: none;
-            }
-            
-            .close-icon.visible {
-                opacity: 1;
-                pointer-events: all;
-            }
-            
-            .close-icon svg {
+
+            .clear-button {
                 width: 20px;
                 height: 20px;
-                stroke: rgba(29, 29, 31, 0.7);
-                stroke-width: 2;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }
-            
-            .filter-icon {
-                order: 4;
-                flex-shrink: 0;
-                width: 24px;
-                height: 24px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .filter-icon svg {
-                width: 20px;
-                height: 20px;
-                stroke: rgba(29, 29, 31, 0.7);
-                stroke-width: 2;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }
-            
-            .category-buttons {
-                display: none;
-                gap: 8px;
-                flex: 0 0 auto;
-                width: auto;
-                overflow: hidden;
-            }
-                        
-            .category-button {
-                width: 52px;
-                height: 52px;
-                background: 
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.7);
-                backdrop-filter: blur(20px) saturate(1.8);
-                -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                border: 0px solid rgba(255, 255, 255, 0.3);
+                border: none;
+                background: rgba(255, 255, 255, 0.2);
                 border-radius: 50%;
-                display: flex;
+                cursor: pointer;
+                display: none;
                 align-items: center;
                 justify-content: center;
-                cursor: pointer;
-                transition: none;
-                position: relative;
-                overflow: hidden;
+                opacity: 0.8;
+                flex-shrink: 0;
             }
-            
-            .category-button.active {
-                border-width: 0px;
-                background: 
-                    linear-gradient(135deg, rgba(0, 122, 255, 0.4) 0%, rgba(0, 122, 255, 0.2) 100%),
-                    rgba(0, 122, 255, 0.3);
-                border-color: rgba(0, 122, 255, 0.6);
+
+            .clear-button.visible {
+                display: flex;
             }
-            
-            .category-button svg {
-                width: 24px;
-                height: 24px;
-                fill: none;
-                stroke: currentColor;
-                stroke-width: 2;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }
-            
-            .category-button.active svg {
-                color: white;
-            }
-            
-            .subcategories {
+
+            .filter-chips {
                 display: flex;
                 gap: 8px;
-                padding: 12px 16px;
+                margin-bottom: 16px;
                 overflow-x: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
+                padding: 2px;
             }
-            
-            .subcategories::-webkit-scrollbar {
+
+            .filter-chips::-webkit-scrollbar {
                 display: none;
             }
-            
-            .subcategory-chip {
+
+            .filter-chip {
                 padding: 8px 16px;
-                background: rgba(255, 255, 255, 0.3);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
                 font-size: 14px;
                 font-weight: 500;
-                color: rgba(29, 29, 31, 0.8);
+                color: var(--text-secondary);
                 cursor: pointer;
                 white-space: nowrap;
-                transition: none;
-            }
-            
-            .subcategory-chip.active {
-                background: rgba(0, 122, 255, 0.3);
-                border-color: rgba(0, 122, 255, 0.4);
-                color: #007AFF;
-            }
-            
-            .results-container {
-                padding: 16px;
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                max-height: 350px;
-                overflow-y: auto;
-            }
-            
-            .room-section {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-            }
-            
-            .room-header {
-                font-size: 16px;
-                font-weight: 700;
-                color: #1d1d1f;
-                margin: 0;
-                letter-spacing: -0.02em;
-            }
-            
-            .devices-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 12px;
-            }
-            
-            .device-card {
-                background: rgba(255, 255, 255, 0.4);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 12px;
-                padding: 12px;
-                cursor: pointer;
+                flex-shrink: 0;
                 transition: none;
                 position: relative;
                 overflow: hidden;
+            }
+
+            .filter-chip.active {
+                background: var(--accent-light);
+                border-color: var(--accent);
+                color: var(--accent);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+            }
+
+            .filter-chip::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                transition: left 0.5s ease;
+            }
+
+            .filter-chip:hover::before {
+                left: 100%;
+            }
+
+            .results-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 12px;
+                min-height: 200px;
+            }
+
+            .device-card {
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 16px;
+                padding: 16px;
+                cursor: pointer;
                 aspect-ratio: 1;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
+                position: relative;
+                overflow: hidden;
+                transition: none;
             }
-            
+
+            .device-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .device-card:hover::before {
+                opacity: 1;
+            }
+
             .device-card.active {
-                background: rgba(0, 122, 255, 0.2);
-                border-color: rgba(0, 122, 255, 0.4);
-                box-shadow: 0 4px 16px rgba(0, 122, 255, 0.2);
+                background: var(--accent-light);
+                border-color: var(--accent);
+                box-shadow: 
+                    0 4px 20px rgba(0, 122, 255, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
-            
+
             .device-icon {
-                width: 24px;
-                height: 24px;
-                background: rgba(0, 0, 0, 0.1);
-                border-radius: 6px;
+                width: 32px;
+                height: 32px;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 14px;
+                font-size: 18px;
                 margin-bottom: auto;
+                position: relative;
             }
-            
+
             .device-card.active .device-icon {
                 background: rgba(0, 122, 255, 0.3);
-                color: #007AFF;
+                color: var(--accent);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
             }
-            
-            .device-info {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-            }
-            
+
             .device-name {
-                font-size: 12px;
+                font-size: 13px;
                 font-weight: 600;
-                color: #1d1d1f;
-                margin: 0;
+                color: var(--text-primary);
+                margin: 0 0 4px 0;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                line-height: 1.2;
             }
-            
+
             .device-status {
-                font-size: 10px;
-                color: rgba(29, 29, 31, 0.6);
+                font-size: 11px;
+                color: var(--text-secondary);
                 margin: 0;
+                opacity: 0.8;
             }
-            
+
             .device-card.active .device-status {
-                color: #007AFF;
+                color: var(--accent);
+                opacity: 1;
             }
-            
+
             .empty-state {
+                grid-column: 1 / -1;
                 text-align: center;
                 padding: 40px 20px;
-                color: rgba(29, 29, 31, 0.6);
+                color: var(--text-secondary);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
             }
-            
+
             .empty-icon {
                 font-size: 32px;
-                margin-bottom: 12px;
                 opacity: 0.5;
             }
-            
+
             .empty-title {
                 font-size: 16px;
                 font-weight: 600;
-                margin-bottom: 6px;
-                color: #1d1d1f;
+                color: var(--text-primary);
+                margin: 0;
             }
-            
+
             .empty-subtitle {
-                font-size: 12px;
-                line-height: 1.4;
+                font-size: 13px;
+                opacity: 0.7;
+                margin: 0;
             }
-            
-            /* Focus Ring Animation for Panel */
-            .search-panel::before {
-                display: none;
-            }
-            
-            .search-panel.focused::before {
-                display: none;
-            }
-            
+
             /* Responsive */
-            @media (max-width: 768px) {
-                .search-wrapper {
-                    gap: 12px;
+            @container (max-width: 480px) {
+                .search-container {
+                    padding: 16px;
+                    border-radius: 20px;
                 }
                 
-                .category-buttons {
-                    gap: 8px;
+                .results-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                    gap: 10px;
                 }
                 
-                .category-button {
-                    width: 46px;
-                    height: 46px;
+                .device-card {
+                    padding: 12px;
                 }
                 
-                .category-button svg {
-                    width: 20px;
-                    height: 20px;
-                }
-                
-                .searchbar {
+                .search-input {
                     font-size: 16px;
                 }
-                
-                .category-icon svg,
-                .close-icon svg,
-                .filter-icon svg {
-                    width: 20px;
-                    height: 20px;
+            }
+
+            /* Animations werden via Web Animations API gehandelt */
+            .animate-in {
+                animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+
+            @keyframes slideInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px) scale(0.95);
                 }
-                
-                .subcategories {
-                    padding: 10px 16px;
-                }
-                
-                .results-container {
-                    padding: 12px 16px;
-                }
-                
-                .devices-grid {
-                    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                    gap: 8px;
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
                 }
             }
             </style>
 
-            <div class="main-container">
-                <div class="search-row"> <!-- NEUER CONTAINER für die Zeile! -->
-                    <div class="search-panel collapsed">
-                        <div class="search-content">
-                            <div class="search-wrapper">
-                                <div class="category-icon category-devices">
-                                    <svg viewBox="0 0 24 24">
-                                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                        <path d="M12 18h.01"/>
-                                    </svg>
-                                </div>
-                                
-                                <div class="searchbar-container">
-                                    <input 
-                                        type="text" 
-                                        class="searchbar" 
-                                        placeholder="Geräte suchen..."
-                                        autocomplete="off"
-                                        spellcheck="false"
-                                    >
-                                </div>
-                                
-                                <div class="close-icon">
-                                    <svg viewBox="0 0 24 24">
-                                        <line x1="18" y1="6" x2="6" y2="18"/>
-                                        <line x1="6" y1="6" x2="18" y2="18"/>
-                                    </svg>
-                                </div>
-            
-                                <div class="filter-icon">
-                                    <svg viewBox="0 0 24 24">
-                                        <line x1="4" y1="21" x2="4" y2="14"/>
-                                        <line x1="4" y1="10" x2="4" y2="3"/>
-                                        <line x1="12" y1="21" x2="12" y2="12"/>
-                                        <line x1="12" y1="8" x2="12" y2="3"/>
-                                        <line x1="20" y1="21" x2="20" y2="16"/>
-                                        <line x1="20" y1="12" x2="20" y2="3"/>
-                                        <line x1="1" y1="14" x2="7" y2="14"/>
-                                        <line x1="9" y1="8" x2="15" y2="8"/>
-                                        <line x1="17" y1="16" x2="23" y2="16"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="subcategories">
-                            <div class="subcategory-chip active" data-subcategory="all">Alle</div>
-                            <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
-                            <div class="subcategory-chip" data-subcategory="climate">Klima</div>
-                            <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
-                            <div class="subcategory-chip" data-subcategory="media">Medien</div>
-                        </div>
-            
-                        <div class="results-container">
-                            <!-- Results will be populated here -->
-                        </div>
-                    </div> <!-- search-panel Ende -->
+            <div class="search-container">
+                <div class="search-bar">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
                     
-                    <!-- Category Buttons AUSSERHALB von search-panel! -->
-                    <div class="category-buttons">
-                        <button class="category-button category-devices" data-category="devices" title="Geräte">
-                            <svg viewBox="0 0 24 24">
-                                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                <path d="M12 18h.01"/>
-                            </svg>
-                        </button>
-                        
-                        <button class="category-button category-scripts" data-category="scripts" title="Skripte">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14,2 14,8 20,8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                <polyline points="10,9 9,9 8,9"/>
-                            </svg>
-                        </button>
-                        
-                        <button class="category-button category-automations" data-category="automations" title="Automationen">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M12 2v6l3-3 3 3"/>
-                                <path d="M12 18v4"/>
-                                <path d="M8 8v8"/>
-                                <path d="M16 8v8"/>
-                                <circle cx="12" cy="12" r="2"/>
-                            </svg>
-                        </button>
-                        
-                        <button class="category-button category-scenes" data-category="scenes" title="Szenen">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
-                                <path d="M8 3v4"/>
-                                <path d="M16 8v4"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div> <!-- search-row Ende -->
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        placeholder="Geräte suchen..."
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    
+                    <button class="clear-button">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="filter-chips">
+                    <div class="filter-chip active" data-filter="all">Alle</div>
+                    <div class="filter-chip" data-filter="lights">Lichter</div>
+                    <div class="filter-chip" data-filter="climate">Klima</div>
+                    <div class="filter-chip" data-filter="covers">Rollos</div>
+                    <div class="filter-chip" data-filter="media">Medien</div>
+                </div>
+
+                <div class="results-grid">
+                    <!-- Results werden hier eingefügt -->
+                </div>
             </div>
         `;
 
@@ -602,122 +375,133 @@ class FastSearchCard extends HTMLElement {
     }
 
     setupEventListeners() {
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        const searchbar = this.shadowRoot.querySelector('.searchbar');
-        const categoryIcon = this.shadowRoot.querySelector('.category-icon');
-        const closeIcon = this.shadowRoot.querySelector('.close-icon');
-        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const categoryButtonsList = this.shadowRoot.querySelectorAll('.category-button');
-        const subcategoryChips = this.shadowRoot.querySelectorAll('.subcategory-chip');
+        const searchInput = this.shadowRoot.querySelector('.search-input');
+        const clearButton = this.shadowRoot.querySelector('.clear-button');
+        const filterChips = this.shadowRoot.querySelectorAll('.filter-chip');
 
-        // Focus Events
-        searchbar.addEventListener('focus', () => this.onFocus());
-        searchbar.addEventListener('blur', () => this.onBlur());
+        // Search Events
+        searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
+        searchInput.addEventListener('focus', () => this.handleSearchFocus());
         
-        // Input Events
-        searchbar.addEventListener('input', (e) => this.onInput(e));
+        // Clear Button
+        clearButton.addEventListener('click', () => this.clearSearch());
         
-        // Expand panel on any interaction
-        searchbar.addEventListener('click', () => this.expandPanel());
-        categoryIcon.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('=== CATEGORY ICON CLICKED ===');
-            console.log('isMenuView:', this.isMenuView);
-            console.log('Event target:', e.target);
-            console.log('Event currentTarget:', e.currentTarget);
-            
-            if (!this.isMenuView) {
-                console.log('-> Calling showCategoryButtons()');
-                this.showCategoryButtons();
-            } else {
-                console.log('-> Calling hideCategoryButtons()');
-                this.hideCategoryButtons();
-            }
-        });        
-
-        
-        // Close Icon Click
-        closeIcon.addEventListener('click', () => this.onCloseClick());
-        
-        // Filter Icon Click
-        filterIcon.addEventListener('click', () => this.onFilterClick());
-
-        // Category Button Events
-        categoryButtonsList.forEach(button => {
-            button.addEventListener('click', () => this.onCategoryButtonSelect(button));
-            button.addEventListener('mouseenter', () => this.animateButtonHover(button, true));
-            button.addEventListener('mouseleave', () => this.animateButtonHover(button, false));
+        // Filter Chips
+        filterChips.forEach(chip => {
+            chip.addEventListener('click', () => this.handleFilterSelect(chip));
         });
+    }
 
-        subcategoryChips.forEach(chip => {
-            chip.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-                
-                // FLAG setzen um Document Handler zu deaktivieren
-                this._isSubcategoryClick = true;
-                
-                this.onSubcategorySelect(chip, event);
-                
-                // FLAG nach kurzer Zeit zurücksetzen
-                setTimeout(() => {
-                    this._isSubcategoryClick = false;
-                }, 10);
+    handleSearch(query) {
+        const clearButton = this.shadowRoot.querySelector('.clear-button');
+        const searchInput = this.shadowRoot.querySelector('.search-input');
+        
+        // Show/Hide Clear Button mit Animation
+        if (query.length > 0) {
+            clearButton.classList.add('visible');
+            this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
+        } else {
+            this.animateElementOut(clearButton).then(() => {
+                clearButton.classList.remove('visible');
             });
+        }
+        
+        // Search Animation Feedback
+        searchInput.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.02)' },
+            { transform: 'scale(1)' }
+        ], {
+            duration: 200,
+            easing: 'ease-out'
         });
+        
+        this.performSearch(query);
+    }
 
-        document.addEventListener('click', (e) => {
-            // Ignoriere wenn Subcategory geklickt wurde
-            if (this._isSubcategoryClick) return;
-            
-            const searchPanel = e.target.closest('.search-panel');
-            const categoryButtons = e.target.closest('.category-buttons');
-            const subcategories = e.target.closest('.subcategories');
-            
-            if (!searchPanel && !categoryButtons && !subcategories) {
-                if (this.isMenuView) {
-                    this.hideCategoryButtons();
-                }
+    handleSearchFocus() {
+        const searchBar = this.shadowRoot.querySelector('.search-bar');
+        
+        // Focus glow effect
+        searchBar.animate([
+            { 
+                boxShadow: '0 0 0 rgba(0, 122, 255, 0)',
+                borderColor: 'rgba(255, 255, 255, 0.15)'
+            },
+            { 
+                boxShadow: '0 0 20px rgba(0, 122, 255, 0.3)',
+                borderColor: 'var(--accent)'
             }
+        ], {
+            duration: 300,
+            easing: 'ease-out',
+            fill: 'forwards'
         });
+    }
+
+    clearSearch() {
+        const searchInput = this.shadowRoot.querySelector('.search-input');
+        const clearButton = this.shadowRoot.querySelector('.clear-button');
+        
+        searchInput.value = '';
+        this.animateElementOut(clearButton).then(() => {
+            clearButton.classList.remove('visible');
+        });
+        
+        this.showAllItems();
+        searchInput.focus();
+    }
+
+    handleFilterSelect(selectedChip) {
+        const filter = selectedChip.dataset.filter;
+        if (filter === this.activeFilter) return;
+        
+        // Update active state
+        this.shadowRoot.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.classList.remove('active');
+        });
+        selectedChip.classList.add('active');
+        
+        // Animate selection
+        selectedChip.animate([
+            { transform: 'scale(1)', filter: 'brightness(1)' },
+            { transform: 'scale(1.05)', filter: 'brightness(1.1)' },
+            { transform: 'scale(1)', filter: 'brightness(1)' }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        });
+        
+        this.activeFilter = filter;
+        this.filterItems();
     }
 
     updateItems() {
         if (!this._hass || !this._config.entities) return;
 
-        this.allItems = [];
-
-        // Process configured entities
-        this._config.entities.forEach(entityConfig => {
+        this.allItems = this._config.entities.map(entityConfig => {
             const entityId = entityConfig.entity;
             const state = this._hass.states[entityId];
             
-            if (!state) return;
+            if (!state) return null;
 
             const domain = entityId.split('.')[0];
-            const item = {
+            return {
                 id: entityId,
                 name: entityConfig.title || state.attributes.friendly_name || entityId,
-                area: entityConfig.area || state.attributes.area || 'Unassigned',
-                category: entityConfig.category || this.categorizeEntity(domain),
                 domain: domain,
+                category: this.categorizeEntity(domain),
                 state: state.state,
                 attributes: state.attributes,
-                icon: this.getEntityIcon(entityId, state),
+                icon: this.getEntityIcon(domain),
                 isActive: this.isEntityActive(state)
             };
+        }).filter(Boolean);
 
-            this.allItems.push(item);
-        });
-
-        this.renderResults();
+        this.showAllItems();
     }
 
-    updateDeviceStates() {
+    updateStates() {
         if (!this._hass) return;
 
         const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
@@ -727,7 +511,14 @@ class FastSearchCard extends HTMLElement {
             
             if (state) {
                 const isActive = this.isEntityActive(state);
+                const wasActive = card.classList.contains('active');
+                
                 card.classList.toggle('active', isActive);
+                
+                // Animate state change
+                if (isActive !== wasActive) {
+                    this.animateStateChange(card, isActive);
+                }
                 
                 const statusElement = card.querySelector('.device-status');
                 if (statusElement) {
@@ -737,103 +528,26 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    renderResults() {
-        const resultsContainer = this.shadowRoot.querySelector('.results-container');
-        
-        if (this.allItems.length === 0) {
-            resultsContainer.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">🔍</div>
-                    <div class="empty-title">Keine Geräte gefunden</div>
-                    <div class="empty-subtitle">Überprüfen Sie Ihre Konfiguration</div>
-                </div>
-            `;
-            return;
-        }
-
-        // Group items by area
-        const groupedItems = this.groupItemsByArea(this.filteredItems.length > 0 ? this.filteredItems : this.allItems);
-        
-        resultsContainer.innerHTML = '';
-        
-        Object.keys(groupedItems).forEach(area => {
-            const roomSection = document.createElement('div');
-            roomSection.className = 'room-section';
-            
-            const roomHeader = document.createElement('h2');
-            roomHeader.className = 'room-header';
-            roomHeader.textContent = area;
-            
-            const devicesGrid = document.createElement('div');
-            devicesGrid.className = 'devices-grid';
-            
-            groupedItems[area].forEach(item => {
-                const deviceCard = this.createDeviceCard(item);
-                devicesGrid.appendChild(deviceCard);
-            });
-            
-            roomSection.appendChild(roomHeader);
-            roomSection.appendChild(devicesGrid);
-            resultsContainer.appendChild(roomSection);
-        });
-    }
-
-    createDeviceCard(item) {
-        const card = document.createElement('div');
-        card.className = `device-card ${item.isActive ? 'active' : ''}`;
-        card.dataset.entity = item.id;
-        
-        card.innerHTML = `
-            <div class="device-icon">${item.icon}</div>
-            <div class="device-info">
-                <div class="device-name">${item.name}</div>
-                <div class="device-status">${this.getEntityStatus(this._hass.states[item.id])}</div>
-            </div>
-        `;
-        
-        card.addEventListener('click', () => this.onDeviceClick(item));
-        card.addEventListener('mouseenter', () => this.animateDeviceHover(card, true));
-        card.addEventListener('mouseleave', () => this.animateDeviceHover(card, false));
-        
-        return card;
-    }
-
-    groupItemsByArea(items) {
-        const grouped = {};
-        items.forEach(item => {
-            if (!grouped[item.area]) {
-                grouped[item.area] = [];
-            }
-            grouped[item.area].push(item);
-        });
-        return grouped;
-    }
-
     categorizeEntity(domain) {
         const categoryMap = {
             light: 'lights',
             switch: 'lights',
             climate: 'climate',
-            cover: 'covers',
-            media_player: 'media',
             fan: 'climate',
-            sensor: 'sensors',
-            binary_sensor: 'sensors'
+            cover: 'covers',
+            media_player: 'media'
         };
         return categoryMap[domain] || 'other';
     }
 
-    getEntityIcon(entityId, state) {
-        const domain = entityId.split('.')[0];
+    getEntityIcon(domain) {
         const iconMap = {
             light: '💡',
             switch: '🔌',
             climate: '🌡️',
-            cover: '🪟',
-            media_player: '🎵',
             fan: '💨',
-            sensor: '📊',
-            binary_sensor: '🔘'
+            cover: '🪟',
+            media_player: '🎵'
         };
         return iconMap[domain] || '⚙️';
     }
@@ -854,7 +568,7 @@ class FastSearchCard extends HTMLElement {
                     const brightness = state.attributes.brightness;
                     if (brightness) {
                         const percent = Math.round((brightness / 255) * 100);
-                        return `An • ${percent}%`;
+                        return `${percent}%`;
                     }
                     return 'An';
                 }
@@ -867,652 +581,129 @@ class FastSearchCard extends HTMLElement {
             case 'cover':
                 const position = state.attributes.current_position;
                 if (position !== undefined) {
-                    return `${state.state} • ${position}%`;
+                    return `${position}%`;
                 }
                 return state.state === 'open' ? 'Offen' : 'Geschlossen';
                 
             case 'media_player':
-                if (state.state === 'playing') {
-                    return 'Spielt';
-                } else if (state.state === 'paused') {
-                    return 'Pausiert';
-                }
-                return 'Aus';
+                return state.state === 'playing' ? 'Spielt' : 'Aus';
                 
             default:
                 return state.state === 'on' ? 'An' : 'Aus';
         }
     }
 
-    // Event Handlers
-    expandPanel() {
-        if (this.isPanelExpanded || this.isMenuView) return;
-        
-        this.isPanelExpanded = true;
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        const resultsContainer = this.shadowRoot.querySelector('.results-container');
-        
-        searchPanel.classList.remove('collapsed');  // ← NEU HINZUFÜGEN
-        searchPanel.classList.add('expanded');
-        
-        // Results Container anzeigen
-        resultsContainer.style.display = 'block';  // ← NEU HINZUFÜGEN
-        
-        // Smooth panel expansion animation
-        searchPanel.animate([
-            { maxHeight: '80px' },
-            { maxHeight: '400px' }
-        ], {
-            duration: 400,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
-    
-        // INITIAL "Alle" anzeigen wenn keine Suche aktiv
-        if (!this.searchValue.trim() && this.filteredItems.length === 0) {
-            this.filteredItems = [...this.allItems];
-            this.renderResults();
-        }
-    
-        console.log('Panel expanded - Spotlight mode');
-    }
-
-    collapsePanel() {
-        if (!this.isPanelExpanded) return;
-        
-        this.isPanelExpanded = false;
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        const resultsContainer = this.shadowRoot.querySelector('.results-container');
-        
-        // Panel verkleinern
-        searchPanel.animate([
-            { maxHeight: '300px' },
-            { maxHeight: '60px' }
-        ], {
-            duration: 400,
-            easing: 'ease-in-out',
-            fill: 'forwards'
-        }).finished.then(() => {
-            searchPanel.classList.remove('expanded');
-        });
-        
-        // Results verstecken
-        if (resultsContainer) {
-            resultsContainer.style.display = 'none';
-        }
-        
-        console.log('Panel collapsed');
-    }
-
-    hideResults() {
-        const resultsContainer = this.shadowRoot.querySelector('.results-container');
-        const subcategories = this.shadowRoot.querySelector('.subcategories');
-        
-        // Results verstecken
-        if (resultsContainer) {
-            resultsContainer.animate([
-                { opacity: 1, transform: 'translateY(0)' },
-                { opacity: 0, transform: 'translateY(-10px)' }
-            ], {
-                duration: 200,
-                easing: 'ease-in',
-                fill: 'forwards'
-            }).finished.then(() => {
-                resultsContainer.style.display = 'none';
-            });
-        }
-        
-        // Subcategories auch verstecken
-        if (subcategories) {
-            subcategories.animate([
-                { opacity: 1 },
-                { opacity: 0 }
-            ], {
-                duration: 200,
-                easing: 'ease-in',
-                fill: 'forwards'
-            }).finished.then(() => {
-                subcategories.style.display = 'none';
-            });
-        }
-        
-        console.log('Results and subcategories hidden');
-    }
-
-    onCategoryButtonSelect(button) {
-        const category = button.dataset.category;
-        
-        // Setze aktive Kategorie
-        this.setActiveCategory(category);
-        
-        // Schließe Category Buttons
-        this.hideCategoryButtons();
-        
-        // Expandiere Panel und zeige Ergebnisse
-        setTimeout(() => {
-            const searchPanel = this.shadowRoot.querySelector('.search-panel');
-            searchPanel.classList.remove('collapsed');
-            this.isPanelExpanded = true;
-            this.expandPanel();
-            this.showCategoryResults(category);
-        }, 400);
-    }
-
-    expandSearchbar() {
-        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
-        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        
-        // Suchleiste wieder vergrößern
-        searchWrapper.animate([
-            { width: '60%' },
-            { width: '100%' }
-        ], {
-            duration: 300,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
-        
-        // Filter Icon wieder anzeigen
-        filterIcon.style.display = 'flex';
-        filterIcon.animate([
-            { opacity: 0, transform: 'scale(0.8)' },
-            { opacity: 1, transform: 'scale(1)' }
-        ], {
-            duration: 300,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
-        
-        console.log('Searchbar expanded');
-    }    
-
-    showCategoryResults(category) {
-        const resultsContainer = this.shadowRoot.querySelector('.results-container');
-        
-        // Filter items basierend auf Kategorie
-        this.filterByCategory(category);
-        
-        // Results Container wieder anzeigen
-        if (resultsContainer) {
-            resultsContainer.style.display = 'block';
-            resultsContainer.animate([
-                { opacity: 0, transform: 'translateY(-10px)' },
-                { opacity: 1, transform: 'translateY(0)' }
-            ], {
-                duration: 300,
-                easing: 'ease-out',
-                fill: 'forwards'
-            });
-        }
-        
-        this.isMenuView = false;
-        console.log(`Showing results for category: ${category}`);
-    }
-    
-    filterByCategory(category) {
-        if (category === 'devices') {
-            // Alle Entities außer Scripts, Automations, Scenes
-            this.filteredItems = this.allItems.filter(item => {
-                return !['script', 'automation', 'scene'].includes(item.domain);
-            });
-        } else if (category === 'scripts') {
-            this.filteredItems = this.allItems.filter(item => item.domain === 'script');
-        } else if (category === 'automations') {
-            this.filteredItems = this.allItems.filter(item => item.domain === 'automation');
-        } else if (category === 'scenes') {
-            this.filteredItems = this.allItems.filter(item => item.domain === 'scene');
-        } else {
-            // Default: alle anzeigen
-            this.filteredItems = this.allItems;
-        }
-        
-        this.renderResults();
-        console.log(`Filtered by category ${category}: ${this.filteredItems.length} items`);
-    }        
-
-    onFocus() {
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        searchPanel.classList.add('focused');
-    
-        // Nur expandieren wenn nicht im Menu View
-        if (!this.isMenuView) {
-            this.expandPanel();
-            
-            // Initial "Alle" anzeigen wenn noch keine Ergebnisse da sind
-            if (this.filteredItems.length === 0 && !this.searchValue.trim()) {
-                this.showAllDevices();
-            }
-        }
-        
-        // Focus animation
-        searchPanel.animate([
-            { 
-                transform: 'scale(1)',
-                filter: 'brightness(1)'
-            },
-            { 
-                transform: 'scale(1.01)',
-                filter: 'brightness(1.02)'
-            },
-            { 
-                transform: 'scale(1)',
-                filter: 'brightness(1)'
-            }
-        ], {
-            duration: 600,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-        });
-    }
-
-    onBlur() {
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        const searchbar = this.shadowRoot.querySelector('.searchbar');
-        
-        // Don't collapse immediately - let user interact with results
-        setTimeout(() => {
-            if (!searchPanel.contains(document.activeElement) && 
-                !searchbar.value.trim()) {
-                searchPanel.classList.remove('focused');
-                this.collapsePanel();
-            }
-        }, 150);
-    }
-
-    onInput(e) {
-        const value = e.target.value;
-        this.searchValue = value; // ← Search State speichern
-        const closeIcon = this.shadowRoot.querySelector('.close-icon');
-        
-        if (value.length > 0 && !this.isTyping) {
-            this.isTyping = true;
-            this.showCloseIcon();
-        } else if (value.length === 0 && this.isTyping) {
-            this.isTyping = false;
-            this.hideCloseIcon();
-        }
-        
-        this.animateTypingFeedback();
-        this.performSearch(value);
-    }
-
-    showCloseIcon() {
-        const closeIcon = this.shadowRoot.querySelector('.close-icon');
-        closeIcon.classList.add('visible');
-        closeIcon.animate([
-            { 
-                opacity: 0,
-                transform: 'scale(0.8)'
-            },
-            { 
-                opacity: 1,
-                transform: 'scale(1)'
-            }
-        ], {
-            duration: 200,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
-    }
-
-    hideCloseIcon() {
-        const closeIcon = this.shadowRoot.querySelector('.close-icon');
-        closeIcon.animate([
-            { 
-                opacity: 1,
-                transform: 'scale(1)'
-            },
-            { 
-                opacity: 0,
-                transform: 'scale(0.8)'
-            }
-        ], {
-            duration: 200,
-            easing: 'ease-in',
-            fill: 'forwards'
-        }).finished.then(() => {
-            closeIcon.classList.remove('visible');
-        });
-    }
-
-    animateTypingFeedback() {
-        const searchbar = this.shadowRoot.querySelector('.searchbar');
-        searchbar.animate([
-            { transform: 'scale(1)' },
-            { transform: 'scale(1.005)' },
-            { transform: 'scale(1)' }
-        ], {
-            duration: 150,
-            easing: 'ease-out'
-        });
-    }
-
-    onCloseClick() {
-        const searchbar = this.shadowRoot.querySelector('.searchbar');
-        searchbar.value = '';
-        this.isTyping = false;
-        this.hideCloseIcon();
-        this.showAllDevices();
-        
-        // Focus zurück auf Searchbar
-        setTimeout(() => {
-            searchbar.focus();
-        }, 100);
-    }
-
-    onFilterClick() {
-        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        
-        // Filter Icon Animation
-        filterIcon.animate([
-            { transform: 'rotate(0deg) scale(1)' },
-            { transform: 'rotate(90deg) scale(1.1)' },
-            { transform: 'rotate(0deg) scale(1)' }
-        ], {
-            duration: 400,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-        });
-        
-        console.log('Filter clicked');
-    }    
-
-
-    showCategoryButtons() {
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        
-        this.isMenuView = true;
-        
-        // 1. Filter Icon verstecken
-        filterIcon.animate([
-            { opacity: 1 },
-            { opacity: 0 }
-        ], {
-            duration: 200,
-            fill: 'forwards'
-        }).finished.then(() => {
-            filterIcon.style.display = 'none';
-        });
-        
-        // 2. Category Buttons einblenden - KEINE Panel-Resize Animation!
-        categoryButtons.style.display = 'flex';
-        categoryButtons.animate([
-            { 
-                opacity: 0,
-                transform: 'scaleX(0)'  /* ← Skalierung statt Width */
-            },
-            { 
-                opacity: 1,
-                transform: 'scaleX(1)'
-            }
-        ], {
-            duration: 400,
-            fill: 'forwards',
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-        });
-        
-        // 3. Category Buttons einblenden
-        categoryButtons.style.display = 'flex';
-        categoryButtons.animate([
-            { 
-                opacity: 0,
-                width: '0px',
-                transform: 'translateX(20px)'
-            },
-            { 
-                opacity: 1,
-                width: '220',
-                transform: 'translateX(0)'
-            }
-        ], {
-            duration: 400,
-            delay: 200,
-            fill: 'forwards',
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-        });
-    }      
-    
-    hideCategoryButtons() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        
-        // 1. Category Buttons ausblenden
-        categoryButtons.animate([
-            { 
-                opacity: 1,
-                transform: 'scaleX(1)'
-            },
-            { 
-                opacity: 0,
-                transform: 'scaleX(0)'
-            }
-        ], {
-            duration: 300,
-            fill: 'forwards',
-            easing: 'ease-in'
-        }).finished.then(() => {
-            categoryButtons.style.display = 'none';
-            this.isMenuView = false;
-        });
-        
-        // 2. Filter Icon wieder zeigen
-        setTimeout(() => {
-            filterIcon.style.display = 'flex';
-            filterIcon.animate([
-                { opacity: 0 },
-                { opacity: 1 }
-            ], {
-                duration: 300,
-                fill: 'forwards'
-            });
-        }, 100);
-        
-        // KEINE searchPanel Animation mehr nötig!
-        // Flexbox macht das automatisch
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        searchPanel.classList.remove('shrunk');
-    }
-        
-
-    onCategorySelect(button) {
-        const category = button.dataset.category;
-        
-        if (category === this.activeCategory) {
-            this.collapseButtons();
+    performSearch(query) {
+        if (!query.trim()) {
+            this.showAllItems();
             return;
         }
         
-        this.setActiveCategory(category);
-        
-        setTimeout(() => {
-            this.collapseButtons();
-        }, 200);
-    }
-    
-    setActiveCategory(category) {
-        // Remove old active state
-        const oldButton = this.shadowRoot.querySelector(`.category-button[data-category="${this.activeCategory}"]`);
-        if (oldButton) {
-            oldButton.classList.remove('active');
-        }
-        
-        // Set new active state
-        this.activeCategory = category;
-        const newButton = this.shadowRoot.querySelector(`.category-button[data-category="${category}"]`);
-        if (newButton) {
-            newButton.classList.add('active');
-            this.animateButtonActivate(newButton);
-        }
-        
-        // Update UI
-        this.updateCategoryIcon();
-        this.updatePlaceholder();
-        
-        console.log(`Switched to category: ${category}`);
-    }
-
-    updateCategoryIcon() {
-        const categoryData = {
-            devices: {
-                icon: `<svg viewBox="0 0 24 24">
-                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                    <path d="M12 18h.01"/>
-                </svg>`,
-                placeholder: 'Geräte suchen...'
-            },
-            scripts: {
-                icon: `<svg viewBox="0 0 24 24">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14,2 14,8 20,8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
-                    <polyline points="10,9 9,9 8,9"/>
-                </svg>`,
-                placeholder: 'Skripte suchen...'
-            },
-            automations: {
-                icon: `<svg viewBox="0 0 24 24">
-                    <path d="M12 2v6l3-3 3 3"/>
-                    <path d="M12 18v4"/>
-                    <path d="M8 8v8"/>
-                    <path d="M16 8v8"/>
-                    <circle cx="12" cy="12" r="2"/>
-                </svg>`,
-                placeholder: 'Automationen suchen...'
-            },
-            scenes: {
-                icon: `<svg viewBox="0 0 24 24">
-                    <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
-                    <path d="M8 3v4"/>
-                    <path d="M16 8v4"/>
-                </svg>`,
-                placeholder: 'Szenen suchen...'
-            }
-        };
-
-        const data = categoryData[this.activeCategory];
-        if (data) {
-            const categoryIcon = this.shadowRoot.querySelector('.category-icon');
-            categoryIcon.innerHTML = data.icon;
-            categoryIcon.className = `category-icon category-${this.activeCategory}`;
-        }
-    }
-
-    updatePlaceholder() {
-        const categoryData = {
-            devices: 'Geräte suchen...',
-            scripts: 'Skripte suchen...',
-            automations: 'Automationen suchen...',
-            scenes: 'Szenen suchen...'
-        };
-        
-        const searchbar = this.shadowRoot.querySelector('.searchbar');
-        searchbar.placeholder = categoryData[this.activeCategory] || 'Suchen...';
-    }
-
-    onSubcategorySelect(chip, event) {
-        const subcategory = chip.dataset.subcategory;
-        
-        // Event Propagation stoppen - WICHTIG!
-        if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        
-        if (subcategory === this.activeSubcategory) return;
-        
-        // Update active state
-        this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        this.activeSubcategory = subcategory;
-        
-        // Animate chip selection
-        chip.animate([
-            { transform: 'scale(1)' },
-            { transform: 'scale(1.05)' },
-            { transform: 'scale(1)' }
-        ], {
-            duration: 200,
-            easing: 'ease-out'
+        const searchTerm = query.toLowerCase();
+        this.filteredItems = this.allItems.filter(item => {
+            return item.name.toLowerCase().includes(searchTerm) ||
+                   item.id.toLowerCase().includes(searchTerm);
         });
         
-        // Filter entities - DIREKT aufrufen
-        this.filterByDomain(subcategory);
-        
-        console.log(`✅ Selected subcategory: ${subcategory}`);
-    }
-
-    filterByDomain(subcategory) {
-        console.log(`🔍 filterByDomain called with: ${subcategory}`);
-        console.log(`📦 Available items: ${this.allItems.length}`);
-        
-        if (subcategory === 'all') {
-            this.filteredItems = [...this.allItems];
-        } else {
-            const domainMap = {
-                'lights': ['light', 'switch'],       // ← Nur 'light', nicht 'switch'
-                'climate': ['climate', 'fan'],     // ← Nur 'climate', nicht 'fan'
-                'covers': ['cover'],
-                'media': ['media_player']
-            };
-            
-            const domains = domainMap[subcategory] || [];
-            this.filteredItems = this.allItems.filter(item => {
-                const match = domains.includes(item.domain);
-                console.log(`Item: ${item.name}, domain: ${item.domain}, match: ${match}`);
-                return match;
-            });
-        }
-        
-        console.log(`🔍 filterByDomain(${subcategory}): ${this.filteredItems.length} items found`);
         this.renderResults();
     }
-    
-    onDeviceClick(item) {
-        // Fire Home Assistant event
+
+    filterItems() {
+        if (this.activeFilter === 'all') {
+            this.filteredItems = [...this.allItems];
+        } else {
+            this.filteredItems = this.allItems.filter(item => item.category === this.activeFilter);
+        }
+        
+        this.renderResults();
+    }
+
+    showAllItems() {
+        this.filteredItems = [...this.allItems];
+        this.renderResults();
+    }
+
+    renderResults() {
+        const resultsGrid = this.shadowRoot.querySelector('.results-grid');
+        
+        if (this.filteredItems.length === 0) {
+            resultsGrid.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-title">Keine Ergebnisse</div>
+                    <div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div>
+                </div>
+            `;
+            return;
+        }
+
+        resultsGrid.innerHTML = '';
+        
+        this.filteredItems.forEach((item, index) => {
+            const card = this.createDeviceCard(item);
+            resultsGrid.appendChild(card);
+            
+            // Staggered entrance animation
+            setTimeout(() => {
+                this.animateElementIn(card, {
+                    opacity: [0, 1],
+                    transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)']
+                });
+            }, index * 50);
+        });
+    }
+
+    createDeviceCard(item) {
+        const card = document.createElement('div');
+        card.className = `device-card ${item.isActive ? 'active' : ''}`;
+        card.dataset.entity = item.id;
+        
+        card.innerHTML = `
+            <div class="device-icon">${item.icon}</div>
+            <div class="device-info">
+                <div class="device-name">${item.name}</div>
+                <div class="device-status">${this.getEntityStatus(this._hass.states[item.id])}</div>
+            </div>
+        `;
+        
+        card.addEventListener('click', () => this.handleDeviceClick(item, card));
+        card.addEventListener('mouseenter', () => this.animateDeviceHover(card, true));
+        card.addEventListener('mouseleave', () => this.animateDeviceHover(card, false));
+        
+        return card;
+    }
+
+    handleDeviceClick(item, card) {
+        // Optimistic UI update
+        const wasActive = card.classList.contains('active');
+        card.classList.toggle('active', !wasActive);
+        this.animateStateChange(card, !wasActive);
+        
+        // Call Home Assistant service
         this._hass.callService('homeassistant', 'toggle', {
             entity_id: item.id
         });
-        
-        console.log(`Device clicked: ${item.id}`);
     }
 
-    animateButtonHover(button, isHover) {
-        if (button.classList.contains('active')) return;
-        
-        button.animate([
-            { 
-                transform: isHover ? 'scale(1)' : 'scale(1.05)',
-                filter: isHover ? 'brightness(1)' : 'brightness(1.1)'
-            },
-            { 
-                transform: isHover ? 'scale(1.05)' : 'scale(1)',
-                filter: isHover ? 'brightness(1.1)' : 'brightness(1)'
-            }
-        ], {
-            duration: 200,
-            easing: 'ease-out',
-            fill: 'forwards'
+    // Animation Helpers - Pure Web Animations API
+    animateElementIn(element, keyframes, options = {}) {
+        return element.animate(keyframes, {
+            duration: 400,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards',
+            ...options
         });
     }
 
-    animateButtonActivate(button) {
-        button.animate([
-            { 
-                transform: 'scale(1)',
-                filter: 'brightness(1)'
-            },
-            { 
-                transform: 'scale(1.15)',
-                filter: 'brightness(1.2)'
-            },
-            { 
-                transform: 'scale(1)',
-                filter: 'brightness(1)'
-            }
+    animateElementOut(element, options = {}) {
+        return element.animate([
+            { opacity: 1, transform: 'scale(1)' },
+            { opacity: 0, transform: 'scale(0.8)' }
         ], {
-            duration: 400,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards',
+            ...options
         });
     }
 
@@ -1533,48 +724,33 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    filterDevicesBySubcategory(subcategory) {
-        if (subcategory === 'all') {
-            this.filteredItems = [];
-        } else {
-            this.filteredItems = this.allItems.filter(item => item.category === subcategory);
-        }
-        this.renderResults();
-    }
-
-    performSearch(query) {
-        if (!query.trim()) {
-            this.filteredItems = [];
-            this.renderResults();
-            return;
-        }
+    animateStateChange(card, isActive) {
+        const icon = card.querySelector('.device-icon');
         
-        const searchTerm = query.toLowerCase();
-        this.filteredItems = this.allItems.filter(item => {
-            return item.name.toLowerCase().includes(searchTerm) ||
-                   item.area.toLowerCase().includes(searchTerm) ||
-                   item.id.toLowerCase().includes(searchTerm);
+        // State change ripple effect
+        card.animate([
+            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' },
+            { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' },
+            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }
+        ], {
+            duration: 600,
+            easing: 'ease-out'
         });
         
-        this.renderResults();
-    }
-
-    showAllDevices() {
-        this.filteredItems = [...this.allItems];
-        this.activeSubcategory = 'all';
-        this.searchValue = ''; // ← Search Value auch zurücksetzen
-        
-        // Subcategory UI auch zurücksetzen
-        this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => {
-            chip.classList.toggle('active', chip.dataset.subcategory === 'all');
+        // Icon pulse
+        icon.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.2)' },
+            { transform: 'scale(1)' }
+        ], {
+            duration: 400,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
         });
-        
-        console.log(`Showing all devices: ${this.filteredItems.length} items`);
-        this.renderResults();
     }
 
+    // Home Assistant Integration
     getCardSize() {
-        return 3;
+        return 4;
     }
 
     static getConfigElement() {
@@ -1583,31 +759,29 @@ class FastSearchCard extends HTMLElement {
 
     static getStubConfig() {
         return {
-            type: 'custom:fast-search-card',
+            type: 'custom:fast-search-card-2025',
             entities: [
                 {
                     entity: 'light.example_light',
-                    title: 'Beispiel Lampe',
-                    area: 'Wohnzimmer',
-                    category: 'lights'
+                    title: 'Beispiel Lampe'
                 }
             ]
         };
     }
 }
 
-customElements.define('fast-search-card', FastSearchCard);
+customElements.define('fast-search-card-2025', FastSearchCard2025);
 
-// Register with custom cards registry
+// Register with Home Assistant
 window.customCards = window.customCards || [];
 window.customCards.push({
-    type: 'fast-search-card',
-    name: 'Fast Search Card',
-    description: 'Apple Vision OS Spotlight-style search card for Home Assistant'
+    type: 'fast-search-card-2025',
+    name: 'Fast Search Card 2025',
+    description: 'Modern Apple Vision OS inspired search card'
 });
 
 console.info(
-    `%c FAST-SEARCH-CARD %c Vision OS Spotlight `,
-    'color: orange; font-weight: bold; background: black',
-    'color: white; font-weight: bold; background: dimgray'
+    `%c FAST-SEARCH-CARD-2025 %c Modern Vision OS Design `,
+    'color: #007AFF; font-weight: bold; background: black',
+    'color: white; font-weight: bold; background: #007AFF'
 );
