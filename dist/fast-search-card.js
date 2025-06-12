@@ -97,19 +97,16 @@ class FastSearchCard extends HTMLElement {
                     max-height: 400px;
                 }
 
+´
                 .search-wrapper {
                     display: flex;
                     align-items: center;
                     gap: 12px;
-                    padding: 12px 16px;
-                    background: rgba(255, 255, 255, 0.9);
-                    backdrop-filter: blur(10px);
-                    border-radius: 12px;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    padding: 14px 16px;
                     position: relative;
                     width: 100%;
                     min-height: 48px;
+                    box-sizing: border-box;
                 }
 
                 .search-panel.expanded .search-wrapper {
@@ -120,27 +117,24 @@ class FastSearchCard extends HTMLElement {
 
                 .searchbar-container {
                     flex: 1;
-                    min-width: 200px;
-                    position: relative;
+                    min-width: 0;
                 }
-
+                
                 .searchbar {
                     width: 100%;
                     height: 44px;
-                    background: transparent;
                     border: none;
-                    border-radius: 0;
-                    padding: 0 16px;
-                    font-size: 17px;
-                    font-weight: 400;
-                    color: rgba(29, 29, 31, 0.9);
+                    background: transparent;
                     outline: none;
-                    transition: none;
-                    box-shadow: none;
-                    position: relative;
+                    font-size: 17px;
+                    color: rgba(29, 29, 31, 0.9);
+                    padding: 0;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 }
-
+                
+                .searchbar:focus {
+                    background: transparent;
+                }
                 .searchbar::placeholder {
                     color: rgba(29, 29, 31, 0.6);
                     font-weight: 400;
@@ -160,16 +154,15 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .filter-icon {
-                    margin-left: auto;
-                    order: 999;
                     width: 24px;
                     height: 24px;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    flex-shrink: 0;
                 }
-                
+                                
                 .filter-icon svg {
                     width: 20px;
                     height: 20px;
@@ -705,13 +698,13 @@ class FastSearchCard extends HTMLElement {
         searchbar.addEventListener('click', () => this.expandPanel());
         categoryIcon.addEventListener('click', () => {
             if (!this.isMenuView) {
-                // 1. Panel schließen
-                this.collapsePanel();
+                // 1. Panel schließen (Results verstecken)
+                this.hideResults();
                 
-                // 2. Nach Panel-Animation: Suchleiste verkleinern und Buttons zeigen
+                // 2. Nach kurzer Verzögerung: Suchleiste verkleinern und Buttons zeigen
                 setTimeout(() => {
                     this.showCompactSearchWithButtons();
-                }, 400);
+                }, 200);
             }
         });
         
@@ -723,7 +716,7 @@ class FastSearchCard extends HTMLElement {
 
         // Category Button Events
         categoryButtonsList.forEach(button => {
-            button.addEventListener('click', () => this.onCategorySelect(button));
+            button.addEventListener('click', () => this.onCategoryButtonSelect(button));
             button.addEventListener('mouseenter', () => this.animateButtonHover(button, true));
             button.addEventListener('mouseleave', () => this.animateButtonHover(button, false));
         });
@@ -1049,6 +1042,133 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+    hideResults() {
+        const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        
+        if (resultsContainer) {
+            resultsContainer.animate([
+                { opacity: 1, transform: 'translateY(0)' },
+                { opacity: 0, transform: 'translateY(-10px)' }
+            ], {
+                duration: 200,
+                easing: 'ease-in',
+                fill: 'forwards'
+            }).finished.then(() => {
+                resultsContainer.style.display = 'none';
+            });
+        }
+        
+        console.log('Results hidden');
+    }    
+
+    onCategoryButtonSelect(button) {
+        const category = button.dataset.category;
+        
+        console.log(`Category button selected: ${category}`);
+        
+        // 1. Buttons verstecken
+        this.hideCategoryButtons();
+        
+        // 2. Suchleiste vergrößern
+        setTimeout(() => {
+            this.expandSearchbar();
+        }, 200);
+        
+        // 3. Entsprechende Kategorie-Ergebnisse anzeigen
+        setTimeout(() => {
+            this.showCategoryResults(category);
+        }, 400);
+    }    
+
+    hideCategoryButtons() {
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        
+        categoryButtons.animate([
+            { opacity: 1, transform: 'translateX(0)' },
+            { opacity: 0, transform: 'translateX(20px)' }
+        ], {
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards'
+        }).finished.then(() => {
+            categoryButtons.classList.remove('visible');
+        });
+        
+        console.log('Category buttons hidden');
+    }    
+
+    expandSearchbar() {
+        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
+        
+        // Suchleiste wieder vergrößern
+        searchWrapper.animate([
+            { width: '60%' },
+            { width: '100%' }
+        ], {
+            duration: 300,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        // Filter Icon wieder anzeigen
+        filterIcon.style.display = 'flex';
+        filterIcon.animate([
+            { opacity: 0, transform: 'scale(0.8)' },
+            { opacity: 1, transform: 'scale(1)' }
+        ], {
+            duration: 300,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        console.log('Searchbar expanded');
+    }    
+
+    showCategoryResults(category) {
+        const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        
+        // Filter items basierend auf Kategorie
+        this.filterByCategory(category);
+        
+        // Results Container wieder anzeigen
+        if (resultsContainer) {
+            resultsContainer.style.display = 'block';
+            resultsContainer.animate([
+                { opacity: 0, transform: 'translateY(-10px)' },
+                { opacity: 1, transform: 'translateY(0)' }
+            ], {
+                duration: 300,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+        }
+        
+        this.isMenuView = false;
+        console.log(`Showing results for category: ${category}`);
+    }
+    
+    filterByCategory(category) {
+        if (category === 'devices') {
+            // Alle Entities außer Scripts, Automations, Scenes
+            this.filteredItems = this.allItems.filter(item => {
+                return !['script', 'automation', 'scene'].includes(item.domain);
+            });
+        } else if (category === 'scripts') {
+            this.filteredItems = this.allItems.filter(item => item.domain === 'script');
+        } else if (category === 'automations') {
+            this.filteredItems = this.allItems.filter(item => item.domain === 'automation');
+        } else if (category === 'scenes') {
+            this.filteredItems = this.allItems.filter(item => item.domain === 'scene');
+        } else {
+            // Default: alle anzeigen
+            this.filteredItems = this.allItems;
+        }
+        
+        this.renderResults();
+        console.log(`Filtered by category ${category}: ${this.filteredItems.length} items`);
+    }    
+    
     expandButtons() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const searchbar = this.shadowRoot.querySelector('.searchbar');
@@ -1523,12 +1643,33 @@ class FastSearchCard extends HTMLElement {
             easing: 'ease-out'
         });
         
-        // Filter devices
-        this.filterDevicesBySubcategory(subcategory);
+        // Filter entities basierend auf Domain
+        this.filterByDomain(subcategory);
         
         console.log(`Selected subcategory: ${subcategory}`);
     }
 
+    filterByDomain(subcategory) {
+        if (subcategory === 'all') {
+            this.filteredItems = this.allItems;
+        } else {
+            const domainMap = {
+                'lights': ['light'],
+                'climate': ['climate'],
+                'covers': ['cover'],
+                'media': ['media_player']
+            };
+            
+            const domains = domainMap[subcategory] || [];
+            this.filteredItems = this.allItems.filter(item => {
+                return domains.includes(item.domain);
+            });
+        }
+        
+        this.renderResults();
+        console.log(`Filtered by ${subcategory}: ${this.filteredItems.length} items`);
+    }
+    
     onDeviceClick(item) {
         // Fire Home Assistant event
         this._hass.callService('homeassistant', 'toggle', {
