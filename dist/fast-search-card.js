@@ -616,15 +616,23 @@ class FastSearchCard extends HTMLElement {
         
         // Expand panel on any interaction
         searchbar.addEventListener('click', () => this.expandPanel());
-        categoryIcon.addEventListener('click', () => {
+        categoryIcon.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('=== CATEGORY ICON CLICKED ===');
+            console.log('isMenuView:', this.isMenuView);
+            console.log('Event target:', e.target);
+            console.log('Event currentTarget:', e.currentTarget);
+            
             if (!this.isMenuView) {
-                // Panel ist geschlossen - öffne Kategorie-Auswahl
+                console.log('-> Calling showCategoryButtons()');
                 this.showCategoryButtons();
             } else {
-                // Kategorie-Buttons sind sichtbar - schließe sie
+                console.log('-> Calling hideCategoryButtons()');
                 this.hideCategoryButtons();
             }
-        });
+        });        
 
         
         // Close Icon Click
