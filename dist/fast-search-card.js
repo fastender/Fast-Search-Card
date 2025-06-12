@@ -1,4 +1,4 @@
-class FastSearchCard2025 extends HTMLElement {
+class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -759,7 +759,7 @@ class FastSearchCard2025 extends HTMLElement {
 
     static getStubConfig() {
         return {
-            type: 'custom:fast-search-card-2025',
+            type: 'custom:fast-search-card',
             entities: [
                 {
                     entity: 'light.example_light',
@@ -770,18 +770,18 @@ class FastSearchCard2025 extends HTMLElement {
     }
 }
 
-customElements.define('fast-search-card-2025', FastSearchCard2025);
+customElements.define('fast-search-card', FastSearchCard);
 
 // Register with Home Assistant
 window.customCards = window.customCards || [];
 window.customCards.push({
-    type: 'fast-search-card-2025',
-    name: 'Fast Search Card 2025',
+    type: 'fast-search-card',
+    name: 'Fast Search Card',
     description: 'Modern Apple Vision OS inspired search card'
 });
 
 console.info(
-    `%c FAST-SEARCH-CARD-2025 %c Modern Vision OS Design `,
+    `%c FAST-SEARCH-CARD %c Modern Vision OS Design `,
     'color: #007AFF; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: #007AFF'
 );
