@@ -116,22 +116,25 @@ class FastSearchCard extends HTMLElement {
 
                 .searchbar-container {
                     flex: 1;
+                    min-width: 200px;
                     position: relative;
                 }
 
                 .searchbar {
+                    width: 100%;
+                    height: 44px;
                     background: transparent;
                     border: none;
                     border-radius: 0;
-                    padding: 0;
-                    width: 100%;
+                    padding: 0 16px;
                     font-size: 17px;
                     font-weight: 400;
-                    color: #1d1d1f;
+                    color: rgba(29, 29, 31, 0.9);
                     outline: none;
                     transition: none;
                     box-shadow: none;
                     position: relative;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 }
 
                 .searchbar::placeholder {
@@ -249,17 +252,6 @@ class FastSearchCard extends HTMLElement {
                     transition: none;
                     position: relative;
                     overflow: hidden;
-                }
-
-                .category-button.active {
-                    border-width: 2px;
-                    background: 
-                        linear-gradient(135deg, rgba(0, 122, 255, 0.4) 0%, rgba(0, 122, 255, 0.2) 100%),
-                        rgba(0, 122, 255, 0.3);  /* ← Aktiver Zustand mit Blau */
-                    border-color: rgba(0, 122, 255, 0.6);
-                    box-shadow: 
-                        0 8px 32px rgba(0, 122, 255, 0.3),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.5);                    
                 }
 
                 .category-button.category-devices.active {
@@ -594,7 +586,7 @@ class FastSearchCard extends HTMLElement {
                         </div>
 
                         <div class="category-buttons">
-                            <button class="category-button category-devices active" data-category="devices" title="Geräte">
+                            <button class="category-button category-devices" data-category="devices" title="Geräte">
                                 <svg viewBox="0 0 24 24">
                                     <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
                                     <path d="M12 18h.01"/>
@@ -707,14 +699,18 @@ class FastSearchCard extends HTMLElement {
         searchbar.addEventListener('click', () => this.expandPanel());
         categoryIcon.addEventListener('click', () => {
             if (!this.isPanelExpanded) {
+                // Panel expandieren und Menu anzeigen
                 this.expandPanel();
-                // Nach dem Panel-Expand, Menu View aktivieren
                 setTimeout(() => {
-                    this.toggleCategoryView();
-                }, 300); // Warten bis Panel-Animation fertig ist
-            } else {
-                this.toggleCategoryView();
+                    this.expandButtons();
+                    this.isMenuView = true;
+                }, 300);
+            } else if (!this.isMenuView) {
+                // Nur Menu anzeigen wenn Panel bereits expanded
+                this.expandButtons();
+                this.isMenuView = true;
             }
+            // KEIN else case = kein Toggle zurück
         });
         
         // Close Icon Click
@@ -737,10 +733,16 @@ class FastSearchCard extends HTMLElement {
 
         // Click outside to collapse panel
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-panel') && this.isPanelExpanded) {
-                this.collapsePanel();
+            if (!e.target.closest('.search-panel')) {
+                if (this.isMenuView) {
+                    this.collapseButtons();
+                    this.isMenuView = false;
+                }
+                if (this.isPanelExpanded) {
+                    this.collapsePanel();
+                }
             }
-        });      
+        });
     }
 
     updateItems() {
