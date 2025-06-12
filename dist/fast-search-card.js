@@ -16,6 +16,8 @@ class FastSearchCard extends HTMLElement {
         this.isPanelExpanded = false;
         this.activeCategory = 'devices';
         this.activeSubcategory = 'all';
+        this.isMenuView = false;
+        this.isTyping = false;
         
         // Animation references
         this.animations = new Map();
@@ -215,6 +217,11 @@ class FastSearchCard extends HTMLElement {
                     pointer-events: none;
                     transition: none;
                 }
+
+                .category-buttons.visible {
+                    opacity: 1;
+                    pointer-events: all;
+                }                
 
                 .category-buttons.expanded {
                     width: auto;
@@ -686,6 +693,17 @@ class FastSearchCard extends HTMLElement {
                 this.collapsePanel();
             }
         });
+    
+        // HINZUFÜGEN: Category Icon Click Handler für Menu Toggle
+        const categoryIcon = this.shadowRoot.querySelector('.category-icon');
+        categoryIcon.addEventListener('click', () => {
+            if (!this.isPanelExpanded) {
+                this.expandPanel();
+            } else {
+                // Toggle zwischen Device View und Menu View
+                this.toggleCategoryView();
+            }
+        });        
     }
 
     updateItems() {
@@ -1073,6 +1091,47 @@ class FastSearchCard extends HTMLElement {
         this.performSearch(value);
     }
 
+    performSearch(query) {
+        const searchTerm = query.trim().toLowerCase();
+        
+        if (searchTerm.length === 0) {
+            this.showAllDevices();
+            return;
+        }
+        
+        // Filter items basierend auf Search Query
+        this.filteredItems = this.allItems.filter(item => {
+            return item.name.toLowerCase().includes(searchTerm) ||
+                   item.area.toLowerCase().includes(searchTerm) ||
+                   item.id.toLowerCase().includes(searchTerm);
+        });
+        
+        // Results anzeigen
+        this.renderResults();
+        
+        console.log(`Search for "${searchTerm}" returned ${this.filteredItems.length} results`);
+    }    
+
+    showAllDevices() {
+        // Alle Devices der aktuellen Kategorie anzeigen
+        this.filteredItems = this.allItems.filter(item => {
+            if (this.activeCategory === 'devices') {
+                return item.type && item.type !== 'script' && item.type !== 'automation' && item.type !== 'scene';
+            } else if (this.activeCategory === 'scripts') {
+                return item.type === 'script';
+            } else if (this.activeCategory === 'automations') {
+                return item.type === 'automation';
+            } else if (this.activeCategory === 'scenes') {
+                return item.type === 'scene';
+            }
+            return true;
+        });
+        
+        this.renderResults();
+        
+        console.log(`Showing all ${this.activeCategory}: ${this.filteredItems.length} items`);
+    }    
+
     showCloseIcon() {
         const closeIcon = this.shadowRoot.querySelector('.close-icon');
         closeIcon.classList.add('visible');
@@ -1168,6 +1227,77 @@ class FastSearchCard extends HTMLElement {
         }, 200);
     }
 
+    toggleCategoryView() {
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const searchbar = this.shadowRoot.querySelector('.searchbar');
+        
+        if (this.isMenuView) {
+            // Zurück zur Device View
+            this.collapseButtons();
+            this.isMenuView = false;
+        } else {
+            // Zu Menu View wechseln
+            this.expandButtons();
+            this.isMenuView = true;
+            searchbar.blur(); // Fokus entfernen
+        }
+    }
+
+    expandButtons() {
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const searchbar = this.shadowRoot.querySelector('.searchbar');
+        
+        // Category Buttons sichtbar machen
+        categoryButtons.classList.add('visible');
+        
+        // Searchbar verkleinern und Category Buttons zeigen
+        categoryButtons.animate([
+            { opacity: 0, transform: 'scale(0.8)' },
+            { opacity: 1, transform: 'scale(1)' }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+        
+        searchbar.animate([
+            { width: '100%' },
+            { width: '60%' }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+    }
+    
+    collapseButtons() {
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const searchbar = this.shadowRoot.querySelector('.searchbar');
+        
+        const collapseAnimation = categoryButtons.animate([
+            { opacity: 1, transform: 'scale(1)' },
+            { opacity: 0, transform: 'scale(0.8)' }
+        ], {
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards'
+        });
+        
+        searchbar.animate([
+            { width: '60%' },
+            { width: '100%' }
+        ], {
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards'
+        });
+        
+        // Nach Animation Category Buttons verstecken
+        collapseAnimation.finished.then(() => {
+            categoryButtons.classList.remove('visible');
+        });
+    }
+    
     setActiveCategory(category) {
         // Remove old active state
         const oldButton = this.shadowRoot.querySelector(`.category-button[data-category="${this.activeCategory}"]`);
