@@ -51,469 +51,439 @@ class FastSearchCard extends HTMLElement {
 
     render() {
         this.shadowRoot.innerHTML = `
+
+
             <style>
-                :host {
-                    display: block;
-                    --vision-primary: rgba(10, 132, 255, 1);
-                    --vision-secondary: rgba(48, 209, 88, 1);
-                    --vision-surface: rgba(28, 28, 30, 0.68);
-                    --vision-surface-light: rgba(58, 58, 60, 0.4);
-                    --vision-text-primary: rgba(255, 255, 255, 0.95);
-                    --vision-text-secondary: rgba(255, 255, 255, 0.7);
-                    --vision-border: rgba(255, 255, 255, 0.15);
-                    --vision-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                    --vision-blur: blur(20px);
+            :host {
+                display: block;
+                --vision-primary: rgba(10, 132, 255, 1);
+                --vision-secondary: rgba(48, 209, 88, 1);
+                --vision-surface: rgba(28, 28, 30, 0.68);
+                --vision-surface-light: rgba(58, 58, 60, 0.4);
+                --vision-text-primary: rgba(255, 255, 255, 0.95);
+                --vision-text-secondary: rgba(255, 255, 255, 0.7);
+                --vision-border: rgba(255, 255, 255, 0.15);
+                --vision-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                --vision-blur: blur(20px);
+            }
+            
+            .main-container {
+                width: 100%;
+                max-width: 600px;
+                margin: 0 auto;
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .search-panel {
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(20px) saturate(1.8);
+                -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 24px;
+                box-shadow: 
+                    0 8px 32px rgba(0, 0, 0, 0.12),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+                overflow: visible;
+                transition: none;
+                max-height: none;
+                min-height: 300px;
+                position: relative;
+                padding: 16px;
+            }
+            
+            .search-wrapper {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+                position: relative;
+                width: 100%;
+                min-height: 48px;
+                box-sizing: border-box;
+                flex-wrap: nowrap;
+            }
+            
+            .category-icon {
+                order: 1;
+                flex-shrink: 0;
+                width: 24px;
+                height: 24px;
+                background: rgba(0, 0, 0, 0.1);
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: none;
+            }
+            
+            .category-icon svg {
+                width: 20px;
+                height: 20px;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                color: rgba(29, 29, 31, 0.7);
+            }
+            
+            .searchbar-container {
+                flex: 1;
+                min-width: 0;
+                order: 2;
+            }
+            
+            .searchbar {
+                width: 100%;
+                height: 44px;
+                border: none;
+                background: transparent;
+                outline: none;
+                font-size: 17px;
+                color: rgba(29, 29, 31, 0.9);
+                padding: 0;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: block;
+                visibility: visible;
+            }
+            
+            .searchbar:focus {
+                background: transparent;
+            }
+            
+            .searchbar::placeholder {
+                color: rgba(29, 29, 31, 0.6);
+            }
+            
+            .close-icon {
+                order: 3;
+                flex-shrink: 0;
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                pointer-events: none;
+                transition: none;
+            }
+            
+            .close-icon.visible {
+                opacity: 1;
+                pointer-events: all;
+            }
+            
+            .close-icon svg {
+                width: 20px;
+                height: 20px;
+                stroke: rgba(29, 29, 31, 0.7);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+            
+            .filter-icon {
+                order: 4;
+                flex-shrink: 0;
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .filter-icon svg {
+                width: 20px;
+                height: 20px;
+                stroke: rgba(29, 29, 31, 0.7);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+            
+            .category-buttons {
+                order: 5;
+                flex-shrink: 0;
+                display: flex;
+                gap: 8px;
+                opacity: 0;
+                pointer-events: none;
+                transition: none;
+            }
+            
+            .category-buttons.visible {
+                opacity: 1;
+                pointer-events: all;
+            }
+            
+            .category-button {
+                width: 52px;
+                height: 52px;
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(20px) saturate(1.8);
+                -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 
+                    0 8px 32px rgba(0, 0, 0, 0.12),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+                transition: none;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .category-button.active {
+                border-width: 2px;
+                background: 
+                    linear-gradient(135deg, rgba(0, 122, 255, 0.4) 0%, rgba(0, 122, 255, 0.2) 100%),
+                    rgba(0, 122, 255, 0.3);
+                border-color: rgba(0, 122, 255, 0.6);
+                box-shadow: 
+                    0 8px 32px rgba(0, 122, 255, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            }
+            
+            .category-button svg {
+                width: 24px;
+                height: 24px;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+            
+            .category-button.active svg {
+                color: white;
+            }
+            
+            .subcategories {
+                display: flex;
+                gap: 8px;
+                padding: 12px 16px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            .subcategories::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .subcategory-chip {
+                padding: 8px 16px;
+                background: rgba(255, 255, 255, 0.3);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 500;
+                color: rgba(29, 29, 31, 0.8);
+                cursor: pointer;
+                white-space: nowrap;
+                transition: none;
+            }
+            
+            .subcategory-chip.active {
+                background: rgba(0, 122, 255, 0.3);
+                border-color: rgba(0, 122, 255, 0.4);
+                color: #007AFF;
+            }
+            
+            .results-container {
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .room-section {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .room-header {
+                font-size: 16px;
+                font-weight: 700;
+                color: #1d1d1f;
+                margin: 0;
+                letter-spacing: -0.02em;
+            }
+            
+            .devices-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 12px;
+            }
+            
+            .device-card {
+                background: rgba(255, 255, 255, 0.4);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 12px;
+                padding: 12px;
+                cursor: pointer;
+                transition: none;
+                position: relative;
+                overflow: hidden;
+                aspect-ratio: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+            
+            .device-card.active {
+                background: rgba(0, 122, 255, 0.2);
+                border-color: rgba(0, 122, 255, 0.4);
+                box-shadow: 0 4px 16px rgba(0, 122, 255, 0.2);
+            }
+            
+            .device-icon {
+                width: 24px;
+                height: 24px;
+                background: rgba(0, 0, 0, 0.1);
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+                margin-bottom: auto;
+            }
+            
+            .device-card.active .device-icon {
+                background: rgba(0, 122, 255, 0.3);
+                color: #007AFF;
+            }
+            
+            .device-info {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+            
+            .device-name {
+                font-size: 12px;
+                font-weight: 600;
+                color: #1d1d1f;
+                margin: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .device-status {
+                font-size: 10px;
+                color: rgba(29, 29, 31, 0.6);
+                margin: 0;
+            }
+            
+            .device-card.active .device-status {
+                color: #007AFF;
+            }
+            
+            .empty-state {
+                text-align: center;
+                padding: 40px 20px;
+                color: rgba(29, 29, 31, 0.6);
+            }
+            
+            .empty-icon {
+                font-size: 32px;
+                margin-bottom: 12px;
+                opacity: 0.5;
+            }
+            
+            .empty-title {
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 6px;
+                color: #1d1d1f;
+            }
+            
+            .empty-subtitle {
+                font-size: 12px;
+                line-height: 1.4;
+            }
+            
+            /* Focus Ring Animation for Panel */
+            .search-panel::before {
+                content: '';
+                position: absolute;
+                inset: -2px;
+                background: linear-gradient(45deg, #007AFF, #5856D6, #AF52DE, #007AFF);
+                border-radius: 26px;
+                opacity: 0;
+                z-index: -1;
+                transition: none;
+            }
+            
+            .search-panel.focused::before {
+                opacity: 1;
+            }
+            
+            /* Responsive */
+            @media (max-width: 768px) {
+                .search-wrapper {
+                    gap: 12px;
+                    padding: 14px 16px;
                 }
-
-                .main-container {
-                    width: 100%;
-                    max-width: 600px;           /* ← Wichtig: Breite begrenzen */
-                    margin: 0 auto;
-                    display: flex;
-                    flex-direction: column;     /* ← Wichtig: vertical für Panel */
-                    gap: 0;
+                
+                .category-buttons {
+                    gap: 8px;
                 }
-
-                .search-panel {
-                    background: 
-                        linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                        rgba(255, 255, 255, 0.7);
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                    border-radius: 24px;
-                    box-shadow: 
-                        0 8px 32px rgba(0, 0, 0, 0.12),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.5);
-                    overflow: visible;              /* ← GEÄNDERT von hidden zu visible */
-                    transition: none;
-                    max-height: none;               /* ← GEÄNDERT von 80px zu none */
-                    min-height: 300px;              /* ← HINZUGEFÜGT für Geräte-Liste */
-                    position: relative;
-                    padding: 16px;                  /* ← HINZUGEFÜGT für Innenabstand */
+                
+                .category-button {
+                    width: 46px;
+                    height: 46px;
                 }
-
-                .search-panel.expanded {
-                    max-height: 400px;
-                }
-
-.search-wrapper {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    position: relative;
-    width: 100%;
-    min-height: 48px;
-    box-sizing: border-box;
-    flex-wrap: nowrap;
-}
-
-.searchbar-container {
-    flex: 1;                     /* ← WICHTIG: nimmt verfügbaren Platz */
-    min-width: 0;
-    order: 2;                    /* ← REIHENFOLGE: 2. Position */
-}
-
-                .searchbar-container {
-                    flex: 1;
-                    min-width: 0;
+                
+                .category-button svg {
+                    width: 20px;
+                    height: 20px;
                 }
                 
                 .searchbar {
-                    width: 100%;
-                    height: 44px;
-                    border: none;
-                    background: transparent;
-                    outline: none;
-                    font-size: 17px;
-                    color: rgba(29, 29, 31, 0.9);
-                    padding: 0;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    display: block;              /* ← HINZUFÜGEN falls fehlt */
-                    visibility: visible;         /* ← HINZUFÜGEN falls fehlt */
+                    font-size: 16px;
                 }
                 
-                .searchbar:focus {
-                    background: transparent;
-                }
-                .searchbar::placeholder {
-                    color: rgba(29, 29, 31, 0.6);
-                    font-weight: 400;
-                }
-
-.category-icon {
-    order: 1;                    /* ← REIHENFOLGE: 1. Position (links) */
-    flex-shrink: 0;
-}
-
-                .filter-icon {
-                    order: 4;                    /* ← REIHENFOLGE: 4. Position (ganz rechts) */
-                    flex-shrink: 0;
-                }
-                                
+                .category-icon svg,
+                .close-icon svg,
                 .filter-icon svg {
                     width: 20px;
                     height: 20px;
-                    stroke: rgba(29, 29, 31, 0.7);
                 }
-
-.close-icon {
-    order: 3;                    /* ← REIHENFOLGE: 3. Position */
-    flex-shrink: 0;
-}
-
-                .category-icon svg,
-                .close-icon svg {
-                    width: 100%;
-                    height: 100%;
-                    fill: none;
-                    stroke: currentColor;
-                    stroke-width: 2;
-                    stroke-linecap: round;
-                    stroke-linejoin: round;
-                }
-
-                .close-icon.visible {
-                    opacity: 1;
-                    pointer-events: auto;
-                    transform: scale(1);
-                }
-
-                /* Category Colors */
-                .category-devices { color: #007AFF; }
-                .category-scripts { color: #34C759; }
-                .category-automations { color: #FF9500; }
-                .category-scenes { color: #AF52DE; }
-
-                /* Category Buttons */
-.category-buttons {
-    order: 5;                    /* ← REIHENFOLGE: 5. Position (nach Filter) */
-    flex-shrink: 0;
-}
-
-                .category-buttons.visible {
-                    opacity: 1;
-                    pointer-events: all;
-                }                
-
-                .category-buttons.expanded {
-                    width: auto;
-                    opacity: 1;
-                    pointer-events: auto;
-                }
-
-                .category-button {
-                    width: 52px;
-                    height: 52px;
-                    background: 
-                        linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                        rgba(255, 255, 255, 0.7);
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    box-shadow: 
-                        0 8px 32px rgba(0, 0, 0, 0.12),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.5);
-                    transition: none;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .category-button.category-devices.active {
-                    background: 
-                        linear-gradient(135deg, rgba(0, 122, 255, 0.9) 0%, rgba(0, 122, 255, 0.7) 100%),
-                        rgba(0, 122, 255, 0.8);
-                    border-color: #007AFF;
-                    box-shadow: 
-                        0 8px 32px rgba(0, 122, 255, 0.3),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                }
-
-                .category-button.category-scripts.active {
-                    background: 
-                        linear-gradient(135deg, rgba(52, 199, 89, 0.9) 0%, rgba(52, 199, 89, 0.7) 100%),
-                        rgba(52, 199, 89, 0.8);
-                    border-color: #34C759;
-                    box-shadow: 
-                        0 8px 32px rgba(52, 199, 89, 0.3),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                }
-
-                .category-button.category-automations.active {
-                    background: 
-                        linear-gradient(135deg, rgba(255, 149, 0, 0.9) 0%, rgba(255, 149, 0, 0.7) 100%),
-                        rgba(255, 149, 0, 0.8);
-                    border-color: #FF9500;
-                    box-shadow: 
-                        0 8px 32px rgba(255, 149, 0, 0.3),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                }
-
-                .category-button.category-scenes.active {
-                    background: 
-                        linear-gradient(135deg, rgba(175, 82, 222, 0.9) 0%, rgba(175, 82, 222, 0.7) 100%),
-                        rgba(175, 82, 222, 0.8);
-                    border-color: #AF52DE;
-                    box-shadow: 
-                        0 8px 32px rgba(175, 82, 222, 0.3),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                }
-
-                .category-button svg {
-                    width: 24px;
-                    height: 24px;
-                    fill: none;
-                    stroke: currentColor;
-                    stroke-width: 2;
-                    stroke-linecap: round;
-                    stroke-linejoin: round;
-                }
-
-                .category-button.active svg {
-                    color: white;
-                }
-
-                /* Subcategories */
+                
                 .subcategories {
-                    display: flex;
-                    gap: 8px;
-                    overflow-x: auto;
-                    padding: 12px 20px;
-                    scrollbar-width: none;
-                    -ms-overflow-style: none;
-                    -webkit-overflow-scrolling: touch;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-                    background: rgba(255, 255, 255, 0.05);
+                    padding: 10px 16px;
                 }
-
-                .subcategories::-webkit-scrollbar {
-                    display: none;
-                }
-
-                .subcategory-chip {
-                    background: rgba(255, 255, 255, 0.3);
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 16px;
-                    padding: 6px 12px;
-                    font-size: 13px;
-                    font-weight: 500;
-                    color: rgba(29, 29, 31, 0.8);
-                    white-space: nowrap;
-                    cursor: pointer;
-                    transition: none;
-                    flex-shrink: 0;
-                }
-
-                .subcategory-chip.active {
-                    background: rgba(0, 122, 255, 0.9);
-                    border-color: rgba(0, 122, 255, 0.7);
-                    color: white;
-                    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
-                }
-
-                /* Results Container */
+                
                 .results-container {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 16px;
-                    padding: 16px 20px;
-                    max-height: 280px;
-                    overflow-y: auto;
-                    scrollbar-width: thin;
-                    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+                    padding: 12px 16px;
                 }
-
-                .results-container::-webkit-scrollbar {
-                    width: 6px;
-                }
-
-                .results-container::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-
-                .results-container::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.3);
-                    border-radius: 3px;
-                }
-
-                .room-section {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                }
-
-                .room-header {
-                    font-size: 16px;
-                    font-weight: 700;
-                    color: #1d1d1f;
-                    margin: 0;
-                    letter-spacing: -0.02em;
-                }
-
+                
                 .devices-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                    gap: 12px;
+                    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                    gap: 8px;
                 }
-
-                .device-card {
-                    background: rgba(255, 255, 255, 0.4);
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                    border-radius: 12px;
-                    padding: 12px;
-                    cursor: pointer;
-                    transition: none;
-                    position: relative;
-                    overflow: hidden;
-                    aspect-ratio: 1;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
-                }
-
-                .device-card.active {
-                    background: rgba(0, 122, 255, 0.2);
-                    border-color: rgba(0, 122, 255, 0.4);
-                    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.2);
-                }
-
-                .device-icon {
-                    width: 24px;
-                    height: 24px;
-                    background: rgba(0, 0, 0, 0.1);
-                    border-radius: 6px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 14px;
-                    margin-bottom: auto;
-                }
-
-                .device-card.active .device-icon {
-                    background: rgba(0, 122, 255, 0.3);
-                    color: #007AFF;
-                }
-
-                .device-info {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
-                }
-
-                .device-name {
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: #1d1d1f;
-                    margin: 0;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-
-                .device-status {
-                    font-size: 10px;
-                    color: rgba(29, 29, 31, 0.6);
-                    margin: 0;
-                }
-
-                .device-card.active .device-status {
-                    color: #007AFF;
-                }
-
-                .empty-state {
-                    text-align: center;
-                    padding: 40px 20px;
-                    color: rgba(29, 29, 31, 0.6);
-                }
-
-                .empty-icon {
-                    font-size: 32px;
-                    margin-bottom: 12px;
-                    opacity: 0.5;
-                }
-
-                .empty-title {
-                    font-size: 16px;
-                    font-weight: 600;
-                    margin-bottom: 6px;
-                    color: #1d1d1f;
-                }
-
-                .empty-subtitle {
-                    font-size: 12px;
-                    line-height: 1.4;
-                }
-
-                /* Focus Ring Animation for Panel */
-                .search-panel::before {
-                    content: '';
-                    position: absolute;
-                    inset: -2px;
-                    background: linear-gradient(45deg, #007AFF, #5856D6, #AF52DE, #007AFF);
-                    border-radius: 26px;
-                    opacity: 0;
-                    z-index: -1;
-                    transition: none;
-                }
-
-                .search-panel.focused::before {
-                    opacity: 1;
-                }
-
-                /* Responsive */
-                @media (max-width: 768px) {
-                    .search-wrapper {
-                        gap: 12px;
-                        padding: 14px 16px;
-                    }
-                    
-                    .category-buttons {
-                        gap: 8px;
-                    }
-                    
-                    .category-button {
-                        width: 46px;
-                        height: 46px;
-                    }
-                    
-                    .category-button svg {
-                        width: 20px;
-                        height: 20px;
-                    }
-                    
-                    .searchbar {
-                        font-size: 16px;
-                    }
-                    
-                    .category-icon,
-                    .close-icon {
-                        width: 20px;
-                        height: 20px;
-                    }
-                    
-                    .subcategories {
-                        padding: 10px 16px;
-                    }
-                    
-                    .results-container {
-                        padding: 12px 16px;
-                    }
-                    
-                    .devices-grid {
-                        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                        gap: 8px;
-                    }
-                }
+            }
             </style>
+
+
 
             <div class="main-container">
                 <div class="search-panel">
