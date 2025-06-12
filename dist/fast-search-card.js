@@ -665,7 +665,7 @@ class FastSearchCard extends HTMLElement {
             if (!this.isPanelExpanded) {
                 this.expandPanel();
             } else {
-                this.toggleCategoryView();  // ← NEUE FUNKTION
+                this.toggleCategoryView();  // ← GEÄNDERT
             }
         });
         
@@ -692,18 +692,7 @@ class FastSearchCard extends HTMLElement {
             if (!e.target.closest('.search-panel') && this.isPanelExpanded) {
                 this.collapsePanel();
             }
-        });
-    
-        // HINZUFÜGEN: Category Icon Click Handler für Menu Toggle
-        const categoryIcon = this.shadowRoot.querySelector('.category-icon');
-        categoryIcon.addEventListener('click', () => {
-            if (!this.isPanelExpanded) {
-                this.expandPanel();
-            } else {
-                // Toggle zwischen Device View und Menu View
-                this.toggleCategoryView();
-            }
-        });        
+        });      
     }
 
     updateItems() {
