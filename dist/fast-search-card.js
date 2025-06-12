@@ -101,7 +101,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 gap: 12px;
                 padding: 14px 16px;
-                position: relative;
+                position: static;
                 width: 100%;
                 min-height: 48px;
                 box-sizing: border-box;
