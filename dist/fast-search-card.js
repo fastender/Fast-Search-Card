@@ -103,24 +103,35 @@ class FastSearchCard extends HTMLElement {
                 padding: 0px;
             }
 
+            .search-content {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 14px 16px;
+                width: 100%;
+                box-sizing: border-box;
+            }            
+
             .search-panel.collapsed {
                 max-height: 72px;  /* Nur Searchbar sichtbar */
                 overflow: hidden;
             }            
             
             .search-wrapper {
+                flex: 1;
                 display: flex;
                 flex-direction: row;
                 align-items: center;
-                gap: 0;  /* Kein Gap, nutze margin stattdessen */
-                padding: 14px 16px;
+                gap: 0;
                 position: relative;
-                width: 100%;
                 min-height: 48px;
                 box-sizing: border-box;
-                flex-wrap: nowrap;
-                transition: none;
+                transition: none; /* KEINE CSS Transitions! */
             }
+
+            .search-wrapper.shrunk {
+                flex: 0 0 auto;
+            }            
             
             .category-icon {
                 order: 1;
@@ -151,11 +162,7 @@ class FastSearchCard extends HTMLElement {
                 flex: 1;
                 min-width: 0;
                 order: 2;
-                transition: flex 0.4s cubic-bezier(0.16, 1, 0.3, 1);  /* Animiere flex */
-            }
-            
-            .searchbar-container.shrunk {
-                flex: 0 1 auto;  /* Verkleinert sich wenn shrunk */
+                transition: none;
             }
             
             .searchbar {
@@ -489,49 +496,50 @@ class FastSearchCard extends HTMLElement {
             }
             </style>
 
-
             <div class="main-container">
                 <div class="search-panel collapsed">
-                    <div class="search-wrapper">
-                        <div class="category-icon category-devices">
-                            <svg viewBox="0 0 24 24">
-                                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                <path d="M12 18h.01"/>
-                            </svg>
-                        </div>
-                        
-                        <div class="searchbar-container">
-                            <input 
-                                type="text" 
-                                class="searchbar" 
-                                placeholder="Geräte suchen..."
-                                autocomplete="off"
-                                spellcheck="false"
-                            >
-                        </div>
-                        
-                        <div class="close-icon">
-                            <svg viewBox="0 0 24 24">
-                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                <line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
-                        </div>
+                    <div class="search-content"> <!-- NEUER CONTAINER! -->
+                        <div class="search-wrapper">
+                            <div class="category-icon category-devices">
+                                <svg viewBox="0 0 24 24">
+                                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                    <path d="M12 18h.01"/>
+                                </svg>
+                            </div>
+                            
+                            <div class="searchbar-container">
+                                <input 
+                                    type="text" 
+                                    class="searchbar" 
+                                    placeholder="Geräte suchen..."
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                >
+                            </div>
+                            
+                            <div class="close-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </div>
             
-                        <div class="filter-icon">
-                            <svg viewBox="0 0 24 24">
-                                <line x1="4" y1="21" x2="4" y2="14"/>
-                                <line x1="4" y1="10" x2="4" y2="3"/>
-                                <line x1="12" y1="21" x2="12" y2="12"/>
-                                <line x1="12" y1="8" x2="12" y2="3"/>
-                                <line x1="20" y1="21" x2="20" y2="16"/>
-                                <line x1="20" y1="12" x2="20" y2="3"/>
-                                <line x1="1" y1="14" x2="7" y2="14"/>
-                                <line x1="9" y1="8" x2="15" y2="8"/>
-                                <line x1="17" y1="16" x2="23" y2="16"/>
-                            </svg>
-                        </div>
+                            <div class="filter-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <line x1="4" y1="21" x2="4" y2="14"/>
+                                    <line x1="4" y1="10" x2="4" y2="3"/>
+                                    <line x1="12" y1="21" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12" y2="3"/>
+                                    <line x1="20" y1="21" x2="20" y2="16"/>
+                                    <line x1="20" y1="12" x2="20" y2="3"/>
+                                    <line x1="1" y1="14" x2="7" y2="14"/>
+                                    <line x1="9" y1="8" x2="15" y2="8"/>
+                                    <line x1="17" y1="16" x2="23" y2="16"/>
+                                </svg>
+                            </div>
+                        </div> <!-- search-wrapper Ende -->
                         
-                        <!-- WICHTIG: Category Buttons HIER innerhalb search-wrapper! -->
+                        <!-- Category Buttons AUSSERHALB! -->
                         <div class="category-buttons">
                             <button class="category-button category-devices" data-category="devices" title="Geräte">
                                 <svg viewBox="0 0 24 24">
@@ -568,7 +576,7 @@ class FastSearchCard extends HTMLElement {
                                 </svg>
                             </button>
                         </div>
-                    </div> <!-- search-wrapper Ende -->
+                    </div> <!-- search-content Ende -->
             
                     <div class="subcategories">
                         <div class="subcategory-chip active" data-subcategory="all">Alle</div>
@@ -1224,49 +1232,45 @@ class FastSearchCard extends HTMLElement {
     }    
 
     showCategoryButtons() {
-        const searchbarContainer = this.shadowRoot.querySelector('.searchbar-container');
+        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         
         this.isMenuView = true;
         
-        // Aktuelle Breite messen
-        const currentWidth = searchbarContainer.offsetWidth;
-        const targetWidth = Math.floor(currentWidth * 0.5); // 50% der Breite
-        
-        // 1. Filter Icon ausblenden
+        // 1. Filter Icon verstecken
         filterIcon.animate([
-            { opacity: 1, transform: 'scale(1)' },
-            { opacity: 0, transform: 'scale(0.8)' }
+            { opacity: 1 },
+            { opacity: 0 }
         ], {
             duration: 200,
-            fill: 'forwards',
-            easing: 'ease-in'
+            fill: 'forwards'
+        }).finished.then(() => {
+            filterIcon.style.display = 'none';
         });
         
-        // 2. Searchbar verkleinern
-        searchbarContainer.animate([
-            { width: `${currentWidth}px` },
-            { width: `${targetWidth}px` }
+        // 2. Search-wrapper verkleinern
+        searchWrapper.animate([
+            { flex: '1 1 auto' },
+            { flex: '0 0 auto' }
         ], {
             duration: 400,
             fill: 'forwards',
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
         });
         
-        // 3. Category Buttons Container vorbereiten und einblenden
-        categoryButtons.style.display = 'flex'; // Muss sichtbar sein für Animation
-        
+        // 3. Category Buttons einblenden
+        categoryButtons.style.display = 'flex';
         categoryButtons.animate([
             { 
-                width: '0px',
                 opacity: 0,
-                marginLeft: '0px'
+                width: '0px',
+                transform: 'translateX(-20px)'
             },
             { 
-                width: '240px', // 4 buttons * 52px + 3 gaps * 12px
                 opacity: 1,
-                marginLeft: '16px'
+                width: '240px',
+                transform: 'translateX(0)'
             }
         ], {
             duration: 400,
@@ -1279,99 +1283,62 @@ class FastSearchCard extends HTMLElement {
         const buttons = categoryButtons.querySelectorAll('.category-button');
         buttons.forEach((button, index) => {
             button.animate([
-                { 
-                    opacity: 0,
-                    transform: 'scale(0.5) translateX(-20px)'
-                },
-                { 
-                    opacity: 1,
-                    transform: 'scale(1) translateX(0)'
-                }
+                { opacity: 0, transform: 'scale(0.5)' },
+                { opacity: 1, transform: 'scale(1)' }
             ], {
                 duration: 300,
                 delay: 300 + (index * 50),
-                fill: 'forwards',
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                fill: 'forwards'
             });
         });
-        
-        console.log('Category buttons shown with Web Animations API');
     }
     
     hideCategoryButtons() {
-        const searchbarContainer = this.shadowRoot.querySelector('.searchbar-container');
+        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        const buttons = categoryButtons.querySelectorAll('.category-button');
         
-        // 1. Buttons einzeln ausblenden
-        const buttonAnimations = [];
-        buttons.forEach((button, index) => {
-            const animation = button.animate([
-                { 
-                    opacity: 1,
-                    transform: 'scale(1) translateX(0)'
-                },
-                { 
-                    opacity: 0,
-                    transform: 'scale(0.5) translateX(-20px)'
-                }
-            ], {
-                duration: 200,
-                delay: index * 30,
-                fill: 'forwards',
-                easing: 'ease-in'
-            });
-            buttonAnimations.push(animation);
-        });
-        
-        // 2. Category Buttons Container ausblenden
-        const containerAnimation = categoryButtons.animate([
+        // 1. Buttons ausblenden
+        categoryButtons.animate([
             { 
-                width: '240px',
                 opacity: 1,
-                marginLeft: '16px'
+                width: '240px',
+                transform: 'translateX(0)'
             },
             { 
-                width: '0px',
                 opacity: 0,
-                marginLeft: '0px'
+                width: '0px',
+                transform: 'translateX(-20px)'
             }
         ], {
             duration: 300,
-            delay: 150,
             fill: 'forwards',
             easing: 'ease-in'
+        }).finished.then(() => {
+            categoryButtons.style.display = 'none';
+            this.isMenuView = false;
         });
         
-        // 3. Searchbar wieder vergrößern
-        searchbarContainer.animate([
-            { width: searchbarContainer.offsetWidth + 'px' },
-            { width: '100%' }
+        // 2. Search-wrapper wieder vergrößern
+        searchWrapper.animate([
+            { flex: '0 0 auto' },
+            { flex: '1 1 auto' }
         ], {
             duration: 400,
             fill: 'forwards',
             easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
         });
         
-        // 4. Filter Icon wieder einblenden
+        // 3. Filter Icon wieder zeigen
+        filterIcon.style.display = 'flex';
         filterIcon.animate([
-            { opacity: 0, transform: 'scale(0.8)' },
-            { opacity: 1, transform: 'scale(1)' }
+            { opacity: 0 },
+            { opacity: 1 }
         ], {
             duration: 300,
-            delay: 300,
-            fill: 'forwards',
-            easing: 'ease-out'
+            delay: 200,
+            fill: 'forwards'
         });
-        
-        // 5. Cleanup nach allen Animationen
-        Promise.all([containerAnimation.finished, ...buttonAnimations.map(a => a.finished)])
-            .then(() => {
-                categoryButtons.style.display = 'none';
-                this.isMenuView = false;
-                console.log('Category buttons hidden with Web Animations API');
-            });
     }
 
     
