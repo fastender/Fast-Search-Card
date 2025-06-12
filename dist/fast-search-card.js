@@ -670,16 +670,18 @@ class FastSearchCard extends HTMLElement {
             chip.addEventListener('click', () => this.onSubcategorySelect(chip));
         });
 
-        // Click outside to collapse panel
+
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-panel')) {
+            // Nur schließen wenn NICHT auf Panel-Inhalt geklickt wird
+            if (!e.target.closest('.search-panel') && !e.target.closest('.subcategory-chip')) {
                 if (this.isMenuView) {
                     this.collapseButtons();
                     this.isMenuView = false;
                 }
-                if (this.isPanelExpanded) {
-                    this.collapsePanel();
-                }
+                // ENTFERNEN: Panel auto-close (Panel soll offen bleiben)
+                // if (this.isPanelExpanded) {
+                //     this.collapsePanel();
+                // }
             }
         });
     }
@@ -1569,7 +1571,10 @@ class FastSearchCard extends HTMLElement {
 
     onSubcategorySelect(chip) {
         const subcategory = chip.dataset.subcategory;
-        
+
+        // Event Propagation stoppen
+        event.stopPropagation();  // ← HINZUFÜGEN
+           
         if (subcategory === this.activeSubcategory) return;
         
         // Update active state
