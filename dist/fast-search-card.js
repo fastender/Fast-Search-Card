@@ -10,6 +10,8 @@ class FastSearchCard extends HTMLElement {
         this.filteredItems = [];
         this.activeFilter = 'all';
         this.isSearching = false;
+        this.animationTimeouts = []; // Animation cleanup
+        this.hasAnimated = false; // Prevent re-animation
     }
 
     setConfig(config) {
@@ -476,6 +478,7 @@ class FastSearchCard extends HTMLElement {
         });
         
         this.activeFilter = filter;
+        this.hasAnimated = false; // Reset animation flag for new filter
         this.filterItems();
     }
 
@@ -634,6 +637,10 @@ class FastSearchCard extends HTMLElement {
     renderResults() {
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
         
+        // Clear any pending animations
+        this.animationTimeouts.forEach(timeout => clearTimeout(timeout));
+        this.animationTimeouts = [];
+        
         if (this.filteredItems.length === 0) {
             resultsGrid.innerHTML = `
                 <div class="empty-state">
@@ -652,14 +659,19 @@ class FastSearchCard extends HTMLElement {
             const card = this.createDeviceCard(item);
             resultsGrid.appendChild(card);
             
-            // Staggered entrance animation
-            setTimeout(() => {
-                this.animateElementIn(card, {
-                    opacity: [0, 1],
-                    transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)']
-                });
-            }, index * 50);
+            // Only animate on first render or when filter changes
+            if (!this.hasAnimated) {
+                const timeout = setTimeout(() => {
+                    this.animateElementIn(card, {
+                        opacity: [0, 1],
+                        transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)']
+                    });
+                }, index * 50);
+                this.animationTimeouts.push(timeout);
+            }
         });
+        
+        this.hasAnimated = true;
     }
 
     createDeviceCard(item) {
