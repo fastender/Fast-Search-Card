@@ -870,13 +870,17 @@ class FastSearchCard extends HTMLElement {
 
     // Event Handlers
     expandPanel() {
-        if (this.isPanelExpanded || this.isMenuView) return;  // Nicht expandieren im Menu View
-        
-        if (this.isPanelExpanded) return;
+        if (this.isPanelExpanded || this.isMenuView) return;
         
         this.isPanelExpanded = true;
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        
+        searchPanel.classList.remove('collapsed');  // ← NEU HINZUFÜGEN
         searchPanel.classList.add('expanded');
+        
+        // Results Container anzeigen
+        resultsContainer.style.display = 'block';  // ← NEU HINZUFÜGEN
         
         // Smooth panel expansion animation
         searchPanel.animate([
@@ -887,7 +891,12 @@ class FastSearchCard extends HTMLElement {
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
             fill: 'forwards'
         });
-
+    
+        // INITIAL "Alle" anzeigen wenn keine Suche aktiv
+        if (!this.searchValue.trim()) {
+            this.showAllDevices();  // ← NEU HINZUFÜGEN
+        }
+    
         console.log('Panel expanded - Spotlight mode');
     }
 
@@ -1047,13 +1056,17 @@ class FastSearchCard extends HTMLElement {
     onFocus() {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         searchPanel.classList.add('focused');
-
+    
         // Nur expandieren wenn nicht im Menu View
         if (!this.isMenuView) {
             this.expandPanel();
+            
+            // Initial "Alle" anzeigen wenn noch keine Ergebnisse da sind
+            if (this.filteredItems.length === 0 && !this.searchValue.trim()) {
+                this.activeSubcategory = 'all';  // ← NEU HINZUFÜGEN
+                this.showAllDevices();  // ← NEU HINZUFÜGEN
+            }
         }
-        
-        this.expandPanel();
         
         // Focus animation
         searchPanel.animate([
@@ -1145,24 +1158,14 @@ class FastSearchCard extends HTMLElement {
     }
 
     showAllDevices() {
-        // Alle Devices der aktuellen Kategorie anzeigen
-        this.filteredItems = this.allItems.filter(item => {
-            if (this.activeCategory === 'devices') {
-                return item.type && item.type !== 'script' && item.type !== 'automation' && item.type !== 'scene';
-            } else if (this.activeCategory === 'scripts') {
-                return item.type === 'script';
-            } else if (this.activeCategory === 'automations') {
-                return item.type === 'automation';
-            } else if (this.activeCategory === 'scenes') {
-                return item.type === 'scene';
-            }
-            return true;
-        });
+        // Bei "Alle" -> alle Items der aktuellen Kategorie anzeigen
+        this.filteredItems = [...this.allItems];  // ← Alle Items kopieren
+        
+        console.log(`Showing all devices: ${this.filteredItems.length} items`);
+        console.log('All items:', this.filteredItems);
         
         this.renderResults();
-        
-        console.log(`Showing all ${this.activeCategory}: ${this.filteredItems.length} items`);
-    }    
+    }
 
     showCloseIcon() {
         const closeIcon = this.shadowRoot.querySelector('.close-icon');
@@ -1443,46 +1446,53 @@ class FastSearchCard extends HTMLElement {
         const subcategory = chip.dataset.subcategory;
         
         // Event Propagation stoppen
-        if (event) event.stopPropagation();
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         
         if (subcategory === this.activeSubcategory) return;
         
         // Update active state
-        this.shadowRoot.querySelector('.subcategory-chip.active').classList.remove('active');
+        this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
         this.activeSubcategory = subcategory;
         
         // Animate chip selection
         chip.animate([
-            { transform: 'scale(1)', filter: 'brightness(1)' },
-            { transform: 'scale(1.05)', filter: 'brightness(1.1)' },
-            { transform: 'scale(1)', filter: 'brightness(1)' }
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.05)' },
+            { transform: 'scale(1)' }
         ], {
             duration: 200,
             easing: 'ease-out'
         });
         
-        // Filter entities basierend auf Domain
+        // Filter entities
         this.filterByDomain(subcategory);
         
-        console.log(`Selected subcategory: ${subcategory}`);
+        console.log(`✅ Selected subcategory: ${subcategory}`);
     }
 
     filterByDomain(subcategory) {
+        console.log(`🔍 filterByDomain called with: ${subcategory}`);
+        console.log(`📦 Available items: ${this.allItems.length}`);
+        
         if (subcategory === 'all') {
-            this.filteredItems = [...this.allItems];  // ← KOPIE erstellen
+            this.filteredItems = [...this.allItems];  // ← Kopie aller Items
         } else {
             const domainMap = {
-                'lights': ['light', 'switch'],      // ← lights UND switches
-                'climate': ['climate'],
+                'lights': ['light', 'switch'],
+                'climate': ['climate', 'fan'],  // ← fan hinzugefügt
                 'covers': ['cover'],
                 'media': ['media_player']
             };
             
             const domains = domainMap[subcategory] || [];
             this.filteredItems = this.allItems.filter(item => {
-                console.log(`Checking item: ${item.name}, domain: ${item.domain}, subcategory: ${subcategory}`);
-                return domains.includes(item.domain);
+                const match = domains.includes(item.domain);
+                console.log(`Item: ${item.name}, domain: ${item.domain}, match: ${match}`);
+                return match;
             });
         }
         
