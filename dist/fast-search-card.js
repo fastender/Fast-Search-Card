@@ -87,12 +87,13 @@ class FastSearchCard extends HTMLElement {
             .search-row {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 20px;
                 width: 100%;
             }
             
             .search-panel {
                 flex: 1;
+                min-width: 200px;
                 background: 
                     linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
                     rgba(255, 255, 255, 0.7);
@@ -112,9 +113,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .search-panel.shrunk {
-                flex: 0 0 auto;
-                max-width: calc(100% - 240px);
-                min-width: 200px;
+                flex: 1;
             }            
 
             .search-content {
@@ -248,9 +247,9 @@ class FastSearchCard extends HTMLElement {
             .category-buttons {
                 display: none;
                 gap: 8px;
-                flex-shrink: 0;
+                flex: 0 0 auto;
+                width: auto;
                 overflow: hidden;
-                width: 220px;
             }
                         
             .category-button {
@@ -1264,16 +1263,16 @@ class FastSearchCard extends HTMLElement {
             filterIcon.style.display = 'none';
         });
         
-        // 2. GANZES SEARCH-PANEL verkleinern
-        searchPanel.classList.add('shrunk');
-        searchPanel.animate([
+        // 2. Category Buttons einblenden - KEINE Panel-Resize Animation!
+        categoryButtons.style.display = 'flex';
+        categoryButtons.animate([
             { 
-                flex: '1 1 auto',
-                maxWidth: '100%'
+                opacity: 0,
+                transform: 'scaleX(0)'  /* ← Skalierung statt Width */
             },
             { 
-                flex: '0 0 auto',
-                maxWidth: 'calc(100% - 240px)'  /* ← ÄNDERT von 60% */
+                opacity: 1,
+                transform: 'scaleX(1)'
             }
         ], {
             duration: 400,
@@ -1303,7 +1302,6 @@ class FastSearchCard extends HTMLElement {
     }      
     
     hideCategoryButtons() {
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         
@@ -1311,13 +1309,11 @@ class FastSearchCard extends HTMLElement {
         categoryButtons.animate([
             { 
                 opacity: 1,
-                width: '220px',
-                transform: 'translateX(0)'
+                transform: 'scaleX(1)'
             },
             { 
                 opacity: 0,
-                width: '0px',
-                transform: 'translateX(20px)'
+                transform: 'scaleX(0)'
             }
         ], {
             duration: 300,
@@ -1328,25 +1324,7 @@ class FastSearchCard extends HTMLElement {
             this.isMenuView = false;
         });
         
-        // 2. GANZES SEARCH-PANEL wieder vergrößern
-        searchPanel.classList.remove('shrunk');
-        searchPanel.animate([
-            { 
-                flex: '0 0 auto',
-                maxWidth: 'calc(100% - 240px)'  /* ← ÄNDERT von 60% */
-            },
-            { 
-                flex: '1 1 auto',
-                maxWidth: '100%'
-            }
-        ], {
-            duration: 400,
-            delay: 200,
-            fill: 'forwards',
-            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-        });
-        
-        // 3. Filter Icon wieder zeigen
+        // 2. Filter Icon wieder zeigen
         setTimeout(() => {
             filterIcon.style.display = 'flex';
             filterIcon.animate([
@@ -1356,7 +1334,12 @@ class FastSearchCard extends HTMLElement {
                 duration: 300,
                 fill: 'forwards'
             });
-        }, 300);
+        }, 100);
+        
+        // KEINE searchPanel Animation mehr nötig!
+        // Flexbox macht das automatisch
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        searchPanel.classList.remove('shrunk');
     }
         
 
