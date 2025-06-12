@@ -259,29 +259,23 @@ class FastSearchCard extends HTMLElement {
                     rgba(255, 255, 255, 0.7);
                 backdrop-filter: blur(20px) saturate(1.8);
                 -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                border: 1px solid rgba(255, 255, 255, 0.3);
+                border: 0px solid rgba(255, 255, 255, 0.3);
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                box-shadow: 
-                    0 8px 32px rgba(0, 0, 0, 0.12),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
                 transition: none;
                 position: relative;
                 overflow: hidden;
             }
             
             .category-button.active {
-                border-width: 2px;
+                border-width: 0px;
                 background: 
                     linear-gradient(135deg, rgba(0, 122, 255, 0.4) 0%, rgba(0, 122, 255, 0.2) 100%),
                     rgba(0, 122, 255, 0.3);
                 border-color: rgba(0, 122, 255, 0.6);
-                box-shadow: 
-                    0 8px 32px rgba(0, 122, 255, 0.3),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
             }
             
             .category-button svg {
