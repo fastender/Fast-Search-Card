@@ -13,7 +13,7 @@ class FastSearchCard extends HTMLElement {
         this.searchValue = '';
         this.selectedFilters = new Set();
         this.isExpanded = false;
-        this.isPanelExpanded = false;
+        this.isPanelExpanded = true;
         this.activeCategory = 'devices';
         this.activeSubcategory = 'all';
         this.isMenuView = false;
@@ -698,19 +698,11 @@ class FastSearchCard extends HTMLElement {
         // Expand panel on any interaction
         searchbar.addEventListener('click', () => this.expandPanel());
         categoryIcon.addEventListener('click', () => {
-            if (!this.isPanelExpanded) {
-                // Panel expandieren und Menu anzeigen
-                this.expandPanel();
-                setTimeout(() => {
-                    this.expandButtons();
-                    this.isMenuView = true;
-                }, 300);
-            } else if (!this.isMenuView) {
-                // Nur Menu anzeigen wenn Panel bereits expanded
+            // Da Panel immer expanded ist, nur Menu togglen
+            if (!this.isMenuView) {
                 this.expandButtons();
                 this.isMenuView = true;
-            }
-            // KEIN else case = kein Toggle zurück
+            }  
         });
         
         // Close Icon Click
@@ -1124,6 +1116,10 @@ class FastSearchCard extends HTMLElement {
     performSearch(query) {
         const searchTerm = query.trim().toLowerCase();
         
+        console.log('🔍 Searching for:', searchTerm);
+        console.log('📦 All items count:', this.allItems.length);
+        console.log('📦 All items:', this.allItems);
+        
         if (searchTerm.length === 0) {
             this.showAllDevices();
             return;
@@ -1131,16 +1127,30 @@ class FastSearchCard extends HTMLElement {
         
         // Filter items basierend auf Search Query
         this.filteredItems = this.allItems.filter(item => {
-            return item.name.toLowerCase().includes(searchTerm) ||
-                   item.area.toLowerCase().includes(searchTerm) ||
-                   item.id.toLowerCase().includes(searchTerm);
+            const nameMatch = item.name.toLowerCase().includes(searchTerm);
+            const areaMatch = item.area.toLowerCase().includes(searchTerm);
+            const idMatch = item.id.toLowerCase().includes(searchTerm);
+            
+            const match = nameMatch || areaMatch || idMatch;
+            
+            if (match) {
+                console.log('✅ Match found:', {
+                    name: item.name,
+                    area: item.area,
+                    id: item.id,
+                    matchType: nameMatch ? 'name' : areaMatch ? 'area' : 'id'
+                });
+            }
+            
+            return match;
         });
         
         // Results anzeigen
         this.renderResults();
         
         console.log(`Search for "${searchTerm}" returned ${this.filteredItems.length} results`);
-    }    
+        console.log('📋 Filtered results:', this.filteredItems);
+    }
 
     showAllDevices() {
         // Alle Devices der aktuellen Kategorie anzeigen
