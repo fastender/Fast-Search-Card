@@ -82,6 +82,8 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 gap: 0;
+                position: relative;
+                z-index: 0;
             }
 
             .search-row {
@@ -250,8 +252,9 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 flex-shrink: 0;
                 overflow: hidden;
+                background: transparent;
                 position: relative;  /* ← Hinzufügen */
-                z-index: 1;         /* ← Hinzufügen */
+                z-index: 10;         /* ← Hinzufügen */
             }
                         
             .category-button {
