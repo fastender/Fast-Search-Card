@@ -424,18 +424,11 @@ class FastSearchCard extends HTMLElement {
             
             /* Focus Ring Animation for Panel */
             .search-panel::before {
-                content: '';
-                position: absolute;
-                inset: -2px;
-                background: linear-gradient(45deg, #007AFF, #5856D6, #AF52DE, #007AFF);
-                border-radius: 26px;
-                opacity: 0;
-                z-index: -1;
-                transition: none;
+                display: none;
             }
             
             .search-panel.focused::before {
-                opacity: 1;
+                display: none;
             }
             
             /* Responsive */
