@@ -1569,12 +1569,12 @@ class FastSearchCard extends HTMLElement {
         searchbar.placeholder = categoryData[this.activeCategory] || 'Suchen...';
     }
 
-    onSubcategorySelect(chip) {onSubcategorySelect(chip, event) {  // ← event Parameter hinzufügen
+    onSubcategorySelect(chip, event) {
         const subcategory = chip.dataset.subcategory;
-
+        
         // Event Propagation stoppen
-        if (event) event.stopPropagation();  // ← Sicher prüfen
-           
+        if (event) event.stopPropagation();
+        
         if (subcategory === this.activeSubcategory) return;
         
         // Update active state
