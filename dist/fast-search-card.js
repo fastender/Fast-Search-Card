@@ -118,7 +118,7 @@ class FastSearchCard extends HTMLElement {
             }            
             
             .search-wrapper {
-                flex: 1;
+                flex: 1 1 auto;
                 display: flex;
                 flex-direction: row;
                 align-items: center;
@@ -127,6 +127,7 @@ class FastSearchCard extends HTMLElement {
                 min-height: 48px;
                 box-sizing: border-box;
                 transition: none; /* KEINE CSS Transitions! */
+                width: 100%;
             }
 
             .search-wrapper.shrunk {
@@ -1238,7 +1239,11 @@ class FastSearchCard extends HTMLElement {
         
         this.isMenuView = true;
         
-        // 1. Filter Icon verstecken
+        // Aktuelle Breite messen
+        const currentWidth = searchWrapper.offsetWidth;
+        const targetWidth = Math.floor(currentWidth * 0.6); // 60% der Breite
+        
+        // 1. Filter Icon ausblenden
         filterIcon.animate([
             { opacity: 1 },
             { opacity: 0 }
@@ -1249,98 +1254,150 @@ class FastSearchCard extends HTMLElement {
             filterIcon.style.display = 'none';
         });
         
-        // 2. Search-wrapper verkleinern
+        // 2. Search-wrapper mit WIDTH animieren (nicht flex!)
         searchWrapper.animate([
-            { flex: '1 1 auto' },
-            { flex: '0 0 auto' }
-        ], {
-            duration: 400,
-            fill: 'forwards',
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-        });
-        
-        // 3. Category Buttons einblenden
-        categoryButtons.style.display = 'flex';
-        categoryButtons.animate([
             { 
-                opacity: 0,
-                width: '0px',
-                transform: 'translateX(-20px)'
+                width: `${currentWidth}px`,
+                minWidth: `${currentWidth}px`
             },
             { 
-                opacity: 1,
-                width: '240px',
-                transform: 'translateX(0)'
+                width: `${targetWidth}px`,
+                minWidth: `${targetWidth}px`
             }
         ], {
             duration: 400,
-            delay: 200,
             fill: 'forwards',
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
         });
         
-        // 4. Buttons einzeln animieren
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        buttons.forEach((button, index) => {
-            button.animate([
-                { opacity: 0, transform: 'scale(0.5)' },
-                { opacity: 1, transform: 'scale(1)' }
+        // 3. Category Buttons vorbereiten und anzeigen
+        categoryButtons.style.display = 'flex';
+        categoryButtons.style.opacity = '0';
+        
+        // 4. Buttons Container einblenden
+        setTimeout(() => {
+            categoryButtons.animate([
+                { 
+                    opacity: 0,
+                    width: '0px',
+                    transform: 'translateX(-20px)'
+                },
+                { 
+                    opacity: 1,
+                    width: '240px',
+                    transform: 'translateX(0)'
+                }
             ], {
-                duration: 300,
-                delay: 300 + (index * 50),
-                fill: 'forwards'
+                duration: 400,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
             });
-        });
-    }
+            
+            // 5. Einzelne Buttons animieren
+            const buttons = categoryButtons.querySelectorAll('.category-button');
+            buttons.forEach((button, index) => {
+                button.style.opacity = '0';
+                setTimeout(() => {
+                    button.animate([
+                        { 
+                            opacity: 0, 
+                            transform: 'scale(0.5) rotate(-180deg)' 
+                        },
+                        { 
+                            opacity: 1, 
+                            transform: 'scale(1) rotate(0deg)' 
+                        }
+                    ], {
+                        duration: 300,
+                        fill: 'forwards',
+                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                    });
+                }, 100 + (index * 50));
+            });
+        }, 200); // Warte bis search-wrapper Animation begonnen hat
+        
+        console.log('Category buttons showing - search wrapper shrinking');
+    }             
     
     hideCategoryButtons() {
         const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
+        const buttons = categoryButtons.querySelectorAll('.category-button');
         
-        // 1. Buttons ausblenden
-        categoryButtons.animate([
-            { 
-                opacity: 1,
-                width: '240px',
-                transform: 'translateX(0)'
-            },
-            { 
-                opacity: 0,
-                width: '0px',
-                transform: 'translateX(-20px)'
-            }
-        ], {
-            duration: 300,
-            fill: 'forwards',
-            easing: 'ease-in'
-        }).finished.then(() => {
-            categoryButtons.style.display = 'none';
-            this.isMenuView = false;
+        // 1. Einzelne Buttons ausblenden
+        buttons.forEach((button, index) => {
+            button.animate([
+                { 
+                    opacity: 1,
+                    transform: 'scale(1) rotate(0deg)'
+                },
+                { 
+                    opacity: 0,
+                    transform: 'scale(0.5) rotate(180deg)'
+                }
+            ], {
+                duration: 200,
+                delay: index * 30,
+                fill: 'forwards',
+                easing: 'ease-in'
+            });
         });
         
-        // 2. Search-wrapper wieder vergrößern
+        // 2. Buttons Container ausblenden
+        setTimeout(() => {
+            categoryButtons.animate([
+                { 
+                    opacity: 1,
+                    width: '240px',
+                    transform: 'translateX(0)'
+                },
+                { 
+                    opacity: 0,
+                    width: '0px',
+                    transform: 'translateX(-20px)'
+                }
+            ], {
+                duration: 300,
+                fill: 'forwards',
+                easing: 'ease-in'
+            }).finished.then(() => {
+                categoryButtons.style.display = 'none';
+                this.isMenuView = false;
+            });
+        }, buttons.length * 30);
+        
+        // 3. Search-wrapper wieder vergrößern
         searchWrapper.animate([
-            { flex: '0 0 auto' },
-            { flex: '1 1 auto' }
+            { 
+                width: searchWrapper.offsetWidth + 'px',
+                minWidth: searchWrapper.offsetWidth + 'px'
+            },
+            { 
+                width: '100%',
+                minWidth: 'auto'
+            }
         ], {
             duration: 400,
+            delay: 200,
             fill: 'forwards',
             easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
         });
         
-        // 3. Filter Icon wieder zeigen
-        filterIcon.style.display = 'flex';
-        filterIcon.animate([
-            { opacity: 0 },
-            { opacity: 1 }
-        ], {
-            duration: 300,
-            delay: 200,
-            fill: 'forwards'
-        });
-    }
-
+        // 4. Filter Icon wieder einblenden
+        setTimeout(() => {
+            filterIcon.style.display = 'flex';
+            filterIcon.animate([
+                { opacity: 0 },
+                { opacity: 1 }
+            ], {
+                duration: 300,
+                fill: 'forwards'
+            });
+        }, 300);
+        
+        console.log('Category buttons hiding - search wrapper expanding');
+    }        
     
 
     onCategorySelect(button) {
