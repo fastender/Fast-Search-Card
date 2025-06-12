@@ -13,7 +13,7 @@ class FastSearchCard extends HTMLElement {
         this.searchValue = '';
         this.selectedFilters = new Set();
         this.isExpanded = false;
-        this.isPanelExpanded = true;
+        this.isPanelExpanded = false;
         this.activeCategory = 'devices';
         this.activeSubcategory = 'all';
         this.isMenuView = false;
@@ -40,6 +40,14 @@ class FastSearchCard extends HTMLElement {
         
         this.currentSearchType = this._config.default_search_type;
         this.render();
+
+        // Stelle sicher dass Panel initial collapsed ist
+        setTimeout(() => {
+            const searchPanel = this.shadowRoot.querySelector('.search-panel');
+            searchPanel.classList.add('collapsed');
+            const resultsContainer = this.shadowRoot.querySelector('.results-container');
+            resultsContainer.style.display = 'none';
+        }, 0);        
     }
 
     set hass(hass) {
@@ -89,11 +97,16 @@ class FastSearchCard extends HTMLElement {
                     inset 0 1px 0 rgba(255, 255, 255, 0.5);
                 overflow: hidden;
                 transition: none;
-                max-height: 500px;
+                max-height: 72px;
                 min-height: auto;
                 position: relative;
                 padding: 0px;
             }
+
+            .search-panel.collapsed {
+                max-height: 72px;  /* Nur Searchbar sichtbar */
+                overflow: hidden;
+            }            
             
             .search-wrapper {
                 display: flex;
@@ -491,7 +504,7 @@ class FastSearchCard extends HTMLElement {
 
 
             <div class="main-container">
-                            <div class="search-panel">
+                            <div class="search-panel collapsed">
                                 <div class="search-wrapper">
                                     <div class="category-icon category-devices">
                                         <svg viewBox="0 0 24 24">
@@ -608,15 +621,14 @@ class FastSearchCard extends HTMLElement {
         searchbar.addEventListener('click', () => this.expandPanel());
         categoryIcon.addEventListener('click', () => {
             if (!this.isMenuView) {
-                // 1. Panel schließen (Results verstecken)
-                this.hideResults();
-                
-                // 2. Nach kurzer Verzögerung: Suchleiste verkleinern und Buttons zeigen
-                setTimeout(() => {
-                    this.showCompactSearchWithButtons();
-                }, 200);
+                // Panel ist geschlossen - öffne Kategorie-Auswahl
+                this.showCategoryButtons();
+            } else {
+                // Kategorie-Buttons sind sichtbar - schließe sie
+                this.hideCategoryButtons();
             }
         });
+
         
         // Close Icon Click
         closeIcon.addEventListener('click', () => this.onCloseClick());
@@ -636,18 +648,15 @@ class FastSearchCard extends HTMLElement {
             chip.addEventListener('click', (event) => this.onSubcategorySelect(chip, event));
         });
 
-
         document.addEventListener('click', (e) => {
-            // Nur schließen wenn NICHT auf Panel-Inhalt geklickt wird
-            if (!e.target.closest('.search-panel') && !e.target.closest('.subcategory-chip')) {
+            const searchWrapper = e.target.closest('.search-wrapper');
+            const searchPanel = e.target.closest('.search-panel');
+            
+            if (!searchWrapper && !searchPanel) {
                 if (this.isMenuView) {
-                    this.collapseButtons();
-                    this.isMenuView = false;
+                    this.hideCategoryButtons();
                 }
-                // ENTFERNEN: Panel auto-close (Panel soll offen bleiben)
-                // if (this.isPanelExpanded) {
-                //     this.collapsePanel();
-                // }
+                // Panel bleibt offen wenn bereits expandiert
             }
         });
     }
@@ -852,6 +861,8 @@ class FastSearchCard extends HTMLElement {
 
     // Event Handlers
     expandPanel() {
+        if (this.isPanelExpanded || this.isMenuView) return;  // Nicht expandieren im Menu View
+        
         if (this.isPanelExpanded) return;
         
         this.isPanelExpanded = true;
@@ -964,21 +975,21 @@ class FastSearchCard extends HTMLElement {
     onCategoryButtonSelect(button) {
         const category = button.dataset.category;
         
-        console.log(`Category button selected: ${category}`);
+        // Setze aktive Kategorie
+        this.setActiveCategory(category);
         
-        // 1. Buttons verstecken
+        // Schließe Category Buttons
         this.hideCategoryButtons();
         
-        // 2. Suchleiste vergrößern
+        // Expandiere Panel und zeige Ergebnisse
         setTimeout(() => {
-            this.expandSearchbar();
-        }, 200);
-        
-        // 3. Entsprechende Kategorie-Ergebnisse anzeigen
-        setTimeout(() => {
+            const searchPanel = this.shadowRoot.querySelector('.search-panel');
+            searchPanel.classList.remove('collapsed');
+            this.isPanelExpanded = true;
+            this.expandPanel();
             this.showCategoryResults(category);
         }, 400);
-    }    
+    }
 
     hideCategoryButtons() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
@@ -1151,6 +1162,12 @@ class FastSearchCard extends HTMLElement {
     onFocus() {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         searchPanel.classList.add('focused');
+
+        // Nur expandieren wenn nicht im Menu View
+        if (!this.isMenuView) {
+            this.expandPanel();
+        }
+        
         this.expandPanel();
         
         // Focus animation
@@ -1326,6 +1343,89 @@ class FastSearchCard extends HTMLElement {
         }, 100);
     }
 
+    // FÜGE NEUE METHODE HINZU:
+    showCategoryButtons() {
+        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+        const searchbarContainer = this.shadowRoot.querySelector('.searchbar-container');
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
+        
+        this.isMenuView = true;
+        
+        // 1. Filter Icon ausblenden
+        filterIcon.animate([
+            { opacity: 1, transform: 'scale(1)' },
+            { opacity: 0, transform: 'scale(0.8)' }
+        ], {
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards'
+        });
+        
+        // 2. Searchbar verkleinern
+        searchbarContainer.animate([
+            { flex: '1' },
+            { flex: '0.6' }
+        ], {
+            duration: 400,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+        
+        // 3. Category Buttons einblenden
+        categoryButtons.classList.add('visible');
+        categoryButtons.animate([
+            { width: '0px', opacity: 0, transform: 'scale(0.8)' },
+            { width: '224px', opacity: 1, transform: 'scale(1)' }
+        ], {
+            duration: 400,
+            delay: 200,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+    }
+    
+    hideCategoryButtons() {
+        const searchbarContainer = this.shadowRoot.querySelector('.searchbar-container');
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
+        
+        // 1. Category Buttons ausblenden
+        categoryButtons.animate([
+            { width: '224px', opacity: 1, transform: 'scale(1)' },
+            { width: '0px', opacity: 0, transform: 'scale(0.8)' }
+        ], {
+            duration: 300,
+            easing: 'ease-in',
+            fill: 'forwards'
+        }).finished.then(() => {
+            categoryButtons.classList.remove('visible');
+            this.isMenuView = false;
+        });
+        
+        // 2. Searchbar vergrößern
+        searchbarContainer.animate([
+            { flex: '0.6' },
+            { flex: '1' }
+        ], {
+            duration: 300,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        // 3. Filter Icon wieder einblenden
+        filterIcon.style.display = 'flex';
+        filterIcon.animate([
+            { opacity: 0, transform: 'scale(0.8)' },
+            { opacity: 1, transform: 'scale(1)' }
+        ], {
+            duration: 300,
+            delay: 200,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+    }
+    
     onFilterClick() {
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         
