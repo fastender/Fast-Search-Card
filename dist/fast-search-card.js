@@ -99,13 +99,14 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: row;
                 align-items: center;
-                gap: 12px;
+                gap: 16px;                    /* ← Größerer Gap */
                 padding: 14px 16px;
                 position: static;
                 width: 100%;
                 min-height: 48px;
                 box-sizing: border-box;
                 flex-wrap: nowrap;
+                transition: none;
             }
             
             .category-icon {
@@ -137,6 +138,7 @@ class FastSearchCard extends HTMLElement {
                 flex: 1;
                 min-width: 0;
                 order: 2;
+                transition: none;             /* ← Wichtig für Animation */
             }
             
             .searchbar {
@@ -211,16 +213,19 @@ class FastSearchCard extends HTMLElement {
             
             .category-buttons {
                 display: flex;
-                gap: 8px;
+                gap: 12px;
+                flex-shrink: 0;
+                width: 0;                     /* ← Start collapsed */
+                overflow: hidden;
                 opacity: 0;
                 pointer-events: none;
                 transition: none;
-                margin-top: 12px;           /* ← Abstand zur Suchleiste */
-                justify-content: flex-end;  /* ← Rechts ausrichten */
-                padding: 0 16px;            /* ← Padding wie search-wrapper */
+                order: 6;                     /* ← Nach allen anderen Elementen */
             }
+
             
             .category-buttons.visible {
+                width: 224px;                 /* ← Expanded width */
                 opacity: 1;
                 pointer-events: all;
             }
@@ -897,9 +902,8 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         const resultsContainer = this.shadowRoot.querySelector('.results-container');
-        const searchbarContainer = this.shadowRoot.querySelector('.searchbar-container');
         
-        // Results Container verstecken
+        // Results verstecken
         if (resultsContainer) {
             resultsContainer.style.display = 'none';
         }
@@ -907,17 +911,7 @@ class FastSearchCard extends HTMLElement {
         // Filter Icon verstecken
         filterIcon.style.display = 'none';
         
-        // Searchbar Container verkleinern
-        searchbarContainer.animate([
-            { flex: '1' },
-            { flex: '0.6' }
-        ], {
-            duration: 300,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
-        
-        // Category Buttons anzeigen (absolute positioniert)
+        // Category Buttons anzeigen (CSS Animation übernimmt)
         categoryButtons.classList.add('visible');
         
         this.isMenuView = true;
