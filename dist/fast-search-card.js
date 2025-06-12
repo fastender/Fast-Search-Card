@@ -89,6 +89,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 gap: 16px;
                 width: 100%;
+                isolation: isolate;
             }
             
             .search-panel {
@@ -249,6 +250,8 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 flex-shrink: 0;
                 overflow: hidden;
+                position: relative;  /* ← Hinzufügen */
+                z-index: 1;         /* ← Hinzufügen */
             }
                         
             .category-button {
