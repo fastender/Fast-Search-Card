@@ -98,16 +98,18 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .search-wrapper {
-                    width: 100%;
                     display: flex;
                     align-items: center;
-                    gap: 16px;
-                    padding: 16px 20px;
-                    border-bottom: 1px solid transparent;
-                    transition: none;
+                    gap: 12px;
+                    padding: 12px 16px;
+                    background: rgba(255, 255, 255, 0.9);
+                    backdrop-filter: blur(10px);
+                    border-radius: 12px;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                     position: relative;
-                    z-index: 2;
-                    background: inherit;
+                    width: 100%;
+                    min-height: 48px;
                 }
 
                 .search-panel.expanded .search-wrapper {
@@ -158,17 +160,20 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .filter-icon {
-                    position: relative;
-                    right: 0;
-                    top: 0;
-                    transform: none;
+                    margin-left: auto;
+                    order: 999;
                     width: 24px;
                     height: 24px;
-                    color: rgba(29, 29, 31, 0.7);
                     cursor: pointer;
-                    z-index: 2;
-                    transition: none;
-                    flex-shrink: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .filter-icon svg {
+                    width: 20px;
+                    height: 20px;
+                    stroke: rgba(29, 29, 31, 0.7);
                 }
 
                 .close-icon {
@@ -188,7 +193,6 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .category-icon svg,
-                .filter-icon svg,
                 .close-icon svg {
                     width: 100%;
                     height: 100%;
@@ -700,11 +704,15 @@ class FastSearchCard extends HTMLElement {
         // Expand panel on any interaction
         searchbar.addEventListener('click', () => this.expandPanel());
         categoryIcon.addEventListener('click', () => {
-            // Da Panel immer expanded ist, nur Menu togglen
             if (!this.isMenuView) {
-                this.expandButtons();
-                this.isMenuView = true;
-            }  
+                // 1. Panel schließen
+                this.collapsePanel();
+                
+                // 2. Nach Panel-Animation: Suchleiste verkleinern und Buttons zeigen
+                setTimeout(() => {
+                    this.showCompactSearchWithButtons();
+                }, 400);
+            }
         });
         
         // Close Icon Click
@@ -963,27 +971,76 @@ class FastSearchCard extends HTMLElement {
         
         this.isPanelExpanded = false;
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const resultsContainer = this.shadowRoot.querySelector('.results-container');
         
-        // Smooth panel collapse animation
+        // Panel verkleinern
         searchPanel.animate([
-            { maxHeight: '400px' },
-            { maxHeight: '80px' }
+            { maxHeight: '300px' },
+            { maxHeight: '60px' }
         ], {
-            duration: 300,
-            easing: 'ease-in',
+            duration: 400,
+            easing: 'ease-in-out',
             fill: 'forwards'
         }).finished.then(() => {
             searchPanel.classList.remove('expanded');
         });
-
-        // Also collapse category buttons if expanded
-        if (this.isExpanded) {
-            this.collapseButtons();
+        
+        // Results verstecken
+        if (resultsContainer) {
+            resultsContainer.style.display = 'none';
         }
-
+        
         console.log('Panel collapsed');
     }
 
+    showCompactSearchWithButtons() {
+        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
+        const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        
+        // Results Container verstecken
+        if (resultsContainer) {
+            resultsContainer.style.display = 'none';
+        }
+        
+        // Filter Icon verstecken
+        filterIcon.animate([
+            { opacity: 1, transform: 'scale(1)' },
+            { opacity: 0, transform: 'scale(0.8)' }
+        ], {
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards'
+        }).finished.then(() => {
+            filterIcon.style.display = 'none';
+        });
+        
+        // Search Wrapper verkleinern
+        searchWrapper.animate([
+            { width: '100%' },
+            { width: '60%' }
+        ], {
+            duration: 300,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        // Category Buttons neben der Suchleiste anzeigen
+        categoryButtons.classList.add('visible');
+        categoryButtons.animate([
+            { opacity: 0, transform: 'translateX(-20px)' },
+            { opacity: 1, transform: 'translateX(0)' }
+        ], {
+            duration: 300,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        this.isMenuView = true;
+        console.log('Compact search with buttons shown');
+    }
+    
     toggleExpansion() {
         if (this.isExpanded) {
             this.collapseButtons();
