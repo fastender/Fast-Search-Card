@@ -85,10 +85,12 @@ class FastSearchCard extends HTMLElement {
                     box-shadow: 
                         0 8px 32px rgba(0, 0, 0, 0.12),
                         inset 0 1px 0 rgba(255, 255, 255, 0.5);
-                    overflow: hidden;
+                    overflow: visible;              /* ← GEÄNDERT von hidden zu visible */
                     transition: none;
-                    max-height: 80px;
+                    max-height: none;               /* ← GEÄNDERT von 80px zu none */
+                    min-height: 300px;              /* ← HINZUGEFÜGT für Geräte-Liste */
                     position: relative;
+                    padding: 16px;                  /* ← HINZUGEFÜGT für Innenabstand */
                 }
 
                 .search-panel.expanded {
@@ -1020,42 +1022,53 @@ class FastSearchCard extends HTMLElement {
     }
 
     collapseButtons() {
-        this.isExpanded = false;
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const searchbar = this.shadowRoot.querySelector('.searchbar');
+        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         
-        // Apple-style collapse animation
-        categoryButtons.animate([
+        // Category Buttons ausblenden
+        const collapseAnimation = categoryButtons.animate([
             { 
-                width: '224px',
                 opacity: 1,
                 transform: 'scale(1)'
             },
             { 
-                width: '0px',
                 opacity: 0,
                 transform: 'scale(0.8)'
             }
         ], {
-            duration: 400,
+            duration: 300,
             easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             fill: 'forwards'
         });
-
-        setTimeout(() => {
-            categoryButtons.classList.remove('expanded');
-        }, 400);
-
-        // Category icon rotation back
-        const categoryIcon = this.shadowRoot.querySelector('.category-icon');
-        categoryIcon.animate([
-            { transform: 'rotate(180deg) scale(1)' },
-            { transform: 'rotate(0deg) scale(1)' }
+        
+        // Searchbar zurück auf volle Breite
+        searchbar.animate([
+            { width: '60%' },
+            { width: '100%' }
         ], {
-            duration: 400,
-            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            duration: 300,
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            fill: 'forwards'
         });
-
-        console.log('Collapsed category selection');
+        
+        // Filter Icon wieder sichtbar machen
+        filterIcon.animate([
+            { opacity: 0, transform: 'scale(0.8)' },
+            { opacity: 1, transform: 'scale(1)' }
+        ], {
+            duration: 300,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        // Nach Animation aufräumen
+        collapseAnimation.finished.then(() => {
+            categoryButtons.classList.remove('visible');
+            this.isMenuView = false;
+        });
+        
+        console.log('Collapsed category buttons');
     }
 
     onFocus() {
@@ -1286,9 +1299,20 @@ class FastSearchCard extends HTMLElement {
     expandButtons() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const searchbar = this.shadowRoot.querySelector('.searchbar');
+        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         
         // Category Buttons sichtbar machen
         categoryButtons.classList.add('visible');
+        
+        // Filter Icon verstecken
+        filterIcon.animate([
+            { opacity: 1, transform: 'scale(1)' },
+            { opacity: 0, transform: 'scale(0.8)' }
+        ], {
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards'
+        });
         
         // Searchbar verkleinern und Category Buttons zeigen
         categoryButtons.animate([
@@ -1308,6 +1332,9 @@ class FastSearchCard extends HTMLElement {
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
             fill: 'forwards'
         });
+        
+        this.isMenuView = true;
+        console.log('Expanded category buttons');
     }
     
     collapseButtons() {
