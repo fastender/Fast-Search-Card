@@ -87,8 +87,9 @@ class FastSearchCard extends HTMLElement {
             .search-row {
                 display: flex;
                 align-items: center;
-                gap: 16px;
+                gap: 8px;
                 width: 100%;
+                justify-content: space-between;
             }
             
             .search-panel {
@@ -113,7 +114,8 @@ class FastSearchCard extends HTMLElement {
 
             .search-panel.shrunk {
                 flex: 0 0 auto;
-                max-width: 60%;
+                max-width: calc(100% - 260px);
+                min-width: 200px;
             }            
 
             .search-content {
@@ -246,9 +248,10 @@ class FastSearchCard extends HTMLElement {
             
             .category-buttons {
                 display: none;
-                gap: 12px;
+                gap: 8px;
                 flex-shrink: 0;
                 overflow: hidden;
+                margin-left: auto; 
             }
                         
             .category-button {
@@ -1271,7 +1274,7 @@ class FastSearchCard extends HTMLElement {
             },
             { 
                 flex: '0 0 auto',
-                maxWidth: '60%'
+                maxWidth: 'calc(100% - 260px)'  /* ← ÄNDERT von 60% */
             }
         ], {
             duration: 400,
@@ -1285,11 +1288,11 @@ class FastSearchCard extends HTMLElement {
             { 
                 opacity: 0,
                 width: '0px',
-                transform: 'translateX(-20px)'
+                transform: 'translateX(20px)'
             },
             { 
                 opacity: 1,
-                width: '240px',
+                width: '220',
                 transform: 'translateX(0)'
             }
         ], {
@@ -1309,13 +1312,13 @@ class FastSearchCard extends HTMLElement {
         categoryButtons.animate([
             { 
                 opacity: 1,
-                width: '240px',
+                width: '220px',
                 transform: 'translateX(0)'
             },
             { 
                 opacity: 0,
                 width: '0px',
-                transform: 'translateX(-20px)'
+                transform: 'translateX(20px)'
             }
         ], {
             duration: 300,
@@ -1331,7 +1334,7 @@ class FastSearchCard extends HTMLElement {
         searchPanel.animate([
             { 
                 flex: '0 0 auto',
-                maxWidth: '60%'
+                maxWidth: 'calc(100% - 260px)'  /* ← ÄNDERT von 60% */
             },
             { 
                 flex: '1 1 auto',
