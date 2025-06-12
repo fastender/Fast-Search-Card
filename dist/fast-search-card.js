@@ -97,25 +97,24 @@ class FastSearchCard extends HTMLElement {
                     max-height: 400px;
                 }
 
-                .search-wrapper {
-                    display: flex;
-                    flex-direction: row;          /* ← HINZUGEFÜGT: horizontal */
-                    align-items: center;
-                    justify-content: space-between; /* ← HINZUGEFÜGT: gleichmäßige Verteilung */
-                    gap: 12px;
-                    padding: 14px 16px;
-                    position: relative;
-                    width: 100%;
-                    min-height: 48px;
-                    box-sizing: border-box;
-                    flex-wrap: nowrap;            /* ← HINZUGEFÜGT: kein Umbruch */
-                }
+.search-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    position: relative;
+    width: 100%;
+    min-height: 48px;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+}
 
-                .search-panel.expanded .search-wrapper {
-                    border-bottom-color: rgba(255, 255, 255, 0.2);
-                    position: sticky;
-                    top: 0;
-                }
+.searchbar-container {
+    flex: 1;                     /* ← WICHTIG: nimmt verfügbaren Platz */
+    min-width: 0;
+    order: 2;                    /* ← REIHENFOLGE: 2. Position */
+}
 
                 .searchbar-container {
                     flex: 1;
@@ -132,6 +131,8 @@ class FastSearchCard extends HTMLElement {
                     color: rgba(29, 29, 31, 0.9);
                     padding: 0;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    display: block;              /* ← HINZUFÜGEN falls fehlt */
+                    visibility: visible;         /* ← HINZUFÜGEN falls fehlt */
                 }
                 
                 .searchbar:focus {
@@ -142,26 +143,13 @@ class FastSearchCard extends HTMLElement {
                     font-weight: 400;
                 }
 
-                .category-icon {
-                    position: relative;
-                    left: 0;
-                    top: 0;
-                    transform: none;
-                    width: 24px;
-                    height: 24px;
-                    cursor: pointer;
-                    z-index: 2;
-                    transition: none;
-                    flex-shrink: 0;
-                }
+.category-icon {
+    order: 1;                    /* ← REIHENFOLGE: 1. Position (links) */
+    flex-shrink: 0;
+}
 
                 .filter-icon {
-                    width: 24px;
-                    height: 24px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    order: 4;                    /* ← REIHENFOLGE: 4. Position (ganz rechts) */
                     flex-shrink: 0;
                 }
                                 
@@ -171,21 +159,10 @@ class FastSearchCard extends HTMLElement {
                     stroke: rgba(29, 29, 31, 0.7);
                 }
 
-                .close-icon {
-                    position: relative;
-                    right: 0;
-                    top: 0;
-                    transform: scale(0.8);
-                    width: 24px;
-                    height: 24px;
-                    color: rgba(29, 29, 31, 0.7);
-                    cursor: pointer;
-                    z-index: 2;
-                    opacity: 0;
-                    pointer-events: none;
-                    transition: none;
-                    flex-shrink: 0;
-                }
+.close-icon {
+    order: 3;                    /* ← REIHENFOLGE: 3. Position */
+    flex-shrink: 0;
+}
 
                 .category-icon svg,
                 .close-icon svg {
@@ -211,16 +188,10 @@ class FastSearchCard extends HTMLElement {
                 .category-scenes { color: #AF52DE; }
 
                 /* Category Buttons */
-                .category-buttons {
-                    display: flex;
-                    gap: 12px;
-                    flex-shrink: 0;
-                    width: auto;
-                    overflow: visible;
-                    opacity: 0;
-                    pointer-events: none;
-                    transition: none;
-                }
+.category-buttons {
+    order: 5;                    /* ← REIHENFOLGE: 5. Position (nach Filter) */
+    flex-shrink: 0;
+}
 
                 .category-buttons.visible {
                     opacity: 1;
@@ -524,8 +495,7 @@ class FastSearchCard extends HTMLElement {
                     }
                     
                     .category-icon,
-                    .close-icon,
-                    .filter-icon {
+                    .close-icon {
                         width: 20px;
                         height: 20px;
                     }
