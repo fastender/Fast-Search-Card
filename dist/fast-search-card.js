@@ -655,20 +655,23 @@ class FastSearchCard extends HTMLElement {
         subcategoryChips.forEach(chip => {
             chip.addEventListener('click', (event) => {
                 event.preventDefault();
-                event.stopPropagation();
+                event.stopPropagation(); // ← Verhindert Panel-Schließung
+                event.stopImmediatePropagation(); // ← ZUSÄTZLICH: Stoppt alle Event Handler
                 this.onSubcategorySelect(chip, event);
             });
-        });        
+        });
 
         document.addEventListener('click', (e) => {
             const searchPanel = e.target.closest('.search-panel');
             const categoryButtons = e.target.closest('.category-buttons');
+            const subcategories = e.target.closest('.subcategories'); // ← NEU!
             
-            if (!searchPanel && !categoryButtons) {
+            // Nur schließen wenn außerhalb ALLER Komponenten geklickt
+            if (!searchPanel && !categoryButtons && !subcategories) {
                 if (this.isMenuView) {
                     this.hideCategoryButtons();
                 }
-                // Panel NICHT automatisch schließen
+                // Panel offen lassen beim Filtern
             }
         });
     }
@@ -896,8 +899,9 @@ class FastSearchCard extends HTMLElement {
         });
     
         // INITIAL "Alle" anzeigen wenn keine Suche aktiv
-        if (!this.searchValue.trim()) {
-            this.showAllDevices();  // ← NEU HINZUFÜGEN
+        if (!this.searchValue.trim() && this.filteredItems.length === 0) {
+            this.filteredItems = [...this.allItems];
+            this.renderResults();
         }
     
         console.log('Panel expanded - Spotlight mode');
@@ -1106,6 +1110,7 @@ class FastSearchCard extends HTMLElement {
 
     onInput(e) {
         const value = e.target.value;
+        this.searchValue = value; // ← Search State speichern
         const closeIcon = this.shadowRoot.querySelector('.close-icon');
         
         if (value.length > 0 && !this.isTyping) {
@@ -1435,8 +1440,8 @@ class FastSearchCard extends HTMLElement {
             this.filteredItems = [...this.allItems];
         } else {
             const domainMap = {
-                'lights': ['light'],        // ← Nur 'light', nicht 'switch'
-                'climate': ['climate'],     // ← Nur 'climate', nicht 'fan'
+                'lights': ['light', 'switch'],       // ← Nur 'light', nicht 'switch'
+                'climate': ['climate', 'fan'],     // ← Nur 'climate', nicht 'fan'
                 'covers': ['cover'],
                 'media': ['media_player']
             };
@@ -1545,13 +1550,18 @@ class FastSearchCard extends HTMLElement {
     }
 
     showAllDevices() {
-        // Bei "Alle" -> alle Items der aktuellen Kategorie anzeigen
         this.filteredItems = [...this.allItems];
-        this.activeSubcategory = 'all';  // ← Wichtig: Subcategory zurücksetzen
+        this.activeSubcategory = 'all';
+        this.searchValue = ''; // ← Search Value auch zurücksetzen
+        
+        // Subcategory UI auch zurücksetzen
+        this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => {
+            chip.classList.toggle('active', chip.dataset.subcategory === 'all');
+        });
         
         console.log(`Showing all devices: ${this.filteredItems.length} items`);
         this.renderResults();
-    }    
+    }
 
     getCardSize() {
         return 3;
