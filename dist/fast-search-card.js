@@ -76,16 +76,18 @@ class FastSearchCard extends HTMLElement {
                 backdrop-filter: var(--glass-blur) saturate(1.8);
                 -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
                 border: 1px solid var(--glass-border);
-                border-radius: 24px;
+                border-radius: 30px;
                 box-shadow: var(--glass-shadow);
                 overflow: hidden;
                 position: relative;
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 max-height: 72px;
+                display: flex;
+                flex-direction: column;
             }
 
             .search-panel.expanded {
-                max-height: 400px;
+                max-height: 500px;
             }
 
             .search-panel::before {
@@ -105,6 +107,13 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 padding: 16px 20px;
                 min-height: 40px;
+                position: sticky;
+                top: 0;
+                background: inherit;
+                backdrop-filter: inherit;
+                -webkit-backdrop-filter: inherit;
+                z-index: 10;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             }
 
             .category-icon {
@@ -139,7 +148,7 @@ class FastSearchCard extends HTMLElement {
                 border: none;
                 background: transparent;
                 outline: none;
-                font-size: 17px;
+                font-size: 30px;
                 color: var(--text-primary);
                 font-family: inherit;
                 min-width: 0;
@@ -211,13 +220,16 @@ class FastSearchCard extends HTMLElement {
             .subcategories {
                 display: flex;
                 gap: 8px;
-                padding: 0 20px 16px 20px;
+                padding: 16px 20px;
                 overflow-x: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 opacity: 0;
                 transform: translateY(-10px);
                 transition: all 0.3s ease;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                margin: 0 20px;
+                padding: 16px 0;
             }
 
             .search-panel.expanded .subcategories {
@@ -233,7 +245,7 @@ class FastSearchCard extends HTMLElement {
                 padding: 8px 16px;
                 background: rgba(255, 255, 255, 0.1);
                 border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 20px;
+                border-radius: 10px;
                 font-size: 14px;
                 font-weight: 500;
                 color: var(--text-secondary);
@@ -258,10 +270,31 @@ class FastSearchCard extends HTMLElement {
             }
 
             .results-container {
-                padding: 0 20px 20px 20px;
+                flex: 1;
+                padding: 20px;
                 opacity: 0;
                 transform: translateY(-10px);
                 transition: all 0.3s ease;
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+            }
+
+            .results-container::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .results-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .results-container::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 3px;
+            }
+
+            .results-container::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.3);
             }
 
             .search-panel.expanded .results-container {
@@ -270,10 +303,30 @@ class FastSearchCard extends HTMLElement {
             }
 
             .results-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                min-height: 200px;
+            }
+
+            .room-section {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .room-header {
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin: 0 0 8px 0;
+                letter-spacing: -0.02em;
+            }
+
+            .devices-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 12px;
-                min-height: 200px;
             }
 
             .device-card {
@@ -457,6 +510,10 @@ class FastSearchCard extends HTMLElement {
                     gap: 12px;
                 }
                 
+                .search-panel.expanded {
+                    max-height: 60vh;
+                }
+                
                 .category-buttons.visible {
                     flex-direction: row;
                     justify-content: center;
@@ -467,13 +524,13 @@ class FastSearchCard extends HTMLElement {
                     height: 48px;
                 }
                 
-                .results-grid {
+                .devices-grid {
                     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
                     gap: 10px;
                 }
                 
                 .search-input {
-                    font-size: 16px;
+                    font-size: 24px;
                 }
             }
             </style>
@@ -520,7 +577,7 @@ class FastSearchCard extends HTMLElement {
                         </div>
 
                         <div class="subcategories">
-                            <div class="subcategory-chip active" data-subcategory="all">Alle</div>
+                            <div class="subcategory-chip" data-subcategory="alle">Alle</div>
                             <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
                             <div class="subcategory-chip" data-subcategory="climate">Klima</div>
                             <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
@@ -783,6 +840,14 @@ class FastSearchCard extends HTMLElement {
 
     handleSubcategorySelect(selectedChip) {
         const subcategory = selectedChip.dataset.subcategory;
+        
+        // Special handling for "Alle" - close panel
+        if (subcategory === 'alle') {
+            this.collapsePanel();
+            this.activeSubcategory = 'all';
+            return;
+        }
+        
         if (subcategory === this.activeSubcategory) return;
 
         // Update active states
@@ -900,7 +965,8 @@ class FastSearchCard extends HTMLElement {
                 state: state.state,
                 attributes: state.attributes,
                 icon: this.getEntityIcon(domain),
-                isActive: this.isEntityActive(state)
+                isActive: this.isEntityActive(state),
+                area: entityConfig.area || state.attributes.area_id || 'Unbekannt'
             };
         }).filter(Boolean);
 
@@ -1107,25 +1173,60 @@ class FastSearchCard extends HTMLElement {
             return;
         }
 
+        // Group items by area/room
+        const groupedItems = this.groupItemsByArea(this.filteredItems);
         resultsGrid.innerHTML = '';
         
-        this.filteredItems.forEach((item, index) => {
-            const card = this.createDeviceCard(item);
-            resultsGrid.appendChild(card);
+        let cardIndex = 0;
+        Object.keys(groupedItems).sort().forEach(area => {
+            const roomSection = document.createElement('div');
+            roomSection.className = 'room-section';
             
-            // Only animate on first render or when category changes
-            if (!this.hasAnimated) {
-                const timeout = setTimeout(() => {
-                    this.animateElementIn(card, {
-                        opacity: [0, 1],
-                        transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)']
-                    });
-                }, index * 50);
-                this.animationTimeouts.push(timeout);
-            }
+            const roomHeader = document.createElement('h2');
+            roomHeader.className = 'room-header';
+            roomHeader.textContent = area;
+            
+            const devicesGrid = document.createElement('div');
+            devicesGrid.className = 'devices-grid';
+            
+            groupedItems[area].forEach(item => {
+                const card = this.createDeviceCard(item);
+                devicesGrid.appendChild(card);
+                
+                // Only animate on first render or when category changes
+                if (!this.hasAnimated) {
+                    const timeout = setTimeout(() => {
+                        this.animateElementIn(card, {
+                            opacity: [0, 1],
+                            transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)']
+                        });
+                    }, cardIndex * 50);
+                    this.animationTimeouts.push(timeout);
+                    cardIndex++;
+                }
+            });
+            
+            roomSection.appendChild(roomHeader);
+            roomSection.appendChild(devicesGrid);
+            resultsGrid.appendChild(roomSection);
         });
         
         this.hasAnimated = true;
+    }
+
+    groupItemsByArea(items) {
+        const grouped = {};
+        items.forEach(item => {
+            // Get area from config or entity attributes
+            const entityConfig = this._config.entities.find(e => e.entity === item.id);
+            const area = entityConfig?.area || item.attributes?.area_id || 'Unbekannt';
+            
+            if (!grouped[area]) {
+                grouped[area] = [];
+            }
+            grouped[area].push(item);
+        });
+        return grouped;
     }
 
     createDeviceCard(item) {
