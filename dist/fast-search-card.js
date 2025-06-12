@@ -217,6 +217,8 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0;
                 pointer-events: none;
                 transition: none;
+                position: static;        /* ← HINZUFÜGEN: nicht absolut positioniert */
+                margin-left: 8px;       /* ← HINZUFÜGEN: Abstand zur Suchleiste */
             }
             
             .category-buttons.visible {
@@ -930,6 +932,7 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        const searchbarContainer = this.shadowRoot.querySelector('.searchbar-container');
         
         // Results Container verstecken
         if (resultsContainer) {
@@ -948,10 +951,10 @@ class FastSearchCard extends HTMLElement {
             filterIcon.style.display = 'none';
         });
         
-        // Search Wrapper verkleinern
-        searchWrapper.animate([
-            { width: '100%' },
-            { width: '60%' }
+        // Searchbar Container verkleinern (statt search wrapper)
+        searchbarContainer.animate([
+            { flex: '1' },
+            { flex: '0.6' }
         ], {
             duration: 300,
             easing: 'ease-out',
