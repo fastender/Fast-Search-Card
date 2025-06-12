@@ -667,7 +667,7 @@ class FastSearchCard extends HTMLElement {
 
         // Subcategory Events
         subcategoryChips.forEach(chip => {
-            chip.addEventListener('click', () => this.onSubcategorySelect(chip));
+            chip.addEventListener('click', (event) => this.onSubcategorySelect(chip, event));
         });
 
 
@@ -1569,11 +1569,11 @@ class FastSearchCard extends HTMLElement {
         searchbar.placeholder = categoryData[this.activeCategory] || 'Suchen...';
     }
 
-    onSubcategorySelect(chip) {
+    onSubcategorySelect(chip) {onSubcategorySelect(chip, event) {  // ← event Parameter hinzufügen
         const subcategory = chip.dataset.subcategory;
 
         // Event Propagation stoppen
-        event.stopPropagation();  // ← HINZUFÜGEN
+        if (event) event.stopPropagation();  // ← Sicher prüfen
            
         if (subcategory === this.activeSubcategory) return;
         
