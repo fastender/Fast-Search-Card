@@ -67,10 +67,10 @@ class FastSearchCard extends HTMLElement {
 
                 .main-container {
                     width: 100%;
-                    max-width: 600px;
+                    max-width: 600px;           /* ← Wichtig: Breite begrenzen */
                     margin: 0 auto;
                     display: flex;
-                    flex-direction: column;
+                    flex-direction: column;     /* ← Wichtig: vertical für Panel */
                     gap: 0;
                 }
 
@@ -97,16 +97,18 @@ class FastSearchCard extends HTMLElement {
                     max-height: 400px;
                 }
 
-´
                 .search-wrapper {
                     display: flex;
+                    flex-direction: row;          /* ← HINZUGEFÜGT: horizontal */
                     align-items: center;
+                    justify-content: space-between; /* ← HINZUGEFÜGT: gleichmäßige Verteilung */
                     gap: 12px;
                     padding: 14px 16px;
                     position: relative;
                     width: 100%;
                     min-height: 48px;
                     box-sizing: border-box;
+                    flex-wrap: nowrap;            /* ← HINZUGEFÜGT: kein Umbruch */
                 }
 
                 .search-panel.expanded .search-wrapper {
