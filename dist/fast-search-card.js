@@ -3,15 +3,17 @@ class FastSearchCard extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         
-        // Minimal State - nur das Nötige!
+        // State Management
         this._hass = null;
         this._config = {};
         this.allItems = [];
         this.filteredItems = [];
-        this.activeFilter = 'all';
-        this.isSearching = false;
-        this.animationTimeouts = []; // Animation cleanup
-        this.hasAnimated = false; // Prevent re-animation
+        this.activeCategory = 'devices';
+        this.activeSubcategory = 'all';
+        this.isMenuView = false;
+        this.isPanelExpanded = false;
+        this.animationTimeouts = [];
+        this.hasAnimated = false;
     }
 
     setConfig(config) {
@@ -52,7 +54,22 @@ class FastSearchCard extends HTMLElement {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
 
-            .search-container {
+            .main-container {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .search-row {
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                width: 100%;
+            }
+
+            .search-panel {
+                flex: 1;
                 background: 
                     linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
                     rgba(255, 255, 255, 0.08);
@@ -60,13 +77,18 @@ class FastSearchCard extends HTMLElement {
                 -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
-                padding: 20px;
                 box-shadow: var(--glass-shadow);
                 overflow: hidden;
                 position: relative;
+                transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                max-height: 72px;
             }
 
-            .search-container::before {
+            .search-panel.expanded {
+                max-height: 400px;
+            }
+
+            .search-panel::before {
                 content: '';
                 position: absolute;
                 top: 0;
@@ -77,23 +99,39 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0.6;
             }
 
-            .search-bar {
+            .search-wrapper {
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                margin-bottom: 16px;
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 16px;
-                padding: 12px 16px;
-                transition: none;
+                padding: 16px 20px;
+                min-height: 40px;
             }
 
-            .search-icon {
-                width: 20px;
-                height: 20px;
-                opacity: 0.7;
+            .category-icon {
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.1);
                 flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+
+            .category-icon:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.05);
+            }
+
+            .category-icon svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
             }
 
             .search-input {
@@ -112,38 +150,86 @@ class FastSearchCard extends HTMLElement {
             }
 
             .clear-button {
-                width: 20px;
-                height: 20px;
+                width: 24px;
+                height: 24px;
                 border: none;
-                background: rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.15);
                 border-radius: 50%;
                 cursor: pointer;
                 display: none;
                 align-items: center;
                 justify-content: center;
-                opacity: 0.8;
+                opacity: 0;
                 flex-shrink: 0;
+                transition: all 0.2s ease;
             }
 
             .clear-button.visible {
                 display: flex;
+                opacity: 1;
             }
 
-            .filter-chips {
+            .clear-button:hover {
+                background: rgba(255, 255, 255, 0.25);
+                transform: scale(1.1);
+            }
+
+            .clear-button svg {
+                width: 12px;
+                height: 12px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+            }
+
+            .filter-icon {
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.1);
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+
+            .filter-icon:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: rotate(90deg);
+            }
+
+            .filter-icon svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .subcategories {
                 display: flex;
                 gap: 8px;
-                margin-bottom: 16px;
+                padding: 0 20px 16px 20px;
                 overflow-x: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
-                padding: 2px;
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: all 0.3s ease;
             }
 
-            .filter-chips::-webkit-scrollbar {
+            .search-panel.expanded .subcategories {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .subcategories::-webkit-scrollbar {
                 display: none;
             }
 
-            .filter-chip {
+            .subcategory-chip {
                 padding: 8px 16px;
                 background: rgba(255, 255, 255, 0.1);
                 border: 1px solid rgba(255, 255, 255, 0.15);
@@ -154,31 +240,33 @@ class FastSearchCard extends HTMLElement {
                 cursor: pointer;
                 white-space: nowrap;
                 flex-shrink: 0;
-                transition: none;
+                transition: all 0.2s ease;
                 position: relative;
                 overflow: hidden;
             }
 
-            .filter-chip.active {
+            .subcategory-chip.active {
                 background: var(--accent-light);
                 border-color: var(--accent);
                 color: var(--accent);
                 box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
             }
 
-            .filter-chip::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-                transition: left 0.5s ease;
+            .subcategory-chip:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-1px);
             }
 
-            .filter-chip:hover::before {
-                left: 100%;
+            .results-container {
+                padding: 0 20px 20px 20px;
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: all 0.3s ease;
+            }
+
+            .search-panel.expanded .results-container {
+                opacity: 1;
+                transform: translateY(0);
             }
 
             .results-grid {
@@ -200,7 +288,7 @@ class FastSearchCard extends HTMLElement {
                 justify-content: space-between;
                 position: relative;
                 overflow: hidden;
-                transition: none;
+                transition: all 0.2s ease;
             }
 
             .device-card::before {
@@ -217,6 +305,11 @@ class FastSearchCard extends HTMLElement {
 
             .device-card:hover::before {
                 opacity: 1;
+            }
+
+            .device-card:hover {
+                transform: translateY(-2px) scale(1.02);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             }
 
             .device-card.active {
@@ -237,7 +330,7 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 font-size: 18px;
                 margin-bottom: auto;
-                position: relative;
+                transition: all 0.2s ease;
             }
 
             .device-card.active .device-icon {
@@ -267,6 +360,65 @@ class FastSearchCard extends HTMLElement {
             .device-card.active .device-status {
                 color: var(--accent);
                 opacity: 1;
+            }
+
+            /* Category Buttons */
+            .category-buttons {
+                display: none;
+                flex-direction: column;
+                gap: 12px;
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            .category-buttons.visible {
+                display: flex;
+            }
+
+            .category-button {
+                width: 56px;
+                height: 56px;
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08);
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                border: 1px solid var(--glass-border);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+                transition: all 0.2s ease;
+                box-shadow: var(--glass-shadow);
+            }
+
+            .category-button:hover {
+                transform: scale(1.05);
+                border-color: var(--accent);
+                box-shadow: 0 8px 25px rgba(0, 122, 255, 0.2);
+            }
+
+            .category-button.active {
+                background: var(--accent-light);
+                border-color: var(--accent);
+                box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+            }
+
+            .category-button svg {
+                width: 24px;
+                height: 24px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                transition: all 0.2s ease;
+            }
+
+            .category-button.active svg {
+                stroke: var(--accent);
             }
 
             .empty-state {
@@ -300,9 +452,19 @@ class FastSearchCard extends HTMLElement {
 
             /* Responsive */
             @container (max-width: 480px) {
-                .search-container {
-                    padding: 16px;
-                    border-radius: 20px;
+                .search-row {
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                
+                .category-buttons.visible {
+                    flex-direction: row;
+                    justify-content: center;
+                }
+                
+                .category-button {
+                    width: 48px;
+                    height: 48px;
                 }
                 
                 .results-grid {
@@ -310,65 +472,104 @@ class FastSearchCard extends HTMLElement {
                     gap: 10px;
                 }
                 
-                .device-card {
-                    padding: 12px;
-                }
-                
                 .search-input {
                     font-size: 16px;
                 }
             }
-
-            /* Animations werden via Web Animations API gehandelt */
-            .animate-in {
-                animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            }
-
-            @keyframes slideInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px) scale(0.95);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                }
-            }
             </style>
 
-            <div class="search-container">
-                <div class="search-bar">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.35-4.35"/>
-                    </svg>
-                    
-                    <input 
-                        type="text" 
-                        class="search-input" 
-                        placeholder="Geräte suchen..."
-                        autocomplete="off"
-                        spellcheck="false"
-                    >
-                    
-                    <button class="clear-button">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                    </button>
-                </div>
+            <div class="main-container">
+                <div class="search-row">
+                    <div class="search-panel">
+                        <div class="search-wrapper">
+                            <div class="category-icon">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                    <path d="M12 18h.01"/>
+                                </svg>
+                            </div>
+                            
+                            <input 
+                                type="text" 
+                                class="search-input" 
+                                placeholder="Geräte suchen..."
+                                autocomplete="off"
+                                spellcheck="false"
+                            >
+                            
+                            <button class="clear-button">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
 
-                <div class="filter-chips">
-                    <div class="filter-chip active" data-filter="all">Alle</div>
-                    <div class="filter-chip" data-filter="lights">Lichter</div>
-                    <div class="filter-chip" data-filter="climate">Klima</div>
-                    <div class="filter-chip" data-filter="covers">Rollos</div>
-                    <div class="filter-chip" data-filter="media">Medien</div>
-                </div>
+                            <div class="filter-icon">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <line x1="4" y1="21" x2="4" y2="14"/>
+                                    <line x1="4" y1="10" x2="4" y2="3"/>
+                                    <line x1="12" y1="21" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12" y2="3"/>
+                                    <line x1="20" y1="21" x2="20" y2="16"/>
+                                    <line x1="20" y1="12" x2="20" y2="3"/>
+                                    <line x1="1" y1="14" x2="7" y2="14"/>
+                                    <line x1="9" y1="8" x2="15" y2="8"/>
+                                    <line x1="17" y1="16" x2="23" y2="16"/>
+                                </svg>
+                            </div>
+                        </div>
 
-                <div class="results-grid">
-                    <!-- Results werden hier eingefügt -->
+                        <div class="subcategories">
+                            <div class="subcategory-chip active" data-subcategory="all">Alle</div>
+                            <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
+                            <div class="subcategory-chip" data-subcategory="climate">Klima</div>
+                            <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
+                            <div class="subcategory-chip" data-subcategory="media">Medien</div>
+                        </div>
+
+                        <div class="results-container">
+                            <div class="results-grid">
+                                <!-- Results werden hier eingefügt -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="category-buttons">
+                        <button class="category-button active" data-category="devices" title="Geräte">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                <path d="M12 18h.01"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="category-button" data-category="scripts" title="Skripte">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10,9 9,9 8,9"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="category-button" data-category="automations" title="Automationen">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2v6l3-3 3 3"/>
+                                <path d="M12 18v4"/>
+                                <path d="M8 8v8"/>
+                                <path d="M16 8v8"/>
+                                <circle cx="12" cy="12" r="2"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="category-button" data-category="scenes" title="Szenen">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
+                                <path d="M8 3v4"/>
+                                <path d="M16 8v4"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -379,7 +580,9 @@ class FastSearchCard extends HTMLElement {
     setupEventListeners() {
         const searchInput = this.shadowRoot.querySelector('.search-input');
         const clearButton = this.shadowRoot.querySelector('.clear-button');
-        const filterChips = this.shadowRoot.querySelectorAll('.filter-chip');
+        const categoryIcon = this.shadowRoot.querySelector('.category-icon');
+        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
+        const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
 
         // Search Events
         searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
@@ -388,11 +591,33 @@ class FastSearchCard extends HTMLElement {
         // Clear Button
         clearButton.addEventListener('click', () => this.clearSearch());
         
-        // Filter Chips - EINMALIG mit Delegation
-        this.shadowRoot.querySelector('.filter-chips').addEventListener('click', (e) => {
-            const chip = e.target.closest('.filter-chip');
+        // Category Icon - Toggle Category Buttons
+        categoryIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleCategoryButtons();
+        });
+
+        // Filter Icon
+        filterIcon.addEventListener('click', () => this.handleFilterClick());
+
+        // Category Buttons
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', () => this.handleCategorySelect(button));
+        });
+
+        // Subcategory Chips - Event Delegation
+        this.shadowRoot.querySelector('.subcategories').addEventListener('click', (e) => {
+            const chip = e.target.closest('.subcategory-chip');
             if (chip) {
-                this.handleFilterSelect(chip);
+                e.stopPropagation();
+                this.handleSubcategorySelect(chip);
+            }
+        });
+
+        // Global click handler
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('fast-search-card')) {
+                this.hideCategoryButtons();
             }
         });
     }
@@ -401,12 +626,13 @@ class FastSearchCard extends HTMLElement {
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         const searchInput = this.shadowRoot.querySelector('.search-input');
         
-        // Show/Hide Clear Button mit Animation
+        // Show/Hide Clear Button
         if (query.length > 0) {
             clearButton.classList.add('visible');
             this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
         } else {
-            this.animateElementOut(clearButton).then(() => {
+            const animation = this.animateElementOut(clearButton);
+            animation.finished.then(() => {
                 clearButton.classList.remove('visible');
             });
         }
@@ -421,20 +647,25 @@ class FastSearchCard extends HTMLElement {
             easing: 'ease-out'
         });
         
+        // Expand panel if not expanded
+        if (!this.isPanelExpanded) {
+            this.expandPanel();
+        }
+        
         this.performSearch(query);
     }
 
     handleSearchFocus() {
-        const searchBar = this.shadowRoot.querySelector('.search-bar');
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
         
         // Focus glow effect
-        searchBar.animate([
+        searchPanel.animate([
             { 
-                boxShadow: '0 0 0 rgba(0, 122, 255, 0)',
-                borderColor: 'rgba(255, 255, 255, 0.15)'
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                borderColor: 'rgba(255, 255, 255, 0.2)'
             },
             { 
-                boxShadow: '0 0 20px rgba(0, 122, 255, 0.3)',
+                boxShadow: '0 8px 32px rgba(0, 122, 255, 0.3)',
                 borderColor: 'var(--accent)'
             }
         ], {
@@ -442,6 +673,11 @@ class FastSearchCard extends HTMLElement {
             easing: 'ease-out',
             fill: 'forwards'
         });
+
+        // Auto-expand panel
+        if (!this.isPanelExpanded) {
+            this.expandPanel();
+        }
     }
 
     clearSearch() {
@@ -449,37 +685,201 @@ class FastSearchCard extends HTMLElement {
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         
         searchInput.value = '';
-        this.animateElementOut(clearButton).then(() => {
+        const animation = this.animateElementOut(clearButton);
+        animation.finished.then(() => {
             clearButton.classList.remove('visible');
         });
         
-        this.showAllItems();
+        this.showCurrentCategoryItems();
         searchInput.focus();
     }
 
-    handleFilterSelect(selectedChip) {
-        const filter = selectedChip.dataset.filter;
-        if (filter === this.activeFilter) return;
+    toggleCategoryButtons() {
+        if (this.isMenuView) {
+            this.hideCategoryButtons();
+        } else {
+            this.showCategoryButtons();
+        }
+    }
+
+    showCategoryButtons() {
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        this.isMenuView = true;
         
-        // Update active state
-        this.shadowRoot.querySelectorAll('.filter-chip').forEach(chip => {
-            chip.classList.remove('active');
+        categoryButtons.classList.add('visible');
+        categoryButtons.animate([
+            { 
+                opacity: 0,
+                transform: 'translateX(20px) scale(0.9)'
+            },
+            { 
+                opacity: 1,
+                transform: 'translateX(0) scale(1)'
+            }
+        ], {
+            duration: 400,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
         });
-        selectedChip.classList.add('active');
+    }
+
+    hideCategoryButtons() {
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         
+        if (!this.isMenuView) return;
+        
+        const animation = categoryButtons.animate([
+            { 
+                opacity: 1,
+                transform: 'translateX(0) scale(1)'
+            },
+            { 
+                opacity: 0,
+                transform: 'translateX(20px) scale(0.9)'
+            }
+        ], {
+            duration: 300,
+            easing: 'ease-in',
+            fill: 'forwards'
+        });
+
+        animation.finished.then(() => {
+            categoryButtons.classList.remove('visible');
+            this.isMenuView = false;
+        });
+    }
+
+    handleCategorySelect(selectedButton) {
+        const category = selectedButton.dataset.category;
+        if (category === this.activeCategory) return;
+
+        // Update active states
+        this.shadowRoot.querySelectorAll('.category-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        selectedButton.classList.add('active');
+
         // Animate selection
-        selectedChip.animate([
-            { transform: 'scale(1)', filter: 'brightness(1)' },
-            { transform: 'scale(1.05)', filter: 'brightness(1.1)' },
-            { transform: 'scale(1)', filter: 'brightness(1)' }
+        selectedButton.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.1)' },
+            { transform: 'scale(1)' }
         ], {
             duration: 300,
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
         });
+
+        this.activeCategory = category;
+        this.updateCategoryIcon();
+        this.updatePlaceholder();
         
-        this.activeFilter = filter;
-        this.hasAnimated = false; // Reset animation flag for new filter
-        this.filterItems();
+        // Hide category buttons and expand panel
+        this.hideCategoryButtons();
+        setTimeout(() => {
+            this.expandPanel();
+            this.showCurrentCategoryItems();
+        }, 300);
+    }
+
+    handleSubcategorySelect(selectedChip) {
+        const subcategory = selectedChip.dataset.subcategory;
+        if (subcategory === this.activeSubcategory) return;
+
+        // Update active states
+        this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => {
+            chip.classList.remove('active');
+        });
+        selectedChip.classList.add('active');
+
+        // Animate selection
+        selectedChip.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.05)' },
+            { transform: 'scale(1)' }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        });
+
+        this.activeSubcategory = subcategory;
+        this.hasAnimated = false;
+        this.filterBySubcategory();
+    }
+
+    handleFilterClick() {
+        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
+        
+        filterIcon.animate([
+            { transform: 'rotate(0deg)' },
+            { transform: 'rotate(180deg)' },
+            { transform: 'rotate(0deg)' }
+        ], {
+            duration: 600,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        });
+    }
+
+    expandPanel() {
+        if (this.isPanelExpanded) return;
+        
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        this.isPanelExpanded = true;
+        
+        searchPanel.classList.add('expanded');
+        
+        // Show initial items if no search active
+        const searchInput = this.shadowRoot.querySelector('.search-input');
+        if (!searchInput.value.trim()) {
+            this.showCurrentCategoryItems();
+        }
+    }
+
+    collapsePanel() {
+        if (!this.isPanelExpanded) return;
+        
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        this.isPanelExpanded = false;
+        
+        searchPanel.classList.remove('expanded');
+    }
+
+    updateCategoryIcon() {
+        const categoryIcon = this.shadowRoot.querySelector('.category-icon');
+        const icons = {
+            devices: `<svg viewBox="0 0 24 24" fill="none">
+                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                <path d="M12 18h.01"/>
+            </svg>`,
+            scripts: `<svg viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>`,
+            automations: `<svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 2v6l3-3 3 3"/>
+                <path d="M12 18v4"/>
+                <circle cx="12" cy="12" r="2"/>
+            </svg>`,
+            scenes: `<svg viewBox="0 0 24 24" fill="none">
+                <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
+                <path d="M8 3v4"/>
+            </svg>`
+        };
+        
+        categoryIcon.innerHTML = icons[this.activeCategory] || icons.devices;
+    }
+
+    updatePlaceholder() {
+        const searchInput = this.shadowRoot.querySelector('.search-input');
+        const placeholders = {
+            devices: 'Geräte suchen...',
+            scripts: 'Skripte suchen...',
+            automations: 'Automationen suchen...',
+            scenes: 'Szenen suchen...'
+        };
+        
+        searchInput.placeholder = placeholders[this.activeCategory] || placeholders.devices;
     }
 
     updateItems() {
@@ -504,12 +904,8 @@ class FastSearchCard extends HTMLElement {
             };
         }).filter(Boolean);
 
-        // Only show all items if no active filter
-        if (this.activeFilter === 'all') {
-            this.showAllItems();
-        } else {
-            this.filterItems();
-        }
+        // Show items based on current active category
+        this.showCurrentCategoryItems();
     }
 
     updateStates() {
@@ -546,7 +942,10 @@ class FastSearchCard extends HTMLElement {
             climate: 'climate',
             fan: 'climate',
             cover: 'covers',
-            media_player: 'media'
+            media_player: 'media',
+            script: 'scripts',
+            automation: 'automations',
+            scene: 'scenes'
         };
         return categoryMap[domain] || 'other';
     }
@@ -558,7 +957,10 @@ class FastSearchCard extends HTMLElement {
             climate: '🌡️',
             fan: '💨',
             cover: '🪟',
-            media_player: '🎵'
+            media_player: '🎵',
+            script: '📄',
+            automation: '⚙️',
+            scene: '🎬'
         };
         return iconMap[domain] || '⚙️';
     }
@@ -599,6 +1001,15 @@ class FastSearchCard extends HTMLElement {
             case 'media_player':
                 return state.state === 'playing' ? 'Spielt' : 'Aus';
                 
+            case 'script':
+                return state.state === 'on' ? 'Läuft' : 'Bereit';
+                
+            case 'automation':
+                return state.state === 'on' ? 'Aktiv' : 'Inaktiv';
+                
+            case 'scene':
+                return 'Bereit';
+                
             default:
                 return state.state === 'on' ? 'An' : 'Aus';
         }
@@ -606,12 +1017,17 @@ class FastSearchCard extends HTMLElement {
 
     performSearch(query) {
         if (!query.trim()) {
-            this.showAllItems();
+            this.showCurrentCategoryItems();
             return;
         }
         
         const searchTerm = query.toLowerCase();
         this.filteredItems = this.allItems.filter(item => {
+            // First filter by current category
+            const isInCategory = this.isItemInCategory(item, this.activeCategory);
+            if (!isInCategory) return false;
+            
+            // Then filter by search term
             return item.name.toLowerCase().includes(searchTerm) ||
                    item.id.toLowerCase().includes(searchTerm);
         });
@@ -619,18 +1035,57 @@ class FastSearchCard extends HTMLElement {
         this.renderResults();
     }
 
-    filterItems() {
-        if (this.activeFilter === 'all') {
-            this.filteredItems = [...this.allItems];
-        } else {
-            this.filteredItems = this.allItems.filter(item => item.category === this.activeFilter);
-        }
+    showCurrentCategoryItems() {
+        // Filter items by current active category
+        this.filteredItems = this.allItems.filter(item => 
+            this.isItemInCategory(item, this.activeCategory)
+        );
         
-        this.renderResults();
+        // Apply subcategory filter if not 'all'
+        if (this.activeSubcategory !== 'all') {
+            this.filterBySubcategory();
+        } else {
+            this.renderResults();
+        }
     }
 
-    showAllItems() {
-        this.filteredItems = [...this.allItems];
+    isItemInCategory(item, category) {
+        switch (category) {
+            case 'devices':
+                return !['script', 'automation', 'scene'].includes(item.domain);
+            case 'scripts':
+                return item.domain === 'script';
+            case 'automations':
+                return item.domain === 'automation';
+            case 'scenes':
+                return item.domain === 'scene';
+            default:
+                return true;
+        }
+    }
+
+    filterBySubcategory() {
+        if (this.activeSubcategory === 'all') {
+            this.showCurrentCategoryItems();
+            return;
+        }
+
+        // Get items from current category first
+        const categoryItems = this.allItems.filter(item => 
+            this.isItemInCategory(item, this.activeCategory)
+        );
+
+        // Then filter by subcategory
+        const domainMap = {
+            'lights': ['light', 'switch'],
+            'climate': ['climate', 'fan'],
+            'covers': ['cover'],
+            'media': ['media_player']
+        };
+
+        const domains = domainMap[this.activeSubcategory] || [];
+        this.filteredItems = categoryItems.filter(item => domains.includes(item.domain));
+        
         this.renderResults();
     }
 
@@ -652,14 +1107,13 @@ class FastSearchCard extends HTMLElement {
             return;
         }
 
-        // Clear grid WITHOUT re-rendering filter chips
         resultsGrid.innerHTML = '';
         
         this.filteredItems.forEach((item, index) => {
             const card = this.createDeviceCard(item);
             resultsGrid.appendChild(card);
             
-            // Only animate on first render or when filter changes
+            // Only animate on first render or when category changes
             if (!this.hasAnimated) {
                 const timeout = setTimeout(() => {
                     this.animateElementIn(card, {
@@ -700,8 +1154,19 @@ class FastSearchCard extends HTMLElement {
         card.classList.toggle('active', !wasActive);
         this.animateStateChange(card, !wasActive);
         
-        // Call Home Assistant service
-        this._hass.callService('homeassistant', 'toggle', {
+        // Call appropriate Home Assistant service
+        const domain = item.domain;
+        let service = 'toggle';
+        
+        if (domain === 'script') {
+            service = 'turn_on';
+        } else if (domain === 'scene') {
+            service = 'turn_on';
+        } else if (domain === 'automation') {
+            service = 'toggle';
+        }
+        
+        this._hass.callService(domain === 'script' || domain === 'scene' ? domain : 'homeassistant', service, {
             entity_id: item.id
         });
     }
@@ -796,7 +1261,7 @@ customElements.define('fast-search-card', FastSearchCard);
 // Register with Home Assistant
 window.customCards = window.customCards || [];
 window.customCards.push({
-    type: 'fast-search-card-2025',
+    type: 'fast-search-card',
     name: 'Fast Search Card',
     description: 'Modern Apple Vision OS inspired search card'
 });
@@ -805,4 +1270,4 @@ console.info(
     `%c FAST-SEARCH-CARD %c Modern Vision OS Design `,
     'color: #007AFF; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: #007AFF'
-);
+)
