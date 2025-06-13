@@ -507,6 +507,26 @@ class FastSearchCard extends HTMLElement {
                 bottom: 0;
             }
 
+            /* Mobile Detail View - Stack vertically */
+            @container (max-width: 480px) {
+                .detail-content {
+                    flex-direction: column;
+                }
+                
+                .detail-left, .detail-right {
+                    flex: none;
+                    width: 100%;
+                    height: 50%;
+                }
+                
+                .detail-divider {
+                    width: 100%;
+                    height: 1px;
+                    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+                    margin: 0;
+                }
+            }
+
             .detail-left, .detail-right {
                 flex: 1;
                 padding: 20px;
@@ -683,18 +703,20 @@ class FastSearchCard extends HTMLElement {
                             </div>
                         </div>
 
-                        <div class="subcategories">
-                            <div class="subcategory-chip active" data-subcategory="all">Alle</div>
-                            <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
-                            <div class="subcategory-chip" data-subcategory="climate">Klima</div>
-                            <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
-                            <div class="subcategory-chip" data-subcategory="media">Medien</div>
-                            <div class="subcategory-chip" data-subcategory="none">Keine</div>
-                        </div>
+                        <div class="scrollable-content">
+                            <div class="subcategories">
+                                <div class="subcategory-chip active" data-subcategory="all">Alle</div>
+                                <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
+                                <div class="subcategory-chip" data-subcategory="climate">Klima</div>
+                                <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
+                                <div class="subcategory-chip" data-subcategory="media">Medien</div>
+                                <div class="subcategory-chip" data-subcategory="none">Keine</div>
+                            </div>
 
-                        <div class="results-container">
-                            <div class="results-grid">
-                                <!-- Results werden hier eingefügt -->
+                            <div class="results-container">
+                                <div class="results-grid">
+                                    <!-- Results werden hier eingefügt -->
+                                </div>
                             </div>
                         </div>
                     </div>
