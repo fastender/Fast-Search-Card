@@ -86,16 +86,19 @@ class FastSearchCard extends HTMLElement {
                 display: block;
                 /* Angepasste Farben für den neuen Glas-Effekt. 
                    Die Basisfarbe der Glaselemente selbst. */
-                --glass-base-color: rgba(255, 255, 255, 0.15); /* Erhöhte Transparenz für "milchiger" */
+                --glass-base-color: rgba(255, 255, 255, 0.95);
                 --glass-border: rgba(255, 255, 255, 0.2);
                 --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-                --glass-blur-amount: 30px; /* Stärke des Weichzeichners erhöht */
+                --glass-blur-amount: 30px;
                 --accent: #007AFF;
                 --accent-light: rgba(0, 122, 255, 0.15);
-                --text-primary: rgba(255, 255, 255, 0.95);
-                --text-secondary: rgba(255, 255, 255, 0.7);
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                --text-primary: rgba(0, 0, 0, 0.95);
+                --text-secondary: rgba(0, 0, 0, 0.7);
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;    
             }
+
+
+        
 
             .main-container {
                 width: 100%;
@@ -170,9 +173,9 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 padding: 16px 20px;
                 min-height: 40px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                border-bottom: 0px solid rgba(255, 255, 255, 0.1);
                 /* Hintergrund an die Basis-RGBA des .search-panel anpassen, um Konsistenz zu gewährleisten */
-                background-color: var(--glass-base-color); 
+                background-color: transparent; 
                 position: sticky; 
                 top: 0; 
                 z-index: 2; /* Liegt über dem blurred-background-layer und content */
