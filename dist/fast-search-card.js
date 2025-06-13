@@ -1,8 +1,3 @@
-Gerne! Um Ansatz 2 umzusetzen, müssen wir die HTML-Struktur in der `render()`-Methode anpassen und sicherstellen, dass die CSS-Regeln entsprechend angewendet werden.
-
-Hier ist der angepasste Code für `fast-search-card.js` gemäß Ansatz 2. Ich habe die Änderungen mit Kommentaren versehen:
-
-```javascript
 class FastSearchCard extends HTMLElement {
     constructor() {
         super();
@@ -1671,4 +1666,3 @@ console.info(
     'color: #007AFF; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: #007AFF'
 );
-```
