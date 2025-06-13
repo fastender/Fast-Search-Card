@@ -143,6 +143,8 @@ class FastSearchCard extends HTMLElement {
                 -webkit-filter: blur(var(--glass-blur-amount));
                 will-change: filter; /* Für Performance auf Safari */
                 backface-visibility: hidden;
+                z-index: -1; /* Wichtig: Hinter dem Inhalt liegen */
+                pointer-events: none; /* Neu: Klicks/Scrolls durchlassen */
             }
 
             .search-panel::before {
@@ -167,7 +169,7 @@ class FastSearchCard extends HTMLElement {
                 background-color: transparent; /* Muss transparent sein, damit der blurred-background-layer durchscheint */
                 position: sticky; 
                 top: 0; 
-                z-index: 2; /* Liegt über dem blurred-background-layer */
+                z-index: 2; /* Liegt über dem blurred-background-layer und content */
                 will-change: transform, opacity; 
                 backface-visibility: hidden;
             }
@@ -536,6 +538,8 @@ class FastSearchCard extends HTMLElement {
                 right: 0;
                 bottom: 0;
                 padding-top: 60px; /* Um Platz für den sticky Header zu schaffen */
+                z-index: 1; /* Über dem blurred-background-layer */
+                overflow-y: auto; /* Neu hinzugefügt, um den Detail-Inhalt scrollbar zu machen */
             }
 
             .detail-left, .detail-right {
@@ -597,6 +601,7 @@ class FastSearchCard extends HTMLElement {
                 will-change: filter;
                 backface-visibility: hidden;
                 z-index: -1; /* Hinter dem Inhalt des Buttons */
+                pointer-events: none; /* Neu: Klicks/Scrolls durchlassen */
             }
 
             .category-button:hover {
