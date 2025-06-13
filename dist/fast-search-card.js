@@ -45,13 +45,11 @@ class FastSearchCard extends HTMLElement {
         const oldHass = this._hass;
         this._hass = hass;
         
-        // Nur Items updaten wenn sich wirklich was geändert hat
         if (!oldHass || this.shouldUpdateItems(oldHass, hass)) {
             console.log('📝 Updating items...');
             this.updateItems();
         }
         
-        // States nur updaten wenn nicht in Detail-View und nicht am Suchen
         if (!this.isDetailView && !this.isSearching) {
             console.log('🔄 Updating states...');
             this.updateStates();
@@ -61,7 +59,6 @@ class FastSearchCard extends HTMLElement {
     }
 
     shouldUpdateItems(oldHass, newHass) {
-        // Prüfe ob sich relevante Entitäten geändert haben
         if (!this._config.entities) return false;
         
         for (const entityConfig of this._config.entities) {
@@ -69,10 +66,10 @@ class FastSearchCard extends HTMLElement {
             const oldState = oldHass.states[entityId];
             const newState = newHass.states[entityId];
             
-            if (!oldState && newState) return true; // Neue Entität
-            if (oldState && !newState) return true; // Entität entfernt
+            if (!oldState && newState) return true;
+            if (oldState && !newState) return true;
             if (oldState && newState && oldState.attributes.friendly_name !== newState.attributes.friendly_name) {
-                return true; // Name geändert
+                return true;
             }
         }
         
@@ -84,17 +81,68 @@ class FastSearchCard extends HTMLElement {
             <style>
             :host {
                 display: block;
-                /* Angepasste Farben für den neuen Glas-Effekt. 
-                   Die Basisfarbe der Glaselemente selbst. */
-                --glass-base-color: rgba(255, 255, 255, 0.15); /* Erhöhte Transparenz für "milchiger" */
-                --glass-border: rgba(255, 255, 255, 0.2);
-                --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-                --glass-blur-amount: 30px; /* Stärke des Weichzeichners erhöht */
+                --glass-blur-amount: 20px;
+                --glass-border-color: rgba(255, 255, 255, 0.2);
+                --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
                 --accent: #007AFF;
                 --accent-light: rgba(0, 122, 255, 0.15);
                 --text-primary: rgba(255, 255, 255, 0.95);
                 --text-secondary: rgba(255, 255, 255, 0.7);
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+
+            .glass-panel {
+                position: relative;
+                border-radius: 24px;
+                border: 1px solid var(--glass-border-color);
+                box-shadow: var(--glass-shadow);
+                overflow: hidden;
+                
+                /* Performance Fix: Force GPU rendering */
+                transform: translateZ(0);
+                -webkit-transform: translateZ(0);
+                will-change: transform;
+                backface-visibility: hidden;
+            }
+
+            /* The pseudo-element for the main glass effect */
+            .glass-panel::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: -2;
+                border-radius: inherit;
+
+                /* The actual backdrop blur effect */
+                -webkit-backdrop-filter: blur(var(--glass-blur-amount));
+                backdrop-filter: blur(var(--glass-blur-amount));
+
+                /* Subtle gradient to simulate 3D curvature and distortion */
+                background: radial-gradient(
+                    circle at 50% 0%,
+                    rgba(255, 255, 255, 0.1),
+                    rgba(255, 255, 255, 0.05) 70%
+                );
+            }
+            
+            /* The pseudo-element for the glossy edge highlight */
+            .glass-panel::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 1;
+                border-radius: inherit;
+                pointer-events: none;
+                
+                /* Inset shadow to create a fine, glossy edge */
+                box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3),
+                            inset 0 -1px 1px rgba(0, 0, 0, 0.1);
             }
 
             .main-container {
@@ -113,56 +161,15 @@ class FastSearchCard extends HTMLElement {
 
             .search-panel {
                 flex: 1;
-                /* SAFARI FIX: Use explicit rgba for transparency */
-                background-color: rgba(0, 0, 0, 0); 
-                border: 1px solid var(--glass-border);
-                border-radius: 24px;
-                box-shadow: var(--glass-shadow);
-                overflow: hidden; 
-                position: relative; /* Wichtig für absolut positionierte Kinder wie .blurred-background-layer */
+                background-color: rgba(0,0,0,0);
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 max-height: 72px; 
                 display: flex; 
                 flex-direction: column; 
-                will-change: transform, max-height; /* Für Performance */
-                backface-visibility: hidden; 
             }
 
             .search-panel.expanded {
                 max-height: 400px; 
-            }
-
-            /* Neuer Layer für den unscharfen Hintergrund */
-            .blurred-background-layer {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: var(--glass-base-color); /* Die Farbe, die unscharf gemacht wird */
-                filter: blur(var(--glass-blur-amount)); /* Der eigentliche Unschärfe-Effekt */
-                -webkit-filter: blur(var(--glass-blur-amount));
-                
-                /* PERFORMANCE FIX: Force GPU rendering to prevent Safari performance issues with blur filter */
-                transform: translateZ(0);
-                -webkit-transform: translateZ(0);
-                will-change: filter; 
-                backface-visibility: hidden;
-                
-                z-index: -1; /* Wichtig: Hinter dem Inhalt liegen */
-                pointer-events: none; /* Klicks/Scrolls durchlassen */
-            }
-
-            .search-panel::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 1px;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-                opacity: 0.6;
-                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .search-wrapper {
@@ -172,13 +179,9 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                /* Hintergrund an die Basis-RGBA des .search-panel anpassen, um Konsistenz zu gewährleisten */
-                background-color: var(--glass-base-color); 
                 position: sticky; 
                 top: 0; 
-                z-index: 2; /* Liegt über dem blurred-background-layer und content */
-                will-change: transform, opacity; 
-                backface-visibility: hidden;
+                z-index: 2;
             }
 
             .category-icon {
@@ -289,14 +292,9 @@ class FastSearchCard extends HTMLElement {
                 overflow-x: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
-                -webkit-overflow-scrolling: touch; /* Optimiert das Scrolling in WebKit */
+                -webkit-overflow-scrolling: touch;
                 transition: all 0.3s ease;
-                flex-shrink: 0; 
-                background-color: rgba(0, 0, 0, 0); 
-                z-index: 1; /* Über dem blurred-background-layer */
-                will-change: transform, scroll-position; 
-                backface-visibility: hidden;
-                transform: translateZ(0); /* Erzwingt Hardware-Beschleunigung für das Scrolling-Element selbst */
+                flex-shrink: 0;
             }
 
             .subcategories::-webkit-scrollbar {
@@ -305,7 +303,7 @@ class FastSearchCard extends HTMLElement {
 
             .subcategory-chip {
                 padding: 8px 16px;
-                background: rgba(255, 255, 255, 0.08); /* Diese Farbe überlagert den unscharfen Layer leicht */
+                background: rgba(255, 255, 255, 0.08);
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
                 font-size: 14px;
@@ -315,10 +313,6 @@ class FastSearchCard extends HTMLElement {
                 white-space: nowrap;
                 flex-shrink: 0;
                 transition: all 0.2s ease;
-                position: relative;
-                overflow: hidden;
-                z-index: 1; /* Wichtig, um nicht hinter dem blurred-background-layer zu verschwinden */
-                transform: translateZ(0); /* Erzwingt Hardware-Beschleunigung für die Chips selbst */
             }
 
             .subcategory-chip.active {
@@ -338,18 +332,12 @@ class FastSearchCard extends HTMLElement {
                 overflow-y: auto; 
                 scrollbar-width: none;
                 -ms-overflow-style: none;
-                -webkit-overflow-scrolling: touch; /* Optimiert das Scrolling in WebKit */
-                position: relative;
+                -webkit-overflow-scrolling: touch;
                 opacity: 0; 
                 transform: translateY(-10px); 
                 transition: all 0.3s ease; 
                 padding-top: 16px; 
-                padding-bottom: 20px; 
-                background-color: rgba(0, 0, 0, 0); 
-                z-index: 1; /* Über dem blurred-background-layer */
-                will-change: transform, scroll-position; 
-                backface-visibility: hidden;
-                transform: translateZ(0); /* Erzwingt Hardware-Beschleunigung für das Scrolling-Element selbst */
+                padding-bottom: 20px;
             }
 
             .results-container::-webkit-scrollbar {
@@ -378,8 +366,6 @@ class FastSearchCard extends HTMLElement {
                 margin: 16px 0 8px 0;
                 padding-bottom: 8px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: rgba(0, 0, 0, 0); 
-                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .area-header:first-child {
@@ -387,7 +373,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-card {
-                background: rgba(255, 255, 255, 0.08); /* Diese Farbe überlagert den unscharfen Layer leicht */
+                background: rgba(255, 255, 255, 0.08);
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 16px;
                 padding: 16px;
@@ -399,26 +385,9 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 overflow: hidden;
                 transition: all 0.2s ease;
-                z-index: 1; /* Wichtig, um nicht hinter dem blurred-background-layer zu verschwinden */
                 will-change: transform, opacity; 
             }
-
-            .device-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-
-            .device-card:hover::before {
-                opacity: 1;
-            }
-
+            
             .device-card:hover {
                 transform: translateY(-2px) scale(1.02);
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
@@ -474,20 +443,11 @@ class FastSearchCard extends HTMLElement {
                 opacity: 1;
             }
 
-            /* Detail View Styles */
             .detail-panel {
                 flex: 1;
-                /* SAFARI FIX: Use explicit rgba for transparency */
-                background-color: rgba(0, 0, 0, 0);
-                border: 1px solid var(--glass-border);
-                border-radius: 24px;
-                box-shadow: var(--glass-shadow);
-                overflow: hidden;
-                position: relative;
+                background-color: rgba(0,0,0,0);
                 height: 400px;
                 display: none;
-                will-change: transform; 
-                backface-visibility: hidden;
             }
 
             .detail-panel.visible {
@@ -497,7 +457,6 @@ class FastSearchCard extends HTMLElement {
             .detail-header {
                 padding: 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: var(--glass-base-color); /* Konsistenter Hintergrund */
                 display: flex;
                 align-items: center;
                 gap: 16px;
@@ -506,8 +465,6 @@ class FastSearchCard extends HTMLElement {
                 left: 0;
                 right: 0;
                 z-index: 10;
-                will-change: transform, opacity; 
-                backface-visibility: hidden;
             }
 
             .back-button {
@@ -545,21 +502,13 @@ class FastSearchCard extends HTMLElement {
             .detail-content {
                 display: flex;
                 height: 100%;
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                padding-top: 60px; /* Um Platz für den sticky Header zu schaffen */
-                z-index: 1; /* Über dem blurred-background-layer */
+                padding-top: 73px;
                 overflow-y: auto; 
             }
 
             .detail-left, .detail-right {
                 flex: 1;
                 padding: 20px;
-                background-color: rgba(0, 0, 0, 0);
-                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .detail-divider {
@@ -568,15 +517,12 @@ class FastSearchCard extends HTMLElement {
                 margin: 20px 0;
             }
 
-            /* Category Buttons */
             .category-buttons {
                 display: none;
                 flex-direction: column;
                 gap: 12px;
                 opacity: 0;
                 transform: translateX(20px);
-                will-change: transform, opacity; 
-                backface-visibility: hidden;
             }
 
             .category-buttons.visible {
@@ -586,43 +532,14 @@ class FastSearchCard extends HTMLElement {
             .category-button {
                 width: 56px;
                 height: 56px;
-                /* SAFARI FIX: Use explicit rgba for transparency */
-                background-color: rgba(0, 0, 0, 0);
-                border: 1px solid var(--glass-border);
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                position: relative;
-                overflow: hidden;
                 transition: all 0.2s ease;
-                box-shadow: var(--glass-shadow);
-                will-change: transform; 
-                backface-visibility: hidden;
             }
-
-            .category-button::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: var(--glass-base-color); /* Die Farbe, die unscharf gemacht wird */
-                filter: blur(var(--glass-blur-amount)); /* Der eigentliche Unschärfe-Effekt */
-                -webkit-filter: blur(var(--glass-blur-amount));
-                
-                /* PERFORMANCE FIX: Force GPU rendering */
-                transform: translateZ(0);
-                -webkit-transform: translateZ(0);
-                will-change: filter;
-                backface-visibility: hidden;
-
-                z-index: -1; /* Hinter dem Inhalt des Buttons */
-                pointer-events: none; /* Klicks/Scrolls durchlassen */
-            }
-
+            
             .category-button:hover {
                 transform: scale(1.05);
                 border-color: var(--accent);
@@ -630,7 +547,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .category-button.active {
-                background: var(--accent-light); /* Akzentfarbe kann direkt angewendet werden */
+                background: var(--accent-light);
                 border-color: var(--accent);
                 box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
             }
@@ -658,7 +575,6 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 align-items: center;
                 gap: 12px;
-                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .empty-icon {
@@ -678,39 +594,12 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0.7;
                 margin: 0;
             }
-
-            /* Responsive */
-            @container (max-width: 480px) {
-                .search-row {
-                    flex-direction: column;
-                    gap: 12px;
-                }
-                
-                .category-buttons.visible {
-                    flex-direction: row;
-                    justify-content: center;
-                }
-                
-                .category-button {
-                    width: 48px;
-                    height: 48px;
-                }
-                
-                .results-grid {
-                    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                    gap: 10px;
-                }
-                
-                .search-input {
-                    font-size: 16px;
-                }
-            }
             </style>
 
             <div class="main-container">
                 <div class="search-row">
-                    <div class="search-panel">
-                        <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
+                    <!-- Added the 'glass-panel' class here -->
+                    <div class="search-panel glass-panel">
                         <div class="search-wrapper">
                             <div class="category-icon">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -759,12 +648,12 @@ class FastSearchCard extends HTMLElement {
                                 <div class="subcategory-chip" data-subcategory="none">Keine</div>
                             </div>
                             <div class="results-grid">
-                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="detail-panel">
-                        <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
+                    <!-- Added the 'glass-panel' class here -->
+                    <div class="detail-panel glass-panel">
                         <div class="detail-header">
                             <button class="back-button">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -776,25 +665,24 @@ class FastSearchCard extends HTMLElement {
                         </div>
                         <div class="detail-content">
                             <div class="detail-left">
-                                </div>
+                            </div>
                             <div class="detail-divider"></div>
                             <div class="detail-right">
-                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="category-buttons">
-                        <button class="category-button active" data-category="devices" title="Geräte">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
+                        <!-- Added the 'glass-panel' class here -->
+                        <button class="category-button glass-panel active" data-category="devices" title="Geräte">
                             <svg viewBox="0 0 24 24" fill="none">
                                 <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
                                 <path d="M12 18h.01"/>
                             </svg>
                         </button>
                         
-                        <button class="category-button" data-category="scripts" title="Skripte">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
-                            <svg viewBox="0 0 24 24" fill="none">
+                        <button class="category-button glass-panel" data-category="scripts" title="Skripte">
+                           <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                 <polyline points="14,2 14,8 20,8"/>
                                 <line x1="16" y1="13" x2="8" y2="13"/>
@@ -803,8 +691,7 @@ class FastSearchCard extends HTMLElement {
                             </svg>
                         </button>
                         
-                        <button class="category-button" data-category="automations" title="Automationen">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
+                        <button class="category-button glass-panel" data-category="automations" title="Automationen">
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M12 2v6l3-3 3 3"/>
                                 <path d="M12 18v4"/>
@@ -814,8 +701,7 @@ class FastSearchCard extends HTMLElement {
                             </svg>
                         </button>
                         
-                        <button class="category-button" data-category="scenes" title="Szenen">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
+                        <button class="category-button glass-panel" data-category="scenes" title="Szenen">
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
                                 <path d="M8 3v4"/>
@@ -903,16 +789,13 @@ class FastSearchCard extends HTMLElement {
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         const searchInput = this.shadowRoot.querySelector('.search-input');
         
-        // Set searching flag
         this.isSearching = query.trim().length > 0;
         console.log('🎯 isSearching set to:', this.isSearching);
         
-        // Clear any existing search timeout
         if (this.searchTimeout) {
             clearTimeout(this.searchTimeout);
         }
         
-        // Show/Hide Clear Button
         if (query.length > 0) {
             clearButton.classList.add('visible');
             this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
@@ -924,7 +807,6 @@ class FastSearchCard extends HTMLElement {
             });
         }
         
-        // Search Animation Feedback
         searchInput.animate([
             { transform: 'scale(1)' },
             { transform: 'scale(1.02)' },
@@ -934,7 +816,6 @@ class FastSearchCard extends HTMLElement {
             easing: 'ease-out'
         });
         
-        // Expand panel if not expanded
         if (!this.isPanelExpanded) {
             this.expandPanel();
         }
@@ -945,7 +826,6 @@ class FastSearchCard extends HTMLElement {
     handleSearchFocus() {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         
-        // Focus glow effect
         searchPanel.animate([
             { 
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
@@ -961,7 +841,6 @@ class FastSearchCard extends HTMLElement {
             fill: 'forwards'
         });
 
-        // Auto-expand panel
         if (!this.isPanelExpanded) {
             this.expandPanel();
         }
@@ -982,7 +861,6 @@ class FastSearchCard extends HTMLElement {
             clearButton.classList.remove('visible');
         });
         
-        // Reset to current category items without triggering new searches
         this.hasAnimated = false;
         this.showCurrentCategoryItems();
         searchInput.focus();
@@ -1047,13 +925,11 @@ class FastSearchCard extends HTMLElement {
         const category = selectedButton.dataset.category;
         if (category === this.activeCategory) return;
 
-        // Update active states
         this.shadowRoot.querySelectorAll('.category-button').forEach(btn => {
             btn.classList.remove('active');
         });
         selectedButton.classList.add('active');
 
-        // Animate selection
         selectedButton.animate([
             { transform: 'scale(1)' },
             { transform: 'scale(1.1)' },
@@ -1067,10 +943,8 @@ class FastSearchCard extends HTMLElement {
         this.updateCategoryIcon();
         this.updatePlaceholder();
         
-        // Hide category buttons first
         this.hideCategoryButtons();
         
-        // Then immediately expand panel and show items
         this.expandPanel();
         this.showCurrentCategoryItems();
     }
@@ -1081,13 +955,11 @@ class FastSearchCard extends HTMLElement {
 
         console.log('🏷️ Subcategory selected:', subcategory);
 
-        // Update active states
         this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => {
             chip.classList.remove('active');
         });
         selectedChip.classList.add('active');
 
-        // Animate selection
         selectedChip.animate([
             { transform: 'scale(1)' },
             { transform: 'scale(1.05)' },
@@ -1100,7 +972,6 @@ class FastSearchCard extends HTMLElement {
         this.activeSubcategory = subcategory;
         this.hasAnimated = false;
         
-        // Clear search input to prevent conflicts
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (searchInput.value.trim()) {
             console.log('🧹 Clearing search input due to subcategory change');
@@ -1134,7 +1005,6 @@ class FastSearchCard extends HTMLElement {
         
         searchPanel.classList.add('expanded');
         
-        // Show initial items if no search active
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (!searchInput.value.trim()) {
             this.showCurrentCategoryItems();
@@ -1199,7 +1069,6 @@ class FastSearchCard extends HTMLElement {
             if (!state) return null;
 
             const domain = entityId.split('.')[0];
-            // Verwende area aus der Konfiguration, falls verfügbar
             const configArea = entityConfig.area;
             const areaName = configArea || 'Ohne Raum';
 
@@ -1216,10 +1085,7 @@ class FastSearchCard extends HTMLElement {
             };
         }).filter(Boolean);
 
-        // Sortiere nach Räumen
         this.allItems.sort((a, b) => a.area.localeCompare(b.area));
-
-        // Show items based on current active category
         this.showCurrentCategoryItems();
     }
 
@@ -1241,7 +1107,6 @@ class FastSearchCard extends HTMLElement {
                 
                 card.classList.toggle('active', isActive);
                 
-                // Animate state change
                 if (isActive !== wasActive) {
                     this.animateStateChange(card, isActive);
                 }
@@ -1342,26 +1207,22 @@ class FastSearchCard extends HTMLElement {
         
         const searchTerm = query.toLowerCase();
         this.filteredItems = this.allItems.filter(item => {
-            // First filter by current category
             const isInCategory = this.isItemInCategory(item, this.activeCategory);
             if (!isInCategory) return false;
             
-            // Then filter by search term, including item.area
             return item.name.toLowerCase().includes(searchTerm) ||
                    item.id.toLowerCase().includes(searchTerm) ||
-                   item.area.toLowerCase().includes(searchTerm); // Hinzugefügt: Suche nach Raum
+                   item.area.toLowerCase().includes(searchTerm);
         });
         
         this.renderResults();
     }
 
     showCurrentCategoryItems() {
-        // Filter items by current active category
         this.filteredItems = this.allItems.filter(item => 
             this.isItemInCategory(item, this.activeCategory)
         );
         
-        // Apply subcategory filter if not 'all'
         if (this.activeSubcategory !== 'all') {
             this.filterBySubcategory();
         } else {
@@ -1390,19 +1251,16 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // Neue "Keine" Kategorie
         if (this.activeSubcategory === 'none') {
             this.filteredItems = [];
             this.renderResults();
             return;
         }
 
-        // Get items from current category first
         const categoryItems = this.allItems.filter(item => 
             this.isItemInCategory(item, this.activeCategory)
         );
 
-        // Then filter by subcategory
         const domainMap = {
             'lights': ['light', 'switch'],
             'climate': ['climate', 'fan'],
@@ -1419,7 +1277,6 @@ class FastSearchCard extends HTMLElement {
     renderResults() {
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
         
-        // Clear any pending animations
         this.animationTimeouts.forEach(timeout => clearTimeout(timeout));
         this.animationTimeouts = [];
         
@@ -1436,7 +1293,6 @@ class FastSearchCard extends HTMLElement {
 
         resultsGrid.innerHTML = '';
         
-        // Gruppiere nach Räumen
         const groupedItems = this.filteredItems.reduce((groups, item) => {
             const area = item.area || 'Ohne Raum';
             if (!groups[area]) {
@@ -1448,20 +1304,16 @@ class FastSearchCard extends HTMLElement {
         
         let cardIndex = 0;
         
-        // Rendere gruppiert nach Räumen
         Object.keys(groupedItems).sort().forEach(area => {
-            // Raum-Header
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
             areaHeader.textContent = area;
             resultsGrid.appendChild(areaHeader);
             
-            // Items in diesem Raum
             groupedItems[area].forEach((item) => {
                 const card = this.createDeviceCard(item);
                 resultsGrid.appendChild(card);
                 
-                // Only animate on first render or when category changes
                 if (!this.hasAnimated) {
                     const timeout = setTimeout(() => {
                         this.animateElementIn(card, {
@@ -1492,14 +1344,11 @@ class FastSearchCard extends HTMLElement {
         `;
         
         card.addEventListener('click', () => this.handleDeviceClick(item, card));
-        card.addEventListener('mouseenter', () => this.animateDeviceHover(card, true));
-        card.addEventListener('mouseleave', () => this.animateDeviceHover(card, false));
         
         return card;
     }
 
     handleDeviceClick(item, card) {
-        // Speichere aktuellen Zustand
         this.previousSearchState = {
             searchValue: this.shadowRoot.querySelector('.search-input').value,
             activeCategory: this.activeCategory,
@@ -1517,7 +1366,6 @@ class FastSearchCard extends HTMLElement {
         
         this.isDetailView = true;
         
-        // Animate out search panel
         searchPanel.animate([
             { opacity: 1, transform: 'translateX(0)' },
             { opacity: 0, transform: 'translateX(-100%)' }
@@ -1529,7 +1377,6 @@ class FastSearchCard extends HTMLElement {
             searchPanel.style.display = 'none';
             detailPanel.classList.add('visible');
             
-            // Animate in detail panel
             detailPanel.animate([
                 { opacity: 0, transform: 'translateX(100%)' },
                 { opacity: 1, transform: 'translateX(0)' }
@@ -1549,7 +1396,6 @@ class FastSearchCard extends HTMLElement {
         
         this.isDetailView = false;
         
-        // Animate out detail panel
         detailPanel.animate([
             { opacity: 1, transform: 'translateX(0)' },
             { opacity: 0, transform: 'translateX(100%)' }
@@ -1559,19 +1405,13 @@ class FastSearchCard extends HTMLElement {
             fill: 'forwards'
         }).finished.then(() => {
             detailPanel.classList.remove('visible');
-            // SCROLL FIX: Restore the display property to 'flex' to re-enable the flexbox layout
             searchPanel.style.display = 'flex';
             
-            // Restore previous state
             if (this.previousSearchState) {
                 this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
                 this.activeCategory = this.previousSearchState.activeCategory;
                 this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => { 
-                    if (chip.dataset.subcategory === this.previousSearchState.activeSubcategory) {
-                        chip.classList.add('active');
-                    } else {
-                        chip.classList.remove('active');
-                    }
+                    chip.classList.toggle('active', chip.dataset.subcategory === this.previousSearchState.activeSubcategory);
                 });
                 this.activeSubcategory = this.previousSearchState.activeSubcategory;
                 this.filteredItems = this.previousSearchState.filteredItems;
@@ -1581,7 +1421,6 @@ class FastSearchCard extends HTMLElement {
                 this.renderResults();
             }
             
-            // Animate in search panel
             searchPanel.animate([
                 { opacity: 0, transform: 'translateX(-100%)' },
                 { opacity: 1, transform: 'translateX(0)' }
@@ -1623,7 +1462,6 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-    // Animation Helpers - Pure Web Animations API
     animateElementIn(element, keyframes, options = {}) {
         return element.animate(keyframes, {
             duration: 400,
@@ -1645,27 +1483,9 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    animateDeviceHover(card, isHover) {
-        card.animate([
-            { 
-                transform: isHover ? 'scale(1)' : 'scale(1.02)',
-                filter: isHover ? 'brightness(1)' : 'brightness(1.05)'
-            },
-            { 
-                transform: isHover ? 'scale(1.02)' : 'scale(1)',
-                filter: isHover ? 'brightness(1.05)' : 'brightness(1)'
-            }
-        ], {
-            duration: 200,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
-    }
-
     animateStateChange(card, isActive) {
         const icon = card.querySelector('.device-icon');
         
-        // State change ripple effect
         card.animate([
             { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' },
             { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' },
@@ -1675,7 +1495,6 @@ class FastSearchCard extends HTMLElement {
             easing: 'ease-out'
         });
         
-        // Icon pulse
         icon.animate([
             { transform: 'scale(1)' },
             { transform: 'scale(1.2)' },
@@ -1686,7 +1505,6 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    // Home Assistant Integration
     getCardSize() {
         return 4;
     }
@@ -1710,7 +1528,6 @@ class FastSearchCard extends HTMLElement {
 
 customElements.define('fast-search-card', FastSearchCard);
 
-// Register with Home Assistant
 window.customCards = window.customCards || [];
 window.customCards.push({
     type: 'fast-search-card',
