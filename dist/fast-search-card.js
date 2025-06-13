@@ -21,14 +21,6 @@ class FastSearchCard extends HTMLElement {
         this.isDetailView = false;
         this.currentDetailItem = null;
         this.previousSearchState = null;
-
-        // PixiJS-Variablen
-        this.pixiApp = null;
-        this.backgroundSprite = null;
-        this.lightEffectGraphic = null; // Für den radialen Lichteffekt
-        this.mouseX = 0.5; // Initial bei 50%
-        this.mouseY = 0.5; // Initial bei 50%
-        this._isPixiAppReady = false; // Flag to check if PixiJS app is fully initialized and ready
     }
 
     setConfig(config) {
@@ -43,9 +35,6 @@ class FastSearchCard extends HTMLElement {
         };
         
         this.render();
-        // Call initPixiJS after render to ensure canvas element exists
-        // This will now handle deferred loading
-        this.initPixiJS(); 
     }
 
     set hass(hass) {
@@ -124,38 +113,42 @@ class FastSearchCard extends HTMLElement {
 
             .search-panel {
                 flex: 1;
-                background: transparent; /* KEIN HINTERGRUND MEHR HIER - PixiJS übernimmt */
+                background: transparent; /* Kein eigener Hintergrund hier, da .blurred-background-layer dahinter liegt */
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
                 overflow: hidden; 
-                position: relative; /* Wichtig für absolut positionierte Kinder wie Canvas und Inhalte */
+                position: relative; /* Wichtig für absolut positionierte Kinder wie .blurred-background-layer */
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 max-height: 72px; 
                 display: flex; 
                 flex-direction: column; 
-                will-change: transform, max-height; 
+                will-change: transform, max-height; /* Für Performance */
                 backface-visibility: hidden; 
+                filter: url(#glass-texture); /* Hinzugefügt: SVG-Filter */
             }
 
             .search-panel.expanded {
                 max-height: 400px; 
             }
 
-            /* Das Canvas-Element für PixiJS */
-            #pixi-canvas {
+            /* Neuer Layer für den unscharfen Hintergrund */
+            .blurred-background-layer {
                 position: absolute;
                 top: 0;
                 left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: -1; /* HINTER dem HTML-Inhalt */
-                display: block;
-                /* PixiJS wird hier Filter anwenden */
-                will-change: transform, filter; /* Hilft bei der GPU-Beschleunigung des Canvas */
+                right: 0;
+                bottom: 0;
+                background-color: var(--glass-base-color); /* Die Farbe, die unscharf gemacht wird */
+                filter: blur(var(--glass-blur-amount)); /* Der eigentliche Unschärfe-Effekt */
+                -webkit-filter: blur(var(--glass-blur-amount));
+                will-change: filter; /* Für Performance auf Safari */
+                backface-visibility: hidden;
+                z-index: -1; /* Wichtig: Hinter dem Inhalt liegen */
+                pointer-events: none; /* Klicks/Scrolls durchlassen */
             }
 
-            .search-panel::before { /* Border-Effekt, bleibt über Canvas */
+            .search-panel::before {
                 content: '';
                 position: absolute;
                 top: 0;
@@ -164,21 +157,7 @@ class FastSearchCard extends HTMLElement {
                 height: 1px;
                 background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
                 opacity: 0.6;
-                z-index: 1; /* Über dem Canvas */
-            }
-
-            /* Container für den gesamten HTML-Inhalt, der ÜBER dem Canvas liegen soll */
-            .html-content-layer {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                z-index: 0; /* Zwischen Canvas und ::before */
-                /* Wichtig: Hintergrund transparent halten, damit PixiJS-Effekt durchscheint */
-                background-color: transparent; 
+                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .search-wrapper {
@@ -188,10 +167,11 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: transparent; /* Muss transparent sein, damit PixiJS-Effekt durchscheint */
+                /* Hintergrund an die Basis-RGBA des .search-panel anpassen, um Konsistenz zu gewährleisten */
+                background-color: var(--glass-base-color); 
                 position: sticky; 
                 top: 0; 
-                z-index: 2; /* Liegt über dem scrollbaren Inhalt */
+                z-index: 2; /* Liegt über dem blurred-background-layer und content */
                 will-change: transform, opacity; 
                 backface-visibility: hidden;
             }
@@ -297,13 +277,6 @@ class FastSearchCard extends HTMLElement {
                 stroke-linejoin: round;
             }
 
-            .scrollable-content {
-                flex: 1;
-                min-height: 0;
-                overflow-y: hidden; /* Der Haupt-Container scrollt jetzt */
-                overflow-x: hidden;
-            }
-
             .subcategories {
                 display: flex;
                 gap: 8px;
@@ -311,14 +284,14 @@ class FastSearchCard extends HTMLElement {
                 overflow-x: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
-                -webkit-overflow-scrolling: touch; 
+                -webkit-overflow-scrolling: touch; /* Optimiert das Scrolling in WebKit */
                 transition: all 0.3s ease;
                 flex-shrink: 0; 
-                background-color: transparent; 
-                z-index: 1; 
+                background-color: transparent; /* Muss transparent sein */
+                z-index: 1; /* Über dem blurred-background-layer */
                 will-change: transform, scroll-position; 
                 backface-visibility: hidden;
-                transform: translateZ(0); 
+                transform: translateZ(0); /* Erzwingt Hardware-Beschleunigung für das Scrolling-Element selbst */
             }
 
             .subcategories::-webkit-scrollbar {
@@ -327,7 +300,7 @@ class FastSearchCard extends HTMLElement {
 
             .subcategory-chip {
                 padding: 8px 16px;
-                background: rgba(255, 255, 255, 0.08); 
+                background: rgba(255, 255, 255, 0.08); /* Diese Farbe überlagert den unscharfen Layer leicht */
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
                 font-size: 14px;
@@ -339,7 +312,7 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
                 position: relative;
                 overflow: hidden;
-                transform: translateZ(0); 
+                transform: translateZ(0); /* Erzwingt Hardware-Beschleunigung für die Chips selbst */
             }
 
             .subcategory-chip.active {
@@ -356,13 +329,21 @@ class FastSearchCard extends HTMLElement {
 
             .results-container {
                 flex-grow: 1; 
+                overflow-y: auto; 
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                -webkit-overflow-scrolling: touch; /* Optimiert das Scrolling in WebKit */
+                position: relative;
+                opacity: 0; 
+                transform: translateY(-10px); 
+                transition: all 0.3s ease; 
                 padding-top: 16px; 
                 padding-bottom: 20px; 
-                background-color: transparent; 
-                z-index: 1; 
+                background-color: transparent; /* Muss transparent sein */
+                z-index: 1; /* Über dem blurred-background-layer */
                 will-change: transform, scroll-position; 
                 backface-visibility: hidden;
-                transform: translateZ(0); 
+                transform: translateZ(0); /* Erzwingt Hardware-Beschleunigung für das Scrolling-Element selbst */
             }
 
             .results-container::-webkit-scrollbar {
@@ -391,8 +372,8 @@ class FastSearchCard extends HTMLElement {
                 margin: 16px 0 8px 0;
                 padding-bottom: 8px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: transparent; 
-                z-index: 1; 
+                background-color: transparent; /* Muss transparent sein */
+                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .area-header:first-child {
@@ -400,7 +381,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-card {
-                background: rgba(255, 255, 255, 0.08); 
+                background: rgba(255, 255, 255, 0.08); /* Diese Farbe überlagert den unscharfen Layer leicht */
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 16px;
                 padding: 16px;
@@ -447,7 +428,7 @@ class FastSearchCard extends HTMLElement {
 
             .device-icon {
                 width: 32px;
-                height: 32px;
+                                height: 32px;
                 background: rgba(255, 255, 255, 0.15);
                 border-radius: 8px;
                 display: flex;
@@ -500,18 +481,7 @@ class FastSearchCard extends HTMLElement {
                 display: none;
                 will-change: transform; 
                 backface-visibility: hidden;
-            }
-
-            /* PixiJS Canvas für Detail Panel (separate Instanz) */
-            #pixi-detail-canvas {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: -1; 
-                display: block;
-                will-change: transform, filter; 
+                filter: url(#glass-texture); /* Hinzugefügt: SVG-Filter */
             }
 
             .detail-panel.visible {
@@ -521,7 +491,7 @@ class FastSearchCard extends HTMLElement {
             .detail-header {
                 padding: 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: transparent; /* Muss transparent sein */
+                background-color: var(--glass-base-color); /* Konsistenter Hintergrund */
                 display: flex;
                 align-items: center;
                 gap: 16px;
@@ -568,32 +538,28 @@ class FastSearchCard extends HTMLElement {
 
             .detail-content {
                 display: flex;
-                flex-direction: column; 
                 height: 100%;
-                padding: 20px; 
-                padding-top: 80px; 
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                padding-top: 60px; /* Um Platz für den sticky Header zu schaffen */
+                z-index: 1; /* Über dem blurred-background-layer */
                 overflow-y: auto; 
-                -webkit-overflow-scrolling: touch;
-                will-change: scroll-position;
-                backface-visibility: hidden;
-                background-color: transparent; /* Muss transparent sein */
-                position: relative; /* Für z-index Kontex */
-                z-index: 0; /* Über dem Canvas */
             }
 
             .detail-left, .detail-right {
-                flex: none; 
-                width: 100%; 
-                height: auto; 
-                padding: 0; 
-                background-color: transparent; 
+                flex: 1;
+                padding: 20px;
+                background-color: transparent; /* Muss transparent sein */
+                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .detail-divider {
-                width: 100%; 
-                height: 1px;
-                background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent); 
-                margin: 20px 0; 
+                width: 1px;
+                background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.2), transparent);
+                margin: 20px 0;
             }
 
             /* Category Buttons */
@@ -627,18 +593,23 @@ class FastSearchCard extends HTMLElement {
                 box-shadow: var(--glass-shadow);
                 will-change: transform; 
                 backface-visibility: hidden;
+                filter: url(#glass-texture); /* Hinzugefügt: SVG-Filter */
             }
 
-            /* PixiJS Canvas für Category Buttons (separate Instanz, falls benötigt) */
-            .category-button .pixi-button-canvas {
+            .category-button::before {
+                content: '';
                 position: absolute;
                 top: 0;
                 left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: -1;
-                display: block;
-                will-change: transform, filter;
+                right: 0;
+                bottom: 0;
+                background-color: var(--glass-base-color); /* Die Farbe, die unscharf gemacht wird */
+                filter: blur(var(--glass-blur-amount)); /* Der eigentliche Unschärfe-Effekt */
+                -webkit-filter: blur(var(--glass-blur-amount));
+                will-change: filter;
+                backface-visibility: hidden;
+                z-index: -1; /* Hinter dem Inhalt des Buttons */
+                pointer-events: none; /* Klicks/Scrolls durchlassen */
             }
 
             .category-button:hover {
@@ -648,7 +619,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .category-button.active {
-                background: var(--accent-light); 
+                background: var(--accent-light); /* Akzentfarbe kann direkt angewendet werden */
                 border-color: var(--accent);
                 box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
             }
@@ -661,7 +632,6 @@ class FastSearchCard extends HTMLElement {
                 stroke-linecap: round;
                 stroke-linejoin: round;
                 transition: all 0.2s ease;
-                z-index: 1; /* Über dem Canvas */
             }
 
             .category-button.active svg {
@@ -677,6 +647,7 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 align-items: center;
                 gap: 12px;
+                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .empty-icon {
@@ -698,7 +669,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             /* Responsive */
-            @media (max-width: 480px) {
+            @container (max-width: 480px) {
                 .search-row {
                     flex-direction: column;
                     gap: 12px;
@@ -725,95 +696,105 @@ class FastSearchCard extends HTMLElement {
             }
             </style>
 
+            <!-- SVG Filter Definition (display: none, da nur die Definition benötigt wird) -->
+            <svg style="position: absolute; width: 0; height: 0;">
+                <defs>
+                    <filter id="glass-texture">
+                        <!-- Erzeugt ein leichtes Rauschen für die Milchigkeit -->
+                        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+                        <!-- Verschiebt die Farben leicht für einen subtilen Chromatic Aberration Effekt -->
+                        <feColorMatrix type="matrix" values="
+                            1 0 0 0 0 
+                            0 1 0 0 0 
+                            0 0 1 0 0 
+                            0 0 0 1.1 0" result="saturate" /> <!-- Leicht die Sättigung erhöhen -->
+                        <!-- Mischt das Rauschen mit dem Element-Inhalt -->
+                        <feComposite in="noise" in2="SourceGraphic" operator="arithmetic" k1="0" k2="0.1" k3="0" k4="0.9" result="blend" />
+                        <!-- Blendet die Sättigung ein -->
+                        <feBlend in="saturate" in2="blend" mode="multiply" />
+                    </filter>
+                </defs>
+            </svg>
+
             <div class="main-container">
                 <div class="search-row">
                     <div class="search-panel">
-                        <canvas id="pixi-canvas"></canvas> <!-- PixiJS Canvas für den Hintergrund -->
-                        <div class="html-content-layer"> <!-- Wrapper für gesamten HTML-Inhalt über dem Canvas -->
-                            <div class="search-wrapper">
-                                <div class="category-icon">
-                                    <svg viewBox="0 0 24 24" fill="none">
-                                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                        <path d="M12 18h.01"/>
-                                    </svg>
-                                </div>
-                                
-                                <input 
-                                    type="text" 
-                                    class="search-input" 
-                                    placeholder="Geräte suchen..."
-                                    autocomplete="off"
-                                    spellcheck="false"
-                                >
-                                
-                                <button class="clear-button">
-                                    <svg viewBox="0 0 24 24" fill="none">
-                                        <line x1="18" y1="6" x2="6" y2="18"/>
-                                        <line x1="6" y1="6" x2="18" y2="18"/>
-                                    </svg>
-                                </button>
-
-                                <div class="filter-icon">
-                                    <svg viewBox="0 0 24 24" fill="none">
-                                        <line x1="4" y1="21" x2="4" y2="14"/>
-                                        <line x1="4" y1="10" x2="4" y2="3"/>
-                                        <line x1="12" y1="21" x2="12" y2="12"/>
-                                        <line x1="12" y1="8" x2="12" y2="3"/>
-                                        <line x1="20" y1="21" x2="20" y2="16"/>
-                                        <line x1="20" y1="12" x2="20" y2="3"/>
-                                        <line x1="1" y1="14" x2="7" y2="14"/>
-                                        <line x1="9" y1="8" x2="15" y2="8"/>
-                                        <line x1="17" y1="16" x2="23" y2="16"/>
-                                    </svg>
-                                </div>
+                        <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
+                        <div class="search-wrapper">
+                            <div class="category-icon">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                    <path d="M12 18h.01"/>
+                                </svg>
                             </div>
+                            
+                            <input 
+                                type="text" 
+                                class="search-input" 
+                                placeholder="Geräte suchen..."
+                                autocomplete="off"
+                                spellcheck="false"
+                            >
+                            
+                            <button class="clear-button">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
 
-                            <div class="scrollable-content">
-                                <div class="subcategories">
-                                    <div class="subcategory-chip active" data-subcategory="all">Alle</div>
-                                    <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
-                                    <div class="subcategory-chip" data-subcategory="climate">Klima</div>
-                                    <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
-                                    <div class="subcategory-chip" data-subcategory="media">Medien</div>
-                                    <div class="subcategory-chip" data-subcategory="none">Keine</div>
-                                </div>
-
-                                <div class="results-container">
-                                    <div class="results-grid">
-                                        <!-- Results werden hier eingefügt -->
-                                    </div>
-                                </div>
+                            <div class="filter-icon">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <line x1="4" y1="21" x2="4" y2="14"/>
+                                    <line x1="4" y1="10" x2="4" y2="3"/>
+                                    <line x1="12" y1="21" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12" y2="3"/>
+                                    <line x1="20" y1="21" x2="20" y2="16"/>
+                                    <line x1="20" y1="12" x2="20" y2="3"/>
+                                    <line x1="1" y1="14" x2="7" y2="14"/>
+                                    <line x1="9" y1="8" x2="15" y2="8"/>
+                                    <line x1="17" y1="16" x2="23" y2="16"/>
+                                </svg>
                             </div>
+                        </div>
+
+                        <div class="results-container">
+                            <div class="subcategories">
+                                <div class="subcategory-chip active" data-subcategory="all">Alle</div>
+                                <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
+                                <div class="subcategory-chip" data-subcategory="climate">Klima</div>
+                                <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
+                                <div class="subcategory-chip" data-subcategory="media">Medien</div>
+                                <div class="subcategory-chip" data-subcategory="none">Keine</div>
+                            </div>
+                            <div class="results-grid">
+                                </div>
                         </div>
                     </div>
 
                     <div class="detail-panel">
-                        <canvas id="pixi-detail-canvas"></canvas> <!-- PixiJS Canvas für Detail Panel -->
-                        <div class="html-content-layer"> <!-- Wrapper für HTML-Inhalt des Detail Panels -->
-                            <div class="detail-header">
-                                <button class="back-button">
-                                    <svg viewBox="0 0 24 24" fill="none">
-                                        <path d="M19 12H5"/>
-                                        <path d="M12 19l-7-7 7-7"/>
-                                    </svg>
-                                </button>
-                                <h3 class="detail-title">Gerätedetails</h3>
-                            </div>
-                            <div class="detail-content">
-                                <div class="detail-left">
-                                    <!-- Linke Seite -->
+                        <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
+                        <div class="detail-header">
+                            <button class="back-button">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M19 12H5"/>
+                                    <path d="M12 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h3 class="detail-title">Gerätedetails</h3>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-left">
                                 </div>
-                                <div class="detail-divider"></div>
-                                <div class="detail-right">
-                                    <!-- Rechte Seite -->
+                            <div class="detail-divider"></div>
+                            <div class="detail-right">
                                 </div>
-                            </div>
                         </div>
                     </div>
 
                     <div class="category-buttons">
                         <button class="category-button active" data-category="devices" title="Geräte">
-                            <canvas id="pixi-button-canvas-devices" class="pixi-button-canvas"></canvas>
+                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
                                 <path d="M12 18h.01"/>
@@ -821,7 +802,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scripts" title="Skripte">
-                            <canvas id="pixi-button-canvas-scripts" class="pixi-button-canvas"></canvas>
+                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                 <polyline points="14,2 14,8 20,8"/>
@@ -832,7 +813,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="automations" title="Automationen">
-                            <canvas id="pixi-button-canvas-automations" class="pixi-button-canvas"></canvas>
+                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M12 2v6l3-3 3 3"/>
                                 <path d="M12 18v4"/>
@@ -843,7 +824,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scenes" title="Szenen">
-                            <canvas id="pixi-button-canvas-scenes" class="pixi-button-canvas"></canvas>
+                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
                                 <path d="M8 3v4"/>
@@ -856,173 +837,7 @@ class FastSearchCard extends HTMLElement {
         `;
 
         this.setupEventListeners();
-        // initPixiJS is now called in setConfig, ensuring canvas exists
-        // It also handles loading the PixiJS library if not already present.
     }
-
-    // Neu: PixiJS initialisieren und Hintergründe rendern
-    initPixiJS() {
-        // Only proceed if PIXI is defined
-        if (typeof PIXI === 'undefined') {
-            // Check if PixiJS is already being loaded to prevent multiple script tags
-            if (!window._pixi_loading) {
-                window._pixi_loading = true; // Set a global flag
-                const script = document.createElement('script');
-                script.src = "https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js";
-                script.onload = () => {
-                    console.log('✅ PixiJS loaded successfully.');
-                    window._pixi_loading = false; // Reset flag
-                    // Retry initPixiJS once PixiJS is loaded
-                    this.initPixiJS(); 
-                };
-                script.onerror = () => {
-                    console.error('❌ Failed to load PixiJS library.');
-                    window._pixi_loading = false;
-                };
-                document.head.appendChild(script);
-            } else {
-                console.log('⏳ PixiJS is already loading...');
-            }
-            return; // Exit if PIXI is not ready yet
-        }
-
-        // Only initialize PixiJS app once per canvas
-        if (this._isPixiAppReady) {
-            console.log('🔄 PixiJS app already initialized.');
-            return;
-        }
-
-        // Hintergrundbild für PixiJS-Canvas. 
-        // Dies ist ein Platzhalter. In einer echten HA-Umgebung
-        // müsste dies ein vom User konfigurierbares Bild oder eine Farbe sein.
-        const BACKGROUND_IMAGE_URL = 'https://placehold.co/600x400/808080/FFFFFF/png?text=HA%20Background'; // Beispielbild
-
-        // Initialisiere PixiJS für das Haupt-Suchpanel
-        const pixiCanvas = this.shadowRoot.querySelector('#pixi-canvas');
-        if (pixiCanvas) {
-            try {
-                this.pixiApp = new PIXI.Application({
-                    view: pixiCanvas,
-                    width: pixiCanvas.clientWidth,
-                    height: pixiCanvas.clientHeight,
-                    autoDensity: true,
-                    backgroundColor: 0x222222, // Fallback-Farbe, falls Bild nicht lädt
-                    antialias: true
-                });
-                this.pixiApp.renderer.resize(pixiCanvas.clientWidth, pixiCanvas.clientHeight);
-
-                // Skalierung des Renderer auf die CSS-Größe für schärferes Rendering
-                this.pixiApp.renderer.resolution = window.devicePixelRatio || 1; 
-
-                // Bild laden und als Hintergrund einfügen
-                this.pixiApp.loader.add('background', BACKGROUND_IMAGE_URL).load((loader, resources) => {
-                    this.backgroundSprite = new PIXI.Sprite(resources.background.texture);
-                    this.backgroundSprite.width = this.pixiApp.screen.width;
-                    this.backgroundSprite.height = this.pixiApp.screen.height;
-                    this.pixiApp.stage.addChild(this.backgroundSprite);
-
-                    // Unschärfe-Filter anwenden
-                    this.backgroundSprite.filters = [new PIXI.filters.BlurFilter(this._config.glassBlurAmount || 30)];
-
-                    // Dynamischer Lichteffekt (radialer Gradient)
-                    this.lightEffectGraphic = new PIXI.Graphics();
-                    this.lightEffectGraphic.blendMode = PIXI.BLEND_MODES.ADD; // Additiver Blend-Modus für Leuchteffekt
-                    this.pixiApp.stage.addChild(this.lightEffectGraphic);
-                });
-
-                // Mausbewegung für Lichteffekt im PixiJS-Canvas
-                // Muss auf dem search-panel als Ganzes lauschen, aber die Mauskoordinaten relativ zum Canvas berechnen
-                const searchPanel = this.shadowRoot.querySelector('.search-panel');
-                searchPanel.addEventListener('mousemove', (e) => {
-                    const rect = pixiCanvas.getBoundingClientRect();
-                    this.mouseX = (e.clientX - rect.left) / rect.width;
-                    this.mouseY = (e.clientY - rect.top) / rect.height;
-                });
-                searchPanel.addEventListener('mouseleave', () => {
-                    // Optional: Lichteffekt ausblenden oder zu Mitte zurücksetzen
-                    this.mouseX = 0.5;
-                    this.mouseY = 0.5;
-                });
-
-                // PixiJS-Loop für dynamische Effekte
-                this.pixiApp.ticker.add(() => {
-                    if (this.lightEffectGraphic) {
-                        this.lightEffectGraphic.clear();
-                        // Zeichne einen radialen Lichteffekt
-                        const gradientRadius = Math.min(this.pixiApp.screen.width, this.pixiApp.screen.height) * 0.4;
-                        this.lightEffectGraphic.beginFill(0xFFFFFF, 0.4); // Helles, leicht transparentes Weiß
-                        this.lightEffectGraphic.drawCircle(
-                            this.mouseX * this.pixiApp.screen.width, 
-                            this.mouseY * this.pixiApp.screen.height, 
-                            gradientRadius
-                        );
-                        this.lightEffectGraphic.endFill();
-
-                        // Optional: Blur des Lichteffekts
-                        // this.lightEffectGraphic.filters = [new PIXI.filters.BlurFilter(30)]; // Kann Performance beeinflussen
-                    }
-                });
-
-                // Resize-Handler für PixiJS-Canvas
-                const resizeObserver = new ResizeObserver(entries => {
-                    for (let entry of entries) {
-                        if (entry.target === pixiCanvas.parentElement) { // resize des search-panel
-                            const newWidth = entry.contentRect.width;
-                            const newHeight = entry.contentRect.height;
-                            this.pixiApp.renderer.resize(newWidth, newHeight);
-                            if (this.backgroundSprite) {
-                                this.backgroundSprite.width = newWidth;
-                                this.backgroundSprite.height = newHeight;
-                            }
-                        }
-                    }
-                });
-                resizeObserver.observe(pixiCanvas.parentElement); // Parent des Canvas beobachten
-                this._isPixiAppReady = true; // App ist nun bereit
-            } catch (error) {
-                console.error('❌ Failed to initialize PixiJS Application:', error);
-                // Fallback oder Fehlerbehandlung, falls PixiJS nicht initialisiert werden kann
-                this.fallbackToCssBlur();
-            }
-        }
-
-        // TODO: Separat PixiJS für Detail-Panel und Category Buttons initialisieren,
-        // wenn diese auch dynamische Glas-Effekte benötigen sollen.
-        // Das ist aufwendiger und würde den Code stark erweitern.
-    }
-
-    fallbackToCssBlur() {
-        console.warn('Falling back to CSS blur due to PixiJS initialization failure.');
-        // Remove canvas elements from DOM if they exist
-        this.shadowRoot.querySelectorAll('canvas[id^="pixi-"]').forEach(canvas => canvas.remove());
-
-        // Restore original CSS background-filter for search-panel, detail-panel, category-buttons
-        // This would involve reverting the CSS changes made for PixiJS and re-applying backdrop-filter or the pseudo-element blur approach.
-        // For brevity, this part is conceptual, but in a real app, you'd manage CSS classes.
-        const styleElement = this.shadowRoot.querySelector('style');
-        if (styleElement) {
-             // Example: Dynamically inject fallback styles or remove 'pixi-mode' class
-             // For now, let's just make the .search-panel somewhat visible
-             styleElement.innerHTML += `
-                .search-panel {
-                    background: rgba(255, 255, 255, 0.15);
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                }
-                .detail-panel {
-                    background: rgba(255, 255, 255, 0.15);
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                }
-                .category-button {
-                    background: rgba(255, 255, 255, 0.15);
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                }
-             `;
-        }
-    }
-
 
     setupEventListeners() {
         const searchInput = this.shadowRoot.querySelector('.search-input');
@@ -1031,9 +846,6 @@ class FastSearchCard extends HTMLElement {
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
         const backButton = this.shadowRoot.querySelector('.back-button');
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        // const mainContainer = this.shadowRoot.querySelector('.main-container'); // Not needed for mouse events on searchPanel anymore
-
 
         // Search Events
         searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
@@ -1358,7 +1170,7 @@ class FastSearchCard extends HTMLElement {
                 <polyline points="14,2 14,8 20,8"/>
                 <line x1="16" y1="13" x2="8" y2="13"/>
                 <line x1="16" y1="17" x2="8" y2="17"/>
-            </svg>`,
+            </polyline>`,
             automations: `<svg viewBox="0 0 24 24" fill="none">
                 <path d="M12 2v6l3-3 3 3"/>
                 <path d="M12 18v4"/>
@@ -1810,7 +1622,7 @@ class FastSearchCard extends HTMLElement {
         
         detailRight.innerHTML = `
             <div style="color: var(--text-primary);">
-                <h4 style="margin: 0 0 16px 0;">Status</h4>
+                <h4 style="margin: 0 0 16px 0;'>Status</h4>
                 <p style="margin: 0 0 8px 0;">Zustand: ${this.getEntityStatus(state)}</p>
                 <p style="margin: 0 0 8px 0;">Entität: ${item.id}</p>
                 <p style="margin: 0;">Typ: ${item.domain}</p>
