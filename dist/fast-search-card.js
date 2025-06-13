@@ -151,10 +151,10 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 padding: 16px 20px;
                 min-height: 40px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                border-bottom: 0px solid rgba(255, 255, 255, 0.1);
                 
                 /* Nur einen leicht transparenten Hintergrund, damit der backdrop-filter des Elternteils durchscheint */
-                background-color: rgba(255, 255, 255, 0.05); /* Angepasste Transparenz */
+                background-color: transparent;
                 /* backdrop-filter hier ENTFERNT, da es vom .search-panel geerbt/durchgelassen wird */
 
                 position: sticky; 
