@@ -123,12 +123,27 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 max-height: 72px;
-                display: flex;
-                flex-direction: column;
+                overflow: hidden;
             }
 
             .search-panel.expanded {
                 max-height: 400px;
+            }
+
+            /* DEBUG: Temporäre Debug-Styles */
+            .scrollable-content {
+                background: rgba(255, 0, 0, 0.1) !important; /* Rot für Debug */
+                border: 2px solid red !important;
+            }
+            
+            .subcategories {
+                background: rgba(0, 255, 0, 0.1) !important; /* Grün für Debug */
+                border: 2px solid green !important;
+            }
+            
+            .results-container {
+                background: rgba(0, 0, 255, 0.1) !important; /* Blau für Debug */
+                border: 2px solid blue !important;
             }
 
             .search-panel::before {
@@ -508,22 +523,38 @@ class FastSearchCard extends HTMLElement {
             }
 
             /* Mobile Detail View - Stack vertically */
-            @container (max-width: 480px) {
-                .detail-content {
-                    flex-direction: column;
+            @media (max-width: 480px) {
+                .detail-panel {
+                    background: rgba(255, 255, 0, 0.3) !important; /* Gelb für Debug Mobile */
+                    border: 3px solid orange !important;
                 }
                 
-                .detail-left, .detail-right {
-                    flex: none;
-                    width: 100%;
-                    height: 50%;
+                .detail-content {
+                    flex-direction: column !important;
+                    background: rgba(255, 0, 255, 0.2) !important; /* Magenta für Debug */
+                }
+                
+                .detail-left {
+                    flex: none !important;
+                    width: 100% !important;
+                    height: 50% !important;
+                    background: rgba(0, 255, 255, 0.2) !important; /* Cyan für Debug */
+                    border: 2px solid cyan !important;
+                }
+                
+                .detail-right {
+                    flex: none !important;
+                    width: 100% !important;
+                    height: 50% !important;
+                    background: rgba(255, 255, 0, 0.2) !important; /* Gelb für Debug */
+                    border: 2px solid yellow !important;
                 }
                 
                 .detail-divider {
-                    width: 100%;
-                    height: 1px;
-                    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
-                    margin: 0;
+                    width: 100% !important;
+                    height: 1px !important;
+                    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
+                    margin: 0 !important;
                 }
             }
 
