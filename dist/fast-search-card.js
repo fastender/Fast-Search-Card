@@ -112,27 +112,39 @@ class FastSearchCard extends HTMLElement {
 
             .search-panel {
                 flex: 1;
-                /* Haupt-Glas-Hintergrund und Filter hier definieren */
-                background: 
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.08); /* Basis-RGBA des Glases */
-                backdrop-filter: var(--glass-blur) saturate(1.8);
-                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
-                
+                /* Das search-panel selbst wird zum Container für den Glas-Effekt,
+                   aber der eigentliche Hintergrund/Filter liegt im .glass-container */
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
-                overflow: hidden; 
+                overflow: hidden; /* Wichtig für abgerundete Ecken */
                 position: relative;
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 max-height: 72px; 
                 display: flex; 
                 flex-direction: column; 
-                transform: translateZ(0); /* Hardware-Beschleunigung für das Haupt-Panel */
+                /* will-change hier für das gesamte Panel */
+                will-change: transform, backdrop-filter; 
+                backface-visibility: hidden; /* Zusätzliche Optimierung */
             }
 
             .search-panel.expanded {
                 max-height: 400px; 
+            }
+
+            /* Neuer Container für den eigentlichen Glas-Effekt */
+            .glass-container {
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08); 
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                height: 100%;
+                will-change: transform, backdrop-filter; /* Wichtig für Safari-Rendering */
+                backface-visibility: hidden;
             }
 
             .search-panel::before {
@@ -154,14 +166,14 @@ class FastSearchCard extends HTMLElement {
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 
-                /* Hintergrund an die Basis-RGBA des .search-panel anpassen, um Konsistenz zu gewährleisten */
-                background-color: rgba(255, 255, 255, 0.08); 
-                /* Kein backdrop-filter hier, da er vom .search-panel angewendet wird */
+                /* Hintergrund-Farbe muss hier transparent sein, damit der .glass-container durchscheint */
+                background-color: transparent; 
 
                 position: sticky; 
                 top: 0; 
                 z-index: 2; 
-                transform: translateZ(0); /* Hardware-Beschleunigung für Sticky-Element */
+                will-change: transform, opacity; /* Hint für Safari */
+                backface-visibility: hidden;
             }
 
             .category-icon {
@@ -172,7 +184,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 justify-content: center;
                 border-radius: 6px;
-                background: rgba(255, 255, 255, 0.1); /* Kann minimal anders sein für visuellen Effekt */
+                background: rgba(255, 255, 255, 0.1); 
                 flex-shrink: 0;
                 transition: all 0.2s ease;
             }
@@ -274,8 +286,10 @@ class FastSearchCard extends HTMLElement {
                 -ms-overflow-style: none;
                 transition: all 0.3s ease;
                 flex-shrink: 0; 
-                /* Kein Hintergrund hier, damit der des .search-panel durchscheint */
-                transform: translateZ(0); /* Hardware-Beschleunigung für horizontales Scrolling */
+                /* Hintergrund transparent halten */
+                background-color: transparent;
+                will-change: transform, scroll-position; /* Hint für Scrolling-Performance */
+                backface-visibility: hidden;
             }
 
             .subcategories::-webkit-scrollbar {
@@ -284,7 +298,7 @@ class FastSearchCard extends HTMLElement {
 
             .subcategory-chip {
                 padding: 8px 16px;
-                /* Hintergrund an die Basis-RGBA des .search-panel anpassen */
+                /* Hintergrund an die Basis-RGBA des .glass-container anpassen */
                 background: rgba(255, 255, 255, 0.08); 
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
@@ -322,7 +336,8 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.3s ease; 
                 padding-top: 16px; 
                 padding-bottom: 20px; 
-                transform: translateZ(0); /* Hardware-Beschleunigung für vertikales Scrolling */
+                will-change: transform, scroll-position; /* Hint für Scrolling-Performance */
+                backface-visibility: hidden;
             }
 
             .results-container::-webkit-scrollbar {
@@ -351,7 +366,7 @@ class FastSearchCard extends HTMLElement {
                 margin: 16px 0 8px 0;
                 padding-bottom: 8px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                /* Sicherstellen, dass kein Hintergrund gesetzt ist, um Durchscheinen zu ermöglichen */
+                /* Hintergrund transparent halten */
                 background-color: transparent; 
             }
 
@@ -360,7 +375,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-card {
-                /* Hintergrund an die Basis-RGBA des .search-panel anpassen */
+                /* Hintergrund an die Basis-RGBA des .glass-container anpassen */
                 background: rgba(255, 255, 255, 0.08); 
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 16px;
@@ -373,6 +388,7 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 overflow: hidden;
                 transition: all 0.2s ease;
+                will-change: transform, opacity; /* Hint für Animationen/Interaktionen */
             }
 
             .device-card::before {
@@ -449,7 +465,7 @@ class FastSearchCard extends HTMLElement {
             /* Detail View Styles */
             .detail-panel {
                 flex: 1;
-                /* Hier ebenfalls den vollständigen Glas-Hintergrund anwenden */
+                /* Auch hier den vollständigen Glas-Hintergrund anwenden */
                 background: 
                     linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
                     rgba(255, 255, 255, 0.08); 
@@ -463,7 +479,8 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 height: 400px;
                 display: none;
-                transform: translateZ(0); /* Hardware-Beschleunigung für das Detail-Panel */
+                will-change: transform, backdrop-filter; /* Hint für Safari-Rendering */
+                backface-visibility: hidden;
             }
 
             .detail-panel.visible {
@@ -485,7 +502,8 @@ class FastSearchCard extends HTMLElement {
                 /* Hintergrund an die Basis-RGBA des .detail-panel anpassen */
                 background-color: rgba(255, 255, 255, 0.08); 
                 /* Kein backdrop-filter hier */
-                transform: translateZ(0); /* Hardware-Beschleunigung für Sticky-Header */
+                will-change: transform, opacity; /* Hint für Sticky-Header */
+                backface-visibility: hidden;
             }
 
             .back-button {
@@ -548,7 +566,8 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 opacity: 0;
                 transform: translateX(20px);
-                transform: translateZ(0); /* Hardware-Beschleunigung für animierten Container */
+                will-change: transform, opacity; /* Hint für animierten Container */
+                backface-visibility: hidden;
             }
 
             .category-buttons.visible {
@@ -575,13 +594,14 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 transition: all 0.2s ease;
                 box-shadow: var(--glass-shadow);
-                transform: translateZ(0); /* Hardware-Beschleunigung für Buttons mit Backdrop-Filter */
+                will-change: transform, backdrop-filter; /* Hint für Buttons mit Backdrop-Filter */
+                backface-visibility: hidden;
             }
 
             .category-button:hover {
                 transform: scale(1.05);
                 border-color: var(--accent);
-                box-shadow: 0 8px 25px rgba(0, 122, 255, 0.2);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             }
 
             .category-button.active {
@@ -664,55 +684,57 @@ class FastSearchCard extends HTMLElement {
             <div class="main-container">
                 <div class="search-row">
                     <div class="search-panel">
-                        <div class="search-wrapper">
-                            <div class="category-icon">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                    <path d="M12 18h.01"/>
-                                </svg>
-                            </div>
-                            
-                            <input 
-                                type="text" 
-                                class="search-input" 
-                                placeholder="Geräte suchen..."
-                                autocomplete="off"
-                                spellcheck="false"
-                            >
-                            
-                            <button class="clear-button">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <line x1="18" y1="6" x2="6" y2="18"/>
-                                    <line x1="6" y1="6" x2="18" y2="18"/>
-                                </svg>
-                            </button>
-
-                            <div class="filter-icon">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <line x1="4" y1="21" x2="4" y2="14"/>
-                                    <line x1="4" y1="10" x2="4" y2="3"/>
-                                    <line x1="12" y1="21" x2="12" y2="12"/>
-                                    <line x1="12" y1="8" x2="12" y2="3"/>
-                                    <line x1="20" y1="21" x2="20" y2="16"/>
-                                    <line x1="20" y1="12" x2="20" y2="3"/>
-                                    <line x1="1" y1="14" x2="7" y2="14"/>
-                                    <line x1="9" y1="8" x2="15" y2="8"/>
-                                    <line x1="17" y1="16" x2="23" y2="16"/>
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div class="results-container">
-                            <div class="subcategories">
-                                <div class="subcategory-chip active" data-subcategory="all">Alle</div>
-                                <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
-                                <div class="subcategory-chip" data-subcategory="climate">Klima</div>
-                                <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
-                                <div class="subcategory-chip" data-subcategory="media">Medien</div>
-                                <div class="subcategory-chip" data-subcategory="none">Keine</div>
-                            </div>
-                            <div class="results-grid">
+                        <div class="glass-container">
+                            <div class="search-wrapper">
+                                <div class="category-icon">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                        <path d="M12 18h.01"/>
+                                    </svg>
                                 </div>
+                                
+                                <input 
+                                    type="text" 
+                                    class="search-input" 
+                                    placeholder="Geräte suchen..."
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                >
+                                
+                                <button class="clear-button">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+
+                                <div class="filter-icon">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <line x1="4" y1="21" x2="4" y2="14"/>
+                                        <line x1="4" y1="10" x2="4" y2="3"/>
+                                        <line x1="12" y1="21" x2="12" y2="12"/>
+                                        <line x1="12" y1="8" x2="12" y2="3"/>
+                                        <line x1="20" y1="21" x2="20" y2="16"/>
+                                        <line x1="20" y1="12" x2="20" y2="3"/>
+                                        <line x1="1" y1="14" x2="7" y2="14"/>
+                                        <line x1="9" y1="8" x2="15" y2="8"/>
+                                        <line x1="17" y1="16" x2="23" y2="16"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div class="results-container">
+                                <div class="subcategories">
+                                    <div class="subcategory-chip active" data-subcategory="all">Alle</div>
+                                    <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
+                                    <div class="subcategory-chip" data-subcategory="climate">Klima</div>
+                                    <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
+                                    <div class="subcategory-chip" data-subcategory="media">Medien</div>
+                                    <div class="subcategory-chip" data-subcategory="none">Keine</div>
+                                </div>
+                                <div class="results-grid">
+                                    </div>
+                            </div>
                         </div>
                     </div>
 
