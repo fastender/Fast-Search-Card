@@ -1559,7 +1559,8 @@ class FastSearchCard extends HTMLElement {
             fill: 'forwards'
         }).finished.then(() => {
             detailPanel.classList.remove('visible');
-            searchPanel.style.display = 'block';
+            // SCROLL FIX: Restore the display property to 'flex' to re-enable the flexbox layout
+            searchPanel.style.display = 'flex';
             
             // Restore previous state
             if (this.previousSearchState) {
