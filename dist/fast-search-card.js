@@ -1,3 +1,8 @@
+Gerne! Um Ansatz 2 umzusetzen, müssen wir die HTML-Struktur in der `render()`-Methode anpassen und sicherstellen, dass die CSS-Regeln entsprechend angewendet werden.
+
+Hier ist der angepasste Code für `fast-search-card.js` gemäß Ansatz 2. Ich habe die Änderungen mit Kommentaren versehen:
+
+```javascript
 class FastSearchCard extends HTMLElement {
     constructor() {
         super();
@@ -120,16 +125,17 @@ class FastSearchCard extends HTMLElement {
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
+                overflow: hidden; /* Behalten, um abgerundete Ecken zu ermöglichen */
                 position: relative;
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                max-height: 72px;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
+                max-height: 72px; /* Nur die Suchleiste im nicht-erweiterten Zustand */
+                display: flex; /* <-- Hinzugefügt für Flex-Layout */
+                flex-direction: column; /* <-- Hinzugefügt für Spalten-Layout */
             }
 
             .search-panel.expanded {
-                max-height: 400px;
+                max-height: 400px; /* Oder eine andere feste Höhe, die du möchtest */
+                /* overflow-y: auto; <-- ENTFERNEN, da Scrolling im results-container ist */
             }
 
             .search-panel::before {
@@ -150,6 +156,13 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                /* Hintergrund und Filter hier beibehalten, damit sie beim Überlappen nicht durchsichtig werden */
+                background: inherit;
+                backdrop-filter: inherit;
+                -webkit-backdrop-filter: inherit;
+                position: sticky; /* <-- HINZUGEFÜGT, damit die Suchleiste oben klebt, wenn das Panel scrollt */
+                top: 0; /* <-- HINZUGEFÜGT */
+                z-index: 2; /* <-- HINZUGEFÜGT, um über Subkategorien zu liegen, falls scrollbar */
             }
 
             .category-icon {
@@ -261,12 +274,14 @@ class FastSearchCard extends HTMLElement {
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 transition: all 0.3s ease;
+                flex-shrink: 0; /* <-- Hinzugefügt, damit es nicht schrumpft */
+                /* opacity und transform werden jetzt von parent gesteuert */
             }
 
-            .search-panel.expanded .subcategories {
+            /* .search-panel.expanded .subcategories { <-- Diese Regel wird jetzt von .results-container gesteuert
                 opacity: 1;
                 transform: translateY(0);
-            }
+            } */
 
             .subcategories::-webkit-scrollbar {
                 display: none;
@@ -301,15 +316,17 @@ class FastSearchCard extends HTMLElement {
             }
 
             .results-container {
-                padding: 0 20px 20px 20px;
-                opacity: 0;
-                transform: translateY(-10px);
-                transition: all 0.3s ease;
-                height: 280px;
-                overflow-y: auto;
+                /* padding: 0 20px 20px 20px; <-- Padding wird jetzt innerhalb des .results-grid gemacht */
+                flex-grow: 1; /* <-- Hinzugefügt, damit es den verfügbaren Platz ausfüllt */
+                overflow-y: auto; /* <-- Hinzugefügt, um das Scrolling hier zu ermöglichen */
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 position: relative;
+                opacity: 0; /* Beibehalten für Animation */
+                transform: translateY(-10px); /* Beibehalten für Animation */
+                transition: all 0.3s ease; /* Beibehalten für Animation */
+                padding-top: 16px; /* <-- Hinzugefügt, um Abstand zu den Subkategorien zu halten */
+                padding-bottom: 20px; /* <-- Hinzugefügt, um unteren Abstand zu haben */
             }
 
             .results-container::-webkit-scrollbar {
@@ -326,7 +343,8 @@ class FastSearchCard extends HTMLElement {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 12px;
                 min-height: 200px;
-                padding-bottom: 20px;
+                padding-left: 20px; /* <-- Hinzugefügt für links/rechts Padding */
+                padding-right: 20px; /* <-- Hinzugefügt für links/rechts Padding */
             }
 
             .area-header {
@@ -508,26 +526,6 @@ class FastSearchCard extends HTMLElement {
                 bottom: 0;
             }
 
-            /* Mobile Detail View - Stack vertically */
-            @media (max-width: 480px) {
-                .detail-content {
-                    flex-direction: column !important;
-                }
-                
-                .detail-left, .detail-right {
-                    flex: 1 !important;
-                    width: 100% !important;
-                    height: auto !important;
-                }
-                
-                .detail-divider {
-                    width: 100% !important;
-                    height: 1px !important;
-                    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
-                    margin: 0 !important;
-                }
-            }
-
             .detail-left, .detail-right {
                 flex: 1;
                 padding: 20px;
@@ -654,11 +652,11 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 .results-container {
-                    height: 200px;
+                    /* height: 200px; <-- Hier könnte die Höhe reduziert werden, wenn nötig */
                 }
                 
                 .results-grid {
-                    padding-bottom: 15px;
+                    /* padding-bottom: 15px; <-- Bereits im results-container */
                 }
             }
             </style>
@@ -704,7 +702,7 @@ class FastSearchCard extends HTMLElement {
                             </div>
                         </div>
 
-                        <div class="scrollable-content">
+                        <div class="results-container">
                             <div class="subcategories">
                                 <div class="subcategory-chip active" data-subcategory="all">Alle</div>
                                 <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
@@ -713,12 +711,8 @@ class FastSearchCard extends HTMLElement {
                                 <div class="subcategory-chip" data-subcategory="media">Medien</div>
                                 <div class="subcategory-chip" data-subcategory="none">Keine</div>
                             </div>
-
-                            <div class="results-container">
-                                <div class="results-grid">
-                                    <!-- Results werden hier eingefügt -->
+                            <div class="results-grid">
                                 </div>
-                            </div>
                         </div>
                     </div>
 
@@ -734,12 +728,10 @@ class FastSearchCard extends HTMLElement {
                         </div>
                         <div class="detail-content">
                             <div class="detail-left">
-                                <!-- Linke Seite -->
-                            </div>
+                                </div>
                             <div class="detail-divider"></div>
                             <div class="detail-right">
-                                <!-- Rechte Seite -->
-                            </div>
+                                </div>
                         </div>
                     </div>
 
@@ -831,6 +823,7 @@ class FastSearchCard extends HTMLElement {
         });
 
         // Subcategory Chips - Event Delegation
+        // Der Listener ist weiterhin auf .subcategories, da die Struktur nur verschoben wurde
         this.shadowRoot.querySelector('.subcategories').addEventListener('click', (e) => {
             const chip = e.target.closest('.subcategory-chip');
             if (chip) {
@@ -1521,6 +1514,13 @@ class FastSearchCard extends HTMLElement {
             if (this.previousSearchState) {
                 this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
                 this.activeCategory = this.previousSearchState.activeCategory;
+                this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => { // Aktiviere korrekten Subcategory-Chip
+                    if (chip.dataset.subcategory === this.previousSearchState.activeSubcategory) {
+                        chip.classList.add('active');
+                    } else {
+                        chip.classList.remove('active');
+                    }
+                });
                 this.activeSubcategory = this.previousSearchState.activeSubcategory;
                 this.filteredItems = this.previousSearchState.filteredItems;
                 
@@ -1671,3 +1671,4 @@ console.info(
     'color: #007AFF; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: #007AFF'
 );
+```
