@@ -17,10 +17,17 @@ class FastSearchCard extends HTMLElement {
         this.searchTimeout = null;
         this.isSearching = false;
         
-        // Neue State-Variablen für Liquid Glass
+        // Neue State-Variablen
         this.isDetailView = false;
         this.currentDetailItem = null;
         this.previousSearchState = null;
+
+        // PixiJS-Variablen
+        this.pixiApp = null;
+        this.backgroundSprite = null;
+        this.lightEffectGraphic = null; // Für den radialen Lichteffekt
+        this.mouseX = 0.5; // Initial bei 50%
+        this.mouseY = 0.5; // Initial bei 50%
     }
 
     setConfig(config) {
@@ -84,24 +91,16 @@ class FastSearchCard extends HTMLElement {
             <style>
             :host {
                 display: block;
-                /* Angepasste Farben für den neuen Glas-Effekt */
-                --glass-primary: rgba(255, 255, 255, 0.15); /* Weniger transparent für "milchiger" */
-                --glass-secondary: rgba(255, 255, 255, 0.1);
+                /* Angepasste Farben für den neuen Glas-Effekt. 
+                   Die Basisfarbe der Glaselemente selbst. */
+                --glass-base-color: rgba(255, 255, 255, 0.15); /* Erhöhte Transparenz für "milchiger" */
                 --glass-border: rgba(255, 255, 255, 0.2);
                 --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-                --glass-blur: blur(20px); /* Basis-Unschärfe-Wert */
+                --glass-blur-amount: 30px; /* Stärke des Weichzeichners erhöht */
                 --accent: #007AFF;
                 --accent-light: rgba(0, 122, 255, 0.15);
                 --text-primary: rgba(255, 255, 255, 0.95);
                 --text-secondary: rgba(255, 255, 255, 0.7);
-                
-                /* Neue CSS-Variablen für dynamische Effekte */
-                --mouse-x: 50%;
-                --mouse-y: 50%;
-                --scroll-progress: 0; /* 0 beim oberen Ende, 1 beim unteren Ende */
-                --tilt-x: 0deg;
-                --tilt-y: 0deg;
-                
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
 
@@ -121,102 +120,61 @@ class FastSearchCard extends HTMLElement {
 
             .search-panel {
                 flex: 1;
-                /* Dynamischer Hintergrund mit radialem Lichteffekt */
-                background: 
-                    radial-gradient(circle at var(--mouse-x) var(--mouse-y), 
-                        rgba(255, 255, 255, 0.3) 0%, /* Heller Punkt am Mauszeiger */
-                        rgba(255, 255, 255, 0.15) 30%, 
-                        rgba(255, 255, 255, 0.1) 70%,
-                        rgba(255, 255, 255, 0.08) 100% /* Basis-Glasfarbe */
-                    ),
-                    linear-gradient(135deg, /* Statischer Gradient als Fallback/zusätzlicher Effekt */
-                        rgba(255, 255, 255, 0.25) 0%, 
-                        rgba(255, 255, 255, 0.1) 100%
-                    );
-                
-                /* Dynamischer Backdrop-Filter basierend auf Scroll-Position */
-                backdrop-filter: blur(calc(20px + var(--scroll-progress) * 10px)) saturate(1.8);
-                -webkit-backdrop-filter: blur(calc(20px + var(--scroll-progress) * 10px)) saturate(1.8);
-                
-                border: 1px solid transparent; /* Border wird über ::after animiert */
+                background: transparent; /* KEIN HINTERGRUND MEHR HIER - PixiJS übernimmt */
+                border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
-                position: relative;
-                transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease-out; /* Transform für Tilt-Effekt */
+                overflow: hidden; 
+                position: relative; /* Wichtig für absolut positionierte Kinder wie Canvas und Inhalte */
+                transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 max-height: 72px; 
-                overflow: hidden; /* Muss hier bleiben, um Pseudo-Elemente zu maskieren */
                 display: flex; 
                 flex-direction: column; 
-                
-                /* Performance-Optimierungen */
-                will-change: transform, max-height, backdrop-filter; 
+                will-change: transform, max-height; 
                 backface-visibility: hidden; 
-                transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); /* 3D-Tilt */
             }
 
             .search-panel.expanded {
-                max-height: 400px;
-                overflow-y: auto; /* Haupt-Scrolling für den Inhalt */
-                -webkit-overflow-scrolling: touch; /* Flüssigeres Scrolling auf iOS */
+                max-height: 400px; 
             }
 
-            /* Chromatic Aberration Border (::before) */
-            .search-panel::before {
+            /* Das Canvas-Element für PixiJS */
+            #pixi-canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1; /* HINTER dem HTML-Inhalt */
+                display: block;
+                /* PixiJS wird hier Filter anwenden */
+                will-change: transform, filter; /* Hilft bei der GPU-Beschleunigung des Canvas */
+            }
+
+            .search-panel::before { /* Border-Effekt, bleibt über Canvas */
                 content: '';
                 position: absolute;
-                inset: -1px; /* Erzeugt einen leichten Überhang */
-                background: linear-gradient(45deg, 
-                    rgba(255, 100, 100, 0.15) 0%, /* Rot */
-                    rgba(100, 255, 100, 0.15) 33%, /* Grün */
-                    rgba(100, 100, 255, 0.15) 66%, /* Blau */
-                    rgba(255, 100, 255, 0.15) 100% /* Magenta */
-                );
-                border-radius: 25px; /* Etwas größer als Panel-Radius */
-                filter: blur(0.5px); /* Leichte Unschärfe für den Effekt */
-                z-index: -1; /* Hinter dem Panel-Inhalt */
-                opacity: 0;
-                transition: opacity 0.3s ease;
-                pointer-events: none; /* Interaktionen durchlassen */
-                will-change: opacity, transform;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                opacity: 0.6;
+                z-index: 1; /* Über dem Canvas */
             }
 
-            .search-panel:hover::before {
-                opacity: 1; /* Sichtbar beim Hover */
-            }
-
-            /* Animated Gradient Border (::after) */
-            .search-panel::after {
-                content: '';
+            /* Container für den gesamten HTML-Inhalt, der ÜBER dem Canvas liegen soll */
+            .html-content-layer {
                 position: absolute;
-                inset: 0;
-                background: linear-gradient(
-                    var(--border-angle, 0deg), /* CSS-Variable für Animation */
-                    rgba(255, 255, 255, 0.4) 0%,
-                    rgba(255, 255, 255, 0.1) 25%,
-                    rgba(0, 122, 255, 0.3) 50%, /* Akzentfarbe in der Mitte */
-                    rgba(255, 255, 255, 0.1) 75%,
-                    rgba(255, 255, 255, 0.4) 100%
-                );
-                border-radius: 24px;
-                padding: 1px; /* Erzeugt den Rahmen um das Panel */
-                mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-                mask-composite: xor; /* Maskiert den Bereich innerhalb des Paddings */
-                -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-                -webkit-mask-composite: xor;
-                opacity: 0;
-                transition: opacity 0.3s ease;
-                animation: borderRotate 3s linear infinite; /* Animation des Winkels */
-                pointer-events: none; /* Interaktionen durchlassen */
-                will-change: background, opacity;
-            }
-
-            .search-panel.expanded::after {
-                opacity: 1; /* Sichtbar, wenn Panel erweitert ist */
-            }
-
-            @keyframes borderRotate {
-                0% { --border-angle: 0deg; }
-                100% { --border-angle: 360deg; }
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                z-index: 0; /* Zwischen Canvas und ::before */
+                /* Wichtig: Hintergrund transparent halten, damit PixiJS-Effekt durchscheint */
+                background-color: transparent; 
             }
 
             .search-wrapper {
@@ -226,39 +184,137 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                /* Hintergrund des Wrappers muss transparent sein, 
-                   damit der backdrop-filter des Eltern-Panels durchscheint */
-                background: transparent; 
-                position: sticky; /* Suchleiste bleibt oben kleben */
+                background-color: transparent; /* Muss transparent sein, damit PixiJS-Effekt durchscheint */
+                position: sticky; 
                 top: 0; 
-                z-index: 1; /* Über dem Scroll-Inhalt */
-                will-change: transform;
+                z-index: 2; /* Liegt über dem scrollbaren Inhalt */
+                will-change: transform, opacity; 
                 backface-visibility: hidden;
             }
 
-            /* Scrollbarer Bereich für Subkategorien und Ergebnisse */
+            .category-icon {
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.1); 
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+
+            .category-icon:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.05);
+            }
+
+            .category-icon svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .search-input {
+                flex: 1;
+                border: none;
+                background: transparent;
+                outline: none;
+                font-size: 17px;
+                color: var(--text-primary);
+                font-family: inherit;
+                min-width: 0;
+            }
+
+            .search-input::placeholder {
+                color: var(--text-secondary);
+            }
+
+            .clear-button {
+                width: 24px;
+                height: 24px;
+                border: none;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 50%;
+                cursor: pointer;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+
+            .clear-button.visible {
+                display: flex;
+                opacity: 1;
+            }
+
+            .clear-button:hover {
+                background: rgba(255, 255, 255, 0.25);
+                transform: scale(1.1);
+            }
+
+            .clear-button svg {
+                width: 12px;
+                height: 12px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+            }
+
+            .filter-icon {
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.1);
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+
+            .filter-icon:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: rotate(90deg);
+            }
+
+            .filter-icon svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
             .scrollable-content {
                 flex: 1;
-                min-height: 0; /* Ermöglicht das Schrumpfen im Flex-Container */
-                overflow-y: hidden; /* Verhindert doppelte Scrollbalken, 
-                                     da scrolling auf .search-panel.expanded ist */
+                min-height: 0;
+                overflow-y: hidden; /* Der Haupt-Container scrollt jetzt */
                 overflow-x: hidden;
             }
 
             .subcategories {
                 display: flex;
                 gap: 8px;
-                padding: 16px 20px;
+                padding: 0 20px 16px 20px;
                 overflow-x: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
-                -webkit-overflow-scrolling: touch; /* Optimiert das Scrolling in WebKit */
+                -webkit-overflow-scrolling: touch; 
                 transition: all 0.3s ease;
                 flex-shrink: 0; 
-                background-color: transparent; /* Muss transparent sein */
+                background-color: transparent; 
+                z-index: 1; 
                 will-change: transform, scroll-position; 
                 backface-visibility: hidden;
-                transform: translateZ(0); /* Erzwingt Hardware-Beschleunigung für das Scrolling-Element selbst */
+                transform: translateZ(0); 
             }
 
             .subcategories::-webkit-scrollbar {
@@ -267,7 +323,7 @@ class FastSearchCard extends HTMLElement {
 
             .subcategory-chip {
                 padding: 8px 16px;
-                background: rgba(255, 255, 255, 0.1); /* Leicht transparent */
+                background: rgba(255, 255, 255, 0.08); 
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
                 font-size: 14px;
@@ -279,7 +335,7 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
                 position: relative;
                 overflow: hidden;
-                transform: translateZ(0); /* Für Hardware-Beschleunigung */
+                transform: translateZ(0); 
             }
 
             .subcategory-chip.active {
@@ -295,12 +351,23 @@ class FastSearchCard extends HTMLElement {
             }
 
             .results-container {
-                padding: 0 20px 20px 20px;
-                height: auto;
-                overflow: visible; /* Container selbst nicht scrollbar, Parent übernimmt */
-                background-color: transparent; /* Muss transparent sein */
-                will-change: transform; /* Für Performance */
+                flex-grow: 1; 
+                padding-top: 16px; 
+                padding-bottom: 20px; 
+                background-color: transparent; 
+                z-index: 1; 
+                will-change: transform, scroll-position; 
                 backface-visibility: hidden;
+                transform: translateZ(0); 
+            }
+
+            .results-container::-webkit-scrollbar {
+                display: none;
+            }
+
+            .search-panel.expanded .results-container {
+                opacity: 1;
+                transform: translateY(0);
             }
 
             .results-grid {
@@ -308,7 +375,8 @@ class FastSearchCard extends HTMLElement {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 12px;
                 min-height: 200px;
-                padding-bottom: 20px;
+                padding-left: 20px; 
+                padding-right: 20px; 
             }
 
             .area-header {
@@ -319,7 +387,8 @@ class FastSearchCard extends HTMLElement {
                 margin: 16px 0 8px 0;
                 padding-bottom: 8px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: transparent; /* Muss transparent sein */
+                background-color: transparent; 
+                z-index: 1; 
             }
 
             .area-header:first-child {
@@ -327,12 +396,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-card {
-                /* Dynamischer Hintergrund mit radialem Lichteffekt für Karten */
-                background: 
-                    radial-gradient(circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 50%), 
-                        rgba(255, 255, 255, 0.2) 0%, 
-                        rgba(255, 255, 255, 0.08) 50% /* Basis-Kartenfarbe */
-                    );
+                background: rgba(255, 255, 255, 0.08); 
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 16px;
                 padding: 16px;
@@ -344,17 +408,10 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 overflow: hidden;
                 transition: all 0.2s ease;
-                
-                backdrop-filter: blur(10px); /* Leichter Backdrop-Filter für Karten */
-                -webkit-backdrop-filter: blur(10px);
-                
-                /* Performance-Optimierung für 3D-Effekte */
-                transform: translateZ(0); 
-                will-change: transform, backdrop-filter;
-                backface-visibility: hidden;
+                z-index: 1; 
+                will-change: transform, opacity; 
             }
 
-            /* Card Displacement/Highlight Effect (::before) */
             .device-card::before {
                 content: '';
                 position: absolute;
@@ -362,65 +419,26 @@ class FastSearchCard extends HTMLElement {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: 
-                    radial-gradient(circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 50%), 
-                        rgba(255, 255, 255, 0.2) 0%, /* Heller Punkt beim Hover */
-                        transparent 60%
-                    );
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
                 opacity: 0;
                 transition: opacity 0.3s ease;
-                pointer-events: none; /* Interaktionen durchlassen */
-                will-change: opacity;
             }
 
             .device-card:hover::before {
                 opacity: 1;
             }
 
-            /* Card Chromatic Aberration (::after) */
-            .device-card::after {
-                content: '';
-                position: absolute;
-                inset: -0.5px; /* Leichter Überhang */
-                background: linear-gradient(135deg, 
-                    rgba(255, 0, 100, 0.1) 0%, /* Rot */
-                    rgba(0, 255, 150, 0.1) 50%, /* Grün */
-                    rgba(100, 0, 255, 0.1) 100% /* Blau */
-                );
-                border-radius: 17px; /* Etwas größer als Karten-Radius */
-                filter: blur(0.3px); /* Leichte Unschärfe für den Effekt */
-                z-index: -1; /* Hinter der Karte */
-                opacity: 0;
-                transition: opacity 0.2s ease;
-                pointer-events: none; /* Interaktionen durchlassen */
-                will-change: opacity, transform;
-            }
-
-            .device-card:hover::after {
-                opacity: 1;
-            }
-
             .device-card:hover {
-                transform: translateY(-2px) scale(1.02) translateZ(10px); /* Leichter 3D-Effekt */
-                box-shadow: 
-                    0 8px 25px rgba(0, 0, 0, 0.15),
-                    0 0 20px rgba(0, 122, 255, 0.1); /* Leichter blauer Schatten */
-                backdrop-filter: blur(15px); /* Stärkere Unschärfe beim Hover */
-                -webkit-backdrop-filter: blur(15px);
+                transform: translateY(-2px) scale(1.02);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             }
 
             .device-card.active {
-                background: 
-                    radial-gradient(circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 50%), 
-                        rgba(0, 122, 255, 0.3) 0%, 
-                        var(--accent-light) 50% /* Akzentfarbe beim Aktiv-Zustand */
-                    );
+                background: var(--accent-light);
                 border-color: var(--accent);
                 box-shadow: 
                     0 4px 20px rgba(0, 122, 255, 0.2),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-                    0 0 30px rgba(0, 122, 255, 0.15);
-                transform: translateZ(20px); /* Noch stärkerer 3D-Effekt */
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
 
             .device-icon {
@@ -465,14 +483,10 @@ class FastSearchCard extends HTMLElement {
                 opacity: 1;
             }
 
-            /* Detail View Styles (angepasst für ähnlichen Glas-Look) */
+            /* Detail View Styles */
             .detail-panel {
                 flex: 1;
-                background: 
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.08);
-                backdrop-filter: var(--glass-blur) saturate(1.8);
-                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                background: transparent; /* KEIN HINTERGRUND MEHR HIER - PixiJS übernimmt */
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
@@ -480,8 +494,20 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 height: 400px;
                 display: none;
-                will-change: transform, backdrop-filter;
+                will-change: transform; 
                 backface-visibility: hidden;
+            }
+
+            /* PixiJS Canvas für Detail Panel (separate Instanz) */
+            #pixi-detail-canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1; 
+                display: block;
+                will-change: transform, filter; 
             }
 
             .detail-panel.visible {
@@ -491,18 +517,16 @@ class FastSearchCard extends HTMLElement {
             .detail-header {
                 padding: 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                background-color: transparent; /* Muss transparent sein */
                 display: flex;
                 align-items: center;
                 gap: 16px;
-                position: sticky; /* Sticky Header */
+                position: sticky; 
                 top: 0;
                 left: 0;
                 right: 0;
                 z-index: 10;
-                background: inherit; /* Erbt Hintergrund vom Detail-Panel */
-                backdrop-filter: inherit; /* Erbt Backdrop-Filter */
-                -webkit-backdrop-filter: inherit;
-                will-change: transform, backdrop-filter;
+                will-change: transform, opacity; 
                 backface-visibility: hidden;
             }
 
@@ -540,28 +564,32 @@ class FastSearchCard extends HTMLElement {
 
             .detail-content {
                 display: flex;
-                flex-direction: column; /* Neu: Inhalte vertikal anordnen */
+                flex-direction: column; 
                 height: 100%;
-                padding: 20px; /* Padding hier, nicht auf children */
-                padding-top: 80px; /* Platz für den Sticky Header */
-                overflow-y: auto; /* Inhalt des Detail-Panels scrollbar machen */
+                padding: 20px; 
+                padding-top: 80px; 
+                overflow-y: auto; 
                 -webkit-overflow-scrolling: touch;
                 will-change: scroll-position;
                 backface-visibility: hidden;
+                background-color: transparent; /* Muss transparent sein */
+                position: relative; /* Für z-index Kontex */
+                z-index: 0; /* Über dem Canvas */
             }
 
             .detail-left, .detail-right {
-                flex: none; /* Flex-Verhalten anpassen */
-                width: 100%; /* Breitenanpassung */
-                height: auto; /* Höhenanpassung */
-                padding: 0; /* Padding wird von .detail-content gesteuert */
+                flex: none; 
+                width: 100%; 
+                height: auto; 
+                padding: 0; 
+                background-color: transparent; 
             }
 
             .detail-divider {
-                width: 100%; /* Volle Breite */
+                width: 100%; 
                 height: 1px;
-                background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent); /* Horizontaler Divider */
-                margin: 20px 0; /* Abstand */
+                background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent); 
+                margin: 20px 0; 
             }
 
             /* Category Buttons */
@@ -582,11 +610,7 @@ class FastSearchCard extends HTMLElement {
             .category-button {
                 width: 56px;
                 height: 56px;
-                background: 
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.08);
-                backdrop-filter: var(--glass-blur) saturate(1.8);
-                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                background: transparent; /* KEIN HINTERGRUND HIER - PixiJS übernimmt */
                 border: 1px solid var(--glass-border);
                 border-radius: 50%;
                 display: flex;
@@ -597,8 +621,20 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 transition: all 0.2s ease;
                 box-shadow: var(--glass-shadow);
-                will-change: transform, backdrop-filter; 
+                will-change: transform; 
                 backface-visibility: hidden;
+            }
+
+            /* PixiJS Canvas für Category Buttons (separate Instanz, falls benötigt) */
+            .category-button #pixi-button-canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+                display: block;
+                will-change: transform, filter;
             }
 
             .category-button:hover {
@@ -608,7 +644,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .category-button.active {
-                background: var(--accent-light);
+                background: var(--accent-light); 
                 border-color: var(--accent);
                 box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
             }
@@ -621,6 +657,7 @@ class FastSearchCard extends HTMLElement {
                 stroke-linecap: round;
                 stroke-linejoin: round;
                 transition: all 0.2s ease;
+                z-index: 1; /* Über dem Canvas */
             }
 
             .category-button.active svg {
@@ -684,89 +721,98 @@ class FastSearchCard extends HTMLElement {
             }
             </style>
 
+            <!-- PixiJS Bibliothek -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
+
             <div class="main-container">
                 <div class="search-row">
                     <div class="search-panel">
-                        <div class="glass-reflection"></div> <!-- Neuer Layer für Reflexionen -->
-                        <div class="search-wrapper">
-                            <div class="category-icon">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                    <path d="M12 18h.01"/>
-                                </svg>
-                            </div>
-                            
-                            <input 
-                                type="text" 
-                                class="search-input" 
-                                placeholder="Geräte suchen..."
-                                autocomplete="off"
-                                spellcheck="false"
-                            >
-                            
-                            <button class="clear-button">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <line x1="18" y1="6" x2="6" y2="18"/>
-                                    <line x1="6" y1="6" x2="18" y2="18"/>
-                                </svg>
-                            </button>
+                        <canvas id="pixi-canvas"></canvas> <!-- PixiJS Canvas für den Hintergrund -->
+                        <div class="html-content-layer"> <!-- Wrapper für gesamten HTML-Inhalt über dem Canvas -->
+                            <div class="search-wrapper">
+                                <div class="category-icon">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                        <path d="M12 18h.01"/>
+                                    </svg>
+                                </div>
+                                
+                                <input 
+                                    type="text" 
+                                    class="search-input" 
+                                    placeholder="Geräte suchen..."
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                >
+                                
+                                <button class="clear-button">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
 
-                            <div class="filter-icon">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <line x1="4" y1="21" x2="4" y2="14"/>
-                                    <line x1="4" y1="10" x2="4" y2="3"/>
-                                    <line x1="12" y1="21" x2="12" y2="12"/>
-                                    <line x1="12" y1="8" x2="12" y2="3"/>
-                                    <line x1="20" y1="21" x2="20" y2="16"/>
-                                    <line x1="20" y1="12" x2="20" y2="3"/>
-                                    <line x1="1" y1="14" x2="7" y2="14"/>
-                                    <line x1="9" y1="8" x2="15" y2="8"/>
-                                    <line x1="17" y1="16" x2="23" y2="16"/>
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div class="scrollable-content">
-                            <div class="subcategories">
-                                <div class="subcategory-chip active" data-subcategory="all">Alle</div>
-                                <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
-                                <div class="subcategory-chip" data-subcategory="climate">Klima</div>
-                                <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
-                                <div class="subcategory-chip" data-subcategory="media">Medien</div>
-                                <div class="subcategory-chip" data-subcategory="none">Keine</div>
+                                <div class="filter-icon">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <line x1="4" y1="21" x2="4" y2="14"/>
+                                        <line x1="4" y1="10" x2="4" y2="3"/>
+                                        <line x1="12" y1="21" x2="12" y2="12"/>
+                                        <line x1="12" y1="8" x2="12" y2="3"/>
+                                        <line x1="20" y1="21" x2="20" y2="16"/>
+                                        <line x1="20" y1="12" x2="20" y2="3"/>
+                                        <line x1="1" y1="14" x2="7" y2="14"/>
+                                        <line x1="9" y1="8" x2="15" y2="8"/>
+                                        <line x1="17" y1="16" x2="23" y2="16"/>
+                                    </svg>
+                                </div>
                             </div>
 
-                            <div class="results-container">
-                                <div class="results-grid">
-                                    <!-- Results werden hier eingefügt -->
+                            <div class="scrollable-content">
+                                <div class="subcategories">
+                                    <div class="subcategory-chip active" data-subcategory="all">Alle</div>
+                                    <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
+                                    <div class="subcategory-chip" data-subcategory="climate">Klima</div>
+                                    <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
+                                    <div class="subcategory-chip" data-subcategory="media">Medien</div>
+                                    <div class="subcategory-chip" data-subcategory="none">Keine</div>
+                                </div>
+
+                                <div class="results-container">
+                                    <div class="results-grid">
+                                        <!-- Results werden hier eingefügt -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="detail-panel">
-                        <div class="detail-header">
-                            <button class="back-button">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M19 12H5"/>
-                                    <path d="M12 19l-7-7 7-7"/>
-                                </svg>
-                            </button>
-                            <h3 class="detail-title">Gerätedetails</h3>
-                        </div>
-                        <div class="detail-content">
-                            <div class="detail-left">
-                                <!-- Linke Seite -->
+                        <canvas id="pixi-detail-canvas"></canvas> <!-- PixiJS Canvas für Detail Panel -->
+                        <div class="html-content-layer"> <!-- Wrapper für HTML-Inhalt des Detail Panels -->
+                            <div class="detail-header">
+                                <button class="back-button">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <path d="M19 12H5"/>
+                                        <path d="M12 19l-7-7 7-7"/>
+                                    </svg>
+                                </button>
+                                <h3 class="detail-title">Gerätedetails</h3>
                             </div>
-                            <div class="detail-divider"></div>
-                            <div class="detail-right">
-                                <!-- Rechte Seite -->
+                            <div class="detail-content">
+                                <div class="detail-left">
+                                    <!-- Linke Seite -->
+                                </div>
+                                <div class="detail-divider"></div>
+                                <div class="detail-right">
+                                    <!-- Rechte Seite -->
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="category-buttons">
                         <button class="category-button active" data-category="devices" title="Geräte">
+                            <canvas id="pixi-button-canvas-devices" class="pixi-button-canvas"></canvas>
                             <svg viewBox="0 0 24 24" fill="none">
                                 <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
                                 <path d="M12 18h.01"/>
@@ -774,6 +820,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scripts" title="Skripte">
+                            <canvas id="pixi-button-canvas-scripts" class="pixi-button-canvas"></canvas>
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                 <polyline points="14,2 14,8 20,8"/>
@@ -784,6 +831,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="automations" title="Automationen">
+                            <canvas id="pixi-button-canvas-automations" class="pixi-button-canvas"></canvas>
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M12 2v6l3-3 3 3"/>
                                 <path d="M12 18v4"/>
@@ -794,6 +842,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scenes" title="Szenen">
+                            <canvas id="pixi-button-canvas-scenes" class="pixi-button-canvas"></canvas>
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
                                 <path d="M8 3v4"/>
@@ -806,6 +855,101 @@ class FastSearchCard extends HTMLElement {
         `;
 
         this.setupEventListeners();
+        this.initPixiJS(); // PixiJS initialisieren
+    }
+
+    // Neu: PixiJS initialisieren und Hintergründe rendern
+    initPixiJS() {
+        // Hintergrundbild für PixiJS-Canvas. 
+        // Dies ist ein Platzhalter. In einer echten HA-Umgebung
+        // müsste dies ein vom User konfigurierbares Bild oder eine Farbe sein.
+        const BACKGROUND_IMAGE_URL = 'https://placehold.co/600x400/808080/FFFFFF/png?text=HA%20Background'; // Beispielbild
+
+        // Initialisiere PixiJS für das Haupt-Suchpanel
+        const pixiCanvas = this.shadowRoot.querySelector('#pixi-canvas');
+        if (pixiCanvas && !this.pixiApp) { // Nur einmal initialisieren
+            this.pixiApp = new PIXI.Application({
+                view: pixiCanvas,
+                width: pixiCanvas.clientWidth,
+                height: pixiCanvas.clientHeight,
+                autoDensity: true,
+                backgroundColor: 0x222222, // Fallback-Farbe, falls Bild nicht lädt
+                antialias: true
+            });
+            this.pixiApp.renderer.resize(pixiCanvas.clientWidth, pixiCanvas.clientHeight);
+
+            // Skalierung des Renderer auf die CSS-Größe für schärferes Rendering
+            this.pixiApp.renderer.resolution = window.devicePixelRatio || 1; 
+
+            // Bild laden und als Hintergrund einfügen
+            this.pixiApp.loader.add('background', BACKGROUND_IMAGE_URL).load((loader, resources) => {
+                this.backgroundSprite = new PIXI.Sprite(resources.background.texture);
+                this.backgroundSprite.width = this.pixiApp.screen.width;
+                this.backgroundSprite.height = this.pixiApp.screen.height;
+                this.pixiApp.stage.addChild(this.backgroundSprite);
+
+                // Unschärfe-Filter anwenden
+                this.backgroundSprite.filters = [new PIXI.filters.BlurFilter(this._config.glassBlurAmount || 30)];
+
+                // Dynamischer Lichteffekt (radialer Gradient)
+                this.lightEffectGraphic = new PIXI.Graphics();
+                this.lightEffectGraphic.blendMode = PIXI.BLEND_MODES.ADD; // Additiver Blend-Modus für Leuchteffekt
+                this.pixiApp.stage.addChild(this.lightEffectGraphic);
+            });
+
+            // Mausbewegung für Lichteffekt im PixiJS-Canvas
+            // Muss auf dem search-panel als Ganzes lauschen, aber die Mauskoordinaten relativ zum Canvas berechnen
+            const searchPanel = this.shadowRoot.querySelector('.search-panel');
+            searchPanel.addEventListener('mousemove', (e) => {
+                const rect = pixiCanvas.getBoundingClientRect();
+                this.mouseX = (e.clientX - rect.left) / rect.width;
+                this.mouseY = (e.clientY - rect.top) / rect.height;
+            });
+            searchPanel.addEventListener('mouseleave', () => {
+                // Optional: Lichteffekt ausblenden oder zu Mitte zurücksetzen
+                this.mouseX = 0.5;
+                this.mouseY = 0.5;
+            });
+
+            // PixiJS-Loop für dynamische Effekte
+            this.pixiApp.ticker.add(() => {
+                if (this.lightEffectGraphic) {
+                    this.lightEffectGraphic.clear();
+                    // Zeichne einen radialen Lichteffekt
+                    const gradientRadius = Math.min(this.pixiApp.screen.width, this.pixiApp.screen.height) * 0.4;
+                    this.lightEffectGraphic.beginFill(0xFFFFFF, 0.4); // Helles, leicht transparentes Weiß
+                    this.lightEffectGraphic.drawCircle(
+                        this.mouseX * this.pixiApp.screen.width, 
+                        this.mouseY * this.pixiApp.screen.height, 
+                        gradientRadius
+                    );
+                    this.lightEffectGraphic.endFill();
+
+                    // Optional: Blur des Lichteffekts
+                    this.lightEffectGraphic.filters = [new PIXI.filters.BlurFilter(30)];
+                }
+            });
+
+            // Resize-Handler für PixiJS-Canvas
+            const resizeObserver = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    if (entry.target === pixiCanvas.parentElement) { // resize des search-panel
+                        const newWidth = entry.contentRect.width;
+                        const newHeight = entry.contentRect.height;
+                        this.pixiApp.renderer.resize(newWidth, newHeight);
+                        if (this.backgroundSprite) {
+                            this.backgroundSprite.width = newWidth;
+                            this.backgroundSprite.height = newHeight;
+                        }
+                    }
+                }
+            });
+            resizeObserver.observe(pixiCanvas.parentElement); // Parent des Canvas beobachten
+        }
+
+        // TODO: Separat PixiJS für Detail-Panel und Category Buttons initialisieren,
+        // wenn diese auch dynamische Glas-Effekte benötigen sollen.
+        // Das ist aufwendiger und würde den Code stark erweitern.
     }
 
     setupEventListeners() {
@@ -816,55 +960,7 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
         const backButton = this.shadowRoot.querySelector('.back-button');
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        const mainContainer = this.shadowRoot.querySelector('.main-container');
-
-        // Maus-Tracking für Liquid Glass Effekte
-        mainContainer.addEventListener('mousemove', (e) => {
-            const rect = searchPanel.getBoundingClientRect();
-            // X und Y Position der Maus relativ zum Element in Prozent
-            const x = ((e.clientX - rect.left) / rect.width) * 100;
-            const y = ((e.clientY - rect.top) / rect.height) * 100;
-            
-            // Aktualisiere CSS-Variablen für Mausposition
-            searchPanel.style.setProperty('--mouse-x', `${x}%`);
-            searchPanel.style.setProperty('--mouse-y', `${y}%`);
-            
-            // 3D-Tilt Effekt
-            const tiltX = (y - 50) / 10; // -5 bis +5 Grad
-            const tiltY = (x - 50) / 10; // -5 bis +5 Grad
-            searchPanel.style.setProperty('--tilt-x', `${tiltX}deg`);
-            searchPanel.style.setProperty('--tilt-y', `${tiltY}deg`);
-        });
-
-        // Tilt auf 0 zurücksetzen, wenn die Maus das Element verlässt
-        mainContainer.addEventListener('mouseleave', () => {
-            searchPanel.style.setProperty('--tilt-x', '0deg');
-            searchPanel.style.setProperty('--tilt-y', '0deg');
-        });
-
-        // Scroll-Fortschritt-Tracking für dynamische Unschärfe
-        searchPanel.addEventListener('scroll', (e) => {
-            const scrollTop = e.target.scrollTop;
-            const scrollHeight = e.target.scrollHeight - e.target.clientHeight;
-            // Berechne Fortschritt von 0 (oben) bis 1 (unten)
-            const scrollProgress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
-            
-            searchPanel.style.setProperty('--scroll-progress', scrollProgress);
-        });
-
-        // Device card Maus-Tracking für individuelle Lichteffekte
-        this.shadowRoot.addEventListener('mousemove', (e) => {
-            const card = e.target.closest('.device-card');
-            if (card) {
-                const rect = card.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
-                
-                card.style.setProperty('--card-mouse-x', `${x}%`);
-                card.style.setProperty('--card-mouse-y', `${y}%`);
-            }
-        });
-
+        // const mainContainer = this.shadowRoot.querySelector('.main-container'); // Nicht mehr für Maus-Events auf searchPanel benötigt
 
         // Search Events
         searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
@@ -1098,7 +1194,6 @@ class FastSearchCard extends HTMLElement {
         
         // Hide category buttons and expand panel
         this.hideCategoryButtons();
-        // Keine setTimeout-Verzögerung mehr, um die Reaktionszeit zu verbessern
         this.expandPanel();
         this.showCurrentCategoryItems();
     }
@@ -1593,6 +1688,13 @@ class FastSearchCard extends HTMLElement {
             if (this.previousSearchState) {
                 this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
                 this.activeCategory = this.previousSearchState.activeCategory;
+                this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => { 
+                    if (chip.dataset.subcategory === this.previousSearchState.activeSubcategory) {
+                        chip.classList.add('active');
+                    } else {
+                        chip.classList.remove('active');
+                    }
+                });
                 this.activeSubcategory = this.previousSearchState.activeSubcategory; // Wichtig für die Wiederherstellung des aktiven Chips
                 this.filteredItems = this.previousSearchState.filteredItems;
                 
