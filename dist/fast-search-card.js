@@ -1,4 +1,485 @@
-class FastSearchCard extends HTMLElement {
+render() {
+        this.shadowRoot.innerHTML = `
+            <style>
+            :host {
+                display: block;
+                --glass-primary: rgba(255, 255, 255, 0.15);
+                --glass-secondary: rgba(255, 255, 255, 0.1);
+                --glass-border: rgba(255, 255, 255, 0.2);
+                --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+                --glass-blur: blur(20px);
+                --accent: #007AFF;
+                --accent-light: rgba(0, 122, 255, 0.15);
+                --text-primary: rgba(255, 255, 255, 0.95);
+                --text-secondary: rgba(255, 255, 255, 0.7);
+                --mouse-x: 50%;
+                --mouse-y: 50%;
+                --scroll-progress: 0;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+
+            .main-container {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .search-row {
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                width: 100%;
+            }
+
+            .search-panel {
+                flex: 1;
+                background: 
+                    radial-gradient(circle at var(--mouse-x) var(--mouse-y), 
+                        rgba(255, 255, 255, 0.3) 0%, 
+                        rgba(255, 255, 255, 0.15) 30%, 
+                        rgba(255, 255, 255, 0.1) 70%,
+                        rgba(255, 255, 255, 0.08) 100%
+                    ),
+                    linear-gradient(135deg, 
+                        rgba(255, 255, 255, 0.25) 0%, 
+                        rgba(255, 255, 255, 0.1) 100%
+                    );
+                backdrop-filter: blur(calc(20px + var(--scroll-progress) * 10px)) saturate(1.8);
+                -webkit-backdrop-filter: blur(calc(20px + var(--scroll-progress) * 10px)) saturate(1.8);
+                border: 1px solid transparent;
+                border-radius: 24px;
+                box-shadow: var(--glass-shadow);
+                position: relative;
+                transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                max-height: 72px;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* Chromatic Aberration Border */
+            .search-panel::before {
+                content: '';
+                position: absolute;
+                inset: -1px;
+                background: linear-gradient(45deg, 
+                    rgba(255, 100, 100, 0.15) 0%,
+                    rgba(100, 255, 100, 0.15) 33%,
+                    rgba(100, 100, 255, 0.15) 66%,
+                    rgba(255, 100, 255, 0.15) 100%
+                );
+                border-radius: 25px;
+                filter: blur(0.5px);
+                z-index: -1;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .search-panel:hover::before {
+                opacity: 1;
+            }
+
+            /* Animated Gradient Border */
+            .search-panel::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(
+                    var(--border-angle, 0deg),
+                    rgba(255, 255, 255, 0.4) 0%,
+                    rgba(255, 255, 255, 0.1) 25%,
+                    rgba(0, 122, 255, 0.3) 50%,
+                    rgba(255, 255, 255, 0.1) 75%,
+                    rgba(255, 255, 255, 0.4) 100%
+                );
+                border-radius: 24px;
+                padding: 1px;
+                mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                mask-composite: xor;
+                -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                -webkit-mask-composite: xor;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                animation: borderRotate 3s linear infinite;
+            }
+
+            .search-panel.expanded::after {
+                opacity: 1;
+            }
+
+            @keyframes borderRotate {
+                0% { --border-angle: 0deg; }
+                100% { --border-angle: 360deg; }
+            }
+
+            /* WebGL-like Refraction Effect */
+            .search-panel.expanded {
+                max-height: 400px;
+                overflow-y: auto;
+                overflow-x: visible;
+                transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+                transition: transform 0.2s ease-out;
+            }
+
+            /* Glass Reflection Layer */
+            .search-panel .glass-reflection {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 50%;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(255, 255, 255, 0.3) 0%,
+                    rgba(255, 255, 255, 0.1) 50%,
+                    transparent 100%
+                );
+                border-radius: 24px 24px 0 0;
+                pointer-events: none;
+                opacity: 0.6;
+                mix-blend-mode: overlay;
+            }
+
+            .search-panel::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                opacity: 0.6;
+            }
+
+            .search-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px 20px;
+                min-height: 40px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                flex-shrink: 0;
+                position: sticky;
+                top: 0;
+                background: inherit;
+                backdrop-filter: inherit;
+                -webkit-backdrop-filter: inherit;
+                z-index: 1;
+            }
+
+            .scrollable-content {
+                flex: 1;
+                min-height: 0;
+            }
+
+            .subcategories {
+                display: flex;
+                gap: 8px;
+                padding: 16px 20px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                transition: all 0.3s ease;
+            }
+
+            .subcategories::-webkit-scrollbar {
+                display: none;
+            }
+
+            .results-container {
+                padding: 0 20px 20px 20px;
+                height: auto;
+                overflow: visible;
+            }
+
+            .category-icon {
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.1);
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+
+            .category-icon:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.05);
+            }
+
+            .category-icon svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .search-input {
+                flex: 1;
+                border: none;
+                background: transparent;
+                outline: none;
+                font-size: 17px;
+                color: var(--text-primary);
+                font-family: inherit;
+                min-width: 0;
+            }
+
+            .search-input::placeholder {
+                color: var(--text-secondary);
+            }
+
+            .clear-button {
+                width: 24px;
+                height: 24px;
+                border: none;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 50%;
+                cursor: pointer;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+
+            .clear-button.visible {
+                display: flex;
+                opacity: 1;
+            }
+
+            .clear-button:hover {
+                background: rgba(255, 255, 255, 0.25);
+                transform: scale(1.1);
+            }
+
+            .clear-button svg {
+                width: 12px;
+                height: 12px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+            }
+
+            .filter-icon {
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.1);
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+
+            .filter-icon:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: rotate(90deg);
+            }
+
+            .filter-icon svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .subcategory-chip {
+                padding: 8px 16px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--text-secondary);
+                cursor: pointer;
+                white-space: nowrap;
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .subcategory-chip.active {
+                background: var(--accent-light);
+                border-color: var(--accent);
+                color: var(--accent);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+            }
+
+            .subcategory-chip:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-1px);
+            }
+
+            .results-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 12px;
+                min-height: 200px;
+                padding-bottom: 20px;
+            }
+
+            .area-header {
+                grid-column: 1 / -1;
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                margin: 16px 0 8px 0;
+                padding-bottom: 8px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .area-header:first-child {
+                margin-top: 0;
+            }
+
+            .device-card {
+                background: 
+                    radial-gradient(circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 50%), 
+                        rgba(255, 255, 255, 0.2) 0%, 
+                        rgba(255, 255, 255, 0.08) 50%
+                    );
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 16px;
+                padding: 16px;
+                cursor: pointer;
+                aspect-ratio: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                position: relative;
+                overflow: hidden;
+                transition: all 0.2s ease;
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+
+            /* Card Displacement Effect */
+            .device-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: 
+                    radial-gradient(circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 50%), 
+                        rgba(255, 255, 255, 0.2) 0%, 
+                        transparent 60%
+                    );
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                transform: translateZ(0);
+            }
+
+            .device-card:hover::before {
+                opacity: 1;
+            }
+
+            /* Card Chromatic Aberration */
+            .device-card::after {
+                content: '';
+                position: absolute;
+                inset: -0.5px;
+                background: linear-gradient(135deg, 
+                    rgba(255, 0, 100, 0.1) 0%,
+                    rgba(0, 255, 150, 0.1) 50%,
+                    rgba(100, 0, 255, 0.1) 100%
+                );
+                border-radius: 17px;
+                filter: blur(0.3px);
+                z-index: -1;
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+
+            .device-card:hover::after {
+                opacity: 1;
+            }
+
+            .device-card:hover {
+                transform: translateY(-2px) scale(1.02) translateZ(10px);
+                box-shadow: 
+                    0 8px 25px rgba(0, 0, 0, 0.15),
+                    0 0 20px rgba(0, 122, 255, 0.1);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+            }
+
+            .device-card.active {
+                background: 
+                    radial-gradient(circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 50%), 
+                        rgba(0, 122, 255, 0.3) 0%, 
+                        var(--accent-light) 50%
+                    );
+                border-color: var(--accent);
+                box-shadow: 
+                    0 4px 20px rgba(0, 122, 255, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                    0 0 30px rgba(0, 122, 255, 0.15);
+                transform: translateZ(20px);
+            }
+
+            .device-icon {
+                width: 32px;
+                height: 32px;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                margin-bottom: auto;
+                transition: all 0.2s ease;
+            }
+
+            .device-card.active .device-icon {
+                background: rgba(0, 122, 255, 0.3);
+                color: var(--accent);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+            }
+
+            .device-name {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 0 0 4px 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                line-height: 1.2;
+            }
+
+            .device-status {
+                font-size: 11px;
+                color: var(--text-secondary);
+                margin: 0;
+                opacity: 0.8;
+            }
+
+            .device-card.active .device-status {
+                color: var(--accent);
+                opacity: 1;
+            }
+
+            /* Detail View Styles */
+            .detail-panel {
+                flex: 1;
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08);
+                backdrop-class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -84,16 +565,18 @@ class FastSearchCard extends HTMLElement {
             <style>
             :host {
                 display: block;
-                /* Angepasste Farben für den neuen Glas-Effekt. 
-                   Die Basisfarbe der Glaselemente selbst. */
-                --glass-base-color: rgba(255, 255, 255, 0.15); /* Erhöhte Transparenz für "milchiger" */
+                --glass-primary: rgba(255, 255, 255, 0.15);
+                --glass-secondary: rgba(255, 255, 255, 0.1);
                 --glass-border: rgba(255, 255, 255, 0.2);
                 --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-                --glass-blur-amount: 30px; /* Stärke des Weichzeichners erhöht */
+                --glass-blur: blur(20px);
                 --accent: #007AFF;
                 --accent-light: rgba(0, 122, 255, 0.15);
                 --text-primary: rgba(255, 255, 255, 0.95);
                 --text-secondary: rgba(255, 255, 255, 0.7);
+                --mouse-x: 50%;
+                --mouse-y: 50%;
+                --scroll-progress: 0;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
 
@@ -113,38 +596,24 @@ class FastSearchCard extends HTMLElement {
 
             .search-panel {
                 flex: 1;
-                background: transparent; /* Kein eigener Hintergrund hier, da .blurred-background-layer dahinter liegt */
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08);
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
-                overflow: hidden; 
-                position: relative; /* Wichtig für absolut positionierte Kinder wie .blurred-background-layer */
+                position: relative;
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                max-height: 72px; 
-                display: flex; 
-                flex-direction: column; 
-                will-change: transform, max-height; /* Für Performance */
-                backface-visibility: hidden; 
+                max-height: 72px;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
             }
 
             .search-panel.expanded {
-                max-height: 400px; 
-            }
-
-            /* Neuer Layer für den unscharfen Hintergrund */
-            .blurred-background-layer {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: var(--glass-base-color); /* Die Farbe, die unscharf gemacht wird */
-                filter: blur(var(--glass-blur-amount)); /* Der eigentliche Unschärfe-Effekt */
-                -webkit-filter: blur(var(--glass-blur-amount));
-                will-change: filter; /* Für Performance auf Safari */
-                backface-visibility: hidden;
-                z-index: -1; /* Wichtig: Hinter dem Inhalt liegen */
-                pointer-events: none; /* Klicks/Scrolls durchlassen */
+                max-height: 400px;
             }
 
             .search-panel::before {
@@ -156,7 +625,6 @@ class FastSearchCard extends HTMLElement {
                 height: 1px;
                 background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
                 opacity: 0.6;
-                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .search-wrapper {
@@ -166,12 +634,6 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: transparent; /* Muss transparent sein, damit der blurred-background-layer durchscheint */
-                position: sticky; 
-                top: 0; 
-                z-index: 2; /* Liegt über dem blurred-background-layer und content */
-                will-change: transform, opacity; 
-                backface-visibility: hidden;
             }
 
             .category-icon {
@@ -182,7 +644,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 justify-content: center;
                 border-radius: 6px;
-                background: rgba(255, 255, 255, 0.1); 
+                background: rgba(255, 255, 255, 0.1);
                 flex-shrink: 0;
                 transition: all 0.2s ease;
             }
@@ -283,11 +745,11 @@ class FastSearchCard extends HTMLElement {
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 transition: all 0.3s ease;
-                flex-shrink: 0; 
-                background-color: transparent; /* Muss transparent sein */
-                z-index: 1; /* Über dem blurred-background-layer */
-                will-change: transform, scroll-position; 
-                backface-visibility: hidden;
+            }
+
+            .search-panel.expanded .subcategories {
+                opacity: 1;
+                transform: translateY(0);
             }
 
             .subcategories::-webkit-scrollbar {
@@ -296,7 +758,7 @@ class FastSearchCard extends HTMLElement {
 
             .subcategory-chip {
                 padding: 8px 16px;
-                background: rgba(255, 255, 255, 0.08); /* Diese Farbe überlagert den unscharfen Layer leicht */
+                background: rgba(255, 255, 255, 0.1);
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
                 font-size: 14px;
@@ -308,7 +770,6 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
                 position: relative;
                 overflow: hidden;
-                z-index: 1; /* Wichtig, um nicht hinter dem blurred-background-layer zu verschwinden */
             }
 
             .subcategory-chip.active {
@@ -324,20 +785,15 @@ class FastSearchCard extends HTMLElement {
             }
 
             .results-container {
-                flex-grow: 1; 
-                overflow-y: auto; 
+                padding: 0 20px 20px 20px;
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: all 0.3s ease;
+                height: 280px;
+                overflow-y: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 position: relative;
-                opacity: 0; 
-                transform: translateY(-10px); 
-                transition: all 0.3s ease; 
-                padding-top: 16px; 
-                padding-bottom: 20px; 
-                background-color: transparent; /* Muss transparent sein */
-                z-index: 1; /* Über dem blurred-background-layer */
-                will-change: transform, scroll-position; 
-                backface-visibility: hidden;
             }
 
             .results-container::-webkit-scrollbar {
@@ -354,8 +810,7 @@ class FastSearchCard extends HTMLElement {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 12px;
                 min-height: 200px;
-                padding-left: 20px; 
-                padding-right: 20px; 
+                padding-bottom: 20px;
             }
 
             .area-header {
@@ -366,8 +821,6 @@ class FastSearchCard extends HTMLElement {
                 margin: 16px 0 8px 0;
                 padding-bottom: 8px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: transparent; /* Muss transparent sein */
-                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .area-header:first-child {
@@ -375,7 +828,11 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-card {
-                background: rgba(255, 255, 255, 0.08); /* Diese Farbe überlagert den unscharfen Layer leicht */
+                background: 
+                    radial-gradient(circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 50%), 
+                        rgba(255, 255, 255, 0.2) 0%, 
+                        rgba(255, 255, 255, 0.08) 50%
+                    );
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 16px;
                 padding: 16px;
@@ -387,10 +844,11 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 overflow: hidden;
                 transition: all 0.2s ease;
-                z-index: 1; /* Wichtig, um nicht hinter dem blurred-background-layer zu verschwinden */
-                will-change: transform, opacity; 
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
             }
 
+            /* Card Displacement Effect */
             .device-card::before {
                 content: '';
                 position: absolute;
@@ -398,26 +856,62 @@ class FastSearchCard extends HTMLElement {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+                background: 
+                    radial-gradient(circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 50%), 
+                        rgba(255, 255, 255, 0.2) 0%, 
+                        transparent 60%
+                    );
                 opacity: 0;
                 transition: opacity 0.3s ease;
+                transform: translateZ(0);
             }
 
             .device-card:hover::before {
                 opacity: 1;
             }
 
+            /* Card Chromatic Aberration */
+            .device-card::after {
+                content: '';
+                position: absolute;
+                inset: -0.5px;
+                background: linear-gradient(135deg, 
+                    rgba(255, 0, 100, 0.1) 0%,
+                    rgba(0, 255, 150, 0.1) 50%,
+                    rgba(100, 0, 255, 0.1) 100%
+                );
+                border-radius: 17px;
+                filter: blur(0.3px);
+                z-index: -1;
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+
+            .device-card:hover::after {
+                opacity: 1;
+            }
+
             .device-card:hover {
-                transform: translateY(-2px) scale(1.02);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                transform: translateY(-2px) scale(1.02) translateZ(10px);
+                box-shadow: 
+                    0 8px 25px rgba(0, 0, 0, 0.15),
+                    0 0 20px rgba(0, 122, 255, 0.1);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
             }
 
             .device-card.active {
-                background: var(--accent-light);
+                background: 
+                    radial-gradient(circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 50%), 
+                        rgba(0, 122, 255, 0.3) 0%, 
+                        var(--accent-light) 50%
+                    );
                 border-color: var(--accent);
                 box-shadow: 
                     0 4px 20px rgba(0, 122, 255, 0.2),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                    0 0 30px rgba(0, 122, 255, 0.15);
+                transform: translateZ(20px);
             }
 
             .device-icon {
@@ -465,7 +959,11 @@ class FastSearchCard extends HTMLElement {
             /* Detail View Styles */
             .detail-panel {
                 flex: 1;
-                background: transparent; /* Kein eigener Hintergrund */
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08);
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
@@ -473,8 +971,6 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 height: 400px;
                 display: none;
-                will-change: transform; 
-                backface-visibility: hidden;
             }
 
             .detail-panel.visible {
@@ -484,7 +980,6 @@ class FastSearchCard extends HTMLElement {
             .detail-header {
                 padding: 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: transparent; /* Muss transparent sein */
                 display: flex;
                 align-items: center;
                 gap: 16px;
@@ -493,8 +988,9 @@ class FastSearchCard extends HTMLElement {
                 left: 0;
                 right: 0;
                 z-index: 10;
-                will-change: transform, opacity; 
-                backface-visibility: hidden;
+                background: inherit;
+                backdrop-filter: inherit;
+                -webkit-backdrop-filter: inherit;
             }
 
             .back-button {
@@ -537,16 +1033,31 @@ class FastSearchCard extends HTMLElement {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                padding-top: 60px; /* Um Platz für den sticky Header zu schaffen */
-                z-index: 1; /* Über dem blurred-background-layer */
-                overflow-y: auto; 
+            }
+
+            /* Mobile Detail View - Stack vertically */
+            @media (max-width: 480px) {
+                .detail-content {
+                    flex-direction: column !important;
+                }
+                
+                .detail-left, .detail-right {
+                    flex: 1 !important;
+                    width: 100% !important;
+                    height: auto !important;
+                }
+                
+                .detail-divider {
+                    width: 100% !important;
+                    height: 1px !important;
+                    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
+                    margin: 0 !important;
+                }
             }
 
             .detail-left, .detail-right {
                 flex: 1;
                 padding: 20px;
-                background-color: transparent; /* Muss transparent sein */
-                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .detail-divider {
@@ -562,8 +1073,6 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 opacity: 0;
                 transform: translateX(20px);
-                will-change: transform, opacity; 
-                backface-visibility: hidden;
             }
 
             .category-buttons.visible {
@@ -573,7 +1082,11 @@ class FastSearchCard extends HTMLElement {
             .category-button {
                 width: 56px;
                 height: 56px;
-                background: transparent; /* Kein eigener Hintergrund */
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08);
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
                 border: 1px solid var(--glass-border);
                 border-radius: 50%;
                 display: flex;
@@ -584,34 +1097,16 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 transition: all 0.2s ease;
                 box-shadow: var(--glass-shadow);
-                will-change: transform; 
-                backface-visibility: hidden;
-            }
-
-            .category-button::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: var(--glass-base-color); /* Die Farbe, die unscharf gemacht wird */
-                filter: blur(var(--glass-blur-amount)); /* Der eigentliche Unschärfe-Effekt */
-                -webkit-filter: blur(var(--glass-blur-amount));
-                will-change: filter;
-                backface-visibility: hidden;
-                z-index: -1; /* Hinter dem Inhalt des Buttons */
-                pointer-events: none; /* Klicks/Scrolls durchlassen */
             }
 
             .category-button:hover {
                 transform: scale(1.05);
                 border-color: var(--accent);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 8px 25px rgba(0, 122, 255, 0.2);
             }
 
             .category-button.active {
-                background: var(--accent-light); /* Akzentfarbe kann direkt angewendet werden */
+                background: var(--accent-light);
                 border-color: var(--accent);
                 box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
             }
@@ -639,7 +1134,6 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 align-items: center;
                 gap: 12px;
-                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .empty-icon {
@@ -685,13 +1179,20 @@ class FastSearchCard extends HTMLElement {
                 .search-input {
                     font-size: 16px;
                 }
+
+                .results-container {
+                    height: 200px;
+                }
+                
+                .results-grid {
+                    padding-bottom: 15px;
+                }
             }
             </style>
 
             <div class="main-container">
                 <div class="search-row">
                     <div class="search-panel">
-                        <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                         <div class="search-wrapper">
                             <div class="category-icon">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -730,7 +1231,7 @@ class FastSearchCard extends HTMLElement {
                             </div>
                         </div>
 
-                        <div class="results-container">
+                        <div class="scrollable-content">
                             <div class="subcategories">
                                 <div class="subcategory-chip active" data-subcategory="all">Alle</div>
                                 <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
@@ -739,13 +1240,16 @@ class FastSearchCard extends HTMLElement {
                                 <div class="subcategory-chip" data-subcategory="media">Medien</div>
                                 <div class="subcategory-chip" data-subcategory="none">Keine</div>
                             </div>
-                            <div class="results-grid">
+
+                            <div class="results-container">
+                                <div class="results-grid">
+                                    <!-- Results werden hier eingefügt -->
                                 </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="detail-panel">
-                        <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                         <div class="detail-header">
                             <button class="back-button">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -757,16 +1261,17 @@ class FastSearchCard extends HTMLElement {
                         </div>
                         <div class="detail-content">
                             <div class="detail-left">
-                                </div>
+                                <!-- Linke Seite -->
+                            </div>
                             <div class="detail-divider"></div>
                             <div class="detail-right">
-                                </div>
+                                <!-- Rechte Seite -->
+                            </div>
                         </div>
                     </div>
 
                     <div class="category-buttons">
                         <button class="category-button active" data-category="devices" title="Geräte">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
                                 <path d="M12 18h.01"/>
@@ -774,7 +1279,6 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scripts" title="Skripte">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                 <polyline points="14,2 14,8 20,8"/>
@@ -785,7 +1289,6 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="automations" title="Automationen">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M12 2v6l3-3 3 3"/>
                                 <path d="M12 18v4"/>
@@ -796,7 +1299,358 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scenes" title="Szenen">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
+                                <path d="M8 3v4"/>
+                                <path d="M16 8v4"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+            /* Detail View Styles */
+            .detail-panel {
+                flex: 1;
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08);
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                border: 1px solid var(--glass-border);
+                border-radius: 24px;
+                box-shadow: var(--glass-shadow);
+                overflow: hidden;
+                position: relative;
+                height: 400px;
+                display: none;
+            }
+
+            .detail-panel.visible {
+                display: block;
+            }
+
+            .detail-header {
+                padding: 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 10;
+                background: inherit;
+                backdrop-filter: inherit;
+                -webkit-backdrop-filter: inherit;
+            }
+
+            .back-button {
+                width: 32px;
+                height: 32px;
+                border: none;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+            }
+
+            .back-button:hover {
+                background: rgba(255, 255, 255, 0.25);
+                transform: scale(1.05);
+            }
+
+            .back-button svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-primary);
+                stroke-width: 2;
+            }
+
+            .detail-title {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+
+            .detail-content {
+                display: flex;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+
+            .detail-left, .detail-right {
+                flex: 1;
+                padding: 20px;
+            }
+
+            .detail-divider {
+                width: 1px;
+                background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.2), transparent);
+                margin: 20px 0;
+            }
+
+            /* Category Buttons */
+            .category-buttons {
+                display: none;
+                flex-direction: column;
+                gap: 12px;
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            .category-buttons.visible {
+                display: flex;
+            }
+
+            .category-button {
+                width: 56px;
+                height: 56px;
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08);
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                border: 1px solid var(--glass-border);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+                transition: all 0.2s ease;
+                box-shadow: var(--glass-shadow);
+            }
+
+            .category-button:hover {
+                transform: scale(1.05);
+                border-color: var(--accent);
+                box-shadow: 0 8px 25px rgba(0, 122, 255, 0.2);
+            }
+
+            .category-button.active {
+                background: var(--accent-light);
+                border-color: var(--accent);
+                box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+            }
+
+            .category-button svg {
+                width: 24px;
+                height: 24px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                transition: all 0.2s ease;
+            }
+
+            .category-button.active svg {
+                stroke: var(--accent);
+            }
+
+            .empty-state {
+                grid-column: 1 / -1;
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-secondary);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .empty-icon {
+                font-size: 32px;
+                opacity: 0.5;
+            }
+
+            .empty-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 0;
+            }
+
+            .empty-subtitle {
+                font-size: 13px;
+                opacity: 0.7;
+                margin: 0;
+            }
+
+            /* Mobile Detail View - Stack vertically */
+            @media (max-width: 480px) {
+                .detail-content {
+                    flex-direction: column !important;
+                }
+                
+                .detail-left, .detail-right {
+                    flex: 1 !important;
+                    width: 100% !important;
+                    height: auto !important;
+                }
+                
+                .detail-divider {
+                    width: 100% !important;
+                    height: 1px !important;
+                    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
+                    margin: 0 !important;
+                }
+
+                .results-container {
+                    height: 200px;
+                }
+                
+                .results-grid {
+                    padding-bottom: 15px;
+                }
+
+                .search-row {
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                
+                .category-buttons.visible {
+                    flex-direction: row;
+                    justify-content: center;
+                }
+                
+                .category-button {
+                    width: 48px;
+                    height: 48px;
+                }
+                
+                .results-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                    gap: 10px;
+                }
+                
+                .search-input {
+                    font-size: 16px;
+                }
+            }
+            </style>
+
+            <div class="main-container">
+                <div class="search-row">
+                    <div class="search-panel">
+                        <div class="glass-reflection"></div>
+                        <div class="search-wrapper">
+                            <div class="category-icon">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                    <path d="M12 18h.01"/>
+                                </svg>
+                            </div>
+                            
+                            <input 
+                                type="text" 
+                                class="search-input" 
+                                placeholder="Geräte suchen..."
+                                autocomplete="off"
+                                spellcheck="false"
+                            >
+                            
+                            <button class="clear-button">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+
+                            <div class="filter-icon">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <line x1="4" y1="21" x2="4" y2="14"/>
+                                    <line x1="4" y1="10" x2="4" y2="3"/>
+                                    <line x1="12" y1="21" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12" y2="3"/>
+                                    <line x1="20" y1="21" x2="20" y2="16"/>
+                                    <line x1="20" y1="12" x2="20" y2="3"/>
+                                    <line x1="1" y1="14" x2="7" y2="14"/>
+                                    <line x1="9" y1="8" x2="15" y2="8"/>
+                                    <line x1="17" y1="16" x2="23" y2="16"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="scrollable-content">
+                            <div class="subcategories">
+                                <div class="subcategory-chip active" data-subcategory="all">Alle</div>
+                                <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
+                                <div class="subcategory-chip" data-subcategory="climate">Klima</div>
+                                <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
+                                <div class="subcategory-chip" data-subcategory="media">Medien</div>
+                                <div class="subcategory-chip" data-subcategory="none">Keine</div>
+                            </div>
+
+                            <div class="results-container">
+                                <div class="results-grid">
+                                    <!-- Results werden hier eingefügt -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-panel">
+                        <div class="detail-header">
+                            <button class="back-button">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M19 12H5"/>
+                                    <path d="M12 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h3 class="detail-title">Gerätedetails</h3>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-left">
+                                <!-- Linke Seite -->
+                            </div>
+                            <div class="detail-divider"></div>
+                            <div class="detail-right">
+                                <!-- Rechte Seite -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="category-buttons">
+                        <button class="category-button active" data-category="devices" title="Geräte">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                <path d="M12 18h.01"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="category-button" data-category="scripts" title="Skripte">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10,9 9,9 8,9"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="category-button" data-category="automations" title="Automationen">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2v6l3-3 3 3"/>
+                                <path d="M12 18v4"/>
+                                <path d="M8 8v8"/>
+                                <path d="M16 8v8"/>
+                                <circle cx="12" cy="12" r="2"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="category-button" data-category="scenes" title="Szenen">
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
                                 <path d="M8 3v4"/>
@@ -818,6 +1672,53 @@ class FastSearchCard extends HTMLElement {
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
         const backButton = this.shadowRoot.querySelector('.back-button');
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const mainContainer = this.shadowRoot.querySelector('.main-container');
+
+        // Mouse tracking for liquid glass effects
+        mainContainer.addEventListener('mousemove', (e) => {
+            const rect = searchPanel.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            
+            // Update CSS variables for mouse position
+            searchPanel.style.setProperty('--mouse-x', `${x}%`);
+            searchPanel.style.setProperty('--mouse-y', `${y}%`);
+            
+            // 3D tilt effect
+            const tiltX = (y - 50) / 10;
+            const tiltY = (x - 50) / 10;
+            searchPanel.style.setProperty('--tilt-x', `${tiltX}deg`);
+            searchPanel.style.setProperty('--tilt-y', `${tiltY}deg`);
+        });
+
+        // Reset tilt on mouse leave
+        mainContainer.addEventListener('mouseleave', () => {
+            searchPanel.style.setProperty('--tilt-x', '0deg');
+            searchPanel.style.setProperty('--tilt-y', '0deg');
+        });
+
+        // Scroll progress tracking for dynamic blur
+        searchPanel.addEventListener('scroll', (e) => {
+            const scrollTop = e.target.scrollTop;
+            const scrollHeight = e.target.scrollHeight - e.target.clientHeight;
+            const scrollProgress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
+            
+            searchPanel.style.setProperty('--scroll-progress', scrollProgress);
+        });
+
+        // Device card mouse tracking
+        this.shadowRoot.addEventListener('mousemove', (e) => {
+            const card = e.target.closest('.device-card');
+            if (card) {
+                const rect = card.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                
+                card.style.setProperty('--card-mouse-x', `${x}%`);
+                card.style.setProperty('--card-mouse-y', `${y}%`);
+            }
+        });
 
         // Search Events
         searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
@@ -898,7 +1799,7 @@ class FastSearchCard extends HTMLElement {
             clearButton.classList.add('visible');
             this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
         } else {
-            this.isSearching = false; 
+            this.isSearching = false; // Reset wenn leer
             const animation = this.animateElementOut(clearButton);
             animation.finished.then(() => {
                 clearButton.classList.remove('visible');
@@ -920,6 +1821,7 @@ class FastSearchCard extends HTMLElement {
             this.expandPanel();
         }
         
+        // Perform search immediately without debounce
         this.performSearch(query);
     }
 
@@ -955,7 +1857,7 @@ class FastSearchCard extends HTMLElement {
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         
         searchInput.value = '';
-        this.isSearching = false; 
+        this.isSearching = false; // Reset searching flag
         console.log('🎯 isSearching reset to false');
         
         const animation = this.animateElementOut(clearButton);
@@ -1086,7 +1988,7 @@ class FastSearchCard extends HTMLElement {
         if (searchInput.value.trim()) {
             console.log('🧹 Clearing search input due to subcategory change');
             searchInput.value = '';
-            this.isSearching = false; 
+            this.isSearching = false; // Reset searching flag
             const clearButton = this.shadowRoot.querySelector('.clear-button');
             clearButton.classList.remove('visible');
         }
@@ -1545,13 +2447,6 @@ class FastSearchCard extends HTMLElement {
             if (this.previousSearchState) {
                 this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
                 this.activeCategory = this.previousSearchState.activeCategory;
-                this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => { 
-                    if (chip.dataset.subcategory === this.previousSearchState.activeSubcategory) {
-                        chip.classList.add('active');
-                    } else {
-                        chip.classList.remove('active');
-                    }
-                });
                 this.activeSubcategory = this.previousSearchState.activeSubcategory;
                 this.filteredItems = this.previousSearchState.filteredItems;
                 
