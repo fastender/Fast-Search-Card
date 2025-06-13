@@ -128,6 +128,7 @@ class FastSearchCard extends HTMLElement {
                 max-height: 72px; 
                 display: flex; 
                 flex-direction: column; 
+                transform: translateZ(0); /* Hardware-Beschleunigung für das Haupt-Panel */
             }
 
             .search-panel.expanded {
@@ -160,6 +161,7 @@ class FastSearchCard extends HTMLElement {
                 position: sticky; 
                 top: 0; 
                 z-index: 2; 
+                transform: translateZ(0); /* Hardware-Beschleunigung für Sticky-Element */
             }
 
             .category-icon {
@@ -273,6 +275,7 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.3s ease;
                 flex-shrink: 0; 
                 /* Kein Hintergrund hier, damit der des .search-panel durchscheint */
+                transform: translateZ(0); /* Hardware-Beschleunigung für horizontales Scrolling */
             }
 
             .subcategories::-webkit-scrollbar {
@@ -319,6 +322,7 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.3s ease; 
                 padding-top: 16px; 
                 padding-bottom: 20px; 
+                transform: translateZ(0); /* Hardware-Beschleunigung für vertikales Scrolling */
             }
 
             .results-container::-webkit-scrollbar {
@@ -459,6 +463,7 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 height: 400px;
                 display: none;
+                transform: translateZ(0); /* Hardware-Beschleunigung für das Detail-Panel */
             }
 
             .detail-panel.visible {
@@ -480,6 +485,7 @@ class FastSearchCard extends HTMLElement {
                 /* Hintergrund an die Basis-RGBA des .detail-panel anpassen */
                 background-color: rgba(255, 255, 255, 0.08); 
                 /* Kein backdrop-filter hier */
+                transform: translateZ(0); /* Hardware-Beschleunigung für Sticky-Header */
             }
 
             .back-button {
@@ -542,6 +548,7 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 opacity: 0;
                 transform: translateX(20px);
+                transform: translateZ(0); /* Hardware-Beschleunigung für animierten Container */
             }
 
             .category-buttons.visible {
@@ -568,6 +575,7 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 transition: all 0.2s ease;
                 box-shadow: var(--glass-shadow);
+                transform: translateZ(0); /* Hardware-Beschleunigung für Buttons mit Backdrop-Filter */
             }
 
             .category-button:hover {
@@ -704,8 +712,7 @@ class FastSearchCard extends HTMLElement {
                                 <div class="subcategory-chip" data-subcategory="none">Keine</div>
                             </div>
                             <div class="results-grid">
-                                <!-- Results werden hier eingefügt -->
-                            </div>
+                                </div>
                         </div>
                     </div>
 
@@ -721,12 +728,10 @@ class FastSearchCard extends HTMLElement {
                         </div>
                         <div class="detail-content">
                             <div class="detail-left">
-                                <!-- Linke Seite -->
-                            </div>
+                                </div>
                             <div class="detail-divider"></div>
                             <div class="detail-right">
-                                <!-- Rechte Seite -->
-                            </div>
+                                </div>
                         </div>
                     </div>
 
