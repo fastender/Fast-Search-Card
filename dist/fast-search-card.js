@@ -14,6 +14,11 @@ class FastSearchCard extends HTMLElement {
         this.isPanelExpanded = false;
         this.animationTimeouts = [];
         this.hasAnimated = false;
+        
+        // Neue State-Variablen
+        this.isDetailView = false;
+        this.currentDetailItem = null;
+        this.previousSearchState = null;
     }
 
     setConfig(config) {
@@ -262,6 +267,14 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0;
                 transform: translateY(-10px);
                 transition: all 0.3s ease;
+                height: 280px;
+                overflow-y: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .results-container::-webkit-scrollbar {
+                display: none;
             }
 
             .search-panel.expanded .results-container {
@@ -274,6 +287,20 @@ class FastSearchCard extends HTMLElement {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 12px;
                 min-height: 200px;
+            }
+
+            .area-header {
+                grid-column: 1 / -1;
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                margin: 16px 0 8px 0;
+                padding-bottom: 8px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .area-header:first-child {
+                margin-top: 0;
             }
 
             .device-card {
@@ -360,6 +387,83 @@ class FastSearchCard extends HTMLElement {
             .device-card.active .device-status {
                 color: var(--accent);
                 opacity: 1;
+            }
+
+            /* Detail View Styles */
+            .detail-panel {
+                flex: 1;
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08);
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                border: 1px solid var(--glass-border);
+                border-radius: 24px;
+                box-shadow: var(--glass-shadow);
+                overflow: hidden;
+                position: relative;
+                height: 400px;
+                display: none;
+            }
+
+            .detail-panel.visible {
+                display: block;
+            }
+
+            .detail-header {
+                padding: 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .back-button {
+                width: 32px;
+                height: 32px;
+                border: none;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+            }
+
+            .back-button:hover {
+                background: rgba(255, 255, 255, 0.25);
+                transform: scale(1.05);
+            }
+
+            .back-button svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-primary);
+                stroke-width: 2;
+            }
+
+            .detail-title {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+
+            .detail-content {
+                display: flex;
+                height: calc(100% - 80px);
+            }
+
+            .detail-left, .detail-right {
+                flex: 1;
+                padding: 20px;
+            }
+
+            .detail-divider {
+                width: 1px;
+                background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.2), transparent);
+                margin: 20px 0;
             }
 
             /* Category Buttons */
@@ -475,6 +579,10 @@ class FastSearchCard extends HTMLElement {
                 .search-input {
                     font-size: 16px;
                 }
+
+                .results-container {
+                    height: 200px;
+                }
             }
             </style>
 
@@ -525,11 +633,33 @@ class FastSearchCard extends HTMLElement {
                             <div class="subcategory-chip" data-subcategory="climate">Klima</div>
                             <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
                             <div class="subcategory-chip" data-subcategory="media">Medien</div>
+                            <div class="subcategory-chip" data-subcategory="none">Keine</div>
                         </div>
 
                         <div class="results-container">
                             <div class="results-grid">
                                 <!-- Results werden hier eingefügt -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-panel">
+                        <div class="detail-header">
+                            <button class="back-button">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M19 12H5"/>
+                                    <path d="M12 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h3 class="detail-title">Gerätedetails</h3>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-left">
+                                <!-- Linke Seite -->
+                            </div>
+                            <div class="detail-divider"></div>
+                            <div class="detail-right">
+                                <!-- Rechte Seite -->
                             </div>
                         </div>
                     </div>
@@ -583,6 +713,7 @@ class FastSearchCard extends HTMLElement {
         const categoryIcon = this.shadowRoot.querySelector('.category-icon');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
+        const backButton = this.shadowRoot.querySelector('.back-button');
 
         // Search Events
         searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
@@ -604,6 +735,9 @@ class FastSearchCard extends HTMLElement {
         categoryButtons.forEach(button => {
             button.addEventListener('click', () => this.handleCategorySelect(button));
         });
+
+        // Back Button
+        backButton.addEventListener('click', () => this.handleBackClick());
 
         // Subcategory Chips - Event Delegation
         this.shadowRoot.querySelector('.subcategories').addEventListener('click', (e) => {
@@ -892,17 +1026,27 @@ class FastSearchCard extends HTMLElement {
             if (!state) return null;
 
             const domain = entityId.split('.')[0];
+            const areaId = state.attributes.area_id;
+            const areaName = areaId ? 
+                (this._hass.areas && this._hass.areas[areaId] ? this._hass.areas[areaId].name : 'Unbekannt') : 
+                'Ohne Raum';
+
             return {
                 id: entityId,
                 name: entityConfig.title || state.attributes.friendly_name || entityId,
                 domain: domain,
                 category: this.categorizeEntity(domain),
+                area: areaName,
+                areaId: areaId,
                 state: state.state,
                 attributes: state.attributes,
                 icon: this.getEntityIcon(domain),
                 isActive: this.isEntityActive(state)
             };
         }).filter(Boolean);
+
+        // Sortiere nach Räumen
+        this.allItems.sort((a, b) => a.area.localeCompare(b.area));
 
         // Show items based on current active category
         this.showCurrentCategoryItems();
@@ -1069,6 +1213,13 @@ class FastSearchCard extends HTMLElement {
             this.showCurrentCategoryItems();
             return;
         }
+        
+        // Neue "Keine" Kategorie
+        if (this.activeSubcategory === 'none') {
+            this.filteredItems = [];
+            this.renderResults();
+            return;
+        }
 
         // Get items from current category first
         const categoryItems = this.allItems.filter(item => 
@@ -1109,20 +1260,43 @@ class FastSearchCard extends HTMLElement {
 
         resultsGrid.innerHTML = '';
         
-        this.filteredItems.forEach((item, index) => {
-            const card = this.createDeviceCard(item);
-            resultsGrid.appendChild(card);
-            
-            // Only animate on first render or when category changes
-            if (!this.hasAnimated) {
-                const timeout = setTimeout(() => {
-                    this.animateElementIn(card, {
-                        opacity: [0, 1],
-                        transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)']
-                    });
-                }, index * 50);
-                this.animationTimeouts.push(timeout);
+        // Gruppiere nach Räumen
+        const groupedItems = this.filteredItems.reduce((groups, item) => {
+            const area = item.area || 'Ohne Raum';
+            if (!groups[area]) {
+                groups[area] = [];
             }
+            groups[area].push(item);
+            return groups;
+        }, {});
+        
+        let cardIndex = 0;
+        
+        // Rendere gruppiert nach Räumen
+        Object.keys(groupedItems).sort().forEach(area => {
+            // Raum-Header
+            const areaHeader = document.createElement('div');
+            areaHeader.className = 'area-header';
+            areaHeader.textContent = area;
+            resultsGrid.appendChild(areaHeader);
+            
+            // Items in diesem Raum
+            groupedItems[area].forEach((item) => {
+                const card = this.createDeviceCard(item);
+                resultsGrid.appendChild(card);
+                
+                // Only animate on first render or when category changes
+                if (!this.hasAnimated) {
+                    const timeout = setTimeout(() => {
+                        this.animateElementIn(card, {
+                            opacity: [0, 1],
+                            transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)']
+                        });
+                    }, cardIndex * 50);
+                    this.animationTimeouts.push(timeout);
+                }
+                cardIndex++;
+            });
         });
         
         this.hasAnimated = true;
@@ -1149,26 +1323,120 @@ class FastSearchCard extends HTMLElement {
     }
 
     handleDeviceClick(item, card) {
-        // Optimistic UI update
-        const wasActive = card.classList.contains('active');
-        card.classList.toggle('active', !wasActive);
-        this.animateStateChange(card, !wasActive);
+        // Speichere aktuellen Zustand
+        this.previousSearchState = {
+            searchValue: this.shadowRoot.querySelector('.search-input').value,
+            activeCategory: this.activeCategory,
+            activeSubcategory: this.activeSubcategory,
+            filteredItems: [...this.filteredItems]
+        };
         
-        // Call appropriate Home Assistant service
-        const domain = item.domain;
-        let service = 'toggle';
+        this.currentDetailItem = item;
+        this.showDetailView();
+    }
+
+    showDetailView() {
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const detailPanel = this.shadowRoot.querySelector('.detail-panel');
         
-        if (domain === 'script') {
-            service = 'turn_on';
-        } else if (domain === 'scene') {
-            service = 'turn_on';
-        } else if (domain === 'automation') {
-            service = 'toggle';
-        }
+        this.isDetailView = true;
         
-        this._hass.callService(domain === 'script' || domain === 'scene' ? domain : 'homeassistant', service, {
-            entity_id: item.id
+        // Animate out search panel
+        searchPanel.animate([
+            { opacity: 1, transform: 'translateX(0)' },
+            { opacity: 0, transform: 'translateX(-100%)' }
+        ], {
+            duration: 300,
+            easing: 'ease-in',
+            fill: 'forwards'
+        }).finished.then(() => {
+            searchPanel.style.display = 'none';
+            detailPanel.classList.add('visible');
+            
+            // Animate in detail panel
+            detailPanel.animate([
+                { opacity: 0, transform: 'translateX(100%)' },
+                { opacity: 1, transform: 'translateX(0)' }
+            ], {
+                duration: 300,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
         });
+        
+        this.renderDetailView();
+    }
+
+    handleBackClick() {
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const detailPanel = this.shadowRoot.querySelector('.detail-panel');
+        
+        this.isDetailView = false;
+        
+        // Animate out detail panel
+        detailPanel.animate([
+            { opacity: 1, transform: 'translateX(0)' },
+            { opacity: 0, transform: 'translateX(100%)' }
+        ], {
+            duration: 300,
+            easing: 'ease-in',
+            fill: 'forwards'
+        }).finished.then(() => {
+            detailPanel.classList.remove('visible');
+            searchPanel.style.display = 'block';
+            
+            // Restore previous state
+            if (this.previousSearchState) {
+                this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
+                this.activeCategory = this.previousSearchState.activeCategory;
+                this.activeSubcategory = this.previousSearchState.activeSubcategory;
+                this.filteredItems = this.previousSearchState.filteredItems;
+                
+                this.updateCategoryIcon();
+                this.updatePlaceholder();
+                this.renderResults();
+            }
+            
+            // Animate in search panel
+            searchPanel.animate([
+                { opacity: 0, transform: 'translateX(-100%)' },
+                { opacity: 1, transform: 'translateX(0)' }
+            ], {
+                duration: 300,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+        });
+    }
+
+    renderDetailView() {
+        const detailLeft = this.shadowRoot.querySelector('.detail-left');
+        const detailRight = this.shadowRoot.querySelector('.detail-right');
+        const detailTitle = this.shadowRoot.querySelector('.detail-title');
+        
+        if (!this.currentDetailItem) return;
+        
+        const item = this.currentDetailItem;
+        const state = this._hass.states[item.id];
+        
+        detailTitle.textContent = item.name;
+        
+        detailLeft.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 12px;">${item.icon}</div>
+                <h3 style="margin: 0; color: var(--text-primary);">${item.name}</h3>
+                <p style="margin: 8px 0 0 0; color: var(--text-secondary);">Raum: ${item.area}</p>
+            </div>
+        `;
+        
+        detailRight.innerHTML = `
+            <div style="color: var(--text-primary);">
+                <h4 style="margin: 0 0 16px 0;">Status</h4>
+                <p style="margin: 0 0 8px 0;">Zustand: ${this.getEntityStatus(state)}</p>
+                <p style="margin: 0 0 8px 0;">Entität: ${item.id}</p>
+                <p style="margin: 0;">Typ: ${item.domain}</p>
+            </div>
+        `;
     }
 
     // Animation Helpers - Pure Web Animations API
@@ -1270,4 +1538,4 @@ console.info(
     `%c FAST-SEARCH-CARD %c Modern Vision OS Design `,
     'color: #007AFF; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: #007AFF'
-)
+);
