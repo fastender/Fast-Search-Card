@@ -120,10 +120,11 @@ class FastSearchCard extends HTMLElement {
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
-                overflow: hidden;
                 position: relative;
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 max-height: 72px;
+                display: flex;
+                flex-direction: column;
             }
 
             .search-panel.expanded {
