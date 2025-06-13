@@ -86,10 +86,14 @@ class FastSearchCard extends HTMLElement {
                 display: block;
                 /* Angepasste Farben für den neuen Glas-Effekt. 
                    Die Basisfarbe der Glaselemente selbst. */
-                --glass-base-color: rgba(255, 255, 255, 0.15); /* Erhöhte Transparenz für "milchiger" */
-                --glass-border: rgba(255, 255, 255, 0.2);
-                --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-                --glass-blur-amount: 30px; /* Stärke des Weichzeichners erhöht */
+                --glass-base-color: rgba(255, 255, 255, 0.2); /* Etwas milchiger, leicht heller */
+                --glass-border-light: rgba(255, 255, 255, 0.4); /* Heller für Top/Left */
+                --glass-border-dark: rgba(255, 255, 255, 0.1); /* Dunkler für Bottom/Right */
+                --glass-shadow: 
+                    0 1px 3px rgba(0, 0, 0, 0.05),
+                    0 4px 12px rgba(0, 0, 0, 0.1),
+                    0 8px 32px rgba(0, 0, 0, 0.15); /* Erweiterte Schatten */
+                --glass-blur-amount: 40px; /* Stärke des Weichzeichners erhöht für mehr Milchigkeit */
                 --accent: #007AFF;
                 --accent-light: rgba(0, 122, 255, 0.15);
                 --text-primary: rgba(255, 255, 255, 0.95);
@@ -111,54 +115,128 @@ class FastSearchCard extends HTMLElement {
                 width: 100%;
             }
 
-            .search-panel {
-                flex: 1;
-                background: transparent; /* Kein eigener Hintergrund hier, da .blurred-background-layer dahinter liegt */
-                border: 1px solid var(--glass-border);
+            /* ------------------------------------------------ */
+            /* NEUE GLAS EFFEKTE - .search-panel */
+            .search-panel, .detail-panel, .category-button {
+                position: relative; /* Wichtig für Pseudo-Elemente und Blurred Layer */
+                overflow: hidden; /* Für saubere Ränder der Pseudo-Elemente */
+                backface-visibility: hidden; 
+                transform: translateZ(0); /* Für Hardware-Beschleunigung */
+                will-change: transform, opacity, box-shadow, filter;
+                
+                /* Grundlegender Glas-Effekt */
+                background-color: transparent; /* Wichtig, da Schichten im Vordergrund liegen */
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
-                overflow: hidden; 
-                position: relative; /* Wichtig für absolut positionierte Kinder wie .blurred-background-layer */
-                transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                max-height: 72px; 
-                display: flex; 
-                flex-direction: column; 
-                will-change: transform, max-height; /* Für Performance */
-                backface-visibility: hidden; 
-                filter: url(#glass-texture); /* Hinzugefügt: SVG-Filter */
+                border: 1px solid var(--glass-border-dark); /* Standardborder */
+                border-left: 1px solid var(--glass-border-light);
+                border-top: 1px solid var(--glass-border-light);
+            }
+            
+            .search-panel, .detail-panel {
+                flex: 1;
+                transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease, opacity 0.3s ease;
+                max-height: 72px; /* collapsed state */
+                display: flex;
+                flex-direction: column;
             }
 
             .search-panel.expanded {
                 max-height: 400px; 
             }
 
-            /* Neuer Layer für den unscharfen Hintergrund */
+            /* --- Mehrschichtiger und verfeinerter Hintergrund --- */
             .blurred-background-layer {
                 position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background-color: var(--glass-base-color); /* Die Farbe, die unscharf gemacht wird */
-                filter: blur(var(--glass-blur-amount)); /* Der eigentliche Unschärfe-Effekt */
-                -webkit-filter: blur(var(--glass-blur-amount));
-                will-change: filter; /* Für Performance auf Safari */
-                backface-visibility: hidden;
-                z-index: -1; /* Wichtig: Hinter dem Inhalt liegen */
-                pointer-events: none; /* Klicks/Scrolls durchlassen */
+                z-index: -2; /* Tiefer als der Inhalt, aber höher als die äußere Hülle */
+                pointer-events: none;
+                
+                /* Basis-Farbe und Unschärfe */
+                background: var(--glass-base-color);
+                backdrop-filter: blur(var(--glass-blur-amount)) saturate(0.9) brightness(1.1); /* Saturation und Brightness für Milchigkeit */
+                -webkit-backdrop-filter: blur(var(--glass-blur-amount)) saturate(0.9) brightness(1.1);
+                will-change: backdrop-filter;
             }
 
-            .search-panel::before {
+            /* Innerer, sanfter Farbverlauf für Tiefe */
+            .search-panel::after, .detail-panel::after, .category-button::after {
                 content: '';
                 position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
-                height: 1px;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-                opacity: 0.6;
+                bottom: 0;
+                z-index: -1; /* Über dem blurred-background-layer, aber unter dem Inhalt */
+                pointer-events: none;
+                background: radial-gradient(circle at top left,   
+                    rgba(255, 255, 255, 0.05) 0%,   
+                    rgba(255, 255, 255, 0.02) 50%,
+                    transparent 100%
+                ); /* Subtiler radialer Verlauf */
+                opacity: 0.8;
+            }
+
+            /* Mikro-Unschärfe Pattern / CSS Noise */
+            .search-panel::before, .detail-panel::before, .category-button::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: -0; /* Über dem Gradienten, unter dem Inhalt */
+                pointer-events: none;
+                background-image:     
+                    radial-gradient(circle at 1px 1px,       
+                    rgba(255,255,255,0.02) 1px,       /* Sehr feines, helles Rauschen */
+                    transparent 0);  
+                background-size: 20px 20px; /* Kleinere Größe für feines Muster */
+                opacity: 0.5; /* Sehr subtil */
+            }
+
+            /* Dynamische Licht-Reflexionen (Top Edge) */
+            .search-panel .search-wrapper::before,
+            .detail-panel .detail-header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 1px; /* Simulierte dünne Lichtlinie */
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+                opacity: 0.8;
+                z-index: 3; /* Über dem search-wrapper selbst */
+                pointer-events: none;
+            }
+
+            /* Glanzpunkt bei Hover */
+            .search-panel:hover .blurred-background-layer::after {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: linear-gradient(45deg, 
+                    transparent 40%, 
+                    rgba(255, 255, 255, 0.15) 50%, 
+                    transparent 60%);
+                animation: shimmer 1.5s infinite linear;
+                pointer-events: none;
                 z-index: 1; /* Über dem blurred-background-layer */
             }
+
+            @keyframes shimmer {
+                0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+                100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+            }
+
+            /* ------------------------------------------------ */
+
 
             .search-wrapper {
                 display: flex;
@@ -167,11 +245,10 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                /* Hintergrund an die Basis-RGBA des .search-panel anpassen, um Konsistenz zu gewährleisten */
-                background-color: var(--glass-base-color); 
+                background-color: transparent; /* Muss transparent bleiben */
                 position: sticky; 
                 top: 0; 
-                z-index: 2; /* Liegt über dem blurred-background-layer und content */
+                z-index: 2; /* Liegt über den Glass-Effekt-Schichten */
                 will-change: transform, opacity; 
                 backface-visibility: hidden;
             }
@@ -187,6 +264,7 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(255, 255, 255, 0.1); 
                 flex-shrink: 0;
                 transition: all 0.2s ease;
+                z-index: 3; /* Sollte über allen Hintergrund-Effekten liegen */
             }
 
             .category-icon:hover {
@@ -212,6 +290,7 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-primary);
                 font-family: inherit;
                 min-width: 0;
+                z-index: 3; /* Sollte über allen Hintergrund-Effekten liegen */
             }
 
             .search-input::placeholder {
@@ -231,6 +310,7 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0;
                 flex-shrink: 0;
                 transition: all 0.2s ease;
+                z-index: 3; /* Sollte über allen Hintergrund-Effekten liegen */
             }
 
             .clear-button.visible {
@@ -261,6 +341,7 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(255, 255, 255, 0.1);
                 flex-shrink: 0;
                 transition: all 0.2s ease;
+                z-index: 3; /* Sollte über allen Hintergrund-Effekten liegen */
             }
 
             .filter-icon:hover {
@@ -287,11 +368,11 @@ class FastSearchCard extends HTMLElement {
                 -webkit-overflow-scrolling: touch; /* Optimiert das Scrolling in WebKit */
                 transition: all 0.3s ease;
                 flex-shrink: 0; 
-                background-color: transparent; /* Muss transparent sein */
-                z-index: 1; /* Über dem blurred-background-layer */
+                background-color: transparent; 
+                z-index: 1; 
                 will-change: transform, scroll-position; 
                 backface-visibility: hidden;
-                transform: translateZ(0); /* Erzwingt Hardware-Beschleunigung für das Scrolling-Element selbst */
+                transform: translateZ(0); 
             }
 
             .subcategories::-webkit-scrollbar {
@@ -300,8 +381,8 @@ class FastSearchCard extends HTMLElement {
 
             .subcategory-chip {
                 padding: 8px 16px;
-                background: rgba(255, 255, 255, 0.08); /* Diese Farbe überlagert den unscharfen Layer leicht */
-                border: 1px solid rgba(255, 255, 255, 0.15);
+                background: rgba(255, 255, 255, 0.1); /* Leicht erhöhte Opazität für Kontrast */
+                border: 1px solid rgba(255, 255, 255, 0.2); /* Etwas stärkere, definiertere Border */
                 border-radius: 20px;
                 font-size: 14px;
                 font-weight: 500;
@@ -312,7 +393,8 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
                 position: relative;
                 overflow: hidden;
-                transform: translateZ(0); /* Erzwingt Hardware-Beschleunigung für die Chips selbst */
+                z-index: 1; 
+                transform: translateZ(0); 
             }
 
             .subcategory-chip.active {
@@ -339,11 +421,11 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.3s ease; 
                 padding-top: 16px; 
                 padding-bottom: 20px; 
-                background-color: transparent; /* Muss transparent sein */
-                z-index: 1; /* Über dem blurred-background-layer */
+                background-color: transparent; 
+                z-index: 1; 
                 will-change: transform, scroll-position; 
                 backface-visibility: hidden;
-                transform: translateZ(0); /* Erzwingt Hardware-Beschleunigung für das Scrolling-Element selbst */
+                transform: translateZ(0); 
             }
 
             .results-container::-webkit-scrollbar {
@@ -372,8 +454,8 @@ class FastSearchCard extends HTMLElement {
                 margin: 16px 0 8px 0;
                 padding-bottom: 8px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: transparent; /* Muss transparent sein */
-                z-index: 1; /* Über dem blurred-background-layer */
+                background-color: transparent; 
+                z-index: 1; 
             }
 
             .area-header:first-child {
@@ -381,8 +463,8 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-card {
-                background: rgba(255, 255, 255, 0.08); /* Diese Farbe überlagert den unscharfen Layer leicht */
-                border: 1px solid rgba(255, 255, 255, 0.12);
+                background: rgba(255, 255, 255, 0.1); /* Etwas mehr Opazität */
+                border: 1px solid rgba(255, 255, 255, 0.18); /* Etwas definierter */
                 border-radius: 16px;
                 padding: 16px;
                 cursor: pointer;
@@ -407,6 +489,7 @@ class FastSearchCard extends HTMLElement {
                 background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
                 opacity: 0;
                 transition: opacity 0.3s ease;
+                z-index: 0; /* Hinter dem Inhalt */
             }
 
             .device-card:hover::before {
@@ -415,20 +498,20 @@ class FastSearchCard extends HTMLElement {
 
             .device-card:hover {
                 transform: translateY(-2px) scale(1.02);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18); /* Etwas stärkerer Hover-Schatten */
             }
 
             .device-card.active {
                 background: var(--accent-light);
                 border-color: var(--accent);
                 box-shadow: 
-                    0 4px 20px rgba(0, 122, 255, 0.2),
+                    0 4px 20px rgba(0, 122, 255, 0.25), /* Stärkerer Akzent-Schatten */
                     inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
 
             .device-icon {
                 width: 32px;
-                                height: 32px;
+                height: 32px;
                 background: rgba(255, 255, 255, 0.15);
                 border-radius: 8px;
                 display: flex;
@@ -470,18 +553,8 @@ class FastSearchCard extends HTMLElement {
 
             /* Detail View Styles */
             .detail-panel {
-                flex: 1;
-                background: transparent; /* KEIN HINTERGRUND MEHR HIER - PixiJS übernimmt */
-                border: 1px solid var(--glass-border);
-                border-radius: 24px;
-                box-shadow: var(--glass-shadow);
-                overflow: hidden;
-                position: relative;
                 height: 400px;
                 display: none;
-                will-change: transform; 
-                backface-visibility: hidden;
-                filter: url(#glass-texture); /* Hinzugefügt: SVG-Filter */
             }
 
             .detail-panel.visible {
@@ -491,11 +564,11 @@ class FastSearchCard extends HTMLElement {
             .detail-header {
                 padding: 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: var(--glass-base-color); /* Konsistenter Hintergrund */
+                background-color: transparent; /* Sollte auch transparent sein, für durchgängigen Glass-Effekt */
                 display: flex;
                 align-items: center;
                 gap: 16px;
-                position: sticky; 
+                position: sticky; /* sticky statt absolute für besseres Scrolling */
                 top: 0;
                 left: 0;
                 right: 0;
@@ -538,13 +611,9 @@ class FastSearchCard extends HTMLElement {
 
             .detail-content {
                 display: flex;
-                height: 100%;
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                padding-top: 60px; /* Um Platz für den sticky Header zu schaffen */
+                height: calc(100% - 72px); /* Header-Höhe berücksichtigen */
+                position: relative; /* Wichtig für Scrollbereich */
+                padding-top: 0px; /* Kein Padding, da Header sticky ist */
                 z-index: 1; /* Über dem blurred-background-layer */
                 overflow-y: auto; 
             }
@@ -552,8 +621,8 @@ class FastSearchCard extends HTMLElement {
             .detail-left, .detail-right {
                 flex: 1;
                 padding: 20px;
-                background-color: transparent; /* Muss transparent sein */
-                z-index: 1; /* Über dem blurred-background-layer */
+                background-color: transparent; 
+                z-index: 1; 
             }
 
             .detail-divider {
@@ -580,8 +649,7 @@ class FastSearchCard extends HTMLElement {
             .category-button {
                 width: 56px;
                 height: 56px;
-                background: transparent; /* KEIN HINTERGRUND HIER - PixiJS übernimmt */
-                border: 1px solid var(--glass-border);
+                background: transparent; 
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
@@ -590,26 +658,9 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 overflow: hidden;
                 transition: all 0.2s ease;
-                box-shadow: var(--glass-shadow);
-                will-change: transform; 
-                backface-visibility: hidden;
-                filter: url(#glass-texture); /* Hinzugefügt: SVG-Filter */
-            }
-
-            .category-button::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: var(--glass-base-color); /* Die Farbe, die unscharf gemacht wird */
-                filter: blur(var(--glass-blur-amount)); /* Der eigentliche Unschärfe-Effekt */
-                -webkit-filter: blur(var(--glass-blur-amount));
-                will-change: filter;
-                backface-visibility: hidden;
-                z-index: -1; /* Hinter dem Inhalt des Buttons */
-                pointer-events: none; /* Klicks/Scrolls durchlassen */
+                
+                /* Übernimmt die allgemeinen Glas-Eigenschaften */
+                /* Hier kein ::before für den blurred layer, da es schon die allgemeinen Pseudo-Elemente gibt */
             }
 
             .category-button:hover {
@@ -619,7 +670,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .category-button.active {
-                background: var(--accent-light); /* Akzentfarbe kann direkt angewendet werden */
+                background: var(--accent-light); 
                 border-color: var(--accent);
                 box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
             }
@@ -632,6 +683,7 @@ class FastSearchCard extends HTMLElement {
                 stroke-linecap: round;
                 stroke-linejoin: round;
                 transition: all 0.2s ease;
+                z-index: 1; /* Über den Pseudo-Elementen */
             }
 
             .category-button.active svg {
@@ -647,7 +699,7 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 align-items: center;
                 gap: 12px;
-                z-index: 1; /* Über dem blurred-background-layer */
+                z-index: 1; 
             }
 
             .empty-icon {
@@ -696,31 +748,10 @@ class FastSearchCard extends HTMLElement {
             }
             </style>
 
-            <!-- SVG Filter Definition (display: none, da nur die Definition benötigt wird) -->
-            <svg style="position: absolute; width: 0; height: 0;">
-                <defs>
-                    <filter id="glass-texture">
-                        <!-- Erzeugt ein leichtes Rauschen für die Milchigkeit -->
-                        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
-                        <!-- Verschiebt die Farben leicht für einen subtilen Chromatic Aberration Effekt -->
-                        <feColorMatrix type="matrix" values="
-                            1 0 0 0 0 
-                            0 1 0 0 0 
-                            0 0 1 0 0 
-                            0 0 0 1.1 0" result="saturate" /> <!-- Leicht die Sättigung erhöhen -->
-                        <!-- Mischt das Rauschen mit dem Element-Inhalt -->
-                        <feComposite in="noise" in2="SourceGraphic" operator="arithmetic" k1="0" k2="0.1" k3="0" k4="0.9" result="blend" />
-                        <!-- Blendet die Sättigung ein -->
-                        <feBlend in="saturate" in2="blend" mode="multiply" />
-                    </filter>
-                </defs>
-            </svg>
-
             <div class="main-container">
                 <div class="search-row">
                     <div class="search-panel">
-                        <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
-                        <div class="search-wrapper">
+                        <div class="blurred-background-layer"></div> <div class="search-wrapper">
                             <div class="category-icon">
                                 <svg viewBox="0 0 24 24" fill="none">
                                     <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
@@ -773,8 +804,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
 
                     <div class="detail-panel">
-                        <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
-                        <div class="detail-header">
+                        <div class="blurred-background-layer"></div> <div class="detail-header">
                             <button class="back-button">
                                 <svg viewBox="0 0 24 24" fill="none">
                                     <path d="M19 12H5"/>
@@ -794,16 +824,14 @@ class FastSearchCard extends HTMLElement {
 
                     <div class="category-buttons">
                         <button class="category-button active" data-category="devices" title="Geräte">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
-                            <svg viewBox="0 0 24 24" fill="none">
+                            <div class="blurred-background-layer"></div> <svg viewBox="0 0 24 24" fill="none">
                                 <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
                                 <path d="M12 18h.01"/>
                             </svg>
                         </button>
                         
                         <button class="category-button" data-category="scripts" title="Skripte">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
-                            <svg viewBox="0 0 24 24" fill="none">
+                            <div class="blurred-background-layer"></div> <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                 <polyline points="14,2 14,8 20,8"/>
                                 <line x1="16" y1="13" x2="8" y2="13"/>
@@ -813,8 +841,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="automations" title="Automationen">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
-                            <svg viewBox="0 0 24 24" fill="none">
+                            <div class="blurred-background-layer"></div> <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M12 2v6l3-3 3 3"/>
                                 <path d="M12 18v4"/>
                                 <path d="M8 8v8"/>
@@ -824,8 +851,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scenes" title="Szenen">
-                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
-                            <svg viewBox="0 0 24 24" fill="none">
+                            <div class="blurred-background-layer"></div> <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
                                 <path d="M8 3v4"/>
                                 <path d="M16 8v4"/>
@@ -926,7 +952,7 @@ class FastSearchCard extends HTMLElement {
             clearButton.classList.add('visible');
             this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
         } else {
-            this.isSearching = false; // Reset wenn leer
+            this.isSearching = false; 
             const animation = this.animateElementOut(clearButton);
             animation.finished.then(() => {
                 clearButton.classList.remove('visible');
@@ -948,7 +974,6 @@ class FastSearchCard extends HTMLElement {
             this.expandPanel();
         }
         
-        // Perform search immediately without debounce
         this.performSearch(query);
     }
 
@@ -958,11 +983,11 @@ class FastSearchCard extends HTMLElement {
         // Focus glow effect
         searchPanel.animate([
             { 
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-                borderColor: 'rgba(255, 255, 255, 0.2)'
+                boxShadow: 'var(--glass-shadow)',
+                borderColor: 'var(--glass-border-dark)'
             },
             { 
-                boxShadow: '0 8px 32px rgba(0, 122, 255, 0.3)',
+                boxShadow: '0 8px 32px rgba(0, 122, 255, 0.3), inset 0 0 0 1px var(--accent)',
                 borderColor: 'var(--accent)'
             }
         ], {
@@ -984,7 +1009,7 @@ class FastSearchCard extends HTMLElement {
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         
         searchInput.value = '';
-        this.isSearching = false; // Reset searching flag
+        this.isSearching = false; 
         console.log('🎯 isSearching reset to false');
         
         const animation = this.animateElementOut(clearButton);
@@ -1077,8 +1102,10 @@ class FastSearchCard extends HTMLElement {
         this.updateCategoryIcon();
         this.updatePlaceholder();
         
-        // Hide category buttons and expand panel
+        // Hide category buttons first
         this.hideCategoryButtons();
+        
+        // Then immediately expand panel and show items
         this.expandPanel();
         this.showCurrentCategoryItems();
     }
@@ -1113,7 +1140,7 @@ class FastSearchCard extends HTMLElement {
         if (searchInput.value.trim()) {
             console.log('🧹 Clearing search input due to subcategory change');
             searchInput.value = '';
-            this.isSearching = false; // Reset searching flag
+            this.isSearching = false; 
             const clearButton = this.shadowRoot.querySelector('.clear-button');
             clearButton.classList.remove('visible');
         }
@@ -1170,7 +1197,7 @@ class FastSearchCard extends HTMLElement {
                 <polyline points="14,2 14,8 20,8"/>
                 <line x1="16" y1="13" x2="8" y2="13"/>
                 <line x1="16" y1="17" x2="8" y2="17"/>
-            </polyline>`,
+            </svg>`,
             automations: `<svg viewBox="0 0 24 24" fill="none">
                 <path d="M12 2v6l3-3 3 3"/>
                 <path d="M12 18v4"/>
@@ -1580,7 +1607,7 @@ class FastSearchCard extends HTMLElement {
                         chip.classList.remove('active');
                     }
                 });
-                this.activeSubcategory = this.previousSearchState.activeSubcategory; // Wichtig für die Wiederherstellung des aktiven Chips
+                this.activeSubcategory = this.previousSearchState.activeSubcategory;
                 this.filteredItems = this.previousSearchState.filteredItems;
                 
                 this.updateCategoryIcon();
@@ -1622,7 +1649,7 @@ class FastSearchCard extends HTMLElement {
         
         detailRight.innerHTML = `
             <div style="color: var(--text-primary);">
-                <h4 style="margin: 0 0 16px 0;'>Status</h4>
+                <h4 style="margin: 0 0 16px 0;">Status</h4>
                 <p style="margin: 0 0 8px 0;">Zustand: ${this.getEntityStatus(state)}</p>
                 <p style="margin: 0 0 8px 0;">Entität: ${item.id}</p>
                 <p style="margin: 0;">Typ: ${item.domain}</p>
