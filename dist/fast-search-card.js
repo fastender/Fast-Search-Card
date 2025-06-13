@@ -14,6 +14,7 @@ class FastSearchCard extends HTMLElement {
         this.isPanelExpanded = false;
         this.animationTimeouts = [];
         this.hasAnimated = false;
+        this.searchTimeout = null;
         
         // Neue State-Variablen
         this.isDetailView = false;
@@ -110,6 +111,7 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 padding: 16px 20px;
                 min-height: 40px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             }
 
             .category-icon {
@@ -416,6 +418,14 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 align-items: center;
                 gap: 16px;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 10;
+                background: inherit;
+                backdrop-filter: inherit;
+                -webkit-backdrop-filter: inherit;
             }
 
             .back-button {
@@ -452,7 +462,12 @@ class FastSearchCard extends HTMLElement {
 
             .detail-content {
                 display: flex;
-                height: calc(100% - 80px);
+                height: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
             }
 
             .detail-left, .detail-right {
@@ -760,6 +775,11 @@ class FastSearchCard extends HTMLElement {
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         const searchInput = this.shadowRoot.querySelector('.search-input');
         
+        // Clear any existing search timeout
+        if (this.searchTimeout) {
+            clearTimeout(this.searchTimeout);
+        }
+        
         // Show/Hide Clear Button
         if (query.length > 0) {
             clearButton.classList.add('visible');
@@ -786,6 +806,7 @@ class FastSearchCard extends HTMLElement {
             this.expandPanel();
         }
         
+        // Perform search immediately without debounce
         this.performSearch(query);
     }
 
@@ -1026,10 +1047,9 @@ class FastSearchCard extends HTMLElement {
             if (!state) return null;
 
             const domain = entityId.split('.')[0];
-            const areaId = state.attributes.area_id;
-            const areaName = areaId ? 
-                (this._hass.areas && this._hass.areas[areaId] ? this._hass.areas[areaId].name : 'Unbekannt') : 
-                'Ohne Raum';
+            // Verwende area aus der Konfiguration, falls verfügbar
+            const configArea = entityConfig.area;
+            const areaName = configArea || 'Ohne Raum';
 
             return {
                 id: entityId,
@@ -1037,7 +1057,6 @@ class FastSearchCard extends HTMLElement {
                 domain: domain,
                 category: this.categorizeEntity(domain),
                 area: areaName,
-                areaId: areaId,
                 state: state.state,
                 attributes: state.attributes,
                 icon: this.getEntityIcon(domain),
