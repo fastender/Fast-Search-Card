@@ -98,6 +98,9 @@ class FastSearchCard extends HTMLElement {
                 box-shadow: var(--glass-shadow);
                 overflow: hidden;
                 
+                /* SAFARI FIX 1: Create a new stacking context to prevent flickering */
+                isolation: isolate;
+                
                 /* Performance Fix: Force GPU rendering */
                 transform: translateZ(0);
                 -webkit-transform: translateZ(0);
@@ -109,11 +112,9 @@ class FastSearchCard extends HTMLElement {
             .glass-panel::before {
                 content: '';
                 position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: -2;
+                top: 0; left: 0; right: 0; bottom: 0;
+                /* SAFARI FIX 2: Adjusted z-index for stable layering */
+                z-index: -1; 
                 border-radius: inherit;
 
                 /* The actual backdrop blur effect */
@@ -132,10 +133,7 @@ class FastSearchCard extends HTMLElement {
             .glass-panel::after {
                 content: '';
                 position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
+                top: 0; left: 0; right: 0; bottom: 0;
                 z-index: 1;
                 border-radius: inherit;
                 pointer-events: none;
@@ -182,6 +180,8 @@ class FastSearchCard extends HTMLElement {
                 position: sticky; 
                 top: 0; 
                 z-index: 2;
+                /* SAFARI FIX 3: Provide a subtle background anchor for backdrop-filter */
+                background-color: rgba(255, 255, 255, 0.01);
             }
 
             .category-icon {
