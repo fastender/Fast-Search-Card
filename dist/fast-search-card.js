@@ -115,7 +115,7 @@ class FastSearchCard extends HTMLElement {
                 /* Haupt-Glas-Hintergrund und Filter hier definieren */
                 background: 
                     linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.08);
+                    rgba(255, 255, 255, 0.08); /* Basis-RGBA des Glases */
                 backdrop-filter: var(--glass-blur) saturate(1.8);
                 -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
                 
@@ -151,11 +151,11 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 padding: 16px 20px;
                 min-height: 40px;
-                border-bottom: 0px solid rgba(255, 255, 255, 0.1);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 
-                /* Nur einen leicht transparenten Hintergrund, damit der backdrop-filter des Elternteils durchscheint */
-                background-color: transparent;
-                /* backdrop-filter hier ENTFERNT, da es vom .search-panel geerbt/durchgelassen wird */
+                /* Hintergrund an die Basis-RGBA des .search-panel anpassen, um Konsistenz zu gewährleisten */
+                background-color: rgba(255, 255, 255, 0.08); 
+                /* Kein backdrop-filter hier, da er vom .search-panel angewendet wird */
 
                 position: sticky; 
                 top: 0; 
@@ -170,7 +170,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 justify-content: center;
                 border-radius: 6px;
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.1); /* Kann minimal anders sein für visuellen Effekt */
                 flex-shrink: 0;
                 transition: all 0.2s ease;
             }
@@ -272,8 +272,7 @@ class FastSearchCard extends HTMLElement {
                 -ms-overflow-style: none;
                 transition: all 0.3s ease;
                 flex-shrink: 0; 
-                /* background-color: rgba(255, 255, 255, 0.03); /* Leichte Transparenz für Hintergrund, wenn gewünscht */
-                /* position: sticky; top: 0; z-index: 1; */ /* Optional, wenn die Subkategorien sticky bleiben sollen */
+                /* Kein Hintergrund hier, damit der des .search-panel durchscheint */
             }
 
             .subcategories::-webkit-scrollbar {
@@ -282,7 +281,8 @@ class FastSearchCard extends HTMLElement {
 
             .subcategory-chip {
                 padding: 8px 16px;
-                background: rgba(255, 255, 255, 0.1); /* Dies ist bereits transparent, sollte passen */
+                /* Hintergrund an die Basis-RGBA des .search-panel anpassen */
+                background: rgba(255, 255, 255, 0.08); 
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
                 font-size: 14px;
@@ -347,7 +347,8 @@ class FastSearchCard extends HTMLElement {
                 margin: 16px 0 8px 0;
                 padding-bottom: 8px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                /* KEINEN HINTERGRUND, damit der Glas-Effekt des Elternteils durchscheint */
+                /* Sicherstellen, dass kein Hintergrund gesetzt ist, um Durchscheinen zu ermöglichen */
+                background-color: transparent; 
             }
 
             .area-header:first-child {
@@ -355,7 +356,8 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-card {
-                background: rgba(255, 255, 255, 0.08);
+                /* Hintergrund an die Basis-RGBA des .search-panel anpassen */
+                background: rgba(255, 255, 255, 0.08); 
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 16px;
                 padding: 16px;
@@ -443,10 +445,12 @@ class FastSearchCard extends HTMLElement {
             /* Detail View Styles */
             .detail-panel {
                 flex: 1;
-                /* Haupt-Glas-Hintergrund und Filter hier entfernen, nur den äußeren Stil definieren */
-                /* background: linear-gradient(...), rgba(...); */
-                /* backdrop-filter: var(--glass-blur) saturate(1.8); */
-                /* -webkit-backdrop-filter: var(--glass-blur) saturate(1.8); */
+                /* Hier ebenfalls den vollständigen Glas-Hintergrund anwenden */
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08); 
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
                 
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
@@ -455,9 +459,6 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 height: 400px;
                 display: none;
-                
-                /* Leichter transparenter Hintergrund, um den Bereich zu definieren, ohne den Glas-Effekt zu verdecken */
-                background-color: rgba(255, 255, 255, 0.03); 
             }
 
             .detail-panel.visible {
@@ -476,9 +477,9 @@ class FastSearchCard extends HTMLElement {
                 right: 0;
                 z-index: 10;
                 
-                /* Hintergrund und Filter des Detail-Panels sollen durchscheinen */
-                background-color: rgba(255, 255, 255, 0.05); /* Leichte Transparenz */
-                /* backdrop-filter hier ENTFERNT */
+                /* Hintergrund an die Basis-RGBA des .detail-panel anpassen */
+                background-color: rgba(255, 255, 255, 0.08); 
+                /* Kein backdrop-filter hier */
             }
 
             .back-button {
@@ -550,10 +551,12 @@ class FastSearchCard extends HTMLElement {
             .category-button {
                 width: 56px;
                 height: 56px;
-                /* Auch hier den Haupt-Hintergrund und Filter entfernen */
-                /* background: linear-gradient(...), rgba(...); */
-                /* backdrop-filter: var(--glass-blur) saturate(1.8); */
-                /* -webkit-backdrop-filter: var(--glass-blur) saturate(1.8); */
+                /* Auch hier den vollständigen Glas-Hintergrund anwenden */
+                background: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
+                    rgba(255, 255, 255, 0.08); 
+                backdrop-filter: var(--glass-blur) saturate(1.8);
+                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
                 
                 border: 1px solid var(--glass-border);
                 border-radius: 50%;
@@ -565,9 +568,6 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 transition: all 0.2s ease;
                 box-shadow: var(--glass-shadow);
-                
-                /* Leichter transparenter Hintergrund für die Buttons selbst */
-                background-color: rgba(255, 255, 255, 0.05); 
             }
 
             .category-button:hover {
@@ -704,7 +704,8 @@ class FastSearchCard extends HTMLElement {
                                 <div class="subcategory-chip" data-subcategory="none">Keine</div>
                             </div>
                             <div class="results-grid">
-                                </div>
+                                <!-- Results werden hier eingefügt -->
+                            </div>
                         </div>
                     </div>
 
@@ -720,10 +721,12 @@ class FastSearchCard extends HTMLElement {
                         </div>
                         <div class="detail-content">
                             <div class="detail-left">
-                                </div>
+                                <!-- Linke Seite -->
+                            </div>
                             <div class="detail-divider"></div>
                             <div class="detail-right">
-                                </div>
+                                <!-- Rechte Seite -->
+                            </div>
                         </div>
                     </div>
 
