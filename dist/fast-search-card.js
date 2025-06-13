@@ -112,25 +112,26 @@ class FastSearchCard extends HTMLElement {
 
             .search-panel {
                 flex: 1;
+                /* Haupt-Glas-Hintergrund und Filter hier definieren */
                 background: 
                     linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
                     rgba(255, 255, 255, 0.08);
                 backdrop-filter: var(--glass-blur) saturate(1.8);
                 -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
-                overflow: hidden; /* Behalten, um abgerundete Ecken zu ermöglichen */
+                overflow: hidden; 
                 position: relative;
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                max-height: 72px; /* Nur die Suchleiste im nicht-erweiterten Zustand */
-                display: flex; /* <-- Hinzugefügt für Flex-Layout */
-                flex-direction: column; /* <-- Hinzugefügt für Spalten-Layout */
+                max-height: 72px; 
+                display: flex; 
+                flex-direction: column; 
             }
 
             .search-panel.expanded {
-                max-height: 400px; /* Oder eine andere feste Höhe, die du möchtest */
-                /* overflow-y: auto; <-- ENTFERNEN, da Scrolling im results-container ist */
+                max-height: 400px; 
             }
 
             .search-panel::before {
@@ -151,13 +152,14 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                /* Hintergrund und Filter hier beibehalten, damit sie beim Überlappen nicht durchsichtig werden */
-                background: inherit;
-                backdrop-filter: inherit;
-                -webkit-backdrop-filter: inherit;
-                position: sticky; /* <-- HINZUGEFÜGT, damit die Suchleiste oben klebt, wenn das Panel scrollt */
-                top: 0; /* <-- HINZUGEFÜGT */
-                z-index: 2; /* <-- HINZUGEFÜGT, um über Subkategorien zu liegen, falls scrollbar */
+                
+                /* Nur einen leicht transparenten Hintergrund, damit der backdrop-filter des Elternteils durchscheint */
+                background-color: rgba(255, 255, 255, 0.05); /* Angepasste Transparenz */
+                /* backdrop-filter hier ENTFERNT, da es vom .search-panel geerbt/durchgelassen wird */
+
+                position: sticky; 
+                top: 0; 
+                z-index: 2; 
             }
 
             .category-icon {
@@ -269,14 +271,10 @@ class FastSearchCard extends HTMLElement {
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 transition: all 0.3s ease;
-                flex-shrink: 0; /* <-- Hinzugefügt, damit es nicht schrumpft */
-                /* opacity und transform werden jetzt von parent gesteuert */
+                flex-shrink: 0; 
+                /* background-color: rgba(255, 255, 255, 0.03); /* Leichte Transparenz für Hintergrund, wenn gewünscht */
+                /* position: sticky; top: 0; z-index: 1; */ /* Optional, wenn die Subkategorien sticky bleiben sollen */
             }
-
-            /* .search-panel.expanded .subcategories { <-- Diese Regel wird jetzt von .results-container gesteuert
-                opacity: 1;
-                transform: translateY(0);
-            } */
 
             .subcategories::-webkit-scrollbar {
                 display: none;
@@ -284,7 +282,7 @@ class FastSearchCard extends HTMLElement {
 
             .subcategory-chip {
                 padding: 8px 16px;
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.1); /* Dies ist bereits transparent, sollte passen */
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
                 font-size: 14px;
@@ -311,17 +309,16 @@ class FastSearchCard extends HTMLElement {
             }
 
             .results-container {
-                /* padding: 0 20px 20px 20px; <-- Padding wird jetzt innerhalb des .results-grid gemacht */
-                flex-grow: 1; /* <-- Hinzugefügt, damit es den verfügbaren Platz ausfüllt */
-                overflow-y: auto; /* <-- Hinzugefügt, um das Scrolling hier zu ermöglichen */
+                flex-grow: 1; 
+                overflow-y: auto; 
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 position: relative;
-                opacity: 0; /* Beibehalten für Animation */
-                transform: translateY(-10px); /* Beibehalten für Animation */
-                transition: all 0.3s ease; /* Beibehalten für Animation */
-                padding-top: 16px; /* <-- Hinzugefügt, um Abstand zu den Subkategorien zu halten */
-                padding-bottom: 20px; /* <-- Hinzugefügt, um unteren Abstand zu haben */
+                opacity: 0; 
+                transform: translateY(-10px); 
+                transition: all 0.3s ease; 
+                padding-top: 16px; 
+                padding-bottom: 20px; 
             }
 
             .results-container::-webkit-scrollbar {
@@ -338,8 +335,8 @@ class FastSearchCard extends HTMLElement {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 12px;
                 min-height: 200px;
-                padding-left: 20px; /* <-- Hinzugefügt für links/rechts Padding */
-                padding-right: 20px; /* <-- Hinzugefügt für links/rechts Padding */
+                padding-left: 20px; 
+                padding-right: 20px; 
             }
 
             .area-header {
@@ -350,6 +347,7 @@ class FastSearchCard extends HTMLElement {
                 margin: 16px 0 8px 0;
                 padding-bottom: 8px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                /* KEINEN HINTERGRUND, damit der Glas-Effekt des Elternteils durchscheint */
             }
 
             .area-header:first-child {
@@ -445,11 +443,11 @@ class FastSearchCard extends HTMLElement {
             /* Detail View Styles */
             .detail-panel {
                 flex: 1;
-                background: 
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.08);
-                backdrop-filter: var(--glass-blur) saturate(1.8);
-                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                /* Haupt-Glas-Hintergrund und Filter hier entfernen, nur den äußeren Stil definieren */
+                /* background: linear-gradient(...), rgba(...); */
+                /* backdrop-filter: var(--glass-blur) saturate(1.8); */
+                /* -webkit-backdrop-filter: var(--glass-blur) saturate(1.8); */
+                
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
@@ -457,6 +455,9 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 height: 400px;
                 display: none;
+                
+                /* Leichter transparenter Hintergrund, um den Bereich zu definieren, ohne den Glas-Effekt zu verdecken */
+                background-color: rgba(255, 255, 255, 0.03); 
             }
 
             .detail-panel.visible {
@@ -474,9 +475,10 @@ class FastSearchCard extends HTMLElement {
                 left: 0;
                 right: 0;
                 z-index: 10;
-                background: inherit;
-                backdrop-filter: inherit;
-                -webkit-backdrop-filter: inherit;
+                
+                /* Hintergrund und Filter des Detail-Panels sollen durchscheinen */
+                background-color: rgba(255, 255, 255, 0.05); /* Leichte Transparenz */
+                /* backdrop-filter hier ENTFERNT */
             }
 
             .back-button {
@@ -548,11 +550,11 @@ class FastSearchCard extends HTMLElement {
             .category-button {
                 width: 56px;
                 height: 56px;
-                background: 
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.08);
-                backdrop-filter: var(--glass-blur) saturate(1.8);
-                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+                /* Auch hier den Haupt-Hintergrund und Filter entfernen */
+                /* background: linear-gradient(...), rgba(...); */
+                /* backdrop-filter: var(--glass-blur) saturate(1.8); */
+                /* -webkit-backdrop-filter: var(--glass-blur) saturate(1.8); */
+                
                 border: 1px solid var(--glass-border);
                 border-radius: 50%;
                 display: flex;
@@ -563,6 +565,9 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 transition: all 0.2s ease;
                 box-shadow: var(--glass-shadow);
+                
+                /* Leichter transparenter Hintergrund für die Buttons selbst */
+                background-color: rgba(255, 255, 255, 0.05); 
             }
 
             .category-button:hover {
@@ -644,14 +649,6 @@ class FastSearchCard extends HTMLElement {
                 
                 .search-input {
                     font-size: 16px;
-                }
-
-                .results-container {
-                    /* height: 200px; <-- Hier könnte die Höhe reduziert werden, wenn nötig */
-                }
-                
-                .results-grid {
-                    /* padding-bottom: 15px; <-- Bereits im results-container */
                 }
             }
             </style>
@@ -818,7 +815,6 @@ class FastSearchCard extends HTMLElement {
         });
 
         // Subcategory Chips - Event Delegation
-        // Der Listener ist weiterhin auf .subcategories, da die Struktur nur verschoben wurde
         this.shadowRoot.querySelector('.subcategories').addEventListener('click', (e) => {
             const chip = e.target.closest('.subcategory-chip');
             if (chip) {
@@ -861,7 +857,7 @@ class FastSearchCard extends HTMLElement {
             clearButton.classList.add('visible');
             this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
         } else {
-            this.isSearching = false; // Reset wenn leer
+            this.isSearching = false; 
             const animation = this.animateElementOut(clearButton);
             animation.finished.then(() => {
                 clearButton.classList.remove('visible');
@@ -883,7 +879,6 @@ class FastSearchCard extends HTMLElement {
             this.expandPanel();
         }
         
-        // Perform search immediately without debounce
         this.performSearch(query);
     }
 
@@ -919,7 +914,7 @@ class FastSearchCard extends HTMLElement {
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         
         searchInput.value = '';
-        this.isSearching = false; // Reset searching flag
+        this.isSearching = false; 
         console.log('🎯 isSearching reset to false');
         
         const animation = this.animateElementOut(clearButton);
@@ -1050,7 +1045,7 @@ class FastSearchCard extends HTMLElement {
         if (searchInput.value.trim()) {
             console.log('🧹 Clearing search input due to subcategory change');
             searchInput.value = '';
-            this.isSearching = false; // Reset searching flag
+            this.isSearching = false; 
             const clearButton = this.shadowRoot.querySelector('.clear-button');
             clearButton.classList.remove('visible');
         }
@@ -1509,7 +1504,7 @@ class FastSearchCard extends HTMLElement {
             if (this.previousSearchState) {
                 this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
                 this.activeCategory = this.previousSearchState.activeCategory;
-                this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => { // Aktiviere korrekten Subcategory-Chip
+                this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => { 
                     if (chip.dataset.subcategory === this.previousSearchState.activeSubcategory) {
                         chip.classList.add('active');
                     } else {
