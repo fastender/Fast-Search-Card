@@ -14,6 +14,18 @@ class FastSearchCard extends HTMLElement {
         this.isPanelExpanded = false;
         this.animationTimeouts = [];
         this.hasAnimated = false;
+
+        // WebGL Properties
+        this.gl = null;
+        this.program = null;
+        this.backgroundTexture = null;
+        this.currentMouse = { x: 0, y: 0 };
+        this.targetMouse = { x: 0, y: 0 };
+        this.currentSize = { x: 280, y: 72 };
+        this.targetSize = { x: 280, y: 72 };
+        this.expandedSize = { x: 350, y: 400 };
+        this.lastTime = 0;
+        this.isWebGLEnabled = false;
     }
 
     setConfig(config) {
@@ -39,6 +51,116 @@ class FastSearchCard extends HTMLElement {
 
     render() {
         this.shadowRoot.innerHTML = `
+            <canvas id="glass-canvas"></canvas>
+            
+            <script id="vertexShader" type="x-shader/x-vertex">
+                attribute vec2 a_position;
+                varying vec2 v_uv;
+                void main() {
+                    v_uv = vec2(a_position.x, -a_position.y) * 0.5 + 0.5;
+                    gl_Position = vec4(a_position, 0.0, 1.0);
+                }
+            </script>
+            
+            <script id="fragmentShader" type="x-shader/x-fragment">
+                precision mediump float;
+                uniform vec2 u_resolution;
+                uniform vec2 u_mouse;
+                uniform vec2 u_size;
+                uniform float u_dpr;
+                uniform sampler2D u_background;
+                varying vec2 v_uv;
+
+                float roundedBox(vec2 p, vec2 size, float radius) {
+                    vec2 d = abs(p) - size + radius;
+                    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - radius;
+                }
+
+                vec3 getNormal(vec2 p, vec2 size, float radius) {
+                    float eps = 1.0 / u_resolution.x;
+                    float d = roundedBox(p, size, radius);
+                    vec2 grad = vec2(
+                        roundedBox(p + vec2(eps, 0.0), size, radius) - d,
+                        roundedBox(p + vec2(0.0, eps), size, radius) - d
+                    ) / eps;
+                    return normalize(vec3(grad, sqrt(1.0 - clamp(dot(grad, grad), 0.0, 1.0))));
+                }
+
+                vec3 blurBackground(vec2 uv, float radius) {
+                    vec3 color = vec3(0.0);
+                    float totalWeight = 0.0;
+                    
+                    for(int x = -3; x <= 3; x++) {
+                        for(int y = -3; y <= 3; y++) {
+                            vec2 offset = vec2(float(x), float(y)) * radius / u_resolution.xy;
+                            float weight = exp(-0.5 * (float(x*x + y*y)) / 4.0);
+                            color += texture2D(u_background, uv + offset).rgb * weight;
+                            totalWeight += weight;
+                        }
+                    }
+                    
+                    return color / totalWeight;
+                }
+
+                void main() {
+                    vec2 uv = v_uv;
+                    vec2 pixel = gl_FragCoord.xy;
+                    vec2 mouse = u_mouse * u_dpr;
+                    vec2 size = u_size * u_dpr * 0.5;
+                    
+                    // Local coordinates relative to mouse
+                    vec2 local = pixel - mouse;
+                    
+                    // SDF for rounded rectangle
+                    float dist = roundedBox(local, size, 24.0 * u_dpr);
+                    
+                    // Early exit if outside glass area
+                    if (dist > 1.0) {
+                        gl_FragColor = texture2D(u_background, uv);
+                        return;
+                    }
+                    
+                    // Normalized distance for effects
+                    float r = length(local) / length(size);
+                    
+                    // Dome-like refraction normal
+                    vec3 domeNormal = normalize(vec3(local * 0.3, length(size) * 0.4));
+                    vec2 domeRefractUV = uv + domeNormal.xy * 0.02;
+                    
+                    // Edge-based refraction
+                    vec3 edgeNormal = getNormal(local, size, 24.0 * u_dpr);
+                    vec2 edgeRefractUV = uv + edgeNormal.xy * 0.015;
+                    
+                    // Combine refractions based on distance from center
+                    float centerWeight = smoothstep(0.7, 0.3, r);
+                    vec2 refractUV = mix(edgeRefractUV, domeRefractUV, centerWeight);
+                    
+                    // Get refracted and blurred background
+                    vec3 refracted = texture2D(u_background, refractUV).rgb;
+                    vec3 blurred = blurBackground(uv, 2.0 * u_dpr);
+                    
+                    // Mix refracted and blurred based on distance
+                    vec3 glassBg = mix(refracted, blurred, 0.3);
+                    
+                    // Edge glow effect
+                    float edge = 1.0 - smoothstep(-2.0, 2.0, dist);
+                    vec3 glowColor = vec3(1.0, 1.0, 1.0) * edge * 0.3;
+                    
+                    // Top highlight (simulating light)
+                    float topHighlight = smoothstep(0.0, -size.y * 0.3, local.y) * 
+                                       smoothstep(size.x * 0.8, size.x * 0.2, abs(local.x)) * 0.2;
+                    
+                    // Combine all effects
+                    vec3 finalColor = glassBg + glowColor + vec3(topHighlight);
+                    
+                    // Smooth alpha based on SDF
+                    float alpha = 1.0 - smoothstep(-1.0, 1.0, dist);
+                    alpha *= 0.85; // Overall transparency
+                    
+                    gl_FragColor = vec4(finalColor, alpha);
+                }
+            </script>
+
             <style>
             :host {
                 display: block;
@@ -52,6 +174,18 @@ class FastSearchCard extends HTMLElement {
                 --text-primary: rgba(255, 255, 255, 0.95);
                 --text-secondary: rgba(255, 255, 255, 0.7);
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                position: relative;
+            }
+
+            #glass-canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 0;
+                pointer-events: none;
+                border-radius: 24px;
             }
 
             .main-container {
@@ -59,6 +193,8 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 gap: 0;
+                position: relative;
+                z-index: 1;
             }
 
             .search-row {
@@ -82,6 +218,13 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 max-height: 72px;
+            }
+
+            .search-panel.webgl-enabled {
+                background: transparent;
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+                border: 1px solid rgba(255, 255, 255, 0.1);
             }
 
             .search-panel.expanded {
@@ -575,6 +718,216 @@ class FastSearchCard extends HTMLElement {
         `;
 
         this.setupEventListeners();
+        
+        // WebGL initialization with delay
+        setTimeout(() => {
+            if (!this.initWebGL()) {
+                console.warn('WebGL not supported, falling back to CSS glass effect');
+            }
+        }, 100);
+    }
+
+    initWebGL() {
+        const canvas = this.shadowRoot.getElementById('glass-canvas');
+        if (!canvas) return false;
+
+        this.gl = canvas.getContext('webgl', { 
+            antialias: true, 
+            alpha: true, 
+            premultipliedAlpha: false 
+        });
+        
+        if (!this.gl) {
+            return false;
+        }
+
+        // Setup canvas size
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+
+        // Compile shaders
+        const vertexShader = this.compileShader(
+            this.shadowRoot.getElementById('vertexShader').textContent,
+            this.gl.VERTEX_SHADER
+        );
+        
+        const fragmentShader = this.compileShader(
+            this.shadowRoot.getElementById('fragmentShader').textContent,
+            this.gl.FRAGMENT_SHADER
+        );
+
+        if (!vertexShader || !fragmentShader) {
+            return false;
+        }
+
+        // Create program
+        this.program = this.gl.createProgram();
+        this.gl.attachShader(this.program, vertexShader);
+        this.gl.attachShader(this.program, fragmentShader);
+        this.gl.linkProgram(this.program);
+
+        if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
+            console.error('Program link error:', this.gl.getProgramInfoLog(this.program));
+            return false;
+        }
+
+        this.gl.useProgram(this.program);
+
+        // Setup geometry (fullscreen quad)
+        const positions = new Float32Array([
+            -1, -1,  1, -1, -1,  1,
+            -1,  1,  1, -1,  1,  1
+        ]);
+
+        const positionBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, positions, this.gl.STATIC_DRAW);
+
+        const positionLocation = this.gl.getAttribLocation(this.program, 'a_position');
+        this.gl.enableVertexAttribArray(positionLocation);
+        this.gl.vertexAttribPointer(positionLocation, 2, this.gl.FLOAT, false, 0, 0);
+
+        // Create background texture
+        this.createBackgroundTexture();
+
+        // Enable WebGL mode
+        this.isWebGLEnabled = true;
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        searchPanel.classList.add('webgl-enabled');
+
+        // Start render loop
+        this.startRenderLoop();
+        
+        return true;
+    }
+
+    compileShader(source, type) {
+        const shader = this.gl.createShader(type);
+        this.gl.shaderSource(shader, source);
+        this.gl.compileShader(shader);
+
+        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+            console.error('Shader compile error:', this.gl.getShaderInfoLog(shader));
+            this.gl.deleteShader(shader);
+            return null;
+        }
+
+        return shader;
+    }
+
+    resizeCanvas() {
+        const canvas = this.shadowRoot.getElementById('glass-canvas');
+        const rect = this.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+        
+        if (this.gl) {
+            this.gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    createBackgroundTexture() {
+        // Create a simple gradient background texture
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        
+        // Create gradient background
+        const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 180);
+        gradient.addColorStop(0, '#1a1a2e');
+        gradient.addColorStop(0.5, '#16213e');
+        gradient.addColorStop(1, '#0f0f1e');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 256, 256);
+        
+        // Add some noise/texture
+        const imageData = ctx.getImageData(0, 0, 256, 256);
+        const data = imageData.data;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const noise = (Math.random() - 0.5) * 20;
+            data[i] = Math.max(0, Math.min(255, data[i] + noise));     // R
+            data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise)); // G
+            data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise)); // B
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Create WebGL texture
+        this.backgroundTexture = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.backgroundTexture);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, canvas);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    }
+
+    startRenderLoop() {
+        const draw = (currentTime) => {
+            if (!this.isWebGLEnabled || !this.gl || !this.program) {
+                requestAnimationFrame(draw);
+                return;
+            }
+
+            const deltaTime = (currentTime - this.lastTime) / 1000;
+            this.lastTime = currentTime;
+            
+            // Smooth mouse position tweening
+            const lerpSpeed = 8;
+            this.currentMouse.x += (this.targetMouse.x - this.currentMouse.x) * lerpSpeed * deltaTime;
+            this.currentMouse.y += (this.targetMouse.y - this.currentMouse.y) * lerpSpeed * deltaTime;
+            
+            // Smooth size tweening
+            const sizeLerpSpeed = 6;
+            this.currentSize.x += (this.targetSize.x - this.currentSize.x) * sizeLerpSpeed * deltaTime;
+            this.currentSize.y += (this.targetSize.y - this.currentSize.y) * sizeLerpSpeed * deltaTime;
+            
+            this.drawGlassEffect();
+            requestAnimationFrame(draw);
+        };
+        
+        requestAnimationFrame(draw);
+    }
+
+    drawGlassEffect() {
+        if (!this.gl || !this.program || !this.backgroundTexture) return;
+
+        const canvas = this.shadowRoot.getElementById('glass-canvas');
+        const rect = this.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+
+        // Clear and setup
+        this.gl.clearColor(0, 0, 0, 0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        this.gl.enable(this.gl.BLEND);
+        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+
+        // Set uniforms
+        const resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
+        const mouseLocation = this.gl.getUniformLocation(this.program, 'u_mouse');
+        const sizeLocation = this.gl.getUniformLocation(this.program, 'u_size');
+        const dprLocation = this.gl.getUniformLocation(this.program, 'u_dpr');
+        const backgroundLocation = this.gl.getUniformLocation(this.program, 'u_background');
+
+        this.gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+        this.gl.uniform2f(mouseLocation, this.currentMouse.x, this.currentMouse.y);
+        this.gl.uniform2f(sizeLocation, this.currentSize.x, this.currentSize.y);
+        this.gl.uniform1f(dprLocation, dpr);
+
+        // Bind background texture
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.backgroundTexture);
+        this.gl.uniform1i(backgroundLocation, 0);
+
+        // Draw
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
     }
 
     setupEventListeners() {
@@ -583,6 +936,7 @@ class FastSearchCard extends HTMLElement {
         const categoryIcon = this.shadowRoot.querySelector('.category-icon');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
 
         // Search Events
         searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
@@ -611,6 +965,36 @@ class FastSearchCard extends HTMLElement {
             if (chip) {
                 e.stopPropagation();
                 this.handleSubcategorySelect(chip);
+            }
+        });
+
+        // WebGL Mouse tracking
+        this.shadowRoot.addEventListener('mousemove', (e) => {
+            const rect = this.getBoundingClientRect();
+            this.targetMouse.x = e.clientX - rect.left;
+            this.targetMouse.y = e.clientY - rect.top;
+        });
+
+        // Panel hover for glass effect size
+        searchPanel.addEventListener('mouseenter', () => {
+            if (this.isPanelExpanded) {
+                this.targetSize = { 
+                    x: this.expandedSize.x, 
+                    y: this.expandedSize.y 
+                };
+            } else {
+                this.targetSize = { x: 320, y: 80 };
+            }
+        });
+
+        searchPanel.addEventListener('mouseleave', () => {
+            if (this.isPanelExpanded) {
+                this.targetSize = { 
+                    x: this.expandedSize.x * 0.95, 
+                    y: this.expandedSize.y * 0.95 
+                };
+            } else {
+                this.targetSize = { x: 280, y: 72 };
             }
         });
 
@@ -827,6 +1211,12 @@ class FastSearchCard extends HTMLElement {
         
         searchPanel.classList.add('expanded');
         
+        // Update glass effect size for expanded state
+        this.targetSize = { 
+            x: this.expandedSize.x, 
+            y: this.expandedSize.y 
+        };
+        
         // Show initial items if no search active
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (!searchInput.value.trim()) {
@@ -841,6 +1231,9 @@ class FastSearchCard extends HTMLElement {
         this.isPanelExpanded = false;
         
         searchPanel.classList.remove('expanded');
+        
+        // Update glass effect size for collapsed state
+        this.targetSize = { x: 280, y: 72 };
     }
 
     updateCategoryIcon() {
@@ -1263,11 +1656,11 @@ window.customCards = window.customCards || [];
 window.customCards.push({
     type: 'fast-search-card',
     name: 'Fast Search Card',
-    description: 'Modern Apple Vision OS inspired search card'
+    description: 'Modern Apple Vision OS inspired search card with Liquid Glass effect'
 });
 
 console.info(
-    `%c FAST-SEARCH-CARD %c Modern Vision OS Design `,
+    `%c FAST-SEARCH-CARD %c Vision OS Liquid Glass Design `,
     'color: #007AFF; font-weight: bold; background: black',
     'color: white; font-weight: bold; background: #007AFF'
-)
+);
