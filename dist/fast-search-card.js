@@ -225,6 +225,7 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0;
                 transform: translateY(-10px);
                 transition: all 0.3s ease;
+                position: relative;
             }
 
             .search-panel.expanded .subcategories {
@@ -273,6 +274,7 @@ class FastSearchCard extends HTMLElement {
                 overflow-y: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
+                position: relative;
             }
 
             .results-container::-webkit-scrollbar {
@@ -289,6 +291,7 @@ class FastSearchCard extends HTMLElement {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 12px;
                 min-height: 200px;
+                padding-bottom: 20px;
             }
 
             .area-header {
@@ -598,6 +601,10 @@ class FastSearchCard extends HTMLElement {
                 .results-container {
                     height: 200px;
                 }
+                
+                .results-grid {
+                    padding-bottom: 15px;
+                }
             }
             </style>
 
@@ -735,7 +742,10 @@ class FastSearchCard extends HTMLElement {
         searchInput.addEventListener('focus', () => this.handleSearchFocus());
         
         // Clear Button
-        clearButton.addEventListener('click', () => this.clearSearch());
+        clearButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.clearSearch();
+        });
         
         // Category Icon - Toggle Category Buttons
         categoryIcon.addEventListener('click', (e) => {
@@ -744,15 +754,24 @@ class FastSearchCard extends HTMLElement {
         });
 
         // Filter Icon
-        filterIcon.addEventListener('click', () => this.handleFilterClick());
+        filterIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handleFilterClick();
+        });
 
         // Category Buttons
         categoryButtons.forEach(button => {
-            button.addEventListener('click', () => this.handleCategorySelect(button));
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleCategorySelect(button);
+            });
         });
 
         // Back Button
-        backButton.addEventListener('click', () => this.handleBackClick());
+        backButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handleBackClick();
+        });
 
         // Subcategory Chips - Event Delegation
         this.shadowRoot.querySelector('.subcategories').addEventListener('click', (e) => {
@@ -763,10 +782,16 @@ class FastSearchCard extends HTMLElement {
             }
         });
 
+        // Card click handler - prevent bubbling
+        this.shadowRoot.querySelector('.main-container').addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
         // Global click handler
         document.addEventListener('click', (e) => {
             if (!e.target.closest('fast-search-card')) {
                 this.hideCategoryButtons();
+                this.collapsePanel();
             }
         });
     }
@@ -845,6 +870,8 @@ class FastSearchCard extends HTMLElement {
             clearButton.classList.remove('visible');
         });
         
+        // Reset to current category items without triggering new searches
+        this.hasAnimated = false;
         this.showCurrentCategoryItems();
         searchInput.focus();
     }
@@ -958,6 +985,15 @@ class FastSearchCard extends HTMLElement {
 
         this.activeSubcategory = subcategory;
         this.hasAnimated = false;
+        
+        // Clear search input to prevent conflicts
+        const searchInput = this.shadowRoot.querySelector('.search-input');
+        if (searchInput.value.trim()) {
+            searchInput.value = '';
+            const clearButton = this.shadowRoot.querySelector('.clear-button');
+            clearButton.classList.remove('visible');
+        }
+        
         this.filterBySubcategory();
     }
 
