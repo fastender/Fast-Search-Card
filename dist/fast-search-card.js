@@ -15,6 +15,7 @@ class FastSearchCard extends HTMLElement {
         this.animationTimeouts = [];
         this.hasAnimated = false;
         this.searchTimeout = null;
+        this.isSearching = false;
         
         // Neue State-Variablen
         this.isDetailView = false;
@@ -38,9 +39,44 @@ class FastSearchCard extends HTMLElement {
 
     set hass(hass) {
         if (!hass) return;
+        
+        console.log('🔍 HASS Update received', new Date().toLocaleTimeString());
+        
+        const oldHass = this._hass;
         this._hass = hass;
-        this.updateItems();
-        this.updateStates();
+        
+        // Nur Items updaten wenn sich wirklich was geändert hat
+        if (!oldHass || this.shouldUpdateItems(oldHass, hass)) {
+            console.log('📝 Updating items...');
+            this.updateItems();
+        }
+        
+        // States nur updaten wenn nicht in Detail-View und nicht am Suchen
+        if (!this.isDetailView && !this.isSearching) {
+            console.log('🔄 Updating states...');
+            this.updateStates();
+        } else {
+            console.log('⏭️ Skipping state update (DetailView:', this.isDetailView, ', Searching:', this.isSearching, ')');
+        }
+    }
+
+    shouldUpdateItems(oldHass, newHass) {
+        // Prüfe ob sich relevante Entitäten geändert haben
+        if (!this._config.entities) return false;
+        
+        for (const entityConfig of this._config.entities) {
+            const entityId = entityConfig.entity;
+            const oldState = oldHass.states[entityId];
+            const newState = newHass.states[entityId];
+            
+            if (!oldState && newState) return true; // Neue Entität
+            if (oldState && !newState) return true; // Entität entfernt
+            if (oldState && newState && oldState.attributes.friendly_name !== newState.attributes.friendly_name) {
+                return true; // Name geändert
+            }
+        }
+        
+        return false;
     }
 
     render() {
@@ -222,10 +258,7 @@ class FastSearchCard extends HTMLElement {
                 overflow-x: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
-                opacity: 0;
-                transform: translateY(-10px);
                 transition: all 0.3s ease;
-                position: relative;
             }
 
             .search-panel.expanded .subcategories {
@@ -797,8 +830,14 @@ class FastSearchCard extends HTMLElement {
     }
 
     handleSearch(query) {
+        console.log('🔍 Search triggered:', query);
+        
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         const searchInput = this.shadowRoot.querySelector('.search-input');
+        
+        // Set searching flag
+        this.isSearching = query.trim().length > 0;
+        console.log('🎯 isSearching set to:', this.isSearching);
         
         // Clear any existing search timeout
         if (this.searchTimeout) {
@@ -810,6 +849,7 @@ class FastSearchCard extends HTMLElement {
             clearButton.classList.add('visible');
             this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
         } else {
+            this.isSearching = false; // Reset wenn leer
             const animation = this.animateElementOut(clearButton);
             animation.finished.then(() => {
                 clearButton.classList.remove('visible');
@@ -861,10 +901,15 @@ class FastSearchCard extends HTMLElement {
     }
 
     clearSearch() {
+        console.log('🧹 Clear search triggered');
+        
         const searchInput = this.shadowRoot.querySelector('.search-input');
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         
         searchInput.value = '';
+        this.isSearching = false; // Reset searching flag
+        console.log('🎯 isSearching reset to false');
+        
         const animation = this.animateElementOut(clearButton);
         animation.finished.then(() => {
             clearButton.classList.remove('visible');
@@ -967,6 +1012,8 @@ class FastSearchCard extends HTMLElement {
         const subcategory = selectedChip.dataset.subcategory;
         if (subcategory === this.activeSubcategory) return;
 
+        console.log('🏷️ Subcategory selected:', subcategory);
+
         // Update active states
         this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => {
             chip.classList.remove('active');
@@ -989,7 +1036,9 @@ class FastSearchCard extends HTMLElement {
         // Clear search input to prevent conflicts
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (searchInput.value.trim()) {
+            console.log('🧹 Clearing search input due to subcategory change');
             searchInput.value = '';
+            this.isSearching = false; // Reset searching flag
             const clearButton = this.shadowRoot.querySelector('.clear-button');
             clearButton.classList.remove('visible');
         }
@@ -1108,8 +1157,12 @@ class FastSearchCard extends HTMLElement {
     }
 
     updateStates() {
-        if (!this._hass) return;
+        if (!this._hass || this.isDetailView || this.isSearching) {
+            console.log('⏭️ Skipping updateStates - DetailView:', this.isDetailView, ', Searching:', this.isSearching);
+            return;
+        }
 
+        console.log('🔄 Updating device states...');
         const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
         deviceCards.forEach(card => {
             const entityId = card.dataset.entity;
