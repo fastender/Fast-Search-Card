@@ -28,6 +28,7 @@ class FastSearchCard extends HTMLElement {
         this.lightEffectGraphic = null; // Für den radialen Lichteffekt
         this.mouseX = 0.5; // Initial bei 50%
         this.mouseY = 0.5; // Initial bei 50%
+        this._isPixiAppReady = false; // Flag to check if PixiJS app is fully initialized and ready
     }
 
     setConfig(config) {
@@ -42,6 +43,9 @@ class FastSearchCard extends HTMLElement {
         };
         
         this.render();
+        // Call initPixiJS after render to ensure canvas element exists
+        // This will now handle deferred loading
+        this.initPixiJS(); 
     }
 
     set hass(hass) {
@@ -626,7 +630,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             /* PixiJS Canvas für Category Buttons (separate Instanz, falls benötigt) */
-            .category-button #pixi-button-canvas {
+            .category-button .pixi-button-canvas {
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -720,9 +724,6 @@ class FastSearchCard extends HTMLElement {
                 }
             }
             </style>
-
-            <!-- PixiJS Bibliothek -->
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
 
             <div class="main-container">
                 <div class="search-row">
@@ -855,11 +856,42 @@ class FastSearchCard extends HTMLElement {
         `;
 
         this.setupEventListeners();
-        this.initPixiJS(); // PixiJS initialisieren
+        // initPixiJS is now called in setConfig, ensuring canvas exists
+        // It also handles loading the PixiJS library if not already present.
     }
 
     // Neu: PixiJS initialisieren und Hintergründe rendern
     initPixiJS() {
+        // Only proceed if PIXI is defined
+        if (typeof PIXI === 'undefined') {
+            // Check if PixiJS is already being loaded to prevent multiple script tags
+            if (!window._pixi_loading) {
+                window._pixi_loading = true; // Set a global flag
+                const script = document.createElement('script');
+                script.src = "https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js";
+                script.onload = () => {
+                    console.log('✅ PixiJS loaded successfully.');
+                    window._pixi_loading = false; // Reset flag
+                    // Retry initPixiJS once PixiJS is loaded
+                    this.initPixiJS(); 
+                };
+                script.onerror = () => {
+                    console.error('❌ Failed to load PixiJS library.');
+                    window._pixi_loading = false;
+                };
+                document.head.appendChild(script);
+            } else {
+                console.log('⏳ PixiJS is already loading...');
+            }
+            return; // Exit if PIXI is not ready yet
+        }
+
+        // Only initialize PixiJS app once per canvas
+        if (this._isPixiAppReady) {
+            console.log('🔄 PixiJS app already initialized.');
+            return;
+        }
+
         // Hintergrundbild für PixiJS-Canvas. 
         // Dies ist ein Platzhalter. In einer echten HA-Umgebung
         // müsste dies ein vom User konfigurierbares Bild oder eine Farbe sein.
@@ -867,90 +899,130 @@ class FastSearchCard extends HTMLElement {
 
         // Initialisiere PixiJS für das Haupt-Suchpanel
         const pixiCanvas = this.shadowRoot.querySelector('#pixi-canvas');
-        if (pixiCanvas && !this.pixiApp) { // Nur einmal initialisieren
-            this.pixiApp = new PIXI.Application({
-                view: pixiCanvas,
-                width: pixiCanvas.clientWidth,
-                height: pixiCanvas.clientHeight,
-                autoDensity: true,
-                backgroundColor: 0x222222, // Fallback-Farbe, falls Bild nicht lädt
-                antialias: true
-            });
-            this.pixiApp.renderer.resize(pixiCanvas.clientWidth, pixiCanvas.clientHeight);
+        if (pixiCanvas) {
+            try {
+                this.pixiApp = new PIXI.Application({
+                    view: pixiCanvas,
+                    width: pixiCanvas.clientWidth,
+                    height: pixiCanvas.clientHeight,
+                    autoDensity: true,
+                    backgroundColor: 0x222222, // Fallback-Farbe, falls Bild nicht lädt
+                    antialias: true
+                });
+                this.pixiApp.renderer.resize(pixiCanvas.clientWidth, pixiCanvas.clientHeight);
 
-            // Skalierung des Renderer auf die CSS-Größe für schärferes Rendering
-            this.pixiApp.renderer.resolution = window.devicePixelRatio || 1; 
+                // Skalierung des Renderer auf die CSS-Größe für schärferes Rendering
+                this.pixiApp.renderer.resolution = window.devicePixelRatio || 1; 
 
-            // Bild laden und als Hintergrund einfügen
-            this.pixiApp.loader.add('background', BACKGROUND_IMAGE_URL).load((loader, resources) => {
-                this.backgroundSprite = new PIXI.Sprite(resources.background.texture);
-                this.backgroundSprite.width = this.pixiApp.screen.width;
-                this.backgroundSprite.height = this.pixiApp.screen.height;
-                this.pixiApp.stage.addChild(this.backgroundSprite);
+                // Bild laden und als Hintergrund einfügen
+                this.pixiApp.loader.add('background', BACKGROUND_IMAGE_URL).load((loader, resources) => {
+                    this.backgroundSprite = new PIXI.Sprite(resources.background.texture);
+                    this.backgroundSprite.width = this.pixiApp.screen.width;
+                    this.backgroundSprite.height = this.pixiApp.screen.height;
+                    this.pixiApp.stage.addChild(this.backgroundSprite);
 
-                // Unschärfe-Filter anwenden
-                this.backgroundSprite.filters = [new PIXI.filters.BlurFilter(this._config.glassBlurAmount || 30)];
+                    // Unschärfe-Filter anwenden
+                    this.backgroundSprite.filters = [new PIXI.filters.BlurFilter(this._config.glassBlurAmount || 30)];
 
-                // Dynamischer Lichteffekt (radialer Gradient)
-                this.lightEffectGraphic = new PIXI.Graphics();
-                this.lightEffectGraphic.blendMode = PIXI.BLEND_MODES.ADD; // Additiver Blend-Modus für Leuchteffekt
-                this.pixiApp.stage.addChild(this.lightEffectGraphic);
-            });
+                    // Dynamischer Lichteffekt (radialer Gradient)
+                    this.lightEffectGraphic = new PIXI.Graphics();
+                    this.lightEffectGraphic.blendMode = PIXI.BLEND_MODES.ADD; // Additiver Blend-Modus für Leuchteffekt
+                    this.pixiApp.stage.addChild(this.lightEffectGraphic);
+                });
 
-            // Mausbewegung für Lichteffekt im PixiJS-Canvas
-            // Muss auf dem search-panel als Ganzes lauschen, aber die Mauskoordinaten relativ zum Canvas berechnen
-            const searchPanel = this.shadowRoot.querySelector('.search-panel');
-            searchPanel.addEventListener('mousemove', (e) => {
-                const rect = pixiCanvas.getBoundingClientRect();
-                this.mouseX = (e.clientX - rect.left) / rect.width;
-                this.mouseY = (e.clientY - rect.top) / rect.height;
-            });
-            searchPanel.addEventListener('mouseleave', () => {
-                // Optional: Lichteffekt ausblenden oder zu Mitte zurücksetzen
-                this.mouseX = 0.5;
-                this.mouseY = 0.5;
-            });
+                // Mausbewegung für Lichteffekt im PixiJS-Canvas
+                // Muss auf dem search-panel als Ganzes lauschen, aber die Mauskoordinaten relativ zum Canvas berechnen
+                const searchPanel = this.shadowRoot.querySelector('.search-panel');
+                searchPanel.addEventListener('mousemove', (e) => {
+                    const rect = pixiCanvas.getBoundingClientRect();
+                    this.mouseX = (e.clientX - rect.left) / rect.width;
+                    this.mouseY = (e.clientY - rect.top) / rect.height;
+                });
+                searchPanel.addEventListener('mouseleave', () => {
+                    // Optional: Lichteffekt ausblenden oder zu Mitte zurücksetzen
+                    this.mouseX = 0.5;
+                    this.mouseY = 0.5;
+                });
 
-            // PixiJS-Loop für dynamische Effekte
-            this.pixiApp.ticker.add(() => {
-                if (this.lightEffectGraphic) {
-                    this.lightEffectGraphic.clear();
-                    // Zeichne einen radialen Lichteffekt
-                    const gradientRadius = Math.min(this.pixiApp.screen.width, this.pixiApp.screen.height) * 0.4;
-                    this.lightEffectGraphic.beginFill(0xFFFFFF, 0.4); // Helles, leicht transparentes Weiß
-                    this.lightEffectGraphic.drawCircle(
-                        this.mouseX * this.pixiApp.screen.width, 
-                        this.mouseY * this.pixiApp.screen.height, 
-                        gradientRadius
-                    );
-                    this.lightEffectGraphic.endFill();
+                // PixiJS-Loop für dynamische Effekte
+                this.pixiApp.ticker.add(() => {
+                    if (this.lightEffectGraphic) {
+                        this.lightEffectGraphic.clear();
+                        // Zeichne einen radialen Lichteffekt
+                        const gradientRadius = Math.min(this.pixiApp.screen.width, this.pixiApp.screen.height) * 0.4;
+                        this.lightEffectGraphic.beginFill(0xFFFFFF, 0.4); // Helles, leicht transparentes Weiß
+                        this.lightEffectGraphic.drawCircle(
+                            this.mouseX * this.pixiApp.screen.width, 
+                            this.mouseY * this.pixiApp.screen.height, 
+                            gradientRadius
+                        );
+                        this.lightEffectGraphic.endFill();
 
-                    // Optional: Blur des Lichteffekts
-                    this.lightEffectGraphic.filters = [new PIXI.filters.BlurFilter(30)];
-                }
-            });
+                        // Optional: Blur des Lichteffekts
+                        // this.lightEffectGraphic.filters = [new PIXI.filters.BlurFilter(30)]; // Kann Performance beeinflussen
+                    }
+                });
 
-            // Resize-Handler für PixiJS-Canvas
-            const resizeObserver = new ResizeObserver(entries => {
-                for (let entry of entries) {
-                    if (entry.target === pixiCanvas.parentElement) { // resize des search-panel
-                        const newWidth = entry.contentRect.width;
-                        const newHeight = entry.contentRect.height;
-                        this.pixiApp.renderer.resize(newWidth, newHeight);
-                        if (this.backgroundSprite) {
-                            this.backgroundSprite.width = newWidth;
-                            this.backgroundSprite.height = newHeight;
+                // Resize-Handler für PixiJS-Canvas
+                const resizeObserver = new ResizeObserver(entries => {
+                    for (let entry of entries) {
+                        if (entry.target === pixiCanvas.parentElement) { // resize des search-panel
+                            const newWidth = entry.contentRect.width;
+                            const newHeight = entry.contentRect.height;
+                            this.pixiApp.renderer.resize(newWidth, newHeight);
+                            if (this.backgroundSprite) {
+                                this.backgroundSprite.width = newWidth;
+                                this.backgroundSprite.height = newHeight;
+                            }
                         }
                     }
-                }
-            });
-            resizeObserver.observe(pixiCanvas.parentElement); // Parent des Canvas beobachten
+                });
+                resizeObserver.observe(pixiCanvas.parentElement); // Parent des Canvas beobachten
+                this._isPixiAppReady = true; // App ist nun bereit
+            } catch (error) {
+                console.error('❌ Failed to initialize PixiJS Application:', error);
+                // Fallback oder Fehlerbehandlung, falls PixiJS nicht initialisiert werden kann
+                this.fallbackToCssBlur();
+            }
         }
 
         // TODO: Separat PixiJS für Detail-Panel und Category Buttons initialisieren,
         // wenn diese auch dynamische Glas-Effekte benötigen sollen.
         // Das ist aufwendiger und würde den Code stark erweitern.
     }
+
+    fallbackToCssBlur() {
+        console.warn('Falling back to CSS blur due to PixiJS initialization failure.');
+        // Remove canvas elements from DOM if they exist
+        this.shadowRoot.querySelectorAll('canvas[id^="pixi-"]').forEach(canvas => canvas.remove());
+
+        // Restore original CSS background-filter for search-panel, detail-panel, category-buttons
+        // This would involve reverting the CSS changes made for PixiJS and re-applying backdrop-filter or the pseudo-element blur approach.
+        // For brevity, this part is conceptual, but in a real app, you'd manage CSS classes.
+        const styleElement = this.shadowRoot.querySelector('style');
+        if (styleElement) {
+             // Example: Dynamically inject fallback styles or remove 'pixi-mode' class
+             // For now, let's just make the .search-panel somewhat visible
+             styleElement.innerHTML += `
+                .search-panel {
+                    background: rgba(255, 255, 255, 0.15);
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                }
+                .detail-panel {
+                    background: rgba(255, 255, 255, 0.15);
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                }
+                .category-button {
+                    background: rgba(255, 255, 255, 0.15);
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                }
+             `;
+        }
+    }
+
 
     setupEventListeners() {
         const searchInput = this.shadowRoot.querySelector('.search-input');
@@ -960,7 +1032,8 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
         const backButton = this.shadowRoot.querySelector('.back-button');
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        // const mainContainer = this.shadowRoot.querySelector('.main-container'); // Nicht mehr für Maus-Events auf searchPanel benötigt
+        // const mainContainer = this.shadowRoot.querySelector('.main-container'); // Not needed for mouse events on searchPanel anymore
+
 
         // Search Events
         searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
