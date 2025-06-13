@@ -84,11 +84,12 @@ class FastSearchCard extends HTMLElement {
             <style>
             :host {
                 display: block;
-                --glass-primary: rgba(255, 255, 255, 0.15);
-                --glass-secondary: rgba(255, 255, 255, 0.1);
+                /* Angepasste Farben für den neuen Glas-Effekt. 
+                   Die Basisfarbe der Glaselemente selbst. */
+                --glass-base-color: rgba(255, 255, 255, 0.08); /* Weniger transparent für "milchiger" */
                 --glass-border: rgba(255, 255, 255, 0.2);
                 --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-                --glass-blur: blur(20px);
+                --glass-blur-amount: 20px; /* Stärke des Weichzeichners */
                 --accent: #007AFF;
                 --accent-light: rgba(0, 122, 255, 0.15);
                 --text-primary: rgba(255, 255, 255, 0.95);
@@ -112,38 +113,35 @@ class FastSearchCard extends HTMLElement {
 
             .search-panel {
                 flex: 1;
-                /* Das search-panel selbst wird zum Container für den Glas-Effekt,
-                   aber der eigentliche Hintergrund/Filter liegt im .glass-container */
+                background: transparent; /* Kein eigener Hintergrund hier, da .blurred-background-layer dahinter liegt */
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
-                overflow: hidden; /* Wichtig für abgerundete Ecken */
-                position: relative;
+                overflow: hidden; 
+                position: relative; /* Wichtig für absolut positionierte Kinder wie .blurred-background-layer */
                 transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 max-height: 72px; 
                 display: flex; 
                 flex-direction: column; 
-                /* will-change hier für das gesamte Panel */
-                will-change: transform, backdrop-filter; 
-                backface-visibility: hidden; /* Zusätzliche Optimierung */
+                will-change: transform, max-height; /* Für Performance */
+                backface-visibility: hidden; 
             }
 
             .search-panel.expanded {
                 max-height: 400px; 
             }
 
-            /* Neuer Container für den eigentlichen Glas-Effekt */
-            .glass-container {
-                background: 
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.08); 
-                backdrop-filter: var(--glass-blur) saturate(1.8);
-                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
-                display: flex;
-                flex-direction: column;
-                width: 100%;
-                height: 100%;
-                will-change: transform, backdrop-filter; /* Wichtig für Safari-Rendering */
+            /* Neuer Layer für den unscharfen Hintergrund */
+            .blurred-background-layer {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: var(--glass-base-color); /* Die Farbe, die unscharf gemacht wird */
+                filter: blur(var(--glass-blur-amount)); /* Der eigentliche Unschärfe-Effekt */
+                -webkit-filter: blur(var(--glass-blur-amount));
+                will-change: filter; /* Für Performance auf Safari */
                 backface-visibility: hidden;
             }
 
@@ -156,6 +154,7 @@ class FastSearchCard extends HTMLElement {
                 height: 1px;
                 background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
                 opacity: 0.6;
+                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .search-wrapper {
@@ -165,14 +164,11 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                
-                /* Hintergrund-Farbe muss hier transparent sein, damit der .glass-container durchscheint */
-                background-color: transparent; 
-
+                background-color: transparent; /* Muss transparent sein, damit der blurred-background-layer durchscheint */
                 position: sticky; 
                 top: 0; 
-                z-index: 2; 
-                will-change: transform, opacity; /* Hint für Safari */
+                z-index: 2; /* Liegt über dem blurred-background-layer */
+                will-change: transform, opacity; 
                 backface-visibility: hidden;
             }
 
@@ -286,9 +282,9 @@ class FastSearchCard extends HTMLElement {
                 -ms-overflow-style: none;
                 transition: all 0.3s ease;
                 flex-shrink: 0; 
-                /* Hintergrund transparent halten */
-                background-color: transparent;
-                will-change: transform, scroll-position; /* Hint für Scrolling-Performance */
+                background-color: transparent; /* Muss transparent sein */
+                z-index: 1; /* Über dem blurred-background-layer */
+                will-change: transform, scroll-position; 
                 backface-visibility: hidden;
             }
 
@@ -298,8 +294,7 @@ class FastSearchCard extends HTMLElement {
 
             .subcategory-chip {
                 padding: 8px 16px;
-                /* Hintergrund an die Basis-RGBA des .glass-container anpassen */
-                background: rgba(255, 255, 255, 0.08); 
+                background: rgba(255, 255, 255, 0.08); /* Diese Farbe überlagert den unscharfen Layer leicht */
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
                 font-size: 14px;
@@ -311,6 +306,7 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
                 position: relative;
                 overflow: hidden;
+                z-index: 1; /* Wichtig, um nicht hinter dem blurred-background-layer zu verschwinden */
             }
 
             .subcategory-chip.active {
@@ -336,7 +332,9 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.3s ease; 
                 padding-top: 16px; 
                 padding-bottom: 20px; 
-                will-change: transform, scroll-position; /* Hint für Scrolling-Performance */
+                background-color: transparent; /* Muss transparent sein */
+                z-index: 1; /* Über dem blurred-background-layer */
+                will-change: transform, scroll-position; 
                 backface-visibility: hidden;
             }
 
@@ -366,8 +364,8 @@ class FastSearchCard extends HTMLElement {
                 margin: 16px 0 8px 0;
                 padding-bottom: 8px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                /* Hintergrund transparent halten */
-                background-color: transparent; 
+                background-color: transparent; /* Muss transparent sein */
+                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .area-header:first-child {
@@ -375,8 +373,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-card {
-                /* Hintergrund an die Basis-RGBA des .glass-container anpassen */
-                background: rgba(255, 255, 255, 0.08); 
+                background: rgba(255, 255, 255, 0.08); /* Diese Farbe überlagert den unscharfen Layer leicht */
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 16px;
                 padding: 16px;
@@ -388,7 +385,8 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 overflow: hidden;
                 transition: all 0.2s ease;
-                will-change: transform, opacity; /* Hint für Animationen/Interaktionen */
+                z-index: 1; /* Wichtig, um nicht hinter dem blurred-background-layer zu verschwinden */
+                will-change: transform, opacity; 
             }
 
             .device-card::before {
@@ -465,13 +463,7 @@ class FastSearchCard extends HTMLElement {
             /* Detail View Styles */
             .detail-panel {
                 flex: 1;
-                /* Auch hier den vollständigen Glas-Hintergrund anwenden */
-                background: 
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.08); 
-                backdrop-filter: var(--glass-blur) saturate(1.8);
-                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
-                
+                background: transparent; /* Kein eigener Hintergrund */
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
@@ -479,7 +471,7 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 height: 400px;
                 display: none;
-                will-change: transform, backdrop-filter; /* Hint für Safari-Rendering */
+                will-change: transform; 
                 backface-visibility: hidden;
             }
 
@@ -490,6 +482,7 @@ class FastSearchCard extends HTMLElement {
             .detail-header {
                 padding: 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                background-color: transparent; /* Muss transparent sein */
                 display: flex;
                 align-items: center;
                 gap: 16px;
@@ -498,11 +491,7 @@ class FastSearchCard extends HTMLElement {
                 left: 0;
                 right: 0;
                 z-index: 10;
-                
-                /* Hintergrund an die Basis-RGBA des .detail-panel anpassen */
-                background-color: rgba(255, 255, 255, 0.08); 
-                /* Kein backdrop-filter hier */
-                will-change: transform, opacity; /* Hint für Sticky-Header */
+                will-change: transform, opacity; 
                 backface-visibility: hidden;
             }
 
@@ -546,11 +535,14 @@ class FastSearchCard extends HTMLElement {
                 left: 0;
                 right: 0;
                 bottom: 0;
+                padding-top: 60px; /* Um Platz für den sticky Header zu schaffen */
             }
 
             .detail-left, .detail-right {
                 flex: 1;
                 padding: 20px;
+                background-color: transparent; /* Muss transparent sein */
+                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .detail-divider {
@@ -566,7 +558,7 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 opacity: 0;
                 transform: translateX(20px);
-                will-change: transform, opacity; /* Hint für animierten Container */
+                will-change: transform, opacity; 
                 backface-visibility: hidden;
             }
 
@@ -577,13 +569,7 @@ class FastSearchCard extends HTMLElement {
             .category-button {
                 width: 56px;
                 height: 56px;
-                /* Auch hier den vollständigen Glas-Hintergrund anwenden */
-                background: 
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%),
-                    rgba(255, 255, 255, 0.08); 
-                backdrop-filter: var(--glass-blur) saturate(1.8);
-                -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
-                
+                background: transparent; /* Kein eigener Hintergrund */
                 border: 1px solid var(--glass-border);
                 border-radius: 50%;
                 display: flex;
@@ -594,8 +580,23 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 transition: all 0.2s ease;
                 box-shadow: var(--glass-shadow);
-                will-change: transform, backdrop-filter; /* Hint für Buttons mit Backdrop-Filter */
+                will-change: transform; 
                 backface-visibility: hidden;
+            }
+
+            .category-button::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: var(--glass-base-color); /* Die Farbe, die unscharf gemacht wird */
+                filter: blur(var(--glass-blur-amount)); /* Der eigentliche Unschärfe-Effekt */
+                -webkit-filter: blur(var(--glass-blur-amount));
+                will-change: filter;
+                backface-visibility: hidden;
+                z-index: -1; /* Hinter dem Inhalt des Buttons */
             }
 
             .category-button:hover {
@@ -605,7 +606,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .category-button.active {
-                background: var(--accent-light);
+                background: var(--accent-light); /* Akzentfarbe kann direkt angewendet werden */
                 border-color: var(--accent);
                 box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
             }
@@ -633,6 +634,7 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 align-items: center;
                 gap: 12px;
+                z-index: 1; /* Über dem blurred-background-layer */
             }
 
             .empty-icon {
@@ -684,61 +686,61 @@ class FastSearchCard extends HTMLElement {
             <div class="main-container">
                 <div class="search-row">
                     <div class="search-panel">
-                        <div class="glass-container">
-                            <div class="search-wrapper">
-                                <div class="category-icon">
-                                    <svg viewBox="0 0 24 24" fill="none">
-                                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                        <path d="M12 18h.01"/>
-                                    </svg>
-                                </div>
-                                
-                                <input 
-                                    type="text" 
-                                    class="search-input" 
-                                    placeholder="Geräte suchen..."
-                                    autocomplete="off"
-                                    spellcheck="false"
-                                >
-                                
-                                <button class="clear-button">
-                                    <svg viewBox="0 0 24 24" fill="none">
-                                        <line x1="18" y1="6" x2="6" y2="18"/>
-                                        <line x1="6" y1="6" x2="18" y2="18"/>
-                                    </svg>
-                                </button>
-
-                                <div class="filter-icon">
-                                    <svg viewBox="0 0 24 24" fill="none">
-                                        <line x1="4" y1="21" x2="4" y2="14"/>
-                                        <line x1="4" y1="10" x2="4" y2="3"/>
-                                        <line x1="12" y1="21" x2="12" y2="12"/>
-                                        <line x1="12" y1="8" x2="12" y2="3"/>
-                                        <line x1="20" y1="21" x2="20" y2="16"/>
-                                        <line x1="20" y1="12" x2="20" y2="3"/>
-                                        <line x1="1" y1="14" x2="7" y2="14"/>
-                                        <line x1="9" y1="8" x2="15" y2="8"/>
-                                        <line x1="17" y1="16" x2="23" y2="16"/>
-                                    </svg>
-                                </div>
+                        <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
+                        <div class="search-wrapper">
+                            <div class="category-icon">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                                    <path d="M12 18h.01"/>
+                                </svg>
                             </div>
+                            
+                            <input 
+                                type="text" 
+                                class="search-input" 
+                                placeholder="Geräte suchen..."
+                                autocomplete="off"
+                                spellcheck="false"
+                            >
+                            
+                            <button class="clear-button">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
 
-                            <div class="results-container">
-                                <div class="subcategories">
-                                    <div class="subcategory-chip active" data-subcategory="all">Alle</div>
-                                    <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
-                                    <div class="subcategory-chip" data-subcategory="climate">Klima</div>
-                                    <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
-                                    <div class="subcategory-chip" data-subcategory="media">Medien</div>
-                                    <div class="subcategory-chip" data-subcategory="none">Keine</div>
-                                </div>
-                                <div class="results-grid">
-                                    </div>
+                            <div class="filter-icon">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <line x1="4" y1="21" x2="4" y2="14"/>
+                                    <line x1="4" y1="10" x2="4" y2="3"/>
+                                    <line x1="12" y1="21" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12" y2="3"/>
+                                    <line x1="20" y1="21" x2="20" y2="16"/>
+                                    <line x1="20" y1="12" x2="20" y2="3"/>
+                                    <line x1="1" y1="14" x2="7" y2="14"/>
+                                    <line x1="9" y1="8" x2="15" y2="8"/>
+                                    <line x1="17" y1="16" x2="23" y2="16"/>
+                                </svg>
                             </div>
+                        </div>
+
+                        <div class="results-container">
+                            <div class="subcategories">
+                                <div class="subcategory-chip active" data-subcategory="all">Alle</div>
+                                <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
+                                <div class="subcategory-chip" data-subcategory="climate">Klima</div>
+                                <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
+                                <div class="subcategory-chip" data-subcategory="media">Medien</div>
+                                <div class="subcategory-chip" data-subcategory="none">Keine</div>
+                            </div>
+                            <div class="results-grid">
+                                </div>
                         </div>
                     </div>
 
                     <div class="detail-panel">
+                        <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                         <div class="detail-header">
                             <button class="back-button">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -759,6 +761,7 @@ class FastSearchCard extends HTMLElement {
 
                     <div class="category-buttons">
                         <button class="category-button active" data-category="devices" title="Geräte">
+                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
                                 <path d="M12 18h.01"/>
@@ -766,6 +769,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scripts" title="Skripte">
+                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                 <polyline points="14,2 14,8 20,8"/>
@@ -776,6 +780,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="automations" title="Automationen">
+                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M12 2v6l3-3 3 3"/>
                                 <path d="M12 18v4"/>
@@ -786,6 +791,7 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scenes" title="Szenen">
+                            <div class="blurred-background-layer"></div> <!-- Neuer Hintergrund-Layer -->
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
                                 <path d="M8 3v4"/>
