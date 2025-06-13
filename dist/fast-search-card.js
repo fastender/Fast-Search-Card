@@ -66,6 +66,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: flex-start;
                 gap: 16px;
                 width: 100%;
+                position: relative;
             }
 
             .search-panel {
@@ -362,14 +363,27 @@ class FastSearchCard extends HTMLElement {
                 opacity: 1;
             }
 
-            /* Category Buttons */
+            /* VORHER: Immer vertikal */
             .category-buttons {
                 display: none;
                 flex-direction: column;
                 gap: 12px;
-                opacity: 0;
-                transform: translateX(20px);
             }
+            
+            /* NACHHER: Responsive Layout */
+            .category-buttons {
+                display: none;
+                flex-direction: row; /* Desktop: horizontal */
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            
+            /* Mobile: vertikal */
+            @container (max-width: 768px) {
+                .category-buttons {
+                    flex-direction: column;
+                }
+            }            
 
             .category-buttons.visible {
                 display: flex;
@@ -704,10 +718,74 @@ class FastSearchCard extends HTMLElement {
 
     showCategoryButtons() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        this.isMenuView = true;
+        const isDesktop = window.innerWidth > 768;
         
+        this.isMenuView = true;
         categoryButtons.classList.add('visible');
-        categoryButtons.animate([
+        
+        if (isDesktop) {
+            this.animateDesktopCategoryButtons(categoryButtons);
+        } else {
+            this.animateMobileCategoryButtons(categoryButtons);
+        }
+    }
+
+    animateDesktopCategoryButtons(container) {
+        // Container-Fade & Blur (150ms)
+        container.animate([
+            { 
+                opacity: 0,
+                backdropFilter: 'blur(0px)',
+                background: 'rgba(255, 255, 255, 0)'
+            },
+            { 
+                opacity: 1,
+                backdropFilter: 'blur(20px)',
+                background: 'rgba(255, 255, 255, 0.08)'
+            }
+        ], {
+            duration: 150,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+    
+        // Button-Scale-In (Staggered)
+        const buttons = container.querySelectorAll('.category-button');
+        buttons.forEach((button, index) => {
+            const delay = 150 + (index * 50); // t₀, t₁, t₂, t₃
+            
+            setTimeout(() => {
+                // Scale-Animation mit Overshoot
+                button.animate([
+                    { transform: 'scale(0)', opacity: 0 },
+                    { transform: 'scale(1.1)', opacity: 1 }, // Overshoot
+                    { transform: 'scale(1)', opacity: 1 }
+                ], {
+                    duration: 320, // 200ms + 120ms
+                    easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    fill: 'forwards'
+                });
+                
+                // Icon-Pop-In nach 100ms
+                const icon = button.querySelector('svg');
+                setTimeout(() => {
+                    icon.animate([
+                        { transform: 'scale(0.8)', opacity: 0 },
+                        { transform: 'scale(1)', opacity: 1 }
+                    ], {
+                        duration: 120,
+                        easing: 'ease-out',
+                        fill: 'forwards'
+                    });
+                }, 100);
+                
+            }, delay);
+        });
+    }
+
+    animateMobileCategoryButtons(container) {
+        // Bestehende vertikale Animation
+        container.animate([
             { 
                 opacity: 0,
                 transform: 'translateX(20px) scale(0.9)'
@@ -721,7 +799,7 @@ class FastSearchCard extends HTMLElement {
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
             fill: 'forwards'
         });
-    }
+    }    
 
     hideCategoryButtons() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
@@ -775,10 +853,16 @@ class FastSearchCard extends HTMLElement {
         
         // Hide category buttons and expand panel
         this.hideCategoryButtons();
+
+        // VORHER: Panel wird expandiert
         setTimeout(() => {
             this.expandPanel();
             this.showCurrentCategoryItems();
         }, 300);
+        
+        // NACHHER: Panel wird immer geschlossen
+        this.collapsePanel();
+        this.showCurrentCategoryItems();
     }
 
     handleSubcategorySelect(selectedChip) {
