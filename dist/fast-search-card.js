@@ -113,7 +113,8 @@ class FastSearchCard extends HTMLElement {
 
             .search-panel {
                 flex: 1;
-                background: transparent; /* Kein eigener Hintergrund hier, da .blurred-background-layer dahinter liegt */
+                /* SAFARI FIX: Use explicit rgba for transparency */
+                background-color: rgba(0, 0, 0, 0); 
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
@@ -291,7 +292,7 @@ class FastSearchCard extends HTMLElement {
                 -webkit-overflow-scrolling: touch; /* Optimiert das Scrolling in WebKit */
                 transition: all 0.3s ease;
                 flex-shrink: 0; 
-                background-color: transparent; /* Muss transparent sein */
+                background-color: rgba(0, 0, 0, 0); 
                 z-index: 1; /* Über dem blurred-background-layer */
                 will-change: transform, scroll-position; 
                 backface-visibility: hidden;
@@ -344,7 +345,7 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.3s ease; 
                 padding-top: 16px; 
                 padding-bottom: 20px; 
-                background-color: transparent; /* Muss transparent sein */
+                background-color: rgba(0, 0, 0, 0); 
                 z-index: 1; /* Über dem blurred-background-layer */
                 will-change: transform, scroll-position; 
                 backface-visibility: hidden;
@@ -377,7 +378,7 @@ class FastSearchCard extends HTMLElement {
                 margin: 16px 0 8px 0;
                 padding-bottom: 8px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: transparent; /* Muss transparent sein */
+                background-color: rgba(0, 0, 0, 0); 
                 z-index: 1; /* Über dem blurred-background-layer */
             }
 
@@ -476,7 +477,8 @@ class FastSearchCard extends HTMLElement {
             /* Detail View Styles */
             .detail-panel {
                 flex: 1;
-                background: transparent; /* Kein eigener Hintergrund */
+                /* SAFARI FIX: Use explicit rgba for transparency */
+                background-color: rgba(0, 0, 0, 0);
                 border: 1px solid var(--glass-border);
                 border-radius: 24px;
                 box-shadow: var(--glass-shadow);
@@ -556,7 +558,7 @@ class FastSearchCard extends HTMLElement {
             .detail-left, .detail-right {
                 flex: 1;
                 padding: 20px;
-                background-color: transparent; /* Muss transparent sein */
+                background-color: rgba(0, 0, 0, 0);
                 z-index: 1; /* Über dem blurred-background-layer */
             }
 
@@ -584,7 +586,8 @@ class FastSearchCard extends HTMLElement {
             .category-button {
                 width: 56px;
                 height: 56px;
-                background: transparent; /* Kein eigener Hintergrund */
+                /* SAFARI FIX: Use explicit rgba for transparency */
+                background-color: rgba(0, 0, 0, 0);
                 border: 1px solid var(--glass-border);
                 border-radius: 50%;
                 display: flex;
