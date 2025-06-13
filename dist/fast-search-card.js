@@ -86,10 +86,10 @@ class FastSearchCard extends HTMLElement {
                 display: block;
                 /* Angepasste Farben für den neuen Glas-Effekt. 
                    Die Basisfarbe der Glaselemente selbst. */
-                --glass-base-color: rgba(255, 255, 255, 0.08); /* Weniger transparent für "milchiger" */
+                --glass-base-color: rgba(255, 255, 255, 0.15); /* Erhöhte Transparenz für "milchiger" */
                 --glass-border: rgba(255, 255, 255, 0.2);
                 --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-                --glass-blur-amount: 20px; /* Stärke des Weichzeichners */
+                --glass-blur-amount: 30px; /* Stärke des Weichzeichners erhöht */
                 --accent: #007AFF;
                 --accent-light: rgba(0, 122, 255, 0.15);
                 --text-primary: rgba(255, 255, 255, 0.95);
@@ -144,7 +144,7 @@ class FastSearchCard extends HTMLElement {
                 will-change: filter; /* Für Performance auf Safari */
                 backface-visibility: hidden;
                 z-index: -1; /* Wichtig: Hinter dem Inhalt liegen */
-                pointer-events: none; /* Neu: Klicks/Scrolls durchlassen */
+                pointer-events: none; /* Klicks/Scrolls durchlassen */
             }
 
             .search-panel::before {
@@ -539,7 +539,7 @@ class FastSearchCard extends HTMLElement {
                 bottom: 0;
                 padding-top: 60px; /* Um Platz für den sticky Header zu schaffen */
                 z-index: 1; /* Über dem blurred-background-layer */
-                overflow-y: auto; /* Neu hinzugefügt, um den Detail-Inhalt scrollbar zu machen */
+                overflow-y: auto; 
             }
 
             .detail-left, .detail-right {
@@ -601,7 +601,7 @@ class FastSearchCard extends HTMLElement {
                 will-change: filter;
                 backface-visibility: hidden;
                 z-index: -1; /* Hinter dem Inhalt des Buttons */
-                pointer-events: none; /* Neu: Klicks/Scrolls durchlassen */
+                pointer-events: none; /* Klicks/Scrolls durchlassen */
             }
 
             .category-button:hover {
