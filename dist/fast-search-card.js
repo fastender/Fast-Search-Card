@@ -84,16 +84,24 @@ class FastSearchCard extends HTMLElement {
             <style>
             :host {
                 display: block;
-                /* Angepasste Farben für den neuen Glas-Effekt. 
-                   Die Basisfarbe der Glaselemente selbst. */
-                --glass-base-color: rgba(255, 255, 255, 0.35); /* ERHEBLICH ERHÖHTER ALPHA-WERT für mehr Milchigkeit */
-                --glass-border-light: rgba(255, 255, 255, 0.5); /* Etwas heller für Top/Left für Kontrast zum milchigen Hintergrund */
-                --glass-border-dark: rgba(255, 255, 255, 0.15); /* Etwas dunkler für Bottom/Right */
+                /* SCHRITT 1: CSS-VARIABLEN ERWEITERN */
+                --glass-base-color: rgba(255, 255, 255, 0.15);
+                --glass-layer-1: rgba(255, 255, 255, 0.18);
+                --glass-layer-2: rgba(255, 255, 255, 0.08);
+                --glass-warm-tint: rgba(255, 248, 245, 0.12);
+                --glass-border: rgba(255, 255, 255, 0.25);
+                --glass-border-top: rgba(255, 255, 255, 0.4);
+                --glass-border-bottom: rgba(255, 255, 255, 0.1);
                 --glass-shadow: 
-                    0 1px 3px rgba(0, 0, 0, 0.05),
-                    0 4px 12px rgba(0, 0, 0, 0.1),
-                    0 8px 32px rgba(0, 0, 0, 0.15); /* Erweiterte Schatten */
-                --glass-blur-amount: 45px; /* Stärke des Weichzeichners WEITER ERHÖHT */
+                  0 1px 3px rgba(0, 0, 0, 0.02),
+                  0 4px 12px rgba(0, 0, 0, 0.05),
+                  0 8px 32px rgba(0, 0, 0, 0.08),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                --glass-blur-amount: 30px;
+                --shimmer-gradient: linear-gradient(45deg, 
+                  transparent 30%, 
+                  rgba(255, 255, 255, 0.1) 50%, 
+                  transparent 70%);
                 --accent: #007AFF;
                 --accent-light: rgba(0, 122, 255, 0.15);
                 --text-primary: rgba(255, 255, 255, 0.95);
@@ -116,7 +124,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             /* ------------------------------------------------ */
-            /* NEUE GLAS EFFEKTE - .search-panel */
+            /* NEUE GLAS EFFEKTE - .search-panel, .detail-panel, .category-button */
             .search-panel, .detail-panel, .category-button {
                 position: relative; /* Wichtig für Pseudo-Elemente und Blurred Layer */
                 overflow: hidden; /* Für saubere Ränder der Pseudo-Elemente */
@@ -127,10 +135,11 @@ class FastSearchCard extends HTMLElement {
                 /* Grundlegender Glas-Effekt - Basis-Farbe direkt auf das Element */
                 background-color: var(--glass-base-color); 
                 border-radius: 24px;
+                /* SCHRITT 2: ENHANCED BORDER STYLING */
+                border: 1px solid var(--glass-border);
+                border-top: 1px solid var(--glass-border-top);
+                border-bottom: 1px solid var(--glass-border-bottom);
                 box-shadow: var(--glass-shadow);
-                border: 1px solid var(--glass-border-dark); /* Standardborder */
-                border-left: 1px solid var(--glass-border-light);
-                border-top: 1px solid var(--glass-border-light);
             }
             
             .search-panel, .detail-panel {
@@ -153,90 +162,90 @@ class FastSearchCard extends HTMLElement {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                z-index: -1; /* Über der Farbe, aber unter Inhalt und anderen Pseudo-Elementen */
+                z-index: -3; /* Tiefer als andere Glas-Schichten */
                 pointer-events: none;
                 
                 /* Nur der Backdrop-Filter hier, die Farbe ist auf dem Elternelement */
-                backdrop-filter: blur(var(--glass-blur-amount)) saturate(0.8) brightness(1.1); /* Saturation und Brightness für Milchigkeit, Saturate WEITER REDUZIERT */
-                -webkit-backdrop-filter: blur(var(--glass-blur-amount)) saturate(0.8) brightness(1.1);
+                backdrop-filter: blur(var(--glass-blur-amount)) saturate(0.9) brightness(1.1);
+                -webkit-backdrop-filter: blur(var(--glass-blur-amount)) saturate(0.9) brightness(1.1);
                 will-change: backdrop-filter;
             }
 
-            /* Innerer, sanfter Farbverlauf für Tiefe */
-            /* Hier angepasst, damit er nicht zu viel der Unschärfe überdeckt */
-            .search-panel::after, .detail-panel::after, .category-button::after {
-                content: '';
+            /* SCHRITT 3: MEHRSCHICHTIGE GLAS-STRUKTUR (Neue CSS-Regeln) */
+            .glass-reflection-layer {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 40%;
+                background: linear-gradient(180deg, 
+                    rgba(255, 255, 255, 0.25) 0%, 
+                    rgba(255, 255, 255, 0.1) 50%,
+                    transparent 100%);
+                z-index: -2; /* Über blurred-background-layer */
+                pointer-events: none;
+                will-change: opacity;
+                backface-visibility: hidden;
+            }
+
+            .glass-warm-overlay {
                 position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
                 bottom: 0;
-                z-index: 0; /* Über dem blurred-background-layer, aber unter dem Inhalt */
+                background: var(--glass-warm-tint);
+                z-index: -1; /* Über reflection, unter Inhalt */
                 pointer-events: none;
-                background: radial-gradient(circle at top left,   
-                    rgba(255, 255, 255, 0.08) 0%,   /* Leichte Erhöhung der Opazität für den Gradienten */
-                    rgba(255, 255, 255, 0.03) 50%,
-                    transparent 100%
-                ); 
-                opacity: 0.9; /* Leicht erhöhte Opazität */
+                opacity: 0.6;
+                will-change: opacity;
+                backface-visibility: hidden;
             }
 
-            /* Mikro-Unschärfe Pattern / CSS Noise */
-            /* Hier angepasst, damit er nicht zu viel der Unschärfe überdeckt */
-            .search-panel::before, .detail-panel::before, .category-button::before {
-                content: '';
+            .shimmer-layer {
                 position: absolute;
                 top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 0; /* Zusammen mit dem Gradienten-Layer */
+                left: -100%; /* Startposition außerhalb des Elements */
+                width: 200%; /* Breiter als das Element, um den Glanz zu simulieren */
+                height: 100%;
+                background: var(--shimmer-gradient);
+                z-index: 1; /* Über dem Inhalt, aber unter Interaktionselementen */
                 pointer-events: none;
-                background-image:     
-                    radial-gradient(circle at 1px 1px,       
-                    rgba(255,255,255,0.03) 1px,       /* Sehr feines, helles Rauschen, Opazität leicht erhöht */
-                    transparent 0);  
-                background-size: 20px 20px; 
-                opacity: 0.7; /* Leicht erhöhte Opazität für das Rauschen */
+                transform: skewX(-25deg); /* Für den Winkel des Glanzes */
+                opacity: 0; /* Standardmäßig unsichtbar */
+                transition: opacity 0.3s ease; /* Sanfter Übergang für die Opazität */
+                will-change: transform, opacity;
+                backface-visibility: hidden;
             }
 
-            /* Dynamische Licht-Reflexionen (Top Edge) */
-            /* Haben keinen direkten Einfluss auf die "Milchigkeit", aber verstärken den Glas-Eindruck */
-            .search-panel .search-wrapper::before,
-            .detail-panel .detail-header::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 1px; 
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent); /* Heller für stärkeren Glanz */
-                opacity: 1; /* Volle Opazität */
-                z-index: 3; 
-                pointer-events: none;
+            /* SCHRITT 4: SHIMMER ANIMATION */
+            .search-panel:hover .shimmer-layer {
+                animation: gentle-shimmer 2s ease-in-out forwards; /* 'forwards' damit der letzte Zustand erhalten bleibt */
+                opacity: 1; /* Sichtbar machen beim Hover */
+            }
+            /* Reset opacity when not hovering, to allow re-triggering animation */
+            .search-panel:not(:hover) .shimmer-layer {
+                animation: none; /* Deaktiviere Animation, damit sie bei erneutem Hover startet */
+                opacity: 0;
             }
 
-            /* Glanzpunkt bei Hover (Steuerung über Klasse 'shimmer') */
-            .search-panel.shimmer::after { /* Verwendet das bestehende ::after, wenn die Klasse 'shimmer' aktiv ist */
-                content: ''; /* Sicherstellen, dass das Pseudo-Element Inhalt hat */
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: linear-gradient(45deg, 
-                    transparent 40%, 
-                    rgba(255, 255, 255, 0.2) 50%, /* Etwas stärkere Glanzpunkt-Opazität */
-                    transparent 60%);
-                animation: shimmer 1.5s infinite linear;
-                pointer-events: none;
-                z-index: 10; /* Ganz oben, um klar sichtbar zu sein */
+            @keyframes gentle-shimmer {
+                0% { 
+                    left: -100%;
+                    opacity: 0;
+                }
+                25% { 
+                    opacity: 1; /* Glanz wird sichtbar */
+                }
+                75% {
+                    opacity: 1;
+                }
+                100% { 
+                    left: 100%; /* Ende der Bewegung */
+                    opacity: 0; /* Glanz verschwindet */
+                }
             }
 
-            @keyframes shimmer {
-                0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-                100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-            }
 
             /* ------------------------------------------------ */
 
@@ -248,11 +257,15 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                /* Hintergrund an die Basis-RGBA des .search-panel anpassen, um Konsistenz zu gewährleisten */
-                background-color: transparent; /* Sollte transparent bleiben, da die Glasfarbe auf .search-panel liegt */
+                /* SCHRITT 10: ENHANCED SEARCH WRAPPER */
+                background: linear-gradient(135deg, 
+                    var(--glass-layer-1) 0%, 
+                    var(--glass-base-color) 100%);
+                backdrop-filter: blur(2px); /* Nur minimal für extra Milchigkeit */
+                -webkit-backdrop-filter: blur(2px);
                 position: sticky; 
                 top: 0; 
-                z-index: 2; /* Liegt über dem blurred-background-layer und content */
+                z-index: 2; /* Liegt über den Glas-Schichten, aber unter dem Shimmer-Layer (der ist z-index 1, aber ist child von search-panel) */
                 will-change: transform, opacity; 
                 backface-visibility: hidden;
             }
@@ -383,10 +396,12 @@ class FastSearchCard extends HTMLElement {
                 display: none;
             }
 
+            /* SCHRITT 8: SUBCATEGORY CHIPS ENHANCEMENT */
             .subcategory-chip {
                 padding: 8px 16px;
-                background: rgba(255, 255, 255, 0.15); /* Etwas milchiger als zuvor */
-                border: 1px solid rgba(255, 255, 255, 0.25); /* Etwas definierter */
+                background: var(--glass-layer-2);
+                border: 1px solid var(--glass-border);
+                border-top: 1px solid var(--glass-border-top);
                 border-radius: 20px;
                 font-size: 14px;
                 font-weight: 500;
@@ -399,6 +414,9 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 z-index: 1; 
                 transform: translateZ(0); 
+                box-shadow: 
+                    0 2px 8px rgba(0, 0, 0, 0.04),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
 
             .subcategory-chip.active {
@@ -466,9 +484,12 @@ class FastSearchCard extends HTMLElement {
                 margin-top: 0;
             }
 
+            /* SCHRITT 5: ENHANCED DEVICE CARDS */
             .device-card {
-                background: rgba(255, 255, 255, 0.15); /* Etwas milchiger als zuvor */
-                border: 1px solid rgba(255, 255, 255, 0.2); /* Etwas definierter */
+                background: var(--glass-layer-2);
+                border: 1px solid var(--glass-border);
+                border-top: 1px solid var(--glass-border-top);
+                border-bottom: 1px solid var(--glass-border-bottom);
                 border-radius: 16px;
                 padding: 16px;
                 cursor: pointer;
@@ -481,6 +502,30 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
                 z-index: 1; 
                 will-change: transform, opacity; 
+                box-shadow: var(--glass-shadow);
+            }
+
+            /* SCHRITT 9: MICRO-TEXTURE FÜR CARDS */
+            .device-card::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: radial-gradient(circle at 20% 30%, 
+                    rgba(255, 255, 255, 0.15) 1px, 
+                    transparent 1px);
+                background-size: 32px 32px;
+                opacity: 0.3;
+                z-index: 1; /* Über dem Inhalt der Karte */
+                pointer-events: none;
+                will-change: opacity;
+                backface-visibility: hidden;
+            }
+
+            .device-card:hover::after {
+                opacity: 0.5;
             }
 
             .device-card::before {
@@ -493,7 +538,7 @@ class FastSearchCard extends HTMLElement {
                 background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
                 opacity: 0;
                 transition: opacity 0.3s ease;
-                z-index: 0; /* Hinter dem Inhalt */
+                z-index: 0; /* Hinter dem Inhalt und ::after */
             }
 
             .device-card:hover::before {
@@ -502,14 +547,14 @@ class FastSearchCard extends HTMLElement {
 
             .device-card:hover {
                 transform: translateY(-2px) scale(1.02);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18); /* Etwas stärkerer Hover-Schatten */
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18); 
             }
 
             .device-card.active {
                 background: var(--accent-light);
                 border-color: var(--accent);
                 box-shadow: 
-                    0 4px 20px rgba(0, 122, 255, 0.25), /* Stärkerer Akzent-Schatten */
+                    0 4px 20px rgba(0, 122, 255, 0.25), 
                     inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
 
@@ -557,8 +602,16 @@ class FastSearchCard extends HTMLElement {
 
             /* Detail View Styles */
             .detail-panel {
+                flex: 1;
+                /* Background wird vom allgemeinen Selector gehandhabt */
+                border-radius: 24px;
+                /* Border und Shadow werden vom allgemeinen Selector gehandhabt */
+                overflow: hidden;
+                position: relative;
                 height: 400px;
                 display: none;
+                will-change: transform; 
+                backface-visibility: hidden;
             }
 
             .detail-panel.visible {
@@ -568,11 +621,11 @@ class FastSearchCard extends HTMLElement {
             .detail-header {
                 padding: 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: transparent; /* Sollte auch transparent sein, für durchgängigen Glass-Effekt */
+                background-color: var(--glass-base-color); /* Konsistenter Hintergrund */
                 display: flex;
                 align-items: center;
                 gap: 16px;
-                position: sticky; /* sticky statt absolute für besseres Scrolling */
+                position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
@@ -615,9 +668,13 @@ class FastSearchCard extends HTMLElement {
 
             .detail-content {
                 display: flex;
-                height: calc(100% - 72px); /* Header-Höhe berücksichtigen */
-                position: relative; /* Wichtig für Scrollbereich */
-                padding-top: 0px; /* Kein Padding, da Header sticky ist */
+                height: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                padding-top: 60px; /* Um Platz für den sticky Header zu schaffen */
                 z-index: 1; /* Über dem blurred-background-layer */
                 overflow-y: auto; 
             }
@@ -650,10 +707,11 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
             }
 
+            /* SCHRITT 6: CATEGORY BUTTONS ENHANCEMENT */
             .category-button {
                 width: 56px;
                 height: 56px;
-                background: transparent; 
+                background: transparent; /* Kein eigener Hintergrund, wird von allgemeiner Regel gehandhabt */
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
@@ -664,7 +722,10 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
                 
                 /* Übernimmt die allgemeinen Glas-Eigenschaften */
-                /* Hier kein ::before für den blurred layer, da es schon die allgemeinen Pseudo-Elemente gibt */
+                border: 1px solid var(--glass-border);
+                border-top: 1px solid var(--glass-border-top);
+                border-bottom: 1px solid var(--glass-border-bottom);
+                box-shadow: var(--glass-shadow);
             }
 
             .category-button:hover {
@@ -755,8 +816,11 @@ class FastSearchCard extends HTMLElement {
             <div class="main-container">
                 <div class="search-row">
                     <div class="search-panel">
-                        <div class="blurred-background-layer"></div> <!-- Bleibt für backdrop-filter -->
-                        <!-- Die ::before und ::after Pseudo-Elemente in CSS übernehmen weitere Schichten -->
+                        <div class="blurred-background-layer"></div>
+                        <!-- SCHRITT 7: HTML STRUKTUR ERWEITERN (für Search Panel) -->
+                        <div class="glass-reflection-layer"></div>
+                        <div class="glass-warm-overlay"></div>
+                        <div class="shimmer-layer"></div>
                         <div class="search-wrapper">
                             <div class="category-icon">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -810,7 +874,11 @@ class FastSearchCard extends HTMLElement {
                     </div>
 
                     <div class="detail-panel">
-                        <div class="blurred-background-layer"></div> <!-- Bleibt für backdrop-filter -->
+                        <div class="blurred-background-layer"></div>
+                        <!-- SCHRITT 7: HTML STRUKTUR ERWEITERN (für Detail Panel) -->
+                        <div class="glass-reflection-layer"></div>
+                        <div class="glass-warm-overlay"></div>
+                        <div class="shimmer-layer"></div>
                         <div class="detail-header">
                             <button class="back-button">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -831,7 +899,11 @@ class FastSearchCard extends HTMLElement {
 
                     <div class="category-buttons">
                         <button class="category-button active" data-category="devices" title="Geräte">
-                            <div class="blurred-background-layer"></div> <!-- Bleibt für backdrop-filter -->
+                            <div class="blurred-background-layer"></div>
+                            <!-- SCHRITT 7: HTML STRUKTUR ERWEITERN (für Category Button) -->
+                            <div class="glass-reflection-layer"></div>
+                            <div class="glass-warm-overlay"></div>
+                            <div class="shimmer-layer"></div>
                             <svg viewBox="0 0 24 24" fill="none">
                                 <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
                                 <path d="M12 18h.01"/>
@@ -839,7 +911,11 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scripts" title="Skripte">
-                            <div class="blurred-background-layer"></div> <!-- Bleibt für backdrop-filter -->
+                            <div class="blurred-background-layer"></div>
+                            <!-- SCHRITT 7: HTML STRUKTUR ERWEITERN -->
+                            <div class="glass-reflection-layer"></div>
+                            <div class="glass-warm-overlay"></div>
+                            <div class="shimmer-layer"></div>
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                 <polyline points="14,2 14,8 20,8"/>
@@ -850,7 +926,11 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="automations" title="Automationen">
-                            <div class="blurred-background-layer"></div> <!-- Bleibt für backdrop-filter -->
+                            <div class="blurred-background-layer"></div>
+                            <!-- SCHRITT 7: HTML STRUKTUR ERWEITERN -->
+                            <div class="glass-reflection-layer"></div>
+                            <div class="glass-warm-overlay"></div>
+                            <div class="shimmer-layer"></div>
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M12 2v6l3-3 3 3"/>
                                 <path d="M12 18v4"/>
@@ -861,7 +941,11 @@ class FastSearchCard extends HTMLElement {
                         </button>
                         
                         <button class="category-button" data-category="scenes" title="Szenen">
-                            <div class="blurred-background-layer"></div> <!-- Bleibt für backdrop-filter -->
+                            <div class="blurred-background-layer"></div>
+                            <!-- SCHRITT 7: HTML STRUKTUR ERWEITERN -->
+                            <div class="glass-reflection-layer"></div>
+                            <div class="glass-warm-overlay"></div>
+                            <div class="shimmer-layer"></div>
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
                                 <path d="M8 3v4"/>
@@ -883,7 +967,8 @@ class FastSearchCard extends HTMLElement {
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
         const backButton = this.shadowRoot.querySelector('.back-button');
-        const searchPanel = this.shadowRoot.querySelector('.search-panel'); // Referenz für Shimmer
+        // No longer needed for shimmer, as it's CSS-driven now
+        // const searchPanel = this.shadowRoot.querySelector('.search-panel'); 
 
         // Search Events
         searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
@@ -943,13 +1028,13 @@ class FastSearchCard extends HTMLElement {
             }
         });
 
-        // Shimmer-Effekt Event Listener für Search Panel
-        searchPanel.addEventListener('mouseenter', () => {
-            searchPanel.classList.add('shimmer');
-        });
-        searchPanel.addEventListener('mouseleave', () => {
-            searchPanel.classList.remove('shimmer');
-        });
+        // Shimmer-Effekt Event Listener (Removed as per new CSS-only instruction)
+        // searchPanel.addEventListener('mouseenter', () => {
+        //     searchPanel.classList.add('shimmer');
+        // });
+        // searchPanel.addEventListener('mouseleave', () => {
+        //     searchPanel.classList.remove('shimmer');
+        // });
     }
 
     handleSearch(query) {
@@ -1004,7 +1089,7 @@ class FastSearchCard extends HTMLElement {
         searchPanel.animate([
             { 
                 boxShadow: 'var(--glass-shadow)',
-                borderColor: 'var(--glass-border-dark)'
+                borderColor: 'var(--glass-border)' // Changed from --glass-border-dark to --glass-border for consistency
             },
             { 
                 boxShadow: '0 8px 32px rgba(0, 122, 255, 0.3), inset 0 0 0 1px var(--accent)',
