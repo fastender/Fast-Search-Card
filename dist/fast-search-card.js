@@ -623,6 +623,24 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0.7;
                 margin: 0;
             }
+
+            /* Responsive styles for detail view */
+            @media (max-width: 768px) {
+                .detail-content {
+                    flex-direction: column;
+                    padding-top: 60px;
+                }
+                .detail-divider {
+                    display: none;
+                }
+                .detail-left, .detail-right {
+                    padding: 16px;
+                }
+                .detail-header {
+                    padding: 16px;
+                }
+            }
+
             </style>
 
             <div class="main-container">
