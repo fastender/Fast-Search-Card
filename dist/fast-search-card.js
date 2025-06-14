@@ -484,13 +484,23 @@ class FastSearchCard extends HTMLElement {
                 color: var(--accent);
                 opacity: 1;
             }
+            
+            .detail-header {
+                padding: 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 10;
+            }
 
             .back-button {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                width: 36px;
-                height: 36px;
+                width: 32px;
+                height: 32px;
                 border: none;
                 background: rgba(0, 0, 0, 0.15);
                 border-radius: 50%;
@@ -513,11 +523,18 @@ class FastSearchCard extends HTMLElement {
                 stroke: var(--text-primary);
                 stroke-width: 2;
             }
+            
+            .detail-title {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
 
             .detail-content {
                 display: flex;
                 height: 100%;
-                padding-top: 20px;
+                padding-top: 73px; /* Space for header */
                 overflow-y: auto; 
             }
 
@@ -528,9 +545,8 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: flex-start; /* Aligned to top */
+                justify-content: center;
                 overflow: hidden;
-                padding-top: 40px; /* Space for content */
             }
             .detail-right {
                 flex: 1;
@@ -547,7 +563,7 @@ class FastSearchCard extends HTMLElement {
             
             .icon-background {
                 position: absolute;
-                top: 40%;
+                top: 50%;
                 left: 50%;
                 width: 60%;
                 height: 60%;
@@ -738,33 +754,90 @@ class FastSearchCard extends HTMLElement {
             .detail-tab-content { display: none; }
             .detail-tab-content.active { display: block; }
             
-            .new-light-design {
+            .device-control-design {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 20px;
+                gap: 24px;
             }
-            .new-light-header { text-align: center; }
-            .new-light-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
-            .new-light-state { font-size: 14px; color: var(--text-secondary); }
-            .new-light-power-center { display: none; }
-            .new-light-power-center.visible { display: block; }
-            .new-light-slider-container, .new-light-controls-row { width: 100%; max-width: 280px; display: none; }
-            .new-light-slider-container.visible, .new-light-controls-row.visible { display: block; }
-            .new-light-controls-row { display: flex; gap: 12px; justify-content: center; }
-            .new-light-slider-track-container { position: relative; width: 100%; height: 50px; border-radius: 25px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
-            .new-light-slider-track { position: absolute; height: 100%; background: var(--accent); border-radius: 25px; }
-            .new-light-slider-input { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; margin: 0; }
-            .new-light-slider-label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
-            .new-light-control-btn { width: 50px; height: 50px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: none; color: var(--text-primary); font-size: 22px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
-            .new-light-control-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.2); }
-            .new-light-control-btn.active { background: var(--accent); }
-            .new-light-colors { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; }
-            .new-light-colors.visible { max-height: 150px; opacity: 1; margin-top: 16px;}
-            .new-light-colors-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-            .new-light-color-preset { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; position: relative; justify-self: center; }
-            .new-light-color-preset.active { border-color: white; }
-            .new-light-color-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
+            .device-control-header { text-align: center; }
+            .device-control-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+            .device-control-state { font-size: 14px; color: var(--text-secondary); }
+            
+            /* Neumorphic Power Button */
+            .device-control-power-button {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                border: none;
+                cursor: pointer;
+                background: #2c2f33;
+                box-shadow: 6px 6px 12px #23272b, -6px -6px 12px #35373b;
+                transition: all 0.1s ease-in-out;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .device-control-power-button.on {
+                box-shadow: inset 6px 6px 12px #23272b, inset -6px -6px 12px #35373b;
+                color: var(--accent);
+            }
+            .device-control-power-button svg {
+                width: 30px; height: 30px;
+                fill: var(--text-secondary);
+                transition: fill 0.2s ease;
+            }
+            .device-control-power-button.on svg {
+                fill: var(--accent);
+            }
+
+            /* Horizontal Brightness Slider */
+            .device-control-slider-container { width: 100%; max-width: 280px; display: none; }
+            .device-control-slider-container.visible { display: block; }
+            .device-control-slider-label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+            .range-slider {
+                -webkit-appearance: none;
+                width: 100%;
+                height: 8px;
+                border-radius: 5px;
+                background: rgba(0, 0, 0, 0.4);
+                outline: none;
+                padding: 0;
+                margin: 0;
+            }
+            .range-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: var(--accent);
+                cursor: pointer;
+                border: 3px solid #2c2f33;
+                box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            }
+
+            /* Temp and Color Controls */
+            .device-control-row {
+                width: 100%; max-width: 280px; display: none;
+                gap: 12px; justify-content: center;
+            }
+            .device-control-row.visible { display: flex; }
+            .device-control-button {
+                width: 50px; height: 50px; border-radius: 50%;
+                background: rgba(255, 255, 255, 0.1); border: none;
+                color: var(--text-primary); font-size: 22px; cursor: pointer;
+                transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
+            }
+            .device-control-button:hover { transform: scale(1.1); background: rgba(255,255,255,0.2); }
+            .device-control-button.active { background: var(--accent); }
+
+            .device-control-colors { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 100%; max-width: 280px;}
+            .device-control-colors.visible { max-height: 150px; opacity: 1; margin-top: 16px;}
+            .device-control-colors-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center;}
+            .device-control-color-preset { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; position: relative; }
+            .device-control-color-preset.active { border-color: white; }
+            .device-control-color-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
 
             @media (max-width: 768px) {
                 .detail-content { flex-direction: column; padding-top: 20px; }
@@ -863,17 +936,20 @@ class FastSearchCard extends HTMLElement {
                     </div>
 
                     <div class="detail-panel glass-panel">
+                        <div class="detail-header">
+                            <button class="back-button">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M19 12H5"/>
+                                    <path d="M12 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h3 class="detail-title"></h3>
+                        </div>
                         <div class="detail-content">
                             <div class="detail-left">
                             </div>
                             <div class="detail-divider"></div>
                             <div class="detail-right">
-                                <button class="back-button">
-                                    <svg viewBox="0 0 24 24" fill="none">
-                                        <path d="M19 12H5"/>
-                                        <path d="M12 19l-7-7 7-7"/>
-                                    </svg>
-                                </button>
                                 <!-- Content will be injected here -->
                             </div>
                         </div>
@@ -1345,13 +1421,18 @@ class FastSearchCard extends HTMLElement {
     renderDetailView() {
         const detailLeft = this.shadowRoot.querySelector('.detail-left');
         const detailRight = this.shadowRoot.querySelector('.detail-right');
+        const detailTitle = this.shadowRoot.querySelector('.detail-title');
         
         if (!this.currentDetailItem) return;
         
-        detailLeft.innerHTML = this.getDetailLeftHTML(this.currentDetailItem);
-        detailRight.innerHTML = this.getDetailRightHTML(this.currentDetailItem);
+        const item = this.currentDetailItem;
+        detailTitle.textContent = item.name;
 
-        this.setupDetailTabs(this.currentDetailItem);
+        // Render left and right panels
+        detailLeft.innerHTML = this.getDetailLeftHTML(item);
+        detailRight.innerHTML = this.getDetailRightHTML(item);
+
+        this.setupDetailTabs(item);
         
         // Animate elements in
         const statusIndicator = detailLeft.querySelector('.status-indicator-large');
@@ -1468,45 +1549,41 @@ class FastSearchCard extends HTMLElement {
         const hasColorSupport = supportedColorModes.some(mode => ['rgb', 'rgbw', 'rgbww', 'hs', 'xy'].includes(mode));
 
         return `
-            <div class="new-light-design" id="new-light-${item.id}">
-                <div class="new-light-header">
-                    <div class="new-light-name">${item.name}</div>
-                    <div class="new-light-state">${isOn ? `Ein • ${brightness}%` : 'Aus'}</div>
+            <div class="device-control-design" id="device-control-${item.id}">
+                <div class="device-control-header">
+                    <div class="device-control-name">${item.name}</div>
+                    <div class="device-control-state">${isOn ? `Ein • ${brightness}%` : 'Aus'}</div>
                 </div>
-                <div class="new-light-power-center ${!isOn ? 'visible' : ''}">
-                    <button class="new-light-control-btn power-off" data-action="toggle">🔌</button>
-                </div>
-                <div class="new-light-slider-container ${isOn ? 'visible' : ''}">
-                    <div class="new-light-slider-label">
+                <button class="device-control-power-button ${isOn ? 'on' : ''}" data-action="toggle">
+                    <svg viewBox="0 0 100 100"><path d="M50,15.18a3.3,3.3,0,0,1,3.3,3.3V46.6a3.3,3.3,0,0,1-6.6,0V18.48A3.3,3.3,0,0,1,50,15.18Z"/><path d="M50,8.33a41.67,41.67,0,1,1-29.46,12.2A41.33,41.33,0,0,1,50,8.33m0-8.33a50,50,0,1,0,50,50,50,50,0,0,0-50-50Z"/></svg>
+                </button>
+                <div class="device-control-slider-container ${isOn ? 'visible' : ''}">
+                    <div class="device-control-slider-label">
                         <span>Helligkeit</span>
                         <span class="brightness-value">${brightness}%</span>
                     </div>
-                    <div class="new-light-slider-track-container">
-                        <div class="new-light-slider-track" style="width: ${brightness}%;"></div>
-                        <input type="range" class="new-light-slider-input" data-control="brightness" min="1" max="100" value="${brightness}">
-                    </div>
+                    <input type="range" class="range-slider" data-control="brightness" min="1" max="100" value="${brightness}" style="background-image: linear-gradient(to right, var(--accent) ${brightness}%, rgba(0,0,0,0.4) ${brightness}%);">
                 </div>
-                <div class="new-light-controls-row ${isOn ? 'visible' : ''}">
-                    <button class="new-light-control-btn power-on" data-action="toggle">💡</button>
+                <div class="device-control-row ${isOn ? 'visible' : ''}">
                     ${hasTempSupport ? `
-                        <button class="new-light-control-btn" data-temp="2700">🔥</button>
-                        <button class="new-light-control-btn" data-temp="4000">☀️</button>
-                        <button class="new-light-control-btn" data-temp="6500">❄️</button>
+                        <button class="device-control-button" data-temp="2700">🔥</button>
+                        <button class="device-control-button" data-temp="4000">☀️</button>
+                        <button class="device-control-button" data-temp="6500">❄️</button>
                     ` : ''}
                     ${hasColorSupport ? `
-                        <button class="new-light-control-btn" data-action="toggle-colors">🎨</button>
+                        <button class="device-control-button" data-action="toggle-colors">🎨</button>
                     ` : ''}
                 </div>
-                <div class="new-light-colors" data-is-open="false">
-                    <div class="new-light-colors-grid">
-                        <div class="new-light-color-preset" style="background: #ff6b35;" data-rgb="255,107,53"></div>
-                        <div class="new-light-color-preset" style="background: #f7931e;" data-rgb="247,147,30"></div>
-                        <div class="new-light-color-preset" style="background: #ffd23f;" data-rgb="255,210,63"></div>
-                        <div class="new-light-color-preset" style="background: #06d6a0;" data-rgb="6,214,160"></div>
-                        <div class="new-light-color-preset" style="background: #118ab2;" data-rgb="17,138,178"></div>
-                        <div class="new-light-color-preset" style="background: #8e44ad;" data-rgb="142,68,173"></div>
-                        <div class="new-light-color-preset" style="background: #e91e63;" data-rgb="233,30,99"></div>
-                        <div class="new-light-color-preset" style="background: #ffffff;" data-rgb="255,255,255"></div>
+                <div class="device-control-colors" data-is-open="false">
+                    <div class="device-control-colors-grid">
+                        <div class="device-control-color-preset" style="background: #ff6b35;" data-rgb="255,107,53"></div>
+                        <div class="device-control-color-preset" style="background: #f7931e;" data-rgb="247,147,30"></div>
+                        <div class="device-control-color-preset" style="background: #ffd23f;" data-rgb="255,210,63"></div>
+                        <div class="device-control-color-preset" style="background: #06d6a0;" data-rgb="6,214,160"></div>
+                        <div class="device-control-color-preset" style="background: #118ab2;" data-rgb="17,138,178"></div>
+                        <div class="device-control-color-preset" style="background: #8e44ad;" data-rgb="142,68,173"></div>
+                        <div class="device-control-color-preset" style="background: #e91e63;" data-rgb="233,30,99"></div>
+                        <div class="device-control-color-preset" style="background: #ffffff;" data-rgb="255,255,255"></div>
                     </div>
                 </div>
             </div>
@@ -1514,34 +1591,37 @@ class FastSearchCard extends HTMLElement {
     }
     
     updateLightControlsUI(item) {
-        const lightContainer = this.shadowRoot.getElementById(`new-light-${item.id}`);
+        const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
         const state = this._hass.states[item.id];
         const isOn = state.state === 'on';
         const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
 
-        lightContainer.querySelector('.new-light-state').textContent = isOn ? `Ein • ${brightness}%` : 'Aus';
-        lightContainer.querySelector('.new-light-power-center').classList.toggle('visible', !isOn);
-        lightContainer.querySelector('.new-light-slider-container').classList.toggle('visible', isOn);
-        lightContainer.querySelector('.new-light-controls-row').classList.toggle('visible', isOn);
+        lightContainer.querySelector('.device-control-state').textContent = isOn ? `Ein • ${brightness}%` : 'Aus';
+        lightContainer.querySelector('.device-control-power-button').classList.toggle('on', isOn);
+        
+        const sliderContainer = lightContainer.querySelector('.device-control-slider-container');
+        if (sliderContainer) sliderContainer.classList.toggle('visible', isOn);
+        
+        const controlsRow = lightContainer.querySelector('.device-control-row');
+        if (controlsRow) controlsRow.classList.toggle('visible', isOn);
         
         const brightnessValueLabel = lightContainer.querySelector('.brightness-value');
         if(brightnessValueLabel) brightnessValueLabel.textContent = `${brightness}%`;
         
-        const brightnessTrack = lightContainer.querySelector('.new-light-slider-track');
-        if(brightnessTrack) brightnessTrack.style.width = `${brightness}%`;
-        
         const brightnessSlider = lightContainer.querySelector('[data-control="brightness"]');
-        if(brightnessSlider) brightnessSlider.value = brightness;
+        if(brightnessSlider) {
+            brightnessSlider.value = brightness;
+            brightnessSlider.style.backgroundImage = `linear-gradient(to right, var(--accent) ${brightness}%, rgba(0,0,0,0.4) ${brightness}%)`;
+        }
         
         if (!isOn) {
-            const colorsContainer = lightContainer.querySelector('.new-light-colors');
+            const colorsContainer = lightContainer.querySelector('.device-control-colors');
             if (colorsContainer.classList.contains('visible')) {
                 colorsContainer.classList.remove('visible');
                 colorsContainer.setAttribute('data-is-open', 'false');
             }
         }
-        this.updateNewLightSliderColor(item);
     }
 
 
@@ -1558,7 +1638,6 @@ class FastSearchCard extends HTMLElement {
             slider.style.left = `${targetTab.offsetLeft}px`;
         };
         
-        // Initial position
         const activeTab = tabsContainer.querySelector('.detail-tab.active');
         if (activeTab) {
             moveSlider(activeTab);
@@ -1585,25 +1664,24 @@ class FastSearchCard extends HTMLElement {
     }
     
     setupLightControls(item) {
-        const lightContainer = this.shadowRoot.getElementById(`new-light-${item.id}`);
+        const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
 
         const powerButtons = lightContainer.querySelectorAll('[data-action="toggle"]');
         const brightnessSlider = lightContainer.querySelector('[data-control="brightness"]');
         const tempButtons = lightContainer.querySelectorAll('[data-temp]');
         const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
-        const colorPresets = lightContainer.querySelectorAll('.new-light-color-preset');
-        const colorsContainer = lightContainer.querySelector('.new-light-colors');
+        const colorPresets = lightContainer.querySelectorAll('.device-control-color-preset');
+        const colorsContainer = lightContainer.querySelector('.device-control-colors');
 
         powerButtons.forEach(btn => btn.addEventListener('click', () => this.callLightService('toggle', item.id)));
         
         if (brightnessSlider) {
             const brightnessValueLabel = lightContainer.querySelector('.brightness-value');
-            const brightnessTrack = lightContainer.querySelector('.new-light-slider-track');
             brightnessSlider.addEventListener('input', (e) => {
                 const value = parseInt(e.target.value, 10);
                 if(brightnessValueLabel) brightnessValueLabel.textContent = `${value}%`;
-                if(brightnessTrack) brightnessTrack.style.width = `${value}%`;
+                e.target.style.backgroundImage = `linear-gradient(to right, var(--accent) ${value}%, rgba(0,0,0,0.4) ${value}%)`;
             });
             brightnessSlider.addEventListener('change', (e) => {
                 this.callLightService('turn_on', item.id, { brightness_pct: parseInt(e.target.value, 10) });
@@ -1629,8 +1707,6 @@ class FastSearchCard extends HTMLElement {
             colorPresets.forEach(p => p.classList.remove('active'));
             preset.classList.add('active');
         }));
-
-        this.updateNewLightSliderColor(item);
     }
     
     callLightService(service, entity_id, data = {}) {
@@ -1651,45 +1727,6 @@ class FastSearchCard extends HTMLElement {
                 fill: 'forwards'
             });
         });
-    }
-
-    updateNewLightSliderColor(item) {
-        const state = this._hass.states[item.id];
-        if (!state) return;
-        
-        const track = this.shadowRoot.querySelector(`#new-light-${item.id} .new-light-slider-track`);
-        if (!track) return;
-        
-        let color = 'rgba(255, 255, 255, 0.8)'; // Default for 'on'
-        if (state.attributes.rgb_color) {
-            color = `rgb(${state.attributes.rgb_color.join(',')})`;
-        } else if (state.attributes.color_temp_kelvin) {
-            color = this.kelvinToRgb(state.attributes.color_temp_kelvin);
-        }
-        track.style.background = color;
-    }
-    
-    kelvinToRgb(kelvin){
-        const temp = kelvin / 100;
-        let r,g,b;
-        if( temp <= 66 ){ 
-            r = 255; 
-            g = temp;
-            g = 99.4708025861 * Math.log(g) - 161.1195681661;
-            if( temp <= 19){
-                b = 0;
-            } else {
-                b = temp-10;
-                b = 138.5177312231 * Math.log(b) - 305.0447927307;
-            }
-        } else {
-            r = temp - 60;
-            r = 329.698727446 * Math.pow(r, -0.1332047592);
-            g = temp - 60;
-            g = 288.1221695283 * Math.pow(g, -0.0755148492);
-            b = 255;
-        }
-        return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
     }
 
     getDetailedStateText(item) {
