@@ -134,22 +134,48 @@ class FastSearchCard extends HTMLElement {
 
             .search-row {
                 display: flex;
-                align-items: flex-start;
                 gap: 16px;
+                width: 100%;
+                position: relative;
+            }
+
+            .search-panel, .detail-panel {
+                transition: opacity 0.35s ease-in-out, transform 0.35s ease-in-out;
+                background-color: rgba(0,0,0,0);
+                display: flex;
+                flex-direction: column;
                 width: 100%;
             }
 
             .search-panel {
-                flex: 1;
-                background-color: rgba(0,0,0,0);
-                transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), flex 0.4s ease;
-                max-height: 72px; 
-                display: flex; 
-                flex-direction: column; 
+                max-height: 72px;
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+            .search-panel.hidden {
+                opacity: 0;
+                pointer-events: none;
+                transform: translateX(-5%) scale(0.95);
+            }
+            
+            .detail-panel {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 500px;
+                opacity: 0;
+                pointer-events: none;
+                transform: translateX(5%) scale(0.95);
+            }
+
+            .detail-panel.visible {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translateX(0) scale(1);
             }
 
             .search-panel.expanded {
-                max-height: 400px; 
+                max-height: 500px; 
             }
 
             .search-wrapper {
@@ -453,18 +479,6 @@ class FastSearchCard extends HTMLElement {
                 opacity: 1;
             }
 
-            .detail-panel {
-                flex: 0;
-                width: 0;
-                background-color: rgba(0,0,0,0);
-                height: 400px;
-                opacity: 0;
-                pointer-events: none;
-                transform: translateX(100%);
-                display: block;
-                transition: flex 0.4s ease, width 0.4s ease;
-            }
-
             .detail-header {
                 padding: 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -519,17 +533,18 @@ class FastSearchCard extends HTMLElement {
 
             .detail-left {
                 flex: 1.2;
-                padding: 0;
+                padding: 20px;
                 position: relative;
                 display: flex;
                 flex-direction: column;
-                align-items: center;
-                justify-content: center;
+                align-items: flex-start;
+                justify-content: flex-start;
                 overflow: hidden;
             }
             .detail-right {
                 flex: 1;
                 padding: 20px;
+                padding-top: 20px;
             }
 
             .detail-divider {
@@ -538,7 +553,6 @@ class FastSearchCard extends HTMLElement {
                 margin: 20px 0;
             }
             
-            /* New Styles for Left Panel */
             .icon-background {
                 position: absolute;
                 top: 50%;
@@ -1251,33 +1265,21 @@ class FastSearchCard extends HTMLElement {
     }
 
     showDetailView() {
+        this.isDetailView = true;
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
-        this.isDetailView = true;
-        detailPanel.style.flex = '1';
-        detailPanel.style.width = 'auto';
-        searchPanel.animate([{ opacity: 1, transform: 'translateX(0%)' }, { opacity: 0, transform: 'translateX(-20%)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' })
-        .finished.then(() => {
-            searchPanel.style.pointerEvents = 'none';
-            searchPanel.style.flex = '0';
-        });
-        detailPanel.style.pointerEvents = 'auto';
-        detailPanel.animate([{ opacity: 0, transform: 'translateX(100%)' }, { opacity: 1, transform: 'translateX(0%)' }], { duration: 350, delay: 100, easing: 'ease-out', fill: 'forwards' });
+        searchPanel.classList.add('hidden');
+        detailPanel.classList.add('visible');
         this.renderDetailView();
     }
 
     handleBackClick() {
+        this.isDetailView = false;
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
-        this.isDetailView = false;
-        searchPanel.style.flex = '1';
-        searchPanel.style.width = 'auto';
-        detailPanel.animate([{ opacity: 1, transform: 'translateX(0%)' }, { opacity: 0, transform: 'translateX(100%)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' })
-        .finished.then(() => {
-            detailPanel.style.pointerEvents = 'none';
-            detailPanel.style.flex = '0';
-            detailPanel.style.width = '0';
-        });
+        searchPanel.classList.remove('hidden');
+        detailPanel.classList.remove('visible');
+
         if (this.previousSearchState) {
             this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
             this.activeCategory = this.previousSearchState.activeCategory;
@@ -1286,12 +1288,11 @@ class FastSearchCard extends HTMLElement {
             });
             this.activeSubcategory = this.previousSearchState.activeSubcategory;
             this.filteredItems = this.previousSearchState.filteredItems;
+            
             this.updateCategoryIcon();
             this.updatePlaceholder();
             this.renderResults();
         }
-        searchPanel.style.pointerEvents = 'auto';
-        searchPanel.animate([{ opacity: 0, transform: 'translateX(-20%)' }, { opacity: 1, transform: 'translateX(0%)' }], { duration: 350, delay: 100, easing: 'ease-out', fill: 'forwards' });
     }
     
     // --- Detail View Rendering ---
