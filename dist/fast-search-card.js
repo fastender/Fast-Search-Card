@@ -47,7 +47,14 @@ class FastSearchCard extends HTMLElement {
             this.updateItems();
         }
         
-        if (!this.isDetailView && !this.isSearching) {
+        if (this.isDetailView && this.currentDetailItem) {
+            // If in detail view, update the current item and re-render the detail panel
+            const updatedItem = this.allItems.find(item => item.id === this.currentDetailItem.id);
+            if (updatedItem) {
+                this.currentDetailItem = updatedItem;
+                this.renderDetailView();
+            }
+        } else if (!this.isDetailView && !this.isSearching) {
             this.updateStates();
         }
     }
@@ -537,14 +544,13 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 display: flex;
                 flex-direction: column;
-                align-items: flex-start;
-                justify-content: flex-start;
+                align-items: center;
+                justify-content: center;
                 overflow: hidden;
             }
             .detail-right {
                 flex: 1;
                 padding: 20px;
-                padding-top: 20px;
             }
 
             .detail-divider {
@@ -699,34 +705,119 @@ class FastSearchCard extends HTMLElement {
                 margin: 0;
             }
 
+            /* New Styles for Tabs and Light Controls */
+            .detail-tabs {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 20px;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+            .detail-tab {
+                padding: 10px 16px;
+                cursor: pointer;
+                color: var(--text-secondary);
+                border-bottom: 2px solid transparent;
+                transition: all 0.2s ease;
+            }
+            .detail-tab.active {
+                color: var(--accent);
+                border-bottom-color: var(--accent);
+            }
+            .detail-tab-content {
+                display: none;
+            }
+            .detail-tab-content.active {
+                display: block;
+            }
+            .new-light-design {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            .new-light-header {
+                text-align: center;
+            }
+            .new-light-name {
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+            .new-light-state {
+                font-size: 14px;
+                color: var(--text-secondary);
+            }
+            .new-light-power-center {
+                display: none;
+            }
+            .new-light-power-center.visible {
+                display: block;
+            }
+            .new-light-slider-container, .new-light-controls-row {
+                width: 100%;
+                max-width: 280px;
+                display: none;
+            }
+            .new-light-slider-container.visible, .new-light-controls-row.visible {
+                display: block;
+            }
+            .new-light-controls-row {
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+            }
+            .new-light-slider-track-container {
+                position: relative;
+                width: 100%;
+                height: 50px;
+                border-radius: 25px;
+                background: rgba(255, 255, 255, 0.1);
+                overflow: hidden;
+            }
+            .new-light-slider-track {
+                position: absolute;
+                height: 100%;
+                background: var(--accent);
+                border-radius: 25px;
+            }
+            .new-light-slider-input {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                cursor: pointer;
+                margin: 0;
+            }
+            .new-light-slider-label {
+                display: flex;
+                justify-content: space-between;
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+            .new-light-control-btn {
+                width: 50px; height: 50px; border-radius: 50%;
+                background: rgba(255, 255, 255, 0.1); border: none;
+                color: var(--text-primary); font-size: 22px; cursor: pointer;
+                transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
+            }
+            .new-light-control-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.2); }
+            .new-light-control-btn.active { background: var(--accent); }
+            .new-light-colors { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; }
+            .new-light-colors.visible { max-height: 150px; opacity: 1; margin-top: 16px;}
+            .new-light-colors-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+            .new-light-color-preset { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; position: relative; justify-self: center; }
+            .new-light-color-preset.active { border-color: white; }
+            .new-light-color-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
+
             @media (max-width: 768px) {
-                .detail-content {
-                    flex-direction: column;
-                    padding-top: 60px;
-                }
-                .detail-divider {
-                    display: none;
-                }
-                .detail-left {
-                    min-height: 250px;
-                    flex: none;
-                }
-                .detail-right {
-                    padding: 16px;
-                }
-                .detail-header {
-                    padding: 16px;
-                }
-                 .status-indicator-large, .quick-stats {
-                    bottom: 15px;
-                    left: 15px;
-                }
-                .quick-stats {
-                    flex-direction: row;
-                    right: auto;
-                    left: 15px;
-                    bottom: 45px;
-                }
+                .detail-content { flex-direction: column; padding-top: 60px; }
+                .detail-divider { display: none; }
+                .detail-left { min-height: 250px; flex: none; justify-content: flex-start; padding-top: 20px;}
+                .detail-right { padding: 16px; }
+                .detail-header { padding: 16px; }
+                .icon-content { justify-content: flex-start; }
+                .status-indicator-large, .quick-stats { position: static; transform: none !important; opacity: 1 !important; margin-top: 120px; }
+                .quick-stats { flex-direction: row; justify-content: center; margin-top: 10px; }
             }
             </style>
 
@@ -1309,8 +1400,10 @@ class FastSearchCard extends HTMLElement {
 
         // Render left and right panels
         detailLeft.innerHTML = this.getDetailLeftHTML(item);
-        detailRight.innerHTML = `<div>Right Panel placeholder for ${item.name}</div>`;
+        detailRight.innerHTML = this.getDetailRightHTML(item);
 
+        this.setupDetailTabs(item);
+        
         // Animate elements in
         const statusIndicator = this.shadowRoot.querySelector('.status-indicator-large');
         const quickStats = this.shadowRoot.querySelector('.quick-stats');
@@ -1346,10 +1439,225 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
+    getDetailRightHTML(item) {
+        const controlsHTML = this.getDeviceControlsHTML(item);
+        
+        return `
+            <div class="detail-tabs">
+                <div class="detail-tab active" data-tab="controls">🎮 Steuerung</div>
+                <div class="detail-tab" data-tab="shortcuts">⚡ Shortcuts</div>
+                <div class="detail-tab" data-tab="history">📈 Verlauf</div>
+            </div>
+            <div id="tab-content-container">
+                <div class="detail-tab-content active" data-tab-content="controls">
+                    ${controlsHTML}
+                </div>
+                <div class="detail-tab-content" data-tab-content="shortcuts">
+                    <!-- Placeholder for shortcuts -->
+                    <div>Shortcuts coming soon.</div>
+                </div>
+                <div class="detail-tab-content" data-tab-content="history">
+                    <!-- Placeholder for history -->
+                    <div>History coming soon.</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    getDeviceControlsHTML(item) {
+        switch (item.domain) {
+            case 'light':
+                return this.getLightControlsHTML(item);
+            // Add cases for other domains (climate, cover, etc.) here
+            default:
+                return `<div>No special controls for ${item.domain}.</div>`;
+        }
+    }
+
+    getLightControlsHTML(item) {
+        const state = this._hass.states[item.id];
+        const isOn = state.state === 'on';
+        const brightness = isOn ? Math.round(state.attributes.brightness / 2.55) || 0 : 0;
+        
+        const supportedColorModes = state.attributes.supported_color_modes || [];
+        const hasTempSupport = supportedColorModes.includes('color_temp');
+        const hasColorSupport = supportedColorModes.some(mode => ['rgb', 'rgbw', 'rgbww', 'hs', 'xy'].includes(mode));
+
+        return `
+            <div class="new-light-design" id="new-light-${item.id}">
+                <div class="new-light-header">
+                    <div class="new-light-name">${item.name}</div>
+                    <div class="new-light-state">${isOn ? `Ein • ${brightness}%` : 'Aus'}</div>
+                </div>
+                <div class="new-light-power-center ${!isOn ? 'visible' : ''}">
+                    <button class="new-light-control-btn power-off" data-action="toggle">🔌</button>
+                </div>
+                <div class="new-light-slider-container ${isOn ? 'visible' : ''}">
+                    <div class="new-light-slider-label">
+                        <span>Helligkeit</span>
+                        <span>${brightness}%</span>
+                    </div>
+                    <div class="new-light-slider-track-container">
+                        <div class="new-light-slider-track" style="width: ${brightness}%;"></div>
+                        <input type="range" class="new-light-slider-input" data-control="brightness" min="1" max="100" value="${brightness}">
+                    </div>
+                </div>
+                <div class="new-light-controls-row ${isOn ? 'visible' : ''}">
+                    <button class="new-light-control-btn power-on" data-action="toggle">💡</button>
+                    ${hasTempSupport ? `
+                        <button class="new-light-control-btn" data-temp="2700">🔥</button>
+                        <button class="new-light-control-btn" data-temp="4000">☀️</button>
+                        <button class="new-light-control-btn" data-temp="6500">❄️</button>
+                    ` : ''}
+                    ${hasColorSupport ? `
+                        <button class="new-light-control-btn" data-action="toggle-colors">🎨</button>
+                    ` : ''}
+                </div>
+                <div class="new-light-colors" data-is-open="false">
+                    <div class="new-light-colors-grid">
+                        <div class="new-light-color-preset" style="background: #ff6b35;" data-rgb="255,107,53"></div>
+                        <div class="new-light-color-preset" style="background: #f7931e;" data-rgb="247,147,30"></div>
+                        <div class="new-light-color-preset" style="background: #ffd23f;" data-rgb="255,210,63"></div>
+                        <div class="new-light-color-preset" style="background: #06d6a0;" data-rgb="6,214,160"></div>
+                        <div class="new-light-color-preset" style="background: #118ab2;" data-rgb="17,138,178"></div>
+                        <div class="new-light-color-preset" style="background: #8e44ad;" data-rgb="142,68,173"></div>
+                        <div class="new-light-color-preset" style="background: #e91e63;" data-rgb="233,30,99"></div>
+                        <div class="new-light-color-preset" style="background: #ffffff;" data-rgb="255,255,255"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    setupDetailTabs(item) {
+        const tabs = this.shadowRoot.querySelectorAll('.detail-tab');
+        const contents = this.shadowRoot.querySelectorAll('.detail-tab-content');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                this.shadowRoot.querySelector(`[data-tab-content="${target}"]`).classList.add('active');
+            });
+        });
+
+        if (item.domain === 'light') {
+            this.setupLightControls(item);
+        }
+    }
+    
+    setupLightControls(item) {
+        const lightContainer = this.shadowRoot.getElementById(`new-light-${item.id}`);
+        if (!lightContainer) return;
+
+        const powerButtons = lightContainer.querySelectorAll('[data-action="toggle"]');
+        const brightnessSlider = lightContainer.querySelector('[data-control="brightness"]');
+        const tempButtons = lightContainer.querySelectorAll('[data-temp]');
+        const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
+        const colorPresets = lightContainer.querySelectorAll('.new-light-color-preset');
+        const colorsContainer = lightContainer.querySelector('.new-light-colors');
+
+        powerButtons.forEach(btn => btn.addEventListener('click', () => this.callLightService('toggle', item.id)));
+        
+        if (brightnessSlider) {
+            const brightnessValueLabel = lightContainer.querySelector('.new-light-slider-label span:last-child');
+            const brightnessTrack = lightContainer.querySelector('.new-light-slider-track');
+            brightnessSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value, 10);
+                brightnessValueLabel.textContent = `${value}%`;
+                brightnessTrack.style.width = `${value}%`;
+            });
+            brightnessSlider.addEventListener('change', (e) => {
+                this.callLightService('turn_on', item.id, { brightness_pct: parseInt(e.target.value, 10) });
+            });
+        }
+        
+        tempButtons.forEach(btn => btn.addEventListener('click', () => {
+            const kelvin = parseInt(btn.dataset.temp, 10);
+            this.callLightService('turn_on', item.id, { kelvin: kelvin });
+        }));
+
+        if (colorToggle) {
+            colorToggle.addEventListener('click', () => {
+                const isOpen = colorsContainer.getAttribute('data-is-open') === 'true';
+                this.animateColorPresetStagger(colorsContainer, colorPresets, !isOpen);
+                colorsContainer.setAttribute('data-is-open', String(!isOpen));
+            });
+        }
+        
+        colorPresets.forEach(preset => preset.addEventListener('click', () => {
+            const rgb = preset.dataset.rgb.split(',').map(Number);
+            this.callLightService('turn_on', item.id, { rgb_color: rgb });
+            colorPresets.forEach(p => p.classList.remove('active'));
+            preset.classList.add('active');
+        }));
+
+        this.updateNewLightSliderColor(item);
+    }
+    
+    callLightService(service, entity_id, data = {}) {
+        this._hass.callService('light', service, { entity_id, ...data });
+    }
+
+    animateColorPresetStagger(container, presets, isOpening) {
+        container.classList.toggle('visible', isOpening);
+        presets.forEach((preset, index) => {
+            preset.getAnimations().forEach(anim => anim.cancel());
+            preset.animate([
+                { opacity: isOpening ? 0 : 1, transform: `scale(${isOpening ? 0.5 : 1}) translateY(${isOpening ? '-20px' : '0'})` },
+                { opacity: isOpening ? 1 : 0, transform: `scale(${isOpening ? 1 : 0.5}) translateY(0)` }
+            ], {
+                duration: isOpening ? 300 : 200,
+                delay: index * 30,
+                easing: isOpening ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-in',
+                fill: 'forwards'
+            });
+        });
+    }
+
+    updateNewLightSliderColor(item) {
+        const state = this._hass.states[item.id];
+        if (!state) return;
+        
+        const track = this.shadowRoot.querySelector(`#new-light-${item.id} .new-light-slider-track`);
+        if (!track) return;
+        
+        let color = 'rgba(255, 255, 255, 0.8)'; // Default for 'on'
+        if (state.attributes.rgb_color) {
+            color = `rgb(${state.attributes.rgb_color.join(',')})`;
+        } else if (state.attributes.color_temp_kelvin) {
+            color = this.kelvinToRgb(state.attributes.color_temp_kelvin);
+        }
+        track.style.background = color;
+    }
+    
+    kelvinToRgb(kelvin){
+        const temp = kelvin / 100;
+        let r,g,b;
+        if( temp <= 66 ){ 
+            r = 255; 
+            g = temp;
+            g = 99.4708025861 * Math.log(g) - 161.1195681661;
+            if( temp <= 19){
+                b = 0;
+            } else {
+                b = temp-10;
+                b = 138.5177312231 * Math.log(b) - 305.0447927307;
+            }
+        } else {
+            r = temp - 60;
+            r = 329.698727446 * Math.pow(r, -0.1332047592);
+            g = temp - 60;
+            g = 288.1221695283 * Math.pow(g, -0.0755148492);
+            b = 255;
+        }
+        return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+    }
+
     getDetailedStateText(item) {
         const state = this._hass.states[item.id];
-        if (!state) return { status: 'Unbekannt', value: '', unit: '' };
-
+        if (!state) return { status: 'Unbekannt' };
         switch (item.domain) {
             case 'light': return { status: state.state === 'on' ? 'Ein' : 'Aus' };
             case 'climate': return { status: state.state !== 'off' ? state.state : 'Aus' };
@@ -1363,7 +1671,6 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         if (!state) return [];
         const stats = [];
-
         switch (item.domain) {
             case 'light':
                 if (state.state === 'on') {
@@ -1408,6 +1715,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     animateElementIn(element, keyframes, options = {}) {
+        if (!element) return;
         return element.animate(keyframes, {
             duration: 400,
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
@@ -1417,6 +1725,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     animateElementOut(element, options = {}) {
+        if (!element) return;
         return element.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0.8)' }], { duration: 200, easing: 'ease-in', fill: 'forwards', ...options });
     }
 
