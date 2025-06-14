@@ -40,21 +40,15 @@ class FastSearchCard extends HTMLElement {
     set hass(hass) {
         if (!hass) return;
         
-        // console.log('🔍 HASS Update received', new Date().toLocaleTimeString());
-        
         const oldHass = this._hass;
         this._hass = hass;
         
         if (!oldHass || this.shouldUpdateItems(oldHass, hass)) {
-            // console.log('📝 Updating items...');
             this.updateItems();
         }
         
         if (!this.isDetailView && !this.isSearching) {
-            // console.log('🔄 Updating states...');
             this.updateStates();
-        } else {
-            // console.log('⏭️ Skipping state update (DetailView:', this.isDetailView, ', Searching:', this.isSearching, ')');
         }
     }
 
@@ -98,30 +92,21 @@ class FastSearchCard extends HTMLElement {
                 box-shadow: var(--glass-shadow);
                 overflow: hidden;
                 
-                /* SAFARI FIX 1: Create a new stacking context to prevent flickering */
                 isolation: isolate;
-                
-                /* Performance Fix: Force GPU rendering */
                 transform: translateZ(0);
                 -webkit-transform: translateZ(0);
                 will-change: transform;
                 backface-visibility: hidden;
             }
 
-            /* The pseudo-element for the main glass effect */
             .glass-panel::before {
                 content: '';
                 position: absolute;
                 top: 0; left: 0; right: 0; bottom: 0;
-                /* SAFARI FIX 2: Adjusted z-index for stable layering */
                 z-index: -1; 
                 border-radius: inherit;
-
-                /* The actual backdrop blur effect */
                 -webkit-backdrop-filter: blur(var(--glass-blur-amount));
                 backdrop-filter: blur(var(--glass-blur-amount));
-
-                /* Subtle gradient to simulate 3D curvature and distortion */
                 background: radial-gradient(
                     circle at 50% 0%,
                     rgba(255, 255, 255, 0.1),
@@ -129,7 +114,6 @@ class FastSearchCard extends HTMLElement {
                 );
             }
             
-            /* The pseudo-element for the glossy edge highlight */
             .glass-panel::after {
                 content: '';
                 position: absolute;
@@ -137,8 +121,6 @@ class FastSearchCard extends HTMLElement {
                 z-index: 1;
                 border-radius: inherit;
                 pointer-events: none;
-                
-                /* Inset shadow to create a fine, glossy edge */
                 box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3),
                             inset 0 -1px 1px rgba(0, 0, 0, 0.1);
             }
@@ -180,7 +162,6 @@ class FastSearchCard extends HTMLElement {
                 position: sticky; 
                 top: 0; 
                 z-index: 2;
-                /* SAFARI FIX 3: Provide a subtle background anchor for backdrop-filter */
                 background-color: rgba(255, 255, 255, 0.01);
             }
 
@@ -345,7 +326,7 @@ class FastSearchCard extends HTMLElement {
                 font-size: 11px;
                 color: var(--text-secondary);
                 opacity: 0.9;
-                min-height: 13px; /* Prevents layout jumps */
+                min-height: 13px;
             }
 
             .subcategory-chip.active .subcategory-status {
@@ -476,11 +457,11 @@ class FastSearchCard extends HTMLElement {
                 flex: 1;
                 background-color: rgba(0,0,0,0);
                 height: 400px;
-                display: none;
-            }
-
-            .detail-panel.visible {
-                display: block;
+                /* Initial hidden state for animation */
+                opacity: 0;
+                pointer-events: none;
+                transform: translateX(100%);
+                display: block; /* Important: Keep it in the layout */
             }
 
             .detail-header {
@@ -729,7 +710,6 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     </div>
 
-                    <!-- Added the 'glass-panel' class here -->
                     <div class="detail-panel glass-panel">
                         <div class="detail-header">
                             <button class="back-button">
@@ -750,7 +730,6 @@ class FastSearchCard extends HTMLElement {
                     </div>
 
                     <div class="category-buttons">
-                        <!-- Added the 'glass-panel' class here -->
                         <button class="category-button glass-panel active" data-category="devices" title="Geräte">
                             <svg viewBox="0 0 24 24" fill="none">
                                 <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
@@ -861,13 +840,10 @@ class FastSearchCard extends HTMLElement {
     }
 
     handleSearch(query) {
-        // console.log('🔍 Search triggered:', query);
-        
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         const searchInput = this.shadowRoot.querySelector('.search-input');
         
         this.isSearching = query.trim().length > 0;
-        // console.log('🎯 isSearching set to:', this.isSearching);
         
         if (this.searchTimeout) {
             clearTimeout(this.searchTimeout);
@@ -924,14 +900,11 @@ class FastSearchCard extends HTMLElement {
     }
 
     clearSearch() {
-        // console.log('🧹 Clear search triggered');
-        
         const searchInput = this.shadowRoot.querySelector('.search-input');
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         
         searchInput.value = '';
         this.isSearching = false; 
-        // console.log('🎯 isSearching reset to false');
         
         const animation = this.animateElementOut(clearButton);
         animation.finished.then(() => {
@@ -1029,17 +1002,12 @@ class FastSearchCard extends HTMLElement {
     handleSubcategorySelect(selectedChip) {
         let subcategory = selectedChip.dataset.subcategory;
 
-        // If a chip that is already active (and is not "all") is clicked again,
-        // switch to "all".
         if (subcategory === this.activeSubcategory && subcategory !== 'all') {
             subcategory = 'all';
             selectedChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
         } else if (subcategory === this.activeSubcategory) {
-            // If the "all" chip is already active, do nothing.
             return;
         }
-
-        // console.log('🏷️ Subcategory selected:', subcategory);
 
         this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => {
             chip.classList.remove('active');
@@ -1060,7 +1028,6 @@ class FastSearchCard extends HTMLElement {
         
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (searchInput.value.trim()) {
-            // console.log('🧹 Clearing search input due to subcategory change');
             searchInput.value = '';
             this.isSearching = false; 
             const clearButton = this.shadowRoot.querySelector('.clear-button');
@@ -1186,7 +1153,6 @@ class FastSearchCard extends HTMLElement {
 
         const text = textMap[subcategory] || 'Aktiv'; 
         
-        // Always return the text, even if count is 0
         return `${count} ${text}`;
     }
 
@@ -1225,13 +1191,11 @@ class FastSearchCard extends HTMLElement {
 
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) {
-            // console.log('⏭️ Skipping updateStates - DetailView:', this.isDetailView, ', Searching:', this.isSearching);
             return;
         }
 
         this.updateSubcategoryCounts();
 
-        // console.log('🔄 Updating device states...');
         const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
         deviceCards.forEach(card => {
             const entityId = card.dataset.entity;
@@ -1289,9 +1253,6 @@ class FastSearchCard extends HTMLElement {
         if (!state) return false;
         const domain = state.entity_id.split('.')[0];
         
-        // This function determines if a device is considered "active" for the subcategory count.
-        // The logic is to check if the state is NOT one of the known "off" or "idle" states.
-        // This is more robust as different integrations might use various active states.
         switch (domain) {
             case 'climate':
                 const climateInactiveStates = ['off', 'unavailable'];
@@ -1307,14 +1268,12 @@ class FastSearchCard extends HTMLElement {
                 return state.state === 'on';
 
             case 'cover':
-                 // Active if 'open' or partially open
                 return state.state === 'open' || (state.attributes.current_position != null && state.attributes.current_position > 0);
             
             case 'automation':
                 return state.state === 'on';
 
             default:
-                // A general fallback for other potential devices
                 return state.state === 'on';
         }
     }
@@ -1532,26 +1491,21 @@ class FastSearchCard extends HTMLElement {
         
         this.isDetailView = true;
         
+        // Animate search panel out
         searchPanel.animate([
-            { opacity: 1, transform: 'translateX(0)' },
-            { opacity: 0, transform: 'translateX(-100%)' }
-        ], {
-            duration: 300,
-            easing: 'ease-in',
-            fill: 'forwards'
-        }).finished.then(() => {
-            searchPanel.style.display = 'none';
-            detailPanel.classList.add('visible');
-            
-            detailPanel.animate([
-                { opacity: 0, transform: 'translateX(100%)' },
-                { opacity: 1, transform: 'translateX(0)' }
-            ], {
-                duration: 300,
-                easing: 'ease-out',
-                fill: 'forwards'
-            });
+            { opacity: 1, transform: 'translateX(0%)' },
+            { opacity: 0, transform: 'translateX(-20%)' }
+        ], { duration: 300, easing: 'ease-in', fill: 'forwards' })
+        .finished.then(() => {
+            searchPanel.style.pointerEvents = 'none'; // Make it non-interactive
         });
+
+        // Prepare and animate detail panel in
+        detailPanel.style.pointerEvents = 'auto'; // Make it interactive
+        detailPanel.animate([
+            { opacity: 0, transform: 'translateX(100%)' }, // Start from off-screen
+            { opacity: 1, transform: 'translateX(0%)' }
+        ], { duration: 350, delay: 100, easing: 'ease-out', fill: 'forwards' });
         
         this.renderDetailView();
     }
@@ -1562,40 +1516,36 @@ class FastSearchCard extends HTMLElement {
         
         this.isDetailView = false;
         
+        // Animate detail panel out
         detailPanel.animate([
-            { opacity: 1, transform: 'translateX(0)' },
+            { opacity: 1, transform: 'translateX(0%)' },
             { opacity: 0, transform: 'translateX(100%)' }
-        ], {
-            duration: 300,
-            easing: 'ease-in',
-            fill: 'forwards'
-        }).finished.then(() => {
-            detailPanel.classList.remove('visible');
-            searchPanel.style.display = 'flex';
-            
-            if (this.previousSearchState) {
-                this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
-                this.activeCategory = this.previousSearchState.activeCategory;
-                this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => { 
-                    chip.classList.toggle('active', chip.dataset.subcategory === this.previousSearchState.activeSubcategory);
-                });
-                this.activeSubcategory = this.previousSearchState.activeSubcategory;
-                this.filteredItems = this.previousSearchState.filteredItems;
-                
-                this.updateCategoryIcon();
-                this.updatePlaceholder();
-                this.renderResults();
-            }
-            
-            searchPanel.animate([
-                { opacity: 0, transform: 'translateX(-100%)' },
-                { opacity: 1, transform: 'translateX(0)' }
-            ], {
-                duration: 300,
-                easing: 'ease-out',
-                fill: 'forwards'
-            });
+        ], { duration: 300, easing: 'ease-in', fill: 'forwards' })
+        .finished.then(() => {
+            detailPanel.style.pointerEvents = 'none';
         });
+
+        // Restore state
+        if (this.previousSearchState) {
+            this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
+            this.activeCategory = this.previousSearchState.activeCategory;
+            this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => { 
+                chip.classList.toggle('active', chip.dataset.subcategory === this.previousSearchState.activeSubcategory);
+            });
+            this.activeSubcategory = this.previousSearchState.activeSubcategory;
+            this.filteredItems = this.previousSearchState.filteredItems;
+            
+            this.updateCategoryIcon();
+            this.updatePlaceholder();
+            this.renderResults();
+        }
+
+        // Animate search panel in
+        searchPanel.style.pointerEvents = 'auto';
+        searchPanel.animate([
+            { opacity: 0, transform: 'translateX(-20%)' },
+            { opacity: 1, transform: 'translateX(0%)' }
+        ], { duration: 350, delay: 100, easing: 'ease-out', fill: 'forwards' });
     }
 
     renderDetailView() {
