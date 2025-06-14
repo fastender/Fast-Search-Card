@@ -487,7 +487,6 @@ class FastSearchCard extends HTMLElement {
             
             .detail-header {
                 padding: 20px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 display: flex;
                 align-items: center;
                 gap: 16px;
@@ -509,7 +508,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 justify-content: center;
                 transition: all 0.2s ease;
-                z-index: 11; /* Above tabs */
+                z-index: 11;
             }
 
             .back-button:hover {
@@ -534,7 +533,7 @@ class FastSearchCard extends HTMLElement {
             .detail-content {
                 display: flex;
                 height: 100%;
-                padding-top: 73px; /* Space for header */
+                padding-top: 73px;
                 overflow-y: auto; 
             }
 
@@ -840,7 +839,7 @@ class FastSearchCard extends HTMLElement {
             .device-control-color-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
 
             @media (max-width: 768px) {
-                .detail-content { flex-direction: column; padding-top: 20px; }
+                .detail-content { flex-direction: column; padding-top: 73px; }
                 .detail-divider { display: none; }
                 .detail-left { min-height: 250px; flex: none; justify-content: center; padding: 20px;}
                 .detail-right { padding: 16px; }
