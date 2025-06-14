@@ -1159,8 +1159,6 @@ class FastSearchCard extends HTMLElement {
     }
 
     getSubcategoryStatusText(subcategory, count) {
-        if (count === 0) return '';
-        
         const textMap = {
             'lights': 'An',
             'climate': 'Aktiv',
@@ -1168,9 +1166,9 @@ class FastSearchCard extends HTMLElement {
             'media': 'Aktiv'
         };
 
-        // Use a default text if the subcategory is not in the map
         const text = textMap[subcategory] || 'Aktiv'; 
         
+        // Always return the text, even if count is 0
         return `${count} ${text}`;
     }
 
@@ -1273,13 +1271,15 @@ class FastSearchCard extends HTMLElement {
         if (!state) return false;
         const domain = state.entity_id.split('.')[0];
         
+        // This function determines if a device is considered "active" for the subcategory count.
+        // The logic is to check if the state is NOT one of the known "off" or "idle" states.
+        // This is more robust as different integrations might use various active states.
         switch (domain) {
             case 'climate':
-                // Any state other than 'off' and 'unavailable' is considered active.
-                return !['off', 'unavailable'].includes(state.state);
+                const climateInactiveStates = ['off', 'unavailable'];
+                return !climateInactiveStates.includes(state.state);
             
             case 'media_player':
-                // Any state other than these inactive ones is considered active.
                 const mediaInactiveStates = ['off', 'unavailable', 'idle', 'standby'];
                 return !mediaInactiveStates.includes(state.state);
 
