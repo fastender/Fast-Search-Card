@@ -40,21 +40,21 @@ class FastSearchCard extends HTMLElement {
     set hass(hass) {
         if (!hass) return;
         
-        console.log('🔍 HASS Update received', new Date().toLocaleTimeString());
+        // console.log('🔍 HASS Update received', new Date().toLocaleTimeString());
         
         const oldHass = this._hass;
         this._hass = hass;
         
         if (!oldHass || this.shouldUpdateItems(oldHass, hass)) {
-            console.log('📝 Updating items...');
+            // console.log('📝 Updating items...');
             this.updateItems();
         }
         
         if (!this.isDetailView && !this.isSearching) {
-            console.log('🔄 Updating states...');
+            // console.log('🔄 Updating states...');
             this.updateStates();
         } else {
-            console.log('⏭️ Skipping state update (DetailView:', this.isDetailView, ', Searching:', this.isSearching, ')');
+            // console.log('⏭️ Skipping state update (DetailView:', this.isDetailView, ', Searching:', this.isSearching, ')');
         }
     }
 
@@ -302,17 +302,18 @@ class FastSearchCard extends HTMLElement {
             }
 
             .subcategory-chip {
-                padding: 8px 16px;
+                padding: 6px 16px;
                 background: rgba(255, 255, 255, 0.08);
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
-                font-size: 14px;
-                font-weight: 500;
-                color: var(--text-secondary);
                 cursor: pointer;
                 white-space: nowrap;
                 flex-shrink: 0;
                 transition: all 0.2s ease;
+                text-align: center;
+                height: 50px;
+                display: flex;
+                align-items: center;
             }
 
             .subcategory-chip.active {
@@ -325,6 +326,34 @@ class FastSearchCard extends HTMLElement {
             .subcategory-chip:hover {
                 background: rgba(255, 255, 255, 0.2);
                 transform: translateY(-1px);
+            }
+
+            .chip-content {
+                display: flex;
+                flex-direction: column;
+                line-height: 1.2;
+                gap: 2px;
+                color: var(--text-primary);
+            }
+
+            .subcategory-name {
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            .subcategory-status {
+                font-size: 11px;
+                color: var(--text-secondary);
+                opacity: 0.9;
+                min-height: 13px; /* Prevents layout jumps */
+            }
+
+            .subcategory-chip.active .subcategory-status {
+                color: var(--accent);
+            }
+            
+            .subcategory-chip.active .chip-content {
+                 color: var(--accent);
             }
 
             .results-container {
@@ -639,13 +668,43 @@ class FastSearchCard extends HTMLElement {
                         </div>
 
                         <div class="results-container">
-                            <div class="subcategories">
-                                <div class="subcategory-chip active" data-subcategory="all">Alle</div>
-                                <div class="subcategory-chip" data-subcategory="lights">Lichter</div>
-                                <div class="subcategory-chip" data-subcategory="climate">Klima</div>
-                                <div class="subcategory-chip" data-subcategory="covers">Rollos</div>
-                                <div class="subcategory-chip" data-subcategory="media">Medien</div>
-                                <div class="subcategory-chip" data-subcategory="none">Keine</div>
+                             <div class="subcategories">
+                                <div class="subcategory-chip active" data-subcategory="all">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Alle</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
+                                <div class="subcategory-chip" data-subcategory="lights">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Lichter</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
+                                <div class="subcategory-chip" data-subcategory="climate">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Klima</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
+                                <div class="subcategory-chip" data-subcategory="covers">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Rollos</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
+                                <div class="subcategory-chip" data-subcategory="media">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Medien</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
+                                <div class="subcategory-chip" data-subcategory="none">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Keine</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
                             </div>
                             <div class="results-grid">
                             </div>
@@ -784,13 +843,13 @@ class FastSearchCard extends HTMLElement {
     }
 
     handleSearch(query) {
-        console.log('🔍 Search triggered:', query);
+        // console.log('🔍 Search triggered:', query);
         
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         const searchInput = this.shadowRoot.querySelector('.search-input');
         
         this.isSearching = query.trim().length > 0;
-        console.log('🎯 isSearching set to:', this.isSearching);
+        // console.log('🎯 isSearching set to:', this.isSearching);
         
         if (this.searchTimeout) {
             clearTimeout(this.searchTimeout);
@@ -847,14 +906,14 @@ class FastSearchCard extends HTMLElement {
     }
 
     clearSearch() {
-        console.log('🧹 Clear search triggered');
+        // console.log('🧹 Clear search triggered');
         
         const searchInput = this.shadowRoot.querySelector('.search-input');
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         
         searchInput.value = '';
         this.isSearching = false; 
-        console.log('🎯 isSearching reset to false');
+        // console.log('🎯 isSearching reset to false');
         
         const animation = this.animateElementOut(clearButton);
         animation.finished.then(() => {
@@ -950,10 +1009,19 @@ class FastSearchCard extends HTMLElement {
     }
 
     handleSubcategorySelect(selectedChip) {
-        const subcategory = selectedChip.dataset.subcategory;
-        if (subcategory === this.activeSubcategory) return;
+        let subcategory = selectedChip.dataset.subcategory;
 
-        console.log('🏷️ Subcategory selected:', subcategory);
+        // If a chip that is already active (and is not "all") is clicked again,
+        // switch to "all".
+        if (subcategory === this.activeSubcategory && subcategory !== 'all') {
+            subcategory = 'all';
+            selectedChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
+        } else if (subcategory === this.activeSubcategory) {
+            // If the "all" chip is already active, do nothing.
+            return;
+        }
+
+        // console.log('🏷️ Subcategory selected:', subcategory);
 
         this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => {
             chip.classList.remove('active');
@@ -974,7 +1042,7 @@ class FastSearchCard extends HTMLElement {
         
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (searchInput.value.trim()) {
-            console.log('🧹 Clearing search input due to subcategory change');
+            // console.log('🧹 Clearing search input due to subcategory change');
             searchInput.value = '';
             this.isSearching = false; 
             const clearButton = this.shadowRoot.querySelector('.clear-button');
@@ -1087,15 +1155,70 @@ class FastSearchCard extends HTMLElement {
 
         this.allItems.sort((a, b) => a.area.localeCompare(b.area));
         this.showCurrentCategoryItems();
+        this.updateSubcategoryCounts();
     }
+
+    getSubcategoryStatusText(subcategory, count) {
+        if (count === 0) return '';
+        const textMap = {
+            'lights': 'An',
+            'climate': 'Aktiv',
+            'covers': 'Offen',
+            'media': 'Aktiv'
+        };
+        const pluralMap = {
+            'lights': 'An',
+            'climate': 'Aktiv',
+            'covers': 'Offen',
+            'media': 'Aktiv'
+        };
+
+        const text = count === 1 ? textMap[subcategory] : (pluralMap[subcategory] || textMap[subcategory]);
+        return `${count} ${text}`;
+    }
+
+    updateSubcategoryCounts() {
+        if (!this._hass || !this.allItems) return;
+
+        const domainMap = {
+            'lights': ['light', 'switch'],
+            'climate': ['climate', 'fan'],
+            'covers': ['cover'],
+            'media': ['media_player']
+        };
+
+        for (const subcategory in domainMap) {
+            const chip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="${subcategory}"]`);
+            if (!chip) continue;
+
+            const domains = domainMap[subcategory];
+            const categoryItems = this.allItems.filter(item =>
+                this.isItemInCategory(item, 'devices') && domains.includes(item.domain)
+            );
+
+            const activeCount = categoryItems.filter(item => {
+                const state = this._hass.states[item.id];
+                return state && this.isEntityActive(state);
+            }).length;
+
+            const statusText = this.getSubcategoryStatusText(subcategory, activeCount);
+            const statusElement = chip.querySelector('.subcategory-status');
+            if (statusElement) {
+                statusElement.textContent = statusText;
+            }
+        }
+    }
+
 
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) {
-            console.log('⏭️ Skipping updateStates - DetailView:', this.isDetailView, ', Searching:', this.isSearching);
+            // console.log('⏭️ Skipping updateStates - DetailView:', this.isDetailView, ', Searching:', this.isSearching);
             return;
         }
 
-        console.log('🔄 Updating device states...');
+        this.updateSubcategoryCounts();
+
+        // console.log('🔄 Updating device states...');
         const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
         deviceCards.forEach(card => {
             const entityId = card.dataset.entity;
@@ -1150,7 +1273,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     isEntityActive(state) {
-        const activeStates = ['on', 'playing', 'open', 'heat', 'cool', 'auto'];
+        const activeStates = ['on', 'playing', 'open', 'heat', 'cool', 'auto', 'fan_only', 'dry'];
         return activeStates.includes(state.state);
     }
 
@@ -1178,7 +1301,8 @@ class FastSearchCard extends HTMLElement {
             case 'cover':
                 const position = state.attributes.current_position;
                 if (position !== undefined) {
-                    return `${position}%`;
+                    if (position > 0) return `${position}% Offen`;
+                    return 'Geschlossen';
                 }
                 return state.state === 'open' ? 'Offen' : 'Geschlossen';
                 
