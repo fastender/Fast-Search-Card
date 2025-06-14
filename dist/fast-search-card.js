@@ -43,16 +43,16 @@ class FastSearchCard extends HTMLElement {
         const oldHass = this._hass;
         this._hass = hass;
         
-        if (!oldHass || this.shouldUpdateItems(oldHass, hass)) {
+        const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
+        if (shouldUpdateAll) {
             this.updateItems();
         }
         
         if (this.isDetailView && this.currentDetailItem) {
-            // If in detail view, update the current item and re-render the detail panel
             const updatedItem = this.allItems.find(item => item.id === this.currentDetailItem.id);
-            if (updatedItem) {
+            if(updatedItem) {
                 this.currentDetailItem = updatedItem;
-                this.renderDetailView();
+                this.updateDetailViewStates();
             }
         } else if (!this.isDetailView && !this.isSearching) {
             this.updateStates();
@@ -98,7 +98,6 @@ class FastSearchCard extends HTMLElement {
                 border: 1px solid var(--glass-border-color);
                 box-shadow: var(--glass-shadow);
                 overflow: hidden;
-                
                 isolation: isolate;
                 transform: translateZ(0);
                 -webkit-transform: translateZ(0);
@@ -486,35 +485,26 @@ class FastSearchCard extends HTMLElement {
                 opacity: 1;
             }
 
-            .detail-header {
-                padding: 20px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                display: flex;
-                align-items: center;
-                gap: 16px;
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 10;
-            }
-
             .back-button {
-                width: 32px;
-                height: 32px;
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                width: 36px;
+                height: 36px;
                 border: none;
-                background: rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
+                background: rgba(0, 0, 0, 0.15);
+                border-radius: 50%;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 transition: all 0.2s ease;
+                z-index: 11; /* Above tabs */
             }
 
             .back-button:hover {
-                background: rgba(255, 255, 255, 0.25);
-                transform: scale(1.05);
+                background: rgba(0, 0, 0, 0.25);
+                transform: scale(1.1);
             }
 
             .back-button svg {
@@ -524,33 +514,29 @@ class FastSearchCard extends HTMLElement {
                 stroke-width: 2;
             }
 
-            .detail-title {
-                margin: 0;
-                font-size: 18px;
-                font-weight: 600;
-                color: var(--text-primary);
-            }
-
             .detail-content {
                 display: flex;
                 height: 100%;
-                padding-top: 73px;
+                padding-top: 20px;
                 overflow-y: auto; 
             }
 
             .detail-left {
                 flex: 1.2;
-                padding: 20px;
+                padding: 0;
                 position: relative;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
+                justify-content: flex-start; /* Aligned to top */
                 overflow: hidden;
+                padding-top: 40px; /* Space for content */
             }
             .detail-right {
                 flex: 1;
                 padding: 20px;
+                display: flex;
+                flex-direction: column;
             }
 
             .detail-divider {
@@ -561,7 +547,7 @@ class FastSearchCard extends HTMLElement {
             
             .icon-background {
                 position: absolute;
-                top: 50%;
+                top: 40%;
                 left: 50%;
                 width: 60%;
                 height: 60%;
@@ -706,100 +692,71 @@ class FastSearchCard extends HTMLElement {
             }
 
             /* New Styles for Tabs and Light Controls */
-            .detail-tabs {
+            .detail-tabs-container {
                 display: flex;
-                gap: 8px;
-                margin-bottom: 20px;
-                border-bottom: 1px solid rgba(255,255,255,0.1);
+                justify-content: center;
+                padding: 0 20px;
+            }
+            .detail-tabs {
+                position: relative;
+                background: rgba(0, 0, 0, 0.25);
+                border-radius: 12px;
+                display: inline-flex;
+                padding: 5px;
+                margin-bottom: 24px;
+            }
+            .tab-slider {
+                position: absolute;
+                top: 5px;
+                height: calc(100% - 10px);
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                z-index: 1;
             }
             .detail-tab {
-                padding: 10px 16px;
+                padding: 8px 16px;
                 cursor: pointer;
                 color: var(--text-secondary);
-                border-bottom: 2px solid transparent;
-                transition: all 0.2s ease;
+                transition: color 0.25s ease;
+                z-index: 2;
+                font-weight: 500;
+                font-size: 14px;
+                white-space: nowrap;
             }
             .detail-tab.active {
-                color: var(--accent);
-                border-bottom-color: var(--accent);
+                color: var(--text-primary);
             }
-            .detail-tab-content {
-                display: none;
+            #tab-content-container {
+                flex-grow: 1;
+                overflow-y: auto;
+                scrollbar-width: none;
             }
-            .detail-tab-content.active {
-                display: block;
-            }
+            #tab-content-container::-webkit-scrollbar { display: none; }
+
+            .detail-tab-content { display: none; }
+            .detail-tab-content.active { display: block; }
+            
             .new-light-design {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 gap: 20px;
             }
-            .new-light-header {
-                text-align: center;
-            }
-            .new-light-name {
-                font-size: 20px;
-                font-weight: 600;
-                margin-bottom: 4px;
-            }
-            .new-light-state {
-                font-size: 14px;
-                color: var(--text-secondary);
-            }
-            .new-light-power-center {
-                display: none;
-            }
-            .new-light-power-center.visible {
-                display: block;
-            }
-            .new-light-slider-container, .new-light-controls-row {
-                width: 100%;
-                max-width: 280px;
-                display: none;
-            }
-            .new-light-slider-container.visible, .new-light-controls-row.visible {
-                display: block;
-            }
-            .new-light-controls-row {
-                display: flex;
-                gap: 12px;
-                justify-content: center;
-            }
-            .new-light-slider-track-container {
-                position: relative;
-                width: 100%;
-                height: 50px;
-                border-radius: 25px;
-                background: rgba(255, 255, 255, 0.1);
-                overflow: hidden;
-            }
-            .new-light-slider-track {
-                position: absolute;
-                height: 100%;
-                background: var(--accent);
-                border-radius: 25px;
-            }
-            .new-light-slider-input {
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                opacity: 0;
-                cursor: pointer;
-                margin: 0;
-            }
-            .new-light-slider-label {
-                display: flex;
-                justify-content: space-between;
-                font-size: 14px;
-                margin-bottom: 8px;
-            }
-            .new-light-control-btn {
-                width: 50px; height: 50px; border-radius: 50%;
-                background: rgba(255, 255, 255, 0.1); border: none;
-                color: var(--text-primary); font-size: 22px; cursor: pointer;
-                transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
-            }
+            .new-light-header { text-align: center; }
+            .new-light-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+            .new-light-state { font-size: 14px; color: var(--text-secondary); }
+            .new-light-power-center { display: none; }
+            .new-light-power-center.visible { display: block; }
+            .new-light-slider-container, .new-light-controls-row { width: 100%; max-width: 280px; display: none; }
+            .new-light-slider-container.visible, .new-light-controls-row.visible { display: block; }
+            .new-light-controls-row { display: flex; gap: 12px; justify-content: center; }
+            .new-light-slider-track-container { position: relative; width: 100%; height: 50px; border-radius: 25px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+            .new-light-slider-track { position: absolute; height: 100%; background: var(--accent); border-radius: 25px; }
+            .new-light-slider-input { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; margin: 0; }
+            .new-light-slider-label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+            .new-light-control-btn { width: 50px; height: 50px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: none; color: var(--text-primary); font-size: 22px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
             .new-light-control-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.2); }
             .new-light-control-btn.active { background: var(--accent); }
             .new-light-colors { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; }
@@ -810,14 +767,13 @@ class FastSearchCard extends HTMLElement {
             .new-light-color-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
 
             @media (max-width: 768px) {
-                .detail-content { flex-direction: column; padding-top: 60px; }
+                .detail-content { flex-direction: column; padding-top: 20px; }
                 .detail-divider { display: none; }
-                .detail-left { min-height: 250px; flex: none; justify-content: flex-start; padding-top: 20px;}
+                .detail-left { min-height: 250px; flex: none; justify-content: center; padding: 20px;}
                 .detail-right { padding: 16px; }
-                .detail-header { padding: 16px; }
-                .icon-content { justify-content: flex-start; }
-                .status-indicator-large, .quick-stats { position: static; transform: none !important; opacity: 1 !important; margin-top: 120px; }
-                .quick-stats { flex-direction: row; justify-content: center; margin-top: 10px; }
+                .icon-content { justify-content: flex-end; }
+                .status-indicator-large, .quick-stats { position: absolute; }
+                .quick-stats { flex-direction: row; }
             }
             </style>
 
@@ -907,20 +863,18 @@ class FastSearchCard extends HTMLElement {
                     </div>
 
                     <div class="detail-panel glass-panel">
-                        <div class="detail-header">
-                            <button class="back-button">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M19 12H5"/>
-                                    <path d="M12 19l-7-7 7-7"/>
-                                </svg>
-                            </button>
-                            <h3 class="detail-title">Gerätedetails</h3>
-                        </div>
                         <div class="detail-content">
                             <div class="detail-left">
                             </div>
                             <div class="detail-divider"></div>
                             <div class="detail-right">
+                                <button class="back-button">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <path d="M19 12H5"/>
+                                        <path d="M12 19l-7-7 7-7"/>
+                                    </svg>
+                                </button>
+                                <!-- Content will be injected here -->
                             </div>
                         </div>
                     </div>
@@ -1391,27 +1345,57 @@ class FastSearchCard extends HTMLElement {
     renderDetailView() {
         const detailLeft = this.shadowRoot.querySelector('.detail-left');
         const detailRight = this.shadowRoot.querySelector('.detail-right');
-        const detailTitle = this.shadowRoot.querySelector('.detail-title');
         
         if (!this.currentDetailItem) return;
         
-        const item = this.currentDetailItem;
-        detailTitle.textContent = item.name;
+        detailLeft.innerHTML = this.getDetailLeftHTML(this.currentDetailItem);
+        detailRight.innerHTML = this.getDetailRightHTML(this.currentDetailItem);
 
-        // Render left and right panels
-        detailLeft.innerHTML = this.getDetailLeftHTML(item);
-        detailRight.innerHTML = this.getDetailRightHTML(item);
-
-        this.setupDetailTabs(item);
+        this.setupDetailTabs(this.currentDetailItem);
         
         // Animate elements in
-        const statusIndicator = this.shadowRoot.querySelector('.status-indicator-large');
-        const quickStats = this.shadowRoot.querySelector('.quick-stats');
-        const iconBackground = this.shadowRoot.querySelector('.icon-background');
+        const statusIndicator = detailLeft.querySelector('.status-indicator-large');
+        const quickStats = detailLeft.querySelector('.quick-stats');
+        const iconBackground = detailLeft.querySelector('.icon-background');
 
         if(iconBackground) this.animateElementIn(iconBackground, { opacity: [0, 1] }, { duration: 800 });
         if(statusIndicator) this.animateElementIn(statusIndicator, { opacity: [0, 1], transform: ['translateX(-20px)', 'translateX(0)'] }, { delay: 600 });
         if(quickStats) this.animateElementIn(quickStats, { opacity: [0, 1], transform: ['translateX(20px)', 'translateX(0)'] }, { delay: 800 });
+    }
+
+    updateDetailViewStates() {
+        if (!this.isDetailView || !this.currentDetailItem || !this._hass) return;
+        
+        const item = this.currentDetailItem;
+        const state = this._hass.states[item.id];
+        if (!state) return;
+
+        // Update left panel
+        const detailLeft = this.shadowRoot.querySelector('.detail-left');
+        if (detailLeft) {
+            const isActive = this.isEntityActive(state);
+            const statusIndicator = detailLeft.querySelector('.status-indicator-large');
+            if (statusIndicator) {
+                statusIndicator.textContent = this.getDetailedStateText(item).status;
+                statusIndicator.classList.toggle('active', isActive);
+            }
+            const quickStats = detailLeft.querySelector('.quick-stats');
+            if (quickStats) {
+                quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
+            }
+            const iconBackground = detailLeft.querySelector('.icon-background');
+            if (iconBackground) {
+                const newBg = item.domain === 'media_player' ? this.getAlbumArtUrl(item) : this.getBackgroundImageForItem(item);
+                if (iconBackground.style.backgroundImage !== `url("${newBg}")`) {
+                   iconBackground.style.backgroundImage = `url('${newBg}')`;
+                }
+            }
+        }
+        
+        // Update right panel (light controls specifically)
+        if (item.domain === 'light') {
+            this.updateLightControlsUI(item);
+        }
     }
 
     getDetailLeftHTML(item) {
@@ -1443,21 +1427,22 @@ class FastSearchCard extends HTMLElement {
         const controlsHTML = this.getDeviceControlsHTML(item);
         
         return `
-            <div class="detail-tabs">
-                <div class="detail-tab active" data-tab="controls">🎮 Steuerung</div>
-                <div class="detail-tab" data-tab="shortcuts">⚡ Shortcuts</div>
-                <div class="detail-tab" data-tab="history">📈 Verlauf</div>
+            <div class="detail-tabs-container">
+                <div class="detail-tabs">
+                    <span class="tab-slider"></span>
+                    <a href="#" class="detail-tab active" data-tab="controls">🎮 Steuerung</a>
+                    <a href="#" class="detail-tab" data-tab="shortcuts">⚡ Shortcuts</a>
+                    <a href="#" class="detail-tab" data-tab="history">📈 Verlauf</a>
+                </div>
             </div>
             <div id="tab-content-container">
                 <div class="detail-tab-content active" data-tab-content="controls">
                     ${controlsHTML}
                 </div>
                 <div class="detail-tab-content" data-tab-content="shortcuts">
-                    <!-- Placeholder for shortcuts -->
                     <div>Shortcuts coming soon.</div>
                 </div>
                 <div class="detail-tab-content" data-tab-content="history">
-                    <!-- Placeholder for history -->
                     <div>History coming soon.</div>
                 </div>
             </div>
@@ -1468,7 +1453,6 @@ class FastSearchCard extends HTMLElement {
         switch (item.domain) {
             case 'light':
                 return this.getLightControlsHTML(item);
-            // Add cases for other domains (climate, cover, etc.) here
             default:
                 return `<div>No special controls for ${item.domain}.</div>`;
         }
@@ -1477,7 +1461,7 @@ class FastSearchCard extends HTMLElement {
     getLightControlsHTML(item) {
         const state = this._hass.states[item.id];
         const isOn = state.state === 'on';
-        const brightness = isOn ? Math.round(state.attributes.brightness / 2.55) || 0 : 0;
+        const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
         
         const supportedColorModes = state.attributes.supported_color_modes || [];
         const hasTempSupport = supportedColorModes.includes('color_temp');
@@ -1495,7 +1479,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="new-light-slider-container ${isOn ? 'visible' : ''}">
                     <div class="new-light-slider-label">
                         <span>Helligkeit</span>
-                        <span>${brightness}%</span>
+                        <span class="brightness-value">${brightness}%</span>
                     </div>
                     <div class="new-light-slider-track-container">
                         <div class="new-light-slider-track" style="width: ${brightness}%;"></div>
@@ -1528,17 +1512,70 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
+    
+    updateLightControlsUI(item) {
+        const lightContainer = this.shadowRoot.getElementById(`new-light-${item.id}`);
+        if (!lightContainer) return;
+        const state = this._hass.states[item.id];
+        const isOn = state.state === 'on';
+        const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
+
+        lightContainer.querySelector('.new-light-state').textContent = isOn ? `Ein • ${brightness}%` : 'Aus';
+        lightContainer.querySelector('.new-light-power-center').classList.toggle('visible', !isOn);
+        lightContainer.querySelector('.new-light-slider-container').classList.toggle('visible', isOn);
+        lightContainer.querySelector('.new-light-controls-row').classList.toggle('visible', isOn);
+        
+        const brightnessValueLabel = lightContainer.querySelector('.brightness-value');
+        if(brightnessValueLabel) brightnessValueLabel.textContent = `${brightness}%`;
+        
+        const brightnessTrack = lightContainer.querySelector('.new-light-slider-track');
+        if(brightnessTrack) brightnessTrack.style.width = `${brightness}%`;
+        
+        const brightnessSlider = lightContainer.querySelector('[data-control="brightness"]');
+        if(brightnessSlider) brightnessSlider.value = brightness;
+        
+        if (!isOn) {
+            const colorsContainer = lightContainer.querySelector('.new-light-colors');
+            if (colorsContainer.classList.contains('visible')) {
+                colorsContainer.classList.remove('visible');
+                colorsContainer.setAttribute('data-is-open', 'false');
+            }
+        }
+        this.updateNewLightSliderColor(item);
+    }
+
 
     setupDetailTabs(item) {
-        const tabs = this.shadowRoot.querySelectorAll('.detail-tab');
+        const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
+        if (!tabsContainer) return;
+        
+        const tabs = tabsContainer.querySelectorAll('.detail-tab');
+        const slider = tabsContainer.querySelector('.tab-slider');
         const contents = this.shadowRoot.querySelectorAll('.detail-tab-content');
+
+        const moveSlider = (targetTab) => {
+            slider.style.width = `${targetTab.offsetWidth}px`;
+            slider.style.left = `${targetTab.offsetLeft}px`;
+        };
+        
+        // Initial position
+        const activeTab = tabsContainer.querySelector('.detail-tab.active');
+        if (activeTab) {
+            moveSlider(activeTab);
+        }
+
         tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const target = tab.dataset.tab;
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = tab.dataset.tab;
+                
                 tabs.forEach(t => t.classList.remove('active'));
-                contents.forEach(c => c.classList.remove('active'));
                 tab.classList.add('active');
-                this.shadowRoot.querySelector(`[data-tab-content="${target}"]`).classList.add('active');
+                
+                moveSlider(tab);
+                
+                contents.forEach(c => c.classList.remove('active'));
+                this.shadowRoot.querySelector(`[data-tab-content="${targetId}"]`).classList.add('active');
             });
         });
 
@@ -1561,12 +1598,12 @@ class FastSearchCard extends HTMLElement {
         powerButtons.forEach(btn => btn.addEventListener('click', () => this.callLightService('toggle', item.id)));
         
         if (brightnessSlider) {
-            const brightnessValueLabel = lightContainer.querySelector('.new-light-slider-label span:last-child');
+            const brightnessValueLabel = lightContainer.querySelector('.brightness-value');
             const brightnessTrack = lightContainer.querySelector('.new-light-slider-track');
             brightnessSlider.addEventListener('input', (e) => {
                 const value = parseInt(e.target.value, 10);
-                brightnessValueLabel.textContent = `${value}%`;
-                brightnessTrack.style.width = `${value}%`;
+                if(brightnessValueLabel) brightnessValueLabel.textContent = `${value}%`;
+                if(brightnessTrack) brightnessTrack.style.width = `${value}%`;
             });
             brightnessSlider.addEventListener('change', (e) => {
                 this.callLightService('turn_on', item.id, { brightness_pct: parseInt(e.target.value, 10) });
