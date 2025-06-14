@@ -1272,17 +1272,16 @@ class FastSearchCard extends HTMLElement {
     isEntityActive(state) {
         if (!state) return false;
         const domain = state.entity_id.split('.')[0];
-
+        
         switch (domain) {
             case 'climate':
-                // Using specific operational states for climate devices
-                const climateActiveStates = ['heat', 'cool', 'auto', 'dry', 'fan_only', 'heat_cool'];
-                return climateActiveStates.includes(state.state);
+                // Any state other than 'off' and 'unavailable' is considered active.
+                return !['off', 'unavailable'].includes(state.state);
             
             case 'media_player':
-                // Media player is active if it's on, playing, or buffering
-                const mediaActiveStates = ['on', 'playing', 'buffering'];
-                return mediaActiveStates.includes(state.state);
+                // Any state other than these inactive ones is considered active.
+                const mediaInactiveStates = ['off', 'unavailable', 'idle', 'standby'];
+                return !mediaInactiveStates.includes(state.state);
 
             case 'light':
             case 'switch':
@@ -1301,7 +1300,6 @@ class FastSearchCard extends HTMLElement {
                 return state.state === 'on';
         }
     }
-
 
     getEntityStatus(state) {
         if (!state) return 'Unbekannt';
