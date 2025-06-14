@@ -454,10 +454,11 @@ class FastSearchCard extends HTMLElement {
             }
 
             .detail-panel {
-                flex: 1;
+                /* No flex by default */
+                flex: 0;
+                width: 0;
                 background-color: rgba(0,0,0,0);
                 height: 400px;
-                /* Initial hidden state for animation */
                 opacity: 0;
                 pointer-events: none;
                 transform: translateX(100%);
@@ -626,7 +627,6 @@ class FastSearchCard extends HTMLElement {
 
             <div class="main-container">
                 <div class="search-row">
-                    <!-- Added the 'glass-panel' class here -->
                     <div class="search-panel glass-panel">
                         <div class="search-wrapper">
                             <div class="category-icon">
@@ -1491,19 +1491,21 @@ class FastSearchCard extends HTMLElement {
         
         this.isDetailView = true;
         
-        // Animate search panel out
+        detailPanel.style.flex = '1';
+        detailPanel.style.width = 'auto';
+
         searchPanel.animate([
             { opacity: 1, transform: 'translateX(0%)' },
             { opacity: 0, transform: 'translateX(-20%)' }
         ], { duration: 300, easing: 'ease-in', fill: 'forwards' })
         .finished.then(() => {
-            searchPanel.style.pointerEvents = 'none'; // Make it non-interactive
+            searchPanel.style.pointerEvents = 'none';
+            searchPanel.style.flex = '0';
         });
 
-        // Prepare and animate detail panel in
-        detailPanel.style.pointerEvents = 'auto'; // Make it interactive
+        detailPanel.style.pointerEvents = 'auto';
         detailPanel.animate([
-            { opacity: 0, transform: 'translateX(100%)' }, // Start from off-screen
+            { opacity: 0, transform: 'translateX(100%)' },
             { opacity: 1, transform: 'translateX(0%)' }
         ], { duration: 350, delay: 100, easing: 'ease-out', fill: 'forwards' });
         
@@ -1516,16 +1518,19 @@ class FastSearchCard extends HTMLElement {
         
         this.isDetailView = false;
         
-        // Animate detail panel out
+        searchPanel.style.flex = '1';
+        searchPanel.style.width = 'auto';
+
         detailPanel.animate([
             { opacity: 1, transform: 'translateX(0%)' },
             { opacity: 0, transform: 'translateX(100%)' }
         ], { duration: 300, easing: 'ease-in', fill: 'forwards' })
         .finished.then(() => {
             detailPanel.style.pointerEvents = 'none';
+            detailPanel.style.flex = '0';
+            detailPanel.style.width = '0';
         });
 
-        // Restore state
         if (this.previousSearchState) {
             this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
             this.activeCategory = this.previousSearchState.activeCategory;
@@ -1540,7 +1545,6 @@ class FastSearchCard extends HTMLElement {
             this.renderResults();
         }
 
-        // Animate search panel in
         searchPanel.style.pointerEvents = 'auto';
         searchPanel.animate([
             { opacity: 0, transform: 'translateX(-20%)' },
