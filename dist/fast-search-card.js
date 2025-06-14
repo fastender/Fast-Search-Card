@@ -142,7 +142,7 @@ class FastSearchCard extends HTMLElement {
             .search-panel {
                 flex: 1;
                 background-color: rgba(0,0,0,0);
-                transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), flex 0.4s ease;
                 max-height: 72px; 
                 display: flex; 
                 flex-direction: column; 
@@ -454,7 +454,6 @@ class FastSearchCard extends HTMLElement {
             }
 
             .detail-panel {
-                /* No flex by default */
                 flex: 0;
                 width: 0;
                 background-color: rgba(0,0,0,0);
@@ -462,7 +461,8 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0;
                 pointer-events: none;
                 transform: translateX(100%);
-                display: block; /* Important: Keep it in the layout */
+                display: block;
+                transition: flex 0.4s ease, width 0.4s ease;
             }
 
             .detail-header {
@@ -517,7 +517,17 @@ class FastSearchCard extends HTMLElement {
                 overflow-y: auto; 
             }
 
-            .detail-left, .detail-right {
+            .detail-left {
+                flex: 1.2;
+                padding: 0;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            .detail-right {
                 flex: 1;
                 padding: 20px;
             }
@@ -527,6 +537,75 @@ class FastSearchCard extends HTMLElement {
                 background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.2), transparent);
                 margin: 20px 0;
             }
+            
+            /* New Styles for Left Panel */
+            .icon-background {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 60%;
+                height: 60%;
+                transform: translate(-50%, -50%);
+                background-size: cover;
+                background-position: center;
+                z-index: 0;
+                transition: all 0.8s ease;
+                border-radius: 20px;
+                opacity: 0;
+            }
+            .icon-content {
+                position: relative;
+                z-index: 1;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            .status-indicator-large {
+                position: absolute;
+                bottom: 20px;
+                left: 20px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: var(--text-primary);
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 500;
+                opacity: 0;
+            }
+            .status-indicator-large.active {
+                 background: var(--accent);
+                 border-color: var(--accent);
+            }
+            .quick-stats {
+                position: absolute;
+                bottom: 20px;
+                right: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                align-items: flex-end;
+                opacity: 0;
+            }
+            .stat-item {
+                background: rgba(0, 0, 0, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 6px 12px;
+                font-size: 11px;
+                color: var(--text-secondary);
+                font-weight: 500;
+                white-space: nowrap;
+            }
+            .icon-content.light-on .quick-stats {
+                flex-direction: row;
+                gap: 8px;
+            }
+
 
             .category-buttons {
                 display: none;
@@ -606,7 +685,6 @@ class FastSearchCard extends HTMLElement {
                 margin: 0;
             }
 
-            /* Responsive styles for detail view */
             @media (max-width: 768px) {
                 .detail-content {
                     flex-direction: column;
@@ -615,14 +693,27 @@ class FastSearchCard extends HTMLElement {
                 .detail-divider {
                     display: none;
                 }
-                .detail-left, .detail-right {
+                .detail-left {
+                    min-height: 250px;
+                    flex: none;
+                }
+                .detail-right {
                     padding: 16px;
                 }
                 .detail-header {
                     padding: 16px;
                 }
+                 .status-indicator-large, .quick-stats {
+                    bottom: 15px;
+                    left: 15px;
+                }
+                .quick-stats {
+                    flex-direction: row;
+                    right: auto;
+                    left: 15px;
+                    bottom: 45px;
+                }
             }
-
             </style>
 
             <div class="main-container">
@@ -780,57 +871,20 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
         const backButton = this.shadowRoot.querySelector('.back-button');
 
-        // Search Events
         searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
         searchInput.addEventListener('focus', () => this.handleSearchFocus());
-        
-        // Clear Button
-        clearButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.clearSearch();
-        });
-        
-        // Category Icon - Toggle Category Buttons
-        categoryIcon.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleCategoryButtons();
-        });
-
-        // Filter Icon
-        filterIcon.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.handleFilterClick();
-        });
-
-        // Category Buttons
+        clearButton.addEventListener('click', (e) => { e.stopPropagation(); this.clearSearch(); });
+        categoryIcon.addEventListener('click', (e) => { e.stopPropagation(); this.toggleCategoryButtons(); });
+        filterIcon.addEventListener('click', (e) => { e.stopPropagation(); this.handleFilterClick(); });
         categoryButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.handleCategorySelect(button);
-            });
+            button.addEventListener('click', (e) => { e.stopPropagation(); this.handleCategorySelect(button); });
         });
-
-        // Back Button
-        backButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.handleBackClick();
-        });
-
-        // Subcategory Chips - Event Delegation
+        backButton.addEventListener('click', (e) => { e.stopPropagation(); this.handleBackClick(); });
         this.shadowRoot.querySelector('.subcategories').addEventListener('click', (e) => {
             const chip = e.target.closest('.subcategory-chip');
-            if (chip) {
-                e.stopPropagation();
-                this.handleSubcategorySelect(chip);
-            }
+            if (chip) { e.stopPropagation(); this.handleSubcategorySelect(chip); }
         });
-
-        // Card click handler - prevent bubbling
-        this.shadowRoot.querySelector('.main-container').addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-
-        // Global click handler
+        this.shadowRoot.querySelector('.main-container').addEventListener('click', (e) => { e.stopPropagation(); });
         document.addEventListener('click', (e) => {
             if (!e.target.closest('fast-search-card')) {
                 this.hideCategoryButtons();
@@ -842,190 +896,84 @@ class FastSearchCard extends HTMLElement {
     handleSearch(query) {
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         const searchInput = this.shadowRoot.querySelector('.search-input');
-        
         this.isSearching = query.trim().length > 0;
-        
-        if (this.searchTimeout) {
-            clearTimeout(this.searchTimeout);
-        }
-        
+        if (this.searchTimeout) { clearTimeout(this.searchTimeout); }
         if (query.length > 0) {
             clearButton.classList.add('visible');
             this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
         } else {
             this.isSearching = false; 
             const animation = this.animateElementOut(clearButton);
-            animation.finished.then(() => {
-                clearButton.classList.remove('visible');
-            });
+            animation.finished.then(() => { clearButton.classList.remove('visible'); });
         }
-        
-        searchInput.animate([
-            { transform: 'scale(1)' },
-            { transform: 'scale(1.02)' },
-            { transform: 'scale(1)' }
-        ], {
-            duration: 200,
-            easing: 'ease-out'
-        });
-        
-        if (!this.isPanelExpanded) {
-            this.expandPanel();
-        }
-        
+        searchInput.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.02)' }, { transform: 'scale(1)' }], { duration: 200, easing: 'ease-out' });
+        if (!this.isPanelExpanded) { this.expandPanel(); }
         this.performSearch(query);
     }
 
     handleSearchFocus() {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        
-        searchPanel.animate([
-            { 
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-                borderColor: 'rgba(255, 255, 255, 0.2)'
-            },
-            { 
-                boxShadow: '0 8px 32px rgba(0, 122, 255, 0.3)',
-                borderColor: 'var(--accent)'
-            }
-        ], {
-            duration: 300,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
-
-        if (!this.isPanelExpanded) {
-            this.expandPanel();
-        }
+        searchPanel.animate([{ boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)', borderColor: 'rgba(255, 255, 255, 0.2)' }, { boxShadow: '0 8px 32px rgba(0, 122, 255, 0.3)', borderColor: 'var(--accent)' }], { duration: 300, easing: 'ease-out', fill: 'forwards' });
+        if (!this.isPanelExpanded) { this.expandPanel(); }
     }
 
     clearSearch() {
         const searchInput = this.shadowRoot.querySelector('.search-input');
         const clearButton = this.shadowRoot.querySelector('.clear-button');
-        
         searchInput.value = '';
         this.isSearching = false; 
-        
         const animation = this.animateElementOut(clearButton);
-        animation.finished.then(() => {
-            clearButton.classList.remove('visible');
-        });
-        
+        animation.finished.then(() => { clearButton.classList.remove('visible'); });
         this.hasAnimated = false;
         this.showCurrentCategoryItems();
         searchInput.focus();
     }
 
     toggleCategoryButtons() {
-        if (this.isMenuView) {
-            this.hideCategoryButtons();
-        } else {
-            this.showCategoryButtons();
-        }
+        if (this.isMenuView) { this.hideCategoryButtons(); } else { this.showCategoryButtons(); }
     }
 
     showCategoryButtons() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
-        
         categoryButtons.classList.add('visible');
-        categoryButtons.animate([
-            { 
-                opacity: 0,
-                transform: 'translateX(20px) scale(0.9)'
-            },
-            { 
-                opacity: 1,
-                transform: 'translateX(0) scale(1)'
-            }
-        ], {
-            duration: 400,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
+        categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
     }
 
     hideCategoryButtons() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        
         if (!this.isMenuView) return;
-        
-        const animation = categoryButtons.animate([
-            { 
-                opacity: 1,
-                transform: 'translateX(0) scale(1)'
-            },
-            { 
-                opacity: 0,
-                transform: 'translateX(20px) scale(0.9)'
-            }
-        ], {
-            duration: 300,
-            easing: 'ease-in',
-            fill: 'forwards'
-        });
-
-        animation.finished.then(() => {
-            categoryButtons.classList.remove('visible');
-            this.isMenuView = false;
-        });
+        const animation = categoryButtons.animate([{ opacity: 1, transform: 'translateX(0) scale(1)' }, { opacity: 0, transform: 'translateX(20px) scale(0.9)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' });
+        animation.finished.then(() => { categoryButtons.classList.remove('visible'); this.isMenuView = false; });
     }
 
     handleCategorySelect(selectedButton) {
         const category = selectedButton.dataset.category;
         if (category === this.activeCategory) return;
-
-        this.shadowRoot.querySelectorAll('.category-button').forEach(btn => {
-            btn.classList.remove('active');
-        });
+        this.shadowRoot.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
         selectedButton.classList.add('active');
-
-        selectedButton.animate([
-            { transform: 'scale(1)' },
-            { transform: 'scale(1.1)' },
-            { transform: 'scale(1)' }
-        ], {
-            duration: 300,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-        });
-
+        selectedButton.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
         this.activeCategory = category;
         this.updateCategoryIcon();
         this.updatePlaceholder();
-        
         this.hideCategoryButtons();
-        
         this.expandPanel();
         this.showCurrentCategoryItems();
     }
 
     handleSubcategorySelect(selectedChip) {
         let subcategory = selectedChip.dataset.subcategory;
-
         if (subcategory === this.activeSubcategory && subcategory !== 'all') {
             subcategory = 'all';
             selectedChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
         } else if (subcategory === this.activeSubcategory) {
             return;
         }
-
-        this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => {
-            chip.classList.remove('active');
-        });
+        this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => chip.classList.remove('active'));
         selectedChip.classList.add('active');
-
-        selectedChip.animate([
-            { transform: 'scale(1)' },
-            { transform: 'scale(1.05)' },
-            { transform: 'scale(1)' }
-        ], {
-            duration: 300,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-        });
-
+        selectedChip.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
         this.activeSubcategory = subcategory;
         this.hasAnimated = false;
-        
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (searchInput.value.trim()) {
             searchInput.value = '';
@@ -1033,70 +981,38 @@ class FastSearchCard extends HTMLElement {
             const clearButton = this.shadowRoot.querySelector('.clear-button');
             clearButton.classList.remove('visible');
         }
-        
         this.filterBySubcategory();
     }
 
     handleFilterClick() {
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        
-        filterIcon.animate([
-            { transform: 'rotate(0deg)' },
-            { transform: 'rotate(180deg)' },
-            { transform: 'rotate(0deg)' }
-        ], {
-            duration: 600,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-        });
+        filterIcon.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(180deg)' }, { transform: 'rotate(0deg)' }], { duration: 600, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
     }
 
     expandPanel() {
         if (this.isPanelExpanded) return;
-        
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         this.isPanelExpanded = true;
-        
         searchPanel.classList.add('expanded');
-        
         const searchInput = this.shadowRoot.querySelector('.search-input');
-        if (!searchInput.value.trim()) {
-            this.showCurrentCategoryItems();
-        }
+        if (!searchInput.value.trim()) { this.showCurrentCategoryItems(); }
     }
 
     collapsePanel() {
         if (!this.isPanelExpanded) return;
-        
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         this.isPanelExpanded = false;
-        
         searchPanel.classList.remove('expanded');
     }
 
     updateCategoryIcon() {
         const categoryIcon = this.shadowRoot.querySelector('.category-icon');
         const icons = {
-            devices: `<svg viewBox="0 0 24 24" fill="none">
-                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                <path d="M12 18h.01"/>
-            </svg>`,
-            scripts: `<svg viewBox="0 0 24 24" fill="none">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14,2 14,8 20,8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-            </svg>`,
-            automations: `<svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 2v6l3-3 3 3"/>
-                <path d="M12 18v4"/>
-                <circle cx="12" cy="12" r="2"/>
-            </svg>`,
-            scenes: `<svg viewBox="0 0 24 24" fill="none">
-                <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
-                <path d="M8 3v4"/>
-            </svg>`
+            devices: `<svg viewBox="0 0 24 24" fill="none"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>`,
+            scripts: `<svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+            automations: `<svg viewBox="0 0 24 24" fill="none"><path d="M12 2v6l3-3 3 3"/><path d="M12 18v4"/><circle cx="12" cy="12" r="2"/></svg>`,
+            scenes: `<svg viewBox="0 0 24 24" fill="none"><path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><path d="M8 3v4"/></svg>`
         };
-        
         categoryIcon.innerHTML = icons[this.activeCategory] || icons.devices;
     }
 
@@ -1108,23 +1024,17 @@ class FastSearchCard extends HTMLElement {
             automations: 'Automationen suchen...',
             scenes: 'Szenen suchen...'
         };
-        
         searchInput.placeholder = placeholders[this.activeCategory] || placeholders.devices;
     }
 
     updateItems() {
         if (!this._hass || !this._config.entities) return;
-
         this.allItems = this._config.entities.map(entityConfig => {
             const entityId = entityConfig.entity;
             const state = this._hass.states[entityId];
-            
             if (!state) return null;
-
             const domain = entityId.split('.')[0];
-            const configArea = entityConfig.area;
-            const areaName = configArea || 'Ohne Raum';
-
+            const areaName = entityConfig.area || 'Ohne Raum';
             return {
                 id: entityId,
                 name: entityConfig.title || state.attributes.friendly_name || entityId,
@@ -1137,142 +1047,79 @@ class FastSearchCard extends HTMLElement {
                 isActive: this.isEntityActive(state)
             };
         }).filter(Boolean);
-
         this.allItems.sort((a, b) => a.area.localeCompare(b.area));
         this.showCurrentCategoryItems();
         this.updateSubcategoryCounts();
     }
 
     getSubcategoryStatusText(subcategory, count) {
-        const textMap = {
-            'lights': 'An',
-            'climate': 'Aktiv',
-            'covers': 'Offen',
-            'media': 'Aktiv'
-        };
-
+        const textMap = { 'lights': 'An', 'climate': 'Aktiv', 'covers': 'Offen', 'media': 'Aktiv' };
         const text = textMap[subcategory] || 'Aktiv'; 
-        
         return `${count} ${text}`;
     }
 
     updateSubcategoryCounts() {
         if (!this._hass || !this.allItems) return;
-
-        const domainMap = {
-            'lights': ['light', 'switch'],
-            'climate': ['climate', 'fan'],
-            'covers': ['cover'],
-            'media': ['media_player']
-        };
-
+        const domainMap = { 'lights': ['light', 'switch'], 'climate': ['climate', 'fan'], 'covers': ['cover'], 'media': ['media_player'] };
         for (const subcategory in domainMap) {
             const chip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="${subcategory}"]`);
             if (!chip) continue;
-
             const domains = domainMap[subcategory];
-            const categoryItems = this.allItems.filter(item =>
-                this.isItemInCategory(item, 'devices') && domains.includes(item.domain)
-            );
-
+            const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, 'devices') && domains.includes(item.domain));
             const activeCount = categoryItems.filter(item => {
                 const state = this._hass.states[item.id];
                 return state && this.isEntityActive(state);
             }).length;
-
             const statusText = this.getSubcategoryStatusText(subcategory, activeCount);
             const statusElement = chip.querySelector('.subcategory-status');
-            if (statusElement) {
-                statusElement.textContent = statusText;
-            }
+            if (statusElement) { statusElement.textContent = statusText; }
         }
     }
 
-
     updateStates() {
-        if (!this._hass || this.isDetailView || this.isSearching) {
-            return;
-        }
-
+        if (!this._hass || this.isDetailView || this.isSearching) { return; }
         this.updateSubcategoryCounts();
-
         const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
         deviceCards.forEach(card => {
             const entityId = card.dataset.entity;
             const state = this._hass.states[entityId];
-            
             if (state) {
                 const isActive = this.isEntityActive(state);
                 const wasActive = card.classList.contains('active');
-                
                 card.classList.toggle('active', isActive);
-                
-                if (isActive !== wasActive) {
-                    this.animateStateChange(card, isActive);
-                }
-                
+                if (isActive !== wasActive) { this.animateStateChange(card, isActive); }
                 const statusElement = card.querySelector('.device-status');
-                if (statusElement) {
-                    statusElement.textContent = this.getEntityStatus(state);
-                }
+                if (statusElement) { statusElement.textContent = this.getEntityStatus(state); }
             }
         });
     }
 
     categorizeEntity(domain) {
-        const categoryMap = {
-            light: 'lights',
-            switch: 'lights',
-            climate: 'climate',
-            fan: 'climate',
-            cover: 'covers',
-            media_player: 'media',
-            script: 'scripts',
-            automation: 'automations',
-            scene: 'scenes'
-        };
+        const categoryMap = { light: 'lights', switch: 'lights', climate: 'climate', fan: 'climate', cover: 'covers', media_player: 'media', script: 'scripts', automation: 'automations', scene: 'scenes' };
         return categoryMap[domain] || 'other';
     }
 
     getEntityIcon(domain) {
-        const iconMap = {
-            light: '💡',
-            switch: '🔌',
-            climate: '🌡️',
-            fan: '💨',
-            cover: '🪟',
-            media_player: '🎵',
-            script: '📄',
-            automation: '⚙️',
-            scene: '🎬'
-        };
+        const iconMap = { light: '💡', switch: '🔌', climate: '🌡️', fan: '💨', cover: '🪟', media_player: '🎵', script: '📄', automation: '⚙️', scene: '🎬' };
         return iconMap[domain] || '⚙️';
     }
 
     isEntityActive(state) {
         if (!state) return false;
         const domain = state.entity_id.split('.')[0];
-        
         switch (domain) {
             case 'climate':
-                const climateInactiveStates = ['off', 'unavailable'];
-                return !climateInactiveStates.includes(state.state);
-            
+                return !['off', 'unavailable'].includes(state.state);
             case 'media_player':
-                const mediaInactiveStates = ['off', 'unavailable', 'idle', 'standby'];
-                return !mediaInactiveStates.includes(state.state);
-
+                return !['off', 'unavailable', 'idle', 'standby'].includes(state.state);
             case 'light':
             case 'switch':
             case 'fan':
                 return state.state === 'on';
-
             case 'cover':
                 return state.state === 'open' || (state.attributes.current_position != null && state.attributes.current_position > 0);
-            
             case 'automation':
                 return state.state === 'on';
-
             default:
                 return state.state === 'on';
         }
@@ -1280,25 +1127,18 @@ class FastSearchCard extends HTMLElement {
 
     getEntityStatus(state) {
         if (!state) return 'Unbekannt';
-        
         const domain = state.entity_id.split('.')[0];
-        
         switch (domain) {
             case 'light':
                 if (state.state === 'on') {
                     const brightness = state.attributes.brightness;
-                    if (brightness) {
-                        const percent = Math.round((brightness / 255) * 100);
-                        return `${percent}%`;
-                    }
+                    if (brightness) { return `${Math.round((brightness / 255) * 100)}%`; }
                     return 'An';
                 }
                 return 'Aus';
-                
             case 'climate':
                 const temp = state.attributes.current_temperature;
                 return temp ? `${temp}°C` : state.state;
-                
             case 'cover':
                 const position = state.attributes.current_position;
                 if (position !== undefined) {
@@ -1306,152 +1146,87 @@ class FastSearchCard extends HTMLElement {
                     return 'Geschlossen';
                 }
                 return state.state === 'open' ? 'Offen' : 'Geschlossen';
-                
             case 'media_player':
                 return state.state === 'playing' ? 'Spielt' : 'Aus';
-                
             case 'script':
                 return state.state === 'on' ? 'Läuft' : 'Bereit';
-                
             case 'automation':
                 return state.state === 'on' ? 'Aktiv' : 'Inaktiv';
-                
             case 'scene':
                 return 'Bereit';
-                
             default:
                 return state.state === 'on' ? 'An' : 'Aus';
         }
     }
 
     performSearch(query) {
-        if (!query.trim()) {
-            this.showCurrentCategoryItems();
-            return;
-        }
-        
+        if (!query.trim()) { this.showCurrentCategoryItems(); return; }
         const searchTerm = query.toLowerCase();
         this.filteredItems = this.allItems.filter(item => {
-            const isInCategory = this.isItemInCategory(item, this.activeCategory);
-            if (!isInCategory) return false;
-            
-            return item.name.toLowerCase().includes(searchTerm) ||
-                   item.id.toLowerCase().includes(searchTerm) ||
-                   item.area.toLowerCase().includes(searchTerm);
+            if (!this.isItemInCategory(item, this.activeCategory)) return false;
+            return item.name.toLowerCase().includes(searchTerm) || item.id.toLowerCase().includes(searchTerm) || item.area.toLowerCase().includes(searchTerm);
         });
-        
         this.renderResults();
     }
 
     showCurrentCategoryItems() {
-        this.filteredItems = this.allItems.filter(item => 
-            this.isItemInCategory(item, this.activeCategory)
-        );
-        
-        if (this.activeSubcategory !== 'all') {
-            this.filterBySubcategory();
-        } else {
-            this.renderResults();
-        }
+        this.filteredItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+        if (this.activeSubcategory !== 'all') { this.filterBySubcategory(); } else { this.renderResults(); }
     }
 
     isItemInCategory(item, category) {
         switch (category) {
-            case 'devices':
-                return !['script', 'automation', 'scene'].includes(item.domain);
-            case 'scripts':
-                return item.domain === 'script';
-            case 'automations':
-                return item.domain === 'automation';
-            case 'scenes':
-                return item.domain === 'scene';
-            default:
-                return true;
+            case 'devices': return !['script', 'automation', 'scene'].includes(item.domain);
+            case 'scripts': return item.domain === 'script';
+            case 'automations': return item.domain === 'automation';
+            case 'scenes': return item.domain === 'scene';
+            default: return true;
         }
     }
 
     filterBySubcategory() {
-        if (this.activeSubcategory === 'all') {
-            this.showCurrentCategoryItems();
-            return;
-        }
-        
-        if (this.activeSubcategory === 'none') {
-            this.filteredItems = [];
-            this.renderResults();
-            return;
-        }
-
-        const categoryItems = this.allItems.filter(item => 
-            this.isItemInCategory(item, this.activeCategory)
-        );
-
-        const domainMap = {
-            'lights': ['light', 'switch'],
-            'climate': ['climate', 'fan'],
-            'covers': ['cover'],
-            'media': ['media_player']
-        };
-
+        if (this.activeSubcategory === 'all') { this.showCurrentCategoryItems(); return; }
+        if (this.activeSubcategory === 'none') { this.filteredItems = []; this.renderResults(); return; }
+        const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+        const domainMap = { 'lights': ['light', 'switch'], 'climate': ['climate', 'fan'], 'covers': ['cover'], 'media': ['media_player'] };
         const domains = domainMap[this.activeSubcategory] || [];
         this.filteredItems = categoryItems.filter(item => domains.includes(item.domain));
-        
         this.renderResults();
     }
 
     renderResults() {
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
-        
         this.animationTimeouts.forEach(timeout => clearTimeout(timeout));
         this.animationTimeouts = [];
-        
         if (this.filteredItems.length === 0) {
-            resultsGrid.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">🔍</div>
-                    <div class="empty-title">Keine Ergebnisse</div>
-                    <div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div>
-                </div>
-            `;
+            resultsGrid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
             return;
         }
-
         resultsGrid.innerHTML = '';
-        
         const groupedItems = this.filteredItems.reduce((groups, item) => {
             const area = item.area || 'Ohne Raum';
-            if (!groups[area]) {
-                groups[area] = [];
-            }
+            if (!groups[area]) { groups[area] = []; }
             groups[area].push(item);
             return groups;
         }, {});
-        
         let cardIndex = 0;
-        
         Object.keys(groupedItems).sort().forEach(area => {
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
             areaHeader.textContent = area;
             resultsGrid.appendChild(areaHeader);
-            
             groupedItems[area].forEach((item) => {
                 const card = this.createDeviceCard(item);
                 resultsGrid.appendChild(card);
-                
                 if (!this.hasAnimated) {
                     const timeout = setTimeout(() => {
-                        this.animateElementIn(card, {
-                            opacity: [0, 1],
-                            transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)']
-                        });
+                        this.animateElementIn(card, { opacity: [0, 1], transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)'] });
                     }, cardIndex * 50);
                     this.animationTimeouts.push(timeout);
                 }
                 cardIndex++;
             });
         });
-        
         this.hasAnimated = true;
     }
 
@@ -1459,17 +1234,8 @@ class FastSearchCard extends HTMLElement {
         const card = document.createElement('div');
         card.className = `device-card ${item.isActive ? 'active' : ''}`;
         card.dataset.entity = item.id;
-        
-        card.innerHTML = `
-            <div class="device-icon">${item.icon}</div>
-            <div class="device-info">
-                <div class="device-name">${item.name}</div>
-                <div class="device-status">${this.getEntityStatus(this._hass.states[item.id])}</div>
-            </div>
-        `;
-        
+        card.innerHTML = `<div class="device-icon">${item.icon}</div><div class="device-info"><div class="device-name">${item.name}</div><div class="device-status">${this.getEntityStatus(this._hass.states[item.id])}</div></div>`;
         card.addEventListener('click', () => this.handleDeviceClick(item, card));
-        
         return card;
     }
 
@@ -1480,7 +1246,6 @@ class FastSearchCard extends HTMLElement {
             activeSubcategory: this.activeSubcategory,
             filteredItems: [...this.filteredItems]
         };
-        
         this.currentDetailItem = item;
         this.showDetailView();
     }
@@ -1488,49 +1253,31 @@ class FastSearchCard extends HTMLElement {
     showDetailView() {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
-        
         this.isDetailView = true;
-        
         detailPanel.style.flex = '1';
         detailPanel.style.width = 'auto';
-
-        searchPanel.animate([
-            { opacity: 1, transform: 'translateX(0%)' },
-            { opacity: 0, transform: 'translateX(-20%)' }
-        ], { duration: 300, easing: 'ease-in', fill: 'forwards' })
+        searchPanel.animate([{ opacity: 1, transform: 'translateX(0%)' }, { opacity: 0, transform: 'translateX(-20%)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' })
         .finished.then(() => {
             searchPanel.style.pointerEvents = 'none';
             searchPanel.style.flex = '0';
         });
-
         detailPanel.style.pointerEvents = 'auto';
-        detailPanel.animate([
-            { opacity: 0, transform: 'translateX(100%)' },
-            { opacity: 1, transform: 'translateX(0%)' }
-        ], { duration: 350, delay: 100, easing: 'ease-out', fill: 'forwards' });
-        
+        detailPanel.animate([{ opacity: 0, transform: 'translateX(100%)' }, { opacity: 1, transform: 'translateX(0%)' }], { duration: 350, delay: 100, easing: 'ease-out', fill: 'forwards' });
         this.renderDetailView();
     }
 
     handleBackClick() {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
-        
         this.isDetailView = false;
-        
         searchPanel.style.flex = '1';
         searchPanel.style.width = 'auto';
-
-        detailPanel.animate([
-            { opacity: 1, transform: 'translateX(0%)' },
-            { opacity: 0, transform: 'translateX(100%)' }
-        ], { duration: 300, easing: 'ease-in', fill: 'forwards' })
+        detailPanel.animate([{ opacity: 1, transform: 'translateX(0%)' }, { opacity: 0, transform: 'translateX(100%)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' })
         .finished.then(() => {
             detailPanel.style.pointerEvents = 'none';
             detailPanel.style.flex = '0';
             detailPanel.style.width = '0';
         });
-
         if (this.previousSearchState) {
             this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
             this.activeCategory = this.previousSearchState.activeCategory;
@@ -1539,19 +1286,16 @@ class FastSearchCard extends HTMLElement {
             });
             this.activeSubcategory = this.previousSearchState.activeSubcategory;
             this.filteredItems = this.previousSearchState.filteredItems;
-            
             this.updateCategoryIcon();
             this.updatePlaceholder();
             this.renderResults();
         }
-
         searchPanel.style.pointerEvents = 'auto';
-        searchPanel.animate([
-            { opacity: 0, transform: 'translateX(-20%)' },
-            { opacity: 1, transform: 'translateX(0%)' }
-        ], { duration: 350, delay: 100, easing: 'ease-out', fill: 'forwards' });
+        searchPanel.animate([{ opacity: 0, transform: 'translateX(-20%)' }, { opacity: 1, transform: 'translateX(0%)' }], { duration: 350, delay: 100, easing: 'ease-out', fill: 'forwards' });
     }
-
+    
+    // --- Detail View Rendering ---
+    
     renderDetailView() {
         const detailLeft = this.shadowRoot.querySelector('.detail-left');
         const detailRight = this.shadowRoot.querySelector('.detail-right');
@@ -1560,26 +1304,106 @@ class FastSearchCard extends HTMLElement {
         if (!this.currentDetailItem) return;
         
         const item = this.currentDetailItem;
-        const state = this._hass.states[item.id];
-        
         detailTitle.textContent = item.name;
+
+        // Render left and right panels
+        detailLeft.innerHTML = this.getDetailLeftHTML(item);
+        detailRight.innerHTML = `<div>Right Panel placeholder for ${item.name}</div>`;
+
+        // Animate elements in
+        const statusIndicator = this.shadowRoot.querySelector('.status-indicator-large');
+        const quickStats = this.shadowRoot.querySelector('.quick-stats');
+        const iconBackground = this.shadowRoot.querySelector('.icon-background');
+
+        if(iconBackground) this.animateElementIn(iconBackground, { opacity: [0, 1] }, { duration: 800 });
+        if(statusIndicator) this.animateElementIn(statusIndicator, { opacity: [0, 1], transform: ['translateX(-20px)', 'translateX(0)'] }, { delay: 600 });
+        if(quickStats) this.animateElementIn(quickStats, { opacity: [0, 1], transform: ['translateX(20px)', 'translateX(0)'] }, { delay: 800 });
+    }
+
+    getDetailLeftHTML(item) {
+        const state = this._hass.states[item.id];
+        const isActive = this.isEntityActive(state);
+        const stateInfo = this.getDetailedStateText(item);
+        const quickStats = this.getQuickStats(item);
+        const backgroundImage = this.getBackgroundImageForItem(item);
+        const albumArt = (item.domain === 'media_player') ? this.getAlbumArtUrl(item) : null;
         
-        detailLeft.innerHTML = `
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div style="font-size: 48px; margin-bottom: 12px;">${item.icon}</div>
-                <h3 style="margin: 0; color: var(--text-primary);">${item.name}</h3>
-                <p style="margin: 8px 0 0 0; color: var(--text-secondary);">Raum: ${item.area}</p>
+        const backgroundStyle = albumArt 
+            ? `background-image: url('${albumArt}');`
+            : `background-image: url('${backgroundImage}');`;
+
+        const lightOnClass = (item.domain === 'light' && isActive) ? 'light-on' : '';
+
+        return `
+            <div class="icon-background" style="${backgroundStyle}"></div>
+            <div class="icon-content ${lightOnClass}">
+                <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
+                <div class="quick-stats">
+                    ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
+                </div>
             </div>
         `;
-        
-        detailRight.innerHTML = `
-            <div style="color: var(--text-primary);">
-                <h4 style="margin: 0 0 16px 0;">Status</h4>
-                <p style="margin: 0 0 8px 0;">Zustand: ${this.getEntityStatus(state)}</p>
-                <p style="margin: 0 0 8px 0;">Entität: ${item.id}</p>
-                <p style="margin: 0;">Typ: ${item.domain}</p>
-            </div>
-        `;
+    }
+
+    getDetailedStateText(item) {
+        const state = this._hass.states[item.id];
+        if (!state) return { status: 'Unbekannt', value: '', unit: '' };
+
+        switch (item.domain) {
+            case 'light': return { status: state.state === 'on' ? 'Ein' : 'Aus' };
+            case 'climate': return { status: state.state !== 'off' ? state.state : 'Aus' };
+            case 'cover': return { status: state.state === 'open' ? 'Offen' : 'Geschlossen' };
+            case 'media_player': return { status: state.state === 'playing' ? 'Spielt' : (state.state === 'paused' ? 'Pausiert' : 'Aus') };
+            default: return { status: state.state };
+        }
+    }
+
+    getQuickStats(item) {
+        const state = this._hass.states[item.id];
+        if (!state) return [];
+        const stats = [];
+
+        switch (item.domain) {
+            case 'light':
+                if (state.state === 'on') {
+                    if (state.attributes.brightness) stats.push(`${Math.round(state.attributes.brightness / 2.55)}% Helligkeit`);
+                    if (state.attributes.color_temp) stats.push(`${state.attributes.color_temp}K`);
+                }
+                break;
+            case 'climate':
+                if (state.attributes.current_temperature) stats.push(`${state.attributes.current_temperature}°C Ist`);
+                if (state.attributes.temperature) stats.push(`${state.attributes.temperature}°C Soll`);
+                break;
+            case 'media_player':
+                 if (state.state === 'playing' && state.attributes.media_title) stats.push(`♪ ${state.attributes.media_title}`);
+                 if (state.attributes.volume_level) stats.push(`${Math.round(state.attributes.volume_level * 100)}% Lautstärke`);
+                 break;
+            case 'cover':
+                if (state.attributes.current_position != null) stats.push(`${state.attributes.current_position}%`);
+                break;
+        }
+        return stats;
+    }
+
+    getBackgroundImageForItem(item) {
+        const baseUrl = 'https://raw.githubusercontent.com/fastender/Fast-Search-Card/refs/heads/main/docs/';
+        switch (item.domain) {
+            case 'light':
+                return baseUrl + (item.state === 'on' ? 'light-on.png' : 'light-off.png');
+            case 'cover':
+                return baseUrl + (item.state === 'open' ? 'cover-on.png' : 'cover-off.png');
+            case 'climate':
+                return baseUrl + (item.state !== 'off' ? 'climate-on.png' : 'climate-off.png');
+            case 'media_player':
+                return baseUrl + 'media-bg.png';
+            default:
+                return baseUrl + 'light-off.png';
+        }
+    }
+
+    getAlbumArtUrl(item) {
+        const attrs = item.attributes;
+        return attrs.entity_picture || attrs.media_image_url || null;
     }
 
     animateElementIn(element, keyframes, options = {}) {
@@ -1592,71 +1416,25 @@ class FastSearchCard extends HTMLElement {
     }
 
     animateElementOut(element, options = {}) {
-        return element.animate([
-            { opacity: 1, transform: 'scale(1)' },
-            { opacity: 0, transform: 'scale(0.8)' }
-        ], {
-            duration: 200,
-            easing: 'ease-in',
-            fill: 'forwards',
-            ...options
-        });
+        return element.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0.8)' }], { duration: 200, easing: 'ease-in', fill: 'forwards', ...options });
     }
 
     animateStateChange(card, isActive) {
         const icon = card.querySelector('.device-icon');
-        
-        card.animate([
-            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' },
-            { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' },
-            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }
-        ], {
-            duration: 600,
-            easing: 'ease-out'
-        });
-        
-        icon.animate([
-            { transform: 'scale(1)' },
-            { transform: 'scale(1.2)' },
-            { transform: 'scale(1)' }
-        ], {
-            duration: 400,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-        });
+        card.animate([{ boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }], { duration: 600, easing: 'ease-out' });
+        icon.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.2)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
     }
 
-    getCardSize() {
-        return 4;
-    }
-
-    static getConfigElement() {
-        return document.createElement('fast-search-card-editor');
-    }
-
-    static getStubConfig() {
-        return {
-            type: 'custom:fast-search-card',
-            entities: [
-                {
-                    entity: 'light.example_light',
-                    title: 'Beispiel Lampe'
-                }
-            ]
-        };
-    }
+    getCardSize() { return 4; }
+    static getConfigElement() { return document.createElement('fast-search-card-editor'); }
+    static getStubConfig() { return { type: 'custom:fast-search-card', entities: [{ entity: 'light.example_light', title: 'Beispiel Lampe' }] }; }
 }
 
 customElements.define('fast-search-card', FastSearchCard);
-
 window.customCards = window.customCards || [];
 window.customCards.push({
     type: 'fast-search-card',
     name: 'Fast Search Card',
     description: 'Modern Apple Vision OS inspired search card'
 });
-
-console.info(
-    `%c FAST-SEARCH-CARD %c Modern Vision OS Design `,
-    'color: #007AFF; font-weight: bold; background: black',
-    'color: white; font-weight: bold; background: #007AFF'
-);
+console.info(`%c FAST-SEARCH-CARD %c Modern Vision OS Design `, 'color: #007AFF; font-weight: bold; background: black', 'color: white; font-weight: bold; background: #007AFF');
