@@ -1160,20 +1160,17 @@ class FastSearchCard extends HTMLElement {
 
     getSubcategoryStatusText(subcategory, count) {
         if (count === 0) return '';
+        
         const textMap = {
             'lights': 'An',
             'climate': 'Aktiv',
             'covers': 'Offen',
             'media': 'Aktiv'
         };
-        const pluralMap = {
-            'lights': 'An',
-            'climate': 'Aktiv',
-            'covers': 'Offen',
-            'media': 'Aktiv'
-        };
 
-        const text = count === 1 ? textMap[subcategory] : (pluralMap[subcategory] || textMap[subcategory]);
+        // Use a default text if the subcategory is not in the map
+        const text = textMap[subcategory] || 'Aktiv'; 
+        
         return `${count} ${text}`;
     }
 
@@ -1273,31 +1270,30 @@ class FastSearchCard extends HTMLElement {
     }
 
     isEntityActive(state) {
+        if (!state) return false;
         const domain = state.entity_id.split('.')[0];
 
         switch (domain) {
             case 'climate':
                 // Using specific operational states for climate devices
-                const climateActiveStates = ['heat', 'cool', 'auto', 'dry', 'fan_only'];
+                const climateActiveStates = ['heat', 'cool', 'auto', 'dry', 'fan_only', 'heat_cool'];
                 return climateActiveStates.includes(state.state);
             
             case 'media_player':
-                // Media player is active if it's on or playing
-                const mediaActiveStates = ['on', 'playing'];
+                // Media player is active if it's on, playing, or buffering
+                const mediaActiveStates = ['on', 'playing', 'buffering'];
                 return mediaActiveStates.includes(state.state);
 
             case 'light':
             case 'switch':
             case 'fan':
-                // These are active when 'on'
                 return state.state === 'on';
 
             case 'cover':
-                // Active if 'open'
-                return state.state === 'open';
+                 // Active if 'open' or partially open
+                return state.state === 'open' || (state.attributes.current_position != null && state.attributes.current_position > 0);
             
             case 'automation':
-                // Active if 'on'
                 return state.state === 'on';
 
             default:
