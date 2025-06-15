@@ -760,6 +760,8 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 align-items: center;
                 gap: 24px;
+                position: relative;
+                z-index: 5;
             }
             .device-control-header { text-align: center; }
             .device-control-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
@@ -899,7 +901,8 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 position: relative;
                 overflow: hidden;
-                margin: 0 auto;
+                margin: 16px auto;
+                z-index: 10;
             }
 
             .brightness-slider-container.visible {
@@ -933,6 +936,8 @@ class FastSearchCard extends HTMLElement {
                 cursor: pointer;
                 width: 24px;
                 height: 24px;
+                z-index: 11;
+                position: relative;
             }
 
             .brightness-slider {
@@ -950,6 +955,7 @@ class FastSearchCard extends HTMLElement {
                 background-repeat: no-repeat;
                 position: relative;
                 overflow: hidden;
+                z-index: 11;
             }
 
             .brightness-slider::after {
@@ -961,6 +967,7 @@ class FastSearchCard extends HTMLElement {
                 background-color: rgb(var(--main-color));
                 transition: .2s;
                 left: calc(var(--percentage) - 10px);
+                z-index: 12;
             }
 
             .brightness-slider::-webkit-slider-thumb {
@@ -980,12 +987,20 @@ class FastSearchCard extends HTMLElement {
                 min-width: 2em;
                 text-align: right;
                 font-size: 14px;
+                z-index: 11;
+                position: relative;
             }
 
             /* Temp and Color Controls */
             .device-control-row {
-                width: 100%; max-width: 280px; display: none;
-                gap: 12px; justify-content: center;
+                width: 100%; 
+                max-width: 280px; 
+                display: none;
+                gap: 12px; 
+                justify-content: center;
+                margin-top: 16px;
+                z-index: 9;
+                position: relative;
             }
             .device-control-row.visible { display: flex; }
             .device-control-button {
@@ -1854,13 +1869,19 @@ class FastSearchCard extends HTMLElement {
             powerSwitch.addEventListener('change', () => this.callLightService('toggle', item.id));
         }
         
+        console.log('Setting up light controls for:', item.name);
+        
         if (brightnessSlider) {
+            console.log('Brightness slider found:', brightnessSlider);
             const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
             const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
             const state = this._hass.states[item.id];
             const isOn = state.state === 'on';
             
+            console.log('Slider container:', sliderContainer, 'Is on:', isOn);
+            
             function updateBrightnessSlider(value) {
+                console.log('Updating slider to:', value);
                 if (brightnessValueLabel) brightnessValueLabel.textContent = value;
                 if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${value}%`);
             }
@@ -1870,11 +1891,13 @@ class FastSearchCard extends HTMLElement {
             
             brightnessSlider.addEventListener('input', (e) => {
                 const value = parseInt(e.target.value, 10);
+                console.log('Slider input:', value);
                 updateBrightnessSlider(value);
             });
             
             brightnessSlider.addEventListener('change', (e) => {
                 const value = parseInt(e.target.value, 10);
+                console.log('Slider change:', value);
                 if (value === 0) {
                     this.callLightService('turn_off', item.id);
                 } else {
@@ -1892,6 +1915,8 @@ class FastSearchCard extends HTMLElement {
                     sliderContainer.style.setProperty("--mouse-y", `${y}px`);
                 };
             }
+        } else {
+            console.log('Brightness slider NOT found!');
         }
         
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
