@@ -950,7 +950,8 @@ class FastSearchCard extends HTMLElement {
                 outline: none;
                 transition: .2s;
                 cursor: pointer;
-                background: rgba(var(--el-bg-color), 0.3);
+                background: rgba(var(--el-bg-color), 0.3) !important;
+                background-image: none !important;
                 position: relative;
                 overflow: hidden;
                 z-index: 11;
