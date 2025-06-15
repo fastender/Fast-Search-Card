@@ -888,8 +888,9 @@ class FastSearchCard extends HTMLElement {
             /* ELEGANTER BRIGHTNESS SLIDER */
             .brightness-slider-container {
                 --percentage: 50%;
+                --slider-color: 255,255,255;
                 --main-color: 255,255,255;
-                --el-bg-color: 220,220,220;
+                --el-bg-color: 100,100,100;
                 display: none;
                 width: 280px;
                 height: 20px;
@@ -906,7 +907,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .brightness-slider-container.visible {
-                display: flex;
+                display: flex !important;
             }
 
             .brightness-slider-container::after {
@@ -931,13 +932,14 @@ class FastSearchCard extends HTMLElement {
             }
 
             .brightness-icon {
-                fill: rgb(var(--el-bg-color));
+                fill: rgba(var(--slider-color), 0.8);
                 margin-right: 1em;
                 cursor: pointer;
                 width: 24px;
                 height: 24px;
                 z-index: 11;
                 position: relative;
+                transition: fill 0.3s ease;
             }
 
             .brightness-slider {
@@ -949,8 +951,8 @@ class FastSearchCard extends HTMLElement {
                 outline: none;
                 transition: .2s;
                 cursor: pointer;
-                background: rgba(var(--el-bg-color), 0.5);
-                background-image: linear-gradient(rgb(var(--main-color)), rgb(var(--main-color)));
+                background: rgba(var(--el-bg-color), 0.3);
+                background-image: linear-gradient(rgba(var(--slider-color), 1), rgba(var(--slider-color), 1));
                 background-size: calc(var(--percentage) - 9px) 100%;
                 background-repeat: no-repeat;
                 position: relative;
@@ -964,7 +966,7 @@ class FastSearchCard extends HTMLElement {
                 height: 100%;
                 width: 10px;
                 border-radius: 0 50px 50px 0;
-                background-color: rgb(var(--main-color));
+                background-color: rgba(var(--slider-color), 1);
                 transition: .2s;
                 left: calc(var(--percentage) - 10px);
                 z-index: 12;
@@ -983,12 +985,13 @@ class FastSearchCard extends HTMLElement {
 
             .brightness-value-display {
                 font-family: sans-serif;
-                color: rgb(var(--el-bg-color));
+                color: rgba(var(--slider-color), 0.9);
                 min-width: 2em;
                 text-align: right;
                 font-size: 14px;
                 z-index: 11;
                 position: relative;
+                transition: color 0.3s ease;
             }
 
             /* Temp and Color Controls */
@@ -1886,6 +1889,21 @@ class FastSearchCard extends HTMLElement {
                 if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${value}%`);
             }
             
+            function updateSliderColor(rgbArray) {
+                if (sliderContainer && rgbArray) {
+                    const colorString = rgbArray.join(',');
+                    sliderContainer.style.setProperty('--slider-color', colorString);
+                    console.log('Updated slider color to:', colorString);
+                }
+            }
+            
+            // Set initial color based on light attributes
+            if (state.attributes.rgb_color) {
+                updateSliderColor(state.attributes.rgb_color);
+            } else {
+                updateSliderColor([255, 255, 255]); // Default white
+            }
+            
             const currentBrightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
             updateBrightnessSlider(currentBrightness);
             
@@ -1937,6 +1955,14 @@ class FastSearchCard extends HTMLElement {
             this.callLightService('turn_on', item.id, { rgb_color: rgb });
             colorPresets.forEach(p => p.classList.remove('active'));
             preset.classList.add('active');
+            
+            // Update slider color immediately
+            const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
+            if (sliderContainer) {
+                const colorString = rgb.join(',');
+                sliderContainer.style.setProperty('--slider-color', colorString);
+                console.log('Color preset clicked, updated slider to:', colorString);
+            }
         }));
     }
     
