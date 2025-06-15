@@ -1649,6 +1649,8 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         if (!state) return;
 
+        console.log('updateDetailViewStates called for:', item.name, 'state:', state.state);
+
         const detailLeft = this.shadowRoot.querySelector('.detail-left');
         if (detailLeft) {
             const isActive = this.isEntityActive(state);
@@ -1663,12 +1665,17 @@ class FastSearchCard extends HTMLElement {
             }
             const iconBackground = detailLeft.querySelector('.icon-background');
             if (iconBackground) {
-                const newBg = item.domain === 'media_player' ? this.getAlbumArtUrl(item) : this.getBackgroundImageForItem(item);
-                if (iconBackground.style.backgroundImage !== `url("${newBg}")`) {
+                const newBg = item.domain === 'media_player' ? this.getAlbumArtUrl(item) : this.getBackgroundImageForItem({...item, state: state.state});
+                const currentBg = iconBackground.style.backgroundImage;
+                if (currentBg !== `url("${newBg}")`) {
+                   console.log('Updating background from', currentBg, 'to', newBg);
                    iconBackground.style.backgroundImage = `url('${newBg}')`;
-                   // Force background update
+                   // Force background update with animation
                    iconBackground.style.opacity = '0';
-                   setTimeout(() => { iconBackground.style.opacity = '1'; }, 50);
+                   setTimeout(() => { 
+                       iconBackground.style.opacity = '1'; 
+                       console.log('Background opacity restored');
+                   }, 100);
                 }
             }
         }
@@ -1882,26 +1889,56 @@ class FastSearchCard extends HTMLElement {
 
         if (powerSwitch) {
             powerSwitch.addEventListener('change', () => {
-                console.log('Power switch toggled');
+                console.log('Power switch toggled to:', powerSwitch.checked);
                 this.callLightService('toggle', item.id);
                 
-                // Sofortiges UI Update
+                // Sofortiges UI Update mit force display styles
                 const isOn = powerSwitch.checked;
                 const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
                 const controlsRow = lightContainer.querySelector('.device-control-row');
+                const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
+                const state = this._hass.states[item.id];
                 
-                console.log('Immediate UI update - isOn:', isOn);
+                console.log('Immediate force UI update - isOn:', isOn);
+                
+                // Update brightness display immediately
+                if (brightnessValueLabel) {
+                    const brightness = isOn ? Math.round((state.attributes.brightness || 255) / 2.55) : 0;
+                    brightnessValueLabel.textContent = brightness;
+                    console.log('Updated brightness display to:', brightness);
+                }
                 
                 if (sliderContainer) {
-                    sliderContainer.classList.remove('visible');
-                    sliderContainer.offsetHeight; // Force reflow
                     if (isOn) {
+                        sliderContainer.style.display = 'flex';
                         sliderContainer.classList.add('visible');
+                    } else {
+                        sliderContainer.style.display = 'none';
+                        sliderContainer.classList.remove('visible');
                     }
                 }
                 
                 if (controlsRow) {
-                    controlsRow.classList.toggle('visible', isOn);
+                    if (isOn) {
+                        controlsRow.style.display = 'flex';
+                        controlsRow.classList.add('visible');
+                    } else {
+                        controlsRow.style.display = 'none';
+                        controlsRow.classList.remove('visible');
+                    }
+                }
+                
+                // Force update background image
+                const detailLeft = this.shadowRoot.querySelector('.detail-left');
+                if (detailLeft) {
+                    const iconBackground = detailLeft.querySelector('.icon-background');
+                    if (iconBackground) {
+                        const newBg = this.getBackgroundImageForItem({...item, state: isOn ? 'on' : 'off'});
+                        iconBackground.style.backgroundImage = `url('${newBg}')`;
+                        iconBackground.style.opacity = '0';
+                        setTimeout(() => { iconBackground.style.opacity = '1'; }, 100);
+                        console.log('Updated background image to:', newBg);
+                    }
                 }
             });
         }
@@ -1974,6 +2011,23 @@ class FastSearchCard extends HTMLElement {
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
             const kelvin = parseInt(btn.dataset.temp, 10);
             this.callLightService('turn_on', item.id, { kelvin: kelvin });
+            
+            // Convert kelvin to RGB approximation for slider color
+            const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
+            if (sliderContainer) {
+                let rgb;
+                if (kelvin <= 2700) {
+                    rgb = [255, 166, 87]; // Warm orange
+                } else if (kelvin <= 4000) {
+                    rgb = [255, 219, 186]; // Neutral warm
+                } else {
+                    rgb = [201, 226, 255]; // Cool blue-white
+                }
+                
+                const colorString = rgb.join(',');
+                sliderContainer.style.setProperty('--slider-color', colorString);
+                console.log('Temperature button clicked, updated slider to:', colorString, 'for', kelvin + 'K');
+            }
         }));
 
         if (colorToggle) {
