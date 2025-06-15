@@ -883,31 +883,99 @@ class FastSearchCard extends HTMLElement {
                 100% { transform: scale(1); }
             }
 
-            /* Brightness Slider */
-            .device-control-slider-container { width: 100%; max-width: 280px; display: none; }
-            .device-control-slider-container.visible { display: block; }
-            .device-control-slider-label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
-            .range-slider {
-                -webkit-appearance: none;
-                width: 100%;
-                height: 8px;
-                border-radius: 5px;
-                background: rgba(0, 0, 0, 0.4);
-                outline: none;
-                padding: 0;
-                margin: 0;
-                transition: background-image 0.2s;
-            }
-            .range-slider::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 20px;
+            /* ELEGANTER BRIGHTNESS SLIDER */
+            .brightness-slider-container {
+                --percentage: 50%;
+                --main-color: 255,255,255;
+                --el-bg-color: 220,220,220;
+                display: flex;
+                width: 280px;
                 height: 20px;
-                border-radius: 50%;
-                background: var(--accent);
+                padding: 20px 20px;
+                background: rgba(var(--main-color), 0.07);
+                border: 1px solid rgba(var(--main-color), 0.03);
+                border-radius: 50px;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                overflow: hidden;
+                margin: 0 auto;
+            }
+
+            .brightness-slider-container::after {
+                content: "";
+                height: 100%;
+                opacity: 0;
+                left: 0;
+                position: absolute;
+                top: 0;
+                transition: opacity 500ms;
+                width: 100%;
+                background: radial-gradient(
+                    500px circle at var(--mouse-x) var(--mouse-y),
+                    rgba(var(--main-color), 0.06),
+                    transparent 40%
+                );
+                z-index: -1;
+            }
+
+            .brightness-slider-container:hover::after {
+                opacity: 1;
+            }
+
+            .brightness-icon {
+                fill: rgb(var(--el-bg-color));
+                margin-right: 1em;
                 cursor: pointer;
-                border: 3px solid var(--neumorphic-base);
-                box-shadow: 0 0 5px rgba(0,0,0,0.5);
+                width: 24px;
+                height: 24px;
+            }
+
+            .brightness-slider {
+                margin: 0 10px;
+                appearance: none;
+                width: 100%;
+                height: 5px;
+                border-radius: 50px;
+                outline: none;
+                transition: .2s;
+                cursor: pointer;
+                background: rgba(var(--el-bg-color), 0.5);
+                background-image: linear-gradient(rgb(var(--main-color)), rgb(var(--main-color)));
+                background-size: calc(var(--percentage) - 9px) 100%;
+                background-repeat: no-repeat;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .brightness-slider::after {
+                position: absolute;
+                content: "";
+                height: 100%;
+                width: 10px;
+                border-radius: 0 50px 50px 0;
+                background-color: rgb(var(--main-color));
+                transition: .2s;
+                left: calc(var(--percentage) - 10px);
+            }
+
+            .brightness-slider::-webkit-slider-thumb {
+                appearance: none;
+                visibility: hidden;
+                width: 1px;
+                height: 10px;
+            }
+
+            .brightness-slider:hover {
+                height: 1em;
+            }
+
+            .brightness-value-display {
+                font-family: sans-serif;
+                color: rgb(var(--el-bg-color));
+                min-width: 2em;
+                text-align: right;
+                font-size: 14px;
             }
 
             /* Temp and Color Controls */
@@ -1658,12 +1726,12 @@ class FastSearchCard extends HTMLElement {
                         <svg class="power-on"><use xlink:href="#line" class="line"/><use xlink:href="#circle" class="circle"/></svg>
                     </div>
                 </div>
-                <div class="device-control-slider-container ${isOn ? 'visible' : ''}">
-                    <div class="device-control-slider-label">
-                        <span>Helligkeit</span>
-                        <span class="brightness-value">${brightness}%</span>
-                    </div>
-                    <input type="range" class="range-slider" data-control="brightness" min="1" max="100" value="${brightness}" style="background-image: linear-gradient(to right, var(--accent) ${brightness}%, rgba(0,0,0,0.4) ${brightness}%);">
+                <div class="brightness-slider-container" style="display: ${isOn ? 'flex' : 'none'};">
+                    <svg class="brightness-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M12 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6zm0-10c-2.206 0-4 1.794-4 4s1.794 4 4 4 4-1.794 4-4-1.794-4-4-4zm0-2V2c0-.552-.448-1-1-1s-1 .448-1 1v4c0 .552.448 1 1 1s1-.448 1-1zm0 16v-4c0-.552-.448-1-1-1s-1 .448-1 1v4c0 .552.448 1 1 1s1-.448 1-1zm8-8h-4c-.552 0-1 .448-1 1s.448 1 1 1h4c.552 0 1-.448 1-1s-.448-1-1-1zM6 12H2c-.552 0-1 .448-1 1s.448 1 1 1h4c.552 0 1-.448 1-1s-.448-1-1-1zm11.657-5.657l-2.828 2.828c-.391.391-.391 1.024 0 1.414.195.195.451.293.707.293s.512-.098.707-.293l2.828-2.828c.391-.391.391-1.024 0-1.414s-1.024-.391-1.414 0zM8.464 15.536l-2.828 2.828c-.391.391-.391 1.024 0 1.414.195.195.451.293.707.293s.512-.098.707-.293l2.828-2.828c.391-.391.391-1.024 0-1.414s-1.024-.391-1.414 0zm8 0c-.391.391-.391 1.024 0 1.414l2.828 2.828c.195.195.451.293.707.293s.512-.098.707-.293c.391-.391.391-1.024 0-1.414l-2.828-2.828c-.391-.391-1.024-.391-1.414 0zM8.464 8.464c-.391.391-.391 1.024 0 1.414l2.828 2.828c.195.195.451.293.707.293s.512-.098.707-.293c.391-.391.391-1.024 0-1.414L9.878 8.464c-.391-.391-1.024-.391-1.414 0z"/>
+                    </svg>
+                    <input type="range" class="brightness-slider" data-control="brightness" min="0" max="100" value="${brightness}">
+                    <span class="brightness-value-display">${brightness}</span>
                 </div>
                 <div class="device-control-row ${isOn ? 'visible' : ''}">
                     ${hasTempSupport ? `
@@ -1772,7 +1840,7 @@ class FastSearchCard extends HTMLElement {
         if (!lightContainer) return;
 
         const powerSwitch = lightContainer.querySelector('.power-switch input[data-action="toggle"]');
-        const brightnessSlider = lightContainer.querySelector('[data-control="brightness"]');
+        const brightnessSlider = lightContainer.querySelector('.brightness-slider');
         const tempButtons = lightContainer.querySelectorAll('[data-temp]');
         const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
         const colorPresets = lightContainer.querySelectorAll('.device-control-color-preset');
@@ -1783,15 +1851,39 @@ class FastSearchCard extends HTMLElement {
         }
         
         if (brightnessSlider) {
-            const brightnessValueLabel = lightContainer.querySelector('.brightness-value');
+            const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
+            const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
+            
+            function updateBrightnessSlider(value) {
+                brightnessValueLabel.textContent = value;
+                sliderContainer.style.setProperty('--percentage', `${value}%`);
+            }
+            
+            const currentBrightness = isOn ? Math.round((this._hass.states[item.id].attributes.brightness || 0) / 2.55) : 0;
+            updateBrightnessSlider(currentBrightness);
+            
             brightnessSlider.addEventListener('input', (e) => {
                 const value = parseInt(e.target.value, 10);
-                if(brightnessValueLabel) brightnessValueLabel.textContent = `${value}%`;
-                e.target.style.backgroundImage = `linear-gradient(to right, var(--accent) ${value}%, rgba(0,0,0,0.4) ${value}%)`;
+                updateBrightnessSlider(value);
             });
+            
             brightnessSlider.addEventListener('change', (e) => {
-                this.callLightService('turn_on', item.id, { brightness_pct: parseInt(e.target.value, 10) });
+                const value = parseInt(e.target.value, 10);
+                if (value === 0) {
+                    this.callLightService('turn_off', item.id);
+                } else {
+                    this.callLightService('turn_on', item.id, { brightness_pct: value });
+                }
             });
+            
+            // Mouse-Follow Effekt
+            sliderContainer.onmousemove = e => {
+                const rect = sliderContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                sliderContainer.style.setProperty("--mouse-x", `${x}px`);
+                sliderContainer.style.setProperty("--mouse-y", `${y}px`);
+            };
         }
         
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
