@@ -932,14 +932,13 @@ class FastSearchCard extends HTMLElement {
             }
 
             .brightness-icon {
-                fill: rgba(var(--slider-color), 0.8);
+                fill: rgba(255, 255, 255, 0.8);
                 margin-right: 1em;
                 cursor: pointer;
                 width: 24px;
                 height: 24px;
                 z-index: 11;
                 position: relative;
-                transition: fill 0.3s ease;
             }
 
             .brightness-slider {
@@ -952,12 +951,22 @@ class FastSearchCard extends HTMLElement {
                 transition: .2s;
                 cursor: pointer;
                 background: rgba(var(--el-bg-color), 0.3);
-                background-image: linear-gradient(rgba(var(--slider-color), 1), rgba(var(--slider-color), 1));
-                background-size: calc(var(--percentage) - 9px) 100%;
-                background-repeat: no-repeat;
                 position: relative;
                 overflow: hidden;
                 z-index: 11;
+            }
+
+            .brightness-slider::before {
+                position: absolute;
+                content: "";
+                height: 100%;
+                width: calc(var(--percentage));
+                border-radius: 50px;
+                background: rgba(var(--slider-color), 1);
+                transition: all 0.2s ease;
+                left: 0;
+                top: 0;
+                z-index: 1;
             }
 
             .brightness-slider::after {
@@ -967,9 +976,10 @@ class FastSearchCard extends HTMLElement {
                 width: 10px;
                 border-radius: 0 50px 50px 0;
                 background-color: rgba(var(--slider-color), 1);
-                transition: .2s;
+                transition: all 0.2s ease;
                 left: calc(var(--percentage) - 10px);
-                z-index: 12;
+                top: 0;
+                z-index: 2;
             }
 
             .brightness-slider::-webkit-slider-thumb {
@@ -985,13 +995,12 @@ class FastSearchCard extends HTMLElement {
 
             .brightness-value-display {
                 font-family: sans-serif;
-                color: rgba(var(--slider-color), 0.9);
+                color: rgba(255, 255, 255, 0.9);
                 min-width: 2em;
                 text-align: right;
                 font-size: 14px;
                 z-index: 11;
                 position: relative;
-                transition: color 0.3s ease;
             }
 
             /* Temp and Color Controls */
@@ -1657,6 +1666,9 @@ class FastSearchCard extends HTMLElement {
                 const newBg = item.domain === 'media_player' ? this.getAlbumArtUrl(item) : this.getBackgroundImageForItem(item);
                 if (iconBackground.style.backgroundImage !== `url("${newBg}")`) {
                    iconBackground.style.backgroundImage = `url('${newBg}')`;
+                   // Force background update
+                   iconBackground.style.opacity = '0';
+                   setTimeout(() => { iconBackground.style.opacity = '1'; }, 50);
                 }
             }
         }
@@ -1869,7 +1881,29 @@ class FastSearchCard extends HTMLElement {
         const colorsContainer = lightContainer.querySelector('.device-control-colors');
 
         if (powerSwitch) {
-            powerSwitch.addEventListener('change', () => this.callLightService('toggle', item.id));
+            powerSwitch.addEventListener('change', () => {
+                console.log('Power switch toggled');
+                this.callLightService('toggle', item.id);
+                
+                // Sofortiges UI Update
+                const isOn = powerSwitch.checked;
+                const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
+                const controlsRow = lightContainer.querySelector('.device-control-row');
+                
+                console.log('Immediate UI update - isOn:', isOn);
+                
+                if (sliderContainer) {
+                    sliderContainer.classList.remove('visible');
+                    sliderContainer.offsetHeight; // Force reflow
+                    if (isOn) {
+                        sliderContainer.classList.add('visible');
+                    }
+                }
+                
+                if (controlsRow) {
+                    controlsRow.classList.toggle('visible', isOn);
+                }
+            });
         }
         
         console.log('Setting up light controls for:', item.name);
@@ -1956,12 +1990,12 @@ class FastSearchCard extends HTMLElement {
             colorPresets.forEach(p => p.classList.remove('active'));
             preset.classList.add('active');
             
-            // Update slider color immediately
+            // Update ONLY slider color immediately, NOT icon or text
             const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
             if (sliderContainer) {
                 const colorString = rgb.join(',');
                 sliderContainer.style.setProperty('--slider-color', colorString);
-                console.log('Color preset clicked, updated slider to:', colorString);
+                console.log('Color preset clicked, updated ONLY slider to:', colorString);
             }
         }));
     }
