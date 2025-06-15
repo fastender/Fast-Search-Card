@@ -630,7 +630,6 @@ class FastSearchCard extends HTMLElement {
                 gap: 8px;
             }
 
-
             .category-buttons {
                 display: none;
                 flex-direction: column;
@@ -709,7 +708,7 @@ class FastSearchCard extends HTMLElement {
                 margin: 0;
             }
 
-            /* New Styles for Tabs and Light Controls */
+            /* Detail Tabs */
             .detail-tabs-container {
                 display: flex;
                 justify-content: center;
@@ -766,37 +765,125 @@ class FastSearchCard extends HTMLElement {
             .device-control-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
             .device-control-state { font-size: 14px; color: var(--text-secondary); }
             
-            /* Neumorphic Power Button */
-            .device-control-power-button {
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                border: none;
-                cursor: pointer;
-                background: var(--neumorphic-base);
-                box-shadow: 6px 6px 12px var(--neumorphic-shadow-dark), -6px -6px 12px var(--neumorphic-shadow-light);
-                transition: all 0.1s ease-in-out;
+            /* ANIMIERTER POWER SWITCH - 1:1 EXAKT VOM ORIGINAL */
+            .power-switch {
+                --color-invert: #ffffff;
+                --width: 150px;
+                --height: 150px;
+                position: relative;
                 display: flex;
-                align-items: center;
                 justify-content: center;
+                align-items: center;
+                width: var(--width);
+                height: var(--height);
             }
-            .device-control-power-button:active {
-                box-shadow: inset 6px 6px 12px var(--neumorphic-shadow-dark), inset -6px -6px 12px var(--neumorphic-shadow-light);
+            .power-switch .button {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: relative;
             }
-            .device-control-power-button.on {
-                box-shadow: inset 6px 6px 12px var(--neumorphic-shadow-dark), inset -6px -6px 12px var(--neumorphic-shadow-light);
-                color: var(--accent);
+            .power-switch .button::after {
+                content: "";
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                background: radial-gradient(circle closest-side, var(--color-invert), transparent);
+                filter: blur(20px);
+                opacity: 0;
+                transition: opacity 1s ease, transform 1s ease;
+                transform: perspective(1px) translateZ(0);
+                backface-visibility: hidden;
             }
-            .device-control-power-button svg {
-                width: 30px; height: 30px;
-                fill: var(--text-secondary);
-                transition: fill 0.2s ease;
+            .power-switch .button .power-on,
+            .power-switch .button .power-off {
+                height: 100%;
+                width: 100%;
+                position: absolute;
+                z-index: 1;
+                fill: none;
+                stroke: var(--color-invert);
+                stroke-width: 8px;
+                stroke-linecap: round;
+                stroke-linejoin: round;
             }
-            .device-control-power-button.on svg {
-                fill: var(--accent);
+            .power-switch .button .power-on .line,
+            .power-switch .button .power-off .line {
+                opacity: .2;
+            }
+            .power-switch .button .power-on .circle,
+            .power-switch .button .power-off .circle {
+                opacity: .2;
+                transform: rotate(-58deg);
+                transform-origin: center 80px;
+                stroke-dasharray: 220;
+                stroke-dashoffset: 40;
+            }
+            .power-switch .button .power-on {
+                filter: drop-shadow(0px 0px 6px rgba(255,255,255,.8));
+            }
+            .power-switch .button .power-on .line {
+                opacity: 0;
+                transition: opacity .3s ease 1s;
+            }
+            .power-switch .button .power-on .circle {
+                opacity: 1;
+                stroke-dashoffset: 220;
+                transition: transform 0s ease, stroke-dashoffset 1s ease 0s;
+            }
+            .power-switch input {
+                position: absolute;
+                height: 100%;
+                width: 100%;
+                z-index: 2;
+                cursor: pointer;
+                opacity: 0;
+            }
+            .power-switch input:checked + .button::after {
+                opacity: 0.15;
+                transform: scale(2) perspective(1px) translateZ(0);
+                backface-visibility: hidden;
+                transition: opacity .5s ease, transform .5s ease;
+            }
+            .power-switch input:checked + .button .power-on,
+            .power-switch input:checked + .button .power-off {
+                animation: click-animation .3s ease forwards;
+                transform: scale(1);
+            }
+            .power-switch input:checked + .button .power-on .line,
+            .power-switch input:checked + .button .power-off .line {
+                animation: line-animation .8s ease-in forwards;
+            }
+            .power-switch input:checked + .button .power-on .circle,
+            .power-switch input:checked + .button .power-off .circle {
+                transform: rotate(302deg);
+            }
+            .power-switch input:checked + .button .power-on .line {
+                opacity: 1;
+                transition: opacity .05s ease-in .55s;
+            }
+            .power-switch input:checked + .button .power-on .circle {
+                transform: rotate(302deg);
+                stroke-dashoffset: 40;
+                transition: transform .4s ease .2s, stroke-dashoffset .4s ease .2s;
+            }
+            @keyframes line-animation {
+                0% { transform: translateY(0); }
+                10% { transform: translateY(10px); }
+                40% { transform: translateY(-25px); }
+                60% { transform: translateY(-25px); }
+                85% { transform: translateY(10px); }
+                100% { transform: translateY(0px); }
+            }
+            @keyframes click-animation {
+                0% { transform: scale(1); }
+                50% { transform: scale(.9); }
+                100% { transform: scale(1); }
             }
 
-            /* Horizontal Brightness Slider */
+            /* Brightness Slider */
             .device-control-slider-container { width: 100%; max-width: 280px; display: none; }
             .device-control-slider-container.visible { display: block; }
             .device-control-slider-label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
@@ -999,6 +1086,16 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
             </div>
+            
+            <!-- SVG Definitions für Power Switch -->
+            <svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+                <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" id="line">
+                    <line x1="75" y1="34" x2="75" y2="58"/>
+                </symbol>
+                <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" id="circle">
+                    <circle cx="75" cy="80" r="35"/>
+                </symbol>
+            </svg>
         `;
 
         this.setupEventListeners();
@@ -1422,8 +1519,6 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
-    // --- Detail View Rendering ---
-    
     renderDetailView() {
         const detailLeft = this.shadowRoot.querySelector('.detail-left');
         const detailRight = this.shadowRoot.querySelector('.detail-right');
@@ -1434,13 +1529,11 @@ class FastSearchCard extends HTMLElement {
         const item = this.currentDetailItem;
         detailTitle.textContent = item.name;
 
-        // Render left and right panels
         detailLeft.innerHTML = this.getDetailLeftHTML(item);
         detailRight.innerHTML = this.getDetailRightHTML(item);
 
         this.setupDetailTabs(item);
         
-        // Animate elements in
         const statusIndicator = detailLeft.querySelector('.status-indicator-large');
         const quickStats = detailLeft.querySelector('.quick-stats');
         const iconBackground = detailLeft.querySelector('.icon-background');
@@ -1457,7 +1550,6 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         if (!state) return;
 
-        // Update left panel
         const detailLeft = this.shadowRoot.querySelector('.detail-left');
         if (detailLeft) {
             const isActive = this.isEntityActive(state);
@@ -1479,7 +1571,6 @@ class FastSearchCard extends HTMLElement {
             }
         }
         
-        // Update right panel (light controls specifically)
         if (item.domain === 'light') {
             this.updateLightControlsUI(item);
         }
@@ -1560,9 +1651,13 @@ class FastSearchCard extends HTMLElement {
                     <div class="device-control-name">${item.name}</div>
                     <div class="device-control-state">${isOn ? `Ein • ${brightness}%` : 'Aus'}</div>
                 </div>
-                <button class="device-control-power-button ${isOn ? 'on' : ''}" data-action="toggle">
-                    <svg viewBox="0 0 100 100"><path d="M50,15.18a3.3,3.3,0,0,1,3.3,3.3V46.6a3.3,3.3,0,0,1-6.6,0V18.48A3.3,3.3,0,0,1,50,15.18Z"/><path d="M50,8.33a41.67,41.67,0,1,1-29.46,12.2A41.33,41.33,0,0,1,50,8.33m0-8.33a50,50,0,1,0,50,50,50,50,0,0,0-50-50Z"/></svg>
-                </button>
+                <div class="power-switch">
+                    <input type="checkbox" ${isOn ? 'checked' : ''} data-action="toggle" />
+                    <div class="button">
+                        <svg class="power-off"><use xlink:href="#line" class="line"/><use xlink:href="#circle" class="circle"/></svg>
+                        <svg class="power-on"><use xlink:href="#line" class="line"/><use xlink:href="#circle" class="circle"/></svg>
+                    </div>
+                </div>
                 <div class="device-control-slider-container ${isOn ? 'visible' : ''}">
                     <div class="device-control-slider-label">
                         <span>Helligkeit</span>
@@ -1604,7 +1699,11 @@ class FastSearchCard extends HTMLElement {
         const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
 
         lightContainer.querySelector('.device-control-state').textContent = isOn ? `Ein • ${brightness}%` : 'Aus';
-        lightContainer.querySelector('.device-control-power-button').classList.toggle('on', isOn);
+        
+        const powerSwitch = lightContainer.querySelector('.power-switch input');
+        if (powerSwitch) {
+            powerSwitch.checked = isOn;
+        }
         
         const sliderContainer = lightContainer.querySelector('.device-control-slider-container');
         if (sliderContainer) sliderContainer.classList.toggle('visible', isOn);
@@ -1629,7 +1728,6 @@ class FastSearchCard extends HTMLElement {
             }
         }
     }
-
 
     setupDetailTabs(item) {
         const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
@@ -1673,14 +1771,16 @@ class FastSearchCard extends HTMLElement {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
 
-        const powerButtons = lightContainer.querySelectorAll('[data-action="toggle"]');
+        const powerSwitch = lightContainer.querySelector('.power-switch input[data-action="toggle"]');
         const brightnessSlider = lightContainer.querySelector('[data-control="brightness"]');
         const tempButtons = lightContainer.querySelectorAll('[data-temp]');
         const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
         const colorPresets = lightContainer.querySelectorAll('.device-control-color-preset');
         const colorsContainer = lightContainer.querySelector('.device-control-colors');
 
-        powerButtons.forEach(btn => btn.addEventListener('click', () => this.callLightService('toggle', item.id)));
+        if (powerSwitch) {
+            powerSwitch.addEventListener('change', () => this.callLightService('toggle', item.id));
+        }
         
         if (brightnessSlider) {
             const brightnessValueLabel = lightContainer.querySelector('.brightness-value');
