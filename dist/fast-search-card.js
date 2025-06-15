@@ -89,6 +89,9 @@ class FastSearchCard extends HTMLElement {
                 --accent-light: rgba(0, 122, 255, 0.15);
                 --text-primary: rgba(255, 255, 255, 0.95);
                 --text-secondary: rgba(255, 255, 255, 0.7);
+                --neumorphic-base: #2c2f33;
+                --neumorphic-shadow-dark: #23272b;
+                --neumorphic-shadow-light: #35373b;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
 
@@ -770,15 +773,18 @@ class FastSearchCard extends HTMLElement {
                 border-radius: 50%;
                 border: none;
                 cursor: pointer;
-                background: #2c2f33;
-                box-shadow: 6px 6px 12px #23272b, -6px -6px 12px #35373b;
+                background: var(--neumorphic-base);
+                box-shadow: 6px 6px 12px var(--neumorphic-shadow-dark), -6px -6px 12px var(--neumorphic-shadow-light);
                 transition: all 0.1s ease-in-out;
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
+            .device-control-power-button:active {
+                box-shadow: inset 6px 6px 12px var(--neumorphic-shadow-dark), inset -6px -6px 12px var(--neumorphic-shadow-light);
+            }
             .device-control-power-button.on {
-                box-shadow: inset 6px 6px 12px #23272b, inset -6px -6px 12px #35373b;
+                box-shadow: inset 6px 6px 12px var(--neumorphic-shadow-dark), inset -6px -6px 12px var(--neumorphic-shadow-light);
                 color: var(--accent);
             }
             .device-control-power-button svg {
@@ -803,6 +809,7 @@ class FastSearchCard extends HTMLElement {
                 outline: none;
                 padding: 0;
                 margin: 0;
+                transition: background-image 0.2s;
             }
             .range-slider::-webkit-slider-thumb {
                 -webkit-appearance: none;
@@ -812,7 +819,7 @@ class FastSearchCard extends HTMLElement {
                 border-radius: 50%;
                 background: var(--accent);
                 cursor: pointer;
-                border: 3px solid #2c2f33;
+                border: 3px solid var(--neumorphic-base);
                 box-shadow: 0 0 5px rgba(0,0,0,0.5);
             }
 
