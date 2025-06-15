@@ -888,7 +888,7 @@ class FastSearchCard extends HTMLElement {
                 --percentage: 50%;
                 --main-color: 255,255,255;
                 --el-bg-color: 220,220,220;
-                display: flex;
+                display: none;
                 width: 280px;
                 height: 20px;
                 padding: 20px 20px;
@@ -900,6 +900,10 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 overflow: hidden;
                 margin: 0 auto;
+            }
+
+            .brightness-slider-container.visible {
+                display: flex;
             }
 
             .brightness-slider-container::after {
@@ -1726,7 +1730,7 @@ class FastSearchCard extends HTMLElement {
                         <svg class="power-on"><use xlink:href="#line" class="line"/><use xlink:href="#circle" class="circle"/></svg>
                     </div>
                 </div>
-                <div class="brightness-slider-container" style="display: ${isOn ? 'flex' : 'none'};">
+                <div class="brightness-slider-container ${isOn ? 'visible' : ''}">
                     <svg class="brightness-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M12 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6zm0-10c-2.206 0-4 1.794-4 4s1.794 4 4 4 4-1.794 4-4-1.794-4-4-4zm0-2V2c0-.552-.448-1-1-1s-1 .448-1 1v4c0 .552.448 1 1 1s1-.448 1-1zm0 16v-4c0-.552-.448-1-1-1s-1 .448-1 1v4c0 .552.448 1 1 1s1-.448 1-1zm8-8h-4c-.552 0-1 .448-1 1s.448 1 1 1h4c.552 0 1-.448 1-1s-.448-1-1-1zM6 12H2c-.552 0-1 .448-1 1s.448 1 1 1h4c.552 0 1-.448 1-1s-.448-1-1-1zm11.657-5.657l-2.828 2.828c-.391.391-.391 1.024 0 1.414.195.195.451.293.707.293s.512-.098.707-.293l2.828-2.828c.391-.391.391-1.024 0-1.414s-1.024-.391-1.414 0zM8.464 15.536l-2.828 2.828c-.391.391-.391 1.024 0 1.414.195.195.451.293.707.293s.512-.098.707-.293l2.828-2.828c.391-.391.391-1.024 0-1.414s-1.024-.391-1.414 0zm8 0c-.391.391-.391 1.024 0 1.414l2.828 2.828c.195.195.451.293.707.293s.512-.098.707-.293c.391-.391.391-1.024 0-1.414l-2.828-2.828c-.391-.391-1.024-.391-1.414 0zM8.464 8.464c-.391.391-.391 1.024 0 1.414l2.828 2.828c.195.195.451.293.707.293s.512-.098.707-.293c.391-.391.391-1.024 0-1.414L9.878 8.464c-.391-.391-1.024-.391-1.414 0z"/>
                     </svg>
@@ -1853,13 +1857,15 @@ class FastSearchCard extends HTMLElement {
         if (brightnessSlider) {
             const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
             const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
+            const state = this._hass.states[item.id];
+            const isOn = state.state === 'on';
             
             function updateBrightnessSlider(value) {
-                brightnessValueLabel.textContent = value;
-                sliderContainer.style.setProperty('--percentage', `${value}%`);
+                if (brightnessValueLabel) brightnessValueLabel.textContent = value;
+                if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${value}%`);
             }
             
-            const currentBrightness = isOn ? Math.round((this._hass.states[item.id].attributes.brightness || 0) / 2.55) : 0;
+            const currentBrightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
             updateBrightnessSlider(currentBrightness);
             
             brightnessSlider.addEventListener('input', (e) => {
@@ -1877,13 +1883,15 @@ class FastSearchCard extends HTMLElement {
             });
             
             // Mouse-Follow Effekt
-            sliderContainer.onmousemove = e => {
-                const rect = sliderContainer.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                sliderContainer.style.setProperty("--mouse-x", `${x}px`);
-                sliderContainer.style.setProperty("--mouse-y", `${y}px`);
-            };
+            if (sliderContainer) {
+                sliderContainer.onmousemove = e => {
+                    const rect = sliderContainer.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    sliderContainer.style.setProperty("--mouse-x", `${x}px`);
+                    sliderContainer.style.setProperty("--mouse-y", `${y}px`);
+                };
+            }
         }
         
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
