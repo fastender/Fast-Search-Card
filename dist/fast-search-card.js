@@ -1005,7 +1005,7 @@ class FastSearchCard extends HTMLElement {
             .device-control-row {
                 width: 100%; 
                 max-width: 280px; 
-                display: flex; /* Changed from none */
+                display: flex;
                 gap: 12px; 
                 justify-content: center;
                 margin-top: 16px;
@@ -1014,11 +1014,20 @@ class FastSearchCard extends HTMLElement {
             }
             .device-control-row.hidden { display: none; }
             .device-control-button {
-                flex-grow: 1;
-                height: 50px; border-radius: 12px; /* Changed from 50% */
-                background: rgba(255, 255, 255, 0.1); border: none;
-                color: var(--text-primary); font-size: 22px; cursor: pointer;
-                transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
+                flex-basis: 50px; /* Base width */
+                flex-grow: 1;    /* Allow to grow */
+                flex-shrink: 0;
+                height: 50px; 
+                border-radius: 50%; /* Make buttons round */
+                background: rgba(255, 255, 255, 0.1); 
+                border: none;
+                color: var(--text-primary); 
+                cursor: pointer;
+                transition: all 0.2s ease; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                padding: 0;
             }
             .device-control-button svg {
                 width: 24px; height: 24px; stroke: var(--text-primary); stroke-width: 1.5;
@@ -1029,7 +1038,21 @@ class FastSearchCard extends HTMLElement {
             .device-control-presets { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 100%; max-width: 280px;}
             .device-control-presets.visible { max-height: 150px; opacity: 1; margin-top: 16px;}
             .device-control-presets-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center;}
-            .device-control-preset { width: 48px; height: 48px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; position: relative; }
+            .device-control-preset {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2px solid transparent;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 600;
+                color: rgba(255,255,255,0.9);
+                text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            }
             .device-control-preset.active { border-color: white; }
             .device-control-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
 
@@ -1775,12 +1798,12 @@ class FastSearchCard extends HTMLElement {
                 </div>
                 <div class="device-control-row ${isOn && (hasTempSupport || hasColorSupport) ? '' : 'hidden'}">
                     ${hasTempSupport ? `
-                        <button class="device-control-button" data-temp="2700" title="Warm White">🔥</button>
-                        <button class="device-control-button" data-temp="4000" title="Natural White">☀️</button>
-                        <button class="device-control-button" data-temp="6500" title="Cool White">❄️</button>
+                        <button class="device-control-button" data-temp="2700" title="Warm White"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.5 4.5l7 7-7 7"/></svg></button>
+                        <button class="device-control-button" data-temp="4000" title="Natural White"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+                        <button class="device-control-button" data-temp="6500" title="Cool White"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg></button>
                     ` : ''}
                     ${hasColorSupport ? `
-                        <button class="device-control-button" data-action="toggle-colors" title="Farbe ändern">🎨</button>
+                        <button class="device-control-button" data-action="toggle-colors" title="Farbe ändern"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></button>
                     ` : ''}
                 </div>
                 <div class="device-control-presets device-control-colors" data-is-open="false">
@@ -1806,7 +1829,7 @@ class FastSearchCard extends HTMLElement {
         return `
             <div class="device-control-design" id="device-control-${item.id}">
                 <div class="position-slider-container">
-                    <svg class="position-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4m0 4h.01M21.2 16.2A9 9 0 1 1 7.8 2.8a9 9 0 0 1 13.4 13.4z"></path></svg>
+                    <svg class="position-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M12 2v20"/></svg>
                     <input type="range" class="position-slider" data-control="position" min="0" max="100" value="${position}">
                     <span class="position-value-display">${position}%</span>
                 </div>
@@ -1816,7 +1839,7 @@ class FastSearchCard extends HTMLElement {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 15l-6-6-6 6"/></svg>
                     </button>
                     <button class="device-control-button" data-action="stop" title="Stopp">
-                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
                     </button>
                     <button class="device-control-button" data-action="close" title="Schließen">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9l6 6 6-6"/></svg>
@@ -1827,10 +1850,10 @@ class FastSearchCard extends HTMLElement {
                 </div>
                 <div class="device-control-presets" data-is-open="false">
                     <div class="device-control-presets-grid">
-                        <div class="device-control-preset" style="background: linear-gradient(45deg, #FF6B35, #F7931E);" data-position="20"></div>
-                        <div class="device-control-preset" style="background: linear-gradient(45deg, #F7931E, #FFD23F);" data-position="40"></div>
-                        <div class="device-control-preset" style="background: linear-gradient(45deg, #FFD23F, #06D6A0);" data-position="60"></div>
-                        <div class="device-control-preset ${position === 80 ? 'active' : ''}" style="background: linear-gradient(45deg, #06D6A0, #118AB2);" data-position="80"></div>
+                        <div class="device-control-preset" style="background: linear-gradient(45deg, #FF6B35, #F7931E);" data-position="20">20%</div>
+                        <div class="device-control-preset" style="background: linear-gradient(45deg, #F7931E, #FFD23F);" data-position="40">40%</div>
+                        <div class="device-control-preset" style="background: linear-gradient(45deg, #FFD23F, #06D6A0);" data-position="60">60%</div>
+                        <div class="device-control-preset ${position === 80 ? 'active' : ''}" style="background: linear-gradient(45deg, #06D6A0, #118AB2);" data-position="80">80%</div>
                     </div>
                 </div>
             </div>
