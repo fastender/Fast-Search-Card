@@ -24,6 +24,7 @@ class FastSearchCard extends HTMLElement {
 
         // Circular Slider State
         this.circularSliders = {};
+        this.lightUpdateTimeout = null; // Add this line
     }
 
     setConfig(config) {
@@ -793,13 +794,13 @@ class FastSearchCard extends HTMLElement {
                 transform: rotate(-90deg);
             }
             .progress-bg {
-                stroke: transparent;
-                stroke-width: 12;
+                stroke: rgba(255, 255, 255, 0.1);
+                stroke-width: 16;
                 fill: none;
             }
             .progress-fill {
                 stroke: #FF9500;
-                stroke-width: 12;
+                stroke-width: 16;
                 fill: none;
                 stroke-linecap: round;
                 transition: stroke-dashoffset 0.2s ease;
@@ -858,8 +859,8 @@ class FastSearchCard extends HTMLElement {
             }
             .handle {
                 position: absolute;
-                width: 12px;
-                height: 12px;
+                width: 16px;
+                height: 16px;
                 background: rgba(255, 255, 255, 0.9);
                 border: 2px solid #FF9500;
                 border-radius: 50%;
@@ -1054,6 +1055,10 @@ class FastSearchCard extends HTMLElement {
                 .icon-content { justify-content: flex-end; }
                 .status-indicator-large, .quick-stats { position: absolute; }
                 .quick-stats { flex-direction: row; }
+                .handle {
+                    width: 14px;
+                    height: 14px;
+                }
             }
             </style>
 
@@ -2038,8 +2043,8 @@ class FastSearchCard extends HTMLElement {
                 const handleX = this.centerX + this.radius * Math.cos(angle * Math.PI / 180);
                 const handleY = this.centerY + this.radius * Math.sin(angle * Math.PI / 180);
     
-                this.handle.style.left = `${handleX - 6}px`;
-                this.handle.style.top = `${handleY - 6}px`;
+                this.handle.style.left = `${handleX - 8}px`;
+                this.handle.style.top = `${handleY - 8}px`;
     
                 // SVG Progress
                 if (this.isOn || !this.config.hasPower) {
@@ -2132,11 +2137,15 @@ class FastSearchCard extends HTMLElement {
                 formatValue: (val) => `${Math.round(val)}%`,
                 onValueChange: (value, isOn) => {
                     if (isOn) {
-                        if (value === 0) {
-                            this.callLightService('turn_off', item.id);
-                        } else {
-                            this.callLightService('turn_on', item.id, { brightness_pct: value });
-                        }
+                        // Debounce the API calls
+                        clearTimeout(this.lightUpdateTimeout);
+                        this.lightUpdateTimeout = setTimeout(() => {
+                            if (value === 0) {
+                                this.callLightService('turn_off', item.id);
+                            } else {
+                                this.callLightService('turn_on', item.id, { brightness_pct: value });
+                            }
+                        }, 150); // 150ms delay instead of immediate
                     }
                 },
                 onPowerToggle: (isOn) => {
@@ -2148,10 +2157,27 @@ class FastSearchCard extends HTMLElement {
         const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
         const colorPresets = lightContainer.querySelectorAll('.device-control-preset');
         const presetsContainer = lightContainer.querySelector('.device-control-presets');
+        
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
             const kelvin = parseInt(btn.dataset.temp, 10);
             this.callLightService('turn_on', item.id, { kelvin: kelvin });
+        
+            // Update slider color immediately
+            const sliderId = `slider-${item.id}`;
+            if (this.circularSliders[sliderId]) {
+                let rgb = [255, 255, 255]; // default
+                if (kelvin <= 2700) rgb = [255, 166, 87];
+                else if (kelvin <= 4000) rgb = [255, 219, 186];
+                else rgb = [201, 226, 255];
+        
+                const progressFill = this.circularSliders[sliderId].progressFill;
+                progressFill.style.stroke = `rgb(${rgb.join(',')})`;
+        
+                const handle = this.circularSliders[sliderId].handle;
+                handle.style.borderColor = `rgb(${rgb.join(',')})`;
+            }
         }));
+
         if (colorToggle) {
             colorToggle.addEventListener('click', () => {
                 const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
@@ -2165,6 +2191,16 @@ class FastSearchCard extends HTMLElement {
             this.callLightService('turn_on', item.id, { rgb_color: rgb });
             colorPresets.forEach(p => p.classList.remove('active'));
             preset.classList.add('active');
+        
+            // Update slider color immediately
+            const sliderId = `slider-${item.id}`;
+            if (this.circularSliders[sliderId]) {
+                const progressFill = this.circularSliders[sliderId].progressFill;
+                progressFill.style.stroke = `rgb(${rgb.join(',')})`;
+        
+                const handle = this.circularSliders[sliderId].handle;
+                handle.style.borderColor = `rgb(${rgb.join(',')})`;
+            }
         }));
     }
 
