@@ -86,6 +86,7 @@ class FastSearchCard extends HTMLElement {
                 --glass-border-color: rgba(255, 255, 255, 0.2);
                 --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
                 --accent: #007AFF;
+                --accent-rgb: 0, 122, 255;
                 --accent-light: rgba(0, 122, 255, 0.15);
                 --text-primary: rgba(255, 255, 255, 0.95);
                 --text-secondary: rgba(255, 255, 255, 0.7);
@@ -889,7 +890,7 @@ class FastSearchCard extends HTMLElement {
             /* SLIDER (re-used for brightness and position) */
             .position-slider-container {
                 --percentage: 50%;
-                --slider-color: var(--accent); /* Default to accent color */
+                --slider-color-rgb: var(--accent-rgb); /* Use RGB components */
                 --main-color: 255,255,255;
                 --el-bg-color: 100,100,100;
                 display: flex;
@@ -960,7 +961,7 @@ class FastSearchCard extends HTMLElement {
                 height: 100%;
                 width: calc(var(--percentage));
                 border-radius: 50px;
-                background: rgb(var(--slider-color));
+                background: rgb(var(--slider-color-rgb));
                 transition: all 0.2s ease;
                 left: 0;
                 top: 0;
@@ -973,7 +974,7 @@ class FastSearchCard extends HTMLElement {
                 height: 100%;
                 width: 10px;
                 border-radius: 0 50px 50px 0;
-                background-color: rgb(var(--slider-color));
+                background-color: rgb(var(--slider-color-rgb));
                 transition: all 0.2s ease;
                 left: calc(var(--percentage) - 10px);
                 top: 0;
@@ -1014,11 +1015,12 @@ class FastSearchCard extends HTMLElement {
             }
             .device-control-row.hidden { display: none; }
             .device-control-button {
-                flex-basis: 50px; /* Base width */
-                flex-grow: 1;    /* Allow to grow */
+                flex-basis: 50px;
+                flex-grow: 1;
                 flex-shrink: 0;
+                width: 50px;
                 height: 50px; 
-                border-radius: 50%; /* Make buttons round */
+                border-radius: 50%;
                 background: rgba(255, 255, 255, 0.1); 
                 border: none;
                 color: var(--text-primary); 
@@ -1789,7 +1791,7 @@ class FastSearchCard extends HTMLElement {
                         <svg class="power-on"><use xlink:href="#line" class="line"/><use xlink:href="#circle" class="circle"/></svg>
                     </div>
                 </div>
-                <div class="position-slider-container brightness-slider-container ${isOn ? 'visible' : ''}" style="--slider-color: 255,255,255;">
+                <div class="position-slider-container brightness-slider-container ${isOn ? 'visible' : ''}" style="--slider-color-rgb: 255,255,255;">
                     <svg class="brightness-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M12 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6zm0-10c-2.206 0-4 1.794-4 4s1.794 4 4 4 4-1.794 4-4-1.794-4-4-4zm0-2V2c0-.552-.448-1-1-1s-1 .448-1 1v4c0 .552.448 1 1 1s1-.448 1-1zm0 16v-4c0-.552-.448-1-1-1s-1 .448-1 1v4c0 .552.448 1 1 1s1-.448 1-1zm8-8h-4c-.552 0-1 .448-1 1s.448 1 1 1h4c.552 0 1-.448 1-1s-.448-1-1-1zM6 12H2c-.552 0-1 .448-1 1s.448 1 1 1h4c.552 0 1-.448 1-1s-.448-1-1-1zm11.657-5.657l-2.828 2.828c-.391.391-.391 1.024 0 1.414.195.195.451.293.707.293s.512-.098.707-.293l2.828-2.828c.391-.391.391-1.024 0-1.414s-1.024-.391-1.414 0zM8.464 15.536l-2.828 2.828c-.391.391-.391 1.024 0 1.414.195.195.451.293.707.293s.512-.098.707-.293l2.828-2.828c.391-.391.391-1.024 0-1.414s-1.024-.391-1.414 0zm8 0c-.391.391-.391 1.024 0 1.414l2.828 2.828c.195.195.451.293.707.293s.512-.098.707-.293c.391-.391.391-1.024 0-1.414l-2.828-2.828c-.391-.391-1.024-.391-1.414 0zM8.464 8.464c-.391.391-.391 1.024 0 1.414l2.828 2.828c.195.195.451.293.707.293s.512-.098.707-.293c.391-.391.391-1.024 0-1.414L9.878 8.464c-.391-.391-1.024-.391-1.414 0z"/>
                     </svg>
@@ -1828,8 +1830,8 @@ class FastSearchCard extends HTMLElement {
 
         return `
             <div class="device-control-design" id="device-control-${item.id}">
-                <div class="position-slider-container">
-                    <svg class="position-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M12 2v20"/></svg>
+                <div class="position-slider-container" style="--slider-color-rgb: var(--accent-rgb);">
+                    <svg class="position-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 5v14h18V5H3zm0 4h18M3 13h18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <input type="range" class="position-slider" data-control="position" min="0" max="100" value="${position}">
                     <span class="position-value-display">${position}%</span>
                 </div>
@@ -2008,7 +2010,7 @@ class FastSearchCard extends HTMLElement {
                 if (kelvin <= 2700) rgb = [255, 166, 87];
                 else if (kelvin <= 4000) rgb = [255, 219, 186];
                 else rgb = [201, 226, 255];
-                sliderContainer.style.setProperty('--slider-color', rgb.join(','));
+                sliderContainer.style.setProperty('--slider-color-rgb', rgb.join(','));
             }
         }));
 
@@ -2025,7 +2027,7 @@ class FastSearchCard extends HTMLElement {
             this.callLightService('turn_on', item.id, { rgb_color: rgb });
             colorPresets.forEach(p => p.classList.remove('active'));
             preset.classList.add('active');
-            if (sliderContainer) sliderContainer.style.setProperty('--slider-color', rgb.join(','));
+            if (sliderContainer) sliderContainer.style.setProperty('--slider-color-rgb', rgb.join(','));
         }));
     }
 
