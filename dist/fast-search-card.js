@@ -831,9 +831,9 @@ class FastSearchCard extends HTMLElement {
             }
             .circular-value {
                 font-size: 24px;
-                font-weight: 300;
+                font-weight: 600;
                 color: var(--text-primary);
-                margin-bottom: 4px;
+                margin-bottom: -10px;
                 transition: all 0.2s ease;
             }
             .circular-label {
@@ -842,10 +842,12 @@ class FastSearchCard extends HTMLElement {
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 transition: all 0.2s ease;
+                margin-top: 5px;
+                margin-bottom: 15px;
             }
             .power-icon {
                 font-size: 20px;
-                margin-bottom: 8px;
+                margin-bottom: 0px;
                 transition: all 0.2s ease;
                 color: var(--text-secondary);
             }
