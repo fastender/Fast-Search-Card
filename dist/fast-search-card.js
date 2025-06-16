@@ -1963,7 +1963,7 @@ class FastSearchCard extends HTMLElement {
                     if (this.isOn) {
                         this.container.classList.remove('off');
                         this.sliderInner.classList.remove('off');
-                        this.powerIcon.style.color = '#FF9500';
+                        this.powerIcon.style.color = '#fff';
                     } else {
                         this.container.classList.add('off');
                         this.sliderInner.classList.add('off');
