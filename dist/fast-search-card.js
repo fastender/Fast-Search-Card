@@ -1906,10 +1906,13 @@ class FastSearchCard extends HTMLElement {
                 console.log('Immediate force UI update - isOn:', isOn);
                 
                 // Update brightness display immediately
+                const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
                 if (brightnessValueLabel) {
                     const brightness = isOn ? Math.round((state.attributes.brightness || 255) / 2.55) : 0;
                     brightnessValueLabel.textContent = brightness;
                     console.log('Updated brightness display to:', brightness);
+                } else {
+                    console.warn('brightness-value-display not found during power switch toggle');
                 }
                 
                 if (sliderContainer) {
@@ -1956,12 +1959,18 @@ class FastSearchCard extends HTMLElement {
             const state = this._hass.states[item.id];
             const isOn = state.state === 'on';
             
-            console.log('Slider container:', sliderContainer, 'Is on:', isOn);
+            console.log('Slider container:', sliderContainer, 'Value label:', brightnessValueLabel, 'Is on:', isOn);
             
             function updateBrightnessSlider(value) {
                 console.log('Updating slider to:', value);
-                if (brightnessValueLabel) brightnessValueLabel.textContent = value;
-                if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${value}%`);
+                if (brightnessValueLabel) {
+                    brightnessValueLabel.textContent = value;
+                } else {
+                    console.warn('brightnessValueLabel is null in updateBrightnessSlider');
+                }
+                if (sliderContainer) {
+                    sliderContainer.style.setProperty('--percentage', `${value}%`);
+                }
             }
             
             function updateSliderColor(rgbArray) {
