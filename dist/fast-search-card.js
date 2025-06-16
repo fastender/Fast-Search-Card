@@ -1896,7 +1896,7 @@ class FastSearchCard extends HTMLElement {
                 console.log('Power switch toggled to:', powerSwitch.checked);
                 this.callLightService('toggle', item.id);
                 
-                // Sofortiges UI Update mit force display styles
+                // Sofortiges UI Update - NUR Sichtbarkeit, KEIN textContent
                 const isOn = powerSwitch.checked;
                 const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
                 const controlsRow = lightContainer.querySelector('.device-control-row');
@@ -1938,25 +1938,8 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
                 
-                // Brightness Display Update - NUR wenn Slider sichtbar ist
-                if (isOn && sliderContainer) {
-                    setTimeout(() => {
-                        const brightnessDisplay = lightContainer.querySelector('.brightness-value-display');
-                        const brightnessSlider = lightContainer.querySelector('.brightness-slider');
-                        
-                        if (brightnessDisplay && brightnessSlider) {
-                            // Verwende Slider-Wert statt state (da state noch alt ist)
-                            const currentValue = parseInt(brightnessSlider.value, 10) || 100;
-                            brightnessDisplay.textContent = currentValue;
-                            console.log('Updated brightness display to slider value:', currentValue);
-                        } else {
-                            console.warn('Brightness elements not found:', {
-                                display: !!brightnessDisplay,
-                                slider: !!brightnessSlider
-                            });
-                        }
-                    }, 100);
-                }
+                // KEIN brightness textContent Update hier - das macht updateLightControlsUI()
+                console.log('Power switch toggle complete - waiting for Home Assistant state update');
             });
         }
         
