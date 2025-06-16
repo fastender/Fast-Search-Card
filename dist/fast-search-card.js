@@ -1900,16 +1900,15 @@ class FastSearchCard extends HTMLElement {
                 const isOn = powerSwitch.checked;
                 const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
                 const controlsRow = lightContainer.querySelector('.device-control-row');
-                const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
                 const state = this._hass.states[item.id];
                 
                 console.log('Immediate force UI update - isOn:', isOn);
                 
                 // Update brightness display immediately
-                const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
-                if (brightnessValueLabel) {
+                const brightnessDisplay = lightContainer.querySelector('.brightness-value-display');
+                if (brightnessDisplay) {
                     const brightness = isOn ? Math.round((state.attributes.brightness || 255) / 2.55) : 0;
-                    brightnessValueLabel.textContent = brightness;
+                    brightnessDisplay.textContent = brightness;
                     console.log('Updated brightness display to:', brightness);
                 } else {
                     console.warn('brightness-value-display not found during power switch toggle');
