@@ -1904,20 +1904,23 @@ class FastSearchCard extends HTMLElement {
                 
                 console.log('Immediate force UI update - isOn:', isOn);
                 
-                // Update brightness display immediately
-                const brightnessDisplay = lightContainer.querySelector('.brightness-value-display');
-                if (brightnessDisplay) {
-                    const brightness = isOn ? Math.round((state.attributes.brightness || 255) / 2.55) : 0;
-                    brightnessDisplay.textContent = brightness;
-                    console.log('Updated brightness display to:', brightness);
-                } else {
-                    console.warn('brightness-value-display not found during power switch toggle');
-                }
-                
+                // ERST Slider sichtbar machen, DANN brightness display updaten
                 if (sliderContainer) {
                     if (isOn) {
                         sliderContainer.style.display = 'flex';
                         sliderContainer.classList.add('visible');
+                        
+                        // Warten bis Element im DOM ist, dann brightness updaten
+                        setTimeout(() => {
+                            const brightnessDisplay = lightContainer.querySelector('.brightness-value-display');
+                            if (brightnessDisplay) {
+                                const brightness = Math.round((state.attributes.brightness || 255) / 2.55);
+                                brightnessDisplay.textContent = brightness;
+                                console.log('Updated brightness display to:', brightness);
+                            } else {
+                                console.warn('brightness-value-display still not found after making container visible');
+                            }
+                        }, 50);
                     } else {
                         sliderContainer.style.display = 'none';
                         sliderContainer.classList.remove('visible');
