@@ -498,6 +498,9 @@ class FastSearchCard extends HTMLElement {
                 left: 0;
                 right: 0;
                 z-index: 10;
+                background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
             }
 
             .back-button {
@@ -536,7 +539,7 @@ class FastSearchCard extends HTMLElement {
             .detail-content {
                 display: flex;
                 height: 100%;
-                padding-top: 73px;
+                padding-top: 0px;
                 overflow-y: auto; 
             }
 
@@ -555,6 +558,9 @@ class FastSearchCard extends HTMLElement {
                 padding: 20px;
                 display: flex;
                 flex-direction: column;
+                background: rgba(0, 0, 0, 0.2);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
             }
 
             .detail-divider {
@@ -712,12 +718,14 @@ class FastSearchCard extends HTMLElement {
             .detail-tabs-container {
                 display: flex;
                 justify-content: center;
-                padding: 0 20px;
+                padding: 20px 20px 0 20px;
+                position: relative;
+                z-index: 12;
             }
             .detail-tabs {
                 position: relative;
                 background: rgba(0, 0, 0, 0.25);
-                border-radius: 12px;
+                border-radius: 24px;
                 display: inline-flex;
                 padding: 5px;
                 margin-bottom: 24px;
@@ -727,7 +735,7 @@ class FastSearchCard extends HTMLElement {
                 top: 5px;
                 height: calc(100% - 10px);
                 background: rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
+                border-radius: 24px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                 transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
                 z-index: 1;
@@ -741,6 +749,7 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 500;
                 font-size: 14px;
                 white-space: nowrap;
+                text-decoration: none;
             }
             .detail-tab.active {
                 color: var(--text-primary);
@@ -762,10 +771,8 @@ class FastSearchCard extends HTMLElement {
                 gap: 24px;
                 position: relative;
                 z-index: 5;
+                padding-top: 20px;
             }
-            .device-control-header { text-align: center; }
-            .device-control-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
-            .device-control-state { font-size: 14px; color: var(--text-secondary); }
             
             /* ANIMIERTER POWER SWITCH - 1:1 EXAKT VOM ORIGINAL */
             .power-switch {
@@ -1757,10 +1764,6 @@ class FastSearchCard extends HTMLElement {
 
         return `
             <div class="device-control-design" id="device-control-${item.id}">
-                <div class="device-control-header">
-                    <div class="device-control-name">${item.name}</div>
-                    <div class="device-control-state">${isOn ? `Ein • ${brightness}%` : 'Aus'}</div>
-                </div>
                 <div class="power-switch">
                     <input type="checkbox" ${isOn ? 'checked' : ''} data-action="toggle" />
                     <div class="button">
