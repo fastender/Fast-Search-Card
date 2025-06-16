@@ -24,7 +24,7 @@ class FastSearchCard extends HTMLElement {
 
         // Circular Slider State
         this.circularSliders = {};
-        this.lightUpdateTimeout = null; // Add this line
+        this.lightUpdateTimeout = null;
     }
 
     setConfig(config) {
@@ -785,7 +785,7 @@ class FastSearchCard extends HTMLElement {
                 width: 100%;
                 height: 100%;
                 border-radius: 50%;
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.15);
             }
             .progress-svg {
                 position: absolute;
@@ -794,8 +794,8 @@ class FastSearchCard extends HTMLElement {
                 transform: rotate(-90deg);
             }
             .progress-bg {
-                stroke: rgba(255, 255, 255, 0.1);
-                stroke-width: 16;
+                stroke: transparent;
+                stroke-width: 0;
                 fill: none;
             }
             .progress-fill {
@@ -807,11 +807,11 @@ class FastSearchCard extends HTMLElement {
             }
             .slider-inner {
                 position: absolute;
-                top: 12px;
-                left: 12px;
-                width: 136px;
-                height: 136px;
-                background: rgba(255, 255, 255, 0.05);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: transparent;
                 border-radius: 50%;
                 display: flex;
                 justify-content: center;
@@ -819,7 +819,7 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: none;
             }
             .slider-inner:hover {
                 background: rgba(255, 255, 255, 0.1);
@@ -859,15 +859,15 @@ class FastSearchCard extends HTMLElement {
             }
             .handle {
                 position: absolute;
-                width: 16px;
-                height: 16px;
-                background: rgba(255, 255, 255, 0.9);
-                border: 2px solid #FF9500;
+                width: 14px;
+                height: 14px;
+                background: white;
+                border: 3px solid #FF9500;
                 border-radius: 50%;
                 cursor: grab;
                 transition: transform 0.1s ease;
                 z-index: 10;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                box-shadow: none;
             }
             .handle:hover {
                 transform: scale(1.2);
@@ -2043,8 +2043,8 @@ class FastSearchCard extends HTMLElement {
                 const handleX = this.centerX + this.radius * Math.cos(angle * Math.PI / 180);
                 const handleY = this.centerY + this.radius * Math.sin(angle * Math.PI / 180);
     
-                this.handle.style.left = `${handleX - 8}px`;
-                this.handle.style.top = `${handleY - 8}px`;
+                this.handle.style.left = `${handleX - 7}px`;
+                this.handle.style.top = `${handleY - 7}px`;
     
                 // SVG Progress
                 if (this.isOn || !this.config.hasPower) {
