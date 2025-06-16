@@ -811,7 +811,7 @@ class FastSearchCard extends HTMLElement {
                 left: 12px;
                 width: 136px;
                 height: 136px;
-                background: rgba(255, 255, 255, 0.05);
+                background: rgba(255, 255, 255, 0);
                 border-radius: 50%;
                 display: flex;
                 justify-content: center;
@@ -819,10 +819,9 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: 0px solid rgba(255, 255, 255, 0.1);
             }
             .slider-inner:hover {
-                background: rgba(255, 255, 255, 0.1);
             }
             .slider-inner.off {
                 opacity: 0.3;
