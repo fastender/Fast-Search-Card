@@ -1900,33 +1900,21 @@ class FastSearchCard extends HTMLElement {
                 const isOn = powerSwitch.checked;
                 const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
                 const controlsRow = lightContainer.querySelector('.device-control-row');
-                const state = this._hass.states[item.id];
                 
                 console.log('Immediate force UI update - isOn:', isOn);
                 
-                // ERST Slider sichtbar machen, DANN brightness display updaten
+                // Slider Container Sichtbarkeit
                 if (sliderContainer) {
                     if (isOn) {
                         sliderContainer.style.display = 'flex';
                         sliderContainer.classList.add('visible');
-                        
-                        // Warten bis Element im DOM ist, dann brightness updaten
-                        setTimeout(() => {
-                            const brightnessDisplay = lightContainer.querySelector('.brightness-value-display');
-                            if (brightnessDisplay) {
-                                const brightness = Math.round((state.attributes.brightness || 255) / 2.55);
-                                brightnessDisplay.textContent = brightness;
-                                console.log('Updated brightness display to:', brightness);
-                            } else {
-                                console.warn('brightness-value-display still not found after making container visible');
-                            }
-                        }, 50);
                     } else {
                         sliderContainer.style.display = 'none';
                         sliderContainer.classList.remove('visible');
                     }
                 }
                 
+                // Controls Row Sichtbarkeit
                 if (controlsRow) {
                     if (isOn) {
                         controlsRow.style.display = 'flex';
@@ -1948,6 +1936,26 @@ class FastSearchCard extends HTMLElement {
                         setTimeout(() => { iconBackground.style.opacity = '1'; }, 100);
                         console.log('Updated background image to:', newBg);
                     }
+                }
+                
+                // Brightness Display Update - NUR wenn Slider sichtbar ist
+                if (isOn && sliderContainer) {
+                    setTimeout(() => {
+                        const brightnessDisplay = lightContainer.querySelector('.brightness-value-display');
+                        const brightnessSlider = lightContainer.querySelector('.brightness-slider');
+                        
+                        if (brightnessDisplay && brightnessSlider) {
+                            // Verwende Slider-Wert statt state (da state noch alt ist)
+                            const currentValue = parseInt(brightnessSlider.value, 10) || 100;
+                            brightnessDisplay.textContent = currentValue;
+                            console.log('Updated brightness display to slider value:', currentValue);
+                        } else {
+                            console.warn('Brightness elements not found:', {
+                                display: !!brightnessDisplay,
+                                slider: !!brightnessSlider
+                            });
+                        }
+                    }, 100);
                 }
             });
         }
