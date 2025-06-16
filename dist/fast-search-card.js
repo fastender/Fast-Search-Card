@@ -765,12 +765,10 @@ class FastSearchCard extends HTMLElement {
                 gap: 24px;
                 position: relative;
                 z-index: 5;
-                padding-top: 24px; /* Added padding to compensate for removed header */
+                padding-top: 24px;
             }
-
-            /* Removed .device-control-header, .device-control-name, .device-control-state */
             
-            /* ANIMIERTER POWER SWITCH - 1:1 EXAKT VOM ORIGINAL */
+            /* ANIMIERTER POWER SWITCH */
             .power-switch {
                 --color-invert: #ffffff;
                 --width: 150px;
@@ -888,13 +886,13 @@ class FastSearchCard extends HTMLElement {
                 100% { transform: scale(1); }
             }
 
-            /* ELEGANTER BRIGHTNESS SLIDER */
-            .brightness-slider-container {
+            /* SLIDER (re-used for brightness and position) */
+            .position-slider-container {
                 --percentage: 50%;
-                --slider-color: 255,255,255;
+                --slider-color: var(--accent); /* Default to accent color */
                 --main-color: 255,255,255;
                 --el-bg-color: 100,100,100;
-                display: none;
+                display: flex;
                 width: 280px;
                 height: 20px;
                 padding: 20px 20px;
@@ -909,11 +907,7 @@ class FastSearchCard extends HTMLElement {
                 z-index: 10;
             }
 
-            .brightness-slider-container.visible {
-                display: flex !important;
-            }
-
-            .brightness-slider-container::after {
+            .position-slider-container::after {
                 content: "";
                 height: 100%;
                 opacity: 0;
@@ -930,11 +924,11 @@ class FastSearchCard extends HTMLElement {
                 z-index: -1;
             }
 
-            .brightness-slider-container:hover::after {
+            .position-slider-container:hover::after {
                 opacity: 1;
             }
 
-            .brightness-icon {
+            .position-icon, .brightness-icon {
                 fill: rgba(255, 255, 255, 0.8);
                 margin-right: 1em;
                 cursor: pointer;
@@ -943,8 +937,8 @@ class FastSearchCard extends HTMLElement {
                 z-index: 11;
                 position: relative;
             }
-
-            .brightness-slider {
+            
+            .position-slider, .brightness-slider {
                 margin: 0 10px;
                 appearance: none;
                 width: 100%;
@@ -960,47 +954,47 @@ class FastSearchCard extends HTMLElement {
                 z-index: 11;
             }
 
-            .brightness-slider::before {
+            .position-slider::before, .brightness-slider::before {
                 position: absolute;
                 content: "";
                 height: 100%;
                 width: calc(var(--percentage));
                 border-radius: 50px;
-                background: rgba(var(--slider-color), 1);
+                background: rgb(var(--slider-color));
                 transition: all 0.2s ease;
                 left: 0;
                 top: 0;
                 z-index: 1;
             }
 
-            .brightness-slider::after {
+            .position-slider::after, .brightness-slider::after {
                 position: absolute;
                 content: "";
                 height: 100%;
                 width: 10px;
                 border-radius: 0 50px 50px 0;
-                background-color: rgba(var(--slider-color), 1);
+                background-color: rgb(var(--slider-color));
                 transition: all 0.2s ease;
                 left: calc(var(--percentage) - 10px);
                 top: 0;
                 z-index: 2;
             }
 
-            .brightness-slider::-webkit-slider-thumb {
+            .position-slider::-webkit-slider-thumb, .brightness-slider::-webkit-slider-thumb {
                 appearance: none;
                 visibility: hidden;
                 width: 1px;
                 height: 10px;
             }
 
-            .brightness-slider:hover {
+            .position-slider:hover, .brightness-slider:hover {
                 height: 1em;
             }
 
-            .brightness-value-display {
+            .position-value-display, .brightness-value-display {
                 font-family: sans-serif;
                 color: rgba(255, 255, 255, 0.9);
-                min-width: 2em;
+                min-width: 3em;
                 text-align: right;
                 font-size: 14px;
                 z-index: 11;
@@ -1011,29 +1005,33 @@ class FastSearchCard extends HTMLElement {
             .device-control-row {
                 width: 100%; 
                 max-width: 280px; 
-                display: none;
+                display: flex; /* Changed from none */
                 gap: 12px; 
                 justify-content: center;
                 margin-top: 16px;
                 z-index: 9;
                 position: relative;
             }
-            .device-control-row.visible { display: flex; }
+            .device-control-row.hidden { display: none; }
             .device-control-button {
-                width: 50px; height: 50px; border-radius: 50%;
+                flex-grow: 1;
+                height: 50px; border-radius: 12px; /* Changed from 50% */
                 background: rgba(255, 255, 255, 0.1); border: none;
                 color: var(--text-primary); font-size: 22px; cursor: pointer;
                 transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
             }
-            .device-control-button:hover { transform: scale(1.1); background: rgba(255,255,255,0.2); }
+            .device-control-button svg {
+                width: 24px; height: 24px; stroke: var(--text-primary); stroke-width: 1.5;
+            }
+            .device-control-button:hover { transform: scale(1.05); background: rgba(255,255,255,0.2); }
             .device-control-button.active { background: var(--accent); }
 
-            .device-control-colors { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 100%; max-width: 280px;}
-            .device-control-colors.visible { max-height: 150px; opacity: 1; margin-top: 16px;}
-            .device-control-colors-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center;}
-            .device-control-color-preset { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; position: relative; }
-            .device-control-color-preset.active { border-color: white; }
-            .device-control-color-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
+            .device-control-presets { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 100%; max-width: 280px;}
+            .device-control-presets.visible { max-height: 150px; opacity: 1; margin-top: 16px;}
+            .device-control-presets-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center;}
+            .device-control-preset { width: 48px; height: 48px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; position: relative; }
+            .device-control-preset.active { border-color: white; }
+            .device-control-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
 
             @media (max-width: 768px) {
                 .detail-content { flex-direction: column; padding-top: 0px; }
@@ -1622,13 +1620,9 @@ class FastSearchCard extends HTMLElement {
         
         const item = this.currentDetailItem;
         
-        // Inject header into the left panel
         detailLeft.innerHTML = this.getDetailLeftHTML(item);
-        
-        // Inject controls and tabs into the right panel
         detailRight.innerHTML = this.getDetailRightHTML(item);
 
-        // Attach listener for the dynamically created back button
         this.shadowRoot.querySelector('.detail-panel .back-button').addEventListener('click', (e) => {
             e.stopPropagation();
             this.handleBackClick();
@@ -1636,7 +1630,6 @@ class FastSearchCard extends HTMLElement {
 
         this.setupDetailTabs(item);
         
-        // Trigger animations
         const statusIndicator = detailLeft.querySelector('.status-indicator-large');
         const quickStats = detailLeft.querySelector('.quick-stats');
         const iconBackground = detailLeft.querySelector('.icon-background');
@@ -1679,6 +1672,8 @@ class FastSearchCard extends HTMLElement {
         
         if (item.domain === 'light') {
             this.updateLightControlsUI(item);
+        } else if (item.domain === 'cover') {
+            this.updateCoverControlsUI(item);
         }
     }
 
@@ -1746,6 +1741,8 @@ class FastSearchCard extends HTMLElement {
         switch (item.domain) {
             case 'light':
                 return this.getLightControlsHTML(item);
+            case 'cover':
+                return this.getCoverControlsHTML(item);
             default:
                 return `<div>No special controls for ${item.domain}.</div>`;
         }
@@ -1769,33 +1766,71 @@ class FastSearchCard extends HTMLElement {
                         <svg class="power-on"><use xlink:href="#line" class="line"/><use xlink:href="#circle" class="circle"/></svg>
                     </div>
                 </div>
-                <div class="brightness-slider-container ${isOn ? 'visible' : ''}">
+                <div class="position-slider-container brightness-slider-container ${isOn ? 'visible' : ''}" style="--slider-color: 255,255,255;">
                     <svg class="brightness-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M12 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6zm0-10c-2.206 0-4 1.794-4 4s1.794 4 4 4 4-1.794 4-4-1.794-4-4-4zm0-2V2c0-.552-.448-1-1-1s-1 .448-1 1v4c0 .552.448 1 1 1s1-.448 1-1zm0 16v-4c0-.552-.448-1-1-1s-1 .448-1 1v4c0 .552.448 1 1 1s1-.448 1-1zm8-8h-4c-.552 0-1 .448-1 1s.448 1 1 1h4c.552 0 1-.448 1-1s-.448-1-1-1zM6 12H2c-.552 0-1 .448-1 1s.448 1 1 1h4c.552 0 1-.448 1-1s-.448-1-1-1zm11.657-5.657l-2.828 2.828c-.391.391-.391 1.024 0 1.414.195.195.451.293.707.293s.512-.098.707-.293l2.828-2.828c.391-.391.391-1.024 0-1.414s-1.024-.391-1.414 0zM8.464 15.536l-2.828 2.828c-.391.391-.391 1.024 0 1.414.195.195.451.293.707.293s.512-.098.707-.293l2.828-2.828c.391-.391.391-1.024 0-1.414s-1.024-.391-1.414 0zm8 0c-.391.391-.391 1.024 0 1.414l2.828 2.828c.195.195.451.293.707.293s.512-.098.707-.293c.391-.391.391-1.024 0-1.414l-2.828-2.828c-.391-.391-1.024-.391-1.414 0zM8.464 8.464c-.391.391-.391 1.024 0 1.414l2.828 2.828c.195.195.451.293.707.293s.512-.098.707-.293c.391-.391.391-1.024 0-1.414L9.878 8.464c-.391-.391-1.024-.391-1.414 0z"/>
                     </svg>
                     <input type="range" class="brightness-slider" data-control="brightness" min="0" max="100" value="${brightness}">
-                    <span class="brightness-value-display">${brightness}</span>
+                    <span class="brightness-value-display">${brightness}%</span>
                 </div>
-                <div class="device-control-row ${isOn ? 'visible' : ''}">
+                <div class="device-control-row ${isOn && (hasTempSupport || hasColorSupport) ? '' : 'hidden'}">
                     ${hasTempSupport ? `
-                        <button class="device-control-button" data-temp="2700">🔥</button>
-                        <button class="device-control-button" data-temp="4000">☀️</button>
-                        <button class="device-control-button" data-temp="6500">❄️</button>
+                        <button class="device-control-button" data-temp="2700" title="Warm White">🔥</button>
+                        <button class="device-control-button" data-temp="4000" title="Natural White">☀️</button>
+                        <button class="device-control-button" data-temp="6500" title="Cool White">❄️</button>
                     ` : ''}
                     ${hasColorSupport ? `
-                        <button class="device-control-button" data-action="toggle-colors">🎨</button>
+                        <button class="device-control-button" data-action="toggle-colors" title="Farbe ändern">🎨</button>
                     ` : ''}
                 </div>
-                <div class="device-control-colors" data-is-open="false">
-                    <div class="device-control-colors-grid">
-                        <div class="device-control-color-preset" style="background: #ff6b35;" data-rgb="255,107,53"></div>
-                        <div class="device-control-color-preset" style="background: #f7931e;" data-rgb="247,147,30"></div>
-                        <div class="device-control-color-preset" style="background: #ffd23f;" data-rgb="255,210,63"></div>
-                        <div class="device-control-color-preset" style="background: #06d6a0;" data-rgb="6,214,160"></div>
-                        <div class="device-control-color-preset" style="background: #118ab2;" data-rgb="17,138,178"></div>
-                        <div class="device-control-color-preset" style="background: #8e44ad;" data-rgb="142,68,173"></div>
-                        <div class="device-control-color-preset" style="background: #e91e63;" data-rgb="233,30,99"></div>
-                        <div class="device-control-color-preset" style="background: #ffffff;" data-rgb="255,255,255"></div>
+                <div class="device-control-presets device-control-colors" data-is-open="false">
+                    <div class="device-control-presets-grid">
+                        <div class="device-control-preset" style="background: #ff6b35;" data-rgb="255,107,53"></div>
+                        <div class="device-control-preset" style="background: #f7931e;" data-rgb="247,147,30"></div>
+                        <div class="device-control-preset" style="background: #ffd23f;" data-rgb="255,210,63"></div>
+                        <div class="device-control-preset" style="background: #06d6a0;" data-rgb="6,214,160"></div>
+                        <div class="device-control-preset" style="background: #118ab2;" data-rgb="17,138,178"></div>
+                        <div class="device-control-preset" style="background: #8e44ad;" data-rgb="142,68,173"></div>
+                        <div class="device-control-preset" style="background: #e91e63;" data-rgb="233,30,99"></div>
+                        <div class="device-control-preset" style="background: #ffffff;" data-rgb="255,255,255"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    getCoverControlsHTML(item) {
+        const state = this._hass.states[item.id];
+        const position = state.attributes.current_position ?? 100;
+
+        return `
+            <div class="device-control-design" id="device-control-${item.id}">
+                <div class="position-slider-container">
+                    <svg class="position-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4m0 4h.01M21.2 16.2A9 9 0 1 1 7.8 2.8a9 9 0 0 1 13.4 13.4z"></path></svg>
+                    <input type="range" class="position-slider" data-control="position" min="0" max="100" value="${position}">
+                    <span class="position-value-display">${position}%</span>
+                </div>
+
+                <div class="device-control-row">
+                    <button class="device-control-button" data-action="open" title="Öffnen">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 15l-6-6-6 6"/></svg>
+                    </button>
+                    <button class="device-control-button" data-action="stop" title="Stopp">
+                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+                    </button>
+                    <button class="device-control-button" data-action="close" title="Schließen">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    <button class="device-control-button" data-action="toggle-presets" title="Szenen">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+                    </button>
+                </div>
+                <div class="device-control-presets" data-is-open="false">
+                    <div class="device-control-presets-grid">
+                        <div class="device-control-preset" style="background: linear-gradient(45deg, #FF6B35, #F7931E);" data-position="20"></div>
+                        <div class="device-control-preset" style="background: linear-gradient(45deg, #F7931E, #FFD23F);" data-position="40"></div>
+                        <div class="device-control-preset" style="background: linear-gradient(45deg, #FFD23F, #06D6A0);" data-position="60"></div>
+                        <div class="device-control-preset ${position === 80 ? 'active' : ''}" style="background: linear-gradient(45deg, #06D6A0, #118AB2);" data-position="80"></div>
                     </div>
                 </div>
             </div>
@@ -1810,32 +1845,52 @@ class FastSearchCard extends HTMLElement {
         const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
         
         const powerSwitch = lightContainer.querySelector('.power-switch input');
-        if (powerSwitch) {
-            powerSwitch.checked = isOn;
-        }
+        if (powerSwitch) powerSwitch.checked = isOn;
         
         const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
         if (sliderContainer) sliderContainer.classList.toggle('visible', isOn);
         
         const controlsRow = lightContainer.querySelector('.device-control-row');
-        if (controlsRow) controlsRow.classList.toggle('visible', isOn);
+        if (controlsRow) controlsRow.classList.toggle('hidden', !isOn);
         
-        const brightnessValueLabel = lightContainer.querySelector('.brightness-value');
+        const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
         if(brightnessValueLabel) brightnessValueLabel.textContent = `${brightness}%`;
         
         const brightnessSlider = lightContainer.querySelector('[data-control="brightness"]');
         if(brightnessSlider) {
             brightnessSlider.value = brightness;
-            brightnessSlider.style.backgroundImage = `linear-gradient(to right, var(--accent) ${brightness}%, rgba(0,0,0,0.4) ${brightness}%)`;
+            if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${brightness}%`);
         }
         
         if (!isOn) {
-            const colorsContainer = lightContainer.querySelector('.device-control-colors');
-            if (colorsContainer.classList.contains('visible')) {
-                colorsContainer.classList.remove('visible');
-                colorsContainer.setAttribute('data-is-open', 'false');
+            const presetsContainer = lightContainer.querySelector('.device-control-presets');
+            if (presetsContainer.classList.contains('visible')) {
+                presetsContainer.classList.remove('visible');
+                presetsContainer.setAttribute('data-is-open', 'false');
             }
         }
+    }
+
+    updateCoverControlsUI(item) {
+        const coverContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
+        if (!coverContainer) return;
+
+        const state = this._hass.states[item.id];
+        const position = state.attributes.current_position ?? 100;
+        
+        const positionSlider = coverContainer.querySelector('[data-control="position"]');
+        if (positionSlider) positionSlider.value = position;
+        
+        const positionValueDisplay = coverContainer.querySelector('.position-value-display');
+        if (positionValueDisplay) positionValueDisplay.textContent = `${position}%`;
+
+        const sliderContainer = coverContainer.querySelector('.position-slider-container');
+        if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${position}%`);
+
+        const presets = coverContainer.querySelectorAll('.device-control-preset');
+        presets.forEach(p => p.classList.remove('active'));
+        const activePreset = coverContainer.querySelector(`.device-control-preset[data-position="${position}"]`);
+        if (activePreset) activePreset.classList.add('active');
     }
 
     setupDetailTabs(item) {
@@ -1873,6 +1928,8 @@ class FastSearchCard extends HTMLElement {
 
         if (item.domain === 'light') {
             this.setupLightControls(item);
+        } else if (item.domain === 'cover') {
+            this.setupCoverControls(item);
         }
     }
     
@@ -1882,85 +1939,24 @@ class FastSearchCard extends HTMLElement {
 
         const powerSwitch = lightContainer.querySelector('.power-switch input[data-action="toggle"]');
         const brightnessSlider = lightContainer.querySelector('.brightness-slider');
+        const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
+        const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
         const tempButtons = lightContainer.querySelectorAll('[data-temp]');
         const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
-        const colorPresets = lightContainer.querySelectorAll('.device-control-color-preset');
-        const colorsContainer = lightContainer.querySelector('.device-control-colors');
+        const colorPresets = lightContainer.querySelectorAll('.device-control-preset');
+        const presetsContainer = lightContainer.querySelector('.device-control-presets');
 
         if (powerSwitch) {
-            powerSwitch.addEventListener('change', () => {
-                this.callLightService('toggle', item.id);
-                
-                // Sofortiges UI Update mit force display styles
-                const isOn = powerSwitch.checked;
-                const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
-                const controlsRow = lightContainer.querySelector('.device-control-row');
-                const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
-                const state = this._hass.states[item.id];
-                
-                // Update brightness display immediately
-                if (brightnessValueLabel) {
-                    const brightness = isOn ? Math.round((state.attributes.brightness || 255) / 2.55) : 0;
-                    brightnessValueLabel.textContent = brightness;
-                }
-                
-                if (sliderContainer) {
-                    sliderContainer.style.display = isOn ? 'flex' : 'none';
-                    sliderContainer.classList.toggle('visible', isOn);
-                }
-                
-                if (controlsRow) {
-                    controlsRow.style.display = isOn ? 'flex' : 'none';
-                    controlsRow.classList.toggle('visible', isOn);
-                }
-                
-                // Force update background image
-                const detailLeft = this.shadowRoot.querySelector('.detail-left');
-                if (detailLeft) {
-                    const iconBackground = detailLeft.querySelector('.icon-background');
-                    if (iconBackground) {
-                        const newBg = this.getBackgroundImageForItem({...item, state: isOn ? 'on' : 'off'});
-                        iconBackground.style.backgroundImage = `url('${newBg}')`;
-                        iconBackground.style.opacity = '0';
-                        setTimeout(() => { iconBackground.style.opacity = '1'; }, 100);
-                    }
-                }
-            });
+            powerSwitch.addEventListener('change', () => this.callLightService('toggle', item.id));
         }
         
         if (brightnessSlider) {
-            const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
-            const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
-            const state = this._hass.states[item.id];
-            const isOn = state.state === 'on';
-            
-            function updateBrightnessSlider(value) {
-                if (brightnessValueLabel) brightnessValueLabel.textContent = value;
+            const updateSlider = (value) => {
+                if (brightnessValueLabel) brightnessValueLabel.textContent = `${value}%`;
                 if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${value}%`);
-            }
+            };
             
-            function updateSliderColor(rgbArray) {
-                if (sliderContainer && rgbArray) {
-                    const colorString = rgbArray.join(',');
-                    sliderContainer.style.setProperty('--slider-color', colorString);
-                }
-            }
-            
-            // Set initial color based on light attributes
-            if (state.attributes.rgb_color) {
-                updateSliderColor(state.attributes.rgb_color);
-            } else {
-                updateSliderColor([255, 255, 255]); // Default white
-            }
-            
-            const currentBrightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
-            updateBrightnessSlider(currentBrightness);
-            
-            brightnessSlider.addEventListener('input', (e) => {
-                const value = parseInt(e.target.value, 10);
-                updateBrightnessSlider(value);
-            });
-            
+            brightnessSlider.addEventListener('input', (e) => updateSlider(parseInt(e.target.value, 10)));
             brightnessSlider.addEventListener('change', (e) => {
                 const value = parseInt(e.target.value, 10);
                 if (value === 0) {
@@ -1970,7 +1966,6 @@ class FastSearchCard extends HTMLElement {
                 }
             });
             
-            // Mouse-Follow Effekt
             if (sliderContainer) {
                 sliderContainer.onmousemove = e => {
                     const rect = sliderContainer.getBoundingClientRect();
@@ -1985,24 +1980,20 @@ class FastSearchCard extends HTMLElement {
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
             const kelvin = parseInt(btn.dataset.temp, 10);
             this.callLightService('turn_on', item.id, { kelvin: kelvin });
-            
-            const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
             if (sliderContainer) {
-                let rgb;
-                if (kelvin <= 2700) rgb = [255, 166, 87]; // Warm orange
-                else if (kelvin <= 4000) rgb = [255, 219, 186]; // Neutral warm
-                else rgb = [201, 226, 255]; // Cool blue-white
-                
-                const colorString = rgb.join(',');
-                sliderContainer.style.setProperty('--slider-color', colorString);
+                let rgb = [255, 255, 255]; // default
+                if (kelvin <= 2700) rgb = [255, 166, 87];
+                else if (kelvin <= 4000) rgb = [255, 219, 186];
+                else rgb = [201, 226, 255];
+                sliderContainer.style.setProperty('--slider-color', rgb.join(','));
             }
         }));
 
         if (colorToggle) {
             colorToggle.addEventListener('click', () => {
-                const isOpen = colorsContainer.getAttribute('data-is-open') === 'true';
-                this.animateColorPresetStagger(colorsContainer, colorPresets, !isOpen);
-                colorsContainer.setAttribute('data-is-open', String(!isOpen));
+                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                this.animatePresetStagger(presetsContainer, colorPresets, !isOpen);
+                presetsContainer.setAttribute('data-is-open', String(!isOpen));
             });
         }
         
@@ -2011,20 +2002,76 @@ class FastSearchCard extends HTMLElement {
             this.callLightService('turn_on', item.id, { rgb_color: rgb });
             colorPresets.forEach(p => p.classList.remove('active'));
             preset.classList.add('active');
-            
-            const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
-            if (sliderContainer) {
-                const colorString = rgb.join(',');
-                sliderContainer.style.setProperty('--slider-color', colorString);
-            }
+            if (sliderContainer) sliderContainer.style.setProperty('--slider-color', rgb.join(','));
         }));
     }
+
+    setupCoverControls(item) {
+        const coverContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
+        if (!coverContainer) return;
     
+        const positionSlider = coverContainer.querySelector('.position-slider');
+        const sliderContainer = coverContainer.querySelector('.position-slider-container');
+        const positionValueDisplay = coverContainer.querySelector('.position-value-display');
+        const openBtn = coverContainer.querySelector('[data-action="open"]');
+        const stopBtn = coverContainer.querySelector('[data-action="stop"]');
+        const closeBtn = coverContainer.querySelector('[data-action="close"]');
+        const presetsToggle = coverContainer.querySelector('[data-action="toggle-presets"]');
+        const presetsContainer = coverContainer.querySelector('.device-control-presets');
+        const positionPresets = coverContainer.querySelectorAll('.device-control-preset');
+
+        if (positionSlider) {
+            const updateSlider = (value) => {
+                if (positionValueDisplay) positionValueDisplay.textContent = `${value}%`;
+                if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${value}%`);
+            };
+            
+            positionSlider.addEventListener('input', e => updateSlider(parseInt(e.target.value, 10)));
+            positionSlider.addEventListener('change', e => {
+                const position = parseInt(e.target.value, 10);
+                this.callCoverService('set_cover_position', item.id, { position });
+            });
+
+            if (sliderContainer) {
+                sliderContainer.onmousemove = e => {
+                    const rect = sliderContainer.getBoundingClientRect();
+                    sliderContainer.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+                    sliderContainer.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+                };
+            }
+        }
+        
+        if(openBtn) openBtn.addEventListener('click', () => this.callCoverService('open_cover', item.id));
+        if(stopBtn) stopBtn.addEventListener('click', () => this.callCoverService('stop_cover', item.id));
+        if(closeBtn) closeBtn.addEventListener('click', () => this.callCoverService('close_cover', item.id));
+
+        if (presetsToggle) {
+            presetsToggle.addEventListener('click', () => {
+                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                this.animatePresetStagger(presetsContainer, positionPresets, !isOpen);
+                presetsContainer.setAttribute('data-is-open', String(!isOpen));
+            });
+        }
+        
+        positionPresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                const position = parseInt(preset.dataset.position, 10);
+                this.callCoverService('set_cover_position', item.id, { position });
+                positionPresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+            });
+        });
+    }
+
     callLightService(service, entity_id, data = {}) {
         this._hass.callService('light', service, { entity_id, ...data });
     }
 
-    animateColorPresetStagger(container, presets, isOpening) {
+    callCoverService(service, entity_id, data = {}) {
+        this._hass.callService('cover', service, { entity_id, ...data });
+    }
+
+    animatePresetStagger(container, presets, isOpening) {
         container.classList.toggle('visible', isOpening);
         presets.forEach((preset, index) => {
             preset.getAnimations().forEach(anim => anim.cancel());
