@@ -492,8 +492,7 @@ class FastSearchCard extends HTMLElement {
                 padding: 20px;
                 display: flex;
                 align-items: center;
-                gap: 16px;
-                position: relative; /* Changed from absolute */
+                position: relative;
                 z-index: 10;
             }
 
@@ -508,7 +507,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 justify-content: center;
                 transition: all 0.2s ease;
-                z-index: 11;
+                z-index: 2;
                 flex-shrink: 0;
             }
 
@@ -529,13 +528,17 @@ class FastSearchCard extends HTMLElement {
                 font-size: 18px;
                 font-weight: 600;
                 color: var(--text-primary);
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1;
             }
 
             .detail-content {
                 display: flex;
                 height: 100%;
-                padding-top: 0px; /* Changed from 73px */
-                overflow-y: hidden; /* Changed from auto to prevent double scrollbars */
+                padding-top: 0px;
+                overflow-y: hidden;
             }
 
             .detail-left {
@@ -543,8 +546,6 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 display: flex;
                 flex-direction: column;
-                align-items: center;
-                justify-content: center;
                 overflow: hidden;
             }
             .detail-right {
@@ -552,8 +553,8 @@ class FastSearchCard extends HTMLElement {
                 padding: 20px;
                 display: flex;
                 flex-direction: column;
-                background-color: rgba(0, 0, 0, 0.2); /* Darker background for right panel */
-                border-radius: 24px; /* Rounded corners for right panel */
+                background-color: rgba(0, 0, 0, 0.2);
+                border-radius: 0 24px 24px 0; /* Modified */
                 box-sizing: border-box;
             }
 
@@ -587,6 +588,7 @@ class FastSearchCard extends HTMLElement {
                 justify-content: flex-end;
                 padding: 20px;
                 box-sizing: border-box;
+                flex-grow: 1;
             }
             .status-indicator-large {
                 position: absolute;
@@ -717,7 +719,7 @@ class FastSearchCard extends HTMLElement {
             .detail-tabs {
                 position: relative;
                 background: rgba(0, 0, 0, 0.25);
-                border-radius: 24px; /* Changed from 12px */
+                border-radius: 24px;
                 display: inline-flex;
                 padding: 5px;
                 margin-bottom: 24px;
@@ -727,7 +729,7 @@ class FastSearchCard extends HTMLElement {
                 top: 5px;
                 height: calc(100% - 10px);
                 background: rgba(255, 255, 255, 0.2);
-                border-radius: 24px; /* Changed from 8px */
+                border-radius: 24px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                 transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
                 z-index: 1;
@@ -741,7 +743,7 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 500;
                 font-size: 14px;
                 white-space: nowrap;
-                text-decoration: none; /* Added to remove underline */
+                text-decoration: none;
             }
             .detail-tab.active {
                 color: var(--text-primary);
@@ -763,10 +765,10 @@ class FastSearchCard extends HTMLElement {
                 gap: 24px;
                 position: relative;
                 z-index: 5;
+                padding-top: 24px; /* Added padding to compensate for removed header */
             }
-            .device-control-header { text-align: center; }
-            .device-control-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
-            .device-control-state { font-size: 14px; color: var(--text-secondary); }
+
+            /* Removed .device-control-header, .device-control-name, .device-control-state */
             
             /* ANIMIERTER POWER SWITCH - 1:1 EXAKT VOM ORIGINAL */
             .power-switch {
@@ -1037,7 +1039,7 @@ class FastSearchCard extends HTMLElement {
                 .detail-content { flex-direction: column; padding-top: 0px; }
                 .detail-divider { display: none; }
                 .detail-left { min-height: 250px; flex: none; justify-content: flex-start; padding: 0;}
-                .detail-right { padding: 16px; }
+                .detail-right { padding: 16px; border-radius: 0 0 24px 24px; margin: 0 10px 10px 10px;}
                 .icon-content { justify-content: flex-end; }
                 .status-indicator-large, .quick-stats { position: absolute; }
                 .quick-stats { flex-direction: row; }
@@ -1130,12 +1132,15 @@ class FastSearchCard extends HTMLElement {
                     </div>
 
                     <div class="detail-panel glass-panel">
+                        <!-- Detail Header is now dynamically injected into .detail-left -->
                         <div class="detail-content">
                             <div class="detail-left">
-                                </div>
+                                <!-- Content will be injected here -->
+                            </div>
                             <div class="detail-divider"></div>
                             <div class="detail-right">
-                                </div>
+                                <!-- Content will be injected here -->
+                            </div>
                         </div>
                     </div>
 
@@ -1178,6 +1183,7 @@ class FastSearchCard extends HTMLElement {
                 </div>
             </div>
             
+            <!-- SVG Definitions für Power Switch -->
             <svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
                 <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" id="line">
                     <line x1="75" y1="34" x2="75" y2="58"/>
@@ -1616,22 +1622,13 @@ class FastSearchCard extends HTMLElement {
         
         const item = this.currentDetailItem;
         
-        const headerHTML = `
-            <div class="detail-header">
-                <button class="back-button">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M19 12H5"/>
-                        <path d="M12 19l-7-7 7-7"/>
-                    </svg>
-                </button>
-                <h3 class="detail-title">${item.name}</h3>
-            </div>
-        `;
-
-        detailLeft.innerHTML = headerHTML + this.getDetailLeftHTML(item);
+        // Inject header into the left panel
+        detailLeft.innerHTML = this.getDetailLeftHTML(item);
+        
+        // Inject controls and tabs into the right panel
         detailRight.innerHTML = this.getDetailRightHTML(item);
 
-        // Re-attach listener for the dynamically created back button
+        // Attach listener for the dynamically created back button
         this.shadowRoot.querySelector('.detail-panel .back-button').addEventListener('click', (e) => {
             e.stopPropagation();
             this.handleBackClick();
@@ -1639,6 +1636,7 @@ class FastSearchCard extends HTMLElement {
 
         this.setupDetailTabs(item);
         
+        // Trigger animations
         const statusIndicator = detailLeft.querySelector('.status-indicator-large');
         const quickStats = detailLeft.querySelector('.quick-stats');
         const iconBackground = detailLeft.querySelector('.icon-background');
@@ -1654,8 +1652,6 @@ class FastSearchCard extends HTMLElement {
         const item = this.currentDetailItem;
         const state = this._hass.states[item.id];
         if (!state) return;
-
-        console.log('updateDetailViewStates called for:', item.name, 'state:', state.state);
 
         const detailLeft = this.shadowRoot.querySelector('.detail-left');
         if (detailLeft) {
@@ -1674,14 +1670,9 @@ class FastSearchCard extends HTMLElement {
                 const newBg = item.domain === 'media_player' ? this.getAlbumArtUrl(item) : this.getBackgroundImageForItem({...item, state: state.state});
                 const currentBg = iconBackground.style.backgroundImage;
                 if (currentBg !== `url("${newBg}")`) {
-                   console.log('Updating background from', currentBg, 'to', newBg);
                    iconBackground.style.backgroundImage = `url('${newBg}')`;
-                   // Force background update with animation
                    iconBackground.style.opacity = '0';
-                   setTimeout(() => { 
-                       iconBackground.style.opacity = '1'; 
-                       console.log('Background opacity restored');
-                   }, 100);
+                   setTimeout(() => { iconBackground.style.opacity = '1'; }, 100);
                 }
             }
         }
@@ -1705,11 +1696,18 @@ class FastSearchCard extends HTMLElement {
 
         const lightOnClass = (item.domain === 'light' && isActive) ? 'light-on' : '';
 
-        // Note: The parent .detail-left element now also contains the header.
-        // This HTML will be appended after it.
         return `
-            <div class="icon-background" style="${backgroundStyle}"></div>
+            <div class="detail-header">
+                <button class="back-button">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M19 12H5"/>
+                        <path d="M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <h3 class="detail-title">${item.name}</h3>
+            </div>
             <div class="icon-content ${lightOnClass}">
+                <div class="icon-background" style="${backgroundStyle}"></div>
                 <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
                 <div class="quick-stats">
                     ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
@@ -1764,10 +1762,6 @@ class FastSearchCard extends HTMLElement {
 
         return `
             <div class="device-control-design" id="device-control-${item.id}">
-                <div class="device-control-header">
-                    <div class="device-control-name">${item.name}</div>
-                    <div class="device-control-state">${isOn ? `Ein • ${brightness}%` : 'Aus'}</div>
-                </div>
                 <div class="power-switch">
                     <input type="checkbox" ${isOn ? 'checked' : ''} data-action="toggle" />
                     <div class="button">
@@ -1814,8 +1808,6 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         const isOn = state.state === 'on';
         const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
-
-        lightContainer.querySelector('.device-control-state').textContent = isOn ? `Ein • ${brightness}%` : 'Aus';
         
         const powerSwitch = lightContainer.querySelector('.power-switch input');
         if (powerSwitch) {
@@ -1897,7 +1889,6 @@ class FastSearchCard extends HTMLElement {
 
         if (powerSwitch) {
             powerSwitch.addEventListener('change', () => {
-                console.log('Power switch toggled to:', powerSwitch.checked);
                 this.callLightService('toggle', item.id);
                 
                 // Sofortiges UI Update mit force display styles
@@ -1907,33 +1898,20 @@ class FastSearchCard extends HTMLElement {
                 const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
                 const state = this._hass.states[item.id];
                 
-                console.log('Immediate force UI update - isOn:', isOn);
-                
                 // Update brightness display immediately
                 if (brightnessValueLabel) {
                     const brightness = isOn ? Math.round((state.attributes.brightness || 255) / 2.55) : 0;
                     brightnessValueLabel.textContent = brightness;
-                    console.log('Updated brightness display to:', brightness);
                 }
                 
                 if (sliderContainer) {
-                    if (isOn) {
-                        sliderContainer.style.display = 'flex';
-                        sliderContainer.classList.add('visible');
-                    } else {
-                        sliderContainer.style.display = 'none';
-                        sliderContainer.classList.remove('visible');
-                    }
+                    sliderContainer.style.display = isOn ? 'flex' : 'none';
+                    sliderContainer.classList.toggle('visible', isOn);
                 }
                 
                 if (controlsRow) {
-                    if (isOn) {
-                        controlsRow.style.display = 'flex';
-                        controlsRow.classList.add('visible');
-                    } else {
-                        controlsRow.style.display = 'none';
-                        controlsRow.classList.remove('visible');
-                    }
+                    controlsRow.style.display = isOn ? 'flex' : 'none';
+                    controlsRow.classList.toggle('visible', isOn);
                 }
                 
                 // Force update background image
@@ -1945,25 +1923,18 @@ class FastSearchCard extends HTMLElement {
                         iconBackground.style.backgroundImage = `url('${newBg}')`;
                         iconBackground.style.opacity = '0';
                         setTimeout(() => { iconBackground.style.opacity = '1'; }, 100);
-                        console.log('Updated background image to:', newBg);
                     }
                 }
             });
         }
         
-        console.log('Setting up light controls for:', item.name);
-        
         if (brightnessSlider) {
-            console.log('Brightness slider found:', brightnessSlider);
             const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
             const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
             const state = this._hass.states[item.id];
             const isOn = state.state === 'on';
             
-            console.log('Slider container:', sliderContainer, 'Is on:', isOn);
-            
             function updateBrightnessSlider(value) {
-                console.log('Updating slider to:', value);
                 if (brightnessValueLabel) brightnessValueLabel.textContent = value;
                 if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${value}%`);
             }
@@ -1972,7 +1943,6 @@ class FastSearchCard extends HTMLElement {
                 if (sliderContainer && rgbArray) {
                     const colorString = rgbArray.join(',');
                     sliderContainer.style.setProperty('--slider-color', colorString);
-                    console.log('Updated slider color to:', colorString);
                 }
             }
             
@@ -1988,13 +1958,11 @@ class FastSearchCard extends HTMLElement {
             
             brightnessSlider.addEventListener('input', (e) => {
                 const value = parseInt(e.target.value, 10);
-                console.log('Slider input:', value);
                 updateBrightnessSlider(value);
             });
             
             brightnessSlider.addEventListener('change', (e) => {
                 const value = parseInt(e.target.value, 10);
-                console.log('Slider change:', value);
                 if (value === 0) {
                     this.callLightService('turn_off', item.id);
                 } else {
@@ -2012,29 +1980,21 @@ class FastSearchCard extends HTMLElement {
                     sliderContainer.style.setProperty("--mouse-y", `${y}px`);
                 };
             }
-        } else {
-            console.log('Brightness slider NOT found!');
         }
         
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
             const kelvin = parseInt(btn.dataset.temp, 10);
             this.callLightService('turn_on', item.id, { kelvin: kelvin });
             
-            // Convert kelvin to RGB approximation for slider color
             const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
             if (sliderContainer) {
                 let rgb;
-                if (kelvin <= 2700) {
-                    rgb = [255, 166, 87]; // Warm orange
-                } else if (kelvin <= 4000) {
-                    rgb = [255, 219, 186]; // Neutral warm
-                } else {
-                    rgb = [201, 226, 255]; // Cool blue-white
-                }
+                if (kelvin <= 2700) rgb = [255, 166, 87]; // Warm orange
+                else if (kelvin <= 4000) rgb = [255, 219, 186]; // Neutral warm
+                else rgb = [201, 226, 255]; // Cool blue-white
                 
                 const colorString = rgb.join(',');
                 sliderContainer.style.setProperty('--slider-color', colorString);
-                console.log('Temperature button clicked, updated slider to:', colorString, 'for', kelvin + 'K');
             }
         }));
 
@@ -2052,12 +2012,10 @@ class FastSearchCard extends HTMLElement {
             colorPresets.forEach(p => p.classList.remove('active'));
             preset.classList.add('active');
             
-            // Update ONLY slider color immediately, NOT icon or text
             const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
             if (sliderContainer) {
                 const colorString = rgb.join(',');
                 sliderContainer.style.setProperty('--slider-color', colorString);
-                console.log('Color preset clicked, updated ONLY slider to:', colorString);
             }
         }));
     }
