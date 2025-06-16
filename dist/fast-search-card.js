@@ -785,7 +785,7 @@ class FastSearchCard extends HTMLElement {
                 width: 100%;
                 height: 100%;
                 border-radius: 50%;
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0);
             }
             .progress-svg {
                 position: absolute;
@@ -858,18 +858,19 @@ class FastSearchCard extends HTMLElement {
             }
             .handle {
                 position: absolute;
-                width: 16px;
-                height: 16px;
+                width: 13px;
+                height: 13px;
                 background: rgba(255, 255, 255, 0.9);
-                border: 2px solid #FF9500;
+                border: 1px solid #fff;
                 border-radius: 50%;
                 cursor: grab;
                 transition: transform 0.1s ease;
                 z-index: 10;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                transform: scale(1.2);
             }
             .handle:hover {
-                transform: scale(1.2);
+                transform: scale(1.4);
             }
             .handle:active {
                 cursor: grabbing;
