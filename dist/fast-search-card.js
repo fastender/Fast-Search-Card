@@ -560,24 +560,31 @@ class FastSearchCard extends HTMLElement {
                 margin: 20px 0;
             }
             
+            .icon-background-wrapper {
+                position: relative;
+                width: 220px;
+                height: 220px;
+                margin: 0 auto 20px;
+                flex-shrink: 0;
+            }
+
             .icon-background {
                 width: 100%;
-                aspect-ratio: 1;
+                height: 100%;
                 background-size: cover;
                 background-position: center;
                 z-index: 0;
                 transition: all 0.8s ease;
                 border-radius: 20px;
                 opacity: 0;
-                margin-bottom: 20px;
+                position: relative;
             }
 
             .icon-content {
                 flex-grow: 1;
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between;
-                position: relative;
+                justify-content: flex-start; /* Angepasst */
             }
 
             .status-indicator-large {
@@ -592,6 +599,7 @@ class FastSearchCard extends HTMLElement {
                 font-size: 12px;
                 font-weight: 500;
                 opacity: 0;
+                z-index: 2;
             }
 
             .status-indicator-large.active {
@@ -599,10 +607,33 @@ class FastSearchCard extends HTMLElement {
                  border-color: var(--accent);
             }
             
+            .quick-stats {
+                position: absolute;
+                bottom: 16px;
+                right: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                align-items: flex-end;
+                opacity: 0;
+                z-index: 2;
+            }
+            .stat-item {
+                background: rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 6px 12px;
+                font-size: 11px;
+                color: var(--text-secondary);
+                font-weight: 500;
+                white-space: nowrap;
+            }
+            
             .detail-title-area {
                 text-align: center;
                 color: var(--text-primary);
-                margin-top: auto;
             }
             .detail-name {
                 font-size: 22px;
@@ -1040,7 +1071,8 @@ class FastSearchCard extends HTMLElement {
                 .detail-left { padding: 16px; flex: none; }
                 .detail-right { padding: 0; border-radius: 0 0 24px 24px; margin: 0 10px 10px 10px;}
                 #tab-content-container { padding: 16px; }
-                .icon-content { justify-content: space-between; }
+                .icon-content { justify-content: flex-start; }
+                .icon-background-wrapper { width: 180px; height: 180px; }
                 .detail-title-area { margin-top: 20px; }
             }
             </style>
@@ -1623,7 +1655,8 @@ class FastSearchCard extends HTMLElement {
         const iconBackground = detailPanel.querySelector('.icon-background');
 
         if(iconBackground) this.animateElementIn(iconBackground, { opacity: [0, 1] }, { duration: 800 });
-        if(statusIndicator) this.animateElementIn(statusIndicator, { opacity: [0, 1], transform: ['translateX(-20px)', 'translateX(0)'] }, { delay: 600 });
+        if(statusIndicator) this.animateElementIn(statusIndicator, { opacity: [0, 1], transform: ['translateY(0)', 'translateY(0)'] }, { delay: 600 });
+        if(quickStats) this.animateElementIn(quickStats, { opacity: [0, 1], transform: ['translateY(0)', 'translateY(0)'] }, { delay: 800 });
     }
 
     updateDetailViewStates() {
@@ -1640,6 +1673,11 @@ class FastSearchCard extends HTMLElement {
             if (statusIndicator) {
                 statusIndicator.textContent = this.getDetailedStateText(item).status;
                 statusIndicator.classList.toggle('active', isActive);
+            }
+
+            const quickStats = detailPanel.querySelector('.quick-stats');
+            if (quickStats) {
+                quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
             }
             
             const detailName = detailPanel.querySelector('.detail-name');
@@ -1672,6 +1710,7 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         const isActive = this.isEntityActive(state);
         const stateInfo = this.getDetailedStateText(item);
+        const quickStats = this.getQuickStats(item);
         const backgroundImage = this.getBackgroundImageForItem(item);
         const albumArt = (item.domain === 'media_player') ? this.getAlbumArtUrl(item) : null;
         
@@ -1700,8 +1739,13 @@ class FastSearchCard extends HTMLElement {
                 ${tabsHTML}
             </div>
             <div class="icon-content">
-                <div class="icon-background" style="${backgroundStyle}">
-                    <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
+                <div class="icon-background-wrapper">
+                    <div class="icon-background" style="${backgroundStyle}">
+                        <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
+                        <div class="quick-stats">
+                           ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
+                        </div>
+                    </div>
                 </div>
                 <div class="detail-title-area">
                     <h3 class="detail-name">${item.name}</h3>
