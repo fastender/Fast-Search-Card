@@ -502,7 +502,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .detail-left {
-                flex: 1.2;
+                flex: 1;
                 position: relative;
                 display: flex;
                 flex-direction: column;
@@ -524,7 +524,7 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 20px;
+                margin-bottom: 0px;
                 flex-shrink: 0;
             }
             
@@ -550,8 +550,8 @@ class FastSearchCard extends HTMLElement {
             }
 
             .back-button svg {
-                width: 39px;
-                height: 39px;
+                width: 29px;
+                height: 29px;
             }
 
             .detail-divider {
@@ -564,7 +564,7 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 width: 300px;
                 height: 300px;
-                margin: 0 auto 20px;
+                margin: 0 auto 0px;
                 flex-shrink: 0;
             }
 
@@ -591,9 +591,9 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(255, 255, 255, 0.2);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 color: var(--text-primary);
-                padding: 8px 16px;
+                padding: 6px 12px;
                 border-radius: 20px;
-                font-size: 12px;
+                font-size: 11px;
                 font-weight: 500;
             }
 
@@ -623,6 +623,7 @@ class FastSearchCard extends HTMLElement {
             .detail-title-area {
                 text-align: center;
                 color: var(--text-primary);
+                margin-top: 16px;
             }
             .detail-name {
                 font-size: 22px;
@@ -633,7 +634,7 @@ class FastSearchCard extends HTMLElement {
             .detail-area {
                 font-size: 14px;
                 color: var(--text-secondary);
-                margin: 4px 0 0 0;
+                margin: 0px;
             }
             
             .detail-info-row {
@@ -644,7 +645,7 @@ class FastSearchCard extends HTMLElement {
                 margin-top: 16px;
                 opacity: 0;
             }
-
+            
             .category-buttons {
                 display: none;
                 flex-direction: column;
@@ -1679,6 +1680,11 @@ class FastSearchCard extends HTMLElement {
                 quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
             }
             
+            const detailInfoRow = detailPanel.querySelector('.detail-info-row');
+            if(detailInfoRow) {
+                 detailInfoRow.style.gap = isActive ? '12px' : '0px';
+            }
+            
             const detailName = detailPanel.querySelector('.detail-name');
             if (detailName) detailName.textContent = item.name;
             
@@ -1705,7 +1711,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     getDetailLeftPaneHTML(item) {
-        const newBackButtonSVG = `<svg width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#FFFFFF"><path d="M15 6L9 12L15 18" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
+        const newBackButtonSVG = `<svg width="29px" height="29px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#FFFFFF"><path d="M15 6L9 12L15 18" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
         const state = this._hass.states[item.id];
         const isActive = this.isEntityActive(state);
         const stateInfo = this.getDetailedStateText(item);
