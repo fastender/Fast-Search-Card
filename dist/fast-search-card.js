@@ -562,8 +562,8 @@ class FastSearchCard extends HTMLElement {
             
             .icon-background-wrapper {
                 position: relative;
-                width: 220px;
-                height: 220px;
+                width: 300px;
+                height: 300px;
                 margin: 0 auto 20px;
                 flex-shrink: 0;
             }
@@ -584,13 +584,10 @@ class FastSearchCard extends HTMLElement {
                 flex-grow: 1;
                 display: flex;
                 flex-direction: column;
-                justify-content: flex-start; /* Angepasst */
+                justify-content: flex-start;
             }
 
             .status-indicator-large {
-                position: absolute;
-                top: 16px;
-                left: 16px;
                 background: rgba(255, 255, 255, 0.2);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 color: var(--text-primary);
@@ -598,8 +595,6 @@ class FastSearchCard extends HTMLElement {
                 border-radius: 20px;
                 font-size: 12px;
                 font-weight: 500;
-                opacity: 0;
-                z-index: 2;
             }
 
             .status-indicator-large.active {
@@ -608,15 +603,9 @@ class FastSearchCard extends HTMLElement {
             }
             
             .quick-stats {
-                position: absolute;
-                bottom: 16px;
-                right: 16px;
                 display: flex;
-                flex-direction: column;
-                gap: 6px;
-                align-items: flex-end;
-                opacity: 0;
-                z-index: 2;
+                gap: 8px;
+                align-items: center;
             }
             .stat-item {
                 background: rgba(0, 0, 0, 0.3);
@@ -639,11 +628,21 @@ class FastSearchCard extends HTMLElement {
                 font-size: 22px;
                 font-weight: 600;
                 margin: 0;
+                line-height: 1em;
             }
             .detail-area {
                 font-size: 14px;
                 color: var(--text-secondary);
                 margin: 4px 0 0 0;
+            }
+            
+            .detail-info-row {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 12px;
+                margin-top: 16px;
+                opacity: 0;
             }
 
             .category-buttons {
@@ -1650,13 +1649,13 @@ class FastSearchCard extends HTMLElement {
 
         this.setupDetailTabs(item);
         
-        const statusIndicator = detailPanel.querySelector('.status-indicator-large');
-        const quickStats = detailPanel.querySelector('.quick-stats');
         const iconBackground = detailPanel.querySelector('.icon-background');
+        const titleArea = detailPanel.querySelector('.detail-title-area');
+        const infoRow = detailPanel.querySelector('.detail-info-row');
 
-        if(iconBackground) this.animateElementIn(iconBackground, { opacity: [0, 1] }, { duration: 800 });
-        if(statusIndicator) this.animateElementIn(statusIndicator, { opacity: [0, 1], transform: ['translateY(0)', 'translateY(0)'] }, { delay: 600 });
-        if(quickStats) this.animateElementIn(quickStats, { opacity: [0, 1], transform: ['translateY(0)', 'translateY(0)'] }, { delay: 800 });
+        if(iconBackground) this.animateElementIn(iconBackground, { opacity: [0, 1] }, { duration: 600 });
+        if(titleArea) this.animateElementIn(titleArea, { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0)'] }, { delay: 300 });
+        if(infoRow) this.animateElementIn(infoRow, { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0)'] }, { delay: 500 });
     }
 
     updateDetailViewStates() {
@@ -1741,15 +1740,17 @@ class FastSearchCard extends HTMLElement {
             <div class="icon-content">
                 <div class="icon-background-wrapper">
                     <div class="icon-background" style="${backgroundStyle}">
-                        <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
-                        <div class="quick-stats">
-                           ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
-                        </div>
                     </div>
                 </div>
                 <div class="detail-title-area">
                     <h3 class="detail-name">${item.name}</h3>
                     <p class="detail-area">${item.area}</p>
+                </div>
+                <div class="detail-info-row">
+                    <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
+                    <div class="quick-stats">
+                       ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
+                    </div>
                 </div>
             </div>
         `;
