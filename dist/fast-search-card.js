@@ -794,7 +794,7 @@ class FastSearchCard extends HTMLElement {
                 width: 100%;
                 height: 100%;
                 border-radius: 50%;
-                background: rgba(255, 255, 255, 0.15);
+                background: rgba(255, 255, 255, 0);
             }
             .progress-svg {
                 position: absolute;
@@ -803,8 +803,8 @@ class FastSearchCard extends HTMLElement {
                 transform: rotate(-90deg);
             }
             .progress-bg {
-                stroke: transparent;
-                stroke-width: 0;
+                stroke: rgba(255, 255, 255, 0.1);
+                stroke-width: 16;
                 fill: none;
             }
             .progress-fill {
@@ -816,11 +816,11 @@ class FastSearchCard extends HTMLElement {
             }
             .slider-inner {
                 position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: transparent;
+                top: 12px;
+                left: 12px;
+                width: 136px;
+                height: 136px;
+                background: rgba(255, 255, 255, 0);
                 border-radius: 50%;
                 display: flex;
                 justify-content: center;
@@ -828,10 +828,9 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                border: none;
+                border: 0px solid rgba(255, 255, 255, 0.1);
             }
             .slider-inner:hover {
-                background: rgba(255, 255, 255, 0.1);
             }
             .slider-inner.off {
                 opacity: 0.3;
@@ -841,9 +840,9 @@ class FastSearchCard extends HTMLElement {
             }
             .circular-value {
                 font-size: 24px;
-                font-weight: 300;
+                font-weight: 600;
                 color: var(--text-primary);
-                margin-bottom: 4px;
+                margin-bottom: -10px;
                 transition: all 0.2s ease;
             }
             .circular-label {
@@ -852,10 +851,12 @@ class FastSearchCard extends HTMLElement {
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 transition: all 0.2s ease;
+                margin-top: 5px;
+                margin-bottom: 15px;
             }
             .power-icon {
                 font-size: 20px;
-                margin-bottom: 8px;
+                margin-bottom: 0px;
                 transition: all 0.2s ease;
                 color: var(--text-secondary);
             }
@@ -868,18 +869,19 @@ class FastSearchCard extends HTMLElement {
             }
             .handle {
                 position: absolute;
-                width: 14px;
-                height: 14px;
-                background: white;
-                border: 3px solid #FF9500;
+                width: 13px;
+                height: 13px;
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid #fff;
                 border-radius: 50%;
                 cursor: grab;
                 transition: transform 0.1s ease;
                 z-index: 10;
-                box-shadow: none;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                transform: scale(1.2);
             }
             .handle:hover {
-                transform: scale(1.2);
+                transform: scale(1.4);
             }
             .handle:active {
                 cursor: grabbing;
@@ -1976,7 +1978,7 @@ class FastSearchCard extends HTMLElement {
                     if (this.isOn) {
                         this.container.classList.remove('off');
                         this.sliderInner.classList.remove('off');
-                        this.powerIcon.style.color = '#FF9500';
+                        this.powerIcon.style.color = '#fff';
                     } else {
                         this.container.classList.add('off');
                         this.sliderInner.classList.add('off');
@@ -2058,8 +2060,8 @@ class FastSearchCard extends HTMLElement {
                 const handleX = this.centerX + this.radius * Math.cos(angle * Math.PI / 180);
                 const handleY = this.centerY + this.radius * Math.sin(angle * Math.PI / 180);
     
-                this.handle.style.left = `${handleX - 7}px`;
-                this.handle.style.top = `${handleY - 7}px`;
+                this.handle.style.left = `${handleX - 8}px`;
+                this.handle.style.top = `${handleY - 8}px`;
     
                 // SVG Progress
                 if (this.isOn || !this.config.hasPower) {
