@@ -507,7 +507,9 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
+                padding: 16px 20px;
             }
+
             .detail-right {
                 flex: 1;
                 display: flex;
@@ -518,20 +520,17 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
             }
             
-            /* --- NEUES HEADER-LAYOUT --- */
-            .detail-header {
-                display: grid;
-                grid-template-columns: auto 1fr auto;
+            .detail-left-header {
+                display: flex;
+                justify-content: space-between;
                 align-items: center;
-                gap: 16px;
-                padding: 16px 20px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                margin-bottom: 20px;
                 flex-shrink: 0;
             }
             
             .back-button {
-                width: 32px;
-                height: 32px;
+                width: 39px;
+                height: 39px;
                 border: none;
                 background: rgba(255, 255, 255, 0.1);
                 border-radius: 50%;
@@ -542,6 +541,7 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
                 flex-shrink: 0;
                 color: var(--text-primary);
+                padding: 0;
             }
 
             .back-button:hover {
@@ -550,19 +550,8 @@ class FastSearchCard extends HTMLElement {
             }
 
             .back-button svg {
-                width: 20px;
-                height: 20px;
-            }
-            
-            .detail-title {
-                margin: 0;
-                font-size: 18px;
-                font-weight: 600;
-                color: var(--text-primary);
-                text-align: center;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                width: 39px;
+                height: 39px;
             }
 
             .detail-divider {
@@ -572,35 +561,29 @@ class FastSearchCard extends HTMLElement {
             }
             
             .icon-background {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                width: 60%;
-                height: 60%;
-                transform: translate(-50%, -50%);
+                width: 100%;
+                aspect-ratio: 1;
                 background-size: cover;
                 background-position: center;
                 z-index: 0;
                 transition: all 0.8s ease;
                 border-radius: 20px;
                 opacity: 0;
+                margin-bottom: 20px;
             }
+
             .icon-content {
-                position: relative;
-                z-index: 1;
-                width: 100%;
-                height: 100%;
+                flex-grow: 1;
                 display: flex;
                 flex-direction: column;
-                justify-content: flex-end;
-                padding: 20px;
-                box-sizing: border-box;
-                flex-grow: 1;
+                justify-content: space-between;
+                position: relative;
             }
+
             .status-indicator-large {
                 position: absolute;
-                bottom: 20px;
-                left: 20px;
+                top: 16px;
+                left: 16px;
                 background: rgba(255, 255, 255, 0.2);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 color: var(--text-primary);
@@ -610,33 +593,26 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 500;
                 opacity: 0;
             }
+
             .status-indicator-large.active {
                  background: var(--accent);
                  border-color: var(--accent);
             }
-            .quick-stats {
-                position: absolute;
-                bottom: 20px;
-                right: 20px;
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-                align-items: flex-end;
-                opacity: 0;
+            
+            .detail-title-area {
+                text-align: center;
+                color: var(--text-primary);
+                margin-top: auto;
             }
-            .stat-item {
-                background: rgba(0, 0, 0, 0.2);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 20px;
-                padding: 6px 12px;
-                font-size: 11px;
+            .detail-name {
+                font-size: 22px;
+                font-weight: 600;
+                margin: 0;
+            }
+            .detail-area {
+                font-size: 14px;
                 color: var(--text-secondary);
-                font-weight: 500;
-                white-space: nowrap;
-            }
-            .icon-content.light-on .quick-stats {
-                flex-direction: row;
-                gap: 8px;
+                margin: 4px 0 0 0;
             }
 
             .category-buttons {
@@ -1061,17 +1037,11 @@ class FastSearchCard extends HTMLElement {
             @media (max-width: 768px) {
                 .detail-content { flex-direction: column; }
                 .detail-divider { display: none; }
-                .detail-left { min-height: 250px; flex: none; justify-content: flex-start; padding: 0;}
+                .detail-left { padding: 16px; flex: none; }
                 .detail-right { padding: 0; border-radius: 0 0 24px 24px; margin: 0 10px 10px 10px;}
                 #tab-content-container { padding: 16px; }
-                .detail-header { padding: 16px; }
-                .icon-content { justify-content: flex-end; }
-                .status-indicator-large, .quick-stats { position: absolute; }
-                .quick-stats { flex-direction: row; }
-                .handle {
-                    width: 14px;
-                    height: 14px;
-                }
+                .icon-content { justify-content: space-between; }
+                .detail-title-area { margin-top: 20px; }
             }
             </style>
 
@@ -1654,7 +1624,6 @@ class FastSearchCard extends HTMLElement {
 
         if(iconBackground) this.animateElementIn(iconBackground, { opacity: [0, 1] }, { duration: 800 });
         if(statusIndicator) this.animateElementIn(statusIndicator, { opacity: [0, 1], transform: ['translateX(-20px)', 'translateX(0)'] }, { delay: 600 });
-        if(quickStats) this.animateElementIn(quickStats, { opacity: [0, 1], transform: ['translateX(20px)', 'translateX(0)'] }, { delay: 800 });
     }
 
     updateDetailViewStates() {
@@ -1672,10 +1641,13 @@ class FastSearchCard extends HTMLElement {
                 statusIndicator.textContent = this.getDetailedStateText(item).status;
                 statusIndicator.classList.toggle('active', isActive);
             }
-            const quickStats = detailPanel.querySelector('.quick-stats');
-            if (quickStats) {
-                quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
-            }
+            
+            const detailName = detailPanel.querySelector('.detail-name');
+            if (detailName) detailName.textContent = item.name;
+            
+            const detailArea = detailPanel.querySelector('.detail-area');
+            if (detailArea) detailArea.textContent = item.area;
+
             const iconBackground = detailPanel.querySelector('.icon-background');
             if (iconBackground) {
                 const newBg = item.domain === 'media_player' ? this.getAlbumArtUrl(item) : this.getBackgroundImageForItem({...item, state: state.state});
@@ -1696,10 +1668,10 @@ class FastSearchCard extends HTMLElement {
     }
 
     getDetailLeftPaneHTML(item) {
+        const newBackButtonSVG = `<svg width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#FFFFFF"><path d="M15 6L9 12L15 18" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
         const state = this._hass.states[item.id];
         const isActive = this.isEntityActive(state);
         const stateInfo = this.getDetailedStateText(item);
-        const quickStats = this.getQuickStats(item);
         const backgroundImage = this.getBackgroundImageForItem(item);
         const albumArt = (item.domain === 'media_player') ? this.getAlbumArtUrl(item) : null;
         
@@ -1707,23 +1679,6 @@ class FastSearchCard extends HTMLElement {
             ? `background-image: url('${albumArt}');`
             : `background-image: url('${backgroundImage}');`;
 
-        const lightOnClass = (item.domain === 'light' && isActive) ? 'light-on' : '';
-
-        return `
-            <div class="icon-content ${lightOnClass}">
-                <div class="icon-background" style="${backgroundStyle}"></div>
-                <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
-                <div class="quick-stats">
-                    ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    getDetailRightPaneHTML(item) {
-        const controlsHTML = this.getDeviceControlsHTML(item);
-        const newBackButtonSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
-        
         const tabsConfig = this._config.detail_tabs || [
             { id: 'controls', title: 'Steuerung', default: true, svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>` },
             { id: 'shortcuts', title: 'Shortcuts', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M9.8525 14.6334L3.65151 10.6873C2.41651 9.90141 2.41651 8.09858 3.65151 7.31268L9.8525 3.36659C11.1628 2.53279 12.8372 2.53279 14.1475 3.36659L20.3485 7.31268C21.5835 8.09859 21.5835 9.90142 20.3485 10.6873L14.1475 14.6334C12.8372 15.4672 11.1628 15.4672 9.8525 14.6334Z" stroke="currentColor"></path><path d="M18.2857 12L20.3485 13.3127C21.5835 14.0986 21.5835 15.9014 20.3485 16.6873L14.1475 20.6334C12.8372 21.4672 11.1628 21.4672 9.8525 20.6334L3.65151 16.6873C2.41651 15.9014 2.41651 14.0986 3.65151 13.3127L5.71429 12" stroke="currentColor"></path></svg>` },
@@ -1740,11 +1695,31 @@ class FastSearchCard extends HTMLElement {
         `;
 
         return `
-            <div class="detail-header">
+            <div class="detail-left-header">
                 <button class="back-button">${newBackButtonSVG}</button>
-                <h3 class="detail-title">${item.name}</h3>
                 ${tabsHTML}
             </div>
+            <div class="icon-content">
+                <div class="icon-background" style="${backgroundStyle}">
+                    <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
+                </div>
+                <div class="detail-title-area">
+                    <h3 class="detail-name">${item.name}</h3>
+                    <p class="detail-area">${item.area}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    getDetailRightPaneHTML(item) {
+        const controlsHTML = this.getDeviceControlsHTML(item);
+        const tabsConfig = this._config.detail_tabs || [
+            { id: 'controls', title: 'Steuerung', default: true },
+            { id: 'shortcuts', title: 'Shortcuts' },
+            { id: 'history', title: 'Verlauf' }
+        ];
+
+        return `
             <div id="tab-content-container">
                  ${tabsConfig.map(tab => `
                     <div class="detail-tab-content ${tab.default ? 'active' : ''}" data-tab-content="${tab.id}">
@@ -1762,7 +1737,7 @@ class FastSearchCard extends HTMLElement {
             case 'cover':
                 return this.getCoverControlsHTML(item);
             default:
-                return `<div>No special controls for ${item.domain}.</div>`;
+                return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Keine Steuerelemente für diesen Gerätetyp.</div>`;
         }
     }
 
