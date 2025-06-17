@@ -24,7 +24,7 @@ class FastSearchCard extends HTMLElement {
 
         // Circular Slider State
         this.circularSliders = {};
-        this.lightUpdateTimeout = null; // Add this line
+        this.lightUpdateTimeout = null;
     }
 
     setConfig(config) {
@@ -726,6 +726,7 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(0, 0, 0, 0.25);
                 border-radius: 24px;
                 display: inline-flex;
+                gap: 6px;
                 padding: 5px;
                 margin-bottom: 24px;
             }
@@ -734,24 +735,31 @@ class FastSearchCard extends HTMLElement {
                 top: 5px;
                 height: calc(100% - 10px);
                 background: rgba(255, 255, 255, 0.2);
-                border-radius: 24px;
+                border-radius: 50%;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                 transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
                 z-index: 1;
             }
             .detail-tab {
-                padding: 8px 16px;
+                padding: 10px;
+                border-radius: 50%;
                 cursor: pointer;
                 color: var(--text-secondary);
                 transition: color 0.25s ease;
                 z-index: 2;
-                font-weight: 500;
-                font-size: 14px;
-                white-space: nowrap;
                 text-decoration: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                line-height: 0;
             }
             .detail-tab.active {
                 color: var(--text-primary);
+            }
+            .detail-tab svg {
+              width: 20px;
+              height: 20px;
+              stroke-width: 1.5;
             }
             #tab-content-container {
                 flex-grow: 1;
@@ -785,7 +793,7 @@ class FastSearchCard extends HTMLElement {
                 width: 100%;
                 height: 100%;
                 border-radius: 50%;
-                background: rgba(255, 255, 255, 0);
+                background: rgba(255, 255, 255, 0.15);
             }
             .progress-svg {
                 position: absolute;
@@ -794,8 +802,8 @@ class FastSearchCard extends HTMLElement {
                 transform: rotate(-90deg);
             }
             .progress-bg {
-                stroke: rgba(255, 255, 255, 0.1);
-                stroke-width: 16;
+                stroke: transparent;
+                stroke-width: 0;
                 fill: none;
             }
             .progress-fill {
@@ -807,11 +815,11 @@ class FastSearchCard extends HTMLElement {
             }
             .slider-inner {
                 position: absolute;
-                top: 12px;
-                left: 12px;
-                width: 136px;
-                height: 136px;
-                background: rgba(255, 255, 255, 0);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: transparent;
                 border-radius: 50%;
                 display: flex;
                 justify-content: center;
@@ -819,9 +827,10 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                border: 0px solid rgba(255, 255, 255, 0.1);
+                border: none;
             }
             .slider-inner:hover {
+                background: rgba(255, 255, 255, 0.1);
             }
             .slider-inner.off {
                 opacity: 0.3;
@@ -831,9 +840,9 @@ class FastSearchCard extends HTMLElement {
             }
             .circular-value {
                 font-size: 24px;
-                font-weight: 600;
+                font-weight: 300;
                 color: var(--text-primary);
-                margin-bottom: -10px;
+                margin-bottom: 4px;
                 transition: all 0.2s ease;
             }
             .circular-label {
@@ -842,12 +851,10 @@ class FastSearchCard extends HTMLElement {
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 transition: all 0.2s ease;
-                margin-top: 5px;
-                margin-bottom: 15px;
             }
             .power-icon {
                 font-size: 20px;
-                margin-bottom: 0px;
+                margin-bottom: 8px;
                 transition: all 0.2s ease;
                 color: var(--text-secondary);
             }
@@ -860,19 +867,18 @@ class FastSearchCard extends HTMLElement {
             }
             .handle {
                 position: absolute;
-                width: 13px;
-                height: 13px;
-                background: rgba(255, 255, 255, 0.9);
-                border: 1px solid #fff;
+                width: 14px;
+                height: 14px;
+                background: white;
+                border: 3px solid #FF9500;
                 border-radius: 50%;
                 cursor: grab;
                 transition: transform 0.1s ease;
                 z-index: 10;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-                transform: scale(1.2);
+                box-shadow: none;
             }
             .handle:hover {
-                transform: scale(1.4);
+                transform: scale(1.2);
             }
             .handle:active {
                 cursor: grabbing;
@@ -1725,9 +1731,27 @@ class FastSearchCard extends HTMLElement {
             <div class="detail-tabs-container">
                 <div class="detail-tabs">
                     <span class="tab-slider"></span>
-                    <a href="#" class="detail-tab active" data-tab="controls">🎮 Steuerung</a>
-                    <a href="#" class="detail-tab" data-tab="shortcuts">⚡ Shortcuts</a>
-                    <a href="#" class="detail-tab" data-tab="history">📈 Verlauf</a>
+                    <a href="#" class="detail-tab active" data-tab="controls" title="Steuerung">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
+                            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </a>
+                    <a href="#" class="detail-tab" data-tab="shortcuts" title="Shortcuts">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
+                            <path d="M9.8525 14.6334L3.65151 10.6873C2.41651 9.90141 2.41651 8.09858 3.65151 7.31268L9.8525 3.36659C11.1628 2.53279 12.8372 2.53279 14.1475 3.36659L20.3485 7.31268C21.5835 8.09859 21.5835 9.90142 20.3485 10.6873L14.1475 14.6334C12.8372 15.4672 11.1628 15.4672 9.8525 14.6334Z" stroke="currentColor"></path>
+                            <path d="M18.2857 12L20.3485 13.3127C21.5835 14.0986 21.5835 15.9014 20.3485 16.6873L14.1475 20.6334C12.8372 21.4672 11.1628 21.4672 9.8525 20.6334L3.65151 16.6873C2.41651 15.9014 2.41651 14.0986 3.65151 13.3127L5.71429 12" stroke="currentColor"></path>
+                        </svg>
+                    </a>
+                    <a href="#" class="detail-tab" data-tab="history" title="Verlauf">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
+                           <path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143" stroke="currentColor" stroke-linecap="round"></path>
+                           <path d="M6 17L20 17" stroke="currentColor" stroke-linecap="round"></path>
+                           <path d="M6 21L20 21" stroke="currentColor" stroke-linecap="round"></path>
+                           <path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                           <path d="M9 7L15 7" stroke="currentColor" stroke-linecap="round"></path>
+                        </svg>
+                    </a>
                 </div>
             </div>
             <div id="tab-content-container">
@@ -1963,7 +1987,7 @@ class FastSearchCard extends HTMLElement {
                     if (this.isOn) {
                         this.container.classList.remove('off');
                         this.sliderInner.classList.remove('off');
-                        this.powerIcon.style.color = '#fff';
+                        this.powerIcon.style.color = '#FF9500';
                     } else {
                         this.container.classList.add('off');
                         this.sliderInner.classList.add('off');
@@ -2045,8 +2069,8 @@ class FastSearchCard extends HTMLElement {
                 const handleX = this.centerX + this.radius * Math.cos(angle * Math.PI / 180);
                 const handleY = this.centerY + this.radius * Math.sin(angle * Math.PI / 180);
     
-                this.handle.style.left = `${handleX - 8}px`;
-                this.handle.style.top = `${handleY - 8}px`;
+                this.handle.style.left = `${handleX - 7}px`;
+                this.handle.style.top = `${handleY - 7}px`;
     
                 // SVG Progress
                 if (this.isOn || !this.config.hasPower) {
