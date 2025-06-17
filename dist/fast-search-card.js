@@ -494,39 +494,45 @@ class FastSearchCard extends HTMLElement {
                 opacity: 1;
             }
             
+            /* --- NEUE HEADER-STYLES --- */
             .detail-header {
-                padding: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 16px 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                flex-shrink: 0;
+            }
+            
+            .detail-header-left {
                 display: flex;
                 align-items: center;
-                position: relative;
-                z-index: 10;
+                gap: 12px;
             }
 
             .back-button {
                 width: 32px;
                 height: 32px;
                 border: none;
-                background: rgba(0, 0, 0, 0.15);
+                background: rgba(255, 255, 255, 0.1);
                 border-radius: 50%;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 transition: all 0.2s ease;
-                z-index: 2;
                 flex-shrink: 0;
+                color: var(--text-primary);
             }
 
             .back-button:hover {
-                background: rgba(0, 0, 0, 0.25);
+                background: rgba(255, 255, 255, 0.2);
                 transform: scale(1.1);
             }
 
             .back-button svg {
-                width: 18px;
-                height: 18px;
-                stroke: var(--text-primary);
-                stroke-width: 2;
+                width: 20px;
+                height: 20px;
             }
             
             .detail-title {
@@ -534,16 +540,12 @@ class FastSearchCard extends HTMLElement {
                 font-size: 18px;
                 font-weight: 600;
                 color: var(--text-primary);
-                position: absolute;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 1;
             }
 
             .detail-content {
+                flex-grow: 1;
                 display: flex;
                 height: 100%;
-                padding-top: 0px;
                 overflow-y: hidden;
             }
 
@@ -560,7 +562,7 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 background-color: rgba(0, 0, 0, 0.2);
-                border-radius: 0 24px 24px 0; /* Modified */
+                border-radius: 0 24px 24px 0; 
                 box-sizing: border-box;
             }
 
@@ -720,7 +722,7 @@ class FastSearchCard extends HTMLElement {
             .detail-tabs-container {
                 display: flex;
                 justify-content: center;
-                padding: 0 20px;
+                /* margin-bottom wurde entfernt */
             }
             .detail-tabs {
                 position: relative;
@@ -729,7 +731,6 @@ class FastSearchCard extends HTMLElement {
                 display: inline-flex;
                 gap: 6px;
                 padding: 5px;
-                margin-bottom: 24px;
             }
             .tab-slider {
                 position: absolute;
@@ -1059,7 +1060,7 @@ class FastSearchCard extends HTMLElement {
             .device-control-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
 
             @media (max-width: 768px) {
-                .detail-content { flex-direction: column; padding-top: 0px; }
+                .detail-content { flex-direction: column; }
                 .detail-divider { display: none; }
                 .detail-left { min-height: 250px; flex: none; justify-content: flex-start; padding: 0;}
                 .detail-right { padding: 16px; border-radius: 0 0 24px 24px; margin: 0 10px 10px 10px;}
@@ -1159,13 +1160,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
 
                     <div class="detail-panel glass-panel">
-                        <div class="detail-content">
-                            <div class="detail-left">
-                                </div>
-                            <div class="detail-divider"></div>
-                            <div class="detail-right">
-                                </div>
-                        </div>
+                        <!-- Inhalt wird von renderDetailView() generiert -->
                     </div>
 
                     <div class="category-buttons">
@@ -1629,26 +1624,34 @@ class FastSearchCard extends HTMLElement {
     }
     
     renderDetailView() {
-        const detailLeft = this.shadowRoot.querySelector('.detail-left');
-        const detailRight = this.shadowRoot.querySelector('.detail-right');
-        
+        const detailPanel = this.shadowRoot.querySelector('.detail-panel');
         if (!this.currentDetailItem) return;
         
         const item = this.currentDetailItem;
         
-        detailLeft.innerHTML = this.getDetailLeftHTML(item);
-        detailRight.innerHTML = this.getDetailRightHTML(item);
+        const headerHTML = this.getDetailHeaderHTML(item);
+        const leftPaneHTML = this.getDetailLeftPaneHTML(item);
+        const rightPaneHTML = this.getDetailRightPaneHTML(item);
 
-        this.shadowRoot.querySelector('.detail-panel .back-button').addEventListener('click', (e) => {
+        detailPanel.innerHTML = `
+            ${headerHTML}
+            <div class="detail-content">
+                <div class="detail-left">${leftPaneHTML}</div>
+                <div class="detail-divider"></div>
+                <div class="detail-right">${rightPaneHTML}</div>
+            </div>
+        `;
+
+        this.shadowRoot.querySelector('.back-button').addEventListener('click', (e) => {
             e.stopPropagation();
             this.handleBackClick();
         });
 
         this.setupDetailTabs(item);
         
-        const statusIndicator = detailLeft.querySelector('.status-indicator-large');
-        const quickStats = detailLeft.querySelector('.quick-stats');
-        const iconBackground = detailLeft.querySelector('.icon-background');
+        const statusIndicator = detailPanel.querySelector('.status-indicator-large');
+        const quickStats = detailPanel.querySelector('.quick-stats');
+        const iconBackground = detailPanel.querySelector('.icon-background');
 
         if(iconBackground) this.animateElementIn(iconBackground, { opacity: [0, 1] }, { duration: 800 });
         if(statusIndicator) this.animateElementIn(statusIndicator, { opacity: [0, 1], transform: ['translateX(-20px)', 'translateX(0)'] }, { delay: 600 });
@@ -1662,19 +1665,19 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         if (!state) return;
 
-        const detailLeft = this.shadowRoot.querySelector('.detail-left');
-        if (detailLeft) {
+        const detailPanel = this.shadowRoot.querySelector('.detail-panel');
+        if (detailPanel) {
             const isActive = this.isEntityActive(state);
-            const statusIndicator = detailLeft.querySelector('.status-indicator-large');
+            const statusIndicator = detailPanel.querySelector('.status-indicator-large');
             if (statusIndicator) {
                 statusIndicator.textContent = this.getDetailedStateText(item).status;
                 statusIndicator.classList.toggle('active', isActive);
             }
-            const quickStats = detailLeft.querySelector('.quick-stats');
+            const quickStats = detailPanel.querySelector('.quick-stats');
             if (quickStats) {
                 quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
             }
-            const iconBackground = detailLeft.querySelector('.icon-background');
+            const iconBackground = detailPanel.querySelector('.icon-background');
             if (iconBackground) {
                 const newBg = item.domain === 'media_player' ? this.getAlbumArtUrl(item) : this.getBackgroundImageForItem({...item, state: state.state});
                 const currentBg = iconBackground.style.backgroundImage;
@@ -1693,7 +1696,40 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    getDetailLeftHTML(item) {
+    getDetailHeaderHTML(item) {
+        const newBackButtonSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
+        
+        const tabsConfig = this._config.detail_tabs || [
+            { id: 'controls', title: 'Steuerung', default: true, svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>` },
+            { id: 'shortcuts', title: 'Shortcuts', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M9.8525 14.6334L3.65151 10.6873C2.41651 9.90141 2.41651 8.09858 3.65151 7.31268L9.8525 3.36659C11.1628 2.53279 12.8372 2.53279 14.1475 3.36659L20.3485 7.31268C21.5835 8.09859 21.5835 9.90142 20.3485 10.6873L14.1475 14.6334C12.8372 15.4672 11.1628 15.4672 9.8525 14.6334Z" stroke="currentColor"></path><path d="M18.2857 12L20.3485 13.3127C21.5835 14.0986 21.5835 15.9014 20.3485 16.6873L14.1475 20.6334C12.8372 21.4672 11.1628 21.4672 9.8525 20.6334L3.65151 16.6873C2.41651 15.9014 2.41651 14.0986 3.65151 13.3127L5.71429 12" stroke="currentColor"></path></svg>` },
+            { id: 'history', title: 'Verlauf', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143" stroke="currentColor" stroke-linecap="round"></path><path d="M6 17L20 17" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21L20 21" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 7L15 7" stroke="currentColor" stroke-linecap="round"></path></svg>` }
+        ];
+
+        const tabsHTML = `
+            <div class="detail-tabs-container">
+                <div class="detail-tabs">
+                    <span class="tab-slider"></span>
+                     ${tabsConfig.map(tab => `
+                        <a href="#" class="detail-tab ${tab.default ? 'active' : ''}" data-tab="${tab.id}" title="${tab.title}">
+                            ${tab.svg}
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        
+        return `
+            <div class="detail-header">
+                <div class="detail-header-left">
+                    <button class="back-button">${newBackButtonSVG}</button>
+                    <h3 class="detail-title">${item.name}</h3>
+                </div>
+                ${tabsHTML}
+            </div>
+        `;
+    }
+
+    getDetailLeftPaneHTML(item) {
         const state = this._hass.states[item.id];
         const isActive = this.isEntityActive(state);
         const stateInfo = this.getDetailedStateText(item);
@@ -1708,15 +1744,6 @@ class FastSearchCard extends HTMLElement {
         const lightOnClass = (item.domain === 'light' && isActive) ? 'light-on' : '';
 
         return `
-            <div class="detail-header">
-                <button class="back-button">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M19 12H5"/>
-                        <path d="M12 19l-7-7 7-7"/>
-                    </svg>
-                </button>
-                <h3 class="detail-title">${item.name}</h3>
-            </div>
             <div class="icon-content ${lightOnClass}">
                 <div class="icon-background" style="${backgroundStyle}"></div>
                 <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
@@ -1727,28 +1754,15 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-    getDetailRightHTML(item) {
+    getDetailRightPaneHTML(item) {
         const controlsHTML = this.getDeviceControlsHTML(item);
-        
-        // Generiert die Tabs basierend auf der Konfiguration.
-        // Falls keine `detail_tabs` in der Konfiguration vorhanden sind, werden Standard-Tabs verwendet.
         const tabsConfig = this._config.detail_tabs || [
-            { id: 'controls', title: 'Steuerung', default: true, svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>` },
-            { id: 'shortcuts', title: 'Shortcuts', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M9.8525 14.6334L3.65151 10.6873C2.41651 9.90141 2.41651 8.09858 3.65151 7.31268L9.8525 3.36659C11.1628 2.53279 12.8372 2.53279 14.1475 3.36659L20.3485 7.31268C21.5835 8.09859 21.5835 9.90142 20.3485 10.6873L14.1475 14.6334C12.8372 15.4672 11.1628 15.4672 9.8525 14.6334Z" stroke="currentColor"></path><path d="M18.2857 12L20.3485 13.3127C21.5835 14.0986 21.5835 15.9014 20.3485 16.6873L14.1475 20.6334C12.8372 21.4672 11.1628 21.4672 9.8525 20.6334L3.65151 16.6873C2.41651 15.9014 2.41651 14.0986 3.65151 13.3127L5.71429 12" stroke="currentColor"></path></svg>` },
-            { id: 'history', title: 'Verlauf', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143" stroke="currentColor" stroke-linecap="round"></path><path d="M6 17L20 17" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21L20 21" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 7L15 7" stroke="currentColor" stroke-linecap="round"></path></svg>` }
+            { id: 'controls', title: 'Steuerung', default: true },
+            { id: 'shortcuts', title: 'Shortcuts' },
+            { id: 'history', title: 'Verlauf' }
         ];
 
         return `
-            <div class="detail-tabs-container">
-                <div class="detail-tabs">
-                    <span class="tab-slider"></span>
-                     ${tabsConfig.map(tab => `
-                        <a href="#" class="detail-tab ${tab.default ? 'active' : ''}" data-tab="${tab.id}" title="${tab.title}">
-                            ${tab.svg}
-                        </a>
-                    `).join('')}
-                </div>
-            </div>
             <div id="tab-content-container">
                  ${tabsConfig.map(tab => `
                     <div class="detail-tab-content ${tab.default ? 'active' : ''}" data-tab-content="${tab.id}">
