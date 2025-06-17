@@ -1578,7 +1578,7 @@ class FastSearchCard extends HTMLElement {
         const card = document.createElement('div');
         card.className = `device-card ${item.isActive ? 'active' : ''}`;
         card.dataset.entity = item.id;
-        card.innerHTML = `<div class="device-icon">${item.icon}</div><div class="device-info"><div class="device-name">${item.name}</div><div class="device-status">${this.getEntityStatus(this._hass.states[item.id])}</div></div>`;
+        card.innerHTML = `<div class="device-icon"><span class="math-inline">\{item\.icon\}</div\><div class\="device\-info"\><div class\="device\-name"\></span>{item.name}</div><div class="device-status">${this.getEntityStatus(this._hass.states[item.id])}</div></div>`;
         card.addEventListener('click', () => this.handleDeviceClick(item, card));
         return card;
     }
@@ -1714,9 +1714,9 @@ class FastSearchCard extends HTMLElement {
                 </button>
                 <h3 class="detail-title">${item.name}</h3>
             </div>
-            <div class="icon-content ${lightOnClass}">
-                <div class="icon-background" style="${backgroundStyle}"></div>
-                <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
+            <div class="icon-content <span class="math-inline">\{lightOnClass\}"\>
+<div class\="icon\-background" style\="</span>{backgroundStyle}"></div>
+                <div class="status-indicator-large <span class="math-inline">\{isActive ? 'active' \: ''\}"\></span>{stateInfo.status}</div>
                 <div class="quick-stats">
                     ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
                 </div>
@@ -1731,27 +1731,9 @@ class FastSearchCard extends HTMLElement {
             <div class="detail-tabs-container">
                 <div class="detail-tabs">
                     <span class="tab-slider"></span>
-                    <a href="#" class="detail-tab active" data-tab="controls" title="Steuerung">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
-                            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                    </a>
-                    <a href="#" class="detail-tab" data-tab="shortcuts" title="Shortcuts">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
-                            <path d="M9.8525 14.6334L3.65151 10.6873C2.41651 9.90141 2.41651 8.09858 3.65151 7.31268L9.8525 3.36659C11.1628 2.53279 12.8372 2.53279 14.1475 3.36659L20.3485 7.31268C21.5835 8.09859 21.5835 9.90142 20.3485 10.6873L14.1475 14.6334C12.8372 15.4672 11.1628 15.4672 9.8525 14.6334Z" stroke="currentColor"></path>
-                            <path d="M18.2857 12L20.3485 13.3127C21.5835 14.0986 21.5835 15.9014 20.3485 16.6873L14.1475 20.6334C12.8372 21.4672 11.1628 21.4672 9.8525 20.6334L3.65151 16.6873C2.41651 15.9014 2.41651 14.0986 3.65151 13.3127L5.71429 12" stroke="currentColor"></path>
-                        </svg>
-                    </a>
-                    <a href="#" class="detail-tab" data-tab="history" title="Verlauf">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
-                           <path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143" stroke="currentColor" stroke-linecap="round"></path>
-                           <path d="M6 17L20 17" stroke="currentColor" stroke-linecap="round"></path>
-                           <path d="M6 21L20 21" stroke="currentColor" stroke-linecap="round"></path>
-                           <path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
-                           <path d="M9 7L15 7" stroke="currentColor" stroke-linecap="round"></path>
-                        </svg>
-                    </a>
+                    <a href="#" class="detail-tab active" data-tab="controls">🎮 Steuerung</a>
+                    <a href="#" class="detail-tab" data-tab="shortcuts">⚡ Shortcuts</a>
+                    <a href="#" class="detail-tab" data-tab="history">📈 Verlauf</a>
                 </div>
             </div>
             <div id="tab-content-container">
@@ -1787,23 +1769,23 @@ class FastSearchCard extends HTMLElement {
         const supportedColorModes = state.attributes.supported_color_modes || [];
         const hasTempSupport = supportedColorModes.includes('color_temp');
         const hasColorSupport = supportedColorModes.some(mode => ['rgb', 'rgbw', 'rgbww', 'hs', 'xy'].includes(mode));
-        
+
         return `
             <div class="device-control-design" id="device-control-${item.id}">
-                <div class="circular-slider-container brightness ${isOn ? '' : 'off'}" data-entity="${item.id}">
-                    <div class="slider-track"></div>
-                    <svg class="progress-svg">
-                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
-                        <circle class="progress-fill" cx="80" cy="80" r="68"></circle>
-                    </svg>
-                    <div class="slider-inner ${isOn ? '' : 'off'}">
-                        <div class="power-icon">⏻</div>
-                        <div class="circular-value">${isOn ? brightness + '%' : 'AUS'}</div>
-                        <div class="circular-label">Helligkeit</div>
+                <div class="power-switch">
+                    <input type="checkbox" ${isOn ? 'checked' : ''} data-action="toggle" />
+                    <div class="button">
+                        <svg class="power-off"><use xlink:href="#line" class="line"/><use xlink:href="#circle" class="circle"/></svg>
+                        <svg class="power-on"><use xlink:href="#line" class="line"/><use xlink:href="#circle" class="circle"/></svg>
                     </div>
-                    <div class="handle"></div>
                 </div>
-                
+                <div class="position-slider-container brightness-slider-container <span class="math-inline">\{isOn ? 'visible' \: ''\}" style\="\-\-slider\-color\-rgb\: 255,255,255;"\>
+<svg class\="brightness\-icon" xmlns\="http\://www\.w3\.org/2000/svg" viewBox\="0 0 24 24"\>
+<path d\="M12 18c\-3\.314 0\-6\-2\.686\-6\-6s2\.686\-6 6\-6 6 2\.686 6 6\-2\.686 6\-6 6zm0\-10c\-2\.206 0\-4 1\.794\-4 4s1\.794 4 4 4 4\-1\.794 4\-4\-1\.794\-4\-4\-4zm0\-2V2c0\-\.552\-\.448\-1\-1\-1s\-1 \.448\-1 1v4c0 \.552\.448 1 1 1s1\-\.448 1\-1zm0 16v\-4c0\-\.552\-\.448\-1\-1\-1s\-1 \.448\-1 1v4c0 \.552\.448 1 1 1s1\-\.448 1\-1zm8\-8h\-4c\-\.552 0\-1 \.448\-1 1s\.448 1 1 1h4c\.552 0 1\-\.448 1\-1s\-\.448\-1\-1\-1zM6 12H2c\-\.552 0\-1 \.448\-1 1s\.448 1 1 1h4c\.552 0 1\-\.448 1\-1s\-\.448\-1\-1\-1zm11\.657\-5\.657l\-2\.828 2\.828c\-\.391\.391\-\.391 1\.024 0 1\.414\.195\.195\.451\.293\.707\.293s\.512\-\.098\.707\-\.293l2\.828\-2\.828c\.391\-\.391\.391\-1\.024 0\-1\.414s\-1\.024\-\.391\-1\.414 0zM8\.464 15\.536l\-2\.828 2\.828c\-\.391\.391\-\.391 1\.024 0 1\.414\.195\.195\.451\.293\.707\.293s\.512\-\.098\.707\-\.293l2\.828\-2\.828c\.391\-\.391\.391\-1\.024 0\-1\.414s\-1\.024\-\.391\-1\.414 0zm8 0c\-\.391\.391\-\.391 1\.024 0 1\.414l2\.828 2\.828c\.195\.195\.451\.293\.707\.293s\.512\-\.098\.707\-\.293c\.391\-\.391\.391\-1\.024 0\-1\.414l\-2\.828\-2\.828c\-\.391\-\.391\-1\.024\-\.391\-1\.414 0zM8\.464 8\.464c\-\.391\.391\-\.391 1\.024 0 1\.414l2\.828 2\.828c\.195\.195\.451\.293\.707\.293s\.512\-\.098\.707\-\.293c\.391\-\.391\.391\-1\.024 0\-1\.414L9\.878 8\.464c\-\.391\-\.391\-1\.024\-\.391\-1\.414 0z"/\>
+</svg\>
+<input type\="range" class\="brightness\-slider" data\-control\="brightness" min\="0" max\="100" value\="</span>{brightness}">
+                    <span class="brightness-value-display">${brightness}%</span>
+                </div>
                 <div class="device-control-row ${isOn && (hasTempSupport || hasColorSupport) ? '' : 'hidden'}">
                     ${hasTempSupport ? `
                         <button class="device-control-button" data-temp="2700" title="Warm White"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.5 4.5l7 7-7 7"/></svg></button>
@@ -1835,10 +1817,10 @@ class FastSearchCard extends HTMLElement {
         const position = state.attributes.current_position ?? 100;
 
         return `
-            <div class="device-control-design" id="device-control-${item.id}">
-                <div class="position-slider-container" style="--slider-color-rgb: var(--accent-rgb);">
-                    <svg class="position-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 5v14h18V5H3zm0 4h18M3 13h18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <input type="range" class="position-slider" data-control="position" min="0" max="100" value="${position}">
+            <div class="device-control-design" id="device-control-<span class="math-inline">\{item\.id\}"\>
+<div class\="position\-slider\-container" style\="\-\-slider\-color\-rgb\: var\(\-\-accent\-rgb\);"\>
+<svg class\="position\-icon" viewBox\="0 0 24 24" fill\="none" stroke\="currentColor"\><path d\="M3 5v14h18V5H3zm0 4h18M3 13h18" stroke\-width\="2" stroke\-linecap\="round" stroke\-linejoin\="round"/\></svg\>
+<input type\="range" class\="position\-slider" data\-control\="position" min\="0" max\="100" value\="</span>{position}">
                     <span class="position-value-display">${position}%</span>
                 </div>
 
@@ -1871,38 +1853,31 @@ class FastSearchCard extends HTMLElement {
     updateLightControlsUI(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
-    
         const state = this._hass.states[item.id];
         const isOn = state.state === 'on';
         const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
-    
-        const circularContainer = lightContainer.querySelector('.circular-slider-container');
-        const sliderInner = lightContainer.querySelector('.slider-inner');
-        const circularValue = lightContainer.querySelector('.circular-value');
+        
+        const powerSwitch = lightContainer.querySelector('.power-switch input');
+        if (powerSwitch) powerSwitch.checked = isOn;
+        
+        const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
+        if (sliderContainer) sliderContainer.classList.toggle('visible', isOn);
+        
         const controlsRow = lightContainer.querySelector('.device-control-row');
-    
-        if (circularContainer) {
-            circularContainer.classList.toggle('off', !isOn);
+        if (controlsRow) controlsRow.classList.toggle('hidden', !isOn);
+        
+        const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
+        if(brightnessValueLabel) brightnessValueLabel.textContent = `${brightness}%`;
+        
+        const brightnessSlider = lightContainer.querySelector('[data-control="brightness"]');
+        if(brightnessSlider) {
+            brightnessSlider.value = brightness;
+            if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${brightness}%`);
         }
-        if (sliderInner) {
-            sliderInner.classList.toggle('off', !isOn);
-        }
-        if (circularValue) {
-            circularValue.textContent = isOn ? `${brightness}%` : 'AUS';
-        }
-        if (controlsRow) {
-            controlsRow.classList.toggle('hidden', !isOn);
-        }
-    
-        // Update circular slider if exists
-        const sliderId = `slider-${item.id}`;
-        if (this.circularSliders[sliderId]) {
-            this.circularSliders[sliderId].updateFromState(brightness, isOn);
-        }
-    
+        
         if (!isOn) {
             const presetsContainer = lightContainer.querySelector('.device-control-presets');
-            if (presetsContainer && presetsContainer.classList.contains('visible')) {
+            if (presetsContainer.classList.contains('visible')) {
                 presetsContainer.classList.remove('visible');
                 presetsContainer.setAttribute('data-is-open', 'false');
             }
@@ -1931,176 +1906,7 @@ class FastSearchCard extends HTMLElement {
         if (activePreset) activePreset.classList.add('active');
     }
 
-    // Circular Slider Class - embedded within the main class
-    createCircularSliderClass() {
-        if (window.CircularSlider) return; // Already exists
-    
-        window.CircularSlider = class {
-            constructor(container, config) {
-                this.container = container;
-                this.handle = container.querySelector('.handle');
-                this.progressFill = container.querySelector('.progress-fill');
-                this.valueDisplay = container.querySelector('.circular-value');
-                this.powerIcon = container.querySelector('.power-icon');
-                this.sliderInner = container.querySelector('.slider-inner');
-    
-                this.config = config;
-                this.centerX = 80;
-                this.centerY = 80;
-                this.radius = 68;
-                this.currentValue = config.defaultValue;
-                this.isOn = config.hasPower ? config.defaultPower : true;
-    
-                this.isDragging = false;
-                this.circumference = 2 * Math.PI * 68;
-    
-                this.init();
-            }
-    
-            init() {
-                this.progressFill.style.strokeDasharray = `0 ${this.circumference}`;
-                this.progressFill.style.strokeDashoffset = 0;
-    
-                // Power Button Event
-                this.sliderInner.addEventListener('click', this.togglePower.bind(this));
-                this.updatePowerState();
-                this.updateSlider();
-                this.bindEvents();
-            }
-    
-            togglePower() {
-                if (!this.config.hasPower) return;
-    
-                this.isOn = !this.isOn;
-                this.updatePowerState();
-                this.updateSlider();
-    
-                if (this.config.onPowerToggle) {
-                    this.config.onPowerToggle(this.isOn);
-                }
-            }
-    
-            updatePowerState() {
-                if (this.config.hasPower) {
-                    this.powerIcon.style.display = 'block';
-                    this.sliderInner.style.cursor = 'pointer';
-                    if (this.isOn) {
-                        this.container.classList.remove('off');
-                        this.sliderInner.classList.remove('off');
-                        this.powerIcon.style.color = '#FF9500';
-                    } else {
-                        this.container.classList.add('off');
-                        this.sliderInner.classList.add('off');
-                        this.powerIcon.style.color = '#ccc';
-                    }
-                } else {
-                    this.powerIcon.style.display = 'none';
-                    this.sliderInner.style.cursor = 'default';
-                    this.container.classList.remove('off');
-                    this.sliderInner.classList.remove('off');
-                }
-            }
-    
-            bindEvents() {
-                this.handle.addEventListener('mousedown', this.startDrag.bind(this));
-                document.addEventListener('mousemove', this.drag.bind(this));
-                document.addEventListener('mouseup', this.endDrag.bind(this));
-    
-                this.handle.addEventListener('touchstart', this.startDrag.bind(this));
-                document.addEventListener('touchmove', this.drag.bind(this));
-                document.addEventListener('touchend', this.endDrag.bind(this));
-            }
-    
-            startDrag(e) {
-                this.isDragging = true;
-                e.preventDefault();
-            }
-    
-            drag(e) {
-                if (!this.isDragging || !this.isOn) return;
-    
-                const rect = this.container.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-    
-                const clientX = e.clientX || e.touches[0].clientX;
-                const clientY = e.clientY || e.touches[0].clientY;
-    
-                const x = clientX - centerX;
-                const y = clientY - centerY;
-    
-                let angle = Math.atan2(y, x) * 180 / Math.PI;
-                angle = (angle + 360) % 360;
-    
-                let normalizedAngle = (angle + 90) % 360;
-                let progress = normalizedAngle / 360;
-    
-                // Stopp-Zone bei 100%
-                const maxProgress = (this.config.maxValue - this.config.minValue);
-                const currentProgress = (this.currentValue - this.config.minValue);
-                const currentProgressRatio = currentProgress / maxProgress;
-    
-                if (currentProgressRatio > 0.85 && progress < 0.15) {
-                    progress = 1.0;
-                } else if (currentProgressRatio < 0.15 && progress > 0.85) {
-                    progress = 0.0;
-                }
-    
-                const rawValue = this.config.minValue + progress * (this.config.maxValue - this.config.minValue);
-                this.currentValue = Math.round(rawValue / this.config.step) * this.config.step;
-                this.currentValue = Math.max(this.config.minValue, Math.min(this.config.maxValue, this.currentValue));
-    
-                this.updateSlider();
-    
-                if (this.config.onValueChange) {
-                    this.config.onValueChange(this.currentValue, this.isOn);
-                }
-            }
-    
-            endDrag() {
-                this.isDragging = false;
-            }
-    
-            updateSlider() {
-                const progress = (this.currentValue - this.config.minValue) / (this.config.maxValue - this.config.minValue);
-                const angle = -90 + (progress * 360);
-    
-                // Handle Position
-                const handleX = this.centerX + this.radius * Math.cos(angle * Math.PI / 180);
-                const handleY = this.centerY + this.radius * Math.sin(angle * Math.PI / 180);
-    
-                this.handle.style.left = `${handleX - 7}px`;
-                this.handle.style.top = `${handleY - 7}px`;
-    
-                // SVG Progress
-                if (this.isOn || !this.config.hasPower) {
-                    const progressLength = progress * this.circumference;
-                    this.progressFill.style.strokeDasharray = `${progressLength} ${this.circumference}`;
-                } else {
-                    this.progressFill.style.strokeDasharray = `0 ${this.circumference}`;
-                }
-    
-                // Wert anzeigen
-                if (this.config.hasPower && !this.isOn) {
-                    this.valueDisplay.textContent = 'AUS';
-                } else {
-                    this.valueDisplay.textContent = this.config.formatValue(this.currentValue);
-                }
-            }
-    
-            updateFromState(value, isOn) {
-                this.currentValue = value;
-                this.isOn = isOn;
-                this.updatePowerState();
-                this.updateSlider();
-            }
-        };
-    }
-    
     setupDetailTabs(item) {
-        // Create CircularSlider class if not exists
-        this.createCircularSliderClass();
-
         const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
         if (!tabsContainer) return;
         
@@ -2143,64 +1949,56 @@ class FastSearchCard extends HTMLElement {
     setupLightControls(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
-        // Create circular slider instance
-        const sliderId = `slider-${item.id}`;
-        const circularContainer = lightContainer.querySelector('.circular-slider-container');
-    
-        if (circularContainer) {
-            const state = this._hass.states[item.id];
-            const isOn = state.state === 'on';
-            const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
-    
-            this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
-                minValue: 0,
-                maxValue: 100,
-                defaultValue: brightness,
-                step: 1,
-                label: 'Helligkeit',
-                hasPower: true,
-                defaultPower: isOn,
-                formatValue: (val) => `${Math.round(val)}%`,
-                onValueChange: (value, isOn) => {
-                    if (isOn) {
-                        // Debounce the API calls
-                        clearTimeout(this.lightUpdateTimeout);
-                        this.lightUpdateTimeout = setTimeout(() => {
-                            if (value === 0) {
-                                this.callLightService('turn_off', item.id);
-                            } else {
-                                this.callLightService('turn_on', item.id, { brightness_pct: value });
-                            }
-                        }, 150); // 150ms delay instead of immediate
-                    }
-                },
-                onPowerToggle: (isOn) => {
-                    this.callLightService('toggle', item.id);
-                }
-            });
-        }
+
+        const powerSwitch = lightContainer.querySelector('.power-switch input[data-action="toggle"]');
+        const brightnessSlider = lightContainer.querySelector('.brightness-slider');
+        const sliderContainer = lightContainer.querySelector('.brightness-slider-container');
+        const brightnessValueLabel = lightContainer.querySelector('.brightness-value-display');
         const tempButtons = lightContainer.querySelectorAll('[data-temp]');
         const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
         const colorPresets = lightContainer.querySelectorAll('.device-control-preset');
         const presetsContainer = lightContainer.querySelector('.device-control-presets');
+
+        if (powerSwitch) {
+            powerSwitch.addEventListener('change', () => this.callLightService('toggle', item.id));
+        }
+        
+        if (brightnessSlider) {
+            const updateSlider = (value) => {
+                if (brightnessValueLabel) brightnessValueLabel.textContent = `${value}%`;
+                if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${value}%`);
+            };
+            
+            brightnessSlider.addEventListener('input', (e) => updateSlider(parseInt(e.target.value, 10)));
+            brightnessSlider.addEventListener('change', (e) => {
+                const value = parseInt(e.target.value, 10);
+                if (value === 0) {
+                    this.callLightService('turn_off', item.id);
+                } else {
+                    this.callLightService('turn_on', item.id, { brightness_pct: value });
+                }
+            });
+            
+            if (sliderContainer) {
+                sliderContainer.onmousemove = e => {
+                    const rect = sliderContainer.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    sliderContainer.style.setProperty("--mouse-x", `${x}px`);
+                    sliderContainer.style.setProperty("--mouse-y", `${y}px`);
+                };
+            }
+        }
         
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
             const kelvin = parseInt(btn.dataset.temp, 10);
             this.callLightService('turn_on', item.id, { kelvin: kelvin });
-        
-            // Update slider color immediately
-            const sliderId = `slider-${item.id}`;
-            if (this.circularSliders[sliderId]) {
+            if (sliderContainer) {
                 let rgb = [255, 255, 255]; // default
                 if (kelvin <= 2700) rgb = [255, 166, 87];
                 else if (kelvin <= 4000) rgb = [255, 219, 186];
                 else rgb = [201, 226, 255];
-        
-                const progressFill = this.circularSliders[sliderId].progressFill;
-                progressFill.style.stroke = `rgb(${rgb.join(',')})`;
-        
-                const handle = this.circularSliders[sliderId].handle;
-                handle.style.borderColor = `rgb(${rgb.join(',')})`;
+                sliderContainer.style.setProperty('--slider-color-rgb', rgb.join(','));
             }
         }));
 
@@ -2211,22 +2009,13 @@ class FastSearchCard extends HTMLElement {
                 presetsContainer.setAttribute('data-is-open', String(!isOpen));
             });
         }
-    
+        
         colorPresets.forEach(preset => preset.addEventListener('click', () => {
             const rgb = preset.dataset.rgb.split(',').map(Number);
             this.callLightService('turn_on', item.id, { rgb_color: rgb });
             colorPresets.forEach(p => p.classList.remove('active'));
             preset.classList.add('active');
-        
-            // Update slider color immediately
-            const sliderId = `slider-${item.id}`;
-            if (this.circularSliders[sliderId]) {
-                const progressFill = this.circularSliders[sliderId].progressFill;
-                progressFill.style.stroke = `rgb(${rgb.join(',')})`;
-        
-                const handle = this.circularSliders[sliderId].handle;
-                handle.style.borderColor = `rgb(${rgb.join(',')})`;
-            }
+            if (sliderContainer) sliderContainer.style.setProperty('--slider-color-rgb', rgb.join(','));
         }));
     }
 
@@ -2300,7 +2089,7 @@ class FastSearchCard extends HTMLElement {
         presets.forEach((preset, index) => {
             preset.getAnimations().forEach(anim => anim.cancel());
             preset.animate([
-                { opacity: isOpening ? 0 : 1, transform: `scale(${isOpening ? 0.5 : 1}) translateY(${isOpening ? '-20px' : '0'})` },
+                { opacity: isOpening ? 0 : 1, transform: `scale(<span class="math-inline">\{isOpening ? 0\.5 \: 1\}\) translateY\(</span>{isOpening ? '-20px' : '0'})` },
                 { opacity: isOpening ? 1 : 0, transform: `scale(${isOpening ? 1 : 0.5}) translateY(0)` }
             ], {
                 duration: isOpening ? 300 : 200,
