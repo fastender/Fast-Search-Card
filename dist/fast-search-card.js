@@ -1779,13 +1779,13 @@ class FastSearchCard extends HTMLElement {
         ];
 
         const horizontalVaneOptions = [
-            { label: '← Links', value: '1' }, { label: '‹', value: '2' }, { label: 'Mitte', value: '3' },
-            { label: '›', value: '4' }, { label: 'Rechts →', value: '5' },
+            { label: '← Links', value: '1_left' }, { label: '‹', value: '2' }, { label: 'Mitte', value: '3' },
+            { label: '›', value: '4' }, { label: 'Rechts →', value: '5_right' },
             { label: 'Split', value: 'split' }, { label: 'Swing', value: 'swing' }, { label: 'Auto', value: 'auto' }
         ];
         const verticalVaneOptions = [
-            { label: '↑ Oben', value: '1' }, { label: '↗', value: '2' }, { label: '→', value: '3' },
-            { label: '↘', value: '4' }, { label: '↓ Unten', value: '5' },
+            { label: '↑ Oben', value: '1_up' }, { label: '↗', value: '2' }, { label: '→', value: '3' },
+            { label: '↘', value: '4' }, { label: '↓ Unten', value: '5_down' },
             { label: 'Swing', value: 'swing' }, { label: 'Auto', value: 'auto' }
         ];
         const fanOptions = [
@@ -1803,7 +1803,7 @@ class FastSearchCard extends HTMLElement {
                     </svg>
                     <div class="slider-inner">
                         <div class="power-icon">⏻</div>
-                        <div class="circular-value">${currentTemp}°C</div>
+                        <div class="circular-value">${currentTemp.toFixed(1)}°C</div>
                         <div class="circular-label">Temperatur</div>
                     </div>
                     <div class="handle" style="border-color: #2E8B57;"></div>
@@ -1895,7 +1895,7 @@ class FastSearchCard extends HTMLElement {
         // Update circular slider if exists
         const sliderId = `slider-${item.id}`;
         if (this.circularSliders[sliderId]) {
-            this.circularSliders[sliderId].updateFromState(currentTemp, true);
+            this.circularSliders[sliderId].updateFromState(currentTemp, state.state !== 'off');
         }
 
         // Update active classes for modes and presets
@@ -1904,11 +1904,11 @@ class FastSearchCard extends HTMLElement {
         });
 
         climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_horizontal"]').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.value === state.attributes.horizontal_vane);
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode); // MELCloud uses swing_mode for both
         });
         
         climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_vertical"]').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.value === state.attributes.vertical_vane);
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode); // MELCloud uses swing_mode for both
         });
         
         climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="fan_mode"]').forEach(opt => {
@@ -2256,11 +2256,13 @@ class FastSearchCard extends HTMLElement {
                 defaultValue: currentTemp,
                 step: 0.5,
                 label: 'Temperatur',
-                hasPower: false,
+                hasPower: true, // Show power icon
+                defaultPower: true, // Always "on" visually
                 formatValue: (val) => `${val.toFixed(1)}°C`,
                 onValueChangeEnd: (value) => {
                     this.callClimateService('set_temperature', item.id, { temperature: value });
-                }
+                },
+                onPowerToggle: null // No action on click
             });
         }
 
