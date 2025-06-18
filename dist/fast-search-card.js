@@ -76,7 +76,7 @@ class FastSearchCard extends HTMLElement {
             
             if (!oldState && newState) return true;
             if (oldState && !newState) return true;
-            if (oldState && newState && oldState.attributes.friendly_name !== newState.attributes.friendly_name) {
+            if (oldState && newState && JSON.stringify(oldState.attributes) !== JSON.stringify(newState.attributes)) {
                 return true;
             }
         }
@@ -1551,7 +1551,7 @@ class FastSearchCard extends HTMLElement {
 
             const quickStats = detailPanel.querySelector('.quick-stats');
             if (quickStats) {
-                quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
+                quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('')
             }
             
             const detailInfoRow = detailPanel.querySelector('.detail-info-row');
@@ -1904,11 +1904,11 @@ class FastSearchCard extends HTMLElement {
         });
 
         climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_horizontal"]').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode); // MELCloud uses swing_mode for both
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode);
         });
         
         climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_vertical"]').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode); // MELCloud uses swing_mode for both
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode);
         });
         
         climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="fan_mode"]').forEach(opt => {
@@ -1968,7 +1968,11 @@ class FastSearchCard extends HTMLElement {
             updatePowerState() {
                 if (this.config.hasPower) {
                     this.powerIcon.style.display = 'block';
-                    if (this.config.onPowerToggle) this.sliderInner.style.cursor = 'pointer';
+                    if (this.config.onPowerToggle) {
+                        this.sliderInner.style.cursor = 'pointer';
+                    } else {
+                        this.sliderInner.style.cursor = 'default';
+                    }
 
                     if (this.isOn) {
                         this.container.classList.remove('off');
@@ -2256,13 +2260,15 @@ class FastSearchCard extends HTMLElement {
                 defaultValue: currentTemp,
                 step: 0.5,
                 label: 'Temperatur',
-                hasPower: true, // Show power icon
-                defaultPower: true, // Always "on" visually
+                hasPower: true, 
+                defaultPower: state.state !== 'off',
                 formatValue: (val) => `${val.toFixed(1)}°C`,
                 onValueChangeEnd: (value) => {
                     this.callClimateService('set_temperature', item.id, { temperature: value });
                 },
-                onPowerToggle: null // No action on click
+                onPowerToggle: () => {
+                    this.callClimateService('toggle', item.id);
+                }
             });
         }
 
@@ -2367,13 +2373,17 @@ class FastSearchCard extends HTMLElement {
                 }
                 break;
             case 'climate':
-                if (state.attributes.current_temperature && state.attributes.temperature) {
-                    stats.push(`${state.attributes.current_temperature}°C → ${state.attributes.temperature}°C`);
+                if (state.state !== 'off') {
+                    if (state.attributes.current_temperature && state.attributes.temperature) {
+                        stats.push(`${state.attributes.current_temperature}°C → ${state.attributes.temperature}°C`);
+                    }
+                    if (state.attributes.hvac_mode) stats.push(state.attributes.hvac_mode);
+                    if (state.attributes.swing_mode) {
+                        stats.push(`H: ${state.attributes.swing_mode}`);
+                        stats.push(`V: ${state.attributes.swing_mode}`);
+                    }
+                    if (state.attributes.fan_mode) stats.push(`Fan: ${state.attributes.fan_mode}`);
                 }
-                stats.push(state.attributes.hvac_mode);
-                stats.push(`H: ${state.attributes.horizontal_vane || '-'}`);
-                stats.push(`V: ${state.attributes.vertical_vane || '-'}`);
-                stats.push(`Fan: ${state.attributes.fan_mode || '-'}`);
                 break;
             case 'media_player':
                  if (state.state === 'playing' && state.attributes.media_title) stats.push(`♪ ${state.attributes.media_title}`);
@@ -2383,7 +2393,7 @@ class FastSearchCard extends HTMLElement {
                 if (state.attributes.current_position != null) stats.push(`${state.attributes.current_position}%`);
                 break;
         }
-        return stats;
+        return stats.filter(s => s); // Filter out any undefined/null values
     }
 
     getBackgroundImageForItem(item) {
