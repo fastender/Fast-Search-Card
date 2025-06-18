@@ -1023,7 +1023,7 @@ class FastSearchCard extends HTMLElement {
             .device-control-row.hidden { display: none; }
             .device-control-button {
                 flex-basis: 50px;
-                flex-grow: 1;
+                flex-grow: 0; /* Geändert von 1 auf 0 */
                 flex-shrink: 0;
                 width: 50px;
                 height: 50px; 
@@ -1751,7 +1751,7 @@ class FastSearchCard extends HTMLElement {
                     <h3 class="detail-name">${item.name}</h3>
                     <p class="detail-area">${item.area}</p>
                 </div>
-                <div class="detail-info-row">
+                <div class="detail-info-row" style="gap: ${isActive ? '12px' : '0px'}">
                     <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
                     <div class="quick-stats">
                        ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
