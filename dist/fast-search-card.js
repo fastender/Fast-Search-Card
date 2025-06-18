@@ -1812,10 +1812,23 @@ class FastSearchCard extends HTMLElement {
     getClimateControlsHTML(item) {
         const state = this._hass.states[item.id];
         const currentTemp = state.attributes.temperature || 20;
+
+        // DEBUG
+        console.log('MELCloud Attributes:');
+        console.log('vane_horizontal:', state.attributes.vane_horizontal);
+        console.log('vane_horizontal_positions:', state.attributes.vane_horizontal_positions);
+        console.log('vane_vertical:', state.attributes.vane_vertical);
+        console.log('vane_vertical_positions:', state.attributes.vane_vertical_positions);
+        console.log('All attributes:', state.attributes);
+
         // Dynamisch aus dem Gerät lesen
         const supportedHvacModes = state.attributes.hvac_modes || [];
         const supportedFanModes = state.attributes.fan_modes || [];
         const supportedSwingModes = state.attributes.swing_modes || [];
+
+        // Fallback-Listen mit den korrekten MELCloud-Werten
+        const defaultHorizontalPositions = ['auto', '1_left', '2', '3', '4', '5_right', 'split', 'swing'];
+        const defaultVerticalPositions = ['auto', '1_up', '2', '3', '4', '5_down', 'swing'];
     
         // Icon-Definitionen für alle möglichen Modi
         const hvacIcons = {
@@ -1829,8 +1842,10 @@ class FastSearchCard extends HTMLElement {
         const fanModeLabels = {
             auto: 'Auto', quiet: 'Leise', low: 'Niedrig', medium: 'Mittel', medium_low: 'Mittel-Niedrig', medium_high: 'Mittel-Hoch', high: 'Hoch', middle: 'Mittel', focus: 'Fokus', diffuse: 'Diffus', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5'
         };
-        // Prüfe, ob MELCloud-spezifische Features vorhanden sind
-        const hasMELCloudVanes = state.attributes.vane_horizontal_positions || state.attributes.vane_vertical_positions;
+        const hPositions = state.attributes.vane_horizontal_positions || defaultHorizontalPositions;
+        const vPositions = state.attributes.vane_vertical_positions || defaultVerticalPositions;
+        const showHControls = state.attributes.hasOwnProperty('vane_horizontal');
+        const showVControls = state.attributes.hasOwnProperty('vane_vertical');
     
         return `
             <div class="device-control-design" id="device-control-${item.id}">
@@ -1853,65 +1868,61 @@ class FastSearchCard extends HTMLElement {
                         .filter(mode => hvacIcons[mode])
                         .map(mode => `<button class="device-control-button ${state.state === mode ? 'active' : ''}" data-hvac-mode="${mode}" title="${mode}">${hvacIcons[mode]}</button>`)
                         .join('')}
-                    ${(supportedFanModes.length > 0 || supportedSwingModes.length > 0 || hasMELCloudVanes) ? `
+                    ${(supportedFanModes.length > 0 || supportedSwingModes.length > 0 || showHControls || showVControls) ? `
                         <button class="device-control-button" data-action="toggle-presets" title="Einstellungen">
                             <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M5.5 6C5.77614 6 6 5.77614 6 5.5C6 5.22386 5.77614 5 5.5 5C5.22386 5 5 5.22386 5 5.5C5 5.77614 5.22386 6 5.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 12.5C5.77614 12.5 6 12.2761 6 12C6 11.7239 5.77614 11.5 5.5 11.5C5.22386 11.5 5 11.7239 5 12C5 12.2761 5.22386 12.5 5.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 19C5.77614 19 6 18.7761 6 18.5C6 18.2239 5.77614 18 5.5 18C5.22386 18 5 18.2239 5 18.5C5 18.7761 5.22386 19 5.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6C12.2761 6 12.5 5.77614 12.5 5.5C12.5 5.22386 12.2761 5 12 5C11.7239 5 11.5 5.22386 11.5 5.5C11.5 5.77614 11.7239 6 12 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 19C12.2761 19 12.5 18.7761 12.5 18.5C12.5 18.2239 12.2761 18 12 18C11.7239 18 11.5 18.2239 11.5 18.5C11.5 18.7761 11.7239 19 12 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 6C18.7761 6 19 5.77614 19 5.5C19 5.22386 18.7761 5 18.5 5C18.2239 5 18 5.22386 18 5.5C18 5.77614 18.2239 6 18.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 12.5C18.7761 12.5 19 12.2761 19 12C19 11.7239 18.7761 11.5 18.5 11.5C18.2239 11.5 18 11.7239 18 12C18 12.2761 18.2239 12.5 18.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 19C18.7761 19 19 18.7761 19 18.5C19 18.2239 18.7761 18 18.5 18C18.2239 18 18 18.2239 18 18.5C18 18.7761 18.2239 19 18.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                         </button>
                     ` : ''}
                 </div>
-                ${(supportedFanModes.length > 0 || supportedSwingModes.length > 0 || hasMELCloudVanes) ? `
-                    <div class="device-control-presets climate" data-is-open="false">
-                        ${hasMELCloudVanes ? `
-                            ${state.attributes.vane_horizontal_positions ? `
-                                <div class="climate-setting-row" data-setting-type="vane_horizontal">
-                                    ${state.attributes.vane_horizontal_positions.map(value => `
-                                        <div class="climate-setting-option ${state.attributes.vane_horizontal === value ? 'active' : ''}"
-                                             data-climate-setting="vane_horizontal"
-                                             data-value="${value}">${this.getVaneLabel(value, 'horizontal')}</div>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                            ${state.attributes.vane_vertical_positions ? `
-                                <div class="climate-setting-row" data-setting-type="vane_vertical">
-                                    ${state.attributes.vane_vertical_positions.map(value => `
-                                        <div class="climate-setting-option ${state.attributes.vane_vertical === value ? 'active' : ''}"
-                                             data-climate-setting="vane_vertical"
-                                             data-value="${value}">${this.getVaneLabel(value, 'vertical')}</div>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                        ` : ''}
-                        ${supportedSwingModes.length > 0 ? `
-                            <div class="climate-setting-row" data-setting-type="swing_mode">
-                                ${supportedSwingModes.map(mode => `
-                                    <div class="climate-setting-option ${state.attributes.swing_mode === mode ? 'active' : ''}"
-                                         data-climate-setting="swing_mode"
-                                         data-value="${mode}">${this.getSwingLabel(mode)}</div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                        ${supportedFanModes.length > 0 ? `
-                            <div class="climate-setting-row" data-setting-type="fan_mode">
-                                ${supportedFanModes.map(mode => `
-                                    <div class="climate-setting-option ${state.attributes.fan_mode === mode ? 'active' : ''}"
-                                         data-climate-setting="fan_mode"
-                                         data-value="${mode}">${fanModeLabels[mode] || mode}</div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                    </div>
-                ` : ''}
+                <div class="device-control-presets climate" data-is-open="false">
+                    ${showHControls ? `
+                        <div class="climate-setting-row" data-setting-type="vane_horizontal">
+                            ${hPositions.map(value => `
+                                <div class="climate-setting-option ${state.attributes.vane_horizontal === value ? 'active' : ''}"
+                                     data-climate-setting="vane_horizontal"
+                                     data-value="${value}">${this.getVaneLabel(value, 'horizontal')}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${showVControls ? `
+                        <div class="climate-setting-row" data-setting-type="vane_vertical">
+                            ${vPositions.map(value => `
+                                <div class="climate-setting-option ${state.attributes.vane_vertical === value ? 'active' : ''}"
+                                     data-climate-setting="vane_vertical"
+                                     data-value="${value}">${this.getVaneLabel(value, 'vertical')}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${supportedSwingModes.length > 0 ? `
+                        <div class="climate-setting-row" data-setting-type="swing_mode">
+                            ${supportedSwingModes.map(mode => `
+                                <div class="climate-setting-option ${state.attributes.swing_mode === mode ? 'active' : ''}"
+                                     data-climate-setting="swing_mode"
+                                     data-value="${mode}">${this.getSwingLabel(mode)}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${supportedFanModes.length > 0 ? `
+                        <div class="climate-setting-row" data-setting-type="fan_mode">
+                            ${supportedFanModes.map(mode => `
+                                <div class="climate-setting-option ${state.attributes.fan_mode === mode ? 'active' : ''}"
+                                     data-climate-setting="fan_mode"
+                                     data-value="${mode}">${fanModeLabels[mode] || mode}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
             </div>
         `;
     }
 
     getVaneLabel(value, direction) {
         const horizontalLabels = {
-            '1': '← Links', '2': '‹', '3': 'Mitte', '4': '›', '5': 'Rechts →', '1_left': '← Links', '5_right': 'Rechts →', 'split': 'Split', 'swing': 'Swing', 'auto': 'Auto'
+            'auto': 'Auto', '1_left': '← Links', '2': '‹', '3': 'Mitte', '4': '›', '5_right': 'Rechts →', 'split': 'Split', 'swing': 'Swing'
         };
     
         const verticalLabels = {
-            '1': '↑ Oben', '2': '↗', '3': '→', '4': '↘', '5': '↓ Unten', '1_up': '↑ Oben', '5_down': '↓ Unten', 'swing': 'Swing', 'auto': 'Auto'
+            'auto': 'Auto', '1_up': '↑ Oben', '2': '↗', '3': '→', '4': '↘', '5_down': '↓ Unten', 'swing': 'Swing'
         };
     
         return direction === 'horizontal' 
