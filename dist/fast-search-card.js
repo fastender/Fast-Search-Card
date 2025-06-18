@@ -25,6 +25,7 @@ class FastSearchCard extends HTMLElement {
         // Circular Slider State
         this.circularSliders = {};
         this.lightUpdateTimeout = null;
+        this.coverUpdateTimeout = null; // Hinzugefügt für Rollladen
     }
 
     setConfig(config) {
@@ -894,121 +895,6 @@ class FastSearchCard extends HTMLElement {
                 cursor: grabbing;
             }
 
-            /* SLIDER (re-used for brightness and position) */
-            .position-slider-container {
-                --percentage: 50%;
-                --slider-color-rgb: var(--accent-rgb); /* Use RGB components */
-                --main-color: 255,255,255;
-                --el-bg-color: 100,100,100;
-                display: flex;
-                width: 280px;
-                height: 20px;
-                padding: 20px 20px;
-                background: rgba(var(--main-color), 0.07);
-                border: 1px solid rgba(var(--main-color), 0.03);
-                border-radius: 50px;
-                align-items: center;
-                justify-content: center;
-                position: relative;
-                overflow: hidden;
-                margin: 16px auto;
-                z-index: 10;
-            }
-
-            .position-slider-container::after {
-                content: "";
-                height: 100%;
-                opacity: 0;
-                left: 0;
-                position: absolute;
-                top: 0;
-                transition: opacity 500ms;
-                width: 100%;
-                background: radial-gradient(
-                    500px circle at var(--mouse-x) var(--mouse-y),
-                    rgba(var(--main-color), 0.06),
-                    transparent 40%
-                );
-                z-index: -1;
-            }
-
-            .position-slider-container:hover::after {
-                opacity: 1;
-            }
-
-            .position-icon, .brightness-icon {
-                fill: rgba(255, 255, 255, 0.8);
-                margin-right: 1em;
-                cursor: pointer;
-                width: 24px;
-                height: 24px;
-                z-index: 11;
-                position: relative;
-            }
-            
-            .position-slider, .brightness-slider {
-                margin: 0 10px;
-                appearance: none;
-                width: 100%;
-                height: 5px;
-                border-radius: 50px;
-                outline: none;
-                transition: .2s;
-                cursor: pointer;
-                background: rgba(var(--el-bg-color), 0.3) !important;
-                background-image: none !important;
-                position: relative;
-                overflow: hidden;
-                z-index: 11;
-            }
-
-            .position-slider::before, .brightness-slider::before {
-                position: absolute;
-                content: "";
-                height: 100%;
-                width: calc(var(--percentage));
-                border-radius: 50px;
-                background: rgb(var(--slider-color-rgb));
-                transition: all 0.2s ease;
-                left: 0;
-                top: 0;
-                z-index: 1;
-            }
-
-            .position-slider::after, .brightness-slider::after {
-                position: absolute;
-                content: "";
-                height: 100%;
-                width: 10px;
-                border-radius: 0 50px 50px 0;
-                background-color: rgb(var(--slider-color-rgb));
-                transition: all 0.2s ease;
-                left: calc(var(--percentage) - 10px);
-                top: 0;
-                z-index: 2;
-            }
-
-            .position-slider::-webkit-slider-thumb, .brightness-slider::-webkit-slider-thumb {
-                appearance: none;
-                visibility: hidden;
-                width: 1px;
-                height: 10px;
-            }
-
-            .position-slider:hover, .brightness-slider:hover {
-                height: 1em;
-            }
-
-            .position-value-display, .brightness-value-display {
-                font-family: sans-serif;
-                color: rgba(255, 255, 255, 0.9);
-                min-width: 3em;
-                text-align: right;
-                font-size: 14px;
-                z-index: 11;
-                position: relative;
-            }
-
             /* Temp and Color Controls */
             .device-control-row {
                 width: 100%; 
@@ -1023,7 +909,7 @@ class FastSearchCard extends HTMLElement {
             .device-control-row.hidden { display: none; }
             .device-control-button {
                 flex-basis: 50px;
-                flex-grow: 0; /* Geändert von 1 auf 0 */
+                flex-grow: 0;
                 flex-shrink: 0;
                 width: 50px;
                 height: 50px; 
@@ -1844,14 +1730,22 @@ class FastSearchCard extends HTMLElement {
 
     getCoverControlsHTML(item) {
         const state = this._hass.states[item.id];
-        const position = state.attributes.current_position ?? 100;
-
+        const position = state.attributes.current_position ?? 0;
+        
         return `
             <div class="device-control-design" id="device-control-${item.id}">
-                <div class="position-slider-container" style="--slider-color-rgb: var(--accent-rgb);">
-                    <svg class="position-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 5v14h18V5H3zm0 4h18M3 13h18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <input type="range" class="position-slider" data-control="position" min="0" max="100" value="${position}">
-                    <span class="position-value-display">${position}%</span>
+                <div class="circular-slider-container cover" data-entity="${item.id}">
+                    <div class="slider-track"></div>
+                    <svg class="progress-svg">
+                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
+                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #4A90E2;"></circle>
+                    </svg>
+                    <div class="slider-inner">
+                        <div class="power-icon">⏻</div>
+                        <div class="circular-value">${position}%</div>
+                        <div class="circular-label">Offen</div>
+                    </div>
+                    <div class="handle" style="border-color: #4A90E2;"></div>
                 </div>
 
                 <div class="device-control-row">
@@ -1928,19 +1822,11 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         const position = state.attributes.current_position ?? 100;
         
-        const positionSlider = coverContainer.querySelector('[data-control="position"]');
-        if (positionSlider) positionSlider.value = position;
-        
-        const positionValueDisplay = coverContainer.querySelector('.position-value-display');
-        if (positionValueDisplay) positionValueDisplay.textContent = `${position}%`;
-
-        const sliderContainer = coverContainer.querySelector('.position-slider-container');
-        if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${position}%`);
-
-        const presets = coverContainer.querySelectorAll('.device-control-preset');
-        presets.forEach(p => p.classList.remove('active'));
-        const activePreset = coverContainer.querySelector(`.device-control-preset[data-position="${position}"]`);
-        if (activePreset) activePreset.classList.add('active');
+        // Update circular slider if exists
+        const sliderId = `slider-${item.id}`;
+        if (this.circularSliders[sliderId]) {
+            this.circularSliders[sliderId].updateFromState(position, true);
+        }
     }
 
     // Circular Slider Class - embedded within the main class
@@ -1974,7 +1860,9 @@ class FastSearchCard extends HTMLElement {
                 this.progressFill.style.strokeDashoffset = 0;
     
                 // Power Button Event
-                this.sliderInner.addEventListener('click', this.togglePower.bind(this));
+                if (this.config.onPowerToggle) {
+                    this.sliderInner.addEventListener('click', this.togglePower.bind(this));
+                }
                 this.updatePowerState();
                 this.updateSlider();
                 this.bindEvents();
@@ -2245,37 +2133,39 @@ class FastSearchCard extends HTMLElement {
     setupCoverControls(item) {
         const coverContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!coverContainer) return;
+        
+        const sliderId = `slider-${item.id}`;
+        const circularContainer = coverContainer.querySelector('.circular-slider-container.cover');
     
-        const positionSlider = coverContainer.querySelector('.position-slider');
-        const sliderContainer = coverContainer.querySelector('.position-slider-container');
-        const positionValueDisplay = coverContainer.querySelector('.position-value-display');
+        if (circularContainer) {
+            const state = this._hass.states[item.id];
+            const position = state.attributes.current_position ?? 0;
+    
+            this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
+                minValue: 0,
+                maxValue: 100,
+                defaultValue: position,
+                step: 1,
+                label: 'Offen',
+                hasPower: true,
+                defaultPower: true, // Always on
+                formatValue: (val) => `${Math.round(val)}%`,
+                onValueChange: (value) => {
+                    clearTimeout(this.coverUpdateTimeout);
+                    this.coverUpdateTimeout = setTimeout(() => {
+                        this.callCoverService('set_cover_position', item.id, { position: value });
+                    }, 150);
+                },
+                onPowerToggle: () => {} // No action on power toggle
+            });
+        }
+
         const openBtn = coverContainer.querySelector('[data-action="open"]');
         const stopBtn = coverContainer.querySelector('[data-action="stop"]');
         const closeBtn = coverContainer.querySelector('[data-action="close"]');
         const presetsToggle = coverContainer.querySelector('[data-action="toggle-presets"]');
         const presetsContainer = coverContainer.querySelector('.device-control-presets');
         const positionPresets = coverContainer.querySelectorAll('.device-control-preset');
-
-        if (positionSlider) {
-            const updateSlider = (value) => {
-                if (positionValueDisplay) positionValueDisplay.textContent = `${value}%`;
-                if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${value}%`);
-            };
-            
-            positionSlider.addEventListener('input', e => updateSlider(parseInt(e.target.value, 10)));
-            positionSlider.addEventListener('change', e => {
-                const position = parseInt(e.target.value, 10);
-                this.callCoverService('set_cover_position', item.id, { position });
-            });
-
-            if (sliderContainer) {
-                sliderContainer.onmousemove = e => {
-                    const rect = sliderContainer.getBoundingClientRect();
-                    sliderContainer.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
-                    sliderContainer.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
-                };
-            }
-        }
         
         if(openBtn) openBtn.addEventListener('click', () => this.callCoverService('open_cover', item.id));
         if(stopBtn) stopBtn.addEventListener('click', () => this.callCoverService('stop_cover', item.id));
