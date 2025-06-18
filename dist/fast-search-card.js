@@ -25,7 +25,7 @@ class FastSearchCard extends HTMLElement {
         // Circular Slider State
         this.circularSliders = {};
         this.lightUpdateTimeout = null;
-        this.coverUpdateTimeout = null;
+        this.coverUpdateTimeout = null; 
         this.climateUpdateTimeout = null; 
     }
 
@@ -2209,10 +2209,13 @@ class FastSearchCard extends HTMLElement {
                 hasPower: true,
                 defaultPower: true,
                 formatValue: (val) => `${Math.round(val)}%`,
-                onValueChangeEnd: (value) => {
-                    this.callCoverService('set_cover_position', item.id, { position: value });
+                onValueChange: (value) => {
+                    clearTimeout(this.coverUpdateTimeout);
+                    this.coverUpdateTimeout = setTimeout(() => {
+                        this.callCoverService('set_cover_position', item.id, { position: value });
+                    }, 150);
                 },
-                onPowerToggle: null // No action
+                onPowerToggle: null 
             });
         }
 
@@ -2267,7 +2270,7 @@ class FastSearchCard extends HTMLElement {
                     this.callClimateService('set_temperature', item.id, { temperature: value });
                 },
                 onPowerToggle: (isOn) => {
-                     this.callClimateService(isOn ? 'turn_on' : 'turn_off', item.id);
+                     this.callClimateService('toggle', item.id);
                 }
             });
         }
@@ -2379,8 +2382,7 @@ class FastSearchCard extends HTMLElement {
                     }
                     if (state.attributes.hvac_mode) stats.push(state.attributes.hvac_mode);
                     if (state.attributes.swing_mode) {
-                        stats.push(`H: ${state.attributes.swing_mode}`);
-                        stats.push(`V: ${state.attributes.swing_mode}`);
+                        stats.push(`H/V: ${state.attributes.swing_mode}`);
                     }
                     if (state.attributes.fan_mode) stats.push(`Fan: ${state.attributes.fan_mode}`);
                 }
