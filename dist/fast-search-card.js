@@ -25,8 +25,8 @@ class FastSearchCard extends HTMLElement {
         // Circular Slider State
         this.circularSliders = {};
         this.lightUpdateTimeout = null;
-        this.coverUpdateTimeout = null; 
-        this.climateUpdateTimeout = null; 
+        this.coverUpdateTimeout = null; // Hinzugefügt für Rollladen
+        this.climateUpdateTimeout = null; // NEU für Klima
     }
 
     setConfig(config) {
@@ -76,6 +76,7 @@ class FastSearchCard extends HTMLElement {
             
             if (!oldState && newState) return true;
             if (oldState && !newState) return true;
+             // Diese robustere Prüfung aus deiner neuen Datei wurde übernommen
             if (oldState && newState && JSON.stringify(oldState.attributes) !== JSON.stringify(newState.attributes)) {
                 return true;
             }
@@ -931,11 +932,10 @@ class FastSearchCard extends HTMLElement {
             .device-control-button:hover { transform: scale(1.05); background: rgba(255,255,255,0.2); }
             .device-control-button.active { background: var(--accent); }
 
-            .device-control-presets { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 100%;}
-            .device-control-presets.visible { max-height: 250px; opacity: 1; margin-top: 16px;}
-            
+            .device-control-presets { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 100%; max-width: 280px;}
+            .device-control-presets.visible { max-height: 150px; opacity: 1; margin-top: 16px;}
             .device-control-presets-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center;}
-            .device-control-presets .device-control-preset {
+            .device-control-preset {
                 width: 48px;
                 height: 48px;
                 border-radius: 50%;
@@ -950,13 +950,14 @@ class FastSearchCard extends HTMLElement {
                 color: rgba(255,255,255,0.9);
                 text-shadow: 0 1px 2px rgba(0,0,0,0.5);
             }
-            .device-control-presets .device-control-preset.active { border-color: white; }
-            .device-control-presets .device-control-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
+            .device-control-preset.active { border-color: white; }
+            .device-control-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
 
-
-            .climate-setting-row { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; padding-bottom: 8px;}
+            /* NEU: CSS für Klima-Steuerung */
+            .device-control-presets.climate.visible { max-height: 250px; }
+            .climate-setting-row { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; padding-bottom: 8px; justify-content: center;}
             .climate-setting-row::-webkit-scrollbar { display: none; }
-            .climate-setting-option { padding: 8px 16px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
+            .climate-setting-option { padding: 8px 16px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; font-size: 12px; }
             .climate-setting-option.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
             .climate-setting-option:hover { background: rgba(255, 255, 255, 0.2); }
 
@@ -1572,7 +1573,7 @@ class FastSearchCard extends HTMLElement {
 
             const quickStats = detailPanel.querySelector('.quick-stats');
             if (quickStats) {
-                quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('')
+                quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
             }
             
             const detailInfoRow = detailPanel.querySelector('.detail-info-row');
@@ -1602,7 +1603,7 @@ class FastSearchCard extends HTMLElement {
             this.updateLightControlsUI(item);
         } else if (item.domain === 'cover') {
             this.updateCoverControlsUI(item);
-        } else if (item.domain === 'climate') {
+        } else if (item.domain === 'climate') { // NEU
             this.updateClimateControlsUI(item);
         }
     }
@@ -1684,7 +1685,7 @@ class FastSearchCard extends HTMLElement {
                 return this.getLightControlsHTML(item);
             case 'cover':
                 return this.getCoverControlsHTML(item);
-            case 'climate':
+            case 'climate': // NEU
                 return this.getClimateControlsHTML(item);
             default:
                 return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Keine Steuerelemente für diesen Gerätetyp.</div>`;
@@ -1748,10 +1749,18 @@ class FastSearchCard extends HTMLElement {
         
         return `
             <div class="device-control-design" id="device-control-${item.id}">
-                <div class="position-slider-container" style="--slider-color-rgb: var(--accent-rgb);">
-                    <svg class="position-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 5v14h18V5H3zm0 4h18M3 13h18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <input type="range" class="position-slider" data-control="position" min="0" max="100" value="${position}">
-                    <span class="position-value-display">${position}%</span>
+                <div class="circular-slider-container cover" data-entity="${item.id}">
+                    <div class="slider-track"></div>
+                    <svg class="progress-svg">
+                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
+                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #4A90E2;"></circle>
+                    </svg>
+                    <div class="slider-inner">
+                        <div class="power-icon">⏻</div>
+                        <div class="circular-value">${position}%</div>
+                        <div class="circular-label">Offen</div>
+                    </div>
+                    <div class="handle" style="border-color: #4A90E2;"></div>
                 </div>
 
                 <div class="device-control-row">
@@ -1780,6 +1789,7 @@ class FastSearchCard extends HTMLElement {
         `;
     }
     
+    // NEU: Komplette Funktion für Klima-HTML
     getClimateControlsHTML(item) {
         const state = this._hass.states[item.id];
         const currentTemp = state.attributes.temperature || 20;
@@ -1843,6 +1853,38 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
+    // NEU: UI Update Funktion für Klima
+    updateClimateControlsUI(item) {
+        const climateContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
+        if (!climateContainer) return;
+
+        const state = this._hass.states[item.id];
+        const currentTemp = state.attributes.temperature || 20;
+
+        // Update circular slider if exists
+        const sliderId = `slider-${item.id}`;
+        if (this.circularSliders[sliderId]) {
+            this.circularSliders[sliderId].updateFromState(currentTemp, state.state !== 'off');
+        }
+
+        // Update active classes for modes and presets
+        climateContainer.querySelectorAll('[data-hvac-mode]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.hvacMode === state.state);
+        });
+
+        climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_horizontal"]').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode);
+        });
+        
+        climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_vertical"]').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode);
+        });
+        
+        climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="fan_mode"]').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.fan_mode);
+        });
+    }
+
     updateLightControlsUI(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
@@ -1876,7 +1918,7 @@ class FastSearchCard extends HTMLElement {
         }
     
         if (!isOn) {
-            const presetsContainer = lightContainer.querySelector('.device-control-presets.device-control-colors');
+            const presetsContainer = lightContainer.querySelector('.device-control-presets');
             if (presetsContainer && presetsContainer.classList.contains('visible')) {
                 presetsContainer.classList.remove('visible');
                 presetsContainer.setAttribute('data-is-open', 'false');
@@ -1891,56 +1933,19 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         const position = state.attributes.current_position ?? 100;
         
-        const positionSlider = coverContainer.querySelector('[data-control="position"]');
-        if (positionSlider) positionSlider.value = position;
-        
-        const positionValueDisplay = coverContainer.querySelector('.position-value-display');
-        if (positionValueDisplay) positionValueDisplay.textContent = `${position}%`;
-
-        const sliderContainer = coverContainer.querySelector('.position-slider-container');
-        if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${position}%`);
-
-        const presets = coverContainer.querySelectorAll('.device-control-preset');
-        presets.forEach(p => p.classList.remove('active'));
-        const activePreset = coverContainer.querySelector(`.device-control-preset[data-position="${position}"]`);
-        if (activePreset) activePreset.classList.add('active');
-    }
-
-    updateClimateControlsUI(item) {
-        const climateContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
-        if (!climateContainer) return;
-
-        const state = this._hass.states[item.id];
-        const currentTemp = state.attributes.temperature || 20;
-
         // Update circular slider if exists
         const sliderId = `slider-${item.id}`;
         if (this.circularSliders[sliderId]) {
-            this.circularSliders[sliderId].updateFromState(currentTemp, state.state !== 'off');
+            this.circularSliders[sliderId].updateFromState(position, true);
         }
-
-        // Update active classes for modes and presets
-        climateContainer.querySelectorAll('[data-hvac-mode]').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.hvacMode === state.state);
-        });
-
-        climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_horizontal"]').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode); // MELCloud uses swing_mode for both
-        });
-        
-        climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_vertical"]').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode); // MELCloud uses swing_mode for both
-        });
-        
-        climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="fan_mode"]').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.value === state.attributes.fan_mode);
-        });
     }
 
     // Circular Slider Class - embedded within the main class
     createCircularSliderClass() {
         if (window.CircularSlider) return; // Already exists
     
+        // HINWEIS: Dies ist die erweiterte Slider-Klasse aus deiner neuen Datei,
+        // da sie für die Klima-Steuerung benötigt wird.
         window.CircularSlider = class {
             constructor(container, config) {
                 this.container = container;
@@ -1967,7 +1972,6 @@ class FastSearchCard extends HTMLElement {
                 this.progressFill.style.strokeDasharray = `0 ${this.circumference}`;
                 this.progressFill.style.strokeDashoffset = 0;
     
-                // Power Button Event
                 if (this.config.onPowerToggle) {
                     this.sliderInner.addEventListener('click', this.togglePower.bind(this));
                 }
@@ -2146,15 +2150,15 @@ class FastSearchCard extends HTMLElement {
             this.setupLightControls(item);
         } else if (item.domain === 'cover') {
             this.setupCoverControls(item);
-        } else if (item.domain === 'climate') {
+        } else if (item.domain === 'climate') { // NEU
             this.setupClimateControls(item);
         }
     }
     
+    // Original-Version für Lichter
     setupLightControls(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
-        
         const sliderId = `slider-${item.id}`;
         const circularContainer = lightContainer.querySelector('.circular-slider-container');
     
@@ -2172,13 +2176,16 @@ class FastSearchCard extends HTMLElement {
                 hasPower: true,
                 defaultPower: isOn,
                 formatValue: (val) => `${Math.round(val)}%`,
-                onValueChangeEnd: (value, isOn) => {
+                onValueChange: (value, isOn) => {
                     if (isOn) {
-                        if (value === 0) {
-                            this.callLightService('turn_off', item.id);
-                        } else {
-                            this.callLightService('turn_on', item.id, { brightness_pct: value });
-                        }
+                        clearTimeout(this.lightUpdateTimeout);
+                        this.lightUpdateTimeout = setTimeout(() => {
+                            if (value === 0) {
+                                this.callLightService('turn_off', item.id);
+                            } else {
+                                this.callLightService('turn_on', item.id, { brightness_pct: value });
+                            }
+                        }, 150);
                     }
                 },
                 onPowerToggle: (isOn) => {
@@ -2189,11 +2196,25 @@ class FastSearchCard extends HTMLElement {
         const tempButtons = lightContainer.querySelectorAll('[data-temp]');
         const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
         const colorPresets = lightContainer.querySelectorAll('.device-control-preset');
-        const presetsContainer = lightContainer.querySelector('.device-control-presets.device-control-colors');
+        const presetsContainer = lightContainer.querySelector('.device-control-presets');
         
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
             const kelvin = parseInt(btn.dataset.temp, 10);
             this.callLightService('turn_on', item.id, { kelvin: kelvin });
+        
+            const sliderId = `slider-${item.id}`;
+            if (this.circularSliders[sliderId]) {
+                let rgb = [255, 255, 255]; // default
+                if (kelvin <= 2700) rgb = [255, 166, 87];
+                else if (kelvin <= 4000) rgb = [255, 219, 186];
+                else rgb = [201, 226, 255];
+        
+                const progressFill = this.circularSliders[sliderId].progressFill;
+                progressFill.style.stroke = `rgb(${rgb.join(',')})`;
+        
+                const handle = this.circularSliders[sliderId].handle;
+                handle.style.borderColor = `rgb(${rgb.join(',')})`;
+            }
         }));
 
         if (colorToggle) {
@@ -2207,9 +2228,21 @@ class FastSearchCard extends HTMLElement {
         colorPresets.forEach(preset => preset.addEventListener('click', () => {
             const rgb = preset.dataset.rgb.split(',').map(Number);
             this.callLightService('turn_on', item.id, { rgb_color: rgb });
+            colorPresets.forEach(p => p.classList.remove('active'));
+            preset.classList.add('active');
+        
+            const sliderId = `slider-${item.id}`;
+            if (this.circularSliders[sliderId]) {
+                const progressFill = this.circularSliders[sliderId].progressFill;
+                progressFill.style.stroke = `rgb(${rgb.join(',')})`;
+        
+                const handle = this.circularSliders[sliderId].handle;
+                handle.style.borderColor = `rgb(${rgb.join(',')})`;
+            }
         }));
     }
 
+    // Original-Version für Rollläden
     setupCoverControls(item) {
         const coverContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!coverContainer) return;
@@ -2236,7 +2269,7 @@ class FastSearchCard extends HTMLElement {
                         this.callCoverService('set_cover_position', item.id, { position: value });
                     }, 150);
                 },
-                onPowerToggle: null 
+                onPowerToggle: () => {}
             });
         }
 
@@ -2263,10 +2296,13 @@ class FastSearchCard extends HTMLElement {
             preset.addEventListener('click', () => {
                 const position = parseInt(preset.dataset.position, 10);
                 this.callCoverService('set_cover_position', item.id, { position });
+                positionPresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
             });
         });
     }
 
+    // NEU: Komplette Funktion für Klima-Event-Listener
     setupClimateControls(item) {
         const climateContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!climateContainer) return;
@@ -2279,16 +2315,18 @@ class FastSearchCard extends HTMLElement {
             const currentTemp = state.attributes.temperature || 20;
 
             this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
-                minValue: 10,
-                maxValue: 30,
+                minValue: state.attributes.min_temp || 10,
+                maxValue: state.attributes.max_temp || 30,
                 defaultValue: currentTemp,
-                step: 0.5,
+                step: state.attributes.target_temp_step || 0.5,
                 label: 'Temperatur',
                 hasPower: true, 
                 defaultPower: state.state !== 'off',
                 formatValue: (val) => `${val.toFixed(1)}°C`,
-                onValueChangeEnd: (value) => {
-                    this.callClimateService('set_temperature', item.id, { temperature: value });
+                onValueChangeEnd: (value, isOn) => {
+                    if (isOn) {
+                        this.callClimateService('set_temperature', item.id, { temperature: value });
+                    }
                 },
                 onPowerToggle: (isOn) => {
                      this.callClimateService(isOn ? 'turn_on' : 'turn_off', item.id);
@@ -2303,39 +2341,43 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        climateContainer.querySelector('[data-action="toggle-presets"]').addEventListener('click', () => {
-            const presetsContainer = climateContainer.querySelector('.device-control-presets.climate');
-            const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-            this.animatePresetStagger(presetsContainer, presetsContainer.querySelectorAll('.climate-setting-option'), !isOpen);
-            presetsContainer.setAttribute('data-is-open', String(!isOpen));
-        });
+        const presetsToggleButton = climateContainer.querySelector('[data-action="toggle-presets"]');
+        if (presetsToggleButton) {
+            presetsToggleButton.addEventListener('click', () => {
+                const presetsContainer = climateContainer.querySelector('.device-control-presets.climate');
+                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                this.animatePresetStagger(presetsContainer, presetsContainer.querySelectorAll('.climate-setting-option'), !isOpen);
+                presetsContainer.setAttribute('data-is-open', String(!isOpen));
+            });
+        }
 
         climateContainer.querySelectorAll('.climate-setting-option').forEach(option => {
             option.addEventListener('click', () => {
                 const settingType = option.getAttribute('data-climate-setting');
                 const settingValue = option.getAttribute('data-value');
 
-                const row = option.closest('.climate-setting-row');
-                row.querySelectorAll('.climate-setting-option').forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-
                 let serviceDomain, serviceName, serviceData;
-                switch (settingType) {
-                    case 'vane_horizontal':
-                        serviceDomain = 'melcloud';
-                        serviceName = 'set_vane_horizontal';
-                        serviceData = { entity_id: item.id, vane_horiz: settingValue };
-                        break;
-                    case 'vane_vertical':
-                        serviceDomain = 'melcloud';
-                        serviceName = 'set_vane_vertical';
-                        serviceData = { entity_id: item.id, vane_vert: settingValue };
-                        break;
-                    case 'fan_mode':
-                        serviceDomain = 'climate';
-                        serviceName = 'set_fan_mode';
-                        serviceData = { entity_id: item.id, fan_mode: settingValue };
-                        break;
+                // Spezifische Logik für deine MELCloud-Integration
+                if (item.id.startsWith('climate.mitsubishi_')) {
+                     switch (settingType) {
+                        case 'vane_horizontal':
+                            serviceDomain = 'melcloud';
+                            serviceName = 'set_vane_horizontal';
+                            serviceData = { entity_id: item.id, vane_horiz: settingValue };
+                            break;
+                        case 'vane_vertical':
+                            serviceDomain = 'melcloud';
+                            serviceName = 'set_vane_vertical';
+                            serviceData = { entity_id: item.id, vane_vert: settingValue };
+                            break;
+                    }
+                }
+                
+                // Allgemeine Logik für Standard-Klimageräte
+                if (!serviceDomain && settingType === 'fan_mode') {
+                    serviceDomain = 'climate';
+                    serviceName = 'set_fan_mode';
+                    serviceData = { entity_id: item.id, fan_mode: settingValue };
                 }
                 
                 if (serviceDomain && serviceName) {
@@ -2353,6 +2395,7 @@ class FastSearchCard extends HTMLElement {
         this._hass.callService('cover', service, { entity_id, ...data });
     }
     
+    // NEU: Hilfsfunktion für Klima
     callClimateService(service, entity_id, data = {}) {
         this._hass.callService('climate', service, { entity_id, ...data });
     }
@@ -2378,7 +2421,12 @@ class FastSearchCard extends HTMLElement {
         if (!state) return { status: 'Unbekannt' };
         switch (item.domain) {
             case 'light': return { status: state.state === 'on' ? 'Ein' : 'Aus' };
-            case 'climate': return { status: state.attributes.hvac_action || state.state };
+            case 'climate': // NEU: Angepasster Status für Klima
+                const hvacAction = state.attributes.hvac_action;
+                if (hvacAction && hvacAction !== 'off' && hvacAction !== 'idle') {
+                    return { status: hvacAction };
+                }
+                return { status: state.state };
             case 'cover': return { status: state.state === 'open' ? 'Offen' : 'Geschlossen' };
             case 'media_player': return { status: state.state === 'playing' ? 'Spielt' : (state.state === 'paused' ? 'Pausiert' : 'Aus') };
             default: return { status: state.state };
@@ -2388,35 +2436,33 @@ class FastSearchCard extends HTMLElement {
     getQuickStats(item) {
         const state = this._hass.states[item.id];
         if (!state) return [];
-        const stats = [];
+        let stats = [];
         switch (item.domain) {
             case 'light':
                 if (state.state === 'on') {
-                    if (state.attributes.brightness) stats.push(`${Math.round(state.attributes.brightness / 2.55)}%`);
+                    if (state.attributes.brightness) stats.push(`${Math.round(state.attributes.brightness / 2.55)}% Helligkeit`);
                     if (state.attributes.color_temp) stats.push(`${state.attributes.color_temp}K`);
                 }
                 break;
-            case 'climate':
+            case 'climate': // NEU: Angepasste QuickStats für Klima
                 if (state.state !== 'off') {
                     if (state.attributes.current_temperature && state.attributes.temperature) {
                         stats.push(`${state.attributes.current_temperature}°C → ${state.attributes.temperature}°C`);
-                    }
-                    if (state.attributes.hvac_mode) stats.push(state.attributes.hvac_mode);
-                    if (state.attributes.swing_mode) {
-                        stats.push(`H/V: ${state.attributes.swing_mode}`);
+                    } else if (state.attributes.temperature) {
+                         stats.push(`→ ${state.attributes.temperature}°C`);
                     }
                     if (state.attributes.fan_mode) stats.push(`Fan: ${state.attributes.fan_mode}`);
                 }
                 break;
             case 'media_player':
                  if (state.state === 'playing' && state.attributes.media_title) stats.push(`♪ ${state.attributes.media_title}`);
-                 if (state.attributes.volume_level) stats.push(`${Math.round(state.attributes.volume_level * 100)}%`);
+                 if (state.attributes.volume_level) stats.push(`${Math.round(state.attributes.volume_level * 100)}% Lautstärke`);
                  break;
             case 'cover':
                 if (state.attributes.current_position != null) stats.push(`${state.attributes.current_position}%`);
                 break;
         }
-        return stats.filter(s => s && s.toLowerCase().indexOf('undefined') === -1); 
+        return stats.filter(s => s && String(s).toLowerCase().indexOf('undefined') === -1);
     }
 
     getBackgroundImageForItem(item) {
