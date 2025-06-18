@@ -25,7 +25,8 @@ class FastSearchCard extends HTMLElement {
         // Circular Slider State
         this.circularSliders = {};
         this.lightUpdateTimeout = null;
-        this.coverUpdateTimeout = null; // Hinzugefügt für Rollladen
+        this.coverUpdateTimeout = null;
+        this.climateUpdateTimeout = null; 
     }
 
     setConfig(config) {
@@ -930,26 +931,14 @@ class FastSearchCard extends HTMLElement {
             .device-control-button:hover { transform: scale(1.05); background: rgba(255,255,255,0.2); }
             .device-control-button.active { background: var(--accent); }
 
-            .device-control-presets { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 100%; max-width: 280px;}
-            .device-control-presets.visible { max-height: 150px; opacity: 1; margin-top: 16px;}
-            .device-control-presets-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center;}
-            .device-control-preset {
-                width: 48px;
-                height: 48px;
-                border-radius: 50%;
-                cursor: pointer;
-                border: 2px solid transparent;
-                position: relative;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 12px;
-                font-weight: 600;
-                color: rgba(255,255,255,0.9);
-                text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            }
-            .device-control-preset.active { border-color: white; }
-            .device-control-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
+            .device-control-presets { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 100%;}
+            .device-control-presets.visible { max-height: 250px; opacity: 1; margin-top: 16px;}
+            .climate-setting-row { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; padding-bottom: 8px;}
+            .climate-setting-row::-webkit-scrollbar { display: none; }
+            .climate-setting-option { padding: 8px 16px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
+            .climate-setting-option.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+            .climate-setting-option:hover { background: rgba(255, 255, 255, 0.2); }
+
 
             @media (max-width: 768px) {
                 .detail-content { flex-direction: column; }
@@ -1592,6 +1581,8 @@ class FastSearchCard extends HTMLElement {
             this.updateLightControlsUI(item);
         } else if (item.domain === 'cover') {
             this.updateCoverControlsUI(item);
+        } else if (item.domain === 'climate') {
+            this.updateClimateControlsUI(item);
         }
     }
 
@@ -1672,6 +1663,8 @@ class FastSearchCard extends HTMLElement {
                 return this.getLightControlsHTML(item);
             case 'cover':
                 return this.getCoverControlsHTML(item);
+            case 'climate':
+                return this.getClimateControlsHTML(item);
             default:
                 return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Keine Steuerelemente für diesen Gerätetyp.</div>`;
         }
@@ -1774,6 +1767,69 @@ class FastSearchCard extends HTMLElement {
         `;
     }
     
+    getClimateControlsHTML(item) {
+        const state = this._hass.states[item.id];
+        const currentTemp = state.attributes.temperature || 20;
+
+        const hvacModes = [
+            { mode: 'heat', svg: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 12L23 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 2V1" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 23V22" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 20L19 19" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 4L19 5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 20L5 19" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 4L5 5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M1 12L2 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>` },
+            { mode: 'cool', svg: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M3 7L6.5 9M21 17L17.5 15M12 12L6.5 9M12 12L6.5 15M12 12V5M12 12V18.5M12 12L17.5 15M12 12L17.5 9M12 2V5M12 22V18.5M21 7L17.5 9M3 17L6.5 15M6.5 9L3 10M6.5 9L6 5.5M6.5 15L3 14M6.5 15L6 18.5M12 5L9.5 4M12 5L14.5 4M12 18.5L14.5 20M12 18.5L9.5 20M17.5 15L18 18.5M17.5 15L21 14M17.5 9L21 10M17.5 9L18 5.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>` },
+            { mode: 'dry', svg: `<svg width="48px" height="48px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M5 11.9995C3.78555 12.9117 3 14.3641 3 15.9999C3 18.7613 5.23858 20.9999 8 20.9999C10.7614 20.9999 13 18.7613 13 15.9999C13 14.3641 12.2144 12.9117 11 11.9995" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 12V3H11V12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 3L13 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 6L13 6" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 9H13" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 14C6.89543 14 6 14.8954 6 16C6 17.1046 6.89543 18 8 18C9.10457 18 10 17.1046 10 16C10 14.8954 9.10457 14 8 14ZM8 14V9" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M18.9991 3C18.9991 3 21.9991 5.99336 21.9994 7.88652C21.9997 9.5422 20.6552 10.8865 18.9997 10.8865C17.3442 10.8865 16.012 9.5422 16 7.88652C16.0098 5.99242 18.9991 3 18.9991 3Z" stroke="currentColor" stroke-width="1" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>` },
+            { mode: 'fan_only', svg: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M18.2785 7C19.7816 7 21 8.11929 21 9.5C21 10.8807 19.7816 12 18.2785 12H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.9375 20C19.0766 20 20.5 19.5 20.5 17.5C20.5 15.5 19.0766 15 17.9375 15H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10.4118 4C11.8412 4 13 5.11929 13 6.5C13 7.88071 11.8412 9 10.4118 9H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>` },
+        ];
+
+        const horizontalVaneOptions = [
+            { label: '← Links', value: '1' }, { label: '‹', value: '2' }, { label: 'Mitte', value: '3' },
+            { label: '›', value: '4' }, { label: 'Rechts →', value: '5' },
+            { label: 'Split', value: 'split' }, { label: 'Swing', value: 'swing' }, { label: 'Auto', value: 'auto' }
+        ];
+        const verticalVaneOptions = [
+            { label: '↑ Oben', value: '1' }, { label: '↗', value: '2' }, { label: '→', value: '3' },
+            { label: '↘', value: '4' }, { label: '↓ Unten', value: '5' },
+            { label: 'Swing', value: 'swing' }, { label: 'Auto', value: 'auto' }
+        ];
+        const fanOptions = [
+            { label: 'Auto', value: 'auto' }, { label: 'Leise', value: 'quiet' }, { label: '1', value: '1' },
+            { label: '2', value: '2' }, { label: '3', value: '3' }, { label: '4', value: '4' }, { label: '5', value: '5' }
+        ];
+        
+        return `
+            <div class="device-control-design" id="device-control-${item.id}">
+                <div class="circular-slider-container climate" data-entity="${item.id}">
+                    <div class="slider-track"></div>
+                    <svg class="progress-svg">
+                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
+                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #2E8B57;"></circle>
+                    </svg>
+                    <div class="slider-inner">
+                        <div class="power-icon">⏻</div>
+                        <div class="circular-value">${currentTemp}°C</div>
+                        <div class="circular-label">Temperatur</div>
+                    </div>
+                    <div class="handle" style="border-color: #2E8B57;"></div>
+                </div>
+                
+                <div class="device-control-row">
+                    ${hvacModes.map(mode => `<button class="device-control-button" data-hvac-mode="${mode.mode}" title="${mode.mode}">${mode.svg}</button>`).join('')}
+                    <button class="device-control-button" data-action="toggle-presets" title="Einstellungen">
+                        <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M5.5 6C5.77614 6 6 5.77614 6 5.5C6 5.22386 5.77614 5 5.5 5C5.22386 5 5 5.22386 5 5.5C5 5.77614 5.22386 6 5.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 12.5C5.77614 12.5 6 12.2761 6 12C6 11.7239 5.77614 11.5 5.5 11.5C5.22386 11.5 5 11.7239 5 12C5 12.2761 5.22386 12.5 5.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 19C5.77614 19 6 18.7761 6 18.5C6 18.2239 5.77614 18 5.5 18C5.22386 18 5 18.2239 5 18.5C5 18.7761 5.22386 19 5.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6C12.2761 6 12.5 5.77614 12.5 5.5C12.5 5.22386 12.2761 5 12 5C11.7239 5 11.5 5.22386 11.5 5.5C11.5 5.77614 11.7239 6 12 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 19C12.2761 19 12.5 18.7761 12.5 18.5C12.5 18.2239 12.2761 18 12 18C11.7239 18 11.5 18.2239 11.5 18.5C11.5 18.7761 11.7239 19 12 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 6C18.7761 6 19 5.77614 19 5.5C19 5.22386 18.7761 5 18.5 5C18.2239 5 18 5.22386 18 5.5C18 5.77614 18.2239 6 18.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 12.5C18.7761 12.5 19 12.2761 19 12C19 11.7239 18.7761 11.5 18.5 11.5C18.2239 11.5 18 11.7239 18 12C18 12.2761 18.2239 12.5 18.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 19C18.7761 19 19 18.7761 19 18.5C19 18.2239 18.7761 18 18.5 18C18.2239 18 18 18.2239 18 18.5C18 18.7761 18.2239 19 18.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
+                </div>
+                <div class="device-control-presets climate" data-is-open="false">
+                    <div class="climate-setting-row" data-setting-type="vane_horizontal">
+                        ${horizontalVaneOptions.map(o => `<div class="climate-setting-option" data-climate-setting="vane_horizontal" data-value="${o.value}">${o.label}</div>`).join('')}
+                    </div>
+                    <div class="climate-setting-row" data-setting-type="vane_vertical">
+                        ${verticalVaneOptions.map(o => `<div class="climate-setting-option" data-climate-setting="vane_vertical" data-value="${o.value}">${o.label}</div>`).join('')}
+                    </div>
+                    <div class="climate-setting-row" data-setting-type="fan_mode">
+                       ${fanOptions.map(o => `<div class="climate-setting-option" data-climate-setting="fan_mode" data-value="${o.value}">${o.label}</div>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     updateLightControlsUI(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
@@ -1829,6 +1885,37 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+    updateClimateControlsUI(item) {
+        const climateContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
+        if (!climateContainer) return;
+
+        const state = this._hass.states[item.id];
+        const currentTemp = state.attributes.temperature || 20;
+
+        // Update circular slider if exists
+        const sliderId = `slider-${item.id}`;
+        if (this.circularSliders[sliderId]) {
+            this.circularSliders[sliderId].updateFromState(currentTemp, true);
+        }
+
+        // Update active classes for modes and presets
+        climateContainer.querySelectorAll('[data-hvac-mode]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.hvacMode === state.state);
+        });
+
+        climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_horizontal"]').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.horizontal_vane);
+        });
+        
+        climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_vertical"]').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.vertical_vane);
+        });
+        
+        climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="fan_mode"]').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.fan_mode);
+        });
+    }
+
     // Circular Slider Class - embedded within the main class
     createCircularSliderClass() {
         if (window.CircularSlider) return; // Already exists
@@ -1869,21 +1956,20 @@ class FastSearchCard extends HTMLElement {
             }
     
             togglePower() {
-                if (!this.config.hasPower) return;
+                if (!this.config.hasPower || !this.config.onPowerToggle) return;
     
                 this.isOn = !this.isOn;
                 this.updatePowerState();
                 this.updateSlider();
     
-                if (this.config.onPowerToggle) {
-                    this.config.onPowerToggle(this.isOn);
-                }
+                this.config.onPowerToggle(this.isOn);
             }
     
             updatePowerState() {
                 if (this.config.hasPower) {
                     this.powerIcon.style.display = 'block';
-                    this.sliderInner.style.cursor = 'pointer';
+                    if (this.config.onPowerToggle) this.sliderInner.style.cursor = 'pointer';
+
                     if (this.isOn) {
                         this.container.classList.remove('off');
                         this.sliderInner.classList.remove('off');
@@ -1935,7 +2021,6 @@ class FastSearchCard extends HTMLElement {
                 let normalizedAngle = (angle + 90) % 360;
                 let progress = normalizedAngle / 360;
     
-                // Stopp-Zone bei 100%
                 const maxProgress = (this.config.maxValue - this.config.minValue);
                 const currentProgress = (this.currentValue - this.config.minValue);
                 const currentProgressRatio = currentProgress / maxProgress;
@@ -1959,20 +2044,21 @@ class FastSearchCard extends HTMLElement {
     
             endDrag() {
                 this.isDragging = false;
+                if (this.config.onValueChangeEnd) {
+                    this.config.onValueChangeEnd(this.currentValue, this.isOn);
+                }
             }
     
             updateSlider() {
                 const progress = (this.currentValue - this.config.minValue) / (this.config.maxValue - this.config.minValue);
                 const angle = -90 + (progress * 360);
     
-                // Handle Position
                 const handleX = this.centerX + this.radius * Math.cos(angle * Math.PI / 180);
                 const handleY = this.centerY + this.radius * Math.sin(angle * Math.PI / 180);
     
                 this.handle.style.left = `${handleX - 8}px`;
                 this.handle.style.top = `${handleY - 8}px`;
     
-                // SVG Progress
                 if (this.isOn || !this.config.hasPower) {
                     const progressLength = progress * this.circumference;
                     this.progressFill.style.strokeDasharray = `${progressLength} ${this.circumference}`;
@@ -1980,7 +2066,6 @@ class FastSearchCard extends HTMLElement {
                     this.progressFill.style.strokeDasharray = `0 ${this.circumference}`;
                 }
     
-                // Wert anzeigen
                 if (this.config.hasPower && !this.isOn) {
                     this.valueDisplay.textContent = 'AUS';
                 } else {
@@ -1998,7 +2083,6 @@ class FastSearchCard extends HTMLElement {
     }
     
     setupDetailTabs(item) {
-        // Create CircularSlider class if not exists
         this.createCircularSliderClass();
 
         const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
@@ -2037,13 +2121,15 @@ class FastSearchCard extends HTMLElement {
             this.setupLightControls(item);
         } else if (item.domain === 'cover') {
             this.setupCoverControls(item);
+        } else if (item.domain === 'climate') {
+            this.setupClimateControls(item);
         }
     }
     
     setupLightControls(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
-        // Create circular slider instance
+        
         const sliderId = `slider-${item.id}`;
         const circularContainer = lightContainer.querySelector('.circular-slider-container');
     
@@ -2061,17 +2147,13 @@ class FastSearchCard extends HTMLElement {
                 hasPower: true,
                 defaultPower: isOn,
                 formatValue: (val) => `${Math.round(val)}%`,
-                onValueChange: (value, isOn) => {
+                onValueChangeEnd: (value, isOn) => {
                     if (isOn) {
-                        // Debounce the API calls
-                        clearTimeout(this.lightUpdateTimeout);
-                        this.lightUpdateTimeout = setTimeout(() => {
-                            if (value === 0) {
-                                this.callLightService('turn_off', item.id);
-                            } else {
-                                this.callLightService('turn_on', item.id, { brightness_pct: value });
-                            }
-                        }, 150); // 150ms delay instead of immediate
+                        if (value === 0) {
+                            this.callLightService('turn_off', item.id);
+                        } else {
+                            this.callLightService('turn_on', item.id, { brightness_pct: value });
+                        }
                     }
                 },
                 onPowerToggle: (isOn) => {
@@ -2087,21 +2169,6 @@ class FastSearchCard extends HTMLElement {
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
             const kelvin = parseInt(btn.dataset.temp, 10);
             this.callLightService('turn_on', item.id, { kelvin: kelvin });
-        
-            // Update slider color immediately
-            const sliderId = `slider-${item.id}`;
-            if (this.circularSliders[sliderId]) {
-                let rgb = [255, 255, 255]; // default
-                if (kelvin <= 2700) rgb = [255, 166, 87];
-                else if (kelvin <= 4000) rgb = [255, 219, 186];
-                else rgb = [201, 226, 255];
-        
-                const progressFill = this.circularSliders[sliderId].progressFill;
-                progressFill.style.stroke = `rgb(${rgb.join(',')})`;
-        
-                const handle = this.circularSliders[sliderId].handle;
-                handle.style.borderColor = `rgb(${rgb.join(',')})`;
-            }
         }));
 
         if (colorToggle) {
@@ -2115,18 +2182,6 @@ class FastSearchCard extends HTMLElement {
         colorPresets.forEach(preset => preset.addEventListener('click', () => {
             const rgb = preset.dataset.rgb.split(',').map(Number);
             this.callLightService('turn_on', item.id, { rgb_color: rgb });
-            colorPresets.forEach(p => p.classList.remove('active'));
-            preset.classList.add('active');
-        
-            // Update slider color immediately
-            const sliderId = `slider-${item.id}`;
-            if (this.circularSliders[sliderId]) {
-                const progressFill = this.circularSliders[sliderId].progressFill;
-                progressFill.style.stroke = `rgb(${rgb.join(',')})`;
-        
-                const handle = this.circularSliders[sliderId].handle;
-                handle.style.borderColor = `rgb(${rgb.join(',')})`;
-            }
         }));
     }
 
@@ -2148,15 +2203,12 @@ class FastSearchCard extends HTMLElement {
                 step: 1,
                 label: 'Offen',
                 hasPower: true,
-                defaultPower: true, // Always on
+                defaultPower: true,
                 formatValue: (val) => `${Math.round(val)}%`,
-                onValueChange: (value) => {
-                    clearTimeout(this.coverUpdateTimeout);
-                    this.coverUpdateTimeout = setTimeout(() => {
-                        this.callCoverService('set_cover_position', item.id, { position: value });
-                    }, 150);
+                onValueChangeEnd: (value) => {
+                    this.callCoverService('set_cover_position', item.id, { position: value });
                 },
-                onPowerToggle: () => {} // No action on power toggle
+                onPowerToggle: null // No action
             });
         }
 
@@ -2183,8 +2235,80 @@ class FastSearchCard extends HTMLElement {
             preset.addEventListener('click', () => {
                 const position = parseInt(preset.dataset.position, 10);
                 this.callCoverService('set_cover_position', item.id, { position });
-                positionPresets.forEach(p => p.classList.remove('active'));
-                preset.classList.add('active');
+            });
+        });
+    }
+
+    setupClimateControls(item) {
+        const climateContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
+        if (!climateContainer) return;
+
+        const sliderId = `slider-${item.id}`;
+        const circularContainer = climateContainer.querySelector('.circular-slider-container.climate');
+    
+        if (circularContainer) {
+            const state = this._hass.states[item.id];
+            const currentTemp = state.attributes.temperature || 20;
+
+            this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
+                minValue: 10,
+                maxValue: 30,
+                defaultValue: currentTemp,
+                step: 0.5,
+                label: 'Temperatur',
+                hasPower: false,
+                formatValue: (val) => `${val.toFixed(1)}°C`,
+                onValueChangeEnd: (value) => {
+                    this.callClimateService('set_temperature', item.id, { temperature: value });
+                }
+            });
+        }
+
+        climateContainer.querySelectorAll('[data-hvac-mode]').forEach(button => {
+            button.addEventListener('click', () => {
+                const mode = button.dataset.hvacMode;
+                this.callClimateService('set_hvac_mode', item.id, { hvac_mode: mode });
+            });
+        });
+        
+        climateContainer.querySelector('[data-action="toggle-presets"]').addEventListener('click', () => {
+            const presetsContainer = climateContainer.querySelector('.device-control-presets.climate');
+            const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+            this.animatePresetStagger(presetsContainer, presetsContainer.querySelectorAll('.climate-setting-option'), !isOpen);
+            presetsContainer.setAttribute('data-is-open', String(!isOpen));
+        });
+
+        climateContainer.querySelectorAll('.climate-setting-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const settingType = option.getAttribute('data-climate-setting');
+                const settingValue = option.getAttribute('data-value');
+
+                const row = option.closest('.climate-setting-row');
+                row.querySelectorAll('.climate-setting-option').forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+
+                let serviceDomain, serviceName, serviceData;
+                switch (settingType) {
+                    case 'vane_horizontal':
+                        serviceDomain = 'melcloud';
+                        serviceName = 'set_vane_horizontal';
+                        serviceData = { entity_id: item.id, position: settingValue };
+                        break;
+                    case 'vane_vertical':
+                        serviceDomain = 'melcloud';
+                        serviceName = 'set_vane_vertical';
+                        serviceData = { entity_id: item.id, position: settingValue };
+                        break;
+                    case 'fan_mode':
+                        serviceDomain = 'climate';
+                        serviceName = 'set_fan_mode';
+                        serviceData = { entity_id: item.id, fan_mode: settingValue };
+                        break;
+                }
+                
+                if (serviceDomain && serviceName) {
+                    this._hass.callService(serviceDomain, serviceName, serviceData);
+                }
             });
         });
     }
@@ -2195,6 +2319,10 @@ class FastSearchCard extends HTMLElement {
 
     callCoverService(service, entity_id, data = {}) {
         this._hass.callService('cover', service, { entity_id, ...data });
+    }
+    
+    callClimateService(service, entity_id, data = {}) {
+        this._hass.callService('climate', service, { entity_id, ...data });
     }
 
     animatePresetStagger(container, presets, isOpening) {
@@ -2218,7 +2346,7 @@ class FastSearchCard extends HTMLElement {
         if (!state) return { status: 'Unbekannt' };
         switch (item.domain) {
             case 'light': return { status: state.state === 'on' ? 'Ein' : 'Aus' };
-            case 'climate': return { status: state.state !== 'off' ? state.state : 'Aus' };
+            case 'climate': return { status: state.attributes.hvac_action || state.state };
             case 'cover': return { status: state.state === 'open' ? 'Offen' : 'Geschlossen' };
             case 'media_player': return { status: state.state === 'playing' ? 'Spielt' : (state.state === 'paused' ? 'Pausiert' : 'Aus') };
             default: return { status: state.state };
@@ -2232,17 +2360,22 @@ class FastSearchCard extends HTMLElement {
         switch (item.domain) {
             case 'light':
                 if (state.state === 'on') {
-                    if (state.attributes.brightness) stats.push(`${Math.round(state.attributes.brightness / 2.55)}% Helligkeit`);
+                    if (state.attributes.brightness) stats.push(`${Math.round(state.attributes.brightness / 2.55)}%`);
                     if (state.attributes.color_temp) stats.push(`${state.attributes.color_temp}K`);
                 }
                 break;
             case 'climate':
-                if (state.attributes.current_temperature) stats.push(`${state.attributes.current_temperature}°C Ist`);
-                if (state.attributes.temperature) stats.push(`${state.attributes.temperature}°C Soll`);
+                if (state.attributes.current_temperature && state.attributes.temperature) {
+                    stats.push(`${state.attributes.current_temperature}°C → ${state.attributes.temperature}°C`);
+                }
+                stats.push(state.attributes.hvac_mode);
+                stats.push(`H: ${state.attributes.horizontal_vane || '-'}`);
+                stats.push(`V: ${state.attributes.vertical_vane || '-'}`);
+                stats.push(`Fan: ${state.attributes.fan_mode || '-'}`);
                 break;
             case 'media_player':
                  if (state.state === 'playing' && state.attributes.media_title) stats.push(`♪ ${state.attributes.media_title}`);
-                 if (state.attributes.volume_level) stats.push(`${Math.round(state.attributes.volume_level * 100)}% Lautstärke`);
+                 if (state.attributes.volume_level) stats.push(`${Math.round(state.attributes.volume_level * 100)}%`);
                  break;
             case 'cover':
                 if (state.attributes.current_position != null) stats.push(`${state.attributes.current_position}%`);
