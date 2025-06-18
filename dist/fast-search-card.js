@@ -1830,7 +1830,7 @@ class FastSearchCard extends HTMLElement {
             auto: 'Auto', quiet: 'Leise', low: 'Niedrig', medium: 'Mittel', medium_low: 'Mittel-Niedrig', medium_high: 'Mittel-Hoch', high: 'Hoch', middle: 'Mittel', focus: 'Fokus', diffuse: 'Diffus', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5'
         };
         // Prüfe, ob MELCloud-spezifische Features vorhanden sind
-        const hasMELCloudVanes = state.attributes.vane_horizontal_list || state.attributes.vane_vertical_list;
+        const hasMELCloudVanes = state.attributes.vane_horizontal_positions || state.attributes.vane_vertical_positions;
     
         return `
             <div class="device-control-design" id="device-control-${item.id}">
@@ -1862,18 +1862,18 @@ class FastSearchCard extends HTMLElement {
                 ${(supportedFanModes.length > 0 || supportedSwingModes.length > 0 || hasMELCloudVanes) ? `
                     <div class="device-control-presets climate" data-is-open="false">
                         ${hasMELCloudVanes ? `
-                            ${state.attributes.vane_horizontal_list ? `
+                            ${state.attributes.vane_horizontal_positions ? `
                                 <div class="climate-setting-row" data-setting-type="vane_horizontal">
-                                    ${state.attributes.vane_horizontal_list.map(value => `
+                                    ${state.attributes.vane_horizontal_positions.map(value => `
                                         <div class="climate-setting-option ${state.attributes.vane_horizontal === value ? 'active' : ''}"
                                              data-climate-setting="vane_horizontal"
                                              data-value="${value}">${this.getVaneLabel(value, 'horizontal')}</div>
                                     `).join('')}
                                 </div>
                             ` : ''}
-                            ${state.attributes.vane_vertical_list ? `
+                            ${state.attributes.vane_vertical_positions ? `
                                 <div class="climate-setting-row" data-setting-type="vane_vertical">
-                                    ${state.attributes.vane_vertical_list.map(value => `
+                                    ${state.attributes.vane_vertical_positions.map(value => `
                                         <div class="climate-setting-option ${state.attributes.vane_vertical === value ? 'active' : ''}"
                                              data-climate-setting="vane_vertical"
                                              data-value="${value}">${this.getVaneLabel(value, 'vertical')}</div>
@@ -2041,12 +2041,12 @@ class FastSearchCard extends HTMLElement {
                     case 'vane_horizontal':
                         serviceDomain = 'melcloud';
                         serviceName = 'set_vane_horizontal';
-                        serviceData = { entity_id: item.id, vane_horizontal: settingValue };
+                        serviceData = { entity_id: item.id, position: settingValue };
                         break;
                     case 'vane_vertical':
                         serviceDomain = 'melcloud';
                         serviceName = 'set_vane_vertical';
-                        serviceData = { entity_id: item.id, vane_vertical: settingValue };
+                        serviceData = { entity_id: item.id, position: settingValue };
                         break;
                     case 'swing_mode':
                         serviceDomain = 'climate';
