@@ -933,6 +933,27 @@ class FastSearchCard extends HTMLElement {
 
             .device-control-presets { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 100%;}
             .device-control-presets.visible { max-height: 250px; opacity: 1; margin-top: 16px;}
+            
+            .device-control-presets-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center;}
+            .device-control-presets .device-control-preset {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2px solid transparent;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 600;
+                color: rgba(255,255,255,0.9);
+                text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            }
+            .device-control-presets .device-control-preset.active { border-color: white; }
+            .device-control-presets .device-control-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
+
+
             .climate-setting-row { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; padding-bottom: 8px;}
             .climate-setting-row::-webkit-scrollbar { display: none; }
             .climate-setting-option { padding: 8px 16px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
@@ -1727,18 +1748,10 @@ class FastSearchCard extends HTMLElement {
         
         return `
             <div class="device-control-design" id="device-control-${item.id}">
-                <div class="circular-slider-container cover" data-entity="${item.id}">
-                    <div class="slider-track"></div>
-                    <svg class="progress-svg">
-                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
-                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #4A90E2;"></circle>
-                    </svg>
-                    <div class="slider-inner">
-                        <div class="power-icon">⏻</div>
-                        <div class="circular-value">${position}%</div>
-                        <div class="circular-label">Offen</div>
-                    </div>
-                    <div class="handle" style="border-color: #4A90E2;"></div>
+                <div class="position-slider-container" style="--slider-color-rgb: var(--accent-rgb);">
+                    <svg class="position-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 5v14h18V5H3zm0 4h18M3 13h18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <input type="range" class="position-slider" data-control="position" min="0" max="100" value="${position}">
+                    <span class="position-value-display">${position}%</span>
                 </div>
 
                 <div class="device-control-row">
@@ -1863,7 +1876,7 @@ class FastSearchCard extends HTMLElement {
         }
     
         if (!isOn) {
-            const presetsContainer = lightContainer.querySelector('.device-control-presets');
+            const presetsContainer = lightContainer.querySelector('.device-control-presets.device-control-colors');
             if (presetsContainer && presetsContainer.classList.contains('visible')) {
                 presetsContainer.classList.remove('visible');
                 presetsContainer.setAttribute('data-is-open', 'false');
@@ -1878,11 +1891,19 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         const position = state.attributes.current_position ?? 100;
         
-        // Update circular slider if exists
-        const sliderId = `slider-${item.id}`;
-        if (this.circularSliders[sliderId]) {
-            this.circularSliders[sliderId].updateFromState(position, true);
-        }
+        const positionSlider = coverContainer.querySelector('[data-control="position"]');
+        if (positionSlider) positionSlider.value = position;
+        
+        const positionValueDisplay = coverContainer.querySelector('.position-value-display');
+        if (positionValueDisplay) positionValueDisplay.textContent = `${position}%`;
+
+        const sliderContainer = coverContainer.querySelector('.position-slider-container');
+        if (sliderContainer) sliderContainer.style.setProperty('--percentage', `${position}%`);
+
+        const presets = coverContainer.querySelectorAll('.device-control-preset');
+        presets.forEach(p => p.classList.remove('active'));
+        const activePreset = coverContainer.querySelector(`.device-control-preset[data-position="${position}"]`);
+        if (activePreset) activePreset.classList.add('active');
     }
 
     updateClimateControlsUI(item) {
@@ -2270,7 +2291,7 @@ class FastSearchCard extends HTMLElement {
                     this.callClimateService('set_temperature', item.id, { temperature: value });
                 },
                 onPowerToggle: (isOn) => {
-                     this.callClimateService('toggle', item.id);
+                     this.callClimateService(isOn ? 'turn_on' : 'turn_off', item.id);
                 }
             });
         }
