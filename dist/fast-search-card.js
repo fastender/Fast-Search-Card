@@ -1788,90 +1788,86 @@ class FastSearchCard extends HTMLElement {
         `;
     }
     
-    // HINWEIS: Dies ist die neue, dynamische Version
-    getClimateControlsHTML(item) {
-        const state = this._hass.states[item.id];
-        if (!state) return `<div>Gerät nicht verfügbar</div>`;
-    
-        const currentTemp = state.attributes.temperature || 20;
-    
-        // Definition aller möglichen Icons
-        const allHvacSvgs = {
-            heat: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 12L23 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 2V1" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 23V22" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 20L19 19" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 4L19 5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 20L5 19" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 4L5 5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M1 12L2 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
-            cool: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M3 7L6.5 9M21 17L17.5 15M12 12L6.5 9M12 12L6.5 15M12 12V5M12 12V18.5M12 12L17.5 15M12 12L17.5 9M12 2V5M12 22V18.5M21 7L17.5 9M3 17L6.5 15M6.5 9L3 10M6.5 9L6 5.5M6.5 15L3 14M6.5 15L6 18.5M12 5L9.5 4M12 5L14.5 4M12 18.5L14.5 20M12 18.5L9.5 20M17.5 15L18 18.5M17.5 15L21 14M17.5 9L21 10M17.5 9L18 5.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
-            dry: `<svg width="48px" height="48px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M5 11.9995C3.78555 12.9117 3 14.3641 3 15.9999C3 18.7613 5.23858 20.9999 8 20.9999C10.7614 20.9999 13 18.7613 13 15.9999C13 14.3641 12.2144 12.9117 11 11.9995" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 12V3H11V12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 3L13 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 6L13 6" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 9H13" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 14C6.89543 14 6 14.8954 6 16C6 17.1046 6.89543 18 8 18C9.10457 18 10 17.1046 10 16C10 14.8954 9.10457 14 8 14ZM8 14V9" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M18.9991 3C18.9991 3 21.9991 5.99336 21.9994 7.88652C21.9997 9.5422 20.6552 10.8865 18.9997 10.8865C17.3442 10.8865 16.012 9.5422 16 7.88652C16.0098 5.99242 18.9991 3 18.9991 3Z" stroke="currentColor" stroke-width="1" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
-            fan_only: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M18.2785 7C19.7816 7 21 8.11929 21 9.5C21 10.8807 19.7816 12 18.2785 12H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.9375 20C19.0766 20 20.5 19.5 20.5 17.5C20.5 15.5 19.0766 15 17.9375 15H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10.4118 4C11.8412 4 13 5.11929 13 6.5C13 7.88071 11.8412 9 10.4118 9H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`
-        };
-        const supportedHvacModes = state.attributes.hvac_modes || [];
-    
-        // Dynamische Vane/Swing-Logik
-        let vaneControlsHTML = '';
-        if (item.id.startsWith('climate.mitsubishi_')) {
-            // Spezifische Steuerung für MELCloud
-            const horizontalVaneOptions = [ { label: '← Links', value: '1_left' }, { label: '‹', value: '2' }, { label: 'Mitte', value: '3' }, { label: '›', value: '4' }, { label: 'Rechts →', value: '5_right' }, { label: 'Split', value: 'split' }, { label: 'Swing', value: 'swing' }, { label: 'Auto', value: 'auto' }];
-            const verticalVaneOptions = [ { label: '↑ Oben', value: '1_up' }, { label: '↗', value: '2' }, { label: '→', value: '3' }, { label: '↘', value: '4' }, { label: '↓ Unten', value: '5_down' }, { label: 'Swing', value: 'swing' }, { label: 'Auto', value: 'auto' }];
-            vaneControlsHTML = `
-                <div class="climate-setting-row" data-setting-type="vane_horizontal">
-                    ${horizontalVaneOptions.map(o => `<div class="climate-setting-option" data-climate-setting="vane_horizontal" data-value="${o.value}">${o.label}</div>`).join('')}
-                </div>
-                <div class="climate-setting-row" data-setting-type="vane_vertical">
-                    ${verticalVaneOptions.map(o => `<div class="climate-setting-option" data-climate-setting="vane_vertical" data-value="${o.value}">${o.label}</div>`).join('')}
-                </div>
-            `;
-        } else if (state.attributes.swing_modes && state.attributes.swing_modes.length > 0) {
-            // Allgemeine Steuerung für Standard-Geräte
-            vaneControlsHTML = `
-                <div class="climate-setting-row" data-setting-type="swing_mode">
-                    ${state.attributes.swing_modes.map(mode => `<div class="climate-setting-option" data-climate-setting="swing_mode" data-value="${mode}">${mode}</div>`).join('')}
-                </div>
-            `;
-        }
-    
-        // Dynamische Lüfter-Logik
-        const supportedFanModes = state.attributes.fan_modes || [];
-        let fanControlsHTML = '';
-        if (supportedFanModes.length > 0) {
-            fanControlsHTML = `
-                <div class="climate-setting-row" data-setting-type="fan_mode">
-                   ${supportedFanModes.map(mode => `<div class="climate-setting-option" data-climate-setting="fan_mode" data-value="${mode}">${mode}</div>`).join('')}
-                </div>
-            `;
-        }
-    
-        return `
-            <div class="device-control-design" id="device-control-${item.id}">
-                <div class="circular-slider-container climate" data-entity="${item.id}">
-                    <div class="slider-track"></div>
-                    <svg class="progress-svg">
-                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
-                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #2E8B57;"></circle>
-                    </svg>
-                    <div class="slider-inner">
-                        <div class="power-icon">⏻</div>
-                        <div class="circular-value">${currentTemp.toFixed(1)}°C</div>
-                        <div class="circular-label">Temperatur</div>
+    // HINWEIS: Dies ist die korrigierte Funktion
+        getClimateControlsHTML(item) {
+            const state = this._hass.states[item.id];
+            if (!state) return `<div>Gerät nicht verfügbar</div>`;
+        
+            const currentTemp = state.attributes.temperature || 20;
+        
+            const allHvacSvgs = {
+                heat: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 12L23 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 2V1" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 23V22" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 20L19 19" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 4L19 5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 20L5 19" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 4L5 5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M1 12L2 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
+                cool: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M3 7L6.5 9M21 17L17.5 15M12 12L6.5 9M12 12L6.5 15M12 12V5M12 12V18.5M12 12L17.5 15M12 12L17.5 9M12 2V5M12 22V18.5M21 7L17.5 9M3 17L6.5 15M6.5 9L3 10M6.5 9L6 5.5M6.5 15L3 14M6.5 15L6 18.5M12 5L9.5 4M12 5L14.5 4M12 18.5L14.5 20M12 18.5L9.5 20M17.5 15L18 18.5M17.5 15L21 14M17.5 9L21 10M17.5 9L18 5.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
+                dry: `<svg width="48px" height="48px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M5 11.9995C3.78555 12.9117 3 14.3641 3 15.9999C3 18.7613 5.23858 20.9999 8 20.9999C10.7614 20.9999 13 18.7613 13 15.9999C13 14.3641 12.2144 12.9117 11 11.9995" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 12V3H11V12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 3L13 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 6L13 6" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 9H13" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 14C6.89543 14 6 14.8954 6 16C6 17.1046 6.89543 18 8 18C9.10457 18 10 17.1046 10 16C10 14.8954 9.10457 14 8 14ZM8 14V9" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M18.9991 3C18.9991 3 21.9991 5.99336 21.9994 7.88652C21.9997 9.5422 20.6552 10.8865 18.9997 10.8865C17.3442 10.8865 16.012 9.5422 16 7.88652C16.0098 5.99242 18.9991 3 18.9991 3Z" stroke="currentColor" stroke-width="1" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
+                fan_only: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M18.2785 7C19.7816 7 21 8.11929 21 9.5C21 10.8807 19.7816 12 18.2785 12H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.9375 20C19.0766 20 20.5 19.5 20.5 17.5C20.5 15.5 19.0766 15 17.9375 15H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10.4118 4C11.8412 4 13 5.11929 13 6.5C13 7.88071 11.8412 9 10.4118 9H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`
+            };
+            const supportedHvacModes = state.attributes.hvac_modes || [];
+        
+            let vaneControlsHTML = '';
+            // KORRIGIERTE PRÜFUNG: Prüft auf Attribute statt auf den Namen
+            if (state.attributes.vane_horiz && state.attributes.vane_vert) {
+                const horizontalVaneOptions = [ { label: '← Links', value: '1_left' }, { label: '‹', value: '2' }, { label: 'Mitte', value: '3' }, { label: '›', value: '4' }, { label: 'Rechts →', value: '5_right' }, { label: 'Split', value: 'split' }, { label: 'Swing', value: 'swing' }, { label: 'Auto', value: 'auto' }];
+                const verticalVaneOptions = [ { label: '↑ Oben', value: '1_up' }, { label: '↗', value: '2' }, { label: '→', value: '3' }, { label: '↘', value: '4' }, { label: '↓ Unten', value: '5_down' }, { label: 'Swing', value: 'swing' }, { label: 'Auto', value: 'auto' }];
+                vaneControlsHTML = `
+                    <div class="climate-setting-row" data-setting-type="vane_horizontal">
+                        ${horizontalVaneOptions.map(o => `<div class="climate-setting-option" data-climate-setting="vane_horizontal" data-value="${o.value}">${o.label}</div>`).join('')}
                     </div>
-                    <div class="handle" style="border-color: #2E8B57;"></div>
+                    <div class="climate-setting-row" data-setting-type="vane_vertical">
+                        ${verticalVaneOptions.map(o => `<div class="climate-setting-option" data-climate-setting="vane_vertical" data-value="${o.value}">${o.label}</div>`).join('')}
+                    </div>
+                `;
+            } else if (state.attributes.swing_modes && state.attributes.swing_modes.length > 0) {
+                vaneControlsHTML = `
+                    <div class="climate-setting-row" data-setting-type="swing_mode">
+                        ${state.attributes.swing_modes.map(mode => `<div class="climate-setting-option" data-climate-setting="swing_mode" data-value="${mode}">${mode}</div>`).join('')}
+                    </div>
+                `;
+            }
+        
+            const supportedFanModes = state.attributes.fan_modes || [];
+            let fanControlsHTML = '';
+            if (supportedFanModes.length > 0) {
+                fanControlsHTML = `
+                    <div class="climate-setting-row" data-setting-type="fan_mode">
+                       ${supportedFanModes.map(mode => `<div class="climate-setting-option" data-climate-setting="fan_mode" data-value="${mode}">${mode}</div>`).join('')}
+                    </div>
+                `;
+            }
+        
+            return `
+                <div class="device-control-design" id="device-control-${item.id}">
+                    <div class="circular-slider-container climate" data-entity="${item.id}">
+                        <div class="slider-track"></div>
+                        <svg class="progress-svg">
+                            <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
+                            <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #2E8B57;"></circle>
+                        </svg>
+                        <div class="slider-inner">
+                            <div class="power-icon">⏻</div>
+                            <div class="circular-value">${currentTemp.toFixed(1)}°C</div>
+                            <div class="circular-label">Temperatur</div>
+                        </div>
+                        <div class="handle" style="border-color: #2E8B57;"></div>
+                    </div>
+                    
+                    <div class="device-control-row">
+                        ${supportedHvacModes
+                            .filter(mode => allHvacSvgs[mode])
+                            .map(mode => `<button class="device-control-button" data-hvac-mode="${mode}" title="${mode}">${allHvacSvgs[mode]}</button>`)
+                            .join('')}
+                        ${(vaneControlsHTML || fanControlsHTML) ? `
+                            <button class="device-control-button" data-action="toggle-presets" title="Einstellungen">
+                                <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M5.5 6C5.77614 6 6 5.77614 6 5.5C6 5.22386 5.77614 5 5.5 5C5.22386 5 5 5.22386 5 5.5C5 5.77614 5.22386 6 5.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 12.5C5.77614 12.5 6 12.2761 6 12C6 11.7239 5.77614 11.5 5.5 11.5C5.22386 11.5 5 11.7239 5 12C5 12.2761 5.22386 12.5 5.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 19C5.77614 19 6 18.7761 6 18.5C6 18.2239 5.77614 18 5.5 18C5.22386 18 5 18.2239 5 18.5C5 18.7761 5.22386 19 5.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6C12.2761 6 12.5 5.77614 12.5 5.5C12.5 5.22386 12.2761 5 12 5C11.7239 5 11.5 5.22386 11.5 5.5C11.5 5.77614 11.7239 6 12 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 19C12.2761 19 12.5 18.7761 12.5 18.5C12.5 18.2239 12.2761 18 12 18C11.7239 18 11.5 18.2239 11.5 18.5C11.5 18.7761 11.7239 19 12 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 6C18.7761 6 19 5.77614 19 5.5C19 5.22386 18.7761 5 18.5 5C18.2239 5 18 5.22386 18 5.5C18 5.77614 18.2239 6 18.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 12.5C18.7761 12.5 19 12.2761 19 12C19 11.7239 18.7761 11.5 18.5 11.5C18.2239 11.5 18 11.7239 18 12C18 12.2761 18.2239 12.5 18.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 19C18.7761 19 19 18.7761 19 18.5C19 18.2239 18.7761 18 18.5 18C18.2239 18 18 18.2239 18 18.5C18 18.7761 18.2239 19 18.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            </button>
+                        ` : ''}
+                    </div>
+                    <div class="device-control-presets climate" data-is-open="false">
+                        ${vaneControlsHTML}
+                        ${fanControlsHTML}
+                    </div>
                 </div>
-                
-                <div class="device-control-row">
-                    ${supportedHvacModes
-                        .filter(mode => allHvacSvgs[mode])
-                        .map(mode => `<button class="device-control-button" data-hvac-mode="${mode}" title="${mode}">${allHvacSvgs[mode]}</button>`)
-                        .join('')}
-                    ${(vaneControlsHTML || fanControlsHTML) ? `
-                        <button class="device-control-button" data-action="toggle-presets" title="Einstellungen">
-                            <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M5.5 6C5.77614 6 6 5.77614 6 5.5C6 5.22386 5.77614 5 5.5 5C5.22386 5 5 5.22386 5 5.5C5 5.77614 5.22386 6 5.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 12.5C5.77614 12.5 6 12.2761 6 12C6 11.7239 5.77614 11.5 5.5 11.5C5.22386 11.5 5 11.7239 5 12C5 12.2761 5.22386 12.5 5.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 19C5.77614 19 6 18.7761 6 18.5C6 18.2239 5.77614 18 5.5 18C5.22386 18 5 18.2239 5 18.5C5 18.7761 5.22386 19 5.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6C12.2761 6 12.5 5.77614 12.5 5.5C12.5 5.22386 12.2761 5 12 5C11.7239 5 11.5 5.22386 11.5 5.5C11.5 5.77614 11.7239 6 12 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 19C12.2761 19 12.5 18.7761 12.5 18.5C12.5 18.2239 12.2761 18 12 18C11.7239 18 11.5 18.2239 11.5 18.5C11.5 18.7761 11.7239 19 12 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 6C18.7761 6 19 5.77614 19 5.5C19 5.22386 18.7761 5 18.5 5C18.2239 5 18 5.22386 18 5.5C18 5.77614 18.2239 6 18.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 12.5C18.7761 12.5 19 12.2761 19 12C19 11.7239 18.7761 11.5 18.5 11.5C18.2239 11.5 18 11.7239 18 12C18 12.2761 18.2239 12.5 18.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 19C18.7761 19 19 18.7761 19 18.5C19 18.2239 18.7761 18 18.5 18C18.2239 18 18 18.2239 18 18.5C18 18.7761 18.2239 19 18.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                        </button>
-                    ` : ''}
-                </div>
-                <div class="device-control-presets climate" data-is-open="false">
-                    ${vaneControlsHTML}
-                    ${fanControlsHTML}
-                </div>
-            </div>
-        `;
-    }
+            `;
+        }        
 
     updateClimateControlsUI(item) {
         const climateContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
@@ -2459,6 +2455,15 @@ class FastSearchCard extends HTMLElement {
                          stats.push(`→ ${state.attributes.temperature}°C`);
                     }
                     if (state.attributes.fan_mode) stats.push(`Fan: ${state.attributes.fan_mode}`);
+                    
+                    // KORRIGIERTE LOGIK: Zeigt Lamellenstatus an
+                    if (state.attributes.vane_horiz) stats.push(`H: ${state.attributes.vane_horiz}`);
+                    if (state.attributes.vane_vert) stats.push(`V: ${state.attributes.vane_vert}`);
+                    
+                    // Fallback für Standard-Geräte
+                    if (!state.attributes.vane_horiz && state.attributes.swing_mode) {
+                        stats.push(`Swing: ${state.attributes.swing_mode}`);
+                    }
                 }
                 break;
             case 'media_player':
