@@ -1904,11 +1904,11 @@ class FastSearchCard extends HTMLElement {
         });
 
         climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_horizontal"]').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode);
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode); // MELCloud uses swing_mode for both
         });
         
         climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="vane_vertical"]').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode);
+            opt.classList.toggle('active', opt.dataset.value === state.attributes.swing_mode); // MELCloud uses swing_mode for both
         });
         
         climateContainer.querySelectorAll('.climate-setting-option[data-climate-setting="fan_mode"]').forEach(opt => {
@@ -2168,7 +2168,7 @@ class FastSearchCard extends HTMLElement {
         const tempButtons = lightContainer.querySelectorAll('[data-temp]');
         const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
         const colorPresets = lightContainer.querySelectorAll('.device-control-preset');
-        const presetsContainer = lightContainer.querySelector('.device-control-presets');
+        const presetsContainer = lightContainer.querySelector('.device-control-presets.device-control-colors');
         
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
             const kelvin = parseInt(btn.dataset.temp, 10);
@@ -2266,8 +2266,8 @@ class FastSearchCard extends HTMLElement {
                 onValueChangeEnd: (value) => {
                     this.callClimateService('set_temperature', item.id, { temperature: value });
                 },
-                onPowerToggle: () => {
-                    this.callClimateService('toggle', item.id);
+                onPowerToggle: (isOn) => {
+                     this.callClimateService(isOn ? 'turn_on' : 'turn_off', item.id);
                 }
             });
         }
@@ -2300,12 +2300,12 @@ class FastSearchCard extends HTMLElement {
                     case 'vane_horizontal':
                         serviceDomain = 'melcloud';
                         serviceName = 'set_vane_horizontal';
-                        serviceData = { entity_id: item.id, position: settingValue };
+                        serviceData = { entity_id: item.id, vane_horiz: settingValue };
                         break;
                     case 'vane_vertical':
                         serviceDomain = 'melcloud';
                         serviceName = 'set_vane_vertical';
-                        serviceData = { entity_id: item.id, position: settingValue };
+                        serviceData = { entity_id: item.id, vane_vert: settingValue };
                         break;
                     case 'fan_mode':
                         serviceDomain = 'climate';
@@ -2393,7 +2393,7 @@ class FastSearchCard extends HTMLElement {
                 if (state.attributes.current_position != null) stats.push(`${state.attributes.current_position}%`);
                 break;
         }
-        return stats.filter(s => s); // Filter out any undefined/null values
+        return stats.filter(s => s && s.toLowerCase().indexOf('undefined') === -1); 
     }
 
     getBackgroundImageForItem(item) {
