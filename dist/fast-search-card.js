@@ -2420,6 +2420,28 @@ class FastSearchCard extends HTMLElement {
                             });
                             break;
                         case 'toggle-music-assistant':
+
+
+                            // --- START DER DEBUG-ÄNDERUNGEN ---
+    
+                            console.log('--- DEBUG START ---');
+                            console.log('Suche nach Panel in diesem Container:', mediaContainer);
+                            
+                            const panelId = `#media-assistant-panel-${item.id}`;
+                            console.log('Versuche, Element mit dieser ID zu finden:', panelId);
+    
+                            const maPanel = mediaContainer.querySelector(panelId);
+                            console.log('Ergebnis der Suche (maPanel):', maPanel);
+    
+                            if (!maPanel) {
+                                console.error('FEHLER: maPanel wurde nicht gefunden! Das HTML scheint nicht korrekt zu sein.');
+                                console.log('--- DEBUG ENDE ---');
+                                return; // Stoppt die Ausführung hier, um den Fehler zu vermeiden
+                            }
+                            
+                            // --- ENDE DER DEBUG-ÄNDERUNGEN ---
+
+                            
                             console.log('[DEBUG] Music Assistant Button geklickt!'); // <--- ZEILE 2 HINZUFÜGEN
     
                             const maPanel = mediaContainer.querySelector(`#media-assistant-panel-${item.id}`);
