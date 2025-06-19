@@ -2911,6 +2911,14 @@ class FastSearchCard extends HTMLElement {
     }
     
     setupMusicAssistantEventListeners(item) {
+
+        // Am Anfang der setupMusicAssistantEventListeners Methode
+        console.log('Setting up Music Assistant for:', item.id);
+        console.log('Filter container found:', !!filterContainer);
+        if (filterContainer) {
+            console.log('Filter chips found:', filterContainer.querySelectorAll('.ma-filter-chip').length);
+        }
+        
         const searchInput = this.shadowRoot.querySelector(`[data-ma-search="${item.id}"]`);
         const resultsContainer = this.shadowRoot.getElementById(`ma-results-${item.id}`);
         const enqueueMode = this.shadowRoot.querySelector(`[data-ma-enqueue="${item.id}"]`);
