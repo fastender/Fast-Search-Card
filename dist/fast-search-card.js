@@ -1920,53 +1920,6 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-    getMediaPlayerControlsHTML(item) {
-        const state = this._hass.states[item.id];
-        const isPlaying = state.state === 'playing';
-        const volume = Math.round((state.attributes.volume_level || 0) * 100);
-        return `
-            <div class="device-control-design" id="device-control-${item.id}">
-                <div class="circular-slider-container media" data-entity="${item.id}">
-                    <div class="slider-track"></div>
-                    <svg class="progress-svg">
-                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
-                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #FF6B35;"></circle>
-                    </svg>
-                    <div class="slider-inner">
-                        <div class="power-icon">🔊</div>
-                        <div class="circular-value">${volume}%</div>
-                        <div class="circular-label">Lautstärke</div>
-                    </div>
-                    <div class="handle" style="border-color: #FF6B35;"></div>
-                </div>
-                <div class="device-control-row">
-                    <button class="device-control-button" data-action="previous" title="Zurück">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M6 7V17" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.0282 5.2672C17.4217 4.95657 18 5.23682 18 5.73813V18.2619C18 18.7632 17.4217 19.0434 17.0282 18.7328L9.09651 12.4709C8.79223 12.2307 8.79223 11.7693 9.09651 11.5291L17.0282 5.2672Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                    </button>
-                    <button class="device-control-button" data-action="play_pause" title="${isPlaying ? 'Pause' : 'Play'}">
-                        ${isPlaying ? 
-                            '<svg viewBox="0 0 24 24" fill="none"><path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor" stroke-width="1"></path><path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor" stroke-width="1"></path></svg>' :
-                            '<svg viewBox="0 0 24 24" fill="none"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
-                        }
-                    </button>
-                    <button class="device-control-button" data-action="next" title="Weiter">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M18 7V17" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6.97179 5.2672C6.57832 4.95657 6 5.23682 6 5.73813V18.2619C6 18.7632 6.57832 19.0434 6.97179 18.7328L14.9035 12.4709C15.2078 12.2307 15.2078 11.7693 14.9035 11.5291L6.97179 5.2672Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                    </button>
-                    <button class="device-control-button" data-action="toggle-music-assistant" title="Music Assistant">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M20 14V3L9 5V16" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17 19H18C19.1046 19 20 18.1046 20 17V14H17C15.8954 14 15 14.8954 15 16V17C15 18.1046 15.8954 19 17 19Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H7C8.10457 21 9 20.1046 9 19V16H6C4.89543 16 4 16.8954 4 18V19C4 20.1046 4.89543 21 6 21Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                    </button>
-                    <button class="device-control-button" data-action="toggle-tts" title="Text-to-Speech">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M7 12L17 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7 8L13 8" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 20.2895V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V15C21 16.1046 20.1046 17 19 17H7.96125C7.35368 17 6.77906 17.2762 6.39951 17.7506L4.06852 20.6643C3.71421 21.1072 3 20.8567 3 20.2895Z" stroke="currentColor" stroke-width="1"></path></svg>
-                    </button>
-                </div>
-                <div class="device-control-presets" data-is-open="false" id="media-assistant-panel-${item.id}">
-                    </div>
-                <div class="device-control-presets" data-is-open="false" id="tts-panel-${item.id}">
-                    </div>
-            </div>
-        `;
-    }
-
     getVaneLabel(value, direction) {
         const horizontalLabels = {
             'auto': 'Auto', '1_left': '← Links', '2': '‹', '3': 'Mitte', '4': '›', '5_right': 'Rechts →', 'split': 'Split', 'swing': 'Swing'
@@ -1986,6 +1939,11 @@ class FastSearchCard extends HTMLElement {
             'off': 'Aus', 'on': 'Ein', 'vertical': 'Vertikal', 'horizontal': 'Horizontal', 'both': 'Beide'
         };
         return swingLabels[mode] || mode;
+    }
+
+    getMediaPlayerControlsHTML(item) {
+        // Placeholder for Media Player controls
+        return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Media Player controls coming soon.</div>`;
     }
 
     updateClimateControlsUI(item) {
@@ -2029,27 +1987,6 @@ class FastSearchCard extends HTMLElement {
     
             opt.classList.toggle('active', isActive);
         });
-    }
-
-    updateMediaPlayerControlsUI(item) {
-        const mediaContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
-        if (!mediaContainer) return;
-        const state = this._hass.states[item.id];
-        const isPlaying = state.state === 'playing';
-        const volume = Math.round((state.attributes.volume_level || 0) * 100);
-        // Update volume slider
-        const sliderId = `slider-${item.id}`;
-        if (this.circularSliders[sliderId]) {
-            this.circularSliders[sliderId].updateFromState(volume, true);
-        }
-        // Update play/pause button
-        const playPauseBtn = mediaContainer.querySelector('[data-action="play_pause"]');
-        if (playPauseBtn) {
-            playPauseBtn.innerHTML = isPlaying ?
-                '<svg viewBox="0 0 24 24" fill="none"><path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor" stroke-width="1"></path><path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor" stroke-width="1"></path></svg>' :
-                '<svg viewBox="0 0 24 24" fill="none"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
-            playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
-        }
     }
 
     setupClimateControls(item) {
@@ -2150,106 +2087,6 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    setupMediaPlayerControls(item) {
-        const mediaContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
-        if (!mediaContainer) return;
-        // Volume Slider Setup
-        const sliderId = `slider-${item.id}`;
-        const circularContainer = mediaContainer.querySelector('.circular-slider-container.media');
-        if (circularContainer) {
-            const state = this._hass.states[item.id];
-            const currentVolume = Math.round((state.attributes.volume_level || 0) * 100);
-            this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
-                minValue: 0,
-                maxValue: 100,
-                defaultValue: currentVolume,
-                step: 1,
-                label: 'Lautstärke',
-                hasPower: false,
-                formatValue: (val) => `${Math.round(val)}%`,
-                onValueChange: (value) => {
-                    this._hass.callService('media_player', 'volume_set', {
-                        entity_id: item.id,
-                        volume_level: value / 100
-                    });
-                }
-            });
-        }
-        // Media Control Buttons
-        mediaContainer.querySelectorAll('[data-action]').forEach(button => {
-            button.addEventListener('click', async () => {
-                const action = button.dataset.action;
-                switch (action) {
-                    case 'play_pause':
-                        await this._hass.callService('media_player', 'media_play_pause', {
-                            entity_id: item.id
-                        });
-                        break;
-                    case 'previous':
-                        await this._hass.callService('media_player', 'media_previous_track', {
-                            entity_id: item.id
-                        });
-                        break;
-                    case 'next':
-                        await this._hass.callService('media_player', 'media_next_track', {
-                            entity_id: item.id
-                        });
-                        break;
-                    case 'toggle-music-assistant':
-                        const maPanel = mediaContainer.querySelector(`#media-assistant-panel-${item.id}`);
-                        const ttsPanel = mediaContainer.querySelector(`#tts-panel-${item.id}`);
-                        const isOpen = maPanel.getAttribute('data-is-open') === 'true';
-                        // Close TTS if open
-                        ttsPanel.setAttribute('data-is-open', 'false');
-                        ttsPanel.classList.remove('visible');
-                        if (!isOpen && !maPanel.innerHTML.trim()) {
-                            maPanel.innerHTML = this.getMusicAssistantHTML(item);
-                            this.setupMusicAssistantEventListeners(item);
-                        }
-                        maPanel.setAttribute('data-is-open', String(!isOpen));
-                        maPanel.classList.toggle('visible', !isOpen);
-                        break;
-                    case 'toggle-tts':
-                        const ttsPanelToggle = mediaContainer.querySelector(`#tts-panel-${item.id}`);
-                        const maPanelToggle = mediaContainer.querySelector(`#media-assistant-panel-${item.id}`);
-                        const isTTSOpen = ttsPanelToggle.getAttribute('data-is-open') === 'true';
-                        // Close Music Assistant if open
-                        maPanelToggle.setAttribute('data-is-open', 'false');
-                        maPanelToggle.classList.remove('visible');
-                        if (!isTTSOpen && !ttsPanelToggle.innerHTML.trim()) {
-                            ttsPanelToggle.innerHTML = this.getTTSHTML(item);
-                            this.setupTTSEventListeners(item);
-                        }
-                        ttsPanelToggle.setAttribute('data-is-open', String(!isTTSOpen));
-                        ttsPanelToggle.classList.toggle('visible', !isTTSOpen);
-                        break;
-                }
-            });
-        });
-    }
-
-    // Placeholder method for Music Assistant HTML content
-    getMusicAssistantHTML(item) {
-        console.warn('getMusicAssistantHTML is not yet implemented.');
-        return `<div style="padding: 16px; text-align: center; color: var(--text-secondary);">Music Assistant Panel für ${item.name}</div>`;
-    }
-
-    // Placeholder method for Music Assistant event listeners
-    setupMusicAssistantEventListeners(item) {
-        console.warn('setupMusicAssistantEventListeners is not yet implemented.');
-    }
-
-    // Placeholder method for TTS HTML content
-    getTTSHTML(item) {
-        console.warn('getTTSHTML is not yet implemented.');
-        return `<div style="padding: 16px; text-align: center; color: var(--text-secondary);">TTS Panel für ${item.name}</div>`;
-    }
-
-    // Placeholder method for TTS event listeners
-    setupTTSEventListeners(item) {
-        console.warn('setupTTSEventListeners is not yet implemented.');
-    }
-
     callClimateService(service, entity_id, data = {}) {
         this._hass.callService('climate', service, { entity_id, ...data });
     }
@@ -2307,6 +2144,11 @@ class FastSearchCard extends HTMLElement {
         if (this.circularSliders[sliderId]) {
             this.circularSliders[sliderId].updateFromState(position, true);
         }
+    }
+
+    updateMediaPlayerControlsUI(item) {
+        // Placeholder for updating the media player UI
+        console.log('Updating media player UI for:', item.id);
     }
 
     // Circular Slider Class - embedded within the main class
@@ -2671,6 +2513,11 @@ class FastSearchCard extends HTMLElement {
                 preset.classList.add('active');
             });
         });
+    }
+
+    setupMediaPlayerControls(item) {
+        // Placeholder for setting up media player event listeners
+        console.log('Setting up media player controls for:', item.id);
     }
 
     callLightService(service, entity_id, data = {}) {
