@@ -1922,7 +1922,7 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
-    
+
     getDeviceControlsHTML(item) {
         switch (item.domain) {
             case 'light':
@@ -1932,11 +1932,11 @@ class FastSearchCard extends HTMLElement {
             case 'climate':
                 return this.getClimateControlsHTML(item);
             case 'media_player':
-                return this.(item);
+                return this.getMediaPlayerControlsHTML(item); // KORRIGIERTE ZEILE
             default:
                 return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Keine Steuerelemente für diesen Gerätetyp.</div>`;
         }
-    }
+    }    
 
     getLightControlsHTML(item) {
         const state = this._hass.states[item.id];
