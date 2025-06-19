@@ -2916,7 +2916,10 @@ class FastSearchCard extends HTMLElement {
         const enqueueMode = this.shadowRoot.querySelector(`[data-ma-enqueue="${item.id}"]`);
         const filterContainer = this.shadowRoot.getElementById(`ma-filters-${item.id}`);
         
-        if (!searchInput || !resultsContainer) return;
+        if (!searchInput || !resultsContainer) {
+            console.error('Music Assistant: Required elements not found');
+            return;
+        }
         
         let searchTimeout;
         let currentFilter = 'all';
@@ -2939,24 +2942,27 @@ class FastSearchCard extends HTMLElement {
                 const mode = enqueueModes[currentModeIndex];
                 currentEnqueueMode = mode.key;
                 
-                enqueueMode.querySelector('.ma-enqueue-icon').textContent = mode.icon;
-                enqueueMode.querySelector('.ma-enqueue-text').textContent = mode.text;
+                const icon = enqueueMode.querySelector('.ma-enqueue-icon');
+                const text = enqueueMode.querySelector('.ma-enqueue-text');
+                if (icon) icon.textContent = mode.icon;
+                if (text) text.textContent = mode.text;
             });
         }
         
         // Filter Chips
         if (filterContainer) {
-            filterContainer.querySelectorAll('.ma-filter-chip').forEach(chip => {
+            const filterChips = filterContainer.querySelectorAll('.ma-filter-chip');
+            filterChips.forEach(chip => {
                 chip.addEventListener('click', () => {
                     // Remove active class from all chips
-                    filterContainer.querySelectorAll('.ma-filter-chip').forEach(c => {
+                    filterChips.forEach(c => {
                         c.classList.remove('ma-filter-active');
                     });
                     
                     // Add active class to clicked chip
                     chip.classList.add('ma-filter-active');
                     
-                    currentFilter = chip.getAttribute('data-filter');
+                    currentFilter = chip.getAttribute('data-filter') || 'all';
                     
                     // Re-display results with new filter
                     if (lastResults) {
