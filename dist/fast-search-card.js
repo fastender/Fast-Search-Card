@@ -2372,110 +2372,108 @@ class FastSearchCard extends HTMLElement {
         });
     }
     
+
+    // ERSETZE DEINE KOMPLETTE setupMediaPlayerControls-METHODE HIERMIT:
+    
     setupMediaPlayerControls(item) {
-            console.log('[DEBUG] setupMediaPlayerControls aufgerufen für:', item.id); // <--- ZEILE 1 HINZUFÜGEN
+        const mediaContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
+        if (!mediaContainer) return;
     
-            const mediaContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
-            if (!mediaContainer) return;
-            // Volume Slider Setup
-            const sliderId = `slider-${item.id}`;
-            const circularContainer = mediaContainer.querySelector('.circular-slider-container.media');
-            if (circularContainer) {
-                const state = this._hass.states[item.id];
-                const currentVolume = Math.round((state.attributes.volume_level || 0) * 100);
-                this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
-                    minValue: 0,
-                    maxValue: 100,
-                    defaultValue: currentVolume,
-                    step: 1,
-                    label: 'Lautstärke',
-                    hasPower: false,
-                    formatValue: (val) => `${Math.round(val)}%`,
-                    onValueChange: (value) => {
-                        this._hass.callService('media_player', 'volume_set', {
-                            entity_id: item.id,
-                            volume_level: value / 100
-                        });
-                    }
-                });
-            }
-            // Media Control Buttons
-            mediaContainer.querySelectorAll('[data-action]').forEach(button => {
-                button.addEventListener('click', async () => {
-                    const action = button.dataset.action;
-                    switch (action) {
-                        case 'play_pause':
-                            await this._hass.callService('media_player', 'media_play_pause', {
-                                entity_id: item.id
-                            });
-                            break;
-                        case 'previous':
-                            await this._hass.callService('media_player', 'media_previous_track', {
-                                entity_id: item.id
-                            });
-                            break;
-                        case 'next':
-                            await this._hass.callService('media_player', 'media_next_track', {
-                                entity_id: item.id
-                            });
-                            break;
-                        case 'toggle-music-assistant':
-
-
-                            // --- START DER DEBUG-ÄNDERUNGEN ---
-    
-                            console.log('--- DEBUG START ---');
-                            console.log('Suche nach Panel in diesem Container:', mediaContainer);
-                            
-                            const panelId = `#media-assistant-panel-${item.id}`;
-                            console.log('Versuche, Element mit dieser ID zu finden:', panelId);
-    
-                            const maPanel = mediaContainer.querySelector(panelId);
-                            console.log('Ergebnis der Suche (maPanel):', maPanel);
-    
-                            if (!maPanel) {
-                                console.error('FEHLER: maPanel wurde nicht gefunden! Das HTML scheint nicht korrekt zu sein.');
-                                console.log('--- DEBUG ENDE ---');
-                                return; // Stoppt die Ausführung hier, um den Fehler zu vermeiden
-                            }
-                            
-                            // --- ENDE DER DEBUG-ÄNDERUNGEN ---
-
-                            const ttsPanel = mediaContainer.querySelector(`#tts-panel-${item.id}`);
-                            const isOpen = maPanel.getAttribute('data-is-open') === 'true';
-                            // Close TTS if open
-                            if(ttsPanel) {
-                                ttsPanel.setAttribute('data-is-open', 'false');
-                                ttsPanel.classList.remove('visible');
-                            }
-                            if (!isOpen && !maPanel.innerHTML.trim()) {
-                                maPanel.innerHTML = this.getMusicAssistantHTML(item);
-                                this.setupMusicAssistantEventListeners(item);
-                            }
-                            maPanel.setAttribute('data-is-open', String(!isOpen));
-                            maPanel.classList.toggle('visible', !isOpen);
-                            break;
-                        case 'toggle-tts':
-                            const ttsPanelToggle = mediaContainer.querySelector(`#tts-panel-${item.id}`);
-                            const maPanelToggle = mediaContainer.querySelector(`#media-assistant-panel-${item.id}`);
-                            const isTTSOpen = ttsPanelToggle.getAttribute('data-is-open') === 'true';
-                            // Close Music Assistant if open
-                            if(maPanelToggle){
-                               maPanelToggle.setAttribute('data-is-open', 'false');
-                               maPanelToggle.classList.remove('visible');
-                            }
-                            if (!isTTSOpen && !ttsPanelToggle.innerHTML.trim()) {
-                                ttsPanelToggle.innerHTML = this.getTTSHTML(item);
-                                this.setupTTSEventListeners(item);
-                            }
-                            ttsPanelToggle.setAttribute('data-is-open', String(!isTTSOpen));
-                            ttsPanelToggle.classList.toggle('visible', !isTTSOpen);
-                            break;
-                    }
-                });
+        // Volume Slider Setup
+        const sliderId = `slider-${item.id}`;
+        const circularContainer = mediaContainer.querySelector('.circular-slider-container.media');
+        if (circularContainer) {
+            const state = this._hass.states[item.id];
+            const currentVolume = Math.round((state.attributes.volume_level || 0) * 100);
+            this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
+                minValue: 0,
+                maxValue: 100,
+                defaultValue: currentVolume,
+                step: 1,
+                label: 'Lautstärke',
+                hasPower: false,
+                formatValue: (val) => `${Math.round(val)}%`,
+                onValueChange: (value) => {
+                    this._hass.callService('media_player', 'volume_set', {
+                        entity_id: item.id,
+                        volume_level: value / 100
+                    });
+                }
             });
         }
+    
+        // Media Control Buttons
+        mediaContainer.querySelectorAll('[data-action]').forEach(button => {
+            button.addEventListener('click', async () => {
+                const action = button.dataset.action;
+                switch (action) {
+                    case 'play_pause':
+                        await this._hass.callService('media_player', 'media_play_pause', {
+                            entity_id: item.id
+                        });
+                        break;
+                    case 'previous':
+                        await this._hass.callService('media_player', 'media_previous_track', {
+                            entity_id: item.id
+                        });
+                        break;
+                    case 'next':
+                        await this._hass.callService('media_player', 'media_next_track', {
+                            entity_id: item.id
+                        });
+                        break;
+                    case 'toggle-music-assistant':
+                        // KORRIGIERTE SUCHE: durchsucht das gesamte Shadow DOM
+                        const maPanel = this.shadowRoot.querySelector(`#media-assistant-panel-${item.id}`);
+                        const ttsPanel = this.shadowRoot.querySelector(`#tts-panel-${item.id}`);
+    
+                        if (!maPanel) {
+                            console.error("Music Assistant Panel konnte nicht gefunden werden. Das HTML in getMediaPlayerControlsHTML() ist möglicherweise nicht korrekt.");
+                            return;
+                        }
+    
+                        const isOpen = maPanel.getAttribute('data-is-open') === 'true';
+    
+                        if (ttsPanel) {
+                            ttsPanel.setAttribute('data-is-open', 'false');
+                            ttsPanel.classList.remove('visible');
+                        }
+                        if (!isOpen && !maPanel.innerHTML.trim()) {
+                            maPanel.innerHTML = this.getMusicAssistantHTML(item);
+                            this.setupMusicAssistantEventListeners(item);
+                        }
+                        maPanel.setAttribute('data-is-open', String(!isOpen));
+                        maPanel.classList.toggle('visible', !isOpen);
+                        break;
+                    case 'toggle-tts':
+                        // KORRIGIERTE SUCHE: durchsucht das gesamte Shadow DOM
+                        const ttsPanelToggle = this.shadowRoot.querySelector(`#tts-panel-${item.id}`);
+                        const maPanelToggle = this.shadowRoot.querySelector(`#media-assistant-panel-${item.id}`);
+    
+                        if (!ttsPanelToggle) {
+                            console.error("TTS Panel konnte nicht gefunden werden. Das HTML in getMediaPlayerControlsHTML() ist möglicherweise nicht korrekt.");
+                            return;
+                        }
+                        
+                        const isTTSOpen = ttsPanelToggle.getAttribute('data-is-open') === 'true';
+    
+                        if (maPanelToggle) {
+                            maPanelToggle.setAttribute('data-is-open', 'false');
+                            maPanelToggle.classList.remove('visible');
+                        }
+                        if (!isTTSOpen && !ttsPanelToggle.innerHTML.trim()) {
+                            ttsPanelToggle.innerHTML = this.getTTSHTML(item);
+                            this.setupTTSEventListeners(item);
+                        }
+                        ttsPanelToggle.setAttribute('data-is-open', String(!isTTSOpen));
+                        ttsPanelToggle.classList.toggle('visible', !isTTSOpen);
+                        break;
+                }
+            });
+        });
+    }
 
+        
 
     // Placeholder method for Music Assistant HTML content
     getMusicAssistantHTML(item) {
