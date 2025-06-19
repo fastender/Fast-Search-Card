@@ -2494,12 +2494,15 @@ class FastSearchCard extends HTMLElement {
     setupMediaPlayerControls(item) {
         const mediaContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!mediaContainer) return;
+        
         // Volume Slider Setup
         const sliderId = `slider-${item.id}`;
         const circularContainer = mediaContainer.querySelector('.circular-slider-container.media');
+        
         if (circularContainer) {
             const state = this._hass.states[item.id];
             const currentVolume = Math.round((state.attributes.volume_level || 0) * 100);
+            
             this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
                 minValue: 0,
                 maxValue: 100,
@@ -2516,51 +2519,71 @@ class FastSearchCard extends HTMLElement {
                 }
             });
         }
+        
         // Media Control Buttons
         mediaContainer.querySelectorAll('[data-action]').forEach(button => {
             button.addEventListener('click', async () => {
                 const action = button.dataset.action;
+                
                 switch (action) {
                     case 'play_pause':
                         await this._hass.callService('media_player', 'media_play_pause', {
                             entity_id: item.id
                         });
                         break;
+                        
                     case 'previous':
                         await this._hass.callService('media_player', 'media_previous_track', {
                             entity_id: item.id
                         });
                         break;
+                        
                     case 'next':
                         await this._hass.callService('media_player', 'media_next_track', {
                             entity_id: item.id
                         });
                         break;
+                        
                     case 'toggle-music-assistant':
                         const maPanel = mediaContainer.querySelector(`#media-assistant-panel-${item.id}`);
                         const ttsPanel = mediaContainer.querySelector(`#tts-panel-${item.id}`);
                         const isOpen = maPanel.getAttribute('data-is-open') === 'true';
+                        
                         // Close TTS if open
                         ttsPanel.setAttribute('data-is-open', 'false');
                         ttsPanel.classList.remove('visible');
-                        if (!isOpen && !maPanel.innerHTML.trim()) {
+                        
+                        if (!isOpen) {
+                            // Nur wenn noch nicht offen, HTML generieren und Event Listener setzen
                             maPanel.innerHTML = this.getMusicAssistantHTML(item);
-                            this.setupMusicAssistantEventListeners(item);
+                            // Wichtig: Event Listener erst NACH dem HTML einfügen
+                            setTimeout(() => {
+                                this.setupMusicAssistantEventListeners(item);
+                            }, 0);
                         }
+                        
                         maPanel.setAttribute('data-is-open', String(!isOpen));
                         maPanel.classList.toggle('visible', !isOpen);
                         break;
+                        
                     case 'toggle-tts':
                         const ttsPanelToggle = mediaContainer.querySelector(`#tts-panel-${item.id}`);
                         const maPanelToggle = mediaContainer.querySelector(`#media-assistant-panel-${item.id}`);
                         const isTTSOpen = ttsPanelToggle.getAttribute('data-is-open') === 'true';
+                        
                         // Close Music Assistant if open
                         maPanelToggle.setAttribute('data-is-open', 'false');
                         maPanelToggle.classList.remove('visible');
-                        if (!isTTSOpen && !ttsPanelToggle.innerHTML.trim()) {
+                        
+                        if (!isTTSOpen) {
+                            // Nur wenn noch nicht offen, HTML generieren und Event Listener setzen
                             ttsPanelToggle.innerHTML = this.getTTSHTML(item);
-                            this.setupTTSEventListeners(item);
+                            // Wichtig: Event Listener erst NACH dem HTML einfügen
+                            setTimeout(() => {
+                                this.setupTTSEventListeners(item);
+                            }, 0);
                         }
+                        
                         ttsPanelToggle.setAttribute('data-is-open', String(!isTTSOpen));
                         ttsPanelToggle.classList.toggle('visible', !isTTSOpen);
                         break;
@@ -2568,7 +2591,6 @@ class FastSearchCard extends HTMLElement {
             });
         });
     }
-
 
     
     
