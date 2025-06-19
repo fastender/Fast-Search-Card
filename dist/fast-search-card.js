@@ -3197,14 +3197,26 @@ class FastSearchCard extends HTMLElement {
                 header.addEventListener('click', () => {
                     const category = header.getAttribute('data-category');
                     
+                    if (!category) {
+                        console.warn('No category found on header');
+                        return;
+                    }
+                    
                     // Switch to that category filter
-                    const filterChip = this.shadowRoot.querySelector(`[data-filter="${category}"]`);
-                    if (filterChip) {
-                        filterChip.click();
+                    const filterContainer = this.shadowRoot.getElementById(`ma-filters-${entityId}`);
+                    if (filterContainer) {
+                        const filterChip = filterContainer.querySelector(`[data-filter="${category}"]`);
+                        if (filterChip) {
+                            filterChip.click();
+                        } else {
+                            console.warn(`Filter chip for category "${category}" not found`);
+                        }
+                    } else {
+                        console.warn('Filter container not found');
                     }
                 });
             });
-        }
+        }        
     }
     
     getMusicAssistantCategoryName(type) {
