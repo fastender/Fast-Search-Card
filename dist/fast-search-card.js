@@ -992,6 +992,228 @@ class FastSearchCard extends HTMLElement {
                 .icon-background-wrapper { width: 180px; height: 180px; }
                 .detail-title-area { margin-top: 20px; }
             }
+
+
+
+            
+            /* HIER EINFÜGEN */
+            
+            /* Music Assistant Styles */
+            .ma-search-container {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                padding: 16px;
+            }
+            .ma-search-bar-container {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                padding: 4px;
+            }
+            .ma-search-input {
+                flex-grow: 1;
+                border: none;
+                background: transparent;
+                outline: none;
+                font-size: 14px;
+                color: var(--text-primary);
+                padding: 8px 12px;
+            }
+            .ma-search-input::placeholder {
+                color: var(--text-secondary);
+            }
+            .ma-enqueue-mode {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+                padding: 6px 10px;
+                font-size: 12px;
+                cursor: pointer;
+                user-select: none;
+                transition: background 0.2s ease;
+            }
+            .ma-enqueue-mode:hover {
+                background: rgba(0, 0, 0, 0.3);
+            }
+            .ma-enqueue-icon {
+                font-size: 14px;
+            }
+            
+            .ma-filter-container {
+                display: flex;
+                gap: 8px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            .ma-filter-container::-webkit-scrollbar { display: none; }
+            
+            .ma-filter-chip {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 12px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 20px;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: all 0.2s ease;
+                font-size: 13px;
+            }
+            .ma-filter-chip:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+            .ma-filter-chip.ma-filter-active {
+                background: var(--accent-light);
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+            .ma-filter-icon {
+                font-size: 14px;
+            }
+            
+            .ma-search-results {
+                min-height: 200px;
+                overflow-y: auto;
+            }
+            .ma-empty-state, .ma-loading, .ma-no-results {
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-secondary);
+            }
+            .ma-category-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 16px 0 8px 0;
+                cursor: pointer;
+                color: var(--text-secondary);
+            }
+            .ma-category-title {
+                font-size: 14px;
+                font-weight: 600;
+                margin: 0;
+                color: var(--text-primary);
+            }
+            .ma-category-chevron {
+                font-size: 18px;
+                transition: transform 0.2s ease;
+            }
+            .ma-category-header:hover .ma-category-chevron {
+                transform: translateX(4px);
+            }
+            
+            .ma-grid-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 12px;
+            }
+            .ma-grid-item {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                padding: 10px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .ma-grid-item:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-2px);
+            }
+            .ma-grid-image {
+                width: 100%;
+                aspect-ratio: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+                overflow: hidden;
+                margin-bottom: 8px;
+                font-size: 32px;
+                background: rgba(0, 0, 0, 0.2);
+            }
+            .ma-grid-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .ma-grid-name {
+                font-size: 12px;
+                font-weight: 500;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .ma-grid-artist {
+                font-size: 10px;
+                color: var(--text-secondary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .ma-list-container {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .ma-list-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 8px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: background 0.2s ease;
+            }
+            .ma-list-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+            .ma-list-image {
+                width: 40px;
+                height: 40px;
+                flex-shrink: 0;
+                border-radius: 6px;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(0, 0, 0, 0.2);
+            }
+            .ma-list-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .ma-list-info {
+                flex-grow: 1;
+                overflow: hidden;
+            }
+            .ma-list-name {
+                font-size: 14px;
+                font-weight: 500;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .ma-list-artist {
+                font-size: 12px;
+                color: var(--text-secondary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+
+
+            
             </style>
 
             <div class="main-container">
@@ -2234,10 +2456,97 @@ class FastSearchCard extends HTMLElement {
         return `<div style="padding: 16px; text-align: center; color: var(--text-secondary);">Music Assistant Panel für ${item.name}</div>`;
     }
 
-    // Placeholder method for Music Assistant event listeners
+
+
+
+    // NEUER CODE
+    /**
+     * Richtet alle Music Assistant Event Listeners ein
+     */
     setupMusicAssistantEventListeners(item) {
-        console.warn('setupMusicAssistantEventListeners is not yet implemented.');
+        const searchInput = this.shadowRoot.querySelector(`[data-ma-search="${item.id}"]`);
+        const resultsContainer = this.shadowRoot.getElementById(`ma-results-${item.id}`);
+        const enqueueMode = this.shadowRoot.querySelector(`[data-ma-enqueue="${item.id}"]`);
+        const filterContainer = this.shadowRoot.getElementById(`ma-filters-${item.id}`);
+    
+        if (!searchInput || !resultsContainer) return;
+    
+        let searchTimeout;
+        let currentFilter = 'all';
+        let currentEnqueueMode = 'play';
+        let lastResults = null;
+    
+        // Enqueue Mode Toggle
+        if (enqueueMode) {
+            const enqueueModes = [
+                { key: 'play', icon: '▶️', text: 'Play now' },
+                { key: 'replace', icon: '🔄', text: 'Replace queue' },
+                { key: 'next', icon: '⏭️', text: 'Add next' },
+                { key: 'add', icon: '➕', text: 'Add to queue' }
+            ];
+    
+            let currentModeIndex = 0;
+    
+            enqueueMode.addEventListener('click', () => {
+                currentModeIndex = (currentModeIndex + 1) % enqueueModes.length;
+                const mode = enqueueModes[currentModeIndex];
+                currentEnqueueMode = mode.key;
+    
+                enqueueMode.querySelector('.ma-enqueue-icon').textContent = mode.icon;
+                enqueueMode.querySelector('.ma-enqueue-text').textContent = mode.text;
+            });
+        }
+    
+        // Filter Chips
+        if (filterContainer) {
+            filterContainer.querySelectorAll('.ma-filter-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    // Remove active class from all chips
+                    filterContainer.querySelectorAll('.ma-filter-chip').forEach(c => {
+                        c.classList.remove('ma-filter-active');
+                    });
+    
+                    // Add active class to clicked chip
+                    chip.classList.add('ma-filter-active');
+    
+                    currentFilter = chip.getAttribute('data-filter');
+    
+                    // Re-display results with new filter
+                    if (lastResults) {
+                        this.displayMusicAssistantResults(lastResults, resultsContainer, item.id, currentFilter, currentEnqueueMode);
+                    }
+                });
+            });
+        }
+    
+        // Search Input
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+    
+            clearTimeout(searchTimeout);
+    
+            if (query.length < 2) {
+                resultsContainer.innerHTML = '<div class="ma-empty-state">Gebe mindestens 2 Zeichen ein um zu suchen...</div>';
+                lastResults = null;
+                return;
+            }
+    
+            searchTimeout = setTimeout(async () => {
+                resultsContainer.innerHTML = '<div class="ma-loading">Suche läuft...</div>';
+    
+                const results = await this.searchMusicAssistant(query, item.id);
+                lastResults = results;
+                this.displayMusicAssistantResults(results, resultsContainer, item.id, currentFilter, currentEnqueueMode);
+            }, 300);
+        });
     }
+
+
+
+
+
+
+    
 
     // Placeholder method for TTS HTML content
     getTTSHTML(item) {
@@ -2788,6 +3097,266 @@ class FastSearchCard extends HTMLElement {
         icon.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.2)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
     }
 
+
+
+
+    // HIER EINFÜGEN
+    
+    /**
+     * Prüft Music Assistant Verfügbarkeit
+     */
+    checkMusicAssistantAvailability() {
+        if (!this._hass || !this._hass.states) return false;
+        
+        // Suche nach Music Assistant fähigen Media Playern
+        const maEntities = Object.keys(this._hass.states).filter(entityId => 
+            entityId.startsWith('media_player.') && 
+            this._hass.states[entityId].attributes.supported_features &&
+            this._hass.states[entityId].attributes.device_class === 'speaker'
+        );
+        
+        return maEntities.length > 0;
+    }
+    
+    /**
+     * Führt Music Assistant Suche aus
+     */
+    async searchMusicAssistant(query, entityId) {
+        if (!this._hass || !query) return [];
+        
+        try {
+            // Hole Music Assistant Config Entry
+            const configEntries = await this._hass.callApi("GET", "config/config_entries/entry");
+            const maEntry = configEntries.filter(entry => 
+                entry.domain === "music_assistant" && entry.state === "loaded"
+            ).find(entry => entry.state === "loaded");
+            
+            if (!maEntry) {
+                console.warn('Music Assistant nicht gefunden');
+                return [];
+            }
+            
+            // Führe Suche aus
+            const searchParams = {
+                type: "call_service",
+                domain: "music_assistant",
+                service: "search",
+                service_data: {
+                    name: query,
+                    config_entry_id: maEntry.entry_id,
+                    limit: 50
+                },
+                return_response: true
+            };
+            
+            const response = await this._hass.connection.sendMessagePromise(searchParams);
+            return this.processMusicAssistantResults(response.response);
+            
+        } catch (error) {
+            console.error('Music Assistant Suche fehlgeschlagen:', error);
+            return [];
+        }
+    }
+    
+    /**
+     * Verarbeitet Music Assistant Suchergebnisse
+     */
+    processMusicAssistantResults(results) {
+        if (!results) return [];
+        
+        const processedResults = {};
+        
+        // Gruppiere Ergebnisse nach Typ
+        Object.entries(results).forEach(([type, items]) => {
+            if (Array.isArray(items) && items.length > 0) {
+                processedResults[type] = items.map(item => ({
+                    uri: item.uri,
+                    name: item.name,
+                    artists: item.artists || [],
+                    image: item.image,
+                    media_type: item.media_type || type.slice(0, -1), // "tracks" -> "track"
+                    album: item.album
+                }));
+            }
+        });
+        
+        return processedResults;
+    }
+    
+    /**
+     * Spielt Musik über Music Assistant ab
+     */
+    async playMusicAssistantItem(item, entityId, enqueueMode = 'play') {
+        if (!this._hass) return;
+        
+        try {
+            await this._hass.callService("music_assistant", "play_media", {
+                entity_id: entityId,
+                media_type: item.media_type,
+                media_id: item.uri,
+                enqueue: enqueueMode
+            });
+            
+            console.log(`Spiele ab: ${item.name} auf ${entityId}`);
+        } catch (error) {
+            console.error('Fehler beim Abspielen:', error);
+        }
+    }
+    
+    /**
+     * Zeigt Music Assistant Suchergebnisse an
+     */
+    displayMusicAssistantResults(results, container, entityId, activeFilter = 'all', enqueueMode = 'play') {
+        if (!results || Object.keys(results).length === 0) {
+            container.innerHTML = '<div class="ma-no-results">Keine Ergebnisse gefunden</div>';
+            return;
+        }
+        
+        let html = '';
+        const categoryOrder = ['artists', 'albums', 'tracks', 'playlists', 'radio'];
+        
+        // Filter results based on active filter
+        const filteredResults = {};
+        if (activeFilter === 'all') {
+            Object.assign(filteredResults, results);
+        } else {
+            if (results[activeFilter]) {
+                filteredResults[activeFilter] = results[activeFilter];
+            }
+        }
+        
+        if (Object.keys(filteredResults).length === 0) {
+            container.innerHTML = '<div class="ma-no-results">Keine Ergebnisse in dieser Kategorie</div>';
+            return;
+        }
+        
+        // Display results
+        categoryOrder.forEach(type => {
+            const items = filteredResults[type];
+            if (!items || items.length === 0) return;
+            
+            const categoryName = this.getMusicAssistantCategoryName(type);
+            const isTrackType = type === 'tracks';
+            
+            if (activeFilter === 'all') {
+                html += `
+                    <div class="ma-category-header" data-category="${type}">
+                        <h3 class="ma-category-title">${categoryName}</h3>
+                        <span class="ma-category-chevron">›</span>
+                    </div>
+                `;
+            }
+            
+            if (isTrackType) {
+                // List view for tracks
+                html += '<div class="ma-list-container">';
+                const displayItems = activeFilter === 'all' ? items.slice(0, 5) : items;
+                
+                displayItems.forEach(item => {
+                    const artistText = item.artists ? item.artists.map(a => a.name).join(', ') : '';
+                    const imageUrl = item.image || (item.album ? item.album.image : '');
+                    
+                    html += `
+                        <div class="ma-list-item" data-uri="${item.uri}" data-type="${item.media_type}" data-name="${item.name}">
+                            <div class="ma-list-image">
+                                ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" />` : '🎵'}
+                            </div>
+                            <div class="ma-list-info">
+                                <div class="ma-list-name">${item.name}</div>
+                                ${artistText ? `<div class="ma-list-artist">${artistText}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                // Grid view for artists, albums, etc.
+                html += '<div class="ma-grid-container">';
+                const displayItems = activeFilter === 'all' ? items.slice(0, 6) : items;
+                const defaultIcon = type === 'artists' ? '👤' : type === 'albums' ? '💿' : '📋';
+                
+                displayItems.forEach(item => {
+                    const artistText = item.artists ? item.artists.map(a => a.name).join(', ') : '';
+                    const imageUrl = item.image;
+                    
+                    html += `
+                        <div class="ma-grid-item" data-uri="${item.uri}" data-type="${item.media_type}" data-name="${item.name}">
+                            <div class="ma-grid-image">
+                                ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" />` : defaultIcon}
+                            </div>
+                            <div class="ma-grid-name">${item.name}</div>
+                            ${artistText ? `<div class="ma-grid-artist">${artistText}</div>` : ''}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+        });
+        
+        container.innerHTML = html;
+        
+        // Event Listeners für Items
+        container.querySelectorAll('.ma-list-item, .ma-grid-item').forEach(itemElement => {
+            itemElement.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                const uri = itemElement.getAttribute('data-uri');
+                const mediaType = itemElement.getAttribute('data-type');
+                const name = itemElement.getAttribute('data-name');
+                
+                // Visual feedback
+                itemElement.style.opacity = '0.6';
+                
+                await this.playMusicAssistantItem({
+                    uri: uri,
+                    media_type: mediaType,
+                    name: name
+                }, entityId, enqueueMode);
+                
+                setTimeout(() => {
+                    itemElement.style.opacity = '1';
+                }, 1000);
+            });
+        });
+        
+        // Category header click handlers for "all" view
+        if (activeFilter === 'all') {
+            container.querySelectorAll('.ma-category-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const category = header.getAttribute('data-category');
+                    
+                    // Switch to that category filter
+                    const filterChip = this.shadowRoot.querySelector(`[data-filter="${category}"]`);
+                    if (filterChip) {
+                        filterChip.click();
+                    }
+                });
+            });
+        }
+    }
+    
+    /**
+     * Kategorie-Namen für Music Assistant
+     */
+    getMusicAssistantCategoryName(type) {
+        const names = {
+            'artists': 'Künstler',
+            'albums': 'Alben',
+            'tracks': 'Titel',
+            'playlists': 'Playlists',
+            'radio': 'Radio'
+        };
+        return names[type] || type;
+    }
+
+
+    
+
+
+    
+
+
+    
     getCardSize() { return 4; }
     static getConfigElement() { return document.createElement('fast-search-card-editor'); }
     static getStubConfig() { return { type: 'custom:fast-search-card', entities: [{ entity: 'light.example_light', title: 'Beispiel Lampe' }] }; }
