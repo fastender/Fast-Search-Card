@@ -2,7 +2,7 @@ class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        
+
         // State Management
         this._hass = null;
         this._config = {};
@@ -16,7 +16,7 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = false;
         this.searchTimeout = null;
         this.isSearching = false;
-        
+
         // Neue State-Variablen
         this.isDetailView = false;
         this.currentDetailItem = null;
@@ -27,6 +27,7 @@ class FastSearchCard extends HTMLElement {
         this.lightUpdateTimeout = null;
         this.coverUpdateTimeout = null; // Hinzugefügt für Rollladen
         this.climateUpdateTimeout = null;
+        this.mediaPlayerUpdateTimeout = null; // Hinzugefügt für Media Player
     }
 
     setConfig(config) {
@@ -40,21 +41,21 @@ class FastSearchCard extends HTMLElement {
             ...config,
             entities: config.entities
         };
-        
+
         this.render();
     }
 
     set hass(hass) {
         if (!hass) return;
-        
+
         const oldHass = this._hass;
         this._hass = hass;
-        
+
         const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
         if (shouldUpdateAll) {
             this.updateItems();
         }
-        
+
         if (this.isDetailView && this.currentDetailItem) {
             const updatedItem = this.allItems.find(item => item.id === this.currentDetailItem.id);
             if(updatedItem) {
@@ -68,19 +69,19 @@ class FastSearchCard extends HTMLElement {
 
     shouldUpdateItems(oldHass, newHass) {
         if (!this._config.entities) return false;
-        
+
         for (const entityConfig of this._config.entities) {
             const entityId = entityConfig.entity;
             const oldState = oldHass.states[entityId];
             const newState = newHass.states[entityId];
-            
+
             if (!oldState && newState) return true;
             if (oldState && !newState) return true;
             if (oldState && newState && oldState.attributes.friendly_name !== newState.attributes.friendly_name) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -100,6 +101,9 @@ class FastSearchCard extends HTMLElement {
                 --neumorphic-base: #2c2f33;
                 --neumorphic-shadow-dark: #23272b;
                 --neumorphic-shadow-light: #35373b;
+                --media-player-accent: #FFCC00; /* Yellow for media player */
+                --media-player-accent-rgb: 255, 204, 0;
+                --media-player-accent-light: rgba(255, 204, 0, 0.15);
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
 
@@ -120,7 +124,7 @@ class FastSearchCard extends HTMLElement {
                 content: '';
                 position: absolute;
                 top: 0; left: 0; right: 0; bottom: 0;
-                z-index: -1; 
+                z-index: -1;
                 border-radius: inherit;
                 -webkit-backdrop-filter: blur(var(--glass-blur-amount));
                 backdrop-filter: blur(var(--glass-blur-amount));
@@ -130,7 +134,7 @@ class FastSearchCard extends HTMLElement {
                     rgba(255, 255, 255, 0.05) 70%
                 );
             }
-            
+
             .glass-panel::after {
                 content: '';
                 position: absolute;
@@ -174,7 +178,7 @@ class FastSearchCard extends HTMLElement {
                 pointer-events: none;
                 transform: translateX(-5%) scale(0.95);
             }
-            
+
             .detail-panel {
                 position: absolute;
                 top: 0;
@@ -192,7 +196,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .search-panel.expanded {
-                max-height: 500px; 
+                max-height: 500px;
             }
 
             .search-wrapper {
@@ -202,8 +206,8 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                position: sticky; 
-                top: 0; 
+                position: sticky;
+                top: 0;
                 z-index: 2;
                 background-color: rgba(255, 255, 255, 0.01);
             }
@@ -216,7 +220,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 justify-content: center;
                 border-radius: 6px;
-                background: rgba(255, 255, 255, 0.1); 
+                background: rgba(255, 255, 255, 0.1);
                 flex-shrink: 0;
                 transition: all 0.2s ease;
             }
@@ -375,21 +379,21 @@ class FastSearchCard extends HTMLElement {
             .subcategory-chip.active .subcategory-status {
                 color: var(--accent);
             }
-            
+
             .subcategory-chip.active .chip-content {
                  color: var(--accent);
             }
 
             .results-container {
-                flex-grow: 1; 
-                overflow-y: auto; 
+                flex-grow: 1;
+                overflow-y: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 -webkit-overflow-scrolling: touch;
-                opacity: 0; 
-                transform: translateY(-10px); 
-                transition: all 0.3s ease; 
-                padding-top: 16px; 
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: all 0.3s ease;
+                padding-top: 16px;
                 padding-bottom: 20px;
             }
 
@@ -407,8 +411,8 @@ class FastSearchCard extends HTMLElement {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 12px;
                 min-height: 200px;
-                padding-left: 20px; 
-                padding-right: 20px; 
+                padding-left: 20px;
+                padding-right: 20px;
             }
 
             .area-header {
@@ -438,9 +442,9 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 overflow: hidden;
                 transition: all 0.2s ease;
-                will-change: transform, opacity; 
+                will-change: transform, opacity;
             }
-            
+
             .device-card:hover {
                 transform: translateY(-2px) scale(1.02);
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
@@ -449,7 +453,7 @@ class FastSearchCard extends HTMLElement {
             .device-card.active {
                 background: var(--accent-light);
                 border-color: var(--accent);
-                box-shadow: 
+                box-shadow:
                     0 4px 20px rgba(0, 122, 255, 0.2),
                     inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
@@ -495,7 +499,7 @@ class FastSearchCard extends HTMLElement {
                 color: var(--accent);
                 opacity: 1;
             }
-            
+
             .detail-content {
                 flex-grow: 1;
                 display: flex;
@@ -517,11 +521,11 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 background-color: rgba(0, 0, 0, 0.2);
-                border-radius: 0 24px 24px 0; 
+                border-radius: 0 24px 24px 0;
                 box-sizing: border-box;
                 overflow: hidden;
             }
-            
+
             .detail-left-header {
                 display: flex;
                 justify-content: space-between;
@@ -529,7 +533,7 @@ class FastSearchCard extends HTMLElement {
                 margin-bottom: 0px;
                 flex-shrink: 0;
             }
-            
+
             .back-button {
                 width: 39px;
                 height: 39px;
@@ -561,7 +565,7 @@ class FastSearchCard extends HTMLElement {
                 background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.2), transparent);
                 margin: 20px 0;
             }
-            
+
             .icon-background-wrapper {
                 position: relative;
                 width: 300px;
@@ -603,7 +607,7 @@ class FastSearchCard extends HTMLElement {
                  background: var(--accent);
                  border-color: var(--accent);
             }
-            
+
             .quick-stats {
                 display: flex;
                 gap: 8px;
@@ -621,7 +625,7 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 500;
                 white-space: nowrap;
             }
-            
+
             .detail-title-area {
                 text-align: center;
                 color: var(--text-primary);
@@ -638,7 +642,7 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 margin: 0px;
             }
-            
+
             .detail-info-row {
                 display: flex;
                 justify-content: center;
@@ -647,7 +651,7 @@ class FastSearchCard extends HTMLElement {
                 margin-top: 16px;
                 opacity: 0;
             }
-            
+
             .category-buttons {
                 display: none;
                 flex-direction: column;
@@ -670,7 +674,7 @@ class FastSearchCard extends HTMLElement {
                 cursor: pointer;
                 transition: all 0.2s ease;
             }
-            
+
             .category-button:hover {
                 transform: scale(1.05);
                 border-color: var(--accent);
@@ -781,7 +785,7 @@ class FastSearchCard extends HTMLElement {
 
             .detail-tab-content { display: none; }
             .detail-tab-content.active { display: block; }
-            
+
             .device-control-design {
                 display: flex;
                 flex-direction: column;
@@ -790,7 +794,7 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 z-index: 5;
             }
-            
+
             /* Circular Slider Styles */
             .circular-slider-container {
                 position: relative;
@@ -822,6 +826,10 @@ class FastSearchCard extends HTMLElement {
                 fill: none;
                 stroke-linecap: round;
                 transition: stroke-dashoffset 0.2s ease;
+            }
+            /* Specific color for media player */
+            .circular-slider-container.media-player .progress-fill {
+                stroke: var(--media-player-accent) !important;
             }
             .slider-inner {
                 position: absolute;
@@ -889,6 +897,10 @@ class FastSearchCard extends HTMLElement {
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
                 transform: scale(1.2);
             }
+            /* Specific color for media player handle */
+            .circular-slider-container.media-player .handle {
+                border-color: var(--media-player-accent) !important;
+            }
             .handle:hover {
                 transform: scale(1.4);
             }
@@ -898,10 +910,10 @@ class FastSearchCard extends HTMLElement {
 
             /* Temp and Color Controls */
             .device-control-row {
-                width: 100%; 
-                max-width: 280px; 
+                width: 100%;
+                max-width: 280px;
                 display: flex;
-                gap: 12px; 
+                gap: 12px;
                 justify-content: center;
                 margin-top: 16px;
                 z-index: 9;
@@ -913,15 +925,15 @@ class FastSearchCard extends HTMLElement {
                 flex-grow: 0;
                 flex-shrink: 0;
                 width: 50px;
-                height: 50px; 
+                height: 50px;
                 border-radius: 50%;
-                background: rgba(255, 255, 255, 0.1); 
+                background: rgba(255, 255, 255, 0.1);
                 border: none;
-                color: var(--text-primary); 
+                color: var(--text-primary);
                 cursor: pointer;
-                transition: all 0.2s ease; 
-                display: flex; 
-                align-items: center; 
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
                 justify-content: center;
                 padding: 0;
             }
@@ -953,33 +965,33 @@ class FastSearchCard extends HTMLElement {
             .device-control-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
 
             .device-control-presets.climate { max-width: 280px; }
-            .climate-setting-row { 
-                display: flex; 
-                gap: 8px; 
-                margin-bottom: 12px; 
-                overflow-x: auto; 
-                scrollbar-width: none; 
-                -ms-overflow-style: none; 
-                -webkit-overflow-scrolling: touch; 
+            .climate-setting-row {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 12px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                -webkit-overflow-scrolling: touch;
                 padding-bottom: 8px;
             }
             .climate-setting-row::-webkit-scrollbar { display: none; }
-            .climate-setting-option { 
-                padding: 8px 16px; 
-                background: rgba(255, 255, 255, 0.08); 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 20px;     
-                cursor: pointer; 
-                white-space: nowrap; 
-                transition: all 0.2s ease; 
-            } 
-            .climate-setting-option.active { 
-                background: var(--accent-light); 
-                border-color: var(--accent); 
-                color: var(--accent); 
-            } 
-            .climate-setting-option:hover { 
-                background: rgba(255, 255, 255,0.2); 
+            .climate-setting-option {
+                padding: 8px 16px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 20px;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: all 0.2s ease;
+            }
+            .climate-setting-option.active {
+                background: var(--accent-light);
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+            .climate-setting-option:hover {
+                background: rgba(255, 255, 255,0.2);
             }
 
             @media (max-width: 768px) {
@@ -1004,15 +1016,15 @@ class FastSearchCard extends HTMLElement {
                                     <path d="M12 18h.01"/>
                                 </svg>
                             </div>
-                            
-                            <input 
-                                type="text" 
-                                class="search-input" 
+
+                            <input
+                                type="text"
+                                class="search-input"
                                 placeholder="Geräte suchen..."
                                 autocomplete="off"
                                 spellcheck="false"
                             >
-                            
+
                             <button class="clear-button">
                                 <svg viewBox="0 0 24 24" fill="none">
                                     <line x1="18" y1="6" x2="6" y2="18"/>
@@ -1089,7 +1101,7 @@ class FastSearchCard extends HTMLElement {
                                 <path d="M12 18h.01"/>
                             </svg>
                         </button>
-                        
+
                         <button class="category-button glass-panel" data-category="scripts" title="Skripte">
                            <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1099,7 +1111,7 @@ class FastSearchCard extends HTMLElement {
                                 <polyline points="10,9 9,9 8,9"/>
                             </svg>
                         </button>
-                        
+
                         <button class="category-button glass-panel" data-category="automations" title="Automationen">
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M12 2v6l3-3 3 3"/>
@@ -1109,7 +1121,7 @@ class FastSearchCard extends HTMLElement {
                                 <circle cx="12" cy="12" r="2"/>
                             </svg>
                         </button>
-                        
+
                         <button class="category-button glass-panel" data-category="scenes" title="Szenen">
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
@@ -1163,7 +1175,7 @@ class FastSearchCard extends HTMLElement {
             clearButton.classList.add('visible');
             this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
         } else {
-            this.isSearching = false; 
+            this.isSearching = false;
             const animation = this.animateElementOut(clearButton);
             animation.finished.then(() => { clearButton.classList.remove('visible'); });
         }
@@ -1182,7 +1194,7 @@ class FastSearchCard extends HTMLElement {
         const searchInput = this.shadowRoot.querySelector('.search-input');
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         searchInput.value = '';
-        this.isSearching = false; 
+        this.isSearching = false;
         const animation = this.animateElementOut(clearButton);
         animation.finished.then(() => { clearButton.classList.remove('visible'); });
         this.hasAnimated = false;
@@ -1238,7 +1250,7 @@ class FastSearchCard extends HTMLElement {
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (searchInput.value.trim()) {
             searchInput.value = '';
-            this.isSearching = false; 
+            this.isSearching = false;
             const clearButton = this.shadowRoot.querySelector('.clear-button');
             clearButton.classList.remove('visible');
         }
@@ -1315,7 +1327,7 @@ class FastSearchCard extends HTMLElement {
 
     getSubcategoryStatusText(subcategory, count) {
         const textMap = { 'lights': 'An', 'climate': 'Aktiv', 'covers': 'Offen', 'media': 'Aktiv' };
-        const text = textMap[subcategory] || 'Aktiv'; 
+        const text = textMap[subcategory] || 'Aktiv';
         return `${count} ${text}`;
     }
 
@@ -1353,6 +1365,11 @@ class FastSearchCard extends HTMLElement {
                 if (statusElement) { statusElement.textContent = this.getEntityStatus(state); }
             }
         });
+
+        // Update detail view if active and current item is a media player
+        if (this.isDetailView && this.currentDetailItem && this.currentDetailItem.domain === 'media_player') {
+            this.updateMediaPlayerControlsUI(this.currentDetailItem);
+        }
     }
 
     categorizeEntity(domain) {
@@ -1530,24 +1547,24 @@ class FastSearchCard extends HTMLElement {
         if (this.previousSearchState) {
             this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
             this.activeCategory = this.previousSearchState.activeCategory;
-            this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => { 
+            this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => {
                 chip.classList.toggle('active', chip.dataset.subcategory === this.previousSearchState.activeSubcategory);
             });
             this.activeSubcategory = this.previousSearchState.activeSubcategory;
             this.filteredItems = this.previousSearchState.filteredItems;
-            
+
             this.updateCategoryIcon();
             this.updatePlaceholder();
             this.renderResults();
         }
     }
-    
+
     renderDetailView() {
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
         if (!this.currentDetailItem) return;
-        
+
         const item = this.currentDetailItem;
-        
+
         const leftPaneHTML = this.getDetailLeftPaneHTML(item);
         const rightPaneHTML = this.getDetailRightPaneHTML(item);
 
@@ -1565,7 +1582,7 @@ class FastSearchCard extends HTMLElement {
         });
 
         this.setupDetailTabs(item);
-        
+
         const iconBackground = detailPanel.querySelector('.icon-background');
         const titleArea = detailPanel.querySelector('.detail-title-area');
         const infoRow = detailPanel.querySelector('.detail-info-row');
@@ -1577,7 +1594,7 @@ class FastSearchCard extends HTMLElement {
 
     updateDetailViewStates() {
         if (!this.isDetailView || !this.currentDetailItem || !this._hass) return;
-        
+
         const item = this.currentDetailItem;
         const state = this._hass.states[item.id];
         if (!state) return;
@@ -1595,15 +1612,15 @@ class FastSearchCard extends HTMLElement {
             if (quickStats) {
                 quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
             }
-            
+
             const detailInfoRow = detailPanel.querySelector('.detail-info-row');
             if(detailInfoRow) {
                  detailInfoRow.style.gap = isActive ? '12px' : '0px';
             }
-            
+
             const detailName = detailPanel.querySelector('.detail-name');
             if (detailName) detailName.textContent = item.name;
-            
+
             const detailArea = detailPanel.querySelector('.detail-area');
             if (detailArea) detailArea.textContent = item.area;
 
@@ -1618,13 +1635,15 @@ class FastSearchCard extends HTMLElement {
                 }
             }
         }
-        
+
         if (item.domain === 'light') {
             this.updateLightControlsUI(item);
         } else if (item.domain === 'cover') {
             this.updateCoverControlsUI(item);
         } else if (item.domain === 'climate') {
             this.updateClimateControlsUI(item);
+        } else if (item.domain === 'media_player') { // Hinzugefügt
+            this.updateMediaPlayerControlsUI(item); // Hinzugefügt
         }
     }
 
@@ -1636,8 +1655,8 @@ class FastSearchCard extends HTMLElement {
         const quickStats = this.getQuickStats(item);
         const backgroundImage = this.getBackgroundImageForItem(item);
         const albumArt = (item.domain === 'media_player') ? this.getAlbumArtUrl(item) : null;
-        
-        const backgroundStyle = albumArt 
+
+        const backgroundStyle = albumArt
             ? `background-image: url('${albumArt}');`
             : `background-image: url('${backgroundImage}');`;
 
@@ -1698,7 +1717,7 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
-    
+
     getDeviceControlsHTML(item) {
         switch (item.domain) {
             case 'light':
@@ -1707,6 +1726,8 @@ class FastSearchCard extends HTMLElement {
                 return this.getCoverControlsHTML(item);
             case 'climate':
                 return this.getClimateControlsHTML(item);
+            case 'media_player':
+                return this.getMediaPlayerControlsHTML(item);
             default:
                 return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Keine Steuerelemente für diesen Gerätetyp.</div>`;
         }
@@ -1716,11 +1737,11 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         const isOn = state.state === 'on';
         const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
-        
+
         const supportedColorModes = state.attributes.supported_color_modes || [];
         const hasTempSupport = supportedColorModes.includes('color_temp');
         const hasColorSupport = supportedColorModes.some(mode => ['rgb', 'rgbw', 'rgbww', 'hs', 'xy'].includes(mode));
-        
+
         return `
             <div class="device-control-design" id="device-control-${item.id}">
                 <div class="circular-slider-container brightness ${isOn ? '' : 'off'}" data-entity="${item.id}">
@@ -1736,7 +1757,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
                     <div class="handle"></div>
                 </div>
-                
+
                 <div class="device-control-row ${isOn && (hasTempSupport || hasColorSupport) ? '' : 'hidden'}">
                     ${hasTempSupport ? `
                         <button class="device-control-button" data-temp="2700" title="Warm White"><svg stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M13.8062 5L12.8151 3.00376C12.4817 2.33208 11.5184 2.33208 11.1849 3.00376L10.6894 4.00188" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15.011 7.427L15.4126 8.23599L16.8648 8.44704" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19.7693 8.86914L21.2215 9.08019C21.9668 9.1885 22.2639 10.0994 21.7243 10.6219L20.6736 11.6394" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5724 13.6743L17.5217 14.6918L17.7697 16.1292" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.2656 19.0039L18.5135 20.4414C18.6409 21.1797 17.8614 21.7427 17.1945 21.394L15.8959 20.715" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10.4279 19.5L12 18.678L13.2986 19.357" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.67145 19.3689L5.48645 20.4414C5.35908 21.1797 6.13859 21.7428 6.80546 21.3941L7.65273 20.9511" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6.25259 16L6.47826 14.6917L5.78339 14.0188" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3.69875 12L2.27575 10.6219C1.73617 10.0993 2.03322 9.18844 2.77852 9.08012L3.88926 8.9187" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7 8.4666L8.58737 8.23591L9.39062 6.61792" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
@@ -1766,7 +1787,7 @@ class FastSearchCard extends HTMLElement {
     getCoverControlsHTML(item) {
         const state = this._hass.states[item.id];
         const position = state.attributes.current_position ?? 0;
-        
+
         return `
             <div class="device-control-design" id="device-control-${item.id}">
                 <div class="circular-slider-container cover" data-entity="${item.id}">
@@ -1829,7 +1850,7 @@ class FastSearchCard extends HTMLElement {
         // Fallback-Listen mit den korrekten MELCloud-Werten
         const defaultHorizontalPositions = ['auto', '1_left', '2', '3', '4', '5_right', 'split', 'swing'];
         const defaultVerticalPositions = ['auto', '1_up', '2', '3', '4', '5_down', 'swing'];
-    
+
         // Icon-Definitionen für alle möglichen Modi
         const hvacIcons = {
             heat: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 12L23 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 2V1" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 23V22" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 20L19 19" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 4L19 5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 20L5 19" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 4L5 5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M1 12L2 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
@@ -1846,7 +1867,7 @@ class FastSearchCard extends HTMLElement {
         const vPositions = state.attributes.vane_vertical_positions || defaultVerticalPositions;
         const showHControls = state.attributes.hasOwnProperty('vane_horizontal');
         const showVControls = state.attributes.hasOwnProperty('vane_vertical');
-    
+
         return `
             <div class="device-control-design" id="device-control-${item.id}">
                 <div class="circular-slider-container climate" data-entity="${item.id}">
@@ -1862,7 +1883,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
                     <div class="handle" style="border-color: #2E8B57;"></div>
                 </div>
-                
+
                 <div class="device-control-row">
                     ${supportedHvacModes
                         .filter(mode => hvacIcons[mode])
@@ -1916,20 +1937,80 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
+    getMediaPlayerControlsHTML(item) {
+        const state = this._hass.states[item.id];
+        const volumeLevel = state.attributes.volume_level ?? 0;
+        const isMuted = state.attributes.is_volume_muted ?? false;
+        const isActive = this.isEntityActive(state);
+        const mediaState = state.state;
+
+        const playPauseButton = (mediaState === 'playing') ?
+            `<button class="device-control-button" data-action="pause" title="Pause">
+                <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor" stroke-width="1"></path><path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor" stroke-width="1"></path></svg>
+            </button>` :
+            `<button class="device-control-button" data-action="play" title="Play">
+                <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>`;
+
+        return `
+            <div class="device-control-design" id="device-control-${item.id}">
+                <div class="circular-slider-container media-player ${!isActive ? 'off' : ''}" data-entity="${item.id}">
+                    <div class="slider-track"></div>
+                    <svg class="progress-svg">
+                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
+                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: var(--media-player-accent);"></circle>
+                    </svg>
+                    <div class="slider-inner ${!isActive ? 'off' : ''}">
+                        <div class="power-icon">${isMuted ? '🔇' : '🔊'}</div>
+                        <div class="circular-value">${isMuted ? 'MUTE' : Math.round(volumeLevel * 100) + '%'}</div>
+                        <div class="circular-label">Volume</div>
+                    </div>
+                    <div class="handle" style="border-color: var(--media-player-accent);"></div>
+                </div>
+
+                <div class="device-control-row">
+                    <button class="device-control-button" data-action="previous" title="Previous">
+                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 7V17" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.0282 5.2672C17.4217 4.95657 18 5.23682 18 5.73813V18.2619C18 18.7632 17.4217 19.0434 17.0282 18.7328L9.09651 12.4709C8.79223 12.2307 8.79223 11.7693 9.09651 11.5291L17.0282 5.2672Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
+                    ${playPauseButton}
+                    <button class="device-control-button" data-action="next" title="Next">
+                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M18 7V17" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6.97179 5.2672C6.57832 4.95657 6 5.23682 6 5.73813V18.2619C6 18.7632 6.57832 19.0434 6.97179 18.7328L14.9035 12.4709C15.2078 12.2307 15.2078 11.7693 14.9035 11.5291L6.97179 5.2672Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
+                    <button class="device-control-button" data-action="toggle-music-assistant" title="Music Assistant">
+                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M20 14V3L9 5V16" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17 19H18C19.1046 19 20 18.1046 20 17V14H17C15.8954 14 15 14.8954 15 16V17C15 18.1046 15.8954 19 17 19Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H7C8.10457 21 9 20.1046 9 19V16H6C4.89543 16 4 16.8954 4 18V19C4 20.1046 4.89543 21 6 21Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
+                    <button class="device-control-button" data-action="toggle-tts" title="Text-to-Speech">
+                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M7 12L17 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7 8L13 8" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 20.2895V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V15C21 16.1046 20.1046 17 19 17H7.96125C7.35368 17 6.77906 17.2762 6.39951 17.7506L4.06852 20.6643C3.71421 21.1072 3 20.8567 3 20.2895Z" stroke="currentColor" stroke-width="1"></path></svg>
+                    </button>
+                </div>
+                <div class="device-control-presets media-player-options" data-is-open="false">
+                    <div class="device-control-presets-grid">
+                        <!-- Content for Music Assistant/TTS will go here -->
+                        <div class="empty-state" style="padding: 20px 0; grid-column: 1 / -1;">
+                            <div class="empty-title">Coming Soon</div>
+                            <div class="empty-subtitle">More media controls will appear here.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+
     getVaneLabel(value, direction) {
         const horizontalLabels = {
             'auto': 'Auto', '1_left': '← Links', '2': '‹', '3': 'Mitte', '4': '›', '5_right': 'Rechts →', 'split': 'Split', 'swing': 'Swing'
         };
-    
+
         const verticalLabels = {
             'auto': 'Auto', '1_up': '↑ Oben', '2': '↗', '3': '→', '4': '↘', '5_down': '↓ Unten', 'swing': 'Swing'
         };
-    
-        return direction === 'horizontal' 
+
+        return direction === 'horizontal'
              ? (horizontalLabels[value] || value)
              : (verticalLabels[value] || value);
     }
-    
+
     getSwingLabel(mode) {
         const swingLabels = {
             'off': 'Aus', 'on': 'Ein', 'vertical': 'Vertikal', 'horizontal': 'Horizontal', 'both': 'Beide'
@@ -1959,7 +2040,7 @@ class FastSearchCard extends HTMLElement {
         climateContainer.querySelectorAll('.climate-setting-option').forEach(opt => {
             const settingType = opt.getAttribute('data-climate-setting');
             const settingValue = opt.getAttribute('data-value');
-    
+
             let isActive = false;
             switch (settingType) {
                 case 'vane_horizontal':
@@ -1975,7 +2056,7 @@ class FastSearchCard extends HTMLElement {
                     isActive = state.attributes.fan_mode === settingValue;
                     break;
             }
-    
+
             opt.classList.toggle('active', isActive);
         });
     }
@@ -2024,7 +2105,7 @@ class FastSearchCard extends HTMLElement {
                 this.callClimateService('set_hvac_mode', item.id, { hvac_mode: mode });
             });
         });
-    
+
         // Toggle für Einstellungen
         const presetsToggle = climateContainer.querySelector('[data-action="toggle-presets"]');
         if (presetsToggle) {
@@ -2042,10 +2123,10 @@ class FastSearchCard extends HTMLElement {
                 const settingType = option.getAttribute('data-climate-setting');
                 const settingValue = option.getAttribute('data-value');
                 const row = option.closest('.climate-setting-row');
-                
+
                 row.querySelectorAll('.climate-setting-option').forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
-                
+
                 let serviceDomain, serviceName, serviceData;
 
                 switch (settingType) {
@@ -2070,7 +2151,7 @@ class FastSearchCard extends HTMLElement {
                         serviceData = { entity_id: item.id, fan_mode: settingValue };
                         break;
                 }
-    
+
                 if (serviceDomain && serviceName) {
                     this._hass.callService(serviceDomain, serviceName, serviceData);
                 }
@@ -2081,20 +2162,20 @@ class FastSearchCard extends HTMLElement {
     callClimateService(service, entity_id, data = {}) {
         this._hass.callService('climate', service, { entity_id, ...data });
     }
-    
+
     updateLightControlsUI(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
-    
+
         const state = this._hass.states[item.id];
         const isOn = state.state === 'on';
         const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
-    
+
         const circularContainer = lightContainer.querySelector('.circular-slider-container');
         const sliderInner = lightContainer.querySelector('.slider-inner');
         const circularValue = lightContainer.querySelector('.circular-value');
         const controlsRow = lightContainer.querySelector('.device-control-row');
-    
+
         if (circularContainer) {
             circularContainer.classList.toggle('off', !isOn);
         }
@@ -2107,13 +2188,13 @@ class FastSearchCard extends HTMLElement {
         if (controlsRow) {
             controlsRow.classList.toggle('hidden', !isOn);
         }
-    
+
         // Update circular slider if exists
         const sliderId = `slider-${item.id}`;
         if (this.circularSliders[sliderId]) {
             this.circularSliders[sliderId].updateFromState(brightness, isOn);
         }
-    
+
         if (!isOn) {
             const presetsContainer = lightContainer.querySelector('.device-control-presets');
             if (presetsContainer && presetsContainer.classList.contains('visible')) {
@@ -2129,7 +2210,7 @@ class FastSearchCard extends HTMLElement {
 
         const state = this._hass.states[item.id];
         const position = state.attributes.current_position ?? 100;
-        
+
         // Update circular slider if exists
         const sliderId = `slider-${item.id}`;
         if (this.circularSliders[sliderId]) {
@@ -2137,10 +2218,82 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+    updateMediaPlayerControlsUI(item) {
+        const mediaContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
+        if (!mediaContainer) return;
+
+        const state = this._hass.states[item.id];
+        const volumeLevel = state.attributes.volume_level ?? 0;
+        const isMuted = state.attributes.is_volume_muted ?? false;
+        const isActive = this.isEntityActive(state);
+        const mediaState = state.state;
+
+        const circularContainer = mediaContainer.querySelector('.circular-slider-container.media-player');
+        const sliderInner = mediaContainer.querySelector('.slider-inner');
+        const circularValue = mediaContainer.querySelector('.circular-value');
+        const powerIcon = mediaContainer.querySelector('.power-icon');
+
+        if (circularContainer) {
+            circularContainer.classList.toggle('off', !isActive);
+        }
+        if (sliderInner) {
+            sliderInner.classList.toggle('off', !isActive);
+        }
+        if (circularValue) {
+            circularValue.textContent = isMuted ? 'MUTE' : `${Math.round(volumeLevel * 100)}%`;
+        }
+        if (powerIcon) {
+            powerIcon.textContent = isMuted ? '🔇' : '🔊';
+        }
+
+        // Update circular slider if exists
+        const sliderId = `slider-${item.id}`;
+        if (this.circularSliders[sliderId]) {
+            this.circularSliders[sliderId].updateFromState(Math.round(volumeLevel * 100), !isMuted);
+        }
+
+        // Update Play/Pause button
+        const playPauseButtonContainer = mediaContainer.querySelector('[data-action="play"]').parentElement || mediaContainer.querySelector('[data-action="pause"]').parentElement; // Updated to find parent from either button
+        if (playPauseButtonContainer) {
+            const currentPlayPauseButton = playPauseButtonContainer.querySelector('[data-action="play"], [data-action="pause"]');
+            let newButtonHTML;
+            if (mediaState === 'playing') {
+                newButtonHTML = `<button class="device-control-button" data-action="pause" title="Pause">
+                    <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor" stroke-width="1"></path><path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor" stroke-width="1"></path></svg>
+                </button>`;
+            } else {
+                newButtonHTML = `<button class="device-control-button" data-action="play" title="Play">
+                    <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </button>`;
+            }
+            if (currentPlayPauseButton && currentPlayPauseButton.outerHTML !== newButtonHTML) {
+                currentPlayPauseButton.outerHTML = newButtonHTML;
+                // Re-attach event listener to the new button
+                const newButton = playPauseButtonContainer.querySelector('[data-action="play"], [data-action="pause"]');
+                if (newButton) {
+                    if (mediaState === 'playing') {
+                        newButton.addEventListener('click', () => {
+                            this.callMediaPlayerService('media_pause', item.id);
+                            // Optionally update the UI instantly without waiting for HASS state
+                            this.updateMediaPlayerControlsUI({...item, state: 'paused'});
+                        });
+                    } else {
+                        newButton.addEventListener('click', () => {
+                            this.callMediaPlayerService('media_play', item.id);
+                            // Optionally update the UI instantly without waiting for HASS state
+                            this.updateMediaPlayerControlsUI({...item, state: 'playing'});
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+
     // Circular Slider Class - embedded within the main class
     createCircularSliderClass() {
         if (window.CircularSlider) return; // Already exists
-    
+
         window.CircularSlider = class {
             constructor(container, config) {
                 this.container = container;
@@ -2149,24 +2302,24 @@ class FastSearchCard extends HTMLElement {
                 this.valueDisplay = container.querySelector('.circular-value');
                 this.powerIcon = container.querySelector('.power-icon');
                 this.sliderInner = container.querySelector('.slider-inner');
-    
+
                 this.config = config;
                 this.centerX = 80;
                 this.centerY = 80;
                 this.radius = 68;
                 this.currentValue = config.defaultValue;
                 this.isOn = config.hasPower ? config.defaultPower : true;
-    
+
                 this.isDragging = false;
                 this.circumference = 2 * Math.PI * 68;
-    
+
                 this.init();
             }
-    
+
             init() {
                 this.progressFill.style.strokeDasharray = `0 ${this.circumference}`;
                 this.progressFill.style.strokeDashoffset = 0;
-    
+
                 // Power Button Event
                 if (this.config.onPowerToggle) {
                     this.sliderInner.addEventListener('click', this.togglePower.bind(this));
@@ -2175,19 +2328,19 @@ class FastSearchCard extends HTMLElement {
                 this.updateSlider();
                 this.bindEvents();
             }
-    
+
             togglePower() {
                 if (!this.config.hasPower) return;
-    
+
                 this.isOn = !this.isOn;
                 this.updatePowerState();
                 this.updateSlider();
-    
+
                 if (this.config.onPowerToggle) {
                     this.config.onPowerToggle(this.isOn);
                 }
             }
-    
+
             updatePowerState() {
                 if (this.config.hasPower) {
                     this.powerIcon.style.display = 'block';
@@ -2208,78 +2361,78 @@ class FastSearchCard extends HTMLElement {
                     this.sliderInner.classList.remove('off');
                 }
             }
-    
+
             bindEvents() {
                 this.handle.addEventListener('mousedown', this.startDrag.bind(this));
                 document.addEventListener('mousemove', this.drag.bind(this));
                 document.addEventListener('mouseup', this.endDrag.bind(this));
-    
+
                 this.handle.addEventListener('touchstart', this.startDrag.bind(this));
                 document.addEventListener('touchmove', this.drag.bind(this));
                 document.addEventListener('touchend', this.endDrag.bind(this));
             }
-    
+
             startDrag(e) {
                 this.isDragging = true;
                 e.preventDefault();
             }
-    
+
             drag(e) {
                 if (!this.isDragging || !this.isOn) return;
-    
+
                 const rect = this.container.getBoundingClientRect();
                 const centerX = rect.left + rect.width / 2;
                 const centerY = rect.top + rect.height / 2;
-    
+
                 const clientX = e.clientX || e.touches[0].clientX;
                 const clientY = e.clientY || e.touches[0].clientY;
-    
+
                 const x = clientX - centerX;
                 const y = clientY - centerY;
-    
+
                 let angle = Math.atan2(y, x) * 180 / Math.PI;
                 angle = (angle + 360) % 360;
-    
+
                 let normalizedAngle = (angle + 90) % 360;
                 let progress = normalizedAngle / 360;
-    
+
                 // Stopp-Zone bei 100%
                 const maxProgress = (this.config.maxValue - this.config.minValue);
                 const currentProgress = (this.currentValue - this.config.minValue);
                 const currentProgressRatio = currentProgress / maxProgress;
-    
+
                 if (currentProgressRatio > 0.85 && progress < 0.15) {
                     progress = 1.0;
                 } else if (currentProgressRatio < 0.15 && progress > 0.85) {
                     progress = 0.0;
                 }
-    
+
                 const rawValue = this.config.minValue + progress * (this.config.maxValue - this.config.minValue);
                 this.currentValue = Math.round(rawValue / this.config.step) * this.config.step;
                 this.currentValue = Math.max(this.config.minValue, Math.min(this.config.maxValue, this.currentValue));
-    
+
                 this.updateSlider();
-    
+
                 if (this.config.onValueChange) {
                     this.config.onValueChange(this.currentValue, this.isOn);
                 }
             }
-    
+
             endDrag() {
                 this.isDragging = false;
             }
-    
+
             updateSlider() {
                 const progress = (this.currentValue - this.config.minValue) / (this.config.maxValue - this.config.minValue);
                 const angle = -90 + (progress * 360);
-    
+
                 // Handle Position
                 const handleX = this.centerX + this.radius * Math.cos(angle * Math.PI / 180);
                 const handleY = this.centerY + this.radius * Math.sin(angle * Math.PI / 180);
-    
+
                 this.handle.style.left = `${handleX - 8}px`;
                 this.handle.style.top = `${handleY - 8}px`;
-    
+
                 // SVG Progress
                 if (this.isOn || !this.config.hasPower) {
                     const progressLength = progress * this.circumference;
@@ -2287,7 +2440,7 @@ class FastSearchCard extends HTMLElement {
                 } else {
                     this.progressFill.style.strokeDasharray = `0 ${this.circumference}`;
                 }
-    
+
                 // Wert anzeigen
                 if (this.config.hasPower && !this.isOn) {
                     this.valueDisplay.textContent = 'AUS';
@@ -2295,7 +2448,7 @@ class FastSearchCard extends HTMLElement {
                     this.valueDisplay.textContent = this.config.formatValue(this.currentValue);
                 }
             }
-    
+
             updateFromState(value, isOn) {
                 this.currentValue = value;
                 this.isOn = isOn;
@@ -2304,14 +2457,14 @@ class FastSearchCard extends HTMLElement {
             }
         };
     }
-    
+
     setupDetailTabs(item) {
         // Create CircularSlider class if not exists
         this.createCircularSliderClass();
 
         const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
         if (!tabsContainer) return;
-        
+
         const tabs = tabsContainer.querySelectorAll('.detail-tab');
         const slider = tabsContainer.querySelector('.tab-slider');
         const contents = this.shadowRoot.querySelectorAll('.detail-tab-content');
@@ -2320,7 +2473,7 @@ class FastSearchCard extends HTMLElement {
             slider.style.width = `${targetTab.offsetWidth}px`;
             slider.style.left = `${targetTab.offsetLeft}px`;
         };
-        
+
         const activeTab = tabsContainer.querySelector('.detail-tab.active');
         if (activeTab) {
             moveSlider(activeTab);
@@ -2330,12 +2483,12 @@ class FastSearchCard extends HTMLElement {
             tab.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetId = tab.dataset.tab;
-                
+
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                
+
                 moveSlider(tab);
-                
+
                 contents.forEach(c => c.classList.remove('active'));
                 this.shadowRoot.querySelector(`[data-tab-content="${targetId}"]`).classList.add('active');
             });
@@ -2347,21 +2500,23 @@ class FastSearchCard extends HTMLElement {
             this.setupCoverControls(item);
         } else if (item.domain === 'climate') {
             this.setupClimateControls(item);
+        } else if (item.domain === 'media_player') {
+            this.setupMediaPlayerControls(item);
         }
     }
-    
+
     setupLightControls(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
         // Create circular slider instance
         const sliderId = `slider-${item.id}`;
         const circularContainer = lightContainer.querySelector('.circular-slider-container');
-    
+
         if (circularContainer) {
             const state = this._hass.states[item.id];
             const isOn = state.state === 'on';
             const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
-    
+
             this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
                 minValue: 0,
                 maxValue: 100,
@@ -2393,11 +2548,11 @@ class FastSearchCard extends HTMLElement {
         const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
         const colorPresets = lightContainer.querySelectorAll('.device-control-preset');
         const presetsContainer = lightContainer.querySelector('.device-control-presets');
-        
+
         tempButtons.forEach(btn => btn.addEventListener('click', () => {
             const kelvin = parseInt(btn.dataset.temp, 10);
             this.callLightService('turn_on', item.id, { kelvin: kelvin });
-        
+
             // Update slider color immediately
             const sliderId = `slider-${item.id}`;
             if (this.circularSliders[sliderId]) {
@@ -2405,10 +2560,10 @@ class FastSearchCard extends HTMLElement {
                 if (kelvin <= 2700) rgb = [255, 166, 87];
                 else if (kelvin <= 4000) rgb = [255, 219, 186];
                 else rgb = [201, 226, 255];
-        
+
                 const progressFill = this.circularSliders[sliderId].progressFill;
                 progressFill.style.stroke = `rgb(${rgb.join(',')})`;
-        
+
                 const handle = this.circularSliders[sliderId].handle;
                 handle.style.borderColor = `rgb(${rgb.join(',')})`;
             }
@@ -2421,19 +2576,19 @@ class FastSearchCard extends HTMLElement {
                 presetsContainer.setAttribute('data-is-open', String(!isOpen));
             });
         }
-    
+
         colorPresets.forEach(preset => preset.addEventListener('click', () => {
             const rgb = preset.dataset.rgb.split(',').map(Number);
             this.callLightService('turn_on', item.id, { rgb_color: rgb });
             colorPresets.forEach(p => p.classList.remove('active'));
             preset.classList.add('active');
-        
+
             // Update slider color immediately
             const sliderId = `slider-${item.id}`;
             if (this.circularSliders[sliderId]) {
                 const progressFill = this.circularSliders[sliderId].progressFill;
                 progressFill.style.stroke = `rgb(${rgb.join(',')})`;
-        
+
                 const handle = this.circularSliders[sliderId].handle;
                 handle.style.borderColor = `rgb(${rgb.join(',')})`;
             }
@@ -2443,14 +2598,14 @@ class FastSearchCard extends HTMLElement {
     setupCoverControls(item) {
         const coverContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!coverContainer) return;
-        
+
         const sliderId = `slider-${item.id}`;
         const circularContainer = coverContainer.querySelector('.circular-slider-container.cover');
-    
+
         if (circularContainer) {
             const state = this._hass.states[item.id];
             const position = state.attributes.current_position ?? 0;
-    
+
             this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
                 minValue: 0,
                 maxValue: 100,
@@ -2476,7 +2631,7 @@ class FastSearchCard extends HTMLElement {
         const presetsToggle = coverContainer.querySelector('[data-action="toggle-presets"]');
         const presetsContainer = coverContainer.querySelector('.device-control-presets');
         const positionPresets = coverContainer.querySelectorAll('.device-control-preset');
-        
+
         if(openBtn) openBtn.addEventListener('click', () => this.callCoverService('open_cover', item.id));
         if(stopBtn) stopBtn.addEventListener('click', () => this.callCoverService('stop_cover', item.id));
         if(closeBtn) closeBtn.addEventListener('click', () => this.callCoverService('close_cover', item.id));
@@ -2488,7 +2643,7 @@ class FastSearchCard extends HTMLElement {
                 presetsContainer.setAttribute('data-is-open', String(!isOpen));
             });
         }
-        
+
         positionPresets.forEach(preset => {
             preset.addEventListener('click', () => {
                 const position = parseInt(preset.dataset.position, 10);
@@ -2499,6 +2654,91 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
+    setupMediaPlayerControls(item) {
+        const mediaContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
+        if (!mediaContainer) return;
+
+        const sliderId = `slider-${item.id}`;
+        const circularContainer = mediaContainer.querySelector('.circular-slider-container.media-player');
+        const state = this._hass.states[item.id];
+        const volumeLevel = state.attributes.volume_level ?? 0;
+        const isMuted = state.attributes.is_volume_muted ?? false;
+
+        if (circularContainer) {
+            this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
+                minValue: 0,
+                maxValue: 100,
+                defaultValue: Math.round(volumeLevel * 100),
+                step: 1,
+                label: 'Volume',
+                hasPower: true,
+                defaultPower: !isMuted,
+                formatValue: (val) => `${Math.round(val)}%`,
+                onValueChange: (value, isOn) => {
+                    if (isOn) {
+                        clearTimeout(this.mediaPlayerUpdateTimeout);
+                        this.mediaPlayerUpdateTimeout = setTimeout(() => {
+                            this.callMediaPlayerService('volume_set', item.id, { volume_level: value / 100 });
+                        }, 150);
+                    }
+                },
+                onPowerToggle: (isOn) => {
+                    this.callMediaPlayerService('volume_mute', item.id, { is_volume_muted: !isOn });
+                }
+            });
+        }
+
+        // Event Listeners for media controls
+        mediaContainer.querySelector('[data-action="previous"]').addEventListener('click', () => {
+            this.callMediaPlayerService('media_previous_track', item.id);
+        });
+
+        // Play/Pause button needs dynamic event listener re-attachment as its HTML changes
+        // This is handled in updateMediaPlayerControlsUI, but we need an initial listener if state is already 'playing'/'paused'
+        const initialPlayPauseButton = mediaContainer.querySelector('[data-action="play"], [data-action="pause"]');
+        if (initialPlayPauseButton) {
+             if (state.state === 'playing') {
+                initialPlayPauseButton.addEventListener('click', () => {
+                    this.callMediaPlayerService('media_pause', item.id);
+                    this.updateMediaPlayerControlsUI({...item, state: 'paused'});
+                });
+            } else {
+                initialPlayPauseButton.addEventListener('click', () => {
+                    this.callMediaPlayerService('media_play', item.id);
+                    this.updateMediaPlayerControlsUI({...item, state: 'playing'});
+                });
+            }
+        }
+
+
+        mediaContainer.querySelector('[data-action="next"]').addEventListener('click', () => {
+            this.callMediaPlayerService('media_next_track', item.id);
+        });
+
+        // Toggle for Music Assistant/TTS
+        const musicAssistantToggle = mediaContainer.querySelector('[data-action="toggle-music-assistant"]');
+        const ttsToggle = mediaContainer.querySelector('[data-action="toggle-tts"]');
+        const presetsContainer = mediaContainer.querySelector('.media-player-options');
+        const emptyStateElements = presetsContainer.querySelectorAll('.empty-state');
+
+
+        if (musicAssistantToggle) {
+            musicAssistantToggle.addEventListener('click', () => {
+                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                this.animatePresetStagger(presetsContainer, emptyStateElements, !isOpen);
+                presetsContainer.setAttribute('data-is-open', String(!isOpen));
+            });
+        }
+        if (ttsToggle) {
+            ttsToggle.addEventListener('click', () => {
+                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                this.animatePresetStagger(presetsContainer, emptyStateElements, !isOpen);
+                presetsContainer.setAttribute('data-is-open', String(!isOpen));
+            });
+        }
+    }
+
+
     callLightService(service, entity_id, data = {}) {
         this._hass.callService('light', service, { entity_id, ...data });
     }
@@ -2506,6 +2746,11 @@ class FastSearchCard extends HTMLElement {
     callCoverService(service, entity_id, data = {}) {
         this._hass.callService('cover', service, { entity_id, ...data });
     }
+
+    callMediaPlayerService(service, entity_id, data = {}) {
+        this._hass.callService('media_player', service, { entity_id, ...data });
+    }
+
 
     animatePresetStagger(container, presets, isOpening) {
         container.classList.toggle('visible', isOpening);
@@ -2530,7 +2775,7 @@ class FastSearchCard extends HTMLElement {
             case 'light': return { status: state.state === 'on' ? 'Ein' : 'Aus' };
             case 'climate': return { status: state.attributes.hvac_action || state.state };
             case 'cover': return { status: state.state === 'open' ? 'Offen' : 'Geschlossen' };
-            case 'media_player': return { status: state.state === 'playing' ? 'Spielt' : (state.state === 'paused' ? 'Pausiert' : 'Aus') };
+            case 'media_player': return { status: state.state === 'playing' ? 'Spielt' : (state.state === 'paused' ? 'Pausiert' : (state.state === 'off' ? 'Aus' : state.state)) };
             default: return { status: state.state };
         }
     }
@@ -2562,8 +2807,17 @@ class FastSearchCard extends HTMLElement {
                 }
                 break;
             case 'media_player':
-                 if (state.state === 'playing' && state.attributes.media_title) stats.push(`♪ ${state.attributes.media_title}`);
-                 if (state.attributes.volume_level) stats.push(`${Math.round(state.attributes.volume_level * 100)}% Lautstärke`);
+                 if (state.attributes.volume_level != null) {
+                     stats.push(`${Math.round(state.attributes.volume_level * 100)}% Lautstärke`);
+                 }
+                 if (state.attributes.is_volume_muted) {
+                     stats.push('Stumm');
+                 }
+                 if (state.attributes.media_title) {
+                     stats.push(`♪ ${state.attributes.media_title}`);
+                 } else if (state.state === 'playing' || state.state === 'paused') {
+                    stats.push(state.state === 'playing' ? 'Spielt' : 'Pausiert');
+                 }
                  break;
             case 'cover':
                 if (state.attributes.current_position != null) stats.push(`${state.attributes.current_position}%`);
