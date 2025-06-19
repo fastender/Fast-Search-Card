@@ -2441,10 +2441,6 @@ class FastSearchCard extends HTMLElement {
                             
                             // --- ENDE DER DEBUG-ÄNDERUNGEN ---
 
-                            
-                            console.log('[DEBUG] Music Assistant Button geklickt!'); // <--- ZEILE 2 HINZUFÜGEN
-    
-                            const maPanel = mediaContainer.querySelector(`#media-assistant-panel-${item.id}`);
                             const ttsPanel = mediaContainer.querySelector(`#tts-panel-${item.id}`);
                             const isOpen = maPanel.getAttribute('data-is-open') === 'true';
                             // Close TTS if open
