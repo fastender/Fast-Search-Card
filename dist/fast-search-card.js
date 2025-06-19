@@ -3100,23 +3100,18 @@ class FastSearchCard extends HTMLElement {
 
 
 
-    // HIER EINFÜGEN
-    
+
     /**
-     * Prüft Music Assistant Verfügbarkeit
+     * Prüft, ob die Music Assistant Integration geladen ist.
      */
     checkMusicAssistantAvailability() {
-        if (!this._hass || !this._hass.states) return false;
-        
-        // Suche nach Music Assistant fähigen Media Playern
-        const maEntities = Object.keys(this._hass.states).filter(entityId => 
-            entityId.startsWith('media_player.') && 
-            this._hass.states[entityId].attributes.supported_features &&
-            this._hass.states[entityId].attributes.device_class === 'speaker'
-        );
-        
-        return maEntities.length > 0;
+        if (!this._hass || !this._hass.config || !this._hass.config.components) {
+            return false;
+        }
+        // Prüft direkt, ob die Integration in der HA-Konfiguration geladen ist.
+        return this._hass.config.components.includes('music_assistant');
     }
+    
     
     /**
      * Führt Music Assistant Suche aus
