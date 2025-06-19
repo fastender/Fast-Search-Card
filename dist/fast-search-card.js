@@ -27,6 +27,7 @@ class FastSearchCard extends HTMLElement {
         this.lightUpdateTimeout = null;
         this.coverUpdateTimeout = null; // Hinzugefügt für Rollladen
         this.climateUpdateTimeout = null;
+        this.mediaUpdateTimeout = null;
     }
 
     setConfig(config) {
@@ -992,6 +993,343 @@ class FastSearchCard extends HTMLElement {
                 .icon-background-wrapper { width: 180px; height: 180px; }
                 .detail-title-area { margin-top: 20px; }
             }
+
+
+
+            
+            /* TTS Styles */
+            .tts-section {
+                padding: 16px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 16px;
+            }
+            
+            .tts-input-container {
+                margin-bottom: 12px;
+            }
+            
+            .tts-textarea {
+                width: 100%;
+                min-height: 80px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                padding: 12px;
+                color: var(--text-primary);
+                font-family: inherit;
+                resize: vertical;
+                outline: none;
+            }
+            
+            .tts-textarea:focus {
+                border-color: var(--accent);
+            }
+            
+            .tts-counter {
+                text-align: right;
+                font-size: 11px;
+                color: var(--text-secondary);
+                margin-top: 4px;
+            }
+            
+            .tts-counter.warning {
+                color: #FF6B35;
+            }
+            
+            .tts-controls {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+            
+            .tts-language-select {
+                padding: 8px 12px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                color: var(--text-primary);
+                outline: none;
+            }
+            
+            .tts-speak-button {
+                flex: 1;
+                padding: 10px 20px;
+                background: var(--accent);
+                border: none;
+                border-radius: 20px;
+                color: white;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }
+            
+            .tts-speak-button:hover:not(:disabled) {
+                background: #0056b3;
+                transform: translateY(-1px);
+            }
+            
+            .tts-speak-button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            
+            .tts-speak-button.speaking {
+                background: #FF6B35;
+            }
+            
+            .tts-presets {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            .tts-preset-button {
+                padding: 8px 12px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 12px;
+                color: var(--text-primary);
+                cursor: pointer;
+                font-size: 12px;
+                transition: all 0.2s ease;
+                text-align: left;
+            }
+            
+            .tts-preset-button:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-1px);
+            }
+            
+            /* Music Assistant Styles */
+            .ma-search-container {
+                padding: 16px;
+            }
+            
+            .ma-search-bar-container {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+            
+            .ma-search-input {
+                flex: 1;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                color: var(--text-primary);
+                outline: none;
+            }
+            
+            .ma-search-input:focus {
+                border-color: var(--accent);
+            }
+            
+            .ma-enqueue-mode {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 16px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: all 0.2s ease;
+            }
+            
+            .ma-enqueue-mode:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+            
+            .ma-filter-container {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 12px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .ma-filter-container::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .ma-filter-chip {
+                padding: 6px 16px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 20px;
+                cursor: pointer;
+                white-space: nowrap;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.2s ease;
+            }
+            
+            .ma-filter-chip:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+            
+            .ma-filter-chip.ma-filter-active {
+                background: var(--accent-light);
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+            
+            .ma-search-results {
+                max-height: 400px;
+                overflow-y: auto;
+                scrollbar-width: none;
+            }
+            
+            .ma-search-results::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .ma-empty-state, .ma-no-results, .ma-loading {
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-secondary);
+            }
+            
+            .ma-category-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 0;
+                cursor: pointer;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .ma-category-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 0;
+            }
+            
+            .ma-grid-container {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .ma-grid-item {
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 12px;
+                padding: 12px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                text-align: center;
+            }
+            
+            .ma-grid-item:hover {
+                background: rgba(255, 255, 255, 0.12);
+                transform: translateY(-2px);
+            }
+            
+            .ma-grid-image {
+                width: 60px;
+                height: 60px;
+                margin: 0 auto 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 32px;
+                overflow: hidden;
+                border-radius: 8px;
+            }
+            
+            .ma-grid-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            
+            .ma-grid-name {
+                font-size: 12px;
+                font-weight: 500;
+                color: var(--text-primary);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .ma-grid-artist {
+                font-size: 11px;
+                color: var(--text-secondary);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .ma-list-container {
+                margin-bottom: 20px;
+            }
+            
+            .ma-list-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                margin-bottom: 4px;
+            }
+            
+            .ma-list-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+            
+            .ma-list-image {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                overflow: hidden;
+                border-radius: 4px;
+                flex-shrink: 0;
+            }
+            
+            .ma-list-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            
+            .ma-list-info {
+                flex: 1;
+                overflow: hidden;
+            }
+            
+            .ma-list-name {
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--text-primary);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .ma-list-artist {
+                font-size: 11px;
+                color: var(--text-secondary);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+
+
+            
             </style>
 
             <div class="main-container">
@@ -2034,18 +2372,21 @@ class FastSearchCard extends HTMLElement {
     updateMediaPlayerControlsUI(item) {
         const mediaContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!mediaContainer) return;
+        
         const state = this._hass.states[item.id];
         const isPlaying = state.state === 'playing';
         const volume = Math.round((state.attributes.volume_level || 0) * 100);
+        
         // Update volume slider
         const sliderId = `slider-${item.id}`;
         if (this.circularSliders[sliderId]) {
             this.circularSliders[sliderId].updateFromState(volume, true);
         }
+        
         // Update play/pause button
         const playPauseBtn = mediaContainer.querySelector('[data-action="play_pause"]');
         if (playPauseBtn) {
-            playPauseBtn.innerHTML = isPlaying ?
+            playPauseBtn.innerHTML = isPlaying ? 
                 '<svg viewBox="0 0 24 24" fill="none"><path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor" stroke-width="1"></path><path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor" stroke-width="1"></path></svg>' :
                 '<svg viewBox="0 0 24 24" fill="none"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
             playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
@@ -2228,27 +2569,621 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    // Placeholder method for Music Assistant HTML content
-    getMusicAssistantHTML(item) {
-        console.warn('getMusicAssistantHTML is not yet implemented.');
-        return `<div style="padding: 16px; text-align: center; color: var(--text-secondary);">Music Assistant Panel für ${item.name}</div>`;
-    }
 
-    // Placeholder method for Music Assistant event listeners
-    setupMusicAssistantEventListeners(item) {
-        console.warn('setupMusicAssistantEventListeners is not yet implemented.');
+    
+    
+    // TTS Methoden
+    checkTTSAvailability() {
+        if (!this._hass || !this._hass.services) return false;
+        
+        // Amazon Polly bevorzugen
+        if (this._hass.services.tts && this._hass.services.tts.amazon_polly_say) {
+            console.log('✅ Amazon Polly gefunden');
+            return true;
+        }
+        
+        // Fallback: Andere TTS Services
+        if (this._hass.services.tts) {
+            const ttsMethods = Object.keys(this._hass.services.tts);
+            return ttsMethods.length > 0;
+        }
+        
+        return false;
     }
-
-    // Placeholder method for TTS HTML content
+    
+    getBestTTSService() {
+        if (!this._hass || !this._hass.services) return null;
+        
+        // Amazon Polly bevorzugen
+        if (this._hass.services.tts && this._hass.services.tts.amazon_polly_say) {
+            return { domain: 'tts', service: 'amazon_polly_say' };
+        }
+        
+        // Fallback: Cloud TTS
+        if (this._hass.services.tts && this._hass.services.tts.cloud_say) {
+            return { domain: 'tts', service: 'cloud_say' };
+        }
+        
+        // Fallback: Erster verfügbarer TTS Service
+        if (this._hass.services.tts) {
+            const ttsMethods = Object.keys(this._hass.services.tts);
+            if (ttsMethods.length > 0) {
+                return { domain: 'tts', service: ttsMethods[0] };
+            }
+        }
+        
+        return null;
+    }
+    
     getTTSHTML(item) {
-        console.warn('getTTSHTML is not yet implemented.');
-        return `<div style="padding: 16px; text-align: center; color: var(--text-secondary);">TTS Panel für ${item.name}</div>`;
+        if (!this.checkTTSAvailability()) return '';
+        
+        const ttsService = this.getBestTTSService();
+        if (!ttsService) return '';
+        
+        return `
+            <div class="tts-section" id="tts-section-${item.id}">
+                <div class="tts-input-container">
+                    <textarea 
+                        class="tts-textarea" 
+                        placeholder="Text eingeben der vorgelesen werden soll..." 
+                        maxlength="300"
+                        data-tts-input="${item.id}"></textarea>
+                    <div class="tts-counter" data-tts-counter="${item.id}">0 / 300 Zeichen</div>
+                </div>
+                
+                <div class="tts-controls">
+                    <select class="tts-language-select" data-tts-language="${item.id}">
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="en">🇺🇸 English</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="it">🇮🇹 Italiano</option>
+                    </select>
+                    <button 
+                        class="tts-speak-button" 
+                        data-tts-speak="${item.id}"
+                        disabled>
+                        🗣️ Vorlesen
+                    </button>
+                </div>
+                
+                <div class="tts-presets">
+                    <button class="tts-preset-button" data-tts-preset="🏠 Willkommen zu Hause!">
+                        🏠 Willkommen
+                    </button>
+                    <button class="tts-preset-button" data-tts-preset="🍽️ Das Essen ist fertig!">
+                        🍽️ Essen fertig
+                    </button>
+                    <button class="tts-preset-button" data-tts-preset="🚪 Bitte zur Haustür kommen.">
+                        🚪 Zur Haustür
+                    </button>
+                    <button class="tts-preset-button" data-tts-preset="🌙 Gute Nacht und schöne Träume!">
+                        🌙 Gute Nacht
+                    </button>
+                    <button class="tts-preset-button" data-tts-preset="⚠️ Achtung! Wichtige Durchsage.">
+                        ⚠️ Durchsage
+                    </button>
+                    <button class="tts-preset-button" data-tts-preset="🎵 Die Musik ist zu laut!">
+                        🎵 Musik leiser
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    setupTTSEventListeners(item) {
+        const ttsInput = this.shadowRoot.querySelector(`[data-tts-input="${item.id}"]`);
+        const ttsCounter = this.shadowRoot.querySelector(`[data-tts-counter="${item.id}"]`);
+        const ttsLanguage = this.shadowRoot.querySelector(`[data-tts-language="${item.id}"]`);
+        const ttsSpeakButton = this.shadowRoot.querySelector(`[data-tts-speak="${item.id}"]`);
+        const ttsPresets = this.shadowRoot.querySelectorAll(`#tts-section-${item.id} [data-tts-preset]`);
+        
+        if (!ttsInput || !ttsSpeakButton) return;
+        
+        // Text Input Event Listener
+        ttsInput.addEventListener('input', (e) => {
+            const text = e.target.value;
+            const length = text.length;
+            
+            // Counter aktualisieren
+            if (ttsCounter) {
+                ttsCounter.textContent = `${length} / 300 Zeichen`;
+                ttsCounter.classList.toggle('warning', length > 250);
+            }
+            
+            // Speak Button aktivieren/deaktivieren
+            ttsSpeakButton.disabled = length === 0 || length > 300;
+        });
+        
+        // Preset Buttons Event Listeners
+        ttsPresets.forEach(preset => {
+            preset.addEventListener('click', (e) => {
+                const presetText = preset.getAttribute('data-tts-preset');
+                if (presetText && ttsInput) {
+                    ttsInput.value = presetText;
+                    
+                    // Input Event manuell triggern
+                    const inputEvent = new Event('input');
+                    ttsInput.dispatchEvent(inputEvent);
+                    
+                    // Visual Feedback
+                    preset.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        preset.style.transform = '';
+                    }, 150);
+                }
+            });
+        });
+        
+        // Speak Button Event Listener
+        ttsSpeakButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            const text = ttsInput.value.trim();
+            if (!text) return;
+            
+            const language = ttsLanguage ? ttsLanguage.value : 'de';
+            const isSpeaking = ttsSpeakButton.classList.contains('speaking');
+            
+            if (isSpeaking) {
+                // Stoppen
+                await this.stopTTS(item.id);
+                this.updateTTSButton(ttsSpeakButton, false);
+            } else {
+                // Sprechen
+                const success = await this.speakTTS(item.id, text, language, ttsSpeakButton);
+                if (success) {
+                    this.updateTTSButton(ttsSpeakButton, true);
+                    
+                    // Geschätzte Spieldauer (ca. 150 Wörter pro Minute)
+                    const wordCount = text.split(' ').length;
+                    const estimatedDuration = Math.max(3000, (wordCount / 150) * 60 * 1000);
+                    
+                    // Button nach geschätzter Zeit zurücksetzen
+                    setTimeout(() => {
+                        this.updateTTSButton(ttsSpeakButton, false);
+                    }, estimatedDuration);
+                }
+            }
+        });
+    }
+    
+    async speakTTS(entityId, text, language = 'de', buttonElement = null) {
+        if (!this._hass || !text) return false;
+        
+        try {
+            if (buttonElement) {
+                buttonElement.disabled = true;
+                buttonElement.innerHTML = '⏳ Spreche...';
+            }
+            
+            console.log('🗣️ Amazon Polly TTS:', { entityId, text });
+            
+            // Nur Amazon Polly verwenden - einfachste Parameter
+            const serviceData = {
+                entity_id: entityId,
+                message: text
+            };
+            
+            // Fire-and-Forget für Polly (gegen Proxy-Timeouts)
+            this._hass.callService('tts', 'amazon_polly_say', serviceData).catch(error => {
+                if (error.message.includes('timeout') || error.message.includes('5XX')) {
+                    console.log('ℹ️ Polly Proxy-Fehler ignoriert - Audio läuft vermutlich trotzdem');
+                } else {
+                    console.error('❌ Polly TTS Fehler:', error);
+                }
+            });
+            
+            console.log('✅ Amazon Polly TTS gestartet');
+            
+            // Button automatisch nach 4 Sekunden zurücksetzen
+            if (buttonElement) {
+                setTimeout(() => {
+                    this.updateTTSButton(buttonElement, false);
+                }, 4000);
+            }
+            
+            return true;
+            
+        } catch (error) {
+            console.error('❌ Amazon Polly Start fehlgeschlagen:', error);
+            
+            if (buttonElement) {
+                buttonElement.innerHTML = '❌ Polly-Fehler';
+                buttonElement.disabled = false;
+                setTimeout(() => this.updateTTSButton(buttonElement, false), 3000);
+            }
+            return false;
+        }
+    }
+    
+    async stopTTS(entityId) {
+        if (!this._hass) return false;
+        
+        try {
+            await this._hass.callService('media_player', 'media_stop', {
+                entity_id: entityId
+            });
+            
+            console.log('TTS gestoppt');
+            return true;
+            
+        } catch (error) {
+            console.error('TTS Stop Fehler:', error);
+            return false;
+        }
+    }
+    
+    updateTTSButton(button, isSpeaking) {
+        if (!button) return;
+        
+        if (isSpeaking) {
+            button.classList.add('speaking');
+            button.innerHTML = '⏹️ Stoppen';
+        } else {
+            button.classList.remove('speaking');
+            button.innerHTML = '🗣️ Vorlesen';
+            button.disabled = false;
+        }
+    }
+    
+    // Music Assistant Methoden
+    checkMusicAssistantAvailability() {
+        if (!this._hass || !this._hass.states) return false;
+        
+        // Suche nach Music Assistant fähigen Media Playern
+        const maEntities = Object.keys(this._hass.states).filter(entityId => 
+            entityId.startsWith('media_player.') && 
+            this._hass.states[entityId].attributes.supported_features &&
+            this._hass.states[entityId].attributes.device_class === 'speaker'
+        );
+        
+        return maEntities.length > 0;
+    }
+    
+    getMusicAssistantHTML(item) {
+        return this.checkMusicAssistantAvailability() ? `
+            <div class="ma-search-container">
+                <div class="ma-search-bar-container">
+                    <input type="text" 
+                           class="ma-search-input" 
+                           placeholder="Künstler, Album oder Song suchen..." 
+                           data-ma-search="${item.id}">
+                    <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}">
+                        <span class="ma-enqueue-icon">▶️</span>
+                        <span class="ma-enqueue-text">Play now</span>
+                    </div>
+                </div>
+                <div class="ma-filter-container" id="ma-filters-${item.id}">
+                    <div class="ma-filter-chip ma-filter-active" data-filter="all">
+                        <span class="ma-filter-icon">🔗</span>
+                        <span>Alle</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="artists">
+                        <span class="ma-filter-icon">👤</span>
+                        <span>Künstler</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="albums">
+                        <span class="ma-filter-icon">💿</span>
+                        <span>Alben</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="tracks">
+                        <span class="ma-filter-icon">🎵</span>
+                        <span>Songs</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="playlists">
+                        <span class="ma-filter-icon">📋</span>
+                        <span>Playlists</span>
+                    </div>
+                    <div class="ma-filter-chip" data-filter="radio">
+                        <span class="ma-filter-icon">📻</span>
+                        <span>Radio</span>
+                    </div>
+                </div>
+                <div class="ma-search-results" id="ma-results-${item.id}">
+                    <div class="ma-empty-state">Gebe einen Suchbegriff ein um Musik zu finden...</div>
+                </div>
+            </div>
+        ` : '<div class="ma-empty-state">Music Assistant Integration nicht verfügbar</div>';
+    }
+    
+    setupMusicAssistantEventListeners(item) {
+        const searchInput = this.shadowRoot.querySelector(`[data-ma-search="${item.id}"]`);
+        const resultsContainer = this.shadowRoot.getElementById(`ma-results-${item.id}`);
+        const enqueueMode = this.shadowRoot.querySelector(`[data-ma-enqueue="${item.id}"]`);
+        const filterContainer = this.shadowRoot.getElementById(`ma-filters-${item.id}`);
+        
+        if (!searchInput || !resultsContainer) return;
+        
+        let searchTimeout;
+        let currentFilter = 'all';
+        let currentEnqueueMode = 'play';
+        let lastResults = null;
+        
+        // Enqueue Mode Toggle
+        if (enqueueMode) {
+            const enqueueModes = [
+                { key: 'play', icon: '▶️', text: 'Play now' },
+                { key: 'replace', icon: '🔄', text: 'Replace queue' },
+                { key: 'next', icon: '⏭️', text: 'Add next' },
+                { key: 'add', icon: '➕', text: 'Add to queue' }
+            ];
+            
+            let currentModeIndex = 0;
+            
+            enqueueMode.addEventListener('click', () => {
+                currentModeIndex = (currentModeIndex + 1) % enqueueModes.length;
+                const mode = enqueueModes[currentModeIndex];
+                currentEnqueueMode = mode.key;
+                
+                enqueueMode.querySelector('.ma-enqueue-icon').textContent = mode.icon;
+                enqueueMode.querySelector('.ma-enqueue-text').textContent = mode.text;
+            });
+        }
+        
+        // Filter Chips
+        if (filterContainer) {
+            filterContainer.querySelectorAll('.ma-filter-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    // Remove active class from all chips
+                    filterContainer.querySelectorAll('.ma-filter-chip').forEach(c => {
+                        c.classList.remove('ma-filter-active');
+                    });
+                    
+                    // Add active class to clicked chip
+                    chip.classList.add('ma-filter-active');
+                    
+                    currentFilter = chip.getAttribute('data-filter');
+                    
+                    // Re-display results with new filter
+                    if (lastResults) {
+                        this.displayMusicAssistantResults(lastResults, resultsContainer, item.id, currentFilter, currentEnqueueMode);
+                    }
+                });
+            });
+        }
+        
+        // Search Input
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                resultsContainer.innerHTML = '<div class="ma-empty-state">Gebe mindestens 2 Zeichen ein um zu suchen...</div>';
+                lastResults = null;
+                return;
+            }
+            
+            searchTimeout = setTimeout(async () => {
+                resultsContainer.innerHTML = '<div class="ma-loading">Suche läuft...</div>';
+                
+                const results = await this.searchMusicAssistant(query, item.id);
+                lastResults = results;
+                this.displayMusicAssistantResults(results, resultsContainer, item.id, currentFilter, currentEnqueueMode);
+            }, 300);
+        });
+    }
+    
+    async searchMusicAssistant(query, entityId) {
+        if (!this._hass || !query) return [];
+        
+        try {
+            // Hole Music Assistant Config Entry
+            const configEntries = await this._hass.callApi("GET", "config/config_entries/entry");
+            const maEntry = configEntries.filter(entry => 
+                entry.domain === "music_assistant" && entry.state === "loaded"
+            ).find(entry => entry.state === "loaded");
+            
+            if (!maEntry) {
+                console.warn('Music Assistant nicht gefunden');
+                return [];
+            }
+            
+            // Führe Suche aus
+            const searchParams = {
+                type: "call_service",
+                domain: "music_assistant",
+                service: "search",
+                service_data: {
+                    name: query,
+                    config_entry_id: maEntry.entry_id,
+                    limit: 50
+                },
+                return_response: true
+            };
+            
+            const response = await this._hass.connection.sendMessagePromise(searchParams);
+            return this.processMusicAssistantResults(response.response);
+            
+        } catch (error) {
+            console.error('Music Assistant Suche fehlgeschlagen:', error);
+            return [];
+        }
+    }
+    
+    processMusicAssistantResults(results) {
+        if (!results) return [];
+        
+        const processedResults = {};
+        
+        // Gruppiere Ergebnisse nach Typ
+        Object.entries(results).forEach(([type, items]) => {
+            if (Array.isArray(items) && items.length > 0) {
+                processedResults[type] = items.map(item => ({
+                    uri: item.uri,
+                    name: item.name,
+                    artists: item.artists || [],
+                    image: item.image,
+                    media_type: item.media_type || type.slice(0, -1), // "tracks" -> "track"
+                    album: item.album
+                }));
+            }
+        });
+        
+        return processedResults;
+    }
+    
+    async playMusicAssistantItem(item, entityId, enqueueMode = 'play') {
+        if (!this._hass) return;
+        
+        try {
+            await this._hass.callService("music_assistant", "play_media", {
+                entity_id: entityId,
+                media_type: item.media_type,
+                media_id: item.uri,
+                enqueue: enqueueMode
+            });
+            
+            console.log(`Spiele ab: ${item.name} auf ${entityId}`);
+        } catch (error) {
+            console.error('Fehler beim Abspielen:', error);
+        }
+    }
+    
+    displayMusicAssistantResults(results, container, entityId, activeFilter = 'all', enqueueMode = 'play') {
+        if (!results || Object.keys(results).length === 0) {
+            container.innerHTML = '<div class="ma-no-results">Keine Ergebnisse gefunden</div>';
+            return;
+        }
+        
+        let html = '';
+        const categoryOrder = ['artists', 'albums', 'tracks', 'playlists', 'radio'];
+        
+        // Filter results based on active filter
+        const filteredResults = {};
+        if (activeFilter === 'all') {
+            Object.assign(filteredResults, results);
+        } else {
+            if (results[activeFilter]) {
+                filteredResults[activeFilter] = results[activeFilter];
+            }
+        }
+        
+        if (Object.keys(filteredResults).length === 0) {
+            container.innerHTML = '<div class="ma-no-results">Keine Ergebnisse in dieser Kategorie</div>';
+            return;
+        }
+        
+        // Display results
+        categoryOrder.forEach(type => {
+            const items = filteredResults[type];
+            if (!items || items.length === 0) return;
+            
+            const categoryName = this.getMusicAssistantCategoryName(type);
+            const isTrackType = type === 'tracks';
+            
+            if (activeFilter === 'all') {
+                html += `
+                    <div class="ma-category-header" data-category="${type}">
+                        <h3 class="ma-category-title">${categoryName}</h3>
+                        <span class="ma-category-chevron">›</span>
+                    </div>
+                `;
+            }
+            
+            if (isTrackType) {
+                // List view for tracks
+                html += '<div class="ma-list-container">';
+                const displayItems = activeFilter === 'all' ? items.slice(0, 5) : items;
+                
+                displayItems.forEach(item => {
+                    const artistText = item.artists ? item.artists.map(a => a.name).join(', ') : '';
+                    const imageUrl = item.image || (item.album ? item.album.image : '');
+                    
+                    html += `
+                        <div class="ma-list-item" data-uri="${item.uri}" data-type="${item.media_type}" data-name="${item.name}">
+                            <div class="ma-list-image">
+                                ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" />` : '🎵'}
+                            </div>
+                            <div class="ma-list-info">
+                                <div class="ma-list-name">${item.name}</div>
+                                ${artistText ? `<div class="ma-list-artist">${artistText}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                // Grid view for artists, albums, etc.
+                html += '<div class="ma-grid-container">';
+                const displayItems = activeFilter === 'all' ? items.slice(0, 6) : items;
+                const defaultIcon = type === 'artists' ? '👤' : type === 'albums' ? '💿' : '📋';
+                
+                displayItems.forEach(item => {
+                    const artistText = item.artists ? item.artists.map(a => a.name).join(', ') : '';
+                    const imageUrl = item.image;
+                    
+                    html += `
+                        <div class="ma-grid-item" data-uri="${item.uri}" data-type="${item.media_type}" data-name="${item.name}">
+                            <div class="ma-grid-image">
+                                ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" />` : defaultIcon}
+                            </div>
+                            <div class="ma-grid-name">${item.name}</div>
+                            ${artistText ? `<div class="ma-grid-artist">${artistText}</div>` : ''}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+        });
+        
+        container.innerHTML = html;
+        
+        // Event Listeners für Items
+        container.querySelectorAll('.ma-list-item, .ma-grid-item').forEach(itemElement => {
+            itemElement.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                const uri = itemElement.getAttribute('data-uri');
+                const mediaType = itemElement.getAttribute('data-type');
+                const name = itemElement.getAttribute('data-name');
+                
+                // Visual feedback
+                itemElement.style.opacity = '0.6';
+                
+                await this.playMusicAssistantItem({
+                    uri: uri,
+                    media_type: mediaType,
+                    name: name
+                }, entityId, enqueueMode);
+                
+                setTimeout(() => {
+                    itemElement.style.opacity = '1';
+                }, 1000);
+            });
+        });
+        
+        // Category header click handlers for "all" view
+        if (activeFilter === 'all') {
+            container.querySelectorAll('.ma-category-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const category = header.getAttribute('data-category');
+                    
+                    // Switch to that category filter
+                    const filterChip = this.shadowRoot.querySelector(`[data-filter="${category}"]`);
+                    if (filterChip) {
+                        filterChip.click();
+                    }
+                });
+            });
+        }
+    }
+    
+    getMusicAssistantCategoryName(type) {
+        const names = {
+            'artists': 'Künstler',
+            'albums': 'Alben',
+            'tracks': 'Titel',
+            'playlists': 'Playlists',
+            'radio': 'Radio'
+        };
+        return names[type] || type;
     }
 
-    // Placeholder method for TTS event listeners
-    setupTTSEventListeners(item) {
-        console.warn('setupTTSEventListeners is not yet implemented.');
-    }
+
+    
 
     callClimateService(service, entity_id, data = {}) {
         this._hass.callService('climate', service, { entity_id, ...data });
