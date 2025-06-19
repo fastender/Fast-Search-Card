@@ -2189,9 +2189,6 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-        
-    }
-
     getVaneLabel(value, direction) {
         const horizontalLabels = {
             'auto': 'Auto', '1_left': '← Links', '2': '‹', '3': 'Mitte', '4': '›', '5_right': 'Rechts →', 'split': 'Split', 'swing': 'Swing'
