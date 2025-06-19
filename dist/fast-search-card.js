@@ -2,7 +2,7 @@ class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-
+        
         // State Management
         this._hass = null;
         this._config = {};
@@ -16,7 +16,7 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = false;
         this.searchTimeout = null;
         this.isSearching = false;
-
+        
         // Neue State-Variablen
         this.isDetailView = false;
         this.currentDetailItem = null;
@@ -25,9 +25,8 @@ class FastSearchCard extends HTMLElement {
         // Circular Slider State
         this.circularSliders = {};
         this.lightUpdateTimeout = null;
-        this.coverUpdateTimeout = null;
+        this.coverUpdateTimeout = null; // Hinzugefügt für Rollladen
         this.climateUpdateTimeout = null;
-        this.mediaPlayerUpdateTimeout = null;
     }
 
     setConfig(config) {
@@ -35,26 +34,27 @@ class FastSearchCard extends HTMLElement {
             throw new Error('Entities configuration is required');
         }
 
+        // Standardkonfiguration wird mit der Benutzerkonfiguration zusammengeführt
         this._config = {
             title: 'Fast Search',
             ...config,
             entities: config.entities
         };
-
+        
         this.render();
     }
 
     set hass(hass) {
         if (!hass) return;
-
+        
         const oldHass = this._hass;
         this._hass = hass;
-
+        
         const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
         if (shouldUpdateAll) {
             this.updateItems();
         }
-
+        
         if (this.isDetailView && this.currentDetailItem) {
             const updatedItem = this.allItems.find(item => item.id === this.currentDetailItem.id);
             if(updatedItem) {
@@ -68,19 +68,19 @@ class FastSearchCard extends HTMLElement {
 
     shouldUpdateItems(oldHass, newHass) {
         if (!this._config.entities) return false;
-
+        
         for (const entityConfig of this._config.entities) {
             const entityId = entityConfig.entity;
             const oldState = oldHass.states[entityId];
             const newState = newHass.states[entityId];
-
+            
             if (!oldState && newState) return true;
             if (oldState && !newState) return true;
             if (oldState && newState && oldState.attributes.friendly_name !== newState.attributes.friendly_name) {
                 return true;
             }
         }
-
+        
         return false;
     }
 
@@ -100,143 +100,8 @@ class FastSearchCard extends HTMLElement {
                 --neumorphic-base: #2c2f33;
                 --neumorphic-shadow-dark: #23272b;
                 --neumorphic-shadow-light: #35373b;
-                --media-player-accent: #FFCC00; /* Yellow for media player */
-                --media-player-accent-rgb: 255, 204, 0;
-                --media-player-accent-light: rgba(255, 204, 0, 0.15);
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
-
-            /* TTS Styles */
-            .tts-section {
-                margin-top: 16px;
-                padding: 0px; /* Adjust padding as needed */
-                background: transparent;
-                border-radius: 12px;
-            }
-            .tts-input-container {
-                margin-bottom: 16px;
-            }
-            .tts-textarea {
-                width: 100%;
-                min-height: 80px;
-                padding: 12px;
-                border: 1px solid rgba(255, 255, 255, 0.2); /* Adjust for glassmorphism */
-                border-radius: 8px;
-                font-size: 14px;
-                font-family: inherit;
-                resize: vertical;
-                box-sizing: border-box;
-                transition: border-color 0.2s;
-                background: rgba(0, 0, 0, 0.15); /* Glassmorphism background */
-                color: var(--text-primary);
-                outline: none;
-            }
-            .tts-textarea:focus {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 2px var(--accent-light);
-            }
-            .tts-textarea::placeholder {
-                color: var(--text-secondary);
-            }
-            .tts-counter {
-                text-align: right;
-                font-size: 12px;
-                color: var(--text-secondary);
-                margin-top: 4px;
-            }
-            .tts-counter.warning {
-                color: #ff6b35; /* Orange for warning */
-                font-weight: 600;
-            }
-            .tts-controls {
-                display: flex;
-                gap: 12px;
-                align-items: center;
-                margin-bottom: 16px;
-            }
-            .tts-language-select {
-                flex: 1;
-                padding: 8px 12px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 6px;
-                font-size: 14px;
-                background: rgba(0, 0, 0, 0.15);
-                color: var(--text-primary);
-                cursor: pointer;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%209L12%2015L18%209%22%20stroke%3D%22rgba(255,255,255,0.7)%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E');
-                background-repeat: no-repeat;
-                background-position: right 8px center;
-                background-size: 16px;
-            }
-            .tts-speak-button {
-                background: var(--accent);
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                min-width: 100px;
-                justify-content: center;
-            }
-            .tts-speak-button:hover {
-                background: rgba(var(--accent-rgb), 0.8);
-            }
-            .tts-speak-button:disabled {
-                background: rgba(255, 255, 255, 0.1);
-                color: rgba(255, 255, 255, 0.4);
-                cursor: not-allowed;
-            }
-            .tts-speak-button.speaking {
-                background: #ff4444; /* Red while speaking */
-            }
-            .tts-speak-button.speaking:hover {
-                background: #cc3333;
-            }
-            .tts-presets {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Adjusted for more flexibility */
-                gap: 8px;
-            }
-            .tts-preset-button {
-                background: rgba(0, 0, 0, 0.15);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-size: 12px;
-                color: var(--text-primary);
-                cursor: pointer;
-                transition: all 0.2s;
-                text-align: left;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .tts-preset-button:hover {
-                background: rgba(0, 0, 0, 0.25);
-                border-color: rgba(255, 255, 255, 0.25);
-            }
-            .tts-preset-button:active {
-                transform: translateY(1px);
-            }
-            @media (max-width: 768px) {
-                .tts-controls {
-                    flex-direction: column;
-                    align-items: stretch;
-                }
-                .tts-presets {
-                    grid-template-columns: 1fr;
-                }
-            }
-            /* END TTS Styles */
 
             .glass-panel {
                 position: relative;
@@ -255,7 +120,7 @@ class FastSearchCard extends HTMLElement {
                 content: '';
                 position: absolute;
                 top: 0; left: 0; right: 0; bottom: 0;
-                z-index: -1;
+                z-index: -1; 
                 border-radius: inherit;
                 -webkit-backdrop-filter: blur(var(--glass-blur-amount));
                 backdrop-filter: blur(var(--glass-blur-amount));
@@ -265,7 +130,7 @@ class FastSearchCard extends HTMLElement {
                     rgba(255, 255, 255, 0.05) 70%
                 );
             }
-
+            
             .glass-panel::after {
                 content: '';
                 position: absolute;
@@ -309,7 +174,7 @@ class FastSearchCard extends HTMLElement {
                 pointer-events: none;
                 transform: translateX(-5%) scale(0.95);
             }
-
+            
             .detail-panel {
                 position: absolute;
                 top: 0;
@@ -327,7 +192,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .search-panel.expanded {
-                max-height: 500px;
+                max-height: 500px; 
             }
 
             .search-wrapper {
@@ -337,8 +202,8 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px 20px;
                 min-height: 40px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                position: sticky;
-                top: 0;
+                position: sticky; 
+                top: 0; 
                 z-index: 2;
                 background-color: rgba(255, 255, 255, 0.01);
             }
@@ -351,7 +216,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 justify-content: center;
                 border-radius: 6px;
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.1); 
                 flex-shrink: 0;
                 transition: all 0.2s ease;
             }
@@ -510,21 +375,21 @@ class FastSearchCard extends HTMLElement {
             .subcategory-chip.active .subcategory-status {
                 color: var(--accent);
             }
-
+            
             .subcategory-chip.active .chip-content {
                  color: var(--accent);
             }
 
             .results-container {
-                flex-grow: 1;
-                overflow-y: auto;
+                flex-grow: 1; 
+                overflow-y: auto; 
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 -webkit-overflow-scrolling: touch;
-                opacity: 0;
-                transform: translateY(-10px);
-                transition: all 0.3s ease;
-                padding-top: 16px;
+                opacity: 0; 
+                transform: translateY(-10px); 
+                transition: all 0.3s ease; 
+                padding-top: 16px; 
                 padding-bottom: 20px;
             }
 
@@ -542,8 +407,8 @@ class FastSearchCard extends HTMLElement {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 12px;
                 min-height: 200px;
-                padding-left: 20px;
-                padding-right: 20px;
+                padding-left: 20px; 
+                padding-right: 20px; 
             }
 
             .area-header {
@@ -573,9 +438,9 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 overflow: hidden;
                 transition: all 0.2s ease;
-                will-change: transform, opacity;
+                will-change: transform, opacity; 
             }
-
+            
             .device-card:hover {
                 transform: translateY(-2px) scale(1.02);
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
@@ -584,7 +449,7 @@ class FastSearchCard extends HTMLElement {
             .device-card.active {
                 background: var(--accent-light);
                 border-color: var(--accent);
-                box-shadow:
+                box-shadow: 
                     0 4px 20px rgba(0, 122, 255, 0.2),
                     inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
@@ -630,7 +495,7 @@ class FastSearchCard extends HTMLElement {
                 color: var(--accent);
                 opacity: 1;
             }
-
+            
             .detail-content {
                 flex-grow: 1;
                 display: flex;
@@ -652,11 +517,11 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 background-color: rgba(0, 0, 0, 0.2);
-                border-radius: 0 24px 24px 0;
+                border-radius: 0 24px 24px 0; 
                 box-sizing: border-box;
                 overflow: hidden;
             }
-
+            
             .detail-left-header {
                 display: flex;
                 justify-content: space-between;
@@ -664,7 +529,7 @@ class FastSearchCard extends HTMLElement {
                 margin-bottom: 0px;
                 flex-shrink: 0;
             }
-
+            
             .back-button {
                 width: 39px;
                 height: 39px;
@@ -696,7 +561,7 @@ class FastSearchCard extends HTMLElement {
                 background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.2), transparent);
                 margin: 20px 0;
             }
-
+            
             .icon-background-wrapper {
                 position: relative;
                 width: 300px;
@@ -738,7 +603,7 @@ class FastSearchCard extends HTMLElement {
                  background: var(--accent);
                  border-color: var(--accent);
             }
-
+            
             .quick-stats {
                 display: flex;
                 gap: 8px;
@@ -756,7 +621,7 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 500;
                 white-space: nowrap;
             }
-
+            
             .detail-title-area {
                 text-align: center;
                 color: var(--text-primary);
@@ -773,7 +638,7 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 margin: 0px;
             }
-
+            
             .detail-info-row {
                 display: flex;
                 justify-content: center;
@@ -782,7 +647,7 @@ class FastSearchCard extends HTMLElement {
                 margin-top: 16px;
                 opacity: 0;
             }
-
+            
             .category-buttons {
                 display: none;
                 flex-direction: column;
@@ -805,7 +670,7 @@ class FastSearchCard extends HTMLElement {
                 cursor: pointer;
                 transition: all 0.2s ease;
             }
-
+            
             .category-button:hover {
                 transform: scale(1.05);
                 border-color: var(--accent);
@@ -916,7 +781,7 @@ class FastSearchCard extends HTMLElement {
 
             .detail-tab-content { display: none; }
             .detail-tab-content.active { display: block; }
-
+            
             .device-control-design {
                 display: flex;
                 flex-direction: column;
@@ -925,7 +790,7 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 z-index: 5;
             }
-
+            
             /* Circular Slider Styles */
             .circular-slider-container {
                 position: relative;
@@ -957,10 +822,6 @@ class FastSearchCard extends HTMLElement {
                 fill: none;
                 stroke-linecap: round;
                 transition: stroke-dashoffset 0.2s ease;
-            }
-            /* Specific color for media player */
-            .circular-slider-container.media-player .progress-fill {
-                stroke: var(--media-player-accent) !important;
             }
             .slider-inner {
                 position: absolute;
@@ -1028,10 +889,6 @@ class FastSearchCard extends HTMLElement {
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
                 transform: scale(1.2);
             }
-            /* Specific color for media player handle */
-            .circular-slider-container.media-player .handle {
-                border-color: var(--media-player-accent) !important;
-            }
             .handle:hover {
                 transform: scale(1.4);
             }
@@ -1041,10 +898,10 @@ class FastSearchCard extends HTMLElement {
 
             /* Temp and Color Controls */
             .device-control-row {
-                width: 100%;
-                max-width: 280px;
+                width: 100%; 
+                max-width: 280px; 
                 display: flex;
-                gap: 12px;
+                gap: 12px; 
                 justify-content: center;
                 margin-top: 16px;
                 z-index: 9;
@@ -1056,15 +913,15 @@ class FastSearchCard extends HTMLElement {
                 flex-grow: 0;
                 flex-shrink: 0;
                 width: 50px;
-                height: 50px;
+                height: 50px; 
                 border-radius: 50%;
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.1); 
                 border: none;
-                color: var(--text-primary);
+                color: var(--text-primary); 
                 cursor: pointer;
-                transition: all 0.2s ease;
-                display: flex;
-                align-items: center;
+                transition: all 0.2s ease; 
+                display: flex; 
+                align-items: center; 
                 justify-content: center;
                 padding: 0;
             }
@@ -1096,33 +953,33 @@ class FastSearchCard extends HTMLElement {
             .device-control-preset.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
 
             .device-control-presets.climate { max-width: 280px; }
-            .climate-setting-row {
-                display: flex;
-                gap: 8px;
-                margin-bottom: 12px;
-                overflow-x: auto;
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-                -webkit-overflow-scrolling: touch;
+            .climate-setting-row { 
+                display: flex; 
+                gap: 8px; 
+                margin-bottom: 12px; 
+                overflow-x: auto; 
+                scrollbar-width: none; 
+                -ms-overflow-style: none; 
+                -webkit-overflow-scrolling: touch; 
                 padding-bottom: 8px;
             }
             .climate-setting-row::-webkit-scrollbar { display: none; }
-            .climate-setting-option {
-                padding: 8px 16px;
-                background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 20px;
-                cursor: pointer;
-                white-space: nowrap;
-                transition: all 0.2s ease;
-            }
-            .climate-setting-option.active {
-                background: var(--accent-light);
-                border-color: var(--accent);
-                color: var(--accent);
-            }
-            .climate-setting-option:hover {
-                background: rgba(255, 255, 255,0.2);
+            .climate-setting-option { 
+                padding: 8px 16px; 
+                background: rgba(255, 255, 255, 0.08); 
+                border: 1px solid rgba(255, 255, 255, 0.15); 
+                border-radius: 20px;     
+                cursor: pointer; 
+                white-space: nowrap; 
+                transition: all 0.2s ease; 
+            } 
+            .climate-setting-option.active { 
+                background: var(--accent-light); 
+                border-color: var(--accent); 
+                color: var(--accent); 
+            } 
+            .climate-setting-option:hover { 
+                background: rgba(255, 255, 255,0.2); 
             }
 
             @media (max-width: 768px) {
@@ -1147,15 +1004,15 @@ class FastSearchCard extends HTMLElement {
                                     <path d="M12 18h.01"/>
                                 </svg>
                             </div>
-
-                            <input
-                                type="text"
-                                class="search-input"
+                            
+                            <input 
+                                type="text" 
+                                class="search-input" 
                                 placeholder="Geräte suchen..."
                                 autocomplete="off"
                                 spellcheck="false"
                             >
-
+                            
                             <button class="clear-button">
                                 <svg viewBox="0 0 24 24" fill="none">
                                     <line x1="18" y1="6" x2="6" y2="18"/>
@@ -1232,7 +1089,7 @@ class FastSearchCard extends HTMLElement {
                                 <path d="M12 18h.01"/>
                             </svg>
                         </button>
-
+                        
                         <button class="category-button glass-panel" data-category="scripts" title="Skripte">
                            <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1242,7 +1099,7 @@ class FastSearchCard extends HTMLElement {
                                 <polyline points="10,9 9,9 8,9"/>
                             </svg>
                         </button>
-
+                        
                         <button class="category-button glass-panel" data-category="automations" title="Automationen">
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M12 2v6l3-3 3 3"/>
@@ -1252,7 +1109,7 @@ class FastSearchCard extends HTMLElement {
                                 <circle cx="12" cy="12" r="2"/>
                             </svg>
                         </button>
-
+                        
                         <button class="category-button glass-panel" data-category="scenes" title="Szenen">
                             <svg viewBox="0 0 24 24" fill="none">
                                 <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
@@ -1306,7 +1163,7 @@ class FastSearchCard extends HTMLElement {
             clearButton.classList.add('visible');
             this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
         } else {
-            this.isSearching = false;
+            this.isSearching = false; 
             const animation = this.animateElementOut(clearButton);
             animation.finished.then(() => { clearButton.classList.remove('visible'); });
         }
@@ -1325,7 +1182,7 @@ class FastSearchCard extends HTMLElement {
         const searchInput = this.shadowRoot.querySelector('.search-input');
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         searchInput.value = '';
-        this.isSearching = false;
+        this.isSearching = false; 
         const animation = this.animateElementOut(clearButton);
         animation.finished.then(() => { clearButton.classList.remove('visible'); });
         this.hasAnimated = false;
@@ -1381,7 +1238,7 @@ class FastSearchCard extends HTMLElement {
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (searchInput.value.trim()) {
             searchInput.value = '';
-            this.isSearching = false;
+            this.isSearching = false; 
             const clearButton = this.shadowRoot.querySelector('.clear-button');
             clearButton.classList.remove('visible');
         }
@@ -1458,7 +1315,7 @@ class FastSearchCard extends HTMLElement {
 
     getSubcategoryStatusText(subcategory, count) {
         const textMap = { 'lights': 'An', 'climate': 'Aktiv', 'covers': 'Offen', 'media': 'Aktiv' };
-        const text = textMap[subcategory] || 'Aktiv';
+        const text = textMap[subcategory] || 'Aktiv'; 
         return `${count} ${text}`;
     }
 
@@ -1496,11 +1353,6 @@ class FastSearchCard extends HTMLElement {
                 if (statusElement) { statusElement.textContent = this.getEntityStatus(state); }
             }
         });
-
-        // Update detail view if active and current item is a media player
-        if (this.isDetailView && this.currentDetailItem && this.currentDetailItem.domain === 'media_player') {
-            this.updateMediaPlayerControlsUI(this.currentDetailItem);
-        }
     }
 
     categorizeEntity(domain) {
@@ -1678,24 +1530,24 @@ class FastSearchCard extends HTMLElement {
         if (this.previousSearchState) {
             this.shadowRoot.querySelector('.search-input').value = this.previousSearchState.searchValue;
             this.activeCategory = this.previousSearchState.activeCategory;
-            this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => {
+            this.shadowRoot.querySelectorAll('.subcategory-chip').forEach(chip => { 
                 chip.classList.toggle('active', chip.dataset.subcategory === this.previousSearchState.activeSubcategory);
             });
             this.activeSubcategory = this.previousSearchState.activeSubcategory;
             this.filteredItems = this.previousSearchState.filteredItems;
-
+            
             this.updateCategoryIcon();
             this.updatePlaceholder();
             this.renderResults();
         }
     }
-
+    
     renderDetailView() {
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
         if (!this.currentDetailItem) return;
-
+        
         const item = this.currentDetailItem;
-
+        
         const leftPaneHTML = this.getDetailLeftPaneHTML(item);
         const rightPaneHTML = this.getDetailRightPaneHTML(item);
 
@@ -1713,7 +1565,7 @@ class FastSearchCard extends HTMLElement {
         });
 
         this.setupDetailTabs(item);
-
+        
         const iconBackground = detailPanel.querySelector('.icon-background');
         const titleArea = detailPanel.querySelector('.detail-title-area');
         const infoRow = detailPanel.querySelector('.detail-info-row');
@@ -1725,7 +1577,7 @@ class FastSearchCard extends HTMLElement {
 
     updateDetailViewStates() {
         if (!this.isDetailView || !this.currentDetailItem || !this._hass) return;
-
+        
         const item = this.currentDetailItem;
         const state = this._hass.states[item.id];
         if (!state) return;
@@ -1743,15 +1595,15 @@ class FastSearchCard extends HTMLElement {
             if (quickStats) {
                 quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
             }
-
+            
             const detailInfoRow = detailPanel.querySelector('.detail-info-row');
             if(detailInfoRow) {
                  detailInfoRow.style.gap = isActive ? '12px' : '0px';
             }
-
+            
             const detailName = detailPanel.querySelector('.detail-name');
             if (detailName) detailName.textContent = item.name;
-
+            
             const detailArea = detailPanel.querySelector('.detail-area');
             if (detailArea) detailArea.textContent = item.area;
 
@@ -1766,15 +1618,13 @@ class FastSearchCard extends HTMLElement {
                 }
             }
         }
-
+        
         if (item.domain === 'light') {
             this.updateLightControlsUI(item);
         } else if (item.domain === 'cover') {
             this.updateCoverControlsUI(item);
         } else if (item.domain === 'climate') {
             this.updateClimateControlsUI(item);
-        } else if (item.domain === 'media_player') {
-            this.updateMediaPlayerControlsUI(item);
         }
     }
 
@@ -1786,8 +1636,8 @@ class FastSearchCard extends HTMLElement {
         const quickStats = this.getQuickStats(item);
         const backgroundImage = this.getBackgroundImageForItem(item);
         const albumArt = (item.domain === 'media_player') ? this.getAlbumArtUrl(item) : null;
-
-        const backgroundStyle = albumArt
+        
+        const backgroundStyle = albumArt 
             ? `background-image: url('${albumArt}');`
             : `background-image: url('${backgroundImage}');`;
 
@@ -1796,13 +1646,6 @@ class FastSearchCard extends HTMLElement {
             { id: 'shortcuts', title: 'Shortcuts', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M9.8525 14.6334L3.65151 10.6873C2.41651 9.90141 2.41651 8.09858 3.65151 7.31268L9.8525 3.36659C11.1628 2.53279 12.8372 2.53279 14.1475 3.36659L20.3485 7.31268C21.5835 8.09859 21.5835 9.90142 20.3485 10.6873L14.1475 14.6334C12.8372 15.4672 11.1628 15.4672 9.8525 14.6334Z" stroke="currentColor"></path><path d="M18.2857 12L20.3485 13.3127C21.5835 14.0986 21.5835 15.9014 20.3485 16.6873L14.1475 20.6334C12.8372 21.4672 11.1628 21.4672 9.8525 20.6334L3.65151 16.6873C2.41651 15.9014 2.41651 14.0986 3.65151 13.3127L5.71429 12" stroke="currentColor"></path></svg>` },
             { id: 'history', title: 'Verlauf', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143" stroke="currentColor" stroke-linecap="round"></path><path d="M6 17L20 17" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21L20 21" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 7L15 7" stroke="currentColor" stroke-linecap="round"></path></svg>` }
         ];
-
-        // Add TTS and Music Assistant tabs if media_player
-        if (item.domain === 'media_player') {
-             tabsConfig.splice(1, 0, { id: 'music', title: 'Musik', svg: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M20 14V3L9 5V16" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17 19H18C19.1046 19 20 18.1046 20 17V14H17C15.8954 14 15 14.8954 15 16V17C15 18.1046 15.8954 19 17 19Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H7C8.10457 21 9 20.1046 9 19V16H6C4.89543 16 4 16.8954 4 18V19C4 20.1046 4.89543 21 6 21Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>` });
-             tabsConfig.splice(2, 0, { id: 'tts', title: 'Sprechen', svg: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M7 12L17 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7 8L13 8" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 20.2895V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V15C21 16.1046 20.1046 17 19 17H7.96125C7.35368 17 6.77906 17.2762 6.39951 17.7506L4.06852 20.6643C3.71421 21.1072 3 20.8567 3 20.2895Z" stroke="currentColor" stroke-width="1"></path></svg>` });
-        }
-
 
         const tabsHTML = `
             <div class="detail-tabs-container">
@@ -1845,28 +1688,17 @@ class FastSearchCard extends HTMLElement {
             { id: 'history', title: 'Verlauf' }
         ];
 
-        // Add TTS and Music Assistant content if media_player
-        if (item.domain === 'media_player') {
-            tabsConfig.splice(1, 0, { id: 'music', title: 'Musik' });
-            tabsConfig.splice(2, 0, { id: 'tts', title: 'Sprechen' });
-        }
-
-
         return `
             <div id="tab-content-container">
                  ${tabsConfig.map(tab => `
                     <div class="detail-tab-content ${tab.default ? 'active' : ''}" data-tab-content="${tab.id}">
-                        ${tab.id === 'controls' ? controlsHTML :
-                           tab.id === 'tts' ? this.getTTSHTML(item) : /* Add TTS HTML */
-                           tab.id === 'music' ? this.getMusicAssistantHTML(item) : /* Add Music Assistant HTML */
-                           `<div>${tab.title} coming soon.</div>`
-                        }
+                        ${tab.id === 'controls' ? controlsHTML : `<div>${tab.title} coming soon.</div>`}
                     </div>
                 `).join('')}
             </div>
         `;
     }
-
+    
     getDeviceControlsHTML(item) {
         switch (item.domain) {
             case 'light':
@@ -1875,8 +1707,6 @@ class FastSearchCard extends HTMLElement {
                 return this.getCoverControlsHTML(item);
             case 'climate':
                 return this.getClimateControlsHTML(item);
-            case 'media_player':
-                return this.getMediaPlayerControlsHTML(item);
             default:
                 return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Keine Steuerelemente für diesen Gerätetyp.</div>`;
         }
@@ -1886,11 +1716,11 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         const isOn = state.state === 'on';
         const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
-
+        
         const supportedColorModes = state.attributes.supported_color_modes || [];
         const hasTempSupport = supportedColorModes.includes('color_temp');
         const hasColorSupport = supportedColorModes.some(mode => ['rgb', 'rgbw', 'rgbww', 'hs', 'xy'].includes(mode));
-
+        
         return `
             <div class="device-control-design" id="device-control-${item.id}">
                 <div class="circular-slider-container brightness ${isOn ? '' : 'off'}" data-entity="${item.id}">
@@ -1906,7 +1736,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
                     <div class="handle"></div>
                 </div>
-
+                
                 <div class="device-control-row ${isOn && (hasTempSupport || hasColorSupport) ? '' : 'hidden'}">
                     ${hasTempSupport ? `
                         <button class="device-control-button" data-temp="2700" title="Warm White"><svg stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M13.8062 5L12.8151 3.00376C12.4817 2.33208 11.5184 2.33208 11.1849 3.00376L10.6894 4.00188" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15.011 7.427L15.4126 8.23599L16.8648 8.44704" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19.7693 8.86914L21.2215 9.08019C21.9668 9.1885 22.2639 10.0994 21.7243 10.6219L20.6736 11.6394" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5724 13.6743L17.5217 14.6918L17.7697 16.1292" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.2656 19.0039L18.5135 20.4414C18.6409 21.1797 17.8614 21.7427 17.1945 21.394L15.8959 20.715" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10.4279 19.5L12 18.678L13.2986 19.357" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.67145 19.3689L5.48645 20.4414C5.35908 21.1797 6.13859 21.7428 6.80546 21.3941L7.65273 20.9511" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6.25259 16L6.47826 14.6917L5.78339 14.0188" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3.69875 12L2.27575 10.6219C1.73617 10.0993 2.03322 9.18844 2.77852 9.08012L3.88926 8.9187" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7 8.4666L8.58737 8.23591L9.39062 6.61792" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
@@ -1933,79 +1763,173 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-    getMediaPlayerControlsHTML(item) {
+    getCoverControlsHTML(item) {
         const state = this._hass.states[item.id];
-        const volumeLevel = state.attributes.volume_level ?? 0;
-        const isMuted = state.attributes.is_volume_muted ?? false;
-        const isActive = this.isEntityActive(state);
-        const mediaState = state.state;
-
-        const playPauseButton = (mediaState === 'playing') ?
-            `<button class="device-control-button" data-action="pause" title="Pause">
-                <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor" stroke-width="1"></path><path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor" stroke-width="1"></path></svg>
-            </button>` :
-            `<button class="device-control-button" data-action="play" title="Play">
-                <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-            </button>`;
-
+        const position = state.attributes.current_position ?? 0;
+        
         return `
             <div class="device-control-design" id="device-control-${item.id}">
-                <div class="circular-slider-container media-player ${!isActive ? 'off' : ''}" data-entity="${item.id}">
+                <div class="circular-slider-container cover" data-entity="${item.id}">
                     <div class="slider-track"></div>
                     <svg class="progress-svg">
                         <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
-                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: var(--media-player-accent);"></circle>
+                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #4A90E2;"></circle>
                     </svg>
-                    <div class="slider-inner ${!isActive ? 'off' : ''}">
-                        <div class="power-icon">${isMuted ? '🔇' : '🔊'}</div>
-                        <div class="circular-value">${isMuted ? 'MUTE' : Math.round(volumeLevel * 100) + '%'}</div>
-                        <div class="circular-label">Volume</div>
+                    <div class="slider-inner">
+                        <div class="power-icon">⏻</div>
+                        <div class="circular-value">${position}%</div>
+                        <div class="circular-label">Offen</div>
                     </div>
-                    <div class="handle" style="border-color: var(--media-player-accent);"></div>
+                    <div class="handle" style="border-color: #4A90E2;"></div>
                 </div>
 
                 <div class="device-control-row">
-                    <button class="device-control-button" data-action="previous" title="Previous">
-                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 7V17" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.0282 5.2672C17.4217 4.95657 18 5.23682 18 5.73813V18.2619C18 18.7632 17.4217 19.0434 17.0282 18.7328L9.09651 12.4709C8.79223 12.2307 8.79223 11.7693 9.09651 11.5291L17.0282 5.2672Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    <button class="device-control-button" data-action="open" title="Öffnen">
+                        <svg stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 15L12 9L18 15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                     </button>
-                    ${playPauseButton}
-                    <button class="device-control-button" data-action="next" title="Next">
-                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M18 7V17" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6.97179 5.2672C6.57832 4.95657 6 5.23682 6 5.73813V18.2619C6 18.7632 6.57832 19.0434 6.97179 18.7328L14.9035 12.4709C15.2078 12.2307 15.2078 11.7693 14.9035 11.5291L6.97179 5.2672Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    <button class="device-control-button" data-action="stop" title="Stopp">
+                       <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M17 4L12 9L7 4" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17 20L12 15L7 20" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                     </button>
-                    <button class="device-control-button" data-action="toggle-music-assistant" title="Music Assistant">
-                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M20 14V3L9 5V16" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17 19H18C19.1046 19 20 18.1046 20 17V14H17C15.8954 14 15 14.8954 15 16V17C15 18.1046 15.8954 19 17 19Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H7C8.10457 21 9 20.1046 9 19V16H6C4.89543 16 4 16.8954 4 18V19C4 20.1046 4.89543 21 6 21Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    <button class="device-control-button" data-action="close" title="Schließen">
+                        <svg stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                     </button>
-                    <button class="device-control-button" data-action="toggle-tts" title="Text-to-Speech">
-                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M7 12L17 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7 8L13 8" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 20.2895V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V15C21 16.1046 20.1046 17 19 17H7.96125C7.35368 17 6.77906 17.2762 6.39951 17.7506L4.06852 20.6643C3.71421 21.1072 3 20.8567 3 20.2895Z" stroke="currentColor" stroke-width="1"></path></svg>
+                    <button class="device-control-button" data-action="toggle-presets" title="Szenen">
+                        <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M5.5 6C5.77614 6 6 5.77614 6 5.5C6 5.22386 5.77614 5 5.5 5C5.22386 5 5 5.22386 5 5.5C5 5.77614 5.22386 6 5.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 12.5C5.77614 12.5 6 12.2761 6 12C6 11.7239 5.77614 11.5 5.5 11.5C5.22386 11.5 5 11.7239 5 12C5 12.2761 5.22386 12.5 5.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 19C5.77614 19 6 18.7761 6 18.5C6 18.2239 5.77614 18 5.5 18C5.22386 18 5 18.2239 5 18.5C5 18.7761 5.22386 19 5.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6C12.2761 6 12.5 5.77614 12.5 5.5C12.5 5.22386 12.2761 5 12 5C11.7239 5 11.5 5.22386 11.5 5.5C11.5 5.77614 11.7239 6 12 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 19C12.2761 19 12.5 18.7761 12.5 18.5C12.5 18.2239 12.2761 18 12 18C11.7239 18 11.5 18.2239 11.5 18.5C11.5 18.7761 11.7239 19 12 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 6C18.7761 6 19 5.77614 19 5.5C19 5.22386 18.7761 5 18.5 5C18.2239 5 18 5.22386 18 5.5C18 5.77614 18.2239 6 18.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 12.5C18.7761 12.5 19 12.2761 19 12C19 11.7239 18.7761 11.5 18.5 11.5C18.2239 11.5 18 11.7239 18 12C18 12.2761 18.2239 12.5 18.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 19C18.7761 19 19 18.7761 19 18.5C19 18.2239 18.7761 18 18.5 18C18.2239 18 18 18.2239 18 18.5C18 18.7761 18.2239 19 18.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                     </button>
                 </div>
-                <div class="device-control-presets media-player-options" data-is-open="false">
+                <div class="device-control-presets" data-is-open="false">
                     <div class="device-control-presets-grid">
-                        ${this.getTTSHTML(item)} <div class="empty-state" style="padding: 20px 0; grid-column: 1 / -1;">
-                            <div class="empty-title">Music Assistant Coming Soon</div>
-                            <div class="empty-subtitle">More music controls will appear here.</div>
-                        </div>
+                        <div class="device-control-preset" style="background: linear-gradient(45deg, #FF6B35, #F7931E);" data-position="20">20%</div>
+                        <div class="device-control-preset" style="background: linear-gradient(45deg, #F7931E, #FFD23F);" data-position="40">40%</div>
+                        <div class="device-control-preset" style="background: linear-gradient(45deg, #FFD23F, #06D6A0);" data-position="60">60%</div>
+                        <div class="device-control-preset ${position === 80 ? 'active' : ''}" style="background: linear-gradient(45deg, #06D6A0, #118AB2);" data-position="80">80%</div>
                     </div>
                 </div>
             </div>
         `;
     }
 
+    getClimateControlsHTML(item) {
+        const state = this._hass.states[item.id];
+        const currentTemp = state.attributes.temperature || 20;
+
+        // DEBUG
+        console.log('MELCloud Attributes:');
+        console.log('vane_horizontal:', state.attributes.vane_horizontal);
+        console.log('vane_horizontal_positions:', state.attributes.vane_horizontal_positions);
+        console.log('vane_vertical:', state.attributes.vane_vertical);
+        console.log('vane_vertical_positions:', state.attributes.vane_vertical_positions);
+        console.log('All attributes:', state.attributes);
+
+        // Dynamisch aus dem Gerät lesen
+        const supportedHvacModes = state.attributes.hvac_modes || [];
+        const supportedFanModes = state.attributes.fan_modes || [];
+        const supportedSwingModes = state.attributes.swing_modes || [];
+
+        // Fallback-Listen mit den korrekten MELCloud-Werten
+        const defaultHorizontalPositions = ['auto', '1_left', '2', '3', '4', '5_right', 'split', 'swing'];
+        const defaultVerticalPositions = ['auto', '1_up', '2', '3', '4', '5_down', 'swing'];
+    
+        // Icon-Definitionen für alle möglichen Modi
+        const hvacIcons = {
+            heat: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 12L23 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 2V1" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 23V22" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 20L19 19" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 4L19 5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 20L5 19" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 4L5 5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M1 12L2 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
+            cool: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M3 7L6.5 9M21 17L17.5 15M12 12L6.5 9M12 12L6.5 15M12 12V5M12 12V18.5M12 12L17.5 15M12 12L17.5 9M12 2V5M12 22V18.5M21 7L17.5 9M3 17L6.5 15M6.5 9L3 10M6.5 9L6 5.5M6.5 15L3 14M6.5 15L6 18.5M12 5L9.5 4M12 5L14.5 4M12 18.5L14.5 20M12 18.5L9.5 20M17.5 15L18 18.5M17.5 15L21 14M17.5 9L21 10M17.5 9L18 5.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
+            dry: `<svg width="48px" height="48px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M5 11.9995C3.78555 12.9117 3 14.3641 3 15.9999C3 18.7613 5.23858 20.9999 8 20.9999C10.7614 20.9999 13 18.7613 13 15.9999C13 14.3641 12.2144 12.9117 11 11.9995" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 12V3H11V12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 3L13 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 6L13 6" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M11 9H13" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 14C6.89543 14 6 14.8954 6 16C6 17.1046 6.89543 18 8 18C9.10457 18 10 17.1046 10 16C10 14.8954 9.10457 14 8 14ZM8 14V9" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M18.9991 3C18.9991 3 21.9991 5.99336 21.9994 7.88652C21.9997 9.5422 20.6552 10.8865 18.9997 10.8865C17.3442 10.8865 16.012 9.5422 16 7.88652C16.0098 5.99242 18.9991 3 18.9991 3Z" stroke="currentColor" stroke-width="1" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
+            fan_only: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M18.2785 7C19.7816 7 21 8.11929 21 9.5C21 10.8807 19.7816 12 18.2785 12H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.9375 20C19.0766 20 20.5 19.5 20.5 17.5C20.5 15.5 19.0766 15 17.9375 15H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10.4118 4C11.8412 4 13 5.11929 13 6.5C13 7.88071 11.8412 9 10.4118 9H3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`,
+            auto: `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M7 14L11.7935 5.76839C11.9524 5.45014 12.4476 5.45014 12.6065 5.76839L17.4 14" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.42105 11.3684H15.8947" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`
+        };
+        // Labels für Fan-Modi
+        const fanModeLabels = {
+            auto: 'Auto', quiet: 'Leise', low: 'Niedrig', medium: 'Mittel', medium_low: 'Mittel-Niedrig', medium_high: 'Mittel-Hoch', high: 'Hoch', middle: 'Mittel', focus: 'Fokus', diffuse: 'Diffus', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5'
+        };
+        const hPositions = state.attributes.vane_horizontal_positions || defaultHorizontalPositions;
+        const vPositions = state.attributes.vane_vertical_positions || defaultVerticalPositions;
+        const showHControls = state.attributes.hasOwnProperty('vane_horizontal');
+        const showVControls = state.attributes.hasOwnProperty('vane_vertical');
+    
+        return `
+            <div class="device-control-design" id="device-control-${item.id}">
+                <div class="circular-slider-container climate" data-entity="${item.id}">
+                    <div class="slider-track"></div>
+                    <svg class="progress-svg">
+                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
+                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #2E8B57;"></circle>
+                    </svg>
+                    <div class="slider-inner">
+                        <div class="power-icon">⏻</div>
+                        <div class="circular-value">${currentTemp.toFixed(1)}°C</div>
+                        <div class="circular-label">Temperatur</div>
+                    </div>
+                    <div class="handle" style="border-color: #2E8B57;"></div>
+                </div>
+                
+                <div class="device-control-row">
+                    ${supportedHvacModes
+                        .filter(mode => hvacIcons[mode])
+                        .map(mode => `<button class="device-control-button ${state.state === mode ? 'active' : ''}" data-hvac-mode="${mode}" title="${mode}">${hvacIcons[mode]}</button>`)
+                        .join('')}
+                    ${(supportedFanModes.length > 0 || supportedSwingModes.length > 0 || showHControls || showVControls) ? `
+                        <button class="device-control-button" data-action="toggle-presets" title="Einstellungen">
+                            <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M5.5 6C5.77614 6 6 5.77614 6 5.5C6 5.22386 5.77614 5 5.5 5C5.22386 5 5 5.22386 5 5.5C5 5.77614 5.22386 6 5.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 12.5C5.77614 12.5 6 12.2761 6 12C6 11.7239 5.77614 11.5 5.5 11.5C5.22386 11.5 5 11.7239 5 12C5 12.2761 5.22386 12.5 5.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5.5 19C5.77614 19 6 18.7761 6 18.5C6 18.2239 5.77614 18 5.5 18C5.22386 18 5 18.2239 5 18.5C5 18.7761 5.22386 19 5.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6C12.2761 6 12.5 5.77614 12.5 5.5C12.5 5.22386 12.2761 5 12 5C11.7239 5 11.5 5.22386 11.5 5.5C11.5 5.77614 11.7239 6 12 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 19C12.2761 19 12.5 18.7761 12.5 18.5C12.5 18.2239 12.2761 18 12 18C11.7239 18 11.5 18.2239 11.5 18.5C11.5 18.7761 11.7239 19 12 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 6C18.7761 6 19 5.77614 19 5.5C19 5.22386 18.7761 5 18.5 5C18.2239 5 18 5.22386 18 5.5C18 5.77614 18.2239 6 18.5 6Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 12.5C18.7761 12.5 19 12.2761 19 12C19 11.7239 18.7761 11.5 18.5 11.5C18.2239 11.5 18 11.7239 18 12C18 12.2761 18.2239 12.5 18.5 12.5Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18.5 19C18.7761 19 19 18.7761 19 18.5C19 18.2239 18.7761 18 18.5 18C18.2239 18 18 18.2239 18 18.5C18 18.7761 18.2239 19 18.5 19Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        </button>
+                    ` : ''}
+                </div>
+                <div class="device-control-presets climate" data-is-open="false">
+                    ${showHControls ? `
+                        <div class="climate-setting-row" data-setting-type="vane_horizontal">
+                            ${hPositions.map(value => `
+                                <div class="climate-setting-option ${state.attributes.vane_horizontal === value ? 'active' : ''}"
+                                     data-climate-setting="vane_horizontal"
+                                     data-value="${value}">${this.getVaneLabel(value, 'horizontal')}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${showVControls ? `
+                        <div class="climate-setting-row" data-setting-type="vane_vertical">
+                            ${vPositions.map(value => `
+                                <div class="climate-setting-option ${state.attributes.vane_vertical === value ? 'active' : ''}"
+                                     data-climate-setting="vane_vertical"
+                                     data-value="${value}">${this.getVaneLabel(value, 'vertical')}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${supportedSwingModes.length > 0 ? `
+                        <div class="climate-setting-row" data-setting-type="swing_mode">
+                            ${supportedSwingModes.map(mode => `
+                                <div class="climate-setting-option ${state.attributes.swing_mode === mode ? 'active' : ''}"
+                                     data-climate-setting="swing_mode"
+                                     data-value="${mode}">${this.getSwingLabel(mode)}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${supportedFanModes.length > 0 ? `
+                        <div class="climate-setting-row" data-setting-type="fan_mode">
+                            ${supportedFanModes.map(mode => `
+                                <div class="climate-setting-option ${state.attributes.fan_mode === mode ? 'active' : ''}"
+                                     data-climate-setting="fan_mode"
+                                     data-value="${mode}">${fanModeLabels[mode] || mode}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
 
     getVaneLabel(value, direction) {
         const horizontalLabels = {
             'auto': 'Auto', '1_left': '← Links', '2': '‹', '3': 'Mitte', '4': '›', '5_right': 'Rechts →', 'split': 'Split', 'swing': 'Swing'
         };
-
+    
         const verticalLabels = {
             'auto': 'Auto', '1_up': '↑ Oben', '2': '↗', '3': '→', '4': '↘', '5_down': '↓ Unten', 'swing': 'Swing'
         };
-
-        return direction === 'horizontal'
+    
+        return direction === 'horizontal' 
              ? (horizontalLabels[value] || value)
              : (verticalLabels[value] || value);
     }
-
+    
     getSwingLabel(mode) {
         const swingLabels = {
             'off': 'Aus', 'on': 'Ein', 'vertical': 'Vertikal', 'horizontal': 'Horizontal', 'both': 'Beide'
@@ -2035,7 +1959,7 @@ class FastSearchCard extends HTMLElement {
         climateContainer.querySelectorAll('.climate-setting-option').forEach(opt => {
             const settingType = opt.getAttribute('data-climate-setting');
             const settingValue = opt.getAttribute('data-value');
-
+    
             let isActive = false;
             switch (settingType) {
                 case 'vane_horizontal':
@@ -2051,7 +1975,7 @@ class FastSearchCard extends HTMLElement {
                     isActive = state.attributes.fan_mode === settingValue;
                     break;
             }
-
+    
             opt.classList.toggle('active', isActive);
         });
     }
@@ -2100,7 +2024,7 @@ class FastSearchCard extends HTMLElement {
                 this.callClimateService('set_hvac_mode', item.id, { hvac_mode: mode });
             });
         });
-
+    
         // Toggle für Einstellungen
         const presetsToggle = climateContainer.querySelector('[data-action="toggle-presets"]');
         if (presetsToggle) {
@@ -2118,10 +2042,10 @@ class FastSearchCard extends HTMLElement {
                 const settingType = option.getAttribute('data-climate-setting');
                 const settingValue = option.getAttribute('data-value');
                 const row = option.closest('.climate-setting-row');
-
+                
                 row.querySelectorAll('.climate-setting-option').forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
-
+                
                 let serviceDomain, serviceName, serviceData;
 
                 switch (settingType) {
@@ -2146,7 +2070,7 @@ class FastSearchCard extends HTMLElement {
                         serviceData = { entity_id: item.id, fan_mode: settingValue };
                         break;
                 }
-
+    
                 if (serviceDomain && serviceName) {
                     this._hass.callService(serviceDomain, serviceName, serviceData);
                 }
@@ -2157,20 +2081,20 @@ class FastSearchCard extends HTMLElement {
     callClimateService(service, entity_id, data = {}) {
         this._hass.callService('climate', service, { entity_id, ...data });
     }
-
+    
     updateLightControlsUI(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
-
+    
         const state = this._hass.states[item.id];
         const isOn = state.state === 'on';
         const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
-
+    
         const circularContainer = lightContainer.querySelector('.circular-slider-container');
         const sliderInner = lightContainer.querySelector('.slider-inner');
         const circularValue = lightContainer.querySelector('.circular-value');
         const controlsRow = lightContainer.querySelector('.device-control-row');
-
+    
         if (circularContainer) {
             circularContainer.classList.toggle('off', !isOn);
         }
@@ -2183,13 +2107,13 @@ class FastSearchCard extends HTMLElement {
         if (controlsRow) {
             controlsRow.classList.toggle('hidden', !isOn);
         }
-
+    
         // Update circular slider if exists
         const sliderId = `slider-${item.id}`;
         if (this.circularSliders[sliderId]) {
             this.circularSliders[sliderId].updateFromState(brightness, isOn);
         }
-
+    
         if (!isOn) {
             const presetsContainer = lightContainer.querySelector('.device-control-presets');
             if (presetsContainer && presetsContainer.classList.contains('visible')) {
@@ -2205,7 +2129,7 @@ class FastSearchCard extends HTMLElement {
 
         const state = this._hass.states[item.id];
         const position = state.attributes.current_position ?? 100;
-
+        
         // Update circular slider if exists
         const sliderId = `slider-${item.id}`;
         if (this.circularSliders[sliderId]) {
@@ -2213,74 +2137,367 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    updateMediaPlayerControlsUI(item) {
-        const mediaContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
-        if (!mediaContainer) return;
-
-        const state = this._hass.states[item.id];
-        const volumeLevel = state.attributes.volume_level ?? 0;
-        const isMuted = state.attributes.is_volume_muted ?? false;
-        const isActive = this.isEntityActive(state);
-        const mediaState = state.state;
-
-        const circularContainer = mediaContainer.querySelector('.circular-slider-container.media-player');
-        const sliderInner = mediaContainer.querySelector('.slider-inner');
-        const circularValue = mediaContainer.querySelector('.circular-value');
-        const powerIcon = mediaContainer.querySelector('.power-icon');
-
-        if (circularContainer) {
-            circularContainer.classList.toggle('off', !isActive);
-        }
-        if (sliderInner) {
-            sliderInner.classList.toggle('off', !isActive);
-        }
-        if (circularValue) {
-            circularValue.textContent = isMuted ? 'MUTE' : `${Math.round(volumeLevel * 100)}%`;
-        }
-        if (powerIcon) {
-            powerIcon.textContent = isMuted ? '🔇' : '🔊';
-        }
-
-        // Update circular slider if exists
-        const sliderId = `slider-${item.id}`;
-        if (this.circularSliders[sliderId]) {
-            this.circularSliders[sliderId].updateFromState(Math.round(volumeLevel * 100), !isMuted);
-        }
-
-        // Update Play/Pause button
-        const playPauseButtonContainer = mediaContainer.querySelector('[data-action="play"]').parentElement || mediaContainer.querySelector('[data-action="pause"]').parentElement;
-        if (playPauseButtonContainer) {
-            const currentPlayPauseButton = playPauseButtonContainer.querySelector('[data-action="play"], [data-action="pause"]');
-            let newButtonHTML;
-            if (mediaState === 'playing') {
-                newButtonHTML = `<button class="device-control-button" data-action="pause" title="Pause">
-                    <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor" stroke-width="1"></path><path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor" stroke-width="1"></path></svg>
-                </button>`;
-            } else {
-                newButtonHTML = `<button class="device-control-button" data-action="play" title="Play">
-                    <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                </button>`;
+    // Circular Slider Class - embedded within the main class
+    createCircularSliderClass() {
+        if (window.CircularSlider) return; // Already exists
+    
+        window.CircularSlider = class {
+            constructor(container, config) {
+                this.container = container;
+                this.handle = container.querySelector('.handle');
+                this.progressFill = container.querySelector('.progress-fill');
+                this.valueDisplay = container.querySelector('.circular-value');
+                this.powerIcon = container.querySelector('.power-icon');
+                this.sliderInner = container.querySelector('.slider-inner');
+    
+                this.config = config;
+                this.centerX = 80;
+                this.centerY = 80;
+                this.radius = 68;
+                this.currentValue = config.defaultValue;
+                this.isOn = config.hasPower ? config.defaultPower : true;
+    
+                this.isDragging = false;
+                this.circumference = 2 * Math.PI * 68;
+    
+                this.init();
             }
-            if (currentPlayPauseButton && currentPlayPauseButton.outerHTML !== newButtonHTML) {
-                currentPlayPauseButton.outerHTML = newButtonHTML;
-                const newButton = playPauseButtonContainer.querySelector('[data-action="play"], [data-action="pause"]');
-                if (newButton) {
-                    if (mediaState === 'playing') {
-                        newButton.addEventListener('click', () => {
-                            this.callMediaPlayerService('media_pause', item.id);
-                            this.updateMediaPlayerControlsUI({...item, state: 'paused'});
-                        });
-                    } else {
-                        newButton.addEventListener('click', () => {
-                            this.callMediaPlayerService('media_play', item.id);
-                            this.updateMediaPlayerControlsUI({...item, state: 'playing'});
-                        });
-                    }
+    
+            init() {
+                this.progressFill.style.strokeDasharray = `0 ${this.circumference}`;
+                this.progressFill.style.strokeDashoffset = 0;
+    
+                // Power Button Event
+                if (this.config.onPowerToggle) {
+                    this.sliderInner.addEventListener('click', this.togglePower.bind(this));
+                }
+                this.updatePowerState();
+                this.updateSlider();
+                this.bindEvents();
+            }
+    
+            togglePower() {
+                if (!this.config.hasPower) return;
+    
+                this.isOn = !this.isOn;
+                this.updatePowerState();
+                this.updateSlider();
+    
+                if (this.config.onPowerToggle) {
+                    this.config.onPowerToggle(this.isOn);
                 }
             }
+    
+            updatePowerState() {
+                if (this.config.hasPower) {
+                    this.powerIcon.style.display = 'block';
+                    this.sliderInner.style.cursor = 'pointer';
+                    if (this.isOn) {
+                        this.container.classList.remove('off');
+                        this.sliderInner.classList.remove('off');
+                        this.powerIcon.style.color = '#fff';
+                    } else {
+                        this.container.classList.add('off');
+                        this.sliderInner.classList.add('off');
+                        this.powerIcon.style.color = '#ccc';
+                    }
+                } else {
+                    this.powerIcon.style.display = 'none';
+                    this.sliderInner.style.cursor = 'default';
+                    this.container.classList.remove('off');
+                    this.sliderInner.classList.remove('off');
+                }
+            }
+    
+            bindEvents() {
+                this.handle.addEventListener('mousedown', this.startDrag.bind(this));
+                document.addEventListener('mousemove', this.drag.bind(this));
+                document.addEventListener('mouseup', this.endDrag.bind(this));
+    
+                this.handle.addEventListener('touchstart', this.startDrag.bind(this));
+                document.addEventListener('touchmove', this.drag.bind(this));
+                document.addEventListener('touchend', this.endDrag.bind(this));
+            }
+    
+            startDrag(e) {
+                this.isDragging = true;
+                e.preventDefault();
+            }
+    
+            drag(e) {
+                if (!this.isDragging || !this.isOn) return;
+    
+                const rect = this.container.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+    
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+    
+                const x = clientX - centerX;
+                const y = clientY - centerY;
+    
+                let angle = Math.atan2(y, x) * 180 / Math.PI;
+                angle = (angle + 360) % 360;
+    
+                let normalizedAngle = (angle + 90) % 360;
+                let progress = normalizedAngle / 360;
+    
+                // Stopp-Zone bei 100%
+                const maxProgress = (this.config.maxValue - this.config.minValue);
+                const currentProgress = (this.currentValue - this.config.minValue);
+                const currentProgressRatio = currentProgress / maxProgress;
+    
+                if (currentProgressRatio > 0.85 && progress < 0.15) {
+                    progress = 1.0;
+                } else if (currentProgressRatio < 0.15 && progress > 0.85) {
+                    progress = 0.0;
+                }
+    
+                const rawValue = this.config.minValue + progress * (this.config.maxValue - this.config.minValue);
+                this.currentValue = Math.round(rawValue / this.config.step) * this.config.step;
+                this.currentValue = Math.max(this.config.minValue, Math.min(this.config.maxValue, this.currentValue));
+    
+                this.updateSlider();
+    
+                if (this.config.onValueChange) {
+                    this.config.onValueChange(this.currentValue, this.isOn);
+                }
+            }
+    
+            endDrag() {
+                this.isDragging = false;
+            }
+    
+            updateSlider() {
+                const progress = (this.currentValue - this.config.minValue) / (this.config.maxValue - this.config.minValue);
+                const angle = -90 + (progress * 360);
+    
+                // Handle Position
+                const handleX = this.centerX + this.radius * Math.cos(angle * Math.PI / 180);
+                const handleY = this.centerY + this.radius * Math.sin(angle * Math.PI / 180);
+    
+                this.handle.style.left = `${handleX - 8}px`;
+                this.handle.style.top = `${handleY - 8}px`;
+    
+                // SVG Progress
+                if (this.isOn || !this.config.hasPower) {
+                    const progressLength = progress * this.circumference;
+                    this.progressFill.style.strokeDasharray = `${progressLength} ${this.circumference}`;
+                } else {
+                    this.progressFill.style.strokeDasharray = `0 ${this.circumference}`;
+                }
+    
+                // Wert anzeigen
+                if (this.config.hasPower && !this.isOn) {
+                    this.valueDisplay.textContent = 'AUS';
+                } else {
+                    this.valueDisplay.textContent = this.config.formatValue(this.currentValue);
+                }
+            }
+    
+            updateFromState(value, isOn) {
+                this.currentValue = value;
+                this.isOn = isOn;
+                this.updatePowerState();
+                this.updateSlider();
+            }
+        };
+    }
+    
+    setupDetailTabs(item) {
+        // Create CircularSlider class if not exists
+        this.createCircularSliderClass();
+
+        const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
+        if (!tabsContainer) return;
+        
+        const tabs = tabsContainer.querySelectorAll('.detail-tab');
+        const slider = tabsContainer.querySelector('.tab-slider');
+        const contents = this.shadowRoot.querySelectorAll('.detail-tab-content');
+
+        const moveSlider = (targetTab) => {
+            slider.style.width = `${targetTab.offsetWidth}px`;
+            slider.style.left = `${targetTab.offsetLeft}px`;
+        };
+        
+        const activeTab = tabsContainer.querySelector('.detail-tab.active');
+        if (activeTab) {
+            moveSlider(activeTab);
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                moveSlider(tab);
+                
+                contents.forEach(c => c.classList.remove('active'));
+                this.shadowRoot.querySelector(`[data-tab-content="${targetId}"]`).classList.add('active');
+            });
+        });
+
+        if (item.domain === 'light') {
+            this.setupLightControls(item);
+        } else if (item.domain === 'cover') {
+            this.setupCoverControls(item);
+        } else if (item.domain === 'climate') {
+            this.setupClimateControls(item);
         }
     }
+    
+    setupLightControls(item) {
+        const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
+        if (!lightContainer) return;
+        // Create circular slider instance
+        const sliderId = `slider-${item.id}`;
+        const circularContainer = lightContainer.querySelector('.circular-slider-container');
+    
+        if (circularContainer) {
+            const state = this._hass.states[item.id];
+            const isOn = state.state === 'on';
+            const brightness = isOn ? Math.round((state.attributes.brightness || 0) / 2.55) : 0;
+    
+            this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
+                minValue: 0,
+                maxValue: 100,
+                defaultValue: brightness,
+                step: 1,
+                label: 'Helligkeit',
+                hasPower: true,
+                defaultPower: isOn,
+                formatValue: (val) => `${Math.round(val)}%`,
+                onValueChange: (value, isOn) => {
+                    if (isOn) {
+                        // Debounce the API calls
+                        clearTimeout(this.lightUpdateTimeout);
+                        this.lightUpdateTimeout = setTimeout(() => {
+                            if (value === 0) {
+                                this.callLightService('turn_off', item.id);
+                            } else {
+                                this.callLightService('turn_on', item.id, { brightness_pct: value });
+                            }
+                        }, 150); // 150ms delay instead of immediate
+                    }
+                },
+                onPowerToggle: (isOn) => {
+                    this.callLightService('toggle', item.id);
+                }
+            });
+        }
+        const tempButtons = lightContainer.querySelectorAll('[data-temp]');
+        const colorToggle = lightContainer.querySelector('[data-action="toggle-colors"]');
+        const colorPresets = lightContainer.querySelectorAll('.device-control-preset');
+        const presetsContainer = lightContainer.querySelector('.device-control-presets');
+        
+        tempButtons.forEach(btn => btn.addEventListener('click', () => {
+            const kelvin = parseInt(btn.dataset.temp, 10);
+            this.callLightService('turn_on', item.id, { kelvin: kelvin });
+        
+            // Update slider color immediately
+            const sliderId = `slider-${item.id}`;
+            if (this.circularSliders[sliderId]) {
+                let rgb = [255, 255, 255]; // default
+                if (kelvin <= 2700) rgb = [255, 166, 87];
+                else if (kelvin <= 4000) rgb = [255, 219, 186];
+                else rgb = [201, 226, 255];
+        
+                const progressFill = this.circularSliders[sliderId].progressFill;
+                progressFill.style.stroke = `rgb(${rgb.join(',')})`;
+        
+                const handle = this.circularSliders[sliderId].handle;
+                handle.style.borderColor = `rgb(${rgb.join(',')})`;
+            }
+        }));
 
+        if (colorToggle) {
+            colorToggle.addEventListener('click', () => {
+                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                this.animatePresetStagger(presetsContainer, colorPresets, !isOpen);
+                presetsContainer.setAttribute('data-is-open', String(!isOpen));
+            });
+        }
+    
+        colorPresets.forEach(preset => preset.addEventListener('click', () => {
+            const rgb = preset.dataset.rgb.split(',').map(Number);
+            this.callLightService('turn_on', item.id, { rgb_color: rgb });
+            colorPresets.forEach(p => p.classList.remove('active'));
+            preset.classList.add('active');
+        
+            // Update slider color immediately
+            const sliderId = `slider-${item.id}`;
+            if (this.circularSliders[sliderId]) {
+                const progressFill = this.circularSliders[sliderId].progressFill;
+                progressFill.style.stroke = `rgb(${rgb.join(',')})`;
+        
+                const handle = this.circularSliders[sliderId].handle;
+                handle.style.borderColor = `rgb(${rgb.join(',')})`;
+            }
+        }));
+    }
+
+    setupCoverControls(item) {
+        const coverContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
+        if (!coverContainer) return;
+        
+        const sliderId = `slider-${item.id}`;
+        const circularContainer = coverContainer.querySelector('.circular-slider-container.cover');
+    
+        if (circularContainer) {
+            const state = this._hass.states[item.id];
+            const position = state.attributes.current_position ?? 0;
+    
+            this.circularSliders[sliderId] = new CircularSlider(circularContainer, {
+                minValue: 0,
+                maxValue: 100,
+                defaultValue: position,
+                step: 1,
+                label: 'Offen',
+                hasPower: true,
+                defaultPower: true, // Always on
+                formatValue: (val) => `${Math.round(val)}%`,
+                onValueChange: (value) => {
+                    clearTimeout(this.coverUpdateTimeout);
+                    this.coverUpdateTimeout = setTimeout(() => {
+                        this.callCoverService('set_cover_position', item.id, { position: value });
+                    }, 150);
+                },
+                onPowerToggle: () => {} // No action on power toggle
+            });
+        }
+
+        const openBtn = coverContainer.querySelector('[data-action="open"]');
+        const stopBtn = coverContainer.querySelector('[data-action="stop"]');
+        const closeBtn = coverContainer.querySelector('[data-action="close"]');
+        const presetsToggle = coverContainer.querySelector('[data-action="toggle-presets"]');
+        const presetsContainer = coverContainer.querySelector('.device-control-presets');
+        const positionPresets = coverContainer.querySelectorAll('.device-control-preset');
+        
+        if(openBtn) openBtn.addEventListener('click', () => this.callCoverService('open_cover', item.id));
+        if(stopBtn) stopBtn.addEventListener('click', () => this.callCoverService('stop_cover', item.id));
+        if(closeBtn) closeBtn.addEventListener('click', () => this.callCoverService('close_cover', item.id));
+
+        if (presetsToggle) {
+            presetsToggle.addEventListener('click', () => {
+                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                this.animatePresetStagger(presetsContainer, positionPresets, !isOpen);
+                presetsContainer.setAttribute('data-is-open', String(!isOpen));
+            });
+        }
+        
+        positionPresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                const position = parseInt(preset.dataset.position, 10);
+                this.callCoverService('set_cover_position', item.id, { position });
+                positionPresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+            });
+        });
+    }
 
     callLightService(service, entity_id, data = {}) {
         this._hass.callService('light', service, { entity_id, ...data });
@@ -2289,11 +2506,6 @@ class FastSearchCard extends HTMLElement {
     callCoverService(service, entity_id, data = {}) {
         this._hass.callService('cover', service, { entity_id, ...data });
     }
-
-    callMediaPlayerService(service, entity_id, data = {}) {
-        this._hass.callService('media_player', service, { entity_id, ...data });
-    }
-
 
     animatePresetStagger(container, presets, isOpening) {
         container.classList.toggle('visible', isOpening);
@@ -2318,7 +2530,7 @@ class FastSearchCard extends HTMLElement {
             case 'light': return { status: state.state === 'on' ? 'Ein' : 'Aus' };
             case 'climate': return { status: state.attributes.hvac_action || state.state };
             case 'cover': return { status: state.state === 'open' ? 'Offen' : 'Geschlossen' };
-            case 'media_player': return { status: state.state === 'playing' ? 'Spielt' : (state.state === 'paused' ? 'Pausiert' : (state.state === 'off' ? 'Aus' : state.state)) };
+            case 'media_player': return { status: state.state === 'playing' ? 'Spielt' : (state.state === 'paused' ? 'Pausiert' : 'Aus') };
             default: return { status: state.state };
         }
     }
@@ -2350,17 +2562,8 @@ class FastSearchCard extends HTMLElement {
                 }
                 break;
             case 'media_player':
-                 if (state.attributes.volume_level != null) {
-                     stats.push(`${Math.round(state.attributes.volume_level * 100)}% Lautstärke`);
-                 }
-                 if (state.attributes.is_volume_muted) {
-                     stats.push('Stumm');
-                 }
-                 if (state.attributes.media_title) {
-                     stats.push(`♪ ${state.attributes.media_title}`);
-                 } else if (state.state === 'playing' || state.state === 'paused') {
-                    stats.push(state.state === 'playing' ? 'Spielt' : 'Pausiert');
-                 }
+                 if (state.state === 'playing' && state.attributes.media_title) stats.push(`♪ ${state.attributes.media_title}`);
+                 if (state.attributes.volume_level) stats.push(`${Math.round(state.attributes.volume_level * 100)}% Lautstärke`);
                  break;
             case 'cover':
                 if (state.attributes.current_position != null) stats.push(`${state.attributes.current_position}%`);
@@ -2410,277 +2613,6 @@ class FastSearchCard extends HTMLElement {
         card.animate([{ boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }], { duration: 600, easing: 'ease-out' });
         icon.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.2)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
     }
-
-    /* TTS Integration START */
-    checkTTSAvailability() {
-        if (!this._hass || !this._hass.services) return false;
-        
-        // Prefer Amazon Polly
-        if (this._hass.services.tts && this._hass.services.tts.amazon_polly_say) {
-            return true;
-        }
-        
-        // Fallback to generic TTS if any is available
-        const ttsServices = Object.keys(this._hass.services.tts || {});
-        if (ttsServices.length > 0) return true;
-
-        return false;
-    }
-
-    getBestTTSService() {
-        if (!this._hass || !this._hass.services) return null;
-
-        if (this._hass.services.tts && this._hass.services.tts.amazon_polly_say) {
-            return { domain: 'tts', service: 'amazon_polly_say' };
-        }
-        if (this._hass.services.tts && this._hass.services.tts.cloud_say) {
-            return { domain: 'tts', service: 'cloud_say' };
-        }
-        const ttsMethods = Object.keys(this._hass.services.tts || {});
-        if (ttsMethods.length > 0) {
-            return { domain: 'tts', service: ttsMethods[0] };
-        }
-        return null;
-    }
-
-    getTTSHTML(item) {
-        if (!this.checkTTSAvailability()) {
-            return '<div class="empty-state">TTS nicht verfügbar.</div>';
-        }
-        
-        return `
-            <div class="tts-section" id="tts-section-${item.id}">
-                <div class="tts-input-container">
-                    <textarea 
-                        class="tts-textarea" 
-                        placeholder="Text eingeben der vorgelesen werden soll..." 
-                        maxlength="300"
-                        data-tts-input="${item.id}"></textarea>
-                    <div class="tts-counter" data-tts-counter="${item.id}">0 / 300 Zeichen</div>
-                </div>
-                
-                <div class="tts-controls">
-                    <select class="tts-language-select" data-tts-language="${item.id}">
-                        <option value="de">🇩🇪 Deutsch</option>
-                        <option value="en">🇺🇸 English</option>
-                        <option value="fr">🇫🇷 Français</option>
-                        <option value="es">🇪🇸 Español</option>
-                        <option value="it">🇮🇹 Italiano</option>
-                    </select>
-                    <button 
-                        class="tts-speak-button" 
-                        data-tts-speak="${item.id}"
-                        disabled>
-                        🗣️ Vorlesen
-                    </button>
-                </div>
-                
-                <div class="tts-presets">
-                    <button class="tts-preset-button" data-tts-preset="🏠 Willkommen zu Hause!">
-                        🏠 Willkommen
-                    </button>
-                    <button class="tts-preset-button" data-tts-preset="🍽️ Das Essen ist fertig!">
-                        🍽️ Essen fertig
-                    </button>
-                    <button class="tts-preset-button" data-tts-preset="🚪 Bitte zur Haustür kommen.">
-                        🚪 Zur Haustür
-                    </button>
-                    <button class="tts-preset-button" data-tts-preset="🌙 Gute Nacht und schöne Träume!">
-                        🌙 Gute Nacht
-                    </button>
-                    <button class="tts-preset-button" data-tts-preset="⚠️ Achtung! Wichtige Durchsage.">
-                        ⚠️ Durchsage
-                    </button>
-                    <button class="tts-preset-button" data-tts-preset="🎵 Die Musik ist zu laut!">
-                        🎵 Musik leiser
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    setupTTSEventListeners(item) {
-        const ttsInput = this.shadowRoot.querySelector(`[data-tts-input="${item.id}"]`);
-        const ttsCounter = this.shadowRoot.querySelector(`[data-tts-counter="${item.id}"]`);
-        const ttsLanguage = this.shadowRoot.querySelector(`[data-tts-language="${item.id}"]`);
-        const ttsSpeakButton = this.shadowRoot.querySelector(`[data-tts-speak="${item.id}"]`);
-        const ttsPresets = this.shadowRoot.querySelectorAll(`[data-tts-preset]`);
-        
-        if (!ttsInput || !ttsSpeakButton) return;
-        
-        ttsInput.addEventListener('input', (e) => {
-            const text = e.target.value;
-            const length = text.length;
-            
-            if (ttsCounter) {
-                ttsCounter.textContent = `${length} / 300 Zeichen`;
-                ttsCounter.classList.toggle('warning', length > 250);
-            }
-            
-            ttsSpeakButton.disabled = length === 0 || length > 300;
-        });
-        
-        ttsPresets.forEach(preset => {
-            preset.addEventListener('click', (e) => {
-                const presetText = preset.getAttribute('data-tts-preset');
-                if (presetText && ttsInput) {
-                    ttsInput.value = presetText;
-                    const inputEvent = new Event('input');
-                    ttsInput.dispatchEvent(inputEvent);
-                    
-                    preset.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        preset.style.transform = '';
-                    }, 150);
-                }
-            });
-        });
-        
-        ttsSpeakButton.addEventListener('click', async (e) => {
-            e.preventDefault();
-            
-            const text = ttsInput.value.trim();
-            if (!text) return;
-            
-            const language = ttsLanguage ? ttsLanguage.value : 'de';
-            const isSpeaking = ttsSpeakButton.classList.contains('speaking');
-            
-            if (isSpeaking) {
-                await this.stopTTS(item.id);
-                this.updateTTSButton(ttsSpeakButton, false);
-            } else {
-                const success = await this.speakTTS(item.id, text, language, ttsSpeakButton);
-                if (success) {
-                    this.updateTTSButton(ttsSpeakButton, true);
-                    const wordCount = text.split(' ').length;
-                    const estimatedDuration = Math.max(3000, (wordCount / 150) * 60 * 1000);
-                    
-                    setTimeout(() => {
-                        this.updateTTSButton(ttsSpeakButton, false);
-                    }, estimatedDuration);
-                }
-            }
-        });
-    }
-
-    async speakTTS(entityId, text, language = 'de', buttonElement = null) {
-        if (!this._hass || !text) return false;
-        
-        try {
-            if (buttonElement) {
-                buttonElement.disabled = true;
-                buttonElement.innerHTML = '⏳ Spreche...';
-            }
-            
-            const serviceData = {
-                entity_id: entityId,
-                message: text,
-                language: language // Add language to service data
-            };
-            
-            // Prioritize amazon_polly_say if available, otherwise use generic tts.speak or others
-            const bestTts = this.getBestTTSService();
-            if (bestTts && bestTts.domain === 'tts' && bestTts.service === 'amazon_polly_say') {
-                this._hass.callService('tts', 'amazon_polly_say', serviceData).catch(error => {
-                    if (error.message && (error.message.includes('timeout') || error.message.includes('5XX'))) {
-                        console.log('ℹ️ Polly Proxy-Fehler ignoriert - Audio läuft vermutlich trotzdem');
-                    } else {
-                        console.error('❌ Polly TTS Fehler:', error);
-                    }
-                });
-            } else if (bestTts) {
-                 this._hass.callService(bestTts.domain, bestTts.service, serviceData);
-            } else {
-                 console.warn('No suitable TTS service found.');
-                 if (buttonElement) {
-                    buttonElement.innerHTML = '❌ Kein TTS-Dienst';
-                    buttonElement.disabled = false;
-                    setTimeout(() => this.updateTTSButton(buttonElement, false), 3000);
-                }
-                return false;
-            }
-            
-            return true;
-            
-        } catch (error) {
-            console.error('❌ TTS Start fehlgeschlagen:', error);
-            if (buttonElement) {
-                buttonElement.innerHTML = '❌ TTS-Fehler';
-                buttonElement.disabled = false;
-                setTimeout(() => this.updateTTSButton(buttonElement, false), 3000);
-            }
-            return false;
-        }
-    }
-
-    async stopTTS(entityId) {
-        if (!this._hass) return false;
-        try {
-            await this._hass.callService('media_player', 'media_stop', {
-                entity_id: entityId
-            });
-            return true;
-        } catch (error) {
-            console.error('TTS Stop Fehler:', error);
-            return false;
-        }
-    }
-    
-    updateTTSButton(button, isSpeaking) {
-        if (!button) return;
-        if (isSpeaking) {
-            button.classList.add('speaking');
-            button.innerHTML = '⏹️ Stoppen';
-            button.disabled = false;
-        } else {
-            button.classList.remove('speaking');
-            button.innerHTML = '🗣️ Vorlesen';
-            button.disabled = false;
-        }
-    }
-    /* TTS Integration END */
-
-    /* Music Assistant (Placeholder for now, structure from old code) */
-    getMusicAssistantHTML(item) {
-        // This is a placeholder structure, actual implementation for MA search is complex
-        // and needs more context from your old MA integration.
-        return `
-            <div class="ma-search-container">
-                <div class="ma-search-bar-container">
-                    <input type="text"
-                           class="ma-search-input"
-                           placeholder="Künstler, Album oder Song suchen..."
-                           data-ma-search="${item.id}" disabled>
-                    <div class="ma-enqueue-mode" data-ma-enqueue="${item.id}" style="pointer-events: none; opacity: 0.5;">
-                        <span class="ma-enqueue-icon">▶️</span>
-                        <span class="ma-enqueue-text">Play now</span>
-                    </div>
-                </div>
-                <div class="ma-filter-container" id="ma-filters-${item.id}">
-                    <div class="ma-filter-chip ma-filter-active" data-filter="all" style="pointer-events: none; opacity: 0.5;">
-                        <span class="ma-filter-icon">🔗</span>
-                        <span>Alle</span>
-                    </div>
-                </div>
-                <div class="ma-search-results" id="ma-results-${item.id}">
-                    <div class="empty-state">
-                        <div class="empty-title">Music Assistant Coming Soon</div>
-                        <div class="empty-subtitle">Hier werden Musiksuchergebnisse angezeigt, wenn MA vollständig integriert ist.</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    setupMusicAssistantEventListeners(item) {
-        // Placeholder for MA event listeners
-        const presetsContainer = this.shadowRoot.querySelector('.media-player-options');
-        const emptyStateElements = presetsContainer.querySelectorAll('.empty-state');
-        // This will now activate the empty state from getMusicAssistantHTML
-        this.animatePresetStagger(presetsContainer, emptyStateElements, true);
-    }
-    /* END Music Assistant */
-
 
     getCardSize() { return 4; }
     static getConfigElement() { return document.createElement('fast-search-card-editor'); }
