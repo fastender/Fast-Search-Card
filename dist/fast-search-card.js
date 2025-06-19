@@ -1932,7 +1932,7 @@ class FastSearchCard extends HTMLElement {
             case 'climate':
                 return this.getClimateControlsHTML(item);
             case 'media_player':
-                return this.getMediaPlayerControlsHTML(item);
+                return this.(item);
             default:
                 return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Keine Steuerelemente für diesen Gerätetyp.</div>`;
         }
@@ -2141,7 +2141,7 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
-
+    
     getMediaPlayerControlsHTML(item) {
         const state = this._hass.states[item.id];
         const isPlaying = state.state === 'playing';
@@ -2182,11 +2182,14 @@ class FastSearchCard extends HTMLElement {
                     </button>
                 </div>
                 <div class="device-control-presets" data-is-open="false" id="media-assistant-panel-${item.id}">
-                    </div>
+                </div>
                 <div class="device-control-presets" data-is-open="false" id="tts-panel-${item.id}">
-                    </div>
+                </div>
             </div>
         `;
+    }
+
+        
     }
 
     getVaneLabel(value, direction) {
