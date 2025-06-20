@@ -1711,23 +1711,13 @@ class FastSearchCard extends HTMLElement {
             const iconBackground = detailPanel.querySelector('.icon-background');
             if (iconBackground) {
                 if (item.domain === 'media_player') {
-                    // MEDIA PLAYER: Album Art mit Preloading
+                    // MEDIA PLAYER: Album Art mit sofortigem Update
                     const newAlbumArt = this.getAlbumArtUrl(item);
-                    const currentBg = iconBackground.style.backgroundImage;
                     const newBgUrl = newAlbumArt ? `url("${newAlbumArt}")` : `url("${this.getBackgroundImageForItem({...item, state: state.state})}")`;
                     
-                    if (currentBg !== newBgUrl) {
-                        // Preload new image für schnelleren Wechsel
-                        const img = new Image();
-                        img.onload = () => {
-                            iconBackground.style.backgroundImage = newBgUrl;
-                            iconBackground.style.opacity = '1';
-                        };
-                        img.src = newAlbumArt || this.getBackgroundImageForItem({...item, state: state.state});
-                        
-                        // Sofortiger Wechsel ohne Fade für bessere Performance
-                        iconBackground.style.opacity = '0.7';
-                    }
+                    // Sofortiger Wechsel ohne Vergleich
+                    iconBackground.style.backgroundImage = newBgUrl;
+                    iconBackground.style.opacity = '1';              
                 } else {
                     // ANDERE GERÄTE: Standard Background
                     const newBg = this.getBackgroundImageForItem({...item, state: state.state});
@@ -2139,29 +2129,44 @@ class FastSearchCard extends HTMLElement {
         }
 
         // Update position display
-            const currentTimeEl = mediaContainer.querySelector('.current-time');
-            const totalTimeEl = mediaContainer.querySelector('.total-time');
-            const positionProgress = mediaContainer.querySelector('.position-progress');
-            
-            if (currentTimeEl && totalTimeEl && positionProgress) {
-                const duration = state.attributes.media_duration || 0;
-                const position = state.attributes.media_position || 0;
-                
-                // Zeit formatieren (Sekunden zu MM:SS)
-                const formatTime = (seconds) => {
-                    const mins = Math.floor(seconds / 60);
-                    const secs = Math.floor(seconds % 60);
-                    return `${mins}:${secs.toString().padStart(2, '0')}`;
-                };
-                
-                currentTimeEl.textContent = formatTime(position);
-                totalTimeEl.textContent = formatTime(duration);
-                
-                // Progress Bar
-                const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
-                positionProgress.style.width = `${Math.min(100, Math.max(0, progressPercent))}%`;
-            }
+        const currentTimeEl = mediaContainer.querySelector('.current-time');
+        const totalTimeEl = mediaContainer.querySelector('.total-time');
+        const positionProgress = mediaContainer.querySelector('.position-progress');
         
+        if (currentTimeEl && totalTimeEl && positionProgress) {
+            // Alternative Attribute-Namen je nach Media Player
+            const duration = state.attributes.media_duration || 
+                             state.attributes.duration || 
+                             state.attributes.total_time || 0;
+        
+            const position = state.attributes.media_position || 
+                             state.attributes.position || 
+                             state.attributes.current_time || 
+                             state.attributes.elapsed_time || 0;
+            
+            // DEBUG: Zeige was wir bekommen
+            console.log('Media Debug:', {
+                entity: item.id,
+                duration: duration,
+                position: position,
+                state: state.state,
+                allAttributes: state.attributes
+            });
+            
+            // Zeit formatieren (Sekunden zu MM:SS)
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+            
+            currentTimeEl.textContent = formatTime(position);
+            totalTimeEl.textContent = formatTime(duration);
+            
+            // Progress Bar
+            const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
+            positionProgress.style.width = `${Math.min(100, Math.max(0, progressPercent))}%`;
+        }
     }
     
     setupClimateControls(item) {
