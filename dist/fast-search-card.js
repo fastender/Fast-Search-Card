@@ -27,7 +27,8 @@ class FastSearchCard extends HTMLElement {
         this.lightUpdateTimeout = null;
         this.coverUpdateTimeout = null; // Hinzugefügt für Rollladen
         this.climateUpdateTimeout = null;
-        this.mediaUpdateTimeout = null;  // NEU HINZUFÜGEN        
+        this.mediaUpdateTimeout = null;  // NEU HINZUFÜGEN
+        this.mediaPositionUpdateInterval = null;        
     }
 
     setConfig(config) {
@@ -1057,8 +1058,40 @@ class FastSearchCard extends HTMLElement {
                 border-color: #1DB954 !important;
             }
 
+            /* Media Position Display */
+            .media-position-display {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin: 16px 0;
+                width: 100%;
+                max-width: 280px;
+            }
             
+            .current-time, .total-time {
+                font-size: 12px;
+                color: var(--text-secondary);
+                font-weight: 500;
+                min-width: 35px;
+                text-align: center;
+            }
             
+            .position-bar {
+                flex: 1;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 2px;
+                overflow: hidden;
+                position: relative;
+            }
+            
+            .position-progress {
+                height: 100%;
+                background: #1DB954;
+                border-radius: 2px;
+                transition: width 0.3s ease;
+            }            
+                        
             </style>
 
             <div class="main-container">
@@ -1648,7 +1681,7 @@ class FastSearchCard extends HTMLElement {
         const item = this.currentDetailItem;
         const state = this._hass.states[item.id];
         if (!state) return;
-
+    
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
         if (detailPanel) {
             const isActive = this.isEntityActive(state);
@@ -1657,7 +1690,7 @@ class FastSearchCard extends HTMLElement {
                 statusIndicator.textContent = this.getDetailedStateText(item).status;
                 statusIndicator.classList.toggle('active', isActive);
             }
-
+    
             const quickStats = detailPanel.querySelector('.quick-stats');
             if (quickStats) {
                 quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
@@ -1673,29 +1706,52 @@ class FastSearchCard extends HTMLElement {
             
             const detailArea = detailPanel.querySelector('.detail-area');
             if (detailArea) detailArea.textContent = item.area;
-
+    
+            // Icon Background Update - BEIDE Fälle abdecken
             const iconBackground = detailPanel.querySelector('.icon-background');
             if (iconBackground) {
-                const newBg = item.domain === 'media_player' ? this.getAlbumArtUrl(item) : this.getBackgroundImageForItem({...item, state: state.state});
-                const currentBg = iconBackground.style.backgroundImage;
-                if (currentBg !== `url("${newBg}")`) {
-                   iconBackground.style.backgroundImage = `url('${newBg}')`;
-                   iconBackground.style.opacity = '0';
-                   setTimeout(() => { iconBackground.style.opacity = '1'; }, 100);
+                if (item.domain === 'media_player') {
+                    // MEDIA PLAYER: Album Art mit Preloading
+                    const newAlbumArt = this.getAlbumArtUrl(item);
+                    const currentBg = iconBackground.style.backgroundImage;
+                    const newBgUrl = newAlbumArt ? `url("${newAlbumArt}")` : `url("${this.getBackgroundImageForItem({...item, state: state.state})}")`;
+                    
+                    if (currentBg !== newBgUrl) {
+                        // Preload new image für schnelleren Wechsel
+                        const img = new Image();
+                        img.onload = () => {
+                            iconBackground.style.backgroundImage = newBgUrl;
+                            iconBackground.style.opacity = '1';
+                        };
+                        img.src = newAlbumArt || this.getBackgroundImageForItem({...item, state: state.state});
+                        
+                        // Sofortiger Wechsel ohne Fade für bessere Performance
+                        iconBackground.style.opacity = '0.7';
+                    }
+                } else {
+                    // ANDERE GERÄTE: Standard Background
+                    const newBg = this.getBackgroundImageForItem({...item, state: state.state});
+                    const currentBg = iconBackground.style.backgroundImage;
+                    if (currentBg !== `url("${newBg}")`) {
+                       iconBackground.style.backgroundImage = `url('${newBg}')`;
+                       iconBackground.style.opacity = '0';
+                       setTimeout(() => { iconBackground.style.opacity = '1'; }, 100);
+                    }
                 }
             }
         }
         
+        // Device-spezifische Updates (bleibt gleich)
         if (item.domain === 'light') {
             this.updateLightControlsUI(item);
         } else if (item.domain === 'cover') {
             this.updateCoverControlsUI(item);
         } else if (item.domain === 'climate') {
             this.updateClimateControlsUI(item);
-        } else if (item.domain === 'media_player') {  // NEU HINZUFÜGEN
-            this.updateMediaPlayerControlsUI(item);            
+        } else if (item.domain === 'media_player') {
+            this.updateMediaPlayerControlsUI(item);
         }
-    }
+    }        
 
     getDetailLeftPaneHTML(item) {
         const newBackButtonSVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
@@ -2081,6 +2137,31 @@ class FastSearchCard extends HTMLElement {
             `;
             playPauseBtn.innerHTML = iconHTML;
         }
+
+        // Update position display
+            const currentTimeEl = mediaContainer.querySelector('.current-time');
+            const totalTimeEl = mediaContainer.querySelector('.total-time');
+            const positionProgress = mediaContainer.querySelector('.position-progress');
+            
+            if (currentTimeEl && totalTimeEl && positionProgress) {
+                const duration = state.attributes.media_duration || 0;
+                const position = state.attributes.media_position || 0;
+                
+                // Zeit formatieren (Sekunden zu MM:SS)
+                const formatTime = (seconds) => {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = Math.floor(seconds % 60);
+                    return `${mins}:${secs.toString().padStart(2, '0')}`;
+                };
+                
+                currentTimeEl.textContent = formatTime(position);
+                totalTimeEl.textContent = formatTime(duration);
+                
+                // Progress Bar
+                const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
+                positionProgress.style.width = `${Math.min(100, Math.max(0, progressPercent))}%`;
+            }
+        
     }
     
     setupClimateControls(item) {
@@ -2203,16 +2284,23 @@ class FastSearchCard extends HTMLElement {
                 defaultPower: isActive,
                 formatValue: (val) => `${Math.round(val)}%`,
                 onValueChange: (value) => {
+                    // Sofort UI aktualisieren (lokal)
+                    const circularValue = mediaContainer.querySelector('.circular-value');
+                    if (circularValue) {
+                        circularValue.textContent = `${Math.round(value)}%`;
+                    }
+                    
+                    // API Call mit Debouncing
                     clearTimeout(this.mediaUpdateTimeout);
                     this.mediaUpdateTimeout = setTimeout(() => {
                         this.callMediaPlayerService('volume_set', item.id, { volume_level: value / 100 });
-                    }, 150);
+                    }, 300);
                 },
                 onPowerToggle: (isOn) => {
                     this.callMediaPlayerService(isOn ? 'turn_on' : 'turn_off', item.id);
                 }
             });
-        }
+        }       
     
         // Media Control Buttons
         const prevBtn = mediaContainer.querySelector('[data-action="previous"]');
@@ -2266,6 +2354,15 @@ class FastSearchCard extends HTMLElement {
                 ttsBtn.classList.toggle('active', !isOpen);
             });
         }
+
+        // Live Position Updates für Media Player
+        if (item.domain === 'media_player') {
+            this.mediaPositionUpdateInterval = setInterval(() => {
+                if (this.isDetailView && this.currentDetailItem?.id === item.id) {
+                    this.updateMediaPlayerControlsUI(this.currentDetailItem);
+                }
+            }, 1000); // Jede Sekunde für Position Updates
+        }                
     }
     
     callMediaPlayerService(service, entity_id, data = {}) {
@@ -2315,6 +2412,15 @@ class FastSearchCard extends HTMLElement {
                     </div>
                     <div class="handle" style="border-color: #1DB954;"></div>
                 </div>
+                
+                <!-- NEU HINZUFÜGEN: -->
+                <div class="media-position-display">
+                    <span class="current-time">0:00</span>
+                    <div class="position-bar">
+                        <div class="position-progress" style="width: 0%;"></div>
+                    </div>
+                    <span class="total-time">0:00</span>
+                </div>                       
                 
                 <div class="device-control-row">
                     <button class="device-control-button" data-action="previous" title="Vorheriger Titel">
