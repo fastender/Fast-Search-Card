@@ -29,6 +29,13 @@ class FastSearchCard extends HTMLElement {
         this.climateUpdateTimeout = null;
         this.mediaUpdateTimeout = null;  // NEU HINZUFÜGEN
         this.mediaPositionUpdateInterval = null;        
+
+        // --- NEU: Music Assistant State ---
+        this.musicAssistantSearchTimeout = null;
+        this.musicAssistantEnqueueMode = 'play'; // 'play', 'add', 'next'
+        this.maListenersAttached = new WeakSet(); // Verhindert doppelte Event Listeners
+        this.lastMusicAssistantResults = null; // Cache für Suchergebnisse
+        this.musicAssistantConfigEntryId = null; // Cache für die Config Entry ID        
     }
 
     setConfig(config) {
@@ -1090,8 +1097,162 @@ class FastSearchCard extends HTMLElement {
                 background: #1DB954;
                 border-radius: 2px;
                 transition: width 0.3s ease;
-            }            
-                        
+            }       
+            
+            /* --- NEU: Music Assistant Specific Styles --- */
+            .music-assistant-content {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                padding: 12px 4px;
+            }
+            .ma-search-bar-container {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 0 8px;
+            }
+            .ma-search-input {
+                flex-grow: 1;
+                border: none;
+                background: rgba(0,0,0,0.2);
+                outline: none;
+                color: var(--text-primary);
+                font-size: 14px;
+                padding: 10px 14px;
+                border-radius: 10px;
+                transition: background 0.2s ease, box-shadow 0.2s ease;
+            }
+            .ma-search-input:focus {
+                background: rgba(0,0,0,0.3);
+                box-shadow: 0 0 0 2px var(--accent);
+            }
+            .ma-enqueue-toggle {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.1);
+                border: none;
+                color: var(--text-secondary);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                flex-shrink: 0;
+                transition: transform 0.1s ease;
+            }
+            .ma-enqueue-toggle:active {
+                transform: scale(0.9);
+            }
+            .ma-enqueue-toggle svg { width: 18px; height: 18px; }
+            
+            .ma-filter-chips {
+                display: flex;
+                gap: 8px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                padding: 0 8px 4px 8px;
+            }
+            .ma-filter-chips::-webkit-scrollbar { display: none; }
+            
+            .ma-chip {
+                padding: 6px 14px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 20px;
+                cursor: pointer;
+                white-space: nowrap;
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--text-secondary);
+            }
+            .ma-chip:hover {
+                background: rgba(255, 255, 255, 0.2);
+                color: var(--text-primary);
+            }
+            .ma-chip.active {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: white;
+            }
+            
+            .ma-results-container {
+                min-height: 250px;
+                max-height: 300px;
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255,255,255,0.2) transparent;
+                padding: 0 8px;
+            }
+             .ma-results-container::-webkit-scrollbar { width: 4px; }
+             .ma-results-container::-webkit-scrollbar-track { background: transparent; }
+             .ma-results-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+            
+            .ma-grid-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 16px;
+            }
+            .ma-grid-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                cursor: pointer;
+                border-radius: 12px;
+                padding: 8px;
+                transition: background 0.2s ease;
+            }
+            .ma-grid-item:hover { background: rgba(255,255,255,0.1); }
+            .ma-grid-image {
+                width: 80px; height: 80px;
+                border-radius: 8px;
+                background-color: rgba(0,0,0,0.3);
+                margin-bottom: 8px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 24px;
+            }
+            .ma-grid-image img { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
+            .ma-grid-name {
+                font-size: 12px; font-weight: 600; color: var(--text-primary);
+                line-height: 1.3; width: 100%;
+                overflow: hidden; text-overflow: ellipsis;
+                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            }
+            .ma-grid-artist { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+            
+            .ma-list-container { display: flex; flex-direction: column; gap: 8px; }
+            .ma-list-item {
+                display: grid;
+                grid-template-columns: 40px 1fr auto;
+                align-items: center;
+                gap: 12px;
+                padding: 8px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: background 0.2s ease;
+            }
+            .ma-list-item:hover { background: rgba(255,255,255,0.1); }
+            .ma-list-image { width: 40px; height: 40px; border-radius: 4px; background-color: rgba(0,0,0,0.3); }
+            .ma-list-image img { width: 100%; height: 100%; border-radius: 4px; object-fit: cover; }
+            .ma-list-info { overflow: hidden; }
+            .ma-list-name { font-size: 14px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .ma-list-artist { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            
+            .ma-category-header {
+                font-size: 14px; font-weight: 600; color: var(--text-secondary);
+                padding: 12px 8px 4px 8px;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+                margin-bottom: 8px;
+            }
+            .ma-loading-state, .ma-empty-state {
+                text-align: center; color: var(--text-secondary);
+                padding: 40px 20px; font-style: italic; font-size: 13px;
+            }
+                                    
             </style>
 
             <div class="main-container">
@@ -2378,19 +2539,25 @@ class FastSearchCard extends HTMLElement {
             musicAssistantBtn.addEventListener('click', () => {
                 const presetsContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
                 const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                
-                // Schließe TTS falls offen
+        
+                // Schließe andere offene Container, falls nötig
                 const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
-                if (ttsContainer.getAttribute('data-is-open') === 'true') {
+                if (ttsContainer && ttsContainer.getAttribute('data-is-open') === 'true') {
                     ttsContainer.classList.remove('visible');
                     ttsContainer.setAttribute('data-is-open', 'false');
-                    ttsBtn.classList.remove('active');
+                    mediaContainer.querySelector('[data-action="tts"]').classList.remove('active');
                 }
                 
-                // Toggle Music Assistant
+                // Music Assistant Container umschalten
                 presetsContainer.classList.toggle('visible', !isOpen);
                 presetsContainer.setAttribute('data-is-open', String(!isOpen));
                 musicAssistantBtn.classList.toggle('active', !isOpen);
+        
+                // Event Listeners nur einmalig bei erster Öffnung initialisieren
+                if (!isOpen && !this.maListenersAttached.has(presetsContainer)) {
+                    this.setupMusicAssistantEventListeners(item, presetsContainer);
+                    this.maListenersAttached.add(presetsContainer);
+                }
             });
         }
         
@@ -2462,7 +2629,6 @@ class FastSearchCard extends HTMLElement {
         const playIcon = `<svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
         
         const offClass = (!isPlaying && !isPaused) ? 'off' : '';
-        const activeClass = ''; // DIESE ZEILE ÄNDERN
         const buttonTitle = isPlaying ? 'Pause' : 'Play';
         const displayValue = (!isPlaying && !isPaused) ? 'AUS' : volume + '%';
         const playPauseIcon = isPlaying ? pauseIcon : playIcon;
@@ -2471,67 +2637,40 @@ class FastSearchCard extends HTMLElement {
             <div class="device-control-design" id="device-control-${item.id}">
                 <div class="circular-slider-container media ${offClass}" data-entity="${item.id}">
                     <div class="slider-track"></div>
-                    <svg class="progress-svg">
-                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
-                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #1DB954;"></circle>
-                    </svg>
-                    <div class="slider-inner ${offClass}">
-                        <div class="power-icon">⏻</div>
-                        <div class="circular-value">${displayValue}</div>
-                        <div class="circular-label">Lautstärke</div>
-                    </div>
+                    <svg class="progress-svg"><circle class="progress-bg" cx="80" cy="80" r="68"></circle><circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: #1DB954;"></circle></svg>
+                    <div class="slider-inner ${offClass}"><div class="power-icon">⏻</div><div class="circular-value">${displayValue}</div><div class="circular-label">Lautstärke</div></div>
                     <div class="handle" style="border-color: #1DB954;"></div>
                 </div>
                 
-                <!-- NEU HINZUFÜGEN: -->
                 <div class="media-position-display">
                     <span class="current-time">0:00</span>
-                    <div class="position-bar">
-                        <div class="position-progress" style="width: 0%;"></div>
-                    </div>
+                    <div class="position-bar"><div class="position-progress" style="width: 0%;"></div></div>
                     <span class="total-time">0:00</span>
                 </div>                       
                 
                 <div class="device-control-row">
                     <button class="device-control-button" data-action="previous" title="Vorheriger Titel">
-                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                            <path d="M6 7V17" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M17.0282 5.2672C17.4217 4.95657 18 5.23682 18 5.73813V18.2619C18 18.7632 17.4217 19.0434 17.0282 18.7328L9.09651 12.4709C8.79223 12.2307 8.79223 11.7693 9.09651 11.5291L17.0282 5.2672Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
+                        <svg width="48px" height="48px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 7V17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.0282 5.2672C17.4217 4.95657 18 5.23682 18 5.73813V18.2619C18 18.7632 17.4217 19.0434 17.0282 18.7328L9.09651 12.4709C8.79223 12.2307 8.79223 11.7693 9.09651 11.5291L17.0282 5.2672Z" stroke="currentColor"></path></svg>
                     </button>
-                    <button class="device-control-button ${activeClass}" data-action="play-pause" title="${buttonTitle}">
+                    <button class="device-control-button" data-action="play-pause" title="${buttonTitle}">
                         ${playPauseIcon}
                     </button>
                     <button class="device-control-button" data-action="next" title="Nächster Titel">
-                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                            <path d="M18 7V17" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M6.97179 5.2672C6.57832 4.95657 6 5.23682 6 5.73813V18.2619C6 18.7632 6.57832 19.0434 6.97179 18.7328L14.9035 12.4709C15.2078 12.2307 15.2078 11.7693 14.9035 11.5291L6.97179 5.2672Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
+                        <svg width="48px" height="48px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M18 7V17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6.97179 5.2672C6.57832 4.95657 6 5.23682 6 5.73813V18.2619C6 18.7632 6.57832 19.0434 6.97179 18.7328L14.9035 12.4709C15.2078 12.2307 15.2078 11.7693 14.9035 11.5291L6.97179 5.2672Z" stroke="currentColor"></path></svg>
                     </button>
                     <button class="device-control-button" data-action="music-assistant" title="Music Assistant">
-                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                            <path d="M20 14V3L9 5V16" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M17 19H18C19.1046 19 20 18.1046 20 17V14H17C15.8954 14 15 14.8954 15 16V17C15 18.1046 15.8954 19 17 19Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M6 21H7C8.10457 21 9 20.1046 9 19V16H6C4.89543 16 4 16.8954 4 18V19C4 20.1046 4.89543 21 6 21Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                    </button>
-                    <button class="device-control-button" data-action="tts" title="Text-to-Speech">
-                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                            <path d="M7 12L17 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M7 8L13 8" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M3 20.2895V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V15C21 16.1046 20.1046 17 19 17H7.96125C7.35368 17 6.77906 17.2762 6.39951 17.7506L4.06852 20.6643C3.71421 21.1072 3 20.8567 3 20.2895Z" stroke="currentColor" stroke-width="1"></path>
-                        </svg>
+                        <svg width="48px" height="48px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M9 17H15" stroke="currentColor" stroke-linecap="round"></path><path d="M12 17V10" stroke="currentColor" stroke-linecap="round"></path><path d="M12 10C10.3431 10 9 8.65685 9 7C9 5.34315 10.3431 4 12 4C13.6569 4 15 5.34315 15 7C15 8.65685 13.6569 10 12 10Z" stroke="currentColor" stroke-linecap="round"></path><path d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2" stroke="currentColor" stroke-linecap="round"></path></svg>
                     </button>
                 </div>
                 <div class="device-control-presets music-assistant-presets" data-is-open="false">
-                    <div class="preset-content">No content</div>
+                    ${this.getMusicAssistantHTML(item)}
                 </div>
                 <div class="device-control-presets tts-presets" data-is-open="false">
-                    <div class="preset-content">No content</div>
+                    <div class="preset-content">TTS coming soon</div>
                 </div>
             </div>
         `;
-    }
+    }        
     
     callClimateService(service, entity_id, data = {}) {
         this._hass.callService('climate', service, { entity_id, ...data });
@@ -3108,6 +3247,207 @@ class FastSearchCard extends HTMLElement {
     getCardSize() { return 4; }
     static getConfigElement() { return document.createElement('fast-search-card-editor'); }
     static getStubConfig() { return { type: 'custom:fast-search-card', entities: [{ entity: 'light.example_light', title: 'Beispiel Lampe' }] }; }
+
+    // --- NEUE METHODEN FÜR MUSIC ASSISTANT ---    
+    getMusicAssistantHTML(item) {
+        return `
+            <div class="music-assistant-content">
+                <div class="ma-search-bar-container">
+                    <input type="text" class="ma-search-input" placeholder="Suchen in Music Assistant..." data-ma-search-input>
+                    <button class="ma-enqueue-toggle" title="Wiedergabemodus ändern" data-ma-enqueue-toggle>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v14l11-7z"></path></svg>
+                    </button>
+                </div>
+                <div class="ma-filter-chips" data-ma-filter-chips>
+                    <div class="ma-chip active" data-filter="all">Alle</div>
+                    <div class="ma-chip" data-filter="artists">Künstler</div>
+                    <div class="ma-chip" data-filter="albums">Alben</div>
+                    <div class="ma-chip" data-filter="tracks">Titel</div>
+                    <div class="ma-chip" data-filter="playlists">Playlists</div>
+                </div>
+                <div class="ma-results-container" data-ma-results-container>
+                    <div class="ma-empty-state">Suche starten, um Ergebnisse zu sehen.</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    async setupMusicAssistantEventListeners(item, container) {
+        const searchInput = container.querySelector('[data-ma-search-input]');
+        const resultsContainer = container.querySelector('[data-ma-results-container]');
+        const enqueueToggle = container.querySelector('[data-ma-enqueue-toggle]');
+        const filterChips = container.querySelector('[data-ma-filter-chips]');
+    
+        if (!searchInput || !resultsContainer || !enqueueToggle || !filterChips) {
+            console.error("Music Assistant UI-Elemente nicht gefunden.");
+            return;
+        }
+    
+        if (!this.musicAssistantConfigEntryId) {
+             try {
+                const configEntries = await this._hass.callApi("GET", "config/config_entries/entry");
+                const maEntry = configEntries.find(entry => entry.domain === "music_assistant" && entry.state === "loaded");
+                if (maEntry) {
+                    this.musicAssistantConfigEntryId = maEntry.entry_id;
+                } else {
+                    console.warn('Music Assistant Config-Entry nicht gefunden.');
+                }
+             } catch (e) {
+                console.error("Fehler beim Abrufen der Config-Entries:", e);
+             }
+        }
+    
+        const enqueueModes = [
+            { key: 'play', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v14l11-7z"></path></svg>', title: 'Sofort abspielen' },
+            { key: 'add', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"></path></svg>', title: 'Zur Warteschlange hinzufügen' },
+            { key: 'next', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4v16M19 12L7 4v16z"></path></svg>', title: 'Als nächstes abspielen' },
+        ];
+        let currentModeIndex = 0;
+        enqueueToggle.addEventListener('click', () => {
+            currentModeIndex = (currentModeIndex + 1) % enqueueModes.length;
+            const mode = enqueueModes[currentModeIndex];
+            this.musicAssistantEnqueueMode = mode.key;
+            enqueueToggle.innerHTML = mode.icon;
+            enqueueToggle.title = mode.title;
+        });
+    
+        filterChips.addEventListener('click', e => {
+            const chip = e.target.closest('.ma-chip');
+            if (!chip) return;
+    
+            filterChips.querySelector('.active').classList.remove('active');
+            chip.classList.add('active');
+            
+            this.displayMusicAssistantResults(this.lastMusicAssistantResults, resultsContainer, item.id);
+        });
+    
+        searchInput.addEventListener('input', () => {
+            clearTimeout(this.musicAssistantSearchTimeout);
+            const query = searchInput.value.trim();
+    
+            if (query.length < 2) {
+                resultsContainer.innerHTML = '<div class="ma-empty-state">Mindestens 2 Zeichen eingeben...</div>';
+                return;
+            }
+    
+            resultsContainer.innerHTML = '<div class="ma-loading-state">Suche...</div>';
+            
+            this.musicAssistantSearchTimeout = setTimeout(async () => {
+                const results = await this.searchMusicAssistant(query);
+                this.lastMusicAssistantResults = results;
+                this.displayMusicAssistantResults(results, resultsContainer, item.id);
+            }, 300);
+        });
+    }
+    
+    async searchMusicAssistant(query) {
+        if (!this._hass || !query || !this.musicAssistantConfigEntryId) return null;
+    
+        try {
+            const results = await this._hass.callWS({
+                type: 'music_assistant/search',
+                query: query,
+                media_types: ["artist", "album", "track", "playlist"],
+                limit: 20
+            });
+            return this.processMusicAssistantResults(results);
+        } catch (e) {
+            console.error("Music Assistant Suche fehlgeschlagen:", e);
+            return null;
+        }
+    }
+    
+    processMusicAssistantResults(results) {
+        if (!results) return null;
+        const processed = { artists: [], albums: [], tracks: [], playlists: [] };
+        
+        const getArray = (data) => Array.isArray(data) ? data : [];
+    
+        processed.artists = getArray(results.artists);
+        processed.albums = getArray(results.albums);
+        processed.tracks = getArray(results.tracks);
+        processed.playlists = getArray(results.playlists);
+    
+        return processed;
+    }
+    
+    displayMusicAssistantResults(results, container, entityId) {
+        if (!results) {
+            container.innerHTML = '<div class="ma-empty-state">Keine Ergebnisse gefunden.</div>';
+            return;
+        }
+        
+        const activeFilter = container.parentElement.querySelector('.ma-filter-chips .active').dataset.filter;
+        let html = '';
+    
+        const renderGrid = (items, type) => {
+            if (!items || items.length === 0) return '';
+            let gridHtml = `<div class="ma-category-header">${type}</div><div class="ma-grid-container">`;
+            const itemsToShow = (activeFilter === 'all') ? items.slice(0, 6) : items;
+            itemsToShow.forEach(item => {
+                const image = (item.metadata?.images?.[0]?.url || item.image);
+                const defaultIcon = type === 'Künstler' ? '👤' : type === 'Alben' ? '💿' : '📋';
+                gridHtml += `
+                    <div class="ma-grid-item" data-uri="${item.uri}">
+                        <div class="ma-grid-image">
+                            ${image ? `<img src="${image}" loading="lazy">` : defaultIcon}
+                        </div>
+                        <div class="ma-grid-name">${item.name}</div>
+                        ${item.artists ? `<div class="ma-grid-artist">${item.artists.map(a => a.name).join(', ')}</div>` : ''}
+                    </div>`;
+            });
+            return gridHtml + '</div></div>';
+        };
+    
+        const renderList = (items) => {
+            if (!items || items.length === 0) return '';
+            let listHtml = `<div class="ma-category-header">Titel</div><div class="ma-list-container">`;
+            const itemsToShow = (activeFilter === 'all') ? items.slice(0, 5) : items;
+            itemsToShow.forEach(track => {
+                const image = track.album?.metadata?.images?.[0]?.url || track.album?.image;
+                listHtml += `
+                    <div class="ma-list-item" data-uri="${track.uri}">
+                        <div class="ma-list-image">
+                            ${image ? `<img src="${image}" loading="lazy">` : '🎵'}
+                        </div>
+                        <div class="ma-list-info">
+                            <div class="ma-list-name">${track.name}</div>
+                            <div class="ma-list-artist">${track.artists.map(a => a.name).join(', ')}</div>
+                        </div>
+                    </div>`;
+            });
+            return listHtml + '</div>';
+        };
+    
+        if (activeFilter === 'all' || activeFilter === 'artists') html += renderGrid(results.artists, 'Künstler');
+        if (activeFilter === 'all' || activeFilter === 'albums') html += renderGrid(results.albums, 'Alben');
+        if (activeFilter === 'all' || activeFilter === 'playlists') html += renderGrid(results.playlists, 'Playlists');
+        if (activeFilter === 'all' || activeFilter === 'tracks') html += renderList(results.tracks);
+    
+        container.innerHTML = html || '<div class="ma-empty-state">Keine Ergebnisse in dieser Kategorie.</div>';
+        
+        container.querySelectorAll('[data-uri]').forEach(el => {
+            el.addEventListener('click', () => {
+                const uri = el.dataset.uri;
+                this.playMusicAssistantItem(uri, entityId);
+            });
+        });
+    }
+    
+    async playMusicAssistantItem(uri, entityId) {
+        if (!this._hass || !uri || !entityId) return;
+        
+        try {
+            await this._hass.callService('media_player', 'play_media', {
+                entity_id: entityId,
+                media_content_id: uri,
+                media_content_type: 'music',
+                enqueue: this.musicAssistantEnqueueMode
+            });
+        } catch (e) {
+            console.error("Fehler beim Abspielen via Music Assistant:", e);
+        }
+    }
 }
 
 customElements.define('fast-search-card', FastSearchCard);
