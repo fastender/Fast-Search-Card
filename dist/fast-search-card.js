@@ -2650,33 +2650,20 @@ class FastSearchCard extends HTMLElement {
     
     async getMusicAssistantConfig() {
         try {
-            // Versuche zuerst über config_entries
-            const configEntries = await this._hass.callWS({
-                type: 'config_entries/list'
-            });
-            
-            const maConfig = configEntries.find(entry => 
-                entry.domain === 'music_assistant' && entry.state === 'loaded'
-            );
-            
-            if (maConfig) {
-                return maConfig.entry_id;
+            // Einfacher Ansatz: Verwende die MA Entity ID aus der Konfiguration
+            if (this._config.ma_entity_id) {
+                return this._config.ma_entity_id;
             }
             
-            // Fallback: Versuche über hass states
+            // Fallback: Suche nach Music Assistant Entities
             const states = Object.values(this._hass.states);
             const maEntity = states.find(state => 
                 state.entity_id.startsWith('media_player.') && 
-                state.attributes.source_list?.includes('Music Assistant')
+                (state.attributes.friendly_name?.includes('Music Assistant') ||
+                 state.entity_id.includes('music_assistant'))
             );
             
-            if (maEntity) {
-                // Wenn MA Entity gefunden, verwende null (Services ohne config_entry_id)
-                return null;
-            }
-            
-            console.warn('Music Assistant config not found');
-            return null;
+            return maEntity ? maEntity.entity_id : null;
         } catch (error) {
             console.error('Error getting Music Assistant config:', error);
             return null;
@@ -2685,25 +2672,19 @@ class FastSearchCard extends HTMLElement {
     
     async searchMusicAssistant(query, mediaType = 'all', entity_id) {
         try {
-            const configEntryId = await this.getMusicAssistantConfig();
+            const result = await this._hass.callWS({
+                type: 'call_service',
+                domain: 'music_assistant',
+                service: 'search',
+                service_data: {
+                    name: query,
+                    media_type: mediaType === 'all' ? undefined : mediaType,
+                    limit: mediaType === 'all' ? 8 : 100
+                },
+                return_response: true
+            });
             
-            const serviceData = {
-                name: query,
-                limit: mediaType === 'all' ? 8 : 100
-            };
-            
-            // Nur media_type hinzufügen wenn nicht 'all'
-            if (mediaType !== 'all') {
-                serviceData.media_type = mediaType;
-            }
-            
-            // Nur config_entry_id hinzufügen wenn verfügbar
-            if (configEntryId) {
-                serviceData.config_entry_id = configEntryId;
-            }
-            
-            const result = await this._hass.callService('music_assistant', 'search', serviceData, true);
-            return result.response || result || [];
+            return result.response || [];
         } catch (error) {
             console.error('Search error:', error);
             return [];
@@ -2712,25 +2693,19 @@ class FastSearchCard extends HTMLElement {
     
     async getMusicAssistantFavorites(mediaType = 'all') {
         try {
-            const configEntryId = await this.getMusicAssistantConfig();
+            const result = await this._hass.callWS({
+                type: 'call_service',
+                domain: 'music_assistant',
+                service: 'get_library',
+                service_data: {
+                    media_type: mediaType === 'all' ? undefined : mediaType,
+                    favorite: true,
+                    limit: 20
+                },
+                return_response: true
+            });
             
-            const serviceData = {
-                favorite: true,
-                limit: 20
-            };
-            
-            // Nur media_type hinzufügen wenn nicht 'all'
-            if (mediaType !== 'all') {
-                serviceData.media_type = mediaType;
-            }
-            
-            // Nur config_entry_id hinzufügen wenn verfügbar
-            if (configEntryId) {
-                serviceData.config_entry_id = configEntryId;
-            }
-            
-            const result = await this._hass.callService('music_assistant', 'get_library', serviceData, true);
-            return result.response || result || [];
+            return result.response || [];
         } catch (error) {
             console.error('Favorites error:', error);
             return [];
@@ -2738,12 +2713,17 @@ class FastSearchCard extends HTMLElement {
     }
     
     async playMusicAssistantMedia(entity_id, item, enqueue = 'play') {
-        return this._hass.callService('music_assistant', 'play_media', {
-            entity_id: entity_id,
-            media_type: item.media_type || item.media_class,
-            media_id: item.uri || item.media_content_id,
-            enqueue: enqueue
-        });
+        try {
+            return await this._hass.callService('music_assistant', 'play_media', {
+                entity_id: entity_id,
+                media_type: item.media_type || item.media_class,
+                media_id: item.uri || item.media_content_id,
+                enqueue: enqueue
+            });
+        } catch (error) {
+            console.error('Play media error:', error);
+            throw error;
+        }
     }
     
     callMediaPlayerService(service, entity_id, data = {}) {
