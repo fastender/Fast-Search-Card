@@ -1471,8 +1471,29 @@ class FastSearchCard extends HTMLElement {
         switch (domain) {
             case 'climate':
                 return !['off', 'unavailable'].includes(state.state);
+
+
             case 'media_player':
-                return !['off', 'unavailable', 'idle', 'standby'].includes(state.state);
+                // SMART CHECK: Nur als aktiv zählen wenn wirklich etwas läuft
+                if (!['playing', 'paused'].includes(state.state)) return false;
+                
+                // Zusätzliche Prüfung für beendete Songs
+                const duration = state.attributes.media_duration || 0;
+                const position = state.attributes.media_position || 0;
+                const updatedAt = state.attributes.media_position_updated_at;
+                
+                if (state.state === 'playing' && duration > 0 && updatedAt) {
+                    const now = new Date();
+                    const updateTime = new Date(updatedAt);
+                    const elapsedSinceUpdate = (now - updateTime) / 1000;
+                    const realPosition = position + elapsedSinceUpdate;
+                    
+                    // Nicht aktiv wenn Song zu Ende
+                    if (realPosition >= duration) return false;
+                }
+                
+                return true;
+                
             case 'light':
             case 'switch':
             case 'fan':
@@ -1507,8 +1528,34 @@ class FastSearchCard extends HTMLElement {
                     return 'Geschlossen';
                 }
                 return state.state === 'open' ? 'Offen' : 'Geschlossen';
+
+
             case 'media_player':
-                return state.state === 'playing' ? 'Spielt' : 'Aus';
+                // SMART STATUS: Prüfe ob Song wirklich noch läuft
+                const duration = state.attributes.media_duration || 0;
+                const position = state.attributes.media_position || 0;
+                const updatedAt = state.attributes.media_position_updated_at;
+                
+                // Berechne echte Position
+                let realPosition = position;
+                if (state.state === 'playing' && updatedAt) {
+                    const now = new Date();
+                    const updateTime = new Date(updatedAt);
+                    const elapsedSinceUpdate = (now - updateTime) / 1000;
+                    realPosition = position + elapsedSinceUpdate;
+                }
+                
+                // Status basierend auf echter Position
+                if (state.state === 'playing' && duration > 0 && realPosition >= duration) {
+                    return 'Bereit';
+                } else if (state.state === 'playing') {
+                    return 'Spielt';
+                } else if (state.state === 'paused') {
+                    return 'Pausiert';
+                } else {
+                    return 'Aus';
+                }
+                
             case 'script':
                 return state.state === 'on' ? 'Läuft' : 'Bereit';
             case 'automation':
@@ -2963,7 +3010,7 @@ class FastSearchCard extends HTMLElement {
                 
                 // Status basierend auf echter Position
                 if (state.state === 'playing' && duration > 0 && realPosition >= duration) {
-                    return { status: 'Beendet' };
+                    return { status: 'Bereit' };
                 } else if (state.state === 'playing') {
                     return { status: 'Spielt' };
                 } else if (state.state === 'paused') {
