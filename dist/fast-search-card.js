@@ -1522,27 +1522,25 @@ class FastSearchCard extends HTMLElement {
                 const temp = state.attributes.current_temperature;
                 return temp ? `${temp}°C` : state.state;
             case 'cover':
-                const position = state.attributes.current_position;
-                if (position !== undefined) {
-                    if (position > 0) return `${position}% Offen`;
+                const coverPosition = state.attributes.current_position; // UMBENANNT!
+                if (coverPosition !== undefined) {
+                    if (coverPosition > 0) return `${coverPosition}% Offen`;
                     return 'Geschlossen';
                 }
                 return state.state === 'open' ? 'Offen' : 'Geschlossen';
-
-
             case 'media_player':
                 // SMART STATUS: Prüfe ob Song wirklich noch läuft
                 const duration = state.attributes.media_duration || 0;
-                const position = state.attributes.media_position || 0;
+                const mediaPosition = state.attributes.media_position || 0; // UMBENANNT!
                 const updatedAt = state.attributes.media_position_updated_at;
                 
                 // Berechne echte Position
-                let realPosition = position;
+                let realPosition = mediaPosition; // ANGEPASST!
                 if (state.state === 'playing' && updatedAt) {
                     const now = new Date();
                     const updateTime = new Date(updatedAt);
                     const elapsedSinceUpdate = (now - updateTime) / 1000;
-                    realPosition = position + elapsedSinceUpdate;
+                    realPosition = mediaPosition + elapsedSinceUpdate; // ANGEPASST!
                 }
                 
                 // Status basierend auf echter Position
