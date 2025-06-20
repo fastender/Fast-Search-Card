@@ -2999,11 +2999,28 @@ class FastSearchCard extends HTMLElement {
                 return baseUrl + 'light-off.png';
         }
     }
-
+    
     getAlbumArtUrl(item) {
-        const attrs = item.attributes;
-        return attrs.entity_picture || attrs.media_image_url || null;
-    }
+        if (!this._hass || !item.id) return null;
+        
+        const state = this._hass.states[item.id];
+        if (!state) return null;
+        
+        // DEBUG: Alle möglichen Album Art Attribute anzeigen
+        console.log('Album Art Debug:', {
+            entity: item.id,
+            entity_picture: state.attributes.entity_picture,
+            media_image_url: state.attributes.media_image_url,
+            media_content_id: state.attributes.media_content_id,
+            media_title: state.attributes.media_title,
+            media_artist: state.attributes.media_artist,
+            media_album_name: state.attributes.media_album_name,
+            allAttributes: Object.keys(state.attributes)
+        });
+        
+        // Bestehende Logik erweitert
+        return state.attributes.entity_picture || state.attributes.media_image_url || null;
+    }    
 
     animateElementIn(element, keyframes, options = {}) {
         if (!element) return;
