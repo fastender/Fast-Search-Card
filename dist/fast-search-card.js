@@ -3006,21 +3006,9 @@ class FastSearchCard extends HTMLElement {
         const state = this._hass.states[item.id];
         if (!state) return null;
         
-        // DEBUG: Alle möglichen Album Art Attribute anzeigen
-        console.log('Album Art Debug:', {
-            entity: item.id,
-            entity_picture: state.attributes.entity_picture,
-            media_image_url: state.attributes.media_image_url,
-            media_content_id: state.attributes.media_content_id,
-            media_title: state.attributes.media_title,
-            media_artist: state.attributes.media_artist,
-            media_album_name: state.attributes.media_album_name,
-            allAttributes: Object.keys(state.attributes)
-        });
-        
-        // Bestehende Logik erweitert
+        // Live-State Attribute verwenden statt item.attributes
         return state.attributes.entity_picture || state.attributes.media_image_url || null;
-    }    
+    }
 
     animateElementIn(element, keyframes, options = {}) {
         if (!element) return;
