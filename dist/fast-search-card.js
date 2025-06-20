@@ -1563,7 +1563,7 @@ class FastSearchCard extends HTMLElement {
             case 'scene':
                 return 'Bereit';
             default:
-                return state.state === 'on' ? 'Aus' : 'Aus';
+                return state.state === 'on' ? 'An' : 'Aus';
         }
     }
 
