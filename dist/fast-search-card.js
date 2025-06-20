@@ -40,8 +40,7 @@ class FastSearchCard extends HTMLElement {
         this._config = {
             title: 'Fast Search',
             ...config,
-            entities: config.entities,
-            ma_entity_id: config.ma_entity_id || null // Music Assistant Entity hinzugefügt
+            entities: config.entities
         };
         
         this.render();
@@ -1092,218 +1091,6 @@ class FastSearchCard extends HTMLElement {
                 border-radius: 2px;
                 transition: width 0.3s ease;
             }            
-
-
-            /* Music Assistant Styles */
-            .ma-container {
-                padding: 16px;
-                max-height: 400px;
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .ma-search-wrapper {
-                position: relative;
-                margin-bottom: 12px;
-            }
-            
-            .ma-search-input {
-                width: 100%;
-                padding: 10px 40px 10px 12px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-                background: rgba(255, 255, 255, 0.05);
-                color: var(--primary-text-color);
-                font-size: 14px;
-                outline: none;
-            }
-            
-            .ma-search-input:focus {
-                border-color: var(--accent);
-                background: rgba(255, 255, 255, 0.1);
-            }
-            
-            .ma-search-clear {
-                position: absolute;
-                right: 8px;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 24px;
-                height: 24px;
-                border: none;
-                background: rgba(255, 255, 255, 0.2);
-                border-radius: 50%;
-                color: var(--primary-text-color);
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .ma-filters {
-                display: flex;
-                gap: 8px;
-                margin-bottom: 12px;
-                overflow-x: auto;
-                scrollbar-width: none;
-            }
-            
-            .ma-filters::-webkit-scrollbar {
-                display: none;
-            }
-            
-            .ma-filter-btn {
-                padding: 6px 16px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 20px;
-                background: transparent;
-                color: var(--primary-text-color);
-                font-size: 12px;
-                cursor: pointer;
-                white-space: nowrap;
-                transition: all 0.2s ease;
-            }
-            
-            .ma-filter-btn:hover {
-                background: rgba(255, 255, 255, 0.1);
-            }
-            
-            .ma-filter-btn.active {
-                background: var(--accent);
-                border-color: var(--accent);
-                color: var(--text-primary-color);
-            }
-            
-            .ma-enqueue-mode {
-                margin-bottom: 12px;
-            }
-            
-            .ma-enqueue-select {
-                width: 100%;
-                padding: 8px 12px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 6px;
-                background: rgba(255, 255, 255, 0.05);
-                color: var(--primary-text-color);
-                font-size: 13px;
-                outline: none;
-            }
-            
-            .ma-results {
-                flex: 1;
-                overflow-y: auto;
-                scrollbar-width: thin;
-            }
-            
-            .ma-results::-webkit-scrollbar {
-                width: 6px;
-            }
-            
-            .ma-results::-webkit-scrollbar-track {
-                background: rgba(255, 255, 255, 0.05);
-            }
-            
-            .ma-results::-webkit-scrollbar-thumb {
-                background: rgba(255, 255, 255, 0.2);
-                border-radius: 3px;
-            }
-            
-            .ma-result-item {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 8px;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            
-            .ma-result-item:hover {
-                background: rgba(255, 255, 255, 0.05);
-            }
-            
-            .ma-result-image {
-                width: 48px;
-                height: 48px;
-                flex-shrink: 0;
-            }
-            
-            .ma-result-image img {
-                width: 100%;
-                height: 100%;
-                border-radius: 4px;
-                object-fit: cover;
-            }
-            
-            .ma-result-icon {
-                width: 100%;
-                height: 100%;
-                border-radius: 4px;
-                background: rgba(255, 255, 255, 0.1);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 24px;
-            }
-            
-            .ma-result-info {
-                flex: 1;
-                min-width: 0;
-            }
-            
-            .ma-result-title {
-                font-size: 14px;
-                font-weight: 500;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                color: var(--primary-text-color);
-            }
-            
-            .ma-result-subtitle {
-                font-size: 12px;
-                color: var(--secondary-text-color);
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            
-            .ma-result-type {
-                font-size: 11px;
-                color: var(--secondary-text-color);
-                opacity: 0.7;
-                margin-top: 2px;
-            }
-            
-            .ma-play-btn {
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                border: none;
-                background: var(--accent);
-                color: var(--text-primary-color);
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s ease;
-                flex-shrink: 0;
-            }
-            
-            .ma-play-btn:hover {
-                transform: scale(1.1);
-                box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
-            }
-            
-            .ma-loading, .ma-no-results, .ma-error {
-                text-align: center;
-                padding: 32px;
-                color: var(--secondary-text-color);
-            }
-            
-            .ma-error {
-                color: var(--error-color, #ff5252);
-            }
                         
             </style>
 
@@ -2601,11 +2388,6 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 // Toggle Music Assistant
-                if (!isOpen) {
-                    // Lade Music Assistant UI beim ersten Öffnen
-                    this.showMusicAssistantUI(item);
-                }
-                
                 presetsContainer.classList.toggle('visible', !isOpen);
                 presetsContainer.setAttribute('data-is-open', String(!isOpen));
                 musicAssistantBtn.classList.toggle('active', !isOpen);
@@ -2644,85 +2426,12 @@ class FastSearchCard extends HTMLElement {
     }
 
     callMusicAssistantService(service, entity_id, data = {}) {
-        // Music Assistant Services
-        this._hass.callService('music_assistant', service, { entity_id, ...data });
-    }
-    
-    async getMusicAssistantConfig() {
-        try {
-            // Einfacher Ansatz: Verwende die MA Entity ID aus der Konfiguration
-            if (this._config.ma_entity_id) {
-                return this._config.ma_entity_id;
-            }
-            
-            // Fallback: Suche nach Music Assistant Entities
-            const states = Object.values(this._hass.states);
-            const maEntity = states.find(state => 
-                state.entity_id.startsWith('media_player.') && 
-                (state.attributes.friendly_name?.includes('Music Assistant') ||
-                 state.entity_id.includes('music_assistant'))
-            );
-            
-            return maEntity ? maEntity.entity_id : null;
-        } catch (error) {
-            console.error('Error getting Music Assistant config:', error);
-            return null;
-        }
-    }
-    
-    async searchMusicAssistant(query, mediaType = 'all', entity_id) {
-        try {
-            const result = await this._hass.callWS({
-                type: 'call_service',
-                domain: 'music_assistant',
-                service: 'search',
-                service_data: {
-                    name: query,
-                    media_type: mediaType === 'all' ? undefined : mediaType,
-                    limit: mediaType === 'all' ? 8 : 100
-                },
-                return_response: true
-            });
-            
-            return result.response || [];
-        } catch (error) {
-            console.error('Search error:', error);
-            return [];
-        }
-    }
-    
-    async getMusicAssistantFavorites(mediaType = 'all') {
-        try {
-            const result = await this._hass.callWS({
-                type: 'call_service',
-                domain: 'music_assistant',
-                service: 'get_library',
-                service_data: {
-                    media_type: mediaType === 'all' ? undefined : mediaType,
-                    favorite: true,
-                    limit: 20
-                },
-                return_response: true
-            });
-            
-            return result.response || [];
-        } catch (error) {
-            console.error('Favorites error:', error);
-            return [];
-        }
-    }
-    
-    async playMusicAssistantMedia(entity_id, item, enqueue = 'play') {
-        try {
-            return await this._hass.callService('music_assistant', 'play_media', {
-                entity_id: entity_id,
-                media_type: item.media_type || item.media_class,
-                media_id: item.uri || item.media_content_id,
-                enqueue: enqueue
-            });
-        } catch (error) {
-            console.error('Play media error:', error);
-            throw error;
+        // Prüfe ob es ein Music Assistant Player ist
+        if (entity_id.includes('ma_') || entity_id.startsWith('music_assistant')) {
+            this._hass.callService('music_assistant', service, { entity_id, ...data });
+        } else {
+            // Fallback zu Standard Media Player Service
+            this._hass.callService('media_player', service, { entity_id, ...data });
         }
     }
     
@@ -2733,8 +2442,8 @@ class FastSearchCard extends HTMLElement {
     handleMediaServiceClick(service, item) {
         switch (service) {
             case 'music_assistant':
-                // Music Assistant UI wird geöffnet
-                this.showMusicAssistantUI(item);
+                // Hier könntest du Music Assistant spezifische Services aufrufen
+                console.log('Music Assistant clicked for', item.id);
                 break;
             case 'tts':
                 // Hier könntest du TTS Services aufrufen
@@ -2742,218 +2451,6 @@ class FastSearchCard extends HTMLElement {
                 break;
         }
     }
-
-    async showMusicAssistantUI(item) {
-        const container = this.shadowRoot.querySelector('.device-control-presets.music-assistant-presets');
-        if (!container) return;
-        
-        // Loading state
-        container.innerHTML = `
-            <div class="ma-container">
-                <div class="ma-search-wrapper">
-                    <input type="text" class="ma-search-input" placeholder="Search Music Assistant...">
-                    <button class="ma-search-clear" style="display: none;">✕</button>
-                </div>
-                <div class="ma-filters">
-                    <button class="ma-filter-btn active" data-type="all">All</button>
-                    <button class="ma-filter-btn" data-type="track">Tracks</button>
-                    <button class="ma-filter-btn" data-type="album">Albums</button>
-                    <button class="ma-filter-btn" data-type="artist">Artists</button>
-                    <button class="ma-filter-btn" data-type="playlist">Playlists</button>
-                </div>
-                <div class="ma-enqueue-mode">
-                    <select class="ma-enqueue-select">
-                        <option value="play">Play Now</option>
-                        <option value="replace">Replace Queue</option>
-                        <option value="next">Play Next</option>
-                        <option value="add">Add to Queue</option>
-                    </select>
-                </div>
-                <div class="ma-results">
-                    <div class="ma-loading">Loading favorites...</div>
-                </div>
-            </div>
-        `;
-        
-        // Load favorites initially
-        try {
-            const favorites = await this.getMusicAssistantFavorites();
-            this.renderMusicAssistantResults(container, favorites, item);
-        } catch (error) {
-            console.error('Error loading favorites:', error);
-            container.querySelector('.ma-results').innerHTML = '<div class="ma-error">Failed to load favorites</div>';
-        }
-        
-        // Setup event handlers
-        this.setupMusicAssistantHandlers(container, item);
-    }
-    
-    setupMusicAssistantHandlers(container, item) {
-        const searchInput = container.querySelector('.ma-search-input');
-        const clearBtn = container.querySelector('.ma-search-clear');
-        const filterBtns = container.querySelectorAll('.ma-filter-btn');
-        let searchTimeout;
-        
-        // Search handler
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            const query = e.target.value;
-            
-            // Show/hide clear button
-            clearBtn.style.display = query ? 'block' : 'none';
-            
-            if (query.length < 2) {
-                // Show favorites
-                this.getMusicAssistantFavorites().then(results => {
-                    this.renderMusicAssistantResults(container, results, item);
-                });
-                return;
-            }
-            
-            // Show loading
-            container.querySelector('.ma-results').innerHTML = '<div class="ma-loading">Searching...</div>';
-            
-            // Debounced search
-            searchTimeout = setTimeout(async () => {
-                const activeFilter = container.querySelector('.ma-filter-btn.active').dataset.type;
-                try {
-                    const results = await this.searchMusicAssistant(query, activeFilter, item.id);
-                    this.renderMusicAssistantResults(container, results, item);
-                } catch (error) {
-                    console.error('Search error:', error);
-                    container.querySelector('.ma-results').innerHTML = '<div class="ma-error">Search failed</div>';
-                }
-            }, 300);
-        });
-        
-        // Clear button
-        clearBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            clearBtn.style.display = 'none';
-            this.getMusicAssistantFavorites().then(results => {
-                this.renderMusicAssistantResults(container, results, item);
-            });
-        });
-        
-        // Filter buttons
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                // Update active state
-                filterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                const query = searchInput.value;
-                const type = btn.dataset.type;
-                
-                if (query) {
-                    // Search with new filter
-                    const results = await this.searchMusicAssistant(query, type, item.id);
-                    this.renderMusicAssistantResults(container, results, item);
-                } else {
-                    // Get filtered favorites
-                    const results = await this.getMusicAssistantFavorites(type);
-                    this.renderMusicAssistantResults(container, results, item);
-                }
-            });
-        });
-    }
-    
-    renderMusicAssistantResults(container, results, item) {
-        const resultsContainer = container.querySelector('.ma-results');
-        
-        if (!results || results.length === 0) {
-            resultsContainer.innerHTML = '<div class="ma-no-results">No results found</div>';
-            return;
-        }
-        
-        resultsContainer.innerHTML = results.map(result => {
-            const imageUrl = result.image || result.thumbnail;
-            const artists = result.artists ? result.artists.map(a => a.name).join(', ') : '';
-            const mediaType = result.media_type || result.media_class;
-            
-            return `
-                <div class="ma-result-item" data-result='${JSON.stringify({
-                    uri: result.uri || result.media_content_id,
-                    media_type: mediaType,
-                    name: result.name || result.title
-                })}'>
-                    <div class="ma-result-image">
-                        ${imageUrl 
-                            ? `<img src="${imageUrl}" alt="${result.name || result.title}">` 
-                            : `<div class="ma-result-icon">${this.getMediaTypeIcon(mediaType)}</div>`
-                        }
-                    </div>
-                    <div class="ma-result-info">
-                        <div class="ma-result-title">${result.name || result.title}</div>
-                        ${artists ? `<div class="ma-result-subtitle">${artists}</div>` : ''}
-                        <div class="ma-result-type">${this.getMediaTypeLabel(mediaType)}</div>
-                    </div>
-                    <button class="ma-play-btn" title="Play">
-                        <ha-icon icon="mdi:play"></ha-icon>
-                    </button>
-                </div>
-            `;
-        }).join('');
-        
-        // Add click handlers
-        resultsContainer.querySelectorAll('.ma-result-item').forEach(resultEl => {
-            const playBtn = resultEl.querySelector('.ma-play-btn');
-            const data = JSON.parse(resultEl.dataset.result);
-            
-            playBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                
-                const enqueueMode = container.querySelector('.ma-enqueue-select').value;
-                
-                try {
-                    await this.playMusicAssistantMedia(item.id, data, enqueueMode);
-                    
-                    // Visual feedback
-                    playBtn.innerHTML = '<ha-icon icon="mdi:check"></ha-icon>';
-                    setTimeout(() => {
-                        playBtn.innerHTML = '<ha-icon icon="mdi:play"></ha-icon>';
-                    }, 2000);
-                } catch (error) {
-                    console.error('Play error:', error);
-                    playBtn.innerHTML = '<ha-icon icon="mdi:alert"></ha-icon>';
-                }
-            });
-            
-            // Click on item to play
-            resultEl.addEventListener('click', async () => {
-                const enqueueMode = container.querySelector('.ma-enqueue-select').value;
-                await this.playMusicAssistantMedia(item.id, data, enqueueMode);
-            });
-        });
-    }
-    
-    getMediaTypeIcon(type) {
-        const icons = {
-            track: '🎵',
-            album: '💿',
-            artist: '🎤',
-            playlist: '📝',
-            radio: '📻',
-            podcast: '🎙️'
-        };
-        return icons[type] || '🎵';
-    }
-    
-    getMediaTypeLabel(type) {
-        const labels = {
-            track: 'Track',
-            album: 'Album',
-            artist: 'Artist',
-            playlist: 'Playlist',
-            radio: 'Radio',
-            podcast: 'Podcast'
-        };
-        return labels[type] || type;
-    }    
-
-
-
-
     
     getMediaPlayerControlsHTML(item) {
         const state = this._hass.states[item.id];
@@ -3598,27 +3095,20 @@ class FastSearchCard extends HTMLElement {
     }
 
     animateElementOut(element, options = {}) {
-            if (!element) return;
-            return element.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0.8)' }], { duration: 200, easing: 'ease-in', fill: 'forwards', ...options });
-        }
-        animateStateChange(card, isActive) {
-            const icon = card.querySelector('.device-icon');
-            card.animate([{ boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }], { duration: 600, easing: 'ease-out' });
-            icon.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.2)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
-        }
-        getCardSize() { return 4; }
-        static getConfigElement() { return document.createElement('fast-search-card-editor'); }
-        static getStubConfig() { 
-            return { 
-                type: 'custom:fast-search-card', 
-                entities: [
-                    { entity: 'light.example_light', title: 'Beispiel Lampe', area: 'Wohnzimmer' },
-                    { entity: 'media_player.example', title: 'Media Player', area: 'Wohnzimmer' }
-                ],
-                ma_entity_id: '' // Music Assistant Entity (optional)
-            }; 
-        }
+        if (!element) return;
+        return element.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0.8)' }], { duration: 200, easing: 'ease-in', fill: 'forwards', ...options });
     }
+
+    animateStateChange(card, isActive) {
+        const icon = card.querySelector('.device-icon');
+        card.animate([{ boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }], { duration: 600, easing: 'ease-out' });
+        icon.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.2)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+    }
+
+    getCardSize() { return 4; }
+    static getConfigElement() { return document.createElement('fast-search-card-editor'); }
+    static getStubConfig() { return { type: 'custom:fast-search-card', entities: [{ entity: 'light.example_light', title: 'Beispiel Lampe' }] }; }
+}
 
 customElements.define('fast-search-card', FastSearchCard);
 window.customCards = window.customCards || [];
