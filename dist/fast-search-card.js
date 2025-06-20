@@ -3340,17 +3340,29 @@ class FastSearchCard extends HTMLElement {
         });
     }
     
+
+
     async searchMusicAssistant(query) {
         if (!this._hass || !query || !this.musicAssistantConfigEntryId) return null;
     
         try {
             const results = await this._hass.callWS({
-                type: 'music_assistant/search',
-                query: query,
-                media_types: ["artist", "album", "track", "playlist"],
-                limit: 20
+                type: 'call_service',             // KORREKTUR 1: Generischer Befehlstyp
+                domain: 'music_assistant',        // KORREKTUR 2: Domäne angeben
+                service: 'search',                // KORREKTUR 3: Dienst angeben
+                service_data: {                   // KORREKTUR 4: Parameter in service_data kapseln
+                    name: query,                  // Music Assistant erwartet hier 'name' statt 'query'
+                    limit: 20
+                },
+                return_response: true
             });
-            return this.processMusicAssistantResults(results);
+    
+            // WICHTIG: Die Antwort vom Service Call ist in einem "response"-Objekt verschachtelt.
+            if (results && results.response) {
+                return this.processMusicAssistantResults(results.response);
+            }
+            return this.processMusicAssistantResults(results); // Fallback
+    
         } catch (e) {
             console.error("Music Assistant Suche fehlgeschlagen:", e);
             return null;
