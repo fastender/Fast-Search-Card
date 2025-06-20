@@ -2663,33 +2663,43 @@ class FastSearchCard extends HTMLElement {
     }
     
     async searchMusicAssistant(query, mediaType = 'all', entity_id) {
-        const configEntryId = await this.getMusicAssistantConfig();
-        if (!configEntryId) return null;
-        
-        const result = await this._hass.callService('music_assistant', 'search', {
-            config_entry_id: configEntryId,
-            name: query,
-            media_type: mediaType === 'all' ? undefined : mediaType,
-            limit: mediaType === 'all' ? 8 : 100,
-            return_response: true
-        });
-        
-        return result.response;
+        try {
+            const result = await this._hass.callWS({
+                type: 'call_service',
+                domain: 'music_assistant',
+                service: 'search',
+                service_data: {
+                    name: query,
+                    media_type: mediaType === 'all' ? undefined : mediaType,
+                    limit: mediaType === 'all' ? 8 : 100
+                },
+                return_response: true
+            });
+            return result.response;
+        } catch (error) {
+            console.error('Search error:', error);
+            return [];
+        }
     }
     
     async getMusicAssistantFavorites(mediaType = 'all') {
-        const configEntryId = await this.getMusicAssistantConfig();
-        if (!configEntryId) return null;
-        
-        const result = await this._hass.callService('music_assistant', 'get_library', {
-            config_entry_id: configEntryId,
-            media_type: mediaType === 'all' ? undefined : mediaType,
-            favorite: true,
-            limit: 20,
-            return_response: true
-        });
-        
-        return result.response;
+        try {
+            const result = await this._hass.callWS({
+                type: 'call_service',
+                domain: 'music_assistant',
+                service: 'get_library',
+                service_data: {
+                    media_type: mediaType === 'all' ? undefined : mediaType,
+                    favorite: true,
+                    limit: 20
+                },
+                return_response: true
+            });
+            return result.response;
+        } catch (error) {
+            console.error('Favorites error:', error);
+            return [];
+        }
     }
     
     async playMusicAssistantMedia(entity_id, item, enqueue = 'play') {
