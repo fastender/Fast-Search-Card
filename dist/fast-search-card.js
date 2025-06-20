@@ -2938,12 +2938,41 @@ class FastSearchCard extends HTMLElement {
     getDetailedStateText(item) {
         const state = this._hass.states[item.id];
         if (!state) return { status: 'Unbekannt' };
+        
         switch (item.domain) {
-            case 'light': return { status: state.state === 'on' ? 'Ein' : 'Aus' };
-            case 'climate': return { status: state.attributes.hvac_action || state.state };
-            case 'cover': return { status: state.state === 'open' ? 'Offen' : 'Geschlossen' };
-            case 'media_player': return { status: state.state === 'playing' ? 'Spielt' : (state.state === 'paused' ? 'Pausiert' : 'Aus') };
-            default: return { status: state.state };
+            case 'light': 
+                return { status: state.state === 'on' ? 'Ein' : 'Aus' };
+            case 'climate': 
+                return { status: state.attributes.hvac_action || state.state };
+            case 'cover': 
+                return { status: state.state === 'open' ? 'Offen' : 'Geschlossen' };
+            case 'media_player': 
+                // SMART STATUS: Prüfe ob Song wirklich noch läuft
+                const duration = state.attributes.media_duration || 0;
+                const position = state.attributes.media_position || 0;
+                const updatedAt = state.attributes.media_position_updated_at;
+                
+                // Berechne echte Position
+                let realPosition = position;
+                if (state.state === 'playing' && updatedAt) {
+                    const now = new Date();
+                    const updateTime = new Date(updatedAt);
+                    const elapsedSinceUpdate = (now - updateTime) / 1000;
+                    realPosition = position + elapsedSinceUpdate;
+                }
+                
+                // Status basierend auf echter Position
+                if (state.state === 'playing' && duration > 0 && realPosition >= duration) {
+                    return { status: 'Beendet' };
+                } else if (state.state === 'playing') {
+                    return { status: 'Spielt' };
+                } else if (state.state === 'paused') {
+                    return { status: 'Pausiert' };
+                } else {
+                    return { status: 'Aus' };
+                }
+            default: 
+                return { status: state.state };
         }
     }
 
