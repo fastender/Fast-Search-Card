@@ -2650,12 +2650,33 @@ class FastSearchCard extends HTMLElement {
     
     async getMusicAssistantConfig() {
         try {
-            const configs = await this._hass.callApi('GET', 'config/config_entries/entry');
-            const maConfig = configs
-                .filter(c => c.domain === 'music_assistant')
-                .find(c => c.state === 'loaded');
+            // Versuche zuerst über config_entries
+            const configEntries = await this._hass.callWS({
+                type: 'config_entries/list'
+            });
             
-            return maConfig ? maConfig.entry_id : null;
+            const maConfig = configEntries.find(entry => 
+                entry.domain === 'music_assistant' && entry.state === 'loaded'
+            );
+            
+            if (maConfig) {
+                return maConfig.entry_id;
+            }
+            
+            // Fallback: Versuche über hass states
+            const states = Object.values(this._hass.states);
+            const maEntity = states.find(state => 
+                state.entity_id.startsWith('media_player.') && 
+                state.attributes.source_list?.includes('Music Assistant')
+            );
+            
+            if (maEntity) {
+                // Wenn MA Entity gefunden, verwende null (Services ohne config_entry_id)
+                return null;
+            }
+            
+            console.warn('Music Assistant config not found');
+            return null;
         } catch (error) {
             console.error('Error getting Music Assistant config:', error);
             return null;
@@ -2664,18 +2685,25 @@ class FastSearchCard extends HTMLElement {
     
     async searchMusicAssistant(query, mediaType = 'all', entity_id) {
         try {
-            const result = await this._hass.callWS({
-                type: 'call_service',
-                domain: 'music_assistant',
-                service: 'search',
-                service_data: {
-                    name: query,
-                    media_type: mediaType === 'all' ? undefined : mediaType,
-                    limit: mediaType === 'all' ? 8 : 100
-                },
-                return_response: true
-            });
-            return result.response;
+            const configEntryId = await this.getMusicAssistantConfig();
+            
+            const serviceData = {
+                name: query,
+                limit: mediaType === 'all' ? 8 : 100
+            };
+            
+            // Nur media_type hinzufügen wenn nicht 'all'
+            if (mediaType !== 'all') {
+                serviceData.media_type = mediaType;
+            }
+            
+            // Nur config_entry_id hinzufügen wenn verfügbar
+            if (configEntryId) {
+                serviceData.config_entry_id = configEntryId;
+            }
+            
+            const result = await this._hass.callService('music_assistant', 'search', serviceData, true);
+            return result.response || result || [];
         } catch (error) {
             console.error('Search error:', error);
             return [];
@@ -2684,18 +2712,25 @@ class FastSearchCard extends HTMLElement {
     
     async getMusicAssistantFavorites(mediaType = 'all') {
         try {
-            const result = await this._hass.callWS({
-                type: 'call_service',
-                domain: 'music_assistant',
-                service: 'get_library',
-                service_data: {
-                    media_type: mediaType === 'all' ? undefined : mediaType,
-                    favorite: true,
-                    limit: 20
-                },
-                return_response: true
-            });
-            return result.response;
+            const configEntryId = await this.getMusicAssistantConfig();
+            
+            const serviceData = {
+                favorite: true,
+                limit: 20
+            };
+            
+            // Nur media_type hinzufügen wenn nicht 'all'
+            if (mediaType !== 'all') {
+                serviceData.media_type = mediaType;
+            }
+            
+            // Nur config_entry_id hinzufügen wenn verfügbar
+            if (configEntryId) {
+                serviceData.config_entry_id = configEntryId;
+            }
+            
+            const result = await this._hass.callService('music_assistant', 'get_library', serviceData, true);
+            return result.response || result || [];
         } catch (error) {
             console.error('Favorites error:', error);
             return [];
