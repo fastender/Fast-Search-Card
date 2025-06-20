@@ -2176,6 +2176,8 @@ class FastSearchCard extends HTMLElement {
             const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
             positionProgress.style.width = `${Math.min(100, Math.max(0, progressPercent))}%`;
         }
+
+    }        
     
     setupClimateControls(item) {
         const climateContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
