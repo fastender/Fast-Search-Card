@@ -2321,9 +2321,15 @@ class FastSearchCard extends HTMLElement {
         const musicAssistantBtn = mediaContainer.querySelector('[data-action="music-assistant"]');
         const ttsBtn = mediaContainer.querySelector('[data-action="tts"]');
         
-        if (prevBtn) prevBtn.addEventListener('click', () => this.callMediaPlayerService('media_previous_track', item.id));
-        if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.callMediaPlayerService('media_play_pause', item.id));
-        if (nextBtn) nextBtn.addEventListener('click', () => this.callMediaPlayerService('media_next_track', item.id));
+        callMusicAssistantService(service, entity_id, data = {}) {
+            // Prüfe ob es ein Music Assistant Player ist
+            if (entity_id.includes('ma_') || entity_id.startsWith('music_assistant')) {
+                this._hass.callService('music_assistant', service, { entity_id, ...data });
+            } else {
+                // Fallback zu Standard Media Player Service
+                this._hass.callService('media_player', service, { entity_id, ...data });
+            }
+        }
         
         // Music Assistant Toggle
         if (musicAssistantBtn) {
