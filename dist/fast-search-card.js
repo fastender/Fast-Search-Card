@@ -2070,7 +2070,7 @@ class FastSearchCard extends HTMLElement {
         // Update play/pause button
         const playPauseBtn = mediaContainer.querySelector('[data-action="play-pause"]');
         if (playPauseBtn) {
-            playPauseBtn.classList.toggle('active', isPlaying);
+            playPauseBtn.classList.remove('active');
             playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
             
             // Update icon
