@@ -1711,13 +1711,17 @@ class FastSearchCard extends HTMLElement {
             const iconBackground = detailPanel.querySelector('.icon-background');
             if (iconBackground) {
                 if (item.domain === 'media_player') {
-                    // MEDIA PLAYER: Album Art mit sofortigem Update
+                    // MEDIA PLAYER: Aggressives Album Art Update
                     const newAlbumArt = this.getAlbumArtUrl(item);
-                    const newBgUrl = newAlbumArt ? `url("${newAlbumArt}")` : `url("${this.getBackgroundImageForItem({...item, state: state.state})}")`;
+                    const fallbackBg = this.getBackgroundImageForItem({...item, state: state.state});
                     
-                    // Sofortiger Wechsel ohne Vergleich
-                    iconBackground.style.backgroundImage = newBgUrl;
-                    iconBackground.style.opacity = '1';              
+                    if (newAlbumArt) {
+                        iconBackground.style.backgroundImage = `url("${newAlbumArt}")`;
+                    } else {
+                        iconBackground.style.backgroundImage = `url("${fallbackBg}")`;
+                    }
+                    
+                    iconBackground.style.opacity = '1';        
                 } else {
                     // ANDERE GERÄTE: Standard Background
                     const newBg = this.getBackgroundImageForItem({...item, state: state.state});
@@ -2134,31 +2138,29 @@ class FastSearchCard extends HTMLElement {
         const positionProgress = mediaContainer.querySelector('.position-progress');
         
         if (currentTimeEl && totalTimeEl && positionProgress) {
-            // Alternative Attribute-Namen je nach Media Player
             const duration = state.attributes.media_duration || 
                              state.attributes.duration || 
                              state.attributes.total_time || 0;
         
-            const position = state.attributes.media_position || 
-                             state.attributes.position || 
-                             state.attributes.current_time || 
-                             state.attributes.elapsed_time || 0;            
-
-            // DEBUG: Zeige was wir bekommen + MA-spezifische Attribute
-            console.log('Media Debug:', {
-                entity: item.id,
-                duration: duration,
-                position: position,
-                state: state.state,
-                // ERWEITERT: MA-spezifische Attribute
-                media_position_updated_at: state.attributes.media_position_updated_at,
-                queue_position: state.attributes.queue_position,
-                queue_size: state.attributes.queue_size,
-                media_content_type: state.attributes.media_content_type,
-                media_title: state.attributes.media_title,
-                media_artist: state.attributes.media_artist,
-                allAttributes: state.attributes
-            });            
+            let position = state.attributes.media_position || 
+                           state.attributes.position || 
+                           state.attributes.current_time || 
+                           state.attributes.elapsed_time || 0;
+            
+            // BERECHNE ECHTE POSITION basierend auf updated_at
+            const updatedAt = state.attributes.media_position_updated_at;
+            if (isPlaying && updatedAt) {
+                const now = new Date();
+                const updateTime = new Date(updatedAt);
+                const elapsedSinceUpdate = (now - updateTime) / 1000; // Sekunden seit letztem Update
+                position = position + elapsedSinceUpdate;
+                
+                // Stelle sicher, dass Position nicht über Duration geht
+                position = Math.min(position, duration);
+            }
+            
+            // Entferne Debug-Code für weniger Spam
+            // console.log('Media Debug:', ...);
             
             // Zeit formatieren (Sekunden zu MM:SS)
             const formatTime = (seconds) => {
@@ -2174,7 +2176,6 @@ class FastSearchCard extends HTMLElement {
             const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
             positionProgress.style.width = `${Math.min(100, Math.max(0, progressPercent))}%`;
         }
-    }
     
     setupClimateControls(item) {
         const climateContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
