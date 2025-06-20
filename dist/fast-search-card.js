@@ -3340,24 +3340,28 @@ class FastSearchCard extends HTMLElement {
         });
     }
     
-
-
     async searchMusicAssistant(query) {
-        if (!this._hass || !query || !this.musicAssistantConfigEntryId) return null;
+        // Leichte Verbesserung: Bessere Prüfung am Anfang
+        if (!this._hass || !query || !this.musicAssistantConfigEntryId) {
+            console.error("Music Assistant Suche nicht möglich: Hass-Objekt, Suchbegriff oder Config-Entry-ID fehlen.");
+            return null;
+        }
     
         try {
             const results = await this._hass.callWS({
-                type: 'call_service',             // KORREKTUR 1: Generischer Befehlstyp
-                domain: 'music_assistant',        // KORREKTUR 2: Domäne angeben
-                service: 'search',                // KORREKTUR 3: Dienst angeben
-                service_data: {                   // KORREKTUR 4: Parameter in service_data kapseln
-                    name: query,                  // Music Assistant erwartet hier 'name' statt 'query'
+                type: 'call_service',
+                domain: 'music_assistant',
+                service: 'search',
+                service_data: {
+                    name: query,
+                    // KORREKTUR: Fehlender Parameter hier hinzugefügt
+                    config_entry_id: this.musicAssistantConfigEntryId, 
                     limit: 20
                 },
                 return_response: true
             });
     
-            // WICHTIG: Die Antwort vom Service Call ist in einem "response"-Objekt verschachtelt.
+            // Die Antwort-Struktur sollte so korrekt sein
             if (results && results.response) {
                 return this.processMusicAssistantResults(results.response);
             }
