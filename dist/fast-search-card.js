@@ -2142,16 +2142,23 @@ class FastSearchCard extends HTMLElement {
             const position = state.attributes.media_position || 
                              state.attributes.position || 
                              state.attributes.current_time || 
-                             state.attributes.elapsed_time || 0;
-            
-            // DEBUG: Zeige was wir bekommen
+                             state.attributes.elapsed_time || 0;            
+
+            // DEBUG: Zeige was wir bekommen + MA-spezifische Attribute
             console.log('Media Debug:', {
                 entity: item.id,
                 duration: duration,
                 position: position,
                 state: state.state,
+                // ERWEITERT: MA-spezifische Attribute
+                media_position_updated_at: state.attributes.media_position_updated_at,
+                queue_position: state.attributes.queue_position,
+                queue_size: state.attributes.queue_size,
+                media_content_type: state.attributes.media_content_type,
+                media_title: state.attributes.media_title,
+                media_artist: state.attributes.media_artist,
                 allAttributes: state.attributes
-            });
+            });            
             
             // Zeit formatieren (Sekunden zu MM:SS)
             const formatTime = (seconds) => {
