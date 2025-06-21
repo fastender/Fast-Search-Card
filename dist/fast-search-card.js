@@ -533,12 +533,13 @@ class FastSearchCard extends HTMLElement {
             }
             
             .detail-left-header {
-                position: relative;
                 display: flex;
-                justify-content: space-between;
                 align-items: center;
+                justify-content: space-between; /* Richtet Button links und Spacer rechts aus */
+                width: 100%; /* Stellt sicher, dass der Header immer die volle Breite hat */
                 margin-bottom: 0px;
                 flex-shrink: 0;
+                position: relative; /* Sicherstellen, dass es ein Bezugspunkt ist */
             }
             
             .back-button {
@@ -636,12 +637,16 @@ class FastSearchCard extends HTMLElement {
             .detail-title-area {
                 text-align: center;
                 color: var(--text-primary);
-                position: absolute; /* <-- NEU */
-                left: 50%;          /* <-- NEU */
-                top: 50%;           /* <-- NEU */
-                transform: translate(-50%, -50%); /* <-- NEU */
-                width: 60%;
+                margin: 0; 
+                flex-grow: 1; /* Nimmt den Platz zwischen Button und Spacer ein */
             }
+
+            .header-spacer {
+                width: 39px; /* Exakt die gleiche Breite wie der .back-button */
+                height: 39px; /* Die gleiche Höhe, um die vertikale Ausrichtung zu stabilisieren */
+                flex-shrink: 0; /* Verhindert, dass der Spacer bei Platzmangel schrumpft */
+            }
+
             .detail-name {
                 font-size: 22px;
                 font-weight: 600;
@@ -1989,6 +1994,9 @@ class FastSearchCard extends HTMLElement {
                     <h3 class="detail-name">${item.name}</h3>
                     <p class="detail-area">${item.area}</p>
                 </div>
+        
+                {/* Dieser unsichtbare Platzhalter ist der Schlüssel */}
+                <div class="header-spacer"></div>
             </div>
             <div class="icon-content">
                 <div class="icon-background-wrapper">
