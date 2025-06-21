@@ -1481,8 +1481,8 @@ class FastSearchCard extends HTMLElement {
         this.updateCategoryIcon();
         this.updatePlaceholder();
         this.hideCategoryButtons();
-        this.expandPanel();
-        this.showCurrentCategoryItems();
+        // this.expandPanel(); // ENTFERNT
+        // this.showCurrentCategoryItems(); // ENTFERNT
     }
 
     handleSubcategorySelect(selectedChip) {
