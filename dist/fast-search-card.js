@@ -1433,11 +1433,17 @@ class FastSearchCard extends HTMLElement {
         if (!this.isPanelExpanded) { this.expandPanel(); }
         this.performSearch(query);
     }
-    
+
     handleSearchFocus() {
-        this.hideCategoryButtons(); // <-- HINZUGEFÜGTE ZEILE
+        this.hideCategoryButtons();
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        searchPanel.animate([{ boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)', borderColor: 'rgba(255, 255, 255, 0.2)' }, { boxShadow: '0 8px 32px rgba(0, 122, 255, 0.3)', borderColor: 'var(--accent)' }], { duration: 300, easing: 'ease-out', fill: 'forwards' });
+        searchPanel.animate([
+            { boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)', borderColor: 'rgba(255, 255, 255, 0.2)' },
+            { 
+                boxShadow: '0 8px 32px rgba(0, 122, 255, 0.3)'
+                /* Die Zeile für 'borderColor' wurde hier entfernt */
+            }
+        ], { duration: 300, easing: 'ease-out', fill: 'forwards' });
         if (!this.isPanelExpanded) { this.expandPanel(); }
     }    
 
