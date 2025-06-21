@@ -533,6 +533,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             .detail-left-header {
+                position: relative;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -635,8 +636,11 @@ class FastSearchCard extends HTMLElement {
             .detail-title-area {
                 text-align: center;
                 color: var(--text-primary);
-                margin-top: 0;
-                flex-grow: 1;
+                position: absolute; /* <-- NEU */
+                left: 50%;          /* <-- NEU */
+                top: 50%;           /* <-- NEU */
+                transform: translate(-50%, -50%); /* <-- NEU */
+                width: 60%;
             }
             .detail-name {
                 font-size: 22px;
