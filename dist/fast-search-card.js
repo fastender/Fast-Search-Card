@@ -114,7 +114,7 @@ class FastSearchCard extends HTMLElement {
 
             .glass-panel {
                 position: relative;
-                border-radius: 24px;
+                border-radius: 50px;
                 border: 1px solid var(--glass-border-color);
                 box-shadow: var(--glass-shadow);
                 overflow: hidden;
@@ -218,8 +218,8 @@ class FastSearchCard extends HTMLElement {
             }
 
             .category-icon {
-                width: 22px;
-                height: 22px;
+                width: 24px;
+                height: 24px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
@@ -236,8 +236,8 @@ class FastSearchCard extends HTMLElement {
             }
 
             .category-icon svg {
-                width: 22px;
-                height: 22px;
+                width: 24px;
+                height: 24px;
                 stroke: var(--text-secondary);
                 stroke-width: 2;
                 stroke-linecap: round;
@@ -502,7 +502,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-card.active .device-status {
-                color: var(--accent);
+                color: var(--text-secondary);
                 opacity: 1;
             }
             
@@ -660,7 +660,7 @@ class FastSearchCard extends HTMLElement {
             
             .category-buttons {
                 display: none;
-                flex-direction: column;
+                flex-direction: row;
                 gap: 12px;
                 opacity: 0;
                 transform: translateX(20px);
@@ -671,14 +671,15 @@ class FastSearchCard extends HTMLElement {
             }
 
             .category-button {
-                width: 56px;
-                height: 56px;
+                width: 72px;
+                height: 72px;
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
                 transition: all 0.2s ease;
+                background: var(--glass-shadow);
             }
             
             .category-button:hover {
