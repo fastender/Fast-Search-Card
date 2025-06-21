@@ -103,7 +103,7 @@ class FastSearchCard extends HTMLElement {
                 --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
                 --accent: #007AFF;
                 --accent-rgb: 0, 122, 255;
-                --accent-light: rgba(0, 122, 255, 0.15);
+                --accent-light: rgba(255, 255, 255, 0.35);
                 --text-primary: rgba(255, 255, 255, 0.95);
                 --text-secondary: rgba(255, 255, 255, 0.7);
                 --neumorphic-base: #2c2f33;
@@ -218,26 +218,26 @@ class FastSearchCard extends HTMLElement {
             }
 
             .category-icon {
-                width: 24px;
-                height: 24px;
+                width: 22px;
+                height: 22px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 border-radius: 6px;
-                background: rgba(255, 255, 255, 0.1); 
+                background: rgba(255, 255, 255, 0); 
                 flex-shrink: 0;
                 transition: all 0.2s ease;
             }
 
             .category-icon:hover {
-                background: rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0);
                 transform: scale(1.05);
             }
 
             .category-icon svg {
-                width: 18px;
-                height: 18px;
+                width: 22px;
+                height: 22px;
                 stroke: var(--text-secondary);
                 stroke-width: 2;
                 stroke-linecap: round;
@@ -249,7 +249,7 @@ class FastSearchCard extends HTMLElement {
                 border: none;
                 background: transparent;
                 outline: none;
-                font-size: 17px;
+                font-size: 24px;
                 color: var(--text-primary);
                 font-family: inherit;
                 min-width: 0;
@@ -335,16 +335,16 @@ class FastSearchCard extends HTMLElement {
             }
 
             .subcategory-chip {
-                padding: 6px 16px;
+                padding: 7px 16px 5px 16px;
                 background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.15);
+                border: 0px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
                 cursor: pointer;
                 white-space: nowrap;
                 flex-shrink: 0;
                 transition: all 0.2s ease;
                 text-align: center;
-                height: 50px;
+                height: 30px;
                 display: flex;
                 align-items: center;
             }
@@ -364,29 +364,29 @@ class FastSearchCard extends HTMLElement {
             .chip-content {
                 display: flex;
                 flex-direction: column;
-                line-height: 1.2;
+                line-height: 1.1;
                 gap: 2px;
                 color: var(--text-primary);
             }
 
             .subcategory-name {
-                font-size: 14px;
-                font-weight: 500;
+                font-size: 12px;
+                font-weight: 600;
             }
 
             .subcategory-status {
-                font-size: 11px;
+                font-size: 12px;
                 color: var(--text-secondary);
                 opacity: 0.9;
                 min-height: 13px;
             }
 
             .subcategory-chip.active .subcategory-status {
-                color: var(--accent);
+                color: var(--text-primary);
             }
             
             .subcategory-chip.active .chip-content {
-                 color: var(--accent);
+                 color: var(--text-primary);
             }
 
             .results-container {
@@ -436,8 +436,8 @@ class FastSearchCard extends HTMLElement {
 
             .device-card {
                 background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 16px;
+                border: 0px solid rgba(255, 255, 255, 0.12);
+                border-radius: 20px;
                 padding: 16px;
                 cursor: pointer;
                 aspect-ratio: 1;
@@ -486,18 +486,19 @@ class FastSearchCard extends HTMLElement {
                 font-size: 13px;
                 font-weight: 600;
                 color: var(--text-primary);
-                margin: 0 0 4px 0;
+                margin: 0 0 0 0;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
-                line-height: 1.2;
+                line-height: 1.1;
             }
 
             .device-status {
-                font-size: 11px;
+                font-size: 13px;
                 color: var(--text-secondary);
                 margin: 0;
                 opacity: 0.8;
+                line-height: 1.1;
             }
 
             .device-card.active .device-status {
