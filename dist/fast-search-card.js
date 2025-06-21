@@ -114,7 +114,7 @@ class FastSearchCard extends HTMLElement {
 
             .glass-panel {
                 position: relative;
-                border-radius: 50px;
+                border-radius: 35px;
                 border: 1px solid var(--glass-border-color);
                 box-shadow: var(--glass-shadow);
                 overflow: hidden;
@@ -690,7 +690,6 @@ class FastSearchCard extends HTMLElement {
 
             .category-button.active {
                 background: var(--accent-light);
-                border-color: var(--accent);
                 box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
             }
 
