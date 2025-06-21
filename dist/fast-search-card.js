@@ -635,7 +635,8 @@ class FastSearchCard extends HTMLElement {
             .detail-title-area {
                 text-align: center;
                 color: var(--text-primary);
-                margin-top: 16px;
+                margin-top: 0;
+                flex-grow: 1;
             }
             .detail-name {
                 font-size: 22px;
@@ -1975,19 +1976,20 @@ class FastSearchCard extends HTMLElement {
         const backgroundStyle = albumArt 
             ? `background-image: url('${albumArt}');`
             : `background-image: url('${backgroundImage}');`;
-    
+
         return `
             <div class="detail-left-header">
                 <button class="back-button">${newBackButtonSVG}</button>
+                
+                <div class="detail-title-area">
+                    <h3 class="detail-name">${item.name}</h3>
+                    <p class="detail-area">${item.area}</p>
+                </div>
             </div>
             <div class="icon-content">
                 <div class="icon-background-wrapper">
                     <div class="icon-background" style="${backgroundStyle}">
                     </div>
-                </div>
-                <div class="detail-title-area">
-                    <h3 class="detail-name">${item.name}</h3>
-                    <p class="detail-area">${item.area}</p>
                 </div>
                 <div class="detail-info-row" style="gap: ${isActive ? '12px' : '0px'}">
                     <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
