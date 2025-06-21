@@ -1457,12 +1457,13 @@ class FastSearchCard extends HTMLElement {
     }
 
     showCategoryButtons() {
+        this.collapsePanel(); // <-- HINZUGEFÜGTE ZEILE
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
     }
-
+    
     hideCategoryButtons() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
