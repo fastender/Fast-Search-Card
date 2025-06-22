@@ -210,12 +210,21 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 padding: 16px 20px;
                 min-height: 40px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                position: sticky; 
+                position: sticky;
                 top: 0; 
                 z-index: 2;
                 background-color: rgba(255, 255, 255, 0.01);
             }
+
+            .search-wrapper::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 20px;
+                right: 20px;
+                height: 1px;
+                background-color: rgba(255, 255, 255, 0.1);
+            }            
 
             .category-icon {
                 width: 24px;
