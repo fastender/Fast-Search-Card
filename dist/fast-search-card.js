@@ -337,25 +337,14 @@ class FastSearchCard extends HTMLElement {
                 -webkit-overflow-scrolling: touch;
                 transition: all 0.3s ease;
                 flex-shrink: 0;
-                position: relative;
             }
-
-            .subcategories::after {
-                content: '';
-                position: absolute;
-                bottom: 8px; /* Platziert die Linie in der Mitte des unteren Paddings */
-                left: 20px;
-                right: 20px;
-                height: 1px;
-                background-color: rgba(255, 255, 255, 0.1);
-            }            
-
+          
             .subcategories::-webkit-scrollbar {
                 display: none;
             }
 
             .subcategory-chip {
-                padding: 7px 16px 5px 16px;
+                padding: 5px 15px 5px 15px;
                 background: rgba(255, 255, 255, 0.08);
                 border: 0px solid rgba(255, 255, 255, 0.15);
                 border-radius: 20px;
@@ -445,9 +434,9 @@ class FastSearchCard extends HTMLElement {
                 font-size: 14px;
                 font-weight: 600;
                 color: var(--text-secondary);
-                margin: 16px 0 8px 0;
-                padding-bottom: 8px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                margin: 16px 0 0px 0;
+                padding-top: 8px;
+                border-bottom: 0px solid rgba(255, 255, 255, 0.1);
             }
 
             .area-header:first-child {
