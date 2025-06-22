@@ -528,14 +528,13 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
-                padding: 16px 20px;
+                padding: 0px;
             }
 
             .detail-right {
                 flex: 1;
                 display: flex;
                 flex-direction: column;
-                background-color: rgba(0, 0, 0, 0.2);
                 border-radius: 0 24px 24px 0; 
                 box-sizing: border-box;
                 overflow: hidden;
@@ -659,7 +658,7 @@ class FastSearchCard extends HTMLElement {
             
             /* Spezieller Header für den rechten Bereich */
             .detail-right-header {
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                border-bottom: 0px solid rgba(255, 255, 255, 0.1);
             }
             
             /* Ausrichtung der Spalteninhalte */
@@ -709,15 +708,16 @@ class FastSearchCard extends HTMLElement {
 
             
             .detail-name {
-                font-size: 22px;
+                font-size: 15px;
                 font-weight: 600;
                 margin: 0;
-                line-height: 1em;
+                line-height: 1.1em;
             }
             .detail-area {
-                font-size: 14px;
+                font-size: 15px;
                 color: var(--text-secondary);
                 margin: 0px;
+                line-height: 1.1em;
             }
             
             .detail-info-row {
@@ -1091,7 +1091,7 @@ class FastSearchCard extends HTMLElement {
             @media (max-width: 768px) {
                 .detail-content { flex-direction: column; }
                 .detail-divider { display: none; }
-                .detail-left { padding: 16px; flex: none; }
+                .detail-left { padding: 0px; flex: none; }
                 .detail-right { padding: 0; border-radius: 0 0 24px 24px; margin: 0 10px 10px 10px;}
                 #tab-content-container { padding: 16px; }
                 .icon-content { justify-content: flex-start; }
