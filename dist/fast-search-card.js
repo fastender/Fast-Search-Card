@@ -538,6 +538,7 @@ class FastSearchCard extends HTMLElement {
                 border-radius: 0 24px 24px 0; 
                 box-sizing: border-box;
                 overflow: hidden;
+                position: relative;
             }
             
             .detail-left-header {
