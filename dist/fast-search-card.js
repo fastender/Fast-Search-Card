@@ -528,7 +528,7 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
-                padding: 16px 20px;
+                padding: 22px 20px;
             }
 
             .detail-right {
@@ -814,6 +814,11 @@ class FastSearchCard extends HTMLElement {
             /* Desktop: Desktop-Tabs zeigen, Mobile-Tabs verstecken */
             .desktop-tabs {
                 display: block;
+                display: flex;
+                justify-content: flex-end;
+                padding-right: 20px;
+                padding-top: 16px;
+                padding-bottom: 10px;                
             }
             
             .mobile-tabs {
