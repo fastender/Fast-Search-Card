@@ -644,8 +644,70 @@ class FastSearchCard extends HTMLElement {
             .detail-title-area {
                 text-align: center;
                 color: var(--text-primary);
-                margin-top: 16px;
+                margin: 0;
+                padding: 0;
             }
+
+            /* Grund-Styling für beide Header */
+            .detail-left-header, .detail-right-header {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr; /* Drei gleich große Spalten */
+                align-items: center;
+                padding: 0 20px;
+                height: 72px; /* Eine feste Höhe für die Kopfzeile */
+            }
+            
+            /* Spezieller Header für den rechten Bereich */
+            .detail-right-header {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            /* Ausrichtung der Spalteninhalte */
+            .header-col-left {
+                display: flex;
+                justify-content: flex-start;
+            }
+            .header-col-center {
+                text-align: center;
+            }
+            .header-col-right {
+                display: flex;
+                justify-content: flex-end;
+            }
+
+            /* --- Responsive Logik für die Tabs --- */
+            
+            /* Standard (Desktop): Nur Desktop-Tabs anzeigen */
+            .tabs-mobile {
+                display: none;
+            }
+            .tabs-desktop {
+                display: flex; /* oder block, je nach Inhalt */
+            }
+            
+            /* Mobile Ansicht (unter 768px) */
+            @media (max-width: 768px) {
+                .tabs-desktop {
+                    display: none;
+                }
+                .tabs-mobile {
+                    display: flex; /* oder block, je nach Inhalt */
+                }
+            
+                /* Im Mobile-Modus den rechten Header komplett ausblenden */
+                .detail-right-header {
+                    display: none;
+                }
+                
+                /* Im Mobile-Modus den linken Header anpassen */
+                .detail-left-header {
+                    padding: 0 10px; /* Weniger seitliches Padding auf Mobile */
+                }
+            }
+
+
+
+            
             .detail-name {
                 font-size: 22px;
                 font-weight: 600;
@@ -1979,39 +2041,37 @@ class FastSearchCard extends HTMLElement {
         const quickStats = this.getQuickStats(item);
         const backgroundImage = this.getBackgroundImageForItem(item);
         const albumArt = (item.domain === 'media_player') ? this.getAlbumArtUrl(item) : null;
-        
+    
         const backgroundStyle = albumArt 
             ? `background-image: url('${albumArt}');`
             : `background-image: url('${backgroundImage}');`;
-
+    
+        // Definition der Tabs (wird für Mobile UND Desktop gebraucht)
         const tabsConfig = this._config.detail_tabs || [
             { id: 'controls', title: 'Steuerung', default: true, svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>` },
             { id: 'shortcuts', title: 'Shortcuts', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M9.8525 14.6334L3.65151 10.6873C2.41651 9.90141 2.41651 8.09858 3.65151 7.31268L9.8525 3.36659C11.1628 2.53279 12.8372 2.53279 14.1475 3.36659L20.3485 7.31268C21.5835 8.09859 21.5835 9.90142 20.3485 10.6873L14.1475 14.6334C12.8372 15.4672 11.1628 15.4672 9.8525 14.6334Z" stroke="currentColor"></path><path d="M18.2857 12L20.3485 13.3127C21.5835 14.0986 21.5835 15.9014 20.3485 16.6873L14.1475 20.6334C12.8372 21.4672 11.1628 21.4672 9.8525 20.6334L3.65151 16.6873C2.41651 15.9014 2.41651 14.0986 3.65151 13.3127L5.71429 12" stroke="currentColor"></path></svg>` },
             { id: 'history', title: 'Verlauf', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143" stroke="currentColor" stroke-linecap="round"></path><path d="M6 17L20 17" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21L20 21" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 7L15 7" stroke="currentColor" stroke-linecap="round"></path></svg>` }
         ];
-
-        const tabsHTML = `
-            <div class="detail-tabs-container">
-                <div class="detail-tabs">
-                    <span class="tab-slider"></span>
-                     ${tabsConfig.map(tab => `<a href="#" class="detail-tab ${tab.default ? 'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}
-                </div>
-            </div>
-        `;
-
+        const tabsHTML = `<div class="detail-tabs-container"><div class="detail-tabs"><span class="tab-slider"></span>${tabsConfig.map(tab => `<a href="#" class="detail-tab ${tab.default ? 'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}</div></div>`;
+    
         return `
             <div class="detail-left-header">
-                <button class="back-button">${newBackButtonSVG}</button>
-                ${tabsHTML}
+                <div class="header-col-left">
+                    <button class="back-button">${newBackButtonSVG}</button>
+                </div>
+                <div class="header-col-center">
+                    <div class="detail-title-area">
+                        <h3 class="detail-name">${item.name}</h3>
+                        <p class="detail-area">${item.area}</p>
+                    </div>
+                </div>
+                <div class="header-col-right tabs-mobile">
+                    ${tabsHTML}
+                </div>
             </div>
             <div class="icon-content">
                 <div class="icon-background-wrapper">
-                    <div class="icon-background" style="${backgroundStyle}">
-                    </div>
-                </div>
-                <div class="detail-title-area">
-                    <h3 class="detail-name">${item.name}</h3>
-                    <p class="detail-area">${item.area}</p>
+                    <div class="icon-background" style="${backgroundStyle}"></div>
                 </div>
                 <div class="detail-info-row" style="gap: ${isActive ? '12px' : '0px'}">
                     <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
@@ -2022,18 +2082,33 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
-
+    
     getDetailRightPaneHTML(item) {
         const controlsHTML = this.getDeviceControlsHTML(item);
-        const tabsConfig = this._config.detail_tabs || [
+        const tabsConfigFromPane = this._config.detail_tabs || [
             { id: 'controls', title: 'Steuerung', default: true },
             { id: 'shortcuts', title: 'Shortcuts' },
             { id: 'history', title: 'Verlauf' }
         ];
-
+    
+        // Definition der Tabs (wird für Mobile UND Desktop gebraucht)
+        const tabsConfig = this._config.detail_tabs || [
+            { id: 'controls', title: 'Steuerung', default: true, svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>` },
+            { id: 'shortcuts', title: 'Shortcuts', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M9.8525 14.6334L3.65151 10.6873C2.41651 9.90141 2.41651 8.09858 3.65151 7.31268L9.8525 3.36659C11.1628 2.53279 12.8372 2.53279 14.1475 3.36659L20.3485 7.31268C21.5835 8.09859 21.5835 9.90142 20.3485 10.6873L14.1475 14.6334C12.8372 15.4672 11.1628 15.4672 9.8525 14.6334Z" stroke="currentColor"></path><path d="M18.2857 12L20.3485 13.3127C21.5835 14.0986 21.5835 15.9014 20.3485 16.6873L14.1475 20.6334C12.8372 21.4672 11.1628 21.4672 9.8525 20.6334L3.65151 16.6873C2.41651 15.9014 2.41651 14.0986 3.65151 13.3127L5.71429 12" stroke="currentColor"></path></svg>` },
+            { id: 'history', title: 'Verlauf', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143" stroke="currentColor" stroke-linecap="round"></path><path d="M6 17L20 17" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21L20 21" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 7L15 7" stroke="currentColor" stroke-linecap="round"></path></svg>` }
+        ];
+        const tabsHTML = `<div class="detail-tabs-container"><div class="detail-tabs"><span class="tab-slider"></span>${tabsConfig.map(tab => `<a href="#" class="detail-tab ${tab.default ? 'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}</div></div>`;
+    
         return `
+            <div class="detail-right-header">
+                <div class="header-col-left"></div>
+                <div class="header-col-center"></div>
+                <div class="header-col-right tabs-desktop">
+                    ${tabsHTML}
+                </div>
+            </div>
             <div id="tab-content-container">
-                 ${tabsConfig.map(tab => `
+                 ${tabsConfigFromPane.map(tab => `
                     <div class="detail-tab-content ${tab.default ? 'active' : ''}" data-tab-content="${tab.id}">
                         ${tab.id === 'controls' ? controlsHTML : `<div>${tab.title} coming soon.</div>`}
                     </div>
