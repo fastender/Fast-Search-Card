@@ -330,7 +330,7 @@ class FastSearchCard extends HTMLElement {
             .subcategories {
                 display: flex;
                 gap: 8px;
-                padding: 0 20px 16px 20px;
+                padding: 5px 20px 16px 20px;
                 overflow-x: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
