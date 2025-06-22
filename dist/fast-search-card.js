@@ -337,7 +337,18 @@ class FastSearchCard extends HTMLElement {
                 -webkit-overflow-scrolling: touch;
                 transition: all 0.3s ease;
                 flex-shrink: 0;
+                position: relative;
             }
+
+            .subcategories::after {
+                content: '';
+                position: absolute;
+                bottom: 8px; /* Platziert die Linie in der Mitte des unteren Paddings */
+                left: 20px;
+                right: 20px;
+                height: 1px;
+                background-color: rgba(255, 255, 255, 0.1);
+            }            
 
             .subcategories::-webkit-scrollbar {
                 display: none;
