@@ -347,7 +347,7 @@ class FastSearchCard extends HTMLElement {
                 padding: 5px 15px 5px 15px;
                 background: rgba(255, 255, 255, 0.08);
                 border: 0px solid rgba(255, 255, 255, 0.15);
-                border-radius: 20px;
+                border-radius: 12px;
                 cursor: pointer;
                 white-space: nowrap;
                 flex-shrink: 0;
