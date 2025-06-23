@@ -2677,10 +2677,11 @@ class FastSearchCard extends HTMLElement {
         const presetsToggle = climateContainer.querySelector('[data-action="toggle-presets"]');
         if (presetsToggle) {
             presetsToggle.addEventListener('click', () => {
-                const presetsContainer = climateContainer.querySelector('.device-control-presets.climate');
-                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                this.animatePresetStagger(presetsContainer, presetsContainer.querySelectorAll('.climate-setting-option'), !isOpen);
-                presetsContainer.setAttribute('data-is-open', String(!isOpen));
+                this.handleExpandableButton(
+                    presetsToggle,
+                    climateContainer,
+                    '.device-control-presets.climate'
+                );
             });
         }
 
