@@ -884,7 +884,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .detail-title-area { 
-                    margin-top: 20px; 
+                    margin-top: 0px; 
                 }
             }            
             
