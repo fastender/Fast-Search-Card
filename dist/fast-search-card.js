@@ -794,10 +794,11 @@ class FastSearchCard extends HTMLElement {
             }
             #tab-content-container {
                 flex-grow: 1;
-                overflow-y: auto;
+                overflow-y: hidden;
                 padding: 20px;
                 box-sizing: border-box;
                 scrollbar-width: none;
+                max-height: 100%;
             }
             #tab-content-container::-webkit-scrollbar { display: none; }
 
@@ -885,7 +886,12 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 #tab-content-container { 
-                    padding: 16px; 
+                    flex-grow: 1;
+                    overflow-y: hidden;
+                    padding: 30px 10px;
+                    box-sizing: border-box;
+                    scrollbar-width: none;
+                    max-height: 100%;
                 }
                 
                 .icon-content { 
@@ -1122,7 +1128,6 @@ class FastSearchCard extends HTMLElement {
                 .detail-content { flex-direction: column; }                
                 .detail-left { padding: 16px; flex: none; }
                 .detail-right { padding: 0; border-radius: 0 0 24px 24px; margin: 0 10px 10px 10px;}
-                #tab-content-container { padding: 16px; }
                 .icon-content { justify-content: flex-start; }
             }
 
