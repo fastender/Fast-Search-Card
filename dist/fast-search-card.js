@@ -1231,6 +1231,10 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(0,0,0,0.3);
                 box-shadow: 0 0 0 2px var(--accent);
             }
+            .ma-search-input::placeholder {
+                color: rgba(255,255,255,0.7);
+            }
+            
             .ma-enqueue-toggle {
                 width: 36px;
                 height: 36px;
