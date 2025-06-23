@@ -1049,7 +1049,7 @@ class FastSearchCard extends HTMLElement {
             .device-control-button.active { background: var(--accent); }
 
             .device-control-presets { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 100%; max-width: 280px;}
-            .device-control-presets.visible { max-height: 400px; opacity: 1; margin-top: 50px;}
+            .device-control-presets.visible { max-height: 400px; opacity: 1; margin-top: 30px;}
             .device-control-presets-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center;}
             .device-control-preset {
                 width: 48px;
@@ -2086,7 +2086,7 @@ class FastSearchCard extends HTMLElement {
         // Bestimme Bewegung basierend auf Gerätetyp
         let moveDistance = '-270px'; // Standard für Media Player
         if (container.querySelector('.climate')) {
-            moveDistance = '-200px'; // Weniger für Climate
+            moveDistance = '-210px'; // Weniger für Climate
         }
         
         if (isEntering) {
