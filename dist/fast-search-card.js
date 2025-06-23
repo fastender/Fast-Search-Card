@@ -535,7 +535,6 @@ class FastSearchCard extends HTMLElement {
                 flex: 1;
                 display: flex;
                 flex-direction: column;
-                background-color: rgba(0, 0, 0, 0.2);
                 border-radius: 0 24px 24px 0; 
                 box-sizing: border-box;
                 overflow: hidden;
@@ -647,17 +646,19 @@ class FastSearchCard extends HTMLElement {
                 margin-top: 0;
             }
             .detail-name {
-                font-size: 20px;
+                font-size: 16px;
                 font-weight: 600;
-                margin: 0 0 4px 0;
-                line-height: 1.2;
+                color: var(--text-primary);
+                margin: 0px;
+                line-height: 1.05em;
             }
             
             .detail-area {
-                font-size: 13px;
+                font-size: 15px;
+                font-weight: 600;
                 color: var(--text-secondary);
                 margin: 0;
-                line-height: 1.2;
+                line-height: 1.05em;
             }
             
             .detail-info-row {
