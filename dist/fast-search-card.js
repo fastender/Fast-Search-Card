@@ -843,7 +843,11 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .detail-divider { 
-                    display: none; 
+                    width: calc(100% - 40px);
+                    height: 1px;
+                    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+                    margin: 10px 0px 0px 0px;
+                    align-self: center;
                 }
                 
                 .detail-left { 
@@ -884,7 +888,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .detail-title-area { 
-                    margin-top: 0px; 
+                    margin-top: 5px; 
                 }
             }            
             
@@ -1105,14 +1109,12 @@ class FastSearchCard extends HTMLElement {
             }
 
             @media (max-width: 768px) {
-                .detail-content { flex-direction: column; }
-                .detail-divider { display: none; }
+                .detail-content { flex-direction: column; }                
                 .detail-left { padding: 16px; flex: none; }
                 .detail-right { padding: 0; border-radius: 0 0 24px 24px; margin: 0 10px 10px 10px;}
                 #tab-content-container { padding: 16px; }
                 .icon-content { justify-content: flex-start; }
                 .icon-background-wrapper { width: 180px; height: 180px; }
-                .detail-title-area { margin-top: 20px; }
             }
 
             /* Media Player Service Presets */
