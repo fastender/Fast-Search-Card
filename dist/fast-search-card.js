@@ -883,8 +883,8 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .icon-background-wrapper { 
-                    width: 180px; 
-                    height: 180px; 
+                    width: 150px; 
+                    height: 150px; 
                 }
                 
                 .detail-title-area { 
@@ -1114,7 +1114,6 @@ class FastSearchCard extends HTMLElement {
                 .detail-right { padding: 0; border-radius: 0 0 24px 24px; margin: 0 10px 10px 10px;}
                 #tab-content-container { padding: 16px; }
                 .icon-content { justify-content: flex-start; }
-                .icon-background-wrapper { width: 180px; height: 180px; }
             }
 
             /* Media Player Service Presets */
