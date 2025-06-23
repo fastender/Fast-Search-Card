@@ -808,7 +808,7 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 24px;
+                gap: 0px;
                 position: relative;
                 z-index: 5;
             }
@@ -1071,12 +1071,12 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 transition: all 0.4s ease;
                 width: 100%;
-                max-width: 280px;
+                max-width: 500px;
             }
             
             .device-control-presets.music-assistant-presets.visible,
             .device-control-presets.tts-presets.visible {
-                max-height: 150px;
+                max-height: 500px;
                 opacity: 1;
                 margin-top: 16px;
             }
