@@ -1127,7 +1127,7 @@ class FastSearchCard extends HTMLElement {
                 font-size: 14px; 
                 font-weight: 600; 
                 color: var(--text-secondary);
-                padding: 12px 8px 4px 8px;
+                padding: 0px;
                 border-bottom: 0px solid rgba(255,255,255,0.1);
                 margin-bottom: 8px;
             }            
