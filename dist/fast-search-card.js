@@ -2518,44 +2518,46 @@ class FastSearchCard extends HTMLElement {
     updateClimateControlsUI(item) {
         const climateContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!climateContainer) return;
-
+    
         const state = this._hass.states[item.id];
         const currentTemp = state.attributes.temperature || 20;
-
+    
+        // Force DOM reflow
+        climateContainer.offsetHeight;
+    
         // Update circular slider if exists
         const sliderId = `slider-${item.id}`;
         if (this.circularSliders[sliderId]) {
             this.circularSliders[sliderId].updateFromState(currentTemp, state.state !== 'off');
         }
-
+    
         // Update active classes for HVAC modes
         climateContainer.querySelectorAll('[data-hvac-mode]').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.hvacMode === state.state);
         });
-
-        // Update all setting options dynamically
-        climateContainer.querySelectorAll('.climate-setting-option').forEach(opt => {
-            const settingType = opt.getAttribute('data-climate-setting');
-            const settingValue = opt.getAttribute('data-value');
     
-            let isActive = false;
-            switch (settingType) {
-                case 'vane_horizontal':
-                    isActive = state.attributes.vane_horizontal === settingValue;
-                    break;
-                case 'vane_vertical':
-                    isActive = state.attributes.vane_vertical === settingValue;
-                    break;
-                case 'swing_mode':
-                    isActive = state.attributes.swing_mode === settingValue;
-                    break;
-                case 'fan_mode':
-                    isActive = state.attributes.fan_mode === settingValue;
-                    break;
-            }
+        // Update setting options with delay to ensure DOM is ready
+        setTimeout(() => {
+            climateContainer.querySelectorAll('.climate-setting-option').forEach(opt => {
+                const settingType = opt.getAttribute('data-climate-setting');
+                const settingValue = opt.getAttribute('data-value');
     
-            opt.classList.toggle('active', isActive);
-        });
+                let isActive = false;
+                switch (settingType) {
+                    case 'vane_horizontal':
+                        isActive = state.attributes.vane_horizontal === settingValue;
+                        break;
+                    case 'vane_vertical':
+                        isActive = state.attributes.vane_vertical === settingValue;
+                        break;
+                    case 'fan_mode':
+                        isActive = state.attributes.fan_mode === settingValue;
+                        break;
+                }
+    
+                opt.classList.toggle('active', isActive);
+            });
+        }, 50);
     }
 
     updateMediaPlayerControlsUI(item) {
