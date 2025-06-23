@@ -1123,6 +1123,14 @@ class FastSearchCard extends HTMLElement {
             .climate-setting-option:hover { 
                 background: rgba(255, 255, 255,0.2); 
             }
+            .climate-category-header {
+                font-size: 14px; 
+                font-weight: 600; 
+                color: var(--text-secondary);
+                padding: 12px 8px 4px 8px;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+                margin-bottom: 8px;
+            }            
 
             @media (max-width: 768px) {
                 .detail-content { flex-direction: column; }                
@@ -2452,6 +2460,7 @@ class FastSearchCard extends HTMLElement {
                 </div>
                 <div class="device-control-presets climate" data-is-open="false">
                     ${showHControls ? `
+                        <div class="climate-category-header">Horizontale Lamellen</div>
                         <div class="climate-setting-row" data-setting-type="vane_horizontal">
                             ${hPositions.map(value => `
                                 <div class="climate-setting-option ${state.attributes.vane_horizontal === value ? 'active' : ''}"
@@ -2461,6 +2470,7 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     ` : ''}
                     ${showVControls ? `
+                        <div class="climate-category-header">Vertikale Lamellen</div>
                         <div class="climate-setting-row" data-setting-type="vane_vertical">
                             ${vPositions.map(value => `
                                 <div class="climate-setting-option ${state.attributes.vane_vertical === value ? 'active' : ''}"
@@ -2469,16 +2479,8 @@ class FastSearchCard extends HTMLElement {
                             `).join('')}
                         </div>
                     ` : ''}
-                    ${supportedSwingModes.length > 0 ? `
-                        <div class="climate-setting-row" data-setting-type="swing_mode">
-                            ${supportedSwingModes.map(mode => `
-                                <div class="climate-setting-option ${state.attributes.swing_mode === mode ? 'active' : ''}"
-                                     data-climate-setting="swing_mode"
-                                     data-value="${mode}">${this.getSwingLabel(mode)}</div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
                     ${supportedFanModes.length > 0 ? `
+                        <div class="climate-category-header">Lüftergeschwindigkeit</div>
                         <div class="climate-setting-row" data-setting-type="fan_mode">
                             ${supportedFanModes.map(mode => `
                                 <div class="climate-setting-option ${state.attributes.fan_mode === mode ? 'active' : ''}"
