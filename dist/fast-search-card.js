@@ -2460,7 +2460,6 @@ class FastSearchCard extends HTMLElement {
                 </div>
                 <div class="device-control-presets climate" data-is-open="false">
                     ${showHControls ? `
-                        <div class="climate-category-header">Horizontale Lamellen</div>
                         <div class="climate-setting-row" data-setting-type="vane_horizontal">
                             ${hPositions.map(value => `
                                 <div class="climate-setting-option ${state.attributes.vane_horizontal === value ? 'active' : ''}"
@@ -2470,7 +2469,6 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     ` : ''}
                     ${showVControls ? `
-                        <div class="climate-category-header">Vertikale Lamellen</div>
                         <div class="climate-setting-row" data-setting-type="vane_vertical">
                             ${vPositions.map(value => `
                                 <div class="climate-setting-option ${state.attributes.vane_vertical === value ? 'active' : ''}"
