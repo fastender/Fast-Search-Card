@@ -543,10 +543,9 @@ class FastSearchCard extends HTMLElement {
             
             .detail-left-header {
                 display: flex;
-                justify-content: space-between;
                 align-items: center;
-                margin-bottom: 0px;
-                flex-shrink: 0;
+                gap: 16px;
+                margin-bottom: 20px;
             }
             
             .back-button {
@@ -642,29 +641,32 @@ class FastSearchCard extends HTMLElement {
             }
             
             .detail-title-area {
-                text-align: center;
-                color: var(--text-primary);
-                margin-top: 16px;
+                flex: 1;
+                min-width: 0;
+                text-align: left;
+                margin-top: 0;
             }
             .detail-name {
-                font-size: 22px;
+                font-size: 20px;
                 font-weight: 600;
-                margin: 0;
-                line-height: 1em;
+                margin: 0 0 4px 0;
+                line-height: 1.2;
             }
+            
             .detail-area {
-                font-size: 14px;
+                font-size: 13px;
                 color: var(--text-secondary);
-                margin: 0px;
+                margin: 0;
+                line-height: 1.2;
             }
             
             .detail-info-row {
                 display: flex;
-                justify-content: center;
                 align-items: center;
+                justify-content: center;
                 gap: 12px;
+                flex-wrap: wrap;
                 margin-top: 16px;
-                opacity: 0;
             }
             
             .category-buttons {
@@ -817,8 +819,8 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 justify-content: flex-end;
                 padding-right: 20px;
-                padding-top: 16px;
-                padding-bottom: 10px;                
+                padding-top: 20px;
+                padding-bottom: 10px;
             }
             
             .mobile-tabs {
@@ -847,6 +849,19 @@ class FastSearchCard extends HTMLElement {
                     padding: 16px; 
                     flex: none; 
                 }
+
+                
+                .detail-left-header {
+                    align-items: center;
+                    gap: 12px;
+                }
+                
+                .detail-info-row {
+                    padding-left: 0;
+                    justify-content: center;
+                    margin-top: 16px;
+                }
+
                 
                 .detail-right { 
                     padding: 0; 
@@ -2065,16 +2080,16 @@ class FastSearchCard extends HTMLElement {
         return `
             <div class="detail-left-header">
                 <button class="back-button">${newBackButtonSVG}</button>
+                <div class="detail-title-area">
+                    <h3 class="detail-name">${item.name}</h3>
+                    <p class="detail-area">${item.area}</p>
+                </div>
                 ${mobileTabsHTML}
             </div>
             <div class="icon-content">
                 <div class="icon-background-wrapper">
                     <div class="icon-background" style="${backgroundStyle}">
                     </div>
-                </div>
-                <div class="detail-title-area">
-                    <h3 class="detail-name">${item.name}</h3>
-                    <p class="detail-area">${item.area}</p>
                 </div>
                 <div class="detail-info-row" style="gap: ${isActive ? '12px' : '0px'}">
                     <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
