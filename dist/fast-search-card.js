@@ -2478,7 +2478,6 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     ` : ''}
                     ${supportedFanModes.length > 0 ? `
-                        <div class="climate-category-header">Lüftergeschwindigkeit</div>
                         <div class="climate-setting-row" data-setting-type="fan_mode">
                             ${supportedFanModes.map(mode => `
                                 <div class="climate-setting-option ${state.attributes.fan_mode === mode ? 'active' : ''}"
