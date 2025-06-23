@@ -581,8 +581,8 @@ class FastSearchCard extends HTMLElement {
             
             .icon-background-wrapper {
                 position: relative;
-                width: 300px;
-                height: 300px;
+                width: 500px;
+                height: 500px;
                 margin: 0 auto 0px;
                 flex-shrink: 0;
             }
