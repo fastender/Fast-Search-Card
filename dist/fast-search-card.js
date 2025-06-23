@@ -813,6 +813,16 @@ class FastSearchCard extends HTMLElement {
                 z-index: 5;
             }
 
+            .device-control-design[data-focus-mode] {
+                position: relative;
+                overflow: visible;
+            }
+            
+            .device-control-presets.visible {
+                z-index: 10;
+                position: relative;
+            }            
+
 
             /* Desktop: Desktop-Tabs zeigen, Mobile-Tabs verstecken */
             .desktop-tabs {
@@ -2050,6 +2060,117 @@ class FastSearchCard extends HTMLElement {
         }
     }        
 
+    toggleFocusMode(container, isEntering) {
+        const slider = container.querySelector('.circular-slider-container');
+        const positionDisplay = container.querySelector('.media-position-display');
+        const controlRow = container.querySelector('.device-control-row');
+        const activePresets = container.querySelector('.device-control-presets.visible');
+        
+        if (isEntering) {
+            // ENTERING FOCUS MODE
+            const timeline = [];
+            
+            // 1. Fade out slider und position display
+            if (slider) {
+                timeline.push(slider.animate([
+                    { opacity: 1, transform: 'scale(1) translateY(0)' },
+                    { opacity: 0, transform: 'scale(0.8) translateY(-20px)' }
+                ], { duration: 300, easing: 'ease-in', fill: 'forwards' }));
+            }
+            
+            if (positionDisplay) {
+                timeline.push(positionDisplay.animate([
+                    { opacity: 1, transform: 'translateY(0)' },
+                    { opacity: 0, transform: 'translateY(-10px)' }
+                ], { duration: 250, delay: 50, easing: 'ease-in', fill: 'forwards' }));
+            }
+            
+            // 2. Move control row up (nach 200ms)
+            setTimeout(() => {
+                if (controlRow) {
+                    controlRow.animate([
+                        { transform: 'translateY(0)' },
+                        { transform: 'translateY(-120px)' }
+                    ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+                }
+            }, 200);
+            
+            // 3. Scale up presets container (nach 300ms)
+            setTimeout(() => {
+                if (activePresets) {
+                    activePresets.animate([
+                        { transform: 'translateY(0) scale(1)', opacity: 1 },
+                        { transform: 'translateY(-120px) scale(1.05)', opacity: 1 }
+                    ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+                }
+            }, 300);
+            
+        } else {
+            // EXITING FOCUS MODE
+            
+            // 1. Scale down presets und fade out
+            if (activePresets) {
+                activePresets.animate([
+                    { transform: 'translateY(-120px) scale(1.05)', opacity: 1 },
+                    { transform: 'translateY(0) scale(1)', opacity: 0 }
+                ], { duration: 300, easing: 'ease-in', fill: 'forwards' });
+            }
+            
+            // 2. Move control row back (nach 100ms)
+            setTimeout(() => {
+                if (controlRow) {
+                    controlRow.animate([
+                        { transform: 'translateY(-120px)' },
+                        { transform: 'translateY(0)' }
+                    ], { duration: 400, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', fill: 'forwards' });
+                }
+            }, 100);
+            
+            // 3. Fade in slider und position (nach 200ms)
+            setTimeout(() => {
+                if (positionDisplay) {
+                    positionDisplay.animate([
+                        { opacity: 0, transform: 'translateY(-10px)' },
+                        { opacity: 1, transform: 'translateY(0)' }
+                    ], { duration: 400, delay: 100, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', fill: 'forwards' });
+                }
+                
+                if (slider) {
+                    slider.animate([
+                        { opacity: 0, transform: 'scale(0.8) translateY(-20px)' },
+                        { opacity: 1, transform: 'scale(1) translateY(0)' }
+                    ], { duration: 500, delay: 150, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', fill: 'forwards' });
+                }
+            }, 200);
+        }
+    }
+
+    handleExpandableButton(button, container, presetSelector) {
+        const presetsContainer = container.querySelector(presetSelector);
+        const isCurrentlyOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+        const isInFocusMode = container.hasAttribute('data-focus-mode');
+        
+        if (!isCurrentlyOpen) {
+            // ÖFFNEN
+            container.setAttribute('data-focus-mode', 'true');
+            button.classList.add('active');
+            presetsContainer.classList.add('visible');
+            presetsContainer.setAttribute('data-is-open', 'true');
+            
+            this.toggleFocusMode(container, true);
+            
+        } else {
+            // SCHLIESSEN  
+            container.removeAttribute('data-focus-mode');
+            button.classList.remove('active');
+            presetsContainer.classList.remove('visible');
+            presetsContainer.setAttribute('data-is-open', 'false');
+            
+            this.toggleFocusMode(container, false);
+        }
+    }
+    
+
     getDetailLeftPaneHTML(item) {
         const newBackButtonSVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
         const state = this._hass.states[item.id];
@@ -2650,9 +2771,6 @@ class FastSearchCard extends HTMLElement {
         // Music Assistant Toggle
         if (musicAssistantBtn) {
             musicAssistantBtn.addEventListener('click', () => {
-                const presetsContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
-                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-        
                 // Schließe andere offene Container, falls nötig
                 const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
                 if (ttsContainer && ttsContainer.getAttribute('data-is-open') === 'true') {
@@ -2661,13 +2779,18 @@ class FastSearchCard extends HTMLElement {
                     mediaContainer.querySelector('[data-action="tts"]').classList.remove('active');
                 }
                 
-                // Music Assistant Container umschalten
-                presetsContainer.classList.toggle('visible', !isOpen);
-                presetsContainer.setAttribute('data-is-open', String(!isOpen));
-                musicAssistantBtn.classList.toggle('active', !isOpen);
-        
+                const presetsContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
+                const wasOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                
+                // Verwende universelle Methode
+                this.handleExpandableButton(
+                    musicAssistantBtn, 
+                    mediaContainer, 
+                    '.device-control-presets.music-assistant-presets'
+                );
+                
                 // Event Listeners nur einmalig bei erster Öffnung initialisieren
-                if (!isOpen && !this.maListenersAttached.has(presetsContainer)) {
+                if (!wasOpen && !this.maListenersAttached.has(presetsContainer)) {
                     this.setupMusicAssistantEventListeners(item, presetsContainer);
                     this.maListenersAttached.add(presetsContainer);
                 }
