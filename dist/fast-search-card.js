@@ -2533,7 +2533,10 @@ class FastSearchCard extends HTMLElement {
             btn.classList.toggle('active', btn.dataset.hvacMode === state.state);
         });
     
-        // Update setting options with delay to ensure DOM is ready
+        // Längere Verzögerung für Mobile
+        const isMobile = window.innerWidth <= 768;
+        const delay = isMobile ? 200 : 50;
+    
         setTimeout(() => {
             climateContainer.querySelectorAll('.climate-setting-option').forEach(opt => {
                 const settingType = opt.getAttribute('data-climate-setting');
@@ -2554,7 +2557,7 @@ class FastSearchCard extends HTMLElement {
     
                 opt.classList.toggle('active', isActive);
             });
-        }, 50);
+        }, delay);
     }
 
     updateMediaPlayerControlsUI(item) {
