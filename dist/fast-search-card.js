@@ -2075,6 +2075,12 @@ class FastSearchCard extends HTMLElement {
         const controlRow = container.querySelector('.device-control-row');
         const activePresets = container.querySelector('.device-control-presets.visible');
         
+        // Bestimme Bewegung basierend auf Gerätetyp
+        let moveDistance = '-270px'; // Standard für Media Player
+        if (container.querySelector('.climate')) {
+            moveDistance = '-120px'; // Weniger für Climate
+        }
+        
         if (isEntering) {
             // ENTERING FOCUS MODE
             const timeline = [];
@@ -2099,7 +2105,7 @@ class FastSearchCard extends HTMLElement {
                 if (controlRow) {
                     controlRow.animate([
                         { transform: 'translateY(0)' },
-                        { transform: 'translateY(-270px)' }
+                        { transform: `translateY(${moveDistance})` }
                     ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
                 }
             }, 200);
@@ -2109,7 +2115,7 @@ class FastSearchCard extends HTMLElement {
                 if (activePresets) {
                     activePresets.animate([
                         { transform: 'translateY(0) scale(1)', opacity: 1 },
-                        { transform: 'translateY(-270px) scale(1.05)', opacity: 1 }
+                        { transform: `translateY(${moveDistance}) scale(1.05)`, opacity: 1 }
                     ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
                 }
             }, 300);
@@ -2120,7 +2126,7 @@ class FastSearchCard extends HTMLElement {
             // 1. Scale down presets und fade out
             if (activePresets) {
                 activePresets.animate([
-                    { transform: 'translateY(-270px) scale(1.05)', opacity: 1 },
+                    { transform: `translateY(${moveDistance}) scale(1.05)`, opacity: 1 },
                     { transform: 'translateY(0) scale(1)', opacity: 0 }
                 ], { duration: 300, easing: 'ease-in', fill: 'forwards' });
             }
@@ -2129,7 +2135,7 @@ class FastSearchCard extends HTMLElement {
             setTimeout(() => {
                 if (controlRow) {
                     controlRow.animate([
-                        { transform: 'translateY(-270px)' },
+                        { transform: `translateY(${moveDistance})` },
                         { transform: 'translateY(0)' }
                     ], { duration: 400, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', fill: 'forwards' });
                 }
