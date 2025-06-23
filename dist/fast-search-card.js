@@ -667,7 +667,7 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 gap: 12px;
                 flex-wrap: wrap;
-                margin-top: 16px;
+                margin-top: 0px;
             }
             
             .category-buttons {
@@ -860,7 +860,7 @@ class FastSearchCard extends HTMLElement {
                 .detail-info-row {
                     padding-left: 0;
                     justify-content: center;
-                    margin-top: 16px;
+                    margin-top: 0px;
                 }
 
                 
