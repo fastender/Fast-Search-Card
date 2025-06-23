@@ -188,7 +188,7 @@ class FastSearchCard extends HTMLElement {
                 position: absolute;
                 top: 0;
                 left: 0;
-                height: 500px;
+                height: 700px;
                 opacity: 0;
                 pointer-events: none;
                 transform: translateX(5%) scale(0.95);
@@ -201,7 +201,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .search-panel.expanded {
-                max-height: 500px; 
+                max-height: 700px; 
             }
 
             .search-wrapper {
@@ -667,7 +667,7 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 gap: 12px;
                 flex-wrap: wrap;
-                margin-top: 0px;
+                margin-top: 20px;
             }
             
             .category-buttons {
@@ -860,7 +860,7 @@ class FastSearchCard extends HTMLElement {
                 .detail-info-row {
                     padding-left: 0;
                     justify-content: center;
-                    margin-top: 0px;
+                    margin-top: 20px;
                 }
 
                 
