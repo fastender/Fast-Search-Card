@@ -2088,9 +2088,9 @@ class FastSearchCard extends HTMLElement {
         if (container.querySelector('.climate')) {
             moveDistance = '-210px'; // Weniger für Climate
         } else if (container.querySelector('.circular-slider-container.brightness')) {
-            moveDistance = '-250px'; // Für Light (Farb-Presets)
+            moveDistance = '-260px'; // Für Light (Farb-Presets)
         } else if (container.querySelector('.circular-slider-container.cover')) {
-            moveDistance = '-240px'; // Für Cover (Positions-Presets)
+            moveDistance = '-250px'; // Für Cover (Positions-Presets)
         }
         
         if (isEntering) {
