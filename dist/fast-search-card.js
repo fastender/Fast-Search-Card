@@ -4150,10 +4150,23 @@ class FastSearchCard extends HTMLElement {
     }
 
     animateStateChange(card, isActive) {
-        const icon = card.querySelector('.device-icon');
-        card.animate([{ boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }], { duration: 600, easing: 'ease-out' });
-        icon.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.2)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
-    }
+        if (!card) return; // ← NEU HINZUFÜGEN
+        
+        const icon = card.querySelector('.device-icon') || card.querySelector('.device-list-icon'); // ← ANPASSEN für beide Typen
+        if (!icon) return; // ← NEU HINZUFÜGEN
+        
+        card.animate([
+            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, 
+            { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, 
+            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }
+        ], { duration: 600, easing: 'ease-out' });
+        
+        icon.animate([
+            { transform: 'scale(1)' }, 
+            { transform: 'scale(1.2)' }, 
+            { transform: 'scale(1)' }
+        ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+    }    
 
     getCardSize() { return 4; }
     static getConfigElement() { return document.createElement('fast-search-card-editor'); }
