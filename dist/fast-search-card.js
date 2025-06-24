@@ -1407,8 +1407,8 @@ class FastSearchCard extends HTMLElement {
                 gap: 16px;
                 padding: 16px 20px;
                 background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 20px;
+                border: 0px solid rgba(255, 255, 255, 0.12);
+                border-radius: 30px;
                 cursor: pointer;
                 transition: all 0.2s ease;
                 will-change: transform, opacity;
@@ -1500,6 +1500,7 @@ class FastSearchCard extends HTMLElement {
                 text-align: right;
                 flex-shrink: 0;
                 font-weight: 500;
+                order: -1; /* ← NEU: Area über Name positionieren */
             }
             
             .view-toggle-button {
@@ -1518,7 +1519,6 @@ class FastSearchCard extends HTMLElement {
             
             .view-toggle-button:hover {
                 background: rgba(255, 255, 255, 0.2);
-                transform: scale(1.05);
             }
             
             .view-toggle-button svg {
@@ -1529,6 +1529,45 @@ class FastSearchCard extends HTMLElement {
                 stroke-linecap: round;
                 stroke-linejoin: round;
             }
+
+            .device-list-quick-action {
+                width: 32px;
+                height: 32px;
+                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+                margin-left: 8px;
+            }
+            
+            .device-list-quick-action:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.1);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            
+            .device-list-quick-action.active {
+                background: var(--accent-light);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            }
+            
+            .device-list-quick-action svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-secondary);
+                stroke-width: 1.5;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+            
+            .device-list-quick-action.active svg {
+                stroke: var(--accent);
+            }            
                                     
             </style>
 
@@ -1955,6 +1994,33 @@ class FastSearchCard extends HTMLElement {
                 if (statusElement) { statusElement.textContent = this.getEntityStatus(state); }
             }
         });
+
+        const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
+        deviceListItems.forEach(listItem => {
+            const entityId = listItem.dataset.entity;
+            const state = this._hass.states[entityId];
+            if (state) {
+                const isActive = this.isEntityActive(state);
+                const wasActive = listItem.classList.contains('active');
+                listItem.classList.toggle('active', isActive);
+                
+                if (isActive !== wasActive) {
+                    this.animateStateChange(listItem, isActive);
+                }
+                
+                // Update status text
+                const statusElement = listItem.querySelector('.device-list-status');
+                if (statusElement) {
+                    statusElement.textContent = this.getEntityStatus(state);
+                }
+                
+                // Update quick action button
+                const quickActionBtn = listItem.querySelector('.device-list-quick-action');
+                if (quickActionBtn) {
+                    this.updateQuickActionButton(quickActionBtn, entityId, state);
+                }
+            }
+        });
     }
 
     categorizeEntity(domain) {
@@ -2227,26 +2293,216 @@ class FastSearchCard extends HTMLElement {
             viewToggle.title = 'Listen-Ansicht';
         }
     }
-    
+
     createDeviceListItem(item) {
         const listItem = document.createElement('div');
         listItem.className = `device-list-item ${item.isActive ? 'active' : ''}`;
         listItem.dataset.entity = item.id;
         
+        const quickActionHTML = this.getQuickActionHTML(item);
+        
         listItem.innerHTML = `
             <div class="device-list-icon">${item.icon}</div>
             <div class="device-list-content">
+                <div class="device-list-area">${item.area}</div>
                 <div class="device-list-name">${item.name}</div>
                 <div class="device-list-status">${this.getEntityStatus(this._hass.states[item.id])}</div>
             </div>
-            <div class="device-list-area">${item.area}</div>
+            ${quickActionHTML}
         `;
         
-        listItem.addEventListener('click', () => this.handleDeviceClick(item, listItem));
+        // Event Listeners
+        const content = listItem.querySelector('.device-list-content');
+        const icon = listItem.querySelector('.device-list-icon');
+        
+        // Detail-View öffnen bei Klick auf Content oder Icon
+        [content, icon].forEach(element => {
+            element.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleDeviceClick(item, listItem);
+            });
+        });
+        
+        // Quick Action Event Listener
+        const quickActionBtn = listItem.querySelector('.device-list-quick-action');
+        if (quickActionBtn) {
+            quickActionBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleQuickAction(item, quickActionBtn);
+            });
+        }
+        
         return listItem;
+    }    
+
+    getQuickActionHTML(item) {
+        const state = this._hass.states[item.id];
+        if (!state) return '';
+        
+        const isActive = this.isEntityActive(state);
+        
+        switch (item.domain) {
+            case 'light':
+            case 'climate':
+                return `
+                    <button class="device-list-quick-action ${isActive ? 'active' : ''}" 
+                            title="${isActive ? 'Ausschalten' : 'Einschalten'}"
+                            data-action="power-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M7 6a7.75 7.75 0 1 0 10 0" />
+                            <path d="M12 4l0 8" />
+                        </svg>
+                    </button>
+                `;
+                
+            case 'media_player':
+                const isPlaying = state.state === 'playing';
+                const playPauseIcon = isPlaying ? `
+                    <svg width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor"></path>
+                        <path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor"></path>
+                    </svg>
+                ` : `
+                    <svg width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor"></path>
+                    </svg>
+                `;
+                
+                return `
+                    <button class="device-list-quick-action ${isPlaying ? 'active' : ''}" 
+                            title="${isPlaying ? 'Pause' : 'Play'}"
+                            data-action="play-pause">
+                        ${playPauseIcon}
+                    </button>
+                `;
+                
+            case 'cover':
+                const position = state.attributes.current_position ?? 0;
+                let coverAction = 'open';
+                let coverIcon = '';
+                let coverTitle = '';
+                
+                if (position === 0) {
+                    coverAction = 'open';
+                    coverTitle = 'Öffnen';
+                    coverIcon = `
+                        <svg stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 15L12 9L18 15" stroke="currentColor"></path>
+                        </svg>
+                    `;
+                } else if (position === 100) {
+                    coverAction = 'close';
+                    coverTitle = 'Schließen';
+                    coverIcon = `
+                        <svg stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor"></path>
+                        </svg>
+                    `;
+                } else {
+                    coverAction = 'stop';
+                    coverTitle = 'Stopp';
+                    coverIcon = `
+                        <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 4L12 9L7 4" stroke="currentColor"></path>
+                            <path d="M17 20L12 15L7 20" stroke="currentColor"></path>
+                        </svg>
+                    `;
+                }
+                
+                return `
+                    <button class="device-list-quick-action ${position > 0 ? 'active' : ''}" 
+                            title="${coverTitle}"
+                            data-action="${coverAction}">
+                        ${coverIcon}
+                    </button>
+                `;
+                
+            default:
+                return '';
+        }
     }
 
-    
+    handleQuickAction(item, button) {
+        const action = button.dataset.action;
+        const state = this._hass.states[item.id];
+        
+        // Visual feedback
+        button.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(0.9)' },
+            { transform: 'scale(1)' }
+        ], { duration: 150, easing: 'ease-out' });
+        
+        switch (item.domain) {
+            case 'light':
+                if (action === 'power-toggle') {
+                    this.callLightService('toggle', item.id);
+                }
+                break;
+                
+            case 'climate':
+                if (action === 'power-toggle') {
+                    const isOn = !['off', 'unavailable'].includes(state.state);
+                    this.callClimateService(isOn ? 'turn_off' : 'turn_on', item.id);
+                }
+                break;
+                
+            case 'media_player':
+                if (action === 'play-pause') {
+                    this.callMusicAssistantService('media_play_pause', item.id);
+                }
+                break;
+                
+            case 'cover':
+                switch (action) {
+                    case 'open':
+                        this.callCoverService('open_cover', item.id);
+                        break;
+                    case 'close':
+                        this.callCoverService('close_cover', item.id);
+                        break;
+                    case 'stop':
+                        this.callCoverService('stop_cover', item.id);
+                        break;
+                }
+                break;
+        }
+    }
+
+    updateQuickActionButton(button, entityId, state) {
+        const domain = entityId.split('.')[0];
+        const isActive = this.isEntityActive(state);
+        
+        button.classList.toggle('active', isActive);
+        
+        // Update specific button states
+        switch (domain) {
+            case 'light':
+            case 'climate':
+                button.title = isActive ? 'Ausschalten' : 'Einschalten';
+                break;
+                
+            case 'media_player':
+                const isPlaying = state.state === 'playing';
+                button.classList.toggle('active', isPlaying);
+                button.title = isPlaying ? 'Pause' : 'Play';
+                
+                // Update icon
+                const playIcon = `<svg width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor"></path></svg>`;
+                const pauseIcon = `<svg width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor"></path><path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor"></path></svg>`;
+                
+                button.innerHTML = isPlaying ? pauseIcon : playIcon;
+                break;
+                
+            case 'cover':
+                const position = state.attributes.current_position ?? 0;
+                button.classList.toggle('active', position > 0);
+                
+                // Cover icons and actions change based on position - could be updated here
+                break;
+        }
+    }    
 
     handleDeviceClick(item, card) {
         this.previousSearchState = {
