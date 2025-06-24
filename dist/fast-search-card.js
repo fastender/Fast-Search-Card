@@ -2800,12 +2800,10 @@ class FastSearchCard extends HTMLElement {
         // Music Assistant Toggle
         if (musicAssistantBtn) {
             musicAssistantBtn.addEventListener('click', () => {
-                // Schließe andere offene Container, falls nötig
+                // Schließe TTS falls offen (mit Focus-Mode)
                 const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
                 if (ttsContainer && ttsContainer.getAttribute('data-is-open') === 'true') {
-                    ttsContainer.classList.remove('visible');
-                    ttsContainer.setAttribute('data-is-open', 'false');
-                    mediaContainer.querySelector('[data-action="tts"]').classList.remove('active');
+                    this.handleExpandableButton(ttsBtn, mediaContainer, '.device-control-presets.tts-presets');
                 }
                 
                 const presetsContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
@@ -2829,15 +2827,10 @@ class FastSearchCard extends HTMLElement {
         // TTS Toggle
         if (ttsBtn) {
             ttsBtn.addEventListener('click', () => {
-                // Schließe Music Assistant falls offen
+                // Schließe Music Assistant falls offen (mit Focus-Mode)
                 const musicContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
-                if (musicContainer.getAttribute('data-is-open') === 'true') {
-                    musicContainer.classList.remove('visible');
-                    musicContainer.setAttribute('data-is-open', 'false');
-                    musicAssistantBtn.classList.remove('active');
-                    // Entferne Focus-Mode vom Container
-                    mediaContainer.removeAttribute('data-focus-mode');
-                    this.toggleFocusMode(mediaContainer, false);
+                if (musicContainer && musicContainer.getAttribute('data-is-open') === 'true') {
+                    this.handleExpandableButton(musicAssistantBtn, mediaContainer, '.device-control-presets.music-assistant-presets');
                 }
                 
                 // Toggle TTS mit universeller Methode
