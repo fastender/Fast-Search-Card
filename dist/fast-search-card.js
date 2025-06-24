@@ -2081,7 +2081,7 @@ class FastSearchCard extends HTMLElement {
         const slider = container.querySelector('.circular-slider-container');
         const positionDisplay = container.querySelector('.media-position-display');
         const controlRow = container.querySelector('.device-control-row');
-        const activePresets = container.querySelector('.device-control-presets.visible');
+        const activePresets = container.querySelector('.device-control-presets.visible[data-is-open="true"]');
         
         // Bestimme Bewegung basierend auf Gerätetyp
         let moveDistance = '-270px'; // Standard für Media Player
