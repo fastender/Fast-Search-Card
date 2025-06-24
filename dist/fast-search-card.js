@@ -1514,7 +1514,7 @@ class FastSearchCard extends HTMLElement {
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
         // Back button listener is now set dynamically in renderDetailView
-
+    
         searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
         searchInput.addEventListener('focus', () => this.handleSearchFocus());
         clearButton.addEventListener('click', (e) => { e.stopPropagation(); this.clearSearch(); });
@@ -1532,6 +1532,29 @@ class FastSearchCard extends HTMLElement {
             if (!e.target.closest('fast-search-card')) {
                 this.hideCategoryButtons();
                 this.collapsePanel();
+            }
+        });
+    
+        // NEU: Resize Listener für Viewport-Wechsel
+        window.addEventListener('resize', () => {
+            if (this.isDetailView && this.currentDetailItem) {
+                setTimeout(() => {
+                    const container = this.shadowRoot.getElementById(`device-control-${this.currentDetailItem.id}`);
+                    if (container) {
+                        container.offsetHeight; // Force reflow
+                        
+                        // Update UI states
+                        if (this.currentDetailItem.domain === 'light') {
+                            this.updateLightControlsUI(this.currentDetailItem);
+                        } else if (this.currentDetailItem.domain === 'cover') {
+                            this.updateCoverControlsUI(this.currentDetailItem);
+                        } else if (this.currentDetailItem.domain === 'climate') {
+                            this.updateClimateControlsUI(this.currentDetailItem);
+                        } else if (this.currentDetailItem.domain === 'media_player') {
+                            this.updateMediaPlayerControlsUI(this.currentDetailItem);
+                        }
+                    }
+                }, 150);
             }
         });
     }
