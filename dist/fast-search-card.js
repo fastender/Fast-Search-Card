@@ -2132,17 +2132,21 @@ class FastSearchCard extends HTMLElement {
                 }
             }, 200);
             
+
+
             // 3. Scale up presets container (nach 300ms)
             setTimeout(() => {
                 if (activePresets) {
-                    // Sichtbar machen UND animieren
-                    activePresets.classList.add('visible');
+                    // Sofort sichtbar machen
+                    if (!activePresets.classList.contains('visible')) {
+                        activePresets.classList.add('visible');
+                    }
                     activePresets.animate([
                         { transform: 'translateY(0) scale(1)', opacity: 1 },
                         { transform: `translateY(${moveDistance}) scale(1.05)`, opacity: 1 }
                     ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
                 }
-            }, 300);
+            }, 300);            
             
         } else {
             // EXITING FOCUS MODE
