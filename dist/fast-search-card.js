@@ -2827,21 +2827,23 @@ class FastSearchCard extends HTMLElement {
         // TTS Toggle
         if (ttsBtn) {
             ttsBtn.addEventListener('click', () => {
-                const presetsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
-                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                
                 // Schließe Music Assistant falls offen
                 const musicContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
                 if (musicContainer.getAttribute('data-is-open') === 'true') {
                     musicContainer.classList.remove('visible');
                     musicContainer.setAttribute('data-is-open', 'false');
                     musicAssistantBtn.classList.remove('active');
+                    // Entferne Focus-Mode vom Container
+                    mediaContainer.removeAttribute('data-focus-mode');
+                    this.toggleFocusMode(mediaContainer, false);
                 }
                 
-                // Toggle TTS
-                presetsContainer.classList.toggle('visible', !isOpen);
-                presetsContainer.setAttribute('data-is-open', String(!isOpen));
-                ttsBtn.classList.toggle('active', !isOpen);
+                // Toggle TTS mit universeller Methode
+                this.handleExpandableButton(
+                    ttsBtn,
+                    mediaContainer,
+                    '.device-control-presets.tts-presets'
+                );
             });
         }
 
@@ -2911,6 +2913,9 @@ class FastSearchCard extends HTMLElement {
                     <span class="total-time">0:00</span>
                 </div>                       
                 
+
+
+
                 <div class="device-control-row">
                     <button class="device-control-button" data-action="previous" title="Vorheriger Titel">
                         <svg width="48px" height="48px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 7V17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.0282 5.2672C17.4217 4.95657 18 5.23682 18 5.73813V18.2619C18 18.7632 17.4217 19.0434 17.0282 18.7328L9.09651 12.4709C8.79223 12.2307 8.79223 11.7693 9.09651 11.5291L17.0282 5.2672Z" stroke="currentColor"></path></svg>
@@ -2922,8 +2927,13 @@ class FastSearchCard extends HTMLElement {
                         <svg width="48px" height="48px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M18 7V17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6.97179 5.2672C6.57832 4.95657 6 5.23682 6 5.73813V18.2619C6 18.7632 6.57832 19.0434 6.97179 18.7328L14.9035 12.4709C15.2078 12.2307 15.2078 11.7693 14.9035 11.5291L6.97179 5.2672Z" stroke="currentColor"></path></svg>
                     </button>
                     <button class="device-control-button" data-action="music-assistant" title="Music Assistant">
-                        <svg width="48px" height="48px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M9 17H15" stroke="currentColor" stroke-linecap="round"></path><path d="M12 17V10" stroke="currentColor" stroke-linecap="round"></path><path d="M12 10C10.3431 10 9 8.65685 9 7C9 5.34315 10.3431 4 12 4C13.6569 4 15 5.34315 15 7C15 8.65685 13.6569 10 12 10Z" stroke="currentColor" stroke-linecap="round"></path><path d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2" stroke="currentColor" stroke-linecap="round"></path></svg>
+                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M20 14V3L9 5V16" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17 19H18C19.1046 19 20 18.1046 20 17V14H17C15.8954 14 15 14.8954 15 16V17C15 18.1046 15.8954 19 17 19Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H7C8.10457 21 9 20.1046 9 19V16H6C4.89543 16 4 16.8954 4 18V19C4 20.1046 4.89543 21 6 21Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                     </button>
+                    <button class="device-control-button" data-action="tts" title="Text-to-Speech">
+                        <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M7 12L17 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7 8L13 8" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 20.2895V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 5V15C21 16.1046 20.1046 17 19 17H7.96125C7.35368 17 6.77906 17.2762 6.39951 17.7506L4.06852 20.6643C3.71421 21.1072 3 20.8567 3 20.2895Z" stroke="currentColor" stroke-width="1"></path></svg>
+                    </button>
+                </div>
+
                 </div>
                 <div class="device-control-presets music-assistant-presets" data-is-open="false">
                     ${this.getMusicAssistantHTML(item)}
