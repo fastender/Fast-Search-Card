@@ -2081,7 +2081,7 @@ class FastSearchCard extends HTMLElement {
         const slider = container.querySelector('.circular-slider-container');
         const positionDisplay = container.querySelector('.media-position-display');
         const controlRow = container.querySelector('.device-control-row');
-        const activePresets = container.querySelector('.device-control-presets.visible[data-is-open="true"]');
+        const activePresets = container.querySelector('.device-control-presets[data-is-open="true"]');
 
        // DEBUG: Schaue was gefunden wird
         console.log('toggleFocusMode called:', isEntering);
@@ -2133,6 +2133,8 @@ class FastSearchCard extends HTMLElement {
             // 3. Scale up presets container (nach 300ms)
             setTimeout(() => {
                 if (activePresets) {
+                    // Sichtbar machen UND animieren
+                    activePresets.classList.add('visible');
                     activePresets.animate([
                         { transform: 'translateY(0) scale(1)', opacity: 1 },
                         { transform: `translateY(${moveDistance}) scale(1.05)`, opacity: 1 }
@@ -2190,17 +2192,7 @@ class FastSearchCard extends HTMLElement {
             button.classList.add('active');
             presetsContainer.setAttribute('data-is-open', 'true');
             
-            // NICHT sofort sichtbar machen!
-            // presetsContainer.classList.add('visible'); // <-- ENTFERNEN
-            
-            // Erst Focus-Mode Animation, dann Menü einblenden
             this.toggleFocusMode(container, true);
-            
-            // Menü nach Slider-Animation einblenden
-            setTimeout(() => {
-                presetsContainer.classList.add('visible');
-            }, 400); // Nach Slider-Ausblend-Animation
-
             
         } else {
             // SCHLIESSEN  
