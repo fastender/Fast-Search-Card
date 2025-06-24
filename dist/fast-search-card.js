@@ -2197,7 +2197,10 @@ class FastSearchCard extends HTMLElement {
 
     handleExpandableButton(button, container, presetSelector) {
         const presetsContainer = container.querySelector(presetSelector);
+        console.log('Initial state:', presetsContainer.getAttribute('data-is-open'));
+        console.log('Initial classes:', presetsContainer.className);        
         const isCurrentlyOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+        console.log('isCurrentlyOpen:', isCurrentlyOpen);
         
         if (!isCurrentlyOpen) {
             // ÖFFNEN
