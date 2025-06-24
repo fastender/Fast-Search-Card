@@ -2200,7 +2200,7 @@ class FastSearchCard extends HTMLElement {
             setTimeout(() => {
                 presetsContainer.classList.add('visible');
             }, 400); // Nach Slider-Ausblend-Animation
-        }
+
             
         } else {
             // SCHLIESSEN  
