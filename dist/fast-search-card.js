@@ -2185,16 +2185,22 @@ class FastSearchCard extends HTMLElement {
         const isCurrentlyOpen = presetsContainer.getAttribute('data-is-open') === 'true';
         
         if (!isCurrentlyOpen) {
-            // ÖFFNEN - für alle gleich
+            // ÖFFNEN
             container.setAttribute('data-focus-mode', 'true');
             button.classList.add('active');
-            presetsContainer.classList.add('visible');
             presetsContainer.setAttribute('data-is-open', 'true');
             
-            // Kleine Verzögerung für glattere Animation
+            // NICHT sofort sichtbar machen!
+            // presetsContainer.classList.add('visible'); // <-- ENTFERNEN
+            
+            // Erst Focus-Mode Animation, dann Menü einblenden
+            this.toggleFocusMode(container, true);
+            
+            // Menü nach Slider-Animation einblenden
             setTimeout(() => {
-                this.toggleFocusMode(container, true);
-            }, 50);
+                presetsContainer.classList.add('visible');
+            }, 400); // Nach Slider-Ausblend-Animation
+        }
             
         } else {
             // SCHLIESSEN  
