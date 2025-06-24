@@ -2091,6 +2091,8 @@ class FastSearchCard extends HTMLElement {
             moveDistance = '-220px'; // Für Light (Farb-Presets)
         } else if (container.querySelector('.circular-slider-container.cover')) {
             moveDistance = '-220px'; // Für Cover (Positions-Presets)
+        } else if (container.querySelector('.device-control-presets.tts-presets.visible')) {
+            moveDistance = '-200px'; // Spezifisch für TTS (weniger als Music Assistant)
         }
         
         if (isEntering) {
