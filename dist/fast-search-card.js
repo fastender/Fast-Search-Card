@@ -21,6 +21,7 @@ class FastSearchCard extends HTMLElement {
         this.isDetailView = false;
         this.currentDetailItem = null;
         this.previousSearchState = null;
+        this.currentViewMode = 'grid';
 
         // Circular Slider State
         this.circularSliders = {};
@@ -46,9 +47,13 @@ class FastSearchCard extends HTMLElement {
         // Standardkonfiguration wird mit der Benutzerkonfiguration zusammengeführt
         this._config = {
             title: 'Fast Search',
+            default_view: 'grid',
             ...config,
             entities: config.entities
         };
+
+        // NEU HINZUFÜGEN nach der config Zuweisung:
+        this.currentViewMode = this._config.default_view || 'grid';        
         
         this.render();
     }
@@ -1373,6 +1378,157 @@ class FastSearchCard extends HTMLElement {
                 text-align: center; color: var(--text-secondary);
                 padding: 40px 20px; font-style: italic; font-size: 13px;
             }
+
+
+            /* List View Styles */
+            .results-list {
+                display: none;
+                flex-direction: column;
+                gap: 8px;
+                padding-left: 20px;
+                padding-right: 20px;
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: all 0.3s ease;
+            }
+            
+            .search-panel.expanded .results-list {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            
+            .results-list.active {
+                display: flex;
+            }
+            
+            .device-list-item {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 16px 20px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 20px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                will-change: transform, opacity;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .device-list-item::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+                opacity: 0;
+                transition: opacity 0.2s ease;
+                pointer-events: none;
+            }
+            
+            .device-list-item:hover {
+                transform: translateX(4px) scale(1.01);
+                background: rgba(255, 255, 255, 0.15);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+            
+            .device-list-item:hover::before {
+                opacity: 1;
+            }
+            
+            .device-list-item.active {
+                background: var(--accent-light);
+                border-color: var(--accent);
+                box-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
+            }
+            
+            .device-list-icon {
+                width: 48px;
+                height: 48px;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                font-size: 20px;
+                transition: all 0.2s ease;
+            }
+            
+            .device-list-item.active .device-list-icon {
+                background: rgba(0, 122, 255, 0.3);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+            }
+            
+            .device-list-content {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .device-list-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .device-list-status {
+                font-size: 14px;
+                color: var(--text-secondary);
+                margin: 0;
+                opacity: 0.8;
+            }
+            
+            .device-list-item.active .device-list-status {
+                color: var(--text-secondary);
+                opacity: 1;
+            }
+            
+            .device-list-area {
+                font-size: 13px;
+                color: var(--text-secondary);
+                opacity: 0.7;
+                text-align: right;
+                flex-shrink: 0;
+                font-weight: 500;
+            }
+            
+            .view-toggle-button {
+                width: 24px;
+                height: 24px;
+                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+            
+            .view-toggle-button:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.05);
+            }
+            
+            .view-toggle-button svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
                                     
             </style>
 
@@ -1401,6 +1557,28 @@ class FastSearchCard extends HTMLElement {
                                     <line x1="6" y1="6" x2="18" y2="18"/>
                                 </svg>
                             </button>
+
+
+                            <!-- NEU HINZUFÜGEN: -->
+                            <button class="view-toggle-button" title="Ansicht wechseln">
+                                <svg viewBox="0 0 24 24" fill="none" class="grid-icon">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                </svg>
+                                <svg viewBox="0 0 24 24" fill="none" class="list-icon" style="display: none;">
+                                    <line x1="8" y1="6" x2="21" y2="6"/>
+                                    <line x1="8" y1="12" x2="21" y2="12"/>
+                                    <line x1="8" y1="18" x2="21" y2="18"/>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                                </svg>
+                            </button>
+
+
+                            
 
                             <div class="filter-icon">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -1458,6 +1636,11 @@ class FastSearchCard extends HTMLElement {
                             </div>
                             <div class="results-grid">
                             </div>
+
+                            <div class="results-list">
+                            </div>
+
+                            
                         </div>
                     </div>
 
@@ -1505,6 +1688,7 @@ class FastSearchCard extends HTMLElement {
         `;
 
         this.setupEventListeners();
+        this.updateViewToggleIcon();
     }
 
     setupEventListeners() {
@@ -1520,6 +1704,11 @@ class FastSearchCard extends HTMLElement {
         clearButton.addEventListener('click', (e) => { e.stopPropagation(); this.clearSearch(); });
         categoryIcon.addEventListener('click', (e) => { e.stopPropagation(); this.toggleCategoryButtons(); });
         filterIcon.addEventListener('click', (e) => { e.stopPropagation(); this.handleFilterClick(); });
+
+        // NEU HINZUFÜGEN:
+        const viewToggle = this.shadowRoot.querySelector('.view-toggle-button');
+        viewToggle.addEventListener('click', (e) => { e.stopPropagation(); this.toggleViewMode(); });
+        
         categoryButtons.forEach(button => {
             button.addEventListener('click', (e) => { e.stopPropagation(); this.handleCategorySelect(button); });
         });
@@ -1915,25 +2104,44 @@ class FastSearchCard extends HTMLElement {
 
     renderResults() {
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
+        const resultsList = this.shadowRoot.querySelector('.results-list');
+        
+        // Clear timeouts
         this.animationTimeouts.forEach(timeout => clearTimeout(timeout));
         this.animationTimeouts = [];
+        
+        // Hide both containers initially
+        resultsGrid.style.display = this.currentViewMode === 'grid' ? 'grid' : 'none';
+        resultsList.classList.toggle('active', this.currentViewMode === 'list');
+        
         if (this.filteredItems.length === 0) {
-            resultsGrid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
+            const emptyState = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
+            if (this.currentViewMode === 'grid') {
+                resultsGrid.innerHTML = emptyState;
+            } else {
+                resultsList.innerHTML = emptyState;
+            }
             return;
         }
+        
+        if (this.currentViewMode === 'grid') {
+            this.renderGridResults(resultsGrid);
+        } else {
+            this.renderListResults(resultsList);
+        }
+    }
+    
+    renderGridResults(resultsGrid) {
         resultsGrid.innerHTML = '';
-        const groupedItems = this.filteredItems.reduce((groups, item) => {
-            const area = item.area || 'Ohne Raum';
-            if (!groups[area]) { groups[area] = []; }
-            groups[area].push(item);
-            return groups;
-        }, {});
+        const groupedItems = this.groupItemsByArea();
+        
         let cardIndex = 0;
         Object.keys(groupedItems).sort().forEach(area => {
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
             areaHeader.textContent = area;
             resultsGrid.appendChild(areaHeader);
+            
             groupedItems[area].forEach((item) => {
                 const card = this.createDeviceCard(item);
                 resultsGrid.appendChild(card);
@@ -1948,6 +2156,45 @@ class FastSearchCard extends HTMLElement {
         });
         this.hasAnimated = true;
     }
+    
+    renderListResults(resultsList) {
+        resultsList.innerHTML = '';
+        const groupedItems = this.groupItemsByArea();
+        
+        let itemIndex = 0;
+        Object.keys(groupedItems).sort().forEach(area => {
+            const areaHeader = document.createElement('div');
+            areaHeader.className = 'area-header';
+            areaHeader.textContent = area;
+            resultsList.appendChild(areaHeader);
+            
+            groupedItems[area].forEach((item) => {
+                const listItem = this.createDeviceListItem(item);
+                resultsList.appendChild(listItem);
+                if (!this.hasAnimated) {
+                    const timeout = setTimeout(() => {
+                        this.animateElementIn(listItem, { 
+                            opacity: [0, 1], 
+                            transform: ['translateX(-20px)', 'translateX(0)'] 
+                        });
+                    }, itemIndex * 30);
+                    this.animationTimeouts.push(timeout);
+                }
+                itemIndex++;
+            });
+        });
+        this.hasAnimated = true;
+    }
+    
+    groupItemsByArea() {
+        return this.filteredItems.reduce((groups, item) => {
+            const area = item.area || 'Ohne Raum';
+            if (!groups[area]) { groups[area] = []; }
+            groups[area].push(item);
+            return groups;
+        }, {});
+    }
+
 
     createDeviceCard(item) {
         const card = document.createElement('div');
@@ -1957,6 +2204,49 @@ class FastSearchCard extends HTMLElement {
         card.addEventListener('click', () => this.handleDeviceClick(item, card));
         return card;
     }
+
+
+    toggleViewMode() {
+        this.currentViewMode = this.currentViewMode === 'grid' ? 'list' : 'grid';
+        this.updateViewToggleIcon();
+        this.renderResults();
+    }
+    
+    updateViewToggleIcon() {
+        const viewToggle = this.shadowRoot.querySelector('.view-toggle-button');
+        const gridIcon = viewToggle.querySelector('.grid-icon');
+        const listIcon = viewToggle.querySelector('.list-icon');
+        
+        if (this.currentViewMode === 'list') {
+            gridIcon.style.display = 'none';
+            listIcon.style.display = 'block';
+            viewToggle.title = 'Grid-Ansicht';
+        } else {
+            gridIcon.style.display = 'block';
+            listIcon.style.display = 'none';
+            viewToggle.title = 'Listen-Ansicht';
+        }
+    }
+    
+    createDeviceListItem(item) {
+        const listItem = document.createElement('div');
+        listItem.className = `device-list-item ${item.isActive ? 'active' : ''}`;
+        listItem.dataset.entity = item.id;
+        
+        listItem.innerHTML = `
+            <div class="device-list-icon">${item.icon}</div>
+            <div class="device-list-content">
+                <div class="device-list-name">${item.name}</div>
+                <div class="device-list-status">${this.getEntityStatus(this._hass.states[item.id])}</div>
+            </div>
+            <div class="device-list-area">${item.area}</div>
+        `;
+        
+        listItem.addEventListener('click', () => this.handleDeviceClick(item, listItem));
+        return listItem;
+    }
+
+    
 
     handleDeviceClick(item, card) {
         this.previousSearchState = {
