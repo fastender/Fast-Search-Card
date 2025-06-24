@@ -2081,7 +2081,9 @@ class FastSearchCard extends HTMLElement {
         const slider = container.querySelector('.circular-slider-container');
         const positionDisplay = container.querySelector('.media-position-display');
         const controlRow = container.querySelector('.device-control-row');
-        const activePresets = container.querySelector('.device-control-presets[data-is-open="true"]');
+
+        const activePresets = container.querySelector('.device-control-presets.visible') || 
+                             container.querySelector('.device-control-presets[data-is-open="true"]');        
 
        // DEBUG: Schaue was gefunden wird
         console.log('toggleFocusMode called:', isEntering);
