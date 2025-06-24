@@ -2139,15 +2139,22 @@ class FastSearchCard extends HTMLElement {
             // 3. Scale up presets container (nach 300ms)
             setTimeout(() => {
                 if (activePresets) {
+                    // Deaktiviere alle Transitions
+                    activePresets.style.transition = 'none';
+                    
                     // FORCE sichtbar machen
                     activePresets.classList.add('visible');
                     activePresets.style.display = 'block';
                     activePresets.style.opacity = '1';
                     activePresets.style.visibility = 'visible';
                     
-                    // FORCE REFLOW - das löst das Problem!
-                    activePresets.offsetHeight; // Trigger reflow
-                    activePresets.getBoundingClientRect(); // Alternative
+                    // Force reflow
+                    activePresets.offsetHeight;
+                    
+                    // Reaktiviere Transitions nach kurzer Zeit
+                    setTimeout(() => {
+                        activePresets.style.transition = '';
+                    }, 50);
                     
                     const animation = activePresets.animate([
                         { transform: 'translateY(0) scale(1)', opacity: 1 },
