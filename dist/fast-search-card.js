@@ -2186,8 +2186,17 @@ class FastSearchCard extends HTMLElement {
             presetsContainer.setAttribute('data-is-open', 'true');
             
             this.toggleFocusMode(container, true);
+            
+        } else {
+            // SCHLIESSEN  
+            container.removeAttribute('data-focus-mode');
+            button.classList.remove('active');
+            presetsContainer.classList.remove('visible');
+            presetsContainer.setAttribute('data-is-open', 'false');
+            
+            this.toggleFocusMode(container, false);
         }
-    }    
+    }
     
 
     getDetailLeftPaneHTML(item) {
