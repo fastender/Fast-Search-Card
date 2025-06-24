@@ -2800,14 +2800,21 @@ class FastSearchCard extends HTMLElement {
         if (prevBtn) prevBtn.addEventListener('click', () => this.callMusicAssistantService('media_previous_track', item.id));
         if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.callMusicAssistantService('media_play_pause', item.id));
         if (nextBtn) nextBtn.addEventListener('click', () => this.callMusicAssistantService('media_next_track', item.id));
-                
-        // Music Assistant Toggle - EINFACHER TEST
+
+        // Music Assistant Toggle - TEST MIT UNIVERSELLER METHODE
         if (musicAssistantBtn) {
             musicAssistantBtn.addEventListener('click', () => {
                 console.log('Music Assistant clicked!');
-                alert('Music Assistant Button funktioniert!');
+                console.log('Container:', mediaContainer);
+                console.log('Preset Container:', mediaContainer.querySelector('.device-control-presets.music-assistant-presets'));
+                
+                this.handleExpandableButton(
+                    musicAssistantBtn, 
+                    mediaContainer, 
+                    '.device-control-presets.music-assistant-presets'
+                );
             });
-        }
+        }        
         
         // TTS Toggle - EINFACHER TEST  
         if (ttsBtn) {
