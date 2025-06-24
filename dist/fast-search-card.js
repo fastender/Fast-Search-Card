@@ -2177,27 +2177,38 @@ class FastSearchCard extends HTMLElement {
     handleExpandableButton(button, container, presetSelector) {
         const presetsContainer = container.querySelector(presetSelector);
         const isCurrentlyOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-        const isInFocusMode = container.hasAttribute('data-focus-mode');
         
         if (!isCurrentlyOpen) {
             // ÖFFNEN
             container.setAttribute('data-focus-mode', 'true');
             button.classList.add('active');
-            presetsContainer.classList.add('visible');
-            presetsContainer.setAttribute('data-is-open', 'true');
             
-            this.toggleFocusMode(container, true);
+            // Für Music Assistant: Verzögere das Sichtbarmachen
+            if (presetSelector.includes('music-assistant')) {
+                // Erst Focus-Mode Animation starten
+                this.toggleFocusMode(container, true);
+                
+                // Dann nach 200ms das Menü einblenden
+                setTimeout(() => {
+                    presetsContainer.classList.add('visible');
+                    presetsContainer.setAttribute('data-is-open', 'true');
+                }, 200);
+            } else {
+                // Für andere (TTS, Climate, etc.): Normal
+                presetsContainer.classList.add('visible');
+                presetsContainer.setAttribute('data-is-open', 'true');
+                this.toggleFocusMode(container, true);
+            }
             
         } else {
-            // SCHLIESSEN  
+            // SCHLIESSEN (bleibt gleich)
             container.removeAttribute('data-focus-mode');
             button.classList.remove('active');
             presetsContainer.classList.remove('visible');
             presetsContainer.setAttribute('data-is-open', 'false');
-            
             this.toggleFocusMode(container, false);
         }
-    }
+    }    
     
 
     getDetailLeftPaneHTML(item) {
