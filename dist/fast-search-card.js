@@ -2090,10 +2090,7 @@ class FastSearchCard extends HTMLElement {
         const activePresets = container.querySelector('.device-control-presets.visible') || 
                              container.querySelector('.device-control-presets[data-is-open="true"]');        
 
-       // DEBUG: Schaue was gefunden wird
-        console.log('toggleFocusMode called:', isEntering);
-        console.log('Active presets found:', activePresets);
-        console.log('Active presets classes:', activePresets ? activePresets.className : 'null');
+
 
         
         // Bestimme Bewegung basierend auf Gerätetyp
@@ -2142,7 +2139,7 @@ class FastSearchCard extends HTMLElement {
             // 3. Scale up presets container (nach 300ms)
             setTimeout(() => {
                 if (activePresets) {
-                    console.log('Starting preset animation for:', activePresets);
+
                     
                     // FORCE sichtbar machen
                     activePresets.classList.add('visible');
@@ -2202,10 +2199,9 @@ class FastSearchCard extends HTMLElement {
 
     handleExpandableButton(button, container, presetSelector) {
         const presetsContainer = container.querySelector(presetSelector);
-        console.log('Initial state:', presetsContainer.getAttribute('data-is-open'));
-        console.log('Initial classes:', presetsContainer.className);        
+     
         const isCurrentlyOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-        console.log('isCurrentlyOpen:', isCurrentlyOpen);
+
         
         if (!isCurrentlyOpen) {
             // ÖFFNEN
