@@ -1430,7 +1430,6 @@ class FastSearchCard extends HTMLElement {
             }
             
             .device-list-item:hover {
-                transform: translateX(4px) scale(1.01);
                 background: rgba(255, 255, 255, 0.15);
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             }
@@ -1468,24 +1467,26 @@ class FastSearchCard extends HTMLElement {
                 min-width: 0;
                 display: flex;
                 flex-direction: column;
-                gap: 4px;
+                gap: 2px;
             }
             
             .device-list-name {
-                font-size: 16px;
+                font-size: 15px;
                 font-weight: 600;
                 color: var(--text-primary);
                 margin: 0;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                line-height: 1.05em;
             }
             
             .device-list-status {
-                font-size: 14px;
+                font-size: 15px;
                 color: var(--text-secondary);
                 margin: 0;
                 opacity: 0.8;
+                line-height: 1.05em;
             }
             
             .device-list-item.active .device-list-status {
@@ -1494,13 +1495,14 @@ class FastSearchCard extends HTMLElement {
             }
             
             .device-list-area {
-                font-size: 13px;
+                font-size: 15px;
                 color: var(--text-secondary);
                 opacity: 0.7;
-                text-align: right;
+                text-align: left;
                 flex-shrink: 0;
                 font-weight: 500;
                 order: -1; /* ← NEU: Area über Name positionieren */
+                line-height: 1.05em;
             }
             
             .view-toggle-button {
