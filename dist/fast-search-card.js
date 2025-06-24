@@ -2801,34 +2801,45 @@ class FastSearchCard extends HTMLElement {
         if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.callMusicAssistantService('media_play_pause', item.id));
         if (nextBtn) nextBtn.addEventListener('click', () => this.callMusicAssistantService('media_next_track', item.id));
 
-        // Music Assistant Toggle - TEST MIT UNIVERSELLER METHODE
+        // Music Assistant Toggle
         if (musicAssistantBtn) {
             musicAssistantBtn.addEventListener('click', () => {
-                console.log('Music Assistant clicked!');
-                console.log('Container:', mediaContainer);
+                // Schließe TTS falls offen
+                const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
+                if (ttsContainer && ttsContainer.getAttribute('data-is-open') === 'true') {
+                    this.handleExpandableButton(ttsBtn, mediaContainer, '.device-control-presets.tts-presets');
+                }
                 
-                // DEBUG: Schaue was im mediaContainer drin ist
-                console.log('Media Container HTML:', mediaContainer.innerHTML);
-                // Teste verschiedene Selectors:
-                console.log('All presets:', mediaContainer.querySelectorAll('.device-control-presets'));
-                console.log('Music Assistant:', mediaContainer.querySelector('.music-assistant-presets'));
-                console.log('TTS Presets:', mediaContainer.querySelector('.tts-presets'));
-                
-                console.log('Preset Container:', mediaContainer.querySelector('.device-control-presets.music-assistant-presets'));
+                const presetsContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
+                const wasOpen = presetsContainer.getAttribute('data-is-open') === 'true';
                 
                 this.handleExpandableButton(
                     musicAssistantBtn, 
                     mediaContainer, 
                     '.device-control-presets.music-assistant-presets'
                 );
+                
+                if (!wasOpen && !this.maListenersAttached.has(presetsContainer)) {
+                    this.setupMusicAssistantEventListeners(item, presetsContainer);
+                    this.maListenersAttached.add(presetsContainer);
+                }
             });
-        }    
+        }
         
-        // TTS Toggle - EINFACHER TEST  
+        // TTS Toggle  
         if (ttsBtn) {
             ttsBtn.addEventListener('click', () => {
-                console.log('TTS clicked!');
-                alert('TTS Button funktioniert!');
+                // Schließe Music Assistant falls offen
+                const musicContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
+                if (musicContainer && musicContainer.getAttribute('data-is-open') === 'true') {
+                    this.handleExpandableButton(musicAssistantBtn, mediaContainer, '.device-control-presets.music-assistant-presets');
+                }
+                
+                this.handleExpandableButton(
+                    ttsBtn,
+                    mediaContainer,
+                    '.device-control-presets.tts-presets'
+                );
             });
         }
 
