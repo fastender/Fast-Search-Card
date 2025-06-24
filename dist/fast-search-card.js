@@ -2082,6 +2082,12 @@ class FastSearchCard extends HTMLElement {
         const positionDisplay = container.querySelector('.media-position-display');
         const controlRow = container.querySelector('.device-control-row');
         const activePresets = container.querySelector('.device-control-presets.visible[data-is-open="true"]');
+
+       // DEBUG: Schaue was gefunden wird
+        console.log('toggleFocusMode called:', isEntering);
+        console.log('Active presets found:', activePresets);
+        console.log('Active presets classes:', activePresets ? activePresets.className : 'null');
+
         
         // Bestimme Bewegung basierend auf Gerätetyp
         let moveDistance = '-270px'; // Standard für Media Player
