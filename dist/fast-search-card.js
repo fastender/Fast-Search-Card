@@ -2152,7 +2152,6 @@ class FastSearchCard extends HTMLElement {
                         { transform: `translateY(${moveDistance}) scale(1.05)`, opacity: 1 }
                     ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
                     
-                    console.log('Animation started:', animation);
                 }
             }, 300);
             
