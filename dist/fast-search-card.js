@@ -2137,16 +2137,24 @@ class FastSearchCard extends HTMLElement {
             // 3. Scale up presets container (nach 300ms)
             setTimeout(() => {
                 if (activePresets) {
+                    console.log('Starting preset animation for:', activePresets);
+                    
                     // Sofort sichtbar machen
                     if (!activePresets.classList.contains('visible')) {
                         activePresets.classList.add('visible');
                     }
-                    activePresets.animate([
+                    
+                    const animation = activePresets.animate([
                         { transform: 'translateY(0) scale(1)', opacity: 1 },
                         { transform: `translateY(${moveDistance}) scale(1.05)`, opacity: 1 }
                     ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+                    
+                    console.log('Animation started:', animation);
+                } else {
+                    console.log('No activePresets found for animation');
                 }
-            }, 300);            
+            }, 300);
+            
             
         } else {
             // EXITING FOCUS MODE
