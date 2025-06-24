@@ -2139,10 +2139,11 @@ class FastSearchCard extends HTMLElement {
                 if (activePresets) {
                     console.log('Starting preset animation for:', activePresets);
                     
-                    // Sofort sichtbar machen
-                    if (!activePresets.classList.contains('visible')) {
-                        activePresets.classList.add('visible');
-                    }
+                    // FORCE sichtbar machen
+                    activePresets.classList.add('visible');
+                    activePresets.style.display = 'block';
+                    activePresets.style.opacity = '1';
+                    activePresets.style.visibility = 'visible';
                     
                     const animation = activePresets.animate([
                         { transform: 'translateY(0) scale(1)', opacity: 1 },
@@ -2150,8 +2151,6 @@ class FastSearchCard extends HTMLElement {
                     ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
                     
                     console.log('Animation started:', animation);
-                } else {
-                    console.log('No activePresets found for animation');
                 }
             }, 300);
             
