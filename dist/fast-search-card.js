@@ -2806,6 +2806,14 @@ class FastSearchCard extends HTMLElement {
             musicAssistantBtn.addEventListener('click', () => {
                 console.log('Music Assistant clicked!');
                 console.log('Container:', mediaContainer);
+                
+                // DEBUG: Schaue was im mediaContainer drin ist
+                console.log('Media Container HTML:', mediaContainer.innerHTML);
+                // Teste verschiedene Selectors:
+                console.log('All presets:', mediaContainer.querySelectorAll('.device-control-presets'));
+                console.log('Music Assistant:', mediaContainer.querySelector('.music-assistant-presets'));
+                console.log('TTS Presets:', mediaContainer.querySelector('.tts-presets'));
+                
                 console.log('Preset Container:', mediaContainer.querySelector('.device-control-presets.music-assistant-presets'));
                 
                 this.handleExpandableButton(
@@ -2814,7 +2822,7 @@ class FastSearchCard extends HTMLElement {
                     '.device-control-presets.music-assistant-presets'
                 );
             });
-        }        
+        }    
         
         // TTS Toggle - EINFACHER TEST  
         if (ttsBtn) {
