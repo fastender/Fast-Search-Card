@@ -2087,6 +2087,10 @@ class FastSearchCard extends HTMLElement {
         let moveDistance = '-270px'; // Standard für Media Player
         if (container.querySelector('.climate')) {
             moveDistance = '-210px'; // Weniger für Climate
+        } else if (container.querySelector('.circular-slider-container.brightness')) {
+            moveDistance = '-250px'; // Für Light (Farb-Presets)
+        } else if (container.querySelector('.circular-slider-container.cover')) {
+            moveDistance = '-240px'; // Für Cover (Positions-Presets)
         }
         
         if (isEntering) {
@@ -3288,11 +3292,13 @@ class FastSearchCard extends HTMLElement {
 
         if (colorToggle) {
             colorToggle.addEventListener('click', () => {
-                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                this.animatePresetStagger(presetsContainer, colorPresets, !isOpen);
-                presetsContainer.setAttribute('data-is-open', String(!isOpen));
+                this.handleExpandableButton(
+                    colorToggle,
+                    lightContainer,
+                    '.device-control-presets'
+                );
             });
-        }
+        }        
     
         colorPresets.forEach(preset => preset.addEventListener('click', () => {
             const rgb = preset.dataset.rgb.split(',').map(Number);
@@ -3355,11 +3361,13 @@ class FastSearchCard extends HTMLElement {
 
         if (presetsToggle) {
             presetsToggle.addEventListener('click', () => {
-                const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                this.animatePresetStagger(presetsContainer, positionPresets, !isOpen);
-                presetsContainer.setAttribute('data-is-open', String(!isOpen));
+                this.handleExpandableButton(
+                    presetsToggle,
+                    coverContainer,
+                    '.device-control-presets'
+                );
             });
-        }
+        }        
         
         positionPresets.forEach(preset => {
             preset.addEventListener('click', () => {
