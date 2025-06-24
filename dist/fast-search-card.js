@@ -22,6 +22,7 @@ class FastSearchCard extends HTMLElement {
         this.currentDetailItem = null;
         this.previousSearchState = null;
         this.currentViewMode = 'grid';
+        this.subcategoryMode = 'categories';
 
         // Circular Slider State
         this.circularSliders = {};
@@ -1569,6 +1570,34 @@ class FastSearchCard extends HTMLElement {
             
             .device-list-quick-action.active svg {
                 stroke: var(--accent);
+            }
+
+            .subcategory-toggle-button {
+                width: 24px;
+                height: 24px;
+                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+            
+            .subcategory-toggle-button:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.05);
+            }
+            
+            .subcategory-toggle-button svg {
+                width: 18px;
+                height: 18px;
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
             }            
                                     
             </style>
@@ -1599,8 +1628,6 @@ class FastSearchCard extends HTMLElement {
                                 </svg>
                             </button>
 
-
-                            <!-- NEU HINZUFÜGEN: -->
                             <button class="view-toggle-button" title="Ansicht wechseln">
                                 <svg viewBox="0 0 24 24" fill="none" class="grid-icon">
                                     <rect x="3" y="3" width="7" height="7"/>
@@ -1618,9 +1645,17 @@ class FastSearchCard extends HTMLElement {
                                 </svg>
                             </button>
 
-
+                            <button class="subcategory-toggle-button" title="Filter wechseln">
+                                <svg viewBox="0 0 24 24" fill="none" class="categories-icon">
+                                    <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/>
+                                    <path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"/>
+                                </svg>
+                                <svg viewBox="0 0 24 24" fill="none" class="areas-icon" style="display: none;">
+                                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"/>
+                                    <polyline points="9,22 9,12 15,12 15,22"/>
+                                </svg>
+                            </button>
                             
-
                             <div class="filter-icon">
                                 <svg viewBox="0 0 24 24" fill="none">
                                     <line x1="4" y1="21" x2="4" y2="14"/>
@@ -1730,6 +1765,7 @@ class FastSearchCard extends HTMLElement {
 
         this.setupEventListeners();
         this.updateViewToggleIcon();
+        this.updateSubcategoryToggleIcon();
     }
 
     setupEventListeners() {
@@ -1749,7 +1785,11 @@ class FastSearchCard extends HTMLElement {
         // NEU HINZUFÜGEN:
         const viewToggle = this.shadowRoot.querySelector('.view-toggle-button');
         viewToggle.addEventListener('click', (e) => { e.stopPropagation(); this.toggleViewMode(); });
-        
+
+        // NEU HINZUFÜGEN:
+        const subcategoryToggle = this.shadowRoot.querySelector('.subcategory-toggle-button');
+        subcategoryToggle.addEventListener('click', (e) => { e.stopPropagation(); this.toggleSubcategoryMode(); });
+
         categoryButtons.forEach(button => {
             button.addEventListener('click', (e) => { e.stopPropagation(); this.handleCategorySelect(button); });
         });
@@ -2161,14 +2201,30 @@ class FastSearchCard extends HTMLElement {
     }
 
     filterBySubcategory() {
-        if (this.activeSubcategory === 'all') { this.showCurrentCategoryItems(); return; }
-        if (this.activeSubcategory === 'none') { this.filteredItems = []; this.renderResults(); return; }
+        if (this.activeSubcategory === 'all') { 
+            this.showCurrentCategoryItems(); 
+            return; 
+        }
+        if (this.activeSubcategory === 'none') { 
+            this.filteredItems = []; 
+            this.renderResults(); 
+            return; 
+        }
+    
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
-        const domainMap = { 'lights': ['light', 'switch'], 'climate': ['climate', 'fan'], 'covers': ['cover'], 'media': ['media_player'] };
-        const domains = domainMap[this.activeSubcategory] || [];
-        this.filteredItems = categoryItems.filter(item => domains.includes(item.domain));
+        
+        if (this.subcategoryMode === 'areas') {
+            // Filter by area/room
+            this.filteredItems = categoryItems.filter(item => item.area === this.activeSubcategory);
+        } else {
+            // Filter by device category (existing logic)
+            const domainMap = { 'lights': ['light', 'switch'], 'climate': ['climate', 'fan'], 'covers': ['cover'], 'media': ['media_player'] };
+            const domains = domainMap[this.activeSubcategory] || [];
+            this.filteredItems = categoryItems.filter(item => domains.includes(item.domain));
+        }
+        
         this.renderResults();
-    }
+    }    
 
     renderResults() {
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
@@ -2295,6 +2351,112 @@ class FastSearchCard extends HTMLElement {
             viewToggle.title = 'Listen-Ansicht';
         }
     }
+
+    toggleSubcategoryMode() {
+        this.subcategoryMode = this.subcategoryMode === 'categories' ? 'areas' : 'categories';
+        this.updateSubcategoryToggleIcon();
+        this.updateSubcategoryChips();
+        this.activeSubcategory = 'all'; // Reset selection
+        this.renderResults();
+    }
+    
+    updateSubcategoryToggleIcon() {
+        const subcategoryToggle = this.shadowRoot.querySelector('.subcategory-toggle-button');
+        const categoriesIcon = subcategoryToggle.querySelector('.categories-icon');
+        const areasIcon = subcategoryToggle.querySelector('.areas-icon');
+        
+        if (this.subcategoryMode === 'areas') {
+            categoriesIcon.style.display = 'none';
+            areasIcon.style.display = 'block';
+            subcategoryToggle.title = 'Kategorien anzeigen';
+        } else {
+            categoriesIcon.style.display = 'block';
+            areasIcon.style.display = 'none';
+            subcategoryToggle.title = 'Räume anzeigen';
+        }
+    }
+    
+    updateSubcategoryChips() {
+        const subcategoriesContainer = this.shadowRoot.querySelector('.subcategories');
+        
+        if (this.subcategoryMode === 'areas') {
+            this.renderAreaChips(subcategoriesContainer);
+        } else {
+            this.renderCategoryChips(subcategoriesContainer);
+        }
+    }
+    
+    renderAreaChips(container) {
+        // Get all unique areas from items
+        const areas = ['Alle Räume', ...new Set(this.allItems.map(item => item.area).filter(Boolean)), 'Keine'];
+        
+        const chipsHTML = areas.map(area => {
+            const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
+                            (area === this.activeSubcategory);
+            const deviceCount = area === 'Alle Räume' ? this.allItems.length : 
+                              area === 'Keine' ? 0 :
+                              this.allItems.filter(item => item.area === area).length;
+            
+            const subcategoryValue = area === 'Alle Räume' ? 'all' : 
+                                   area === 'Keine' ? 'none' : area;
+            
+            return `
+                <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
+                    <div class="chip-content">
+                        <span class="subcategory-name">${area}</span>
+                        <span class="subcategory-status">${deviceCount} Geräte</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = chipsHTML;
+    }
+    
+    renderCategoryChips(container) {
+        // Original category chips
+        container.innerHTML = `
+            <div class="subcategory-chip active" data-subcategory="all">
+                <div class="chip-content">
+                    <span class="subcategory-name">Alle</span>
+                    <span class="subcategory-status"></span>
+                </div>
+            </div>
+            <div class="subcategory-chip" data-subcategory="lights">
+                <div class="chip-content">
+                    <span class="subcategory-name">Lichter</span>
+                    <span class="subcategory-status"></span>
+                </div>
+            </div>
+            <div class="subcategory-chip" data-subcategory="climate">
+                <div class="chip-content">
+                    <span class="subcategory-name">Klima</span>
+                    <span class="subcategory-status"></span>
+                </div>
+            </div>
+            <div class="subcategory-chip" data-subcategory="covers">
+                <div class="chip-content">
+                    <span class="subcategory-name">Rollos</span>
+                    <span class="subcategory-status"></span>
+                </div>
+            </div>
+            <div class="subcategory-chip" data-subcategory="media">
+                <div class="chip-content">
+                    <span class="subcategory-name">Medien</span>
+                    <span class="subcategory-status"></span>
+                </div>
+            </div>
+            <div class="subcategory-chip" data-subcategory="none">
+                <div class="chip-content">
+                    <span class="subcategory-name">Keine</span>
+                    <span class="subcategory-status"></span>
+                </div>
+            </div>
+        `;
+        
+        // Re-update the counts for categories
+        this.updateSubcategoryCounts();
+    }    
 
     createDeviceListItem(item) {
         const listItem = document.createElement('div');
