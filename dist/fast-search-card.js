@@ -2804,42 +2804,62 @@ class FastSearchCard extends HTMLElement {
         // Music Assistant Toggle
         if (musicAssistantBtn) {
             musicAssistantBtn.addEventListener('click', () => {
-                // Schließe TTS falls offen
                 const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
-                if (ttsContainer && ttsContainer.getAttribute('data-is-open') === 'true') {
+                const isTtsOpen = ttsContainer && ttsContainer.getAttribute('data-is-open') === 'true';
+                
+                if (isTtsOpen) {
                     this.handleExpandableButton(ttsBtn, mediaContainer, '.device-control-presets.tts-presets');
-                }
-                
-                const presetsContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
-                const wasOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                
-                this.handleExpandableButton(
-                    musicAssistantBtn, 
-                    mediaContainer, 
-                    '.device-control-presets.music-assistant-presets'
-                );
-                
-                if (!wasOpen && !this.maListenersAttached.has(presetsContainer)) {
-                    this.setupMusicAssistantEventListeners(item, presetsContainer);
-                    this.maListenersAttached.add(presetsContainer);
+                    setTimeout(() => {
+                        const presetsContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
+                        const wasOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                        
+                        this.handleExpandableButton(musicAssistantBtn, mediaContainer, '.device-control-presets.music-assistant-presets');
+                        
+                        if (!wasOpen && !this.maListenersAttached.has(presetsContainer)) {
+                            this.setupMusicAssistantEventListeners(item, presetsContainer);
+                            this.maListenersAttached.add(presetsContainer);
+                        }
+                    }, 400);
+                } else {
+                    const presetsContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
+                    const wasOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                    
+                    this.handleExpandableButton(musicAssistantBtn, mediaContainer, '.device-control-presets.music-assistant-presets');
+                    
+                    if (!wasOpen && !this.maListenersAttached.has(presetsContainer)) {
+                        this.setupMusicAssistantEventListeners(item, presetsContainer);
+                        this.maListenersAttached.add(presetsContainer);
+                    }
                 }
             });
         }
-        
+
         // TTS Toggle  
         if (ttsBtn) {
             ttsBtn.addEventListener('click', () => {
-                // Schließe Music Assistant falls offen
                 const musicContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
-                if (musicContainer && musicContainer.getAttribute('data-is-open') === 'true') {
-                    this.handleExpandableButton(musicAssistantBtn, mediaContainer, '.device-control-presets.music-assistant-presets');
-                }
+                const isMusicOpen = musicContainer && musicContainer.getAttribute('data-is-open') === 'true';
                 
-                this.handleExpandableButton(
-                    ttsBtn,
-                    mediaContainer,
-                    '.device-control-presets.tts-presets'
-                );
+                if (isMusicOpen) {
+                    // Schließe Music Assistant erst
+                    this.handleExpandableButton(musicAssistantBtn, mediaContainer, '.device-control-presets.music-assistant-presets');
+                    
+                    // Warte bis Animation fertig, dann öffne TTS
+                    setTimeout(() => {
+                        this.handleExpandableButton(
+                            ttsBtn,
+                            mediaContainer,
+                            '.device-control-presets.tts-presets'
+                        );
+                    }, 400); // Warte auf Schließ-Animation
+                } else {
+                    // Öffne TTS direkt (kein Music Assistant offen)
+                    this.handleExpandableButton(
+                        ttsBtn,
+                        mediaContainer,
+                        '.device-control-presets.tts-presets'
+                    );
+                }
             });
         }
 
