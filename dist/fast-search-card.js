@@ -2792,53 +2792,28 @@ class FastSearchCard extends HTMLElement {
         const nextBtn = mediaContainer.querySelector('[data-action="next"]');
         const musicAssistantBtn = mediaContainer.querySelector('[data-action="music-assistant"]');
         const ttsBtn = mediaContainer.querySelector('[data-action="tts"]');
+
+        // DEBUG: Teste ob Buttons gefunden werden
+        console.log('Music Assistant Button:', musicAssistantBtn);
+        console.log('TTS Button:', ttsBtn);        
         
         if (prevBtn) prevBtn.addEventListener('click', () => this.callMusicAssistantService('media_previous_track', item.id));
         if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.callMusicAssistantService('media_play_pause', item.id));
         if (nextBtn) nextBtn.addEventListener('click', () => this.callMusicAssistantService('media_next_track', item.id));
                 
-        // Music Assistant Toggle
+        // Music Assistant Toggle - EINFACHER TEST
         if (musicAssistantBtn) {
             musicAssistantBtn.addEventListener('click', () => {
-                // Schließe TTS falls offen (mit Focus-Mode)
-                const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
-                if (ttsContainer && ttsContainer.getAttribute('data-is-open') === 'true') {
-                    this.handleExpandableButton(ttsBtn, mediaContainer, '.device-control-presets.tts-presets');
-                }
-                
-                const presetsContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
-                const wasOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                
-                // Verwende universelle Methode
-                this.handleExpandableButton(
-                    musicAssistantBtn, 
-                    mediaContainer, 
-                    '.device-control-presets.music-assistant-presets'
-                );
-                
-                // Event Listeners nur einmalig bei erster Öffnung initialisieren
-                if (!wasOpen && !this.maListenersAttached.has(presetsContainer)) {
-                    this.setupMusicAssistantEventListeners(item, presetsContainer);
-                    this.maListenersAttached.add(presetsContainer);
-                }
+                console.log('Music Assistant clicked!');
+                alert('Music Assistant Button funktioniert!');
             });
         }
         
-        // TTS Toggle
+        // TTS Toggle - EINFACHER TEST  
         if (ttsBtn) {
             ttsBtn.addEventListener('click', () => {
-                // Schließe Music Assistant falls offen (mit Focus-Mode)
-                const musicContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
-                if (musicContainer && musicContainer.getAttribute('data-is-open') === 'true') {
-                    this.handleExpandableButton(musicAssistantBtn, mediaContainer, '.device-control-presets.music-assistant-presets');
-                }
-                
-                // Toggle TTS mit universeller Methode
-                this.handleExpandableButton(
-                    ttsBtn,
-                    mediaContainer,
-                    '.device-control-presets.tts-presets'
-                );
+                console.log('TTS clicked!');
+                alert('TTS Button funktioniert!');
             });
         }
 
