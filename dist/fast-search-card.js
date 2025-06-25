@@ -261,23 +261,39 @@ class FastSearchCard extends HTMLElement {
     }
 
     setConfig(config) {
-        if (!config.entities || !Array.isArray(config.entities)) {
-            throw new Error('Entities configuration is required');
+        if (!config) {
+            throw new Error('Configuration is required');
         }
-
-        // Standardkonfiguration wird mit der Benutzerkonfiguration zusammengeführt
+    
+        // Erweiterte Standardkonfiguration
         this._config = {
             title: 'Fast Search',
             default_view: 'grid',
-            ...config,
-            entities: config.entities
+            
+            // NEU: Auto-Discovery Options
+            auto_discover: false,
+            include_domains: ['light', 'switch', 'media_player', 'cover', 'climate', 'fan', 'script', 'automation', 'scene'],
+            exclude_domains: [],
+            exclude_entities: [],
+            include_areas: [], // Leer = alle Areas
+            exclude_areas: [],
+            
+            // Bestehend: Manual entities (optional)
+            entities: config.entities || [],
+            
+            ...config
         };
-
+        
+        // Validierung
+        if (!this._config.auto_discover && (!this._config.entities || this._config.entities.length === 0)) {
+            throw new Error('Either auto_discover must be true or entities must be provided');
+        }
+        
         // NEU HINZUFÜGEN nach der config Zuweisung:
-        this.currentViewMode = this._config.default_view || 'grid';        
+        this.currentViewMode = this._config.default_view || 'grid';
         
         this.render();
-    }
+    }    
 
     set hass(hass) {
         if (!hass) return;
@@ -2243,13 +2259,43 @@ class FastSearchCard extends HTMLElement {
     }
 
     updateItems() {
-        if (!this._hass || !this._config.entities) return;
-        this.allItems = this._config.entities.map(entityConfig => {
+        if (!this._hass) return;
+        
+        let allEntityConfigs = [];
+        
+        // 1. Auto-Discovery wenn aktiviert
+        if (this._config.auto_discover) {
+            const discoveredEntities = this.discoverEntities();
+            allEntityConfigs = [...discoveredEntities];
+            console.log(`Auto-discovered: ${discoveredEntities.length} entities`);
+        }
+        
+        // 2. Manuelle Entities hinzufügen (überschreiben Auto-Discovery)
+        if (this._config.entities && this._config.entities.length > 0) {
+            const manualEntityIds = new Set(this._config.entities.map(e => e.entity));
+            
+            // Entferne Auto-Discovery Duplikate
+            allEntityConfigs = allEntityConfigs.filter(entity => !manualEntityIds.has(entity.entity));
+            
+            // Füge manuelle Entities hinzu
+            allEntityConfigs = [...allEntityConfigs, ...this._config.entities];
+            console.log(`Added ${this._config.entities.length} manual entities`);
+        }
+        
+        console.log(`Total entities to process: ${allEntityConfigs.length}`);
+        
+        // 3. Entity-Objekte erstellen (wie bisher)
+        this.allItems = allEntityConfigs.map(entityConfig => {
             const entityId = entityConfig.entity;
             const state = this._hass.states[entityId];
-            if (!state) return null;
+            if (!state) {
+                console.warn(`Entity not found: ${entityId}`);
+                return null;
+            }
+            
             const domain = entityId.split('.')[0];
-            const areaName = entityConfig.area || 'Ohne Raum';
+            const areaName = entityConfig.area || this.getEntityArea(entityId, state);
+            
             return {
                 id: entityId,
                 name: entityConfig.title || state.attributes.friendly_name || entityId,
@@ -2259,17 +2305,22 @@ class FastSearchCard extends HTMLElement {
                 state: state.state,
                 attributes: state.attributes,
                 icon: this.getEntityIcon(domain),
-                isActive: this.isEntityActive(state)
+                isActive: this.isEntityActive(state),
+                auto_discovered: entityConfig.auto_discovered || false // Debug-Info
             };
         }).filter(Boolean);
+        
         this.allItems.sort((a, b) => a.area.localeCompare(b.area));
-
+        
         // NEU HINZUFÜGEN: MiniSearch Index erstellen/aktualisieren
-        this.rebuildSearchIndex();        
+        this.rebuildSearchIndex();
         
         this.showCurrentCategoryItems();
         this.updateSubcategoryCounts();
-    }
+        
+        console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered)`);
+    }    
+    
 
     rebuildSearchIndex() {
         // Neuen Index erstellen
@@ -2285,6 +2336,117 @@ class FastSearchCard extends HTMLElement {
                 this.searchIndex = null; // Fallback to old search
             }
         }
+    }    
+
+    discoverEntities() {
+        if (!this._hass) {
+            console.warn('HASS not available for auto-discovery');
+            return [];
+        }
+        
+        try {
+            const discoveredEntities = [];
+            const manualEntityIds = new Set((this._config.entities || []).map(e => e.entity));
+            
+            // Durch alle Entitäten in Home Assistant gehen
+            for (const entityId in this._hass.states) {
+                try {
+                    const state = this._hass.states[entityId];
+                    if (!state) continue;
+                    
+                    // Skip wenn bereits manuell definiert
+                    if (manualEntityIds.has(entityId)) continue;
+                    
+                    const domain = entityId.split('.')[0];
+                    
+                    // Domain-Filter anwenden
+                    if (this._config.include_domains.length > 0 && !this._config.include_domains.includes(domain)) continue;
+                    if (this._config.exclude_domains.includes(domain)) continue;
+                    
+                    // Entity-Filter anwenden
+                    if (this._config.exclude_entities.includes(entityId)) continue;
+                    
+                    // Area ermitteln
+                    const areaName = this.getEntityArea(entityId, state);
+                    
+                    // Area-Filter anwenden
+                    if (this._config.include_areas.length > 0 && !this._config.include_areas.includes(areaName)) continue;
+                    if (this._config.exclude_areas.includes(areaName)) continue;
+                    
+                    // Versteckte/System-Entitäten überspringen
+                    if (this.isSystemEntity(entityId, state)) continue;
+                    
+                    // Auto-discovered Entity erstellen
+                    discoveredEntities.push({
+                        entity: entityId,
+                        title: state.attributes.friendly_name || entityId,
+                        area: areaName,
+                        auto_discovered: true
+                    });
+                    
+                } catch (entityError) {
+                    console.warn(`Error processing entity ${entityId}:`, entityError);
+                    continue; // Skip problematic entity
+                }
+            }
+            
+            console.log(`Auto-discovered ${discoveredEntities.length} entities`);
+            return discoveredEntities;
+            
+        } catch (error) {
+            console.error('Error in auto-discovery:', error);
+            return []; // Fallback to empty array
+        }
+    }
+    
+    getEntityArea(entityId, state) {
+        try {
+            // 1. Aus device registry (falls verfügbar)
+            if (state.attributes.area_id && this._hass.areas) {
+                const area = this._hass.areas[state.attributes.area_id];
+                if (area && area.name) return area.name;
+            }
+            
+            // 2. Aus entity registry (falls verfügbar)
+            if (this._hass.entities && this._hass.entities[entityId]) {
+                const entityInfo = this._hass.entities[entityId];
+                if (entityInfo.area_id && this._hass.areas && this._hass.areas[entityInfo.area_id]) {
+                    const area = this._hass.areas[entityInfo.area_id];
+                    if (area && area.name) return area.name;
+                }
+            }
+            
+            // 3. Fallback: Aus Entity-ID ableiten
+            const parts = entityId.split('.');
+            if (parts.length > 1) {
+                const namePart = parts[1];
+                // "wohnzimmer_decke" → "Wohnzimmer"
+                const segments = namePart.split('_');
+                if (segments.length > 0 && segments[0].length > 2) {
+                    const areaGuess = segments[0];
+                    return areaGuess.charAt(0).toUpperCase() + areaGuess.slice(1);
+                }
+            }
+            
+            return 'Ohne Raum';
+        } catch (error) {
+            console.warn(`Error getting area for ${entityId}:`, error);
+            return 'Ohne Raum';
+        }
+    }
+    
+    isSystemEntity(entityId, state) {
+        // System-Entitäten überspringen
+        const systemPrefixes = ['sun.', 'zone.', 'persistent_notification.', 'updater.'];
+        if (systemPrefixes.some(prefix => entityId.startsWith(prefix))) return true;
+        
+        // Versteckte Entitäten
+        if (state.attributes.hidden === true) return true;
+        
+        // Entitäten ohne friendly_name (meist system)
+        if (!state.attributes.friendly_name && !entityId.includes('_')) return true;
+        
+        return false;
     }    
 
     getSubcategoryStatusText(subcategory, count) {
