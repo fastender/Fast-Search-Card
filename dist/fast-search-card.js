@@ -2401,36 +2401,72 @@ class FastSearchCard extends HTMLElement {
     
     getEntityArea(entityId, state) {
         try {
-            // 1. Aus device registry (falls verfügbar)
-            if (state.attributes.area_id && this._hass.areas) {
-                const area = this._hass.areas[state.attributes.area_id];
-                if (area && area.name) return area.name;
-            }
-            
-            // 2. Aus entity registry (falls verfügbar)
-            if (this._hass.entities && this._hass.entities[entityId]) {
-                const entityInfo = this._hass.entities[entityId];
-                if (entityInfo.area_id && this._hass.areas && this._hass.areas[entityInfo.area_id]) {
-                    const area = this._hass.areas[entityInfo.area_id];
-                    if (area && area.name) return area.name;
+            // 1. Echte Home Assistant Area (höchste Priorität)
+            if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
+                const entityRegistry = this._hass.entities[entityId];
+                if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
+                    const area = this._hass.areas[entityRegistry.area_id];
+                    console.log(`✅ Found HA area for ${entityId}: ${area.name}`);
+                    return area.name;
                 }
             }
-            
-            // 3. Fallback: Aus Entity-ID ableiten
+    
+            // 2. Device-based Area (über Device Registry)
+            if (this._hass.devices && this._hass.entities && this._hass.entities[entityId]) {
+                const entityRegistry = this._hass.entities[entityId];
+                if (entityRegistry.device_id && this._hass.devices[entityRegistry.device_id]) {
+                    const device = this._hass.devices[entityRegistry.device_id];
+                    
+                    // Device hat Area
+                    if (device.area_id && this._hass.areas && this._hass.areas[device.area_id]) {
+                        const area = this._hass.areas[device.area_id];
+                        console.log(`✅ Found device area for ${entityId}: ${area.name}`);
+                        return area.name;
+                    }
+                    
+                    // Device Name als Area verwenden (wie "Temp2")
+                    if (device.name && device.name !== entityId && device.name.length > 2) {
+                        console.log(`✅ Using device name as area for ${entityId}: ${device.name}`);
+                        return device.name;
+                    }
+                }
+            }
+    
+            // 3. State attributes fallback
+            if (state.attributes.device_class || state.attributes.friendly_name) {
+                const friendlyName = state.attributes.friendly_name || '';
+                
+                // Versuche Area aus friendly_name zu extrahieren: "Wohnzimmer Temp2-1"
+                const nameParts = friendlyName.split(' ');
+                if (nameParts.length > 1) {
+                    const possibleArea = nameParts[0];
+                    if (possibleArea.length > 3) {
+                        console.log(`✅ Extracted area from friendly_name for ${entityId}: ${possibleArea}`);
+                        return possibleArea;
+                    }
+                }
+            }
+    
+            // 4. Entity-ID parsing (letzter Fallback)
             const parts = entityId.split('.');
             if (parts.length > 1) {
                 const namePart = parts[1];
-                // "wohnzimmer_decke" → "Wohnzimmer"
                 const segments = namePart.split('_');
-                if (segments.length > 0 && segments[0].length > 2) {
+                
+                // "temp2_1" → "Temp2"
+                if (segments.length > 0 && segments[0].length > 1) {
                     const areaGuess = segments[0];
-                    return areaGuess.charAt(0).toUpperCase() + areaGuess.slice(1);
+                    const capitalizedArea = areaGuess.charAt(0).toUpperCase() + areaGuess.slice(1);
+                    console.log(`⚠️ Fallback area for ${entityId}: ${capitalizedArea}`);
+                    return capitalizedArea;
                 }
             }
             
+            console.log(`❌ No area found for ${entityId}, using default`);
             return 'Ohne Raum';
+            
         } catch (error) {
-            console.warn(`Error getting area for ${entityId}:`, error);
+            console.warn(`❌ Error getting area for ${entityId}:`, error);
             return 'Ohne Raum';
         }
     }
