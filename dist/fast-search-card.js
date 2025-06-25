@@ -2904,10 +2904,15 @@ class FastSearchCard extends HTMLElement {
         resultsGrid.style.display = this.currentViewMode === 'grid' ? 'grid' : 'none';
         resultsList.classList.toggle('active', this.currentViewMode === 'list');
         
+        // NEU: Prüfung ob noch initialisiert wird
         if (this.filteredItems.length === 0) {
-            const emptyState = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
+            const isInitializing = !this.allItems || this.allItems.length === 0;
+            const emptyState = isInitializing 
+                ? `<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Lade Geräte...</div><div class="empty-subtitle">Einen Moment bitte</div></div>`
+                : `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
+            
             if (this.currentViewMode === 'grid') {
-                resultsGrid.innerHTML = emptyState; // OK für empty state
+                resultsGrid.innerHTML = emptyState;
             } else {
                 resultsList.innerHTML = emptyState;
             }
