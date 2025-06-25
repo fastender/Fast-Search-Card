@@ -3405,7 +3405,13 @@ class FastSearchCard extends HTMLElement {
             filteredItems: [...this.filteredItems]
         };
         this.currentDetailItem = item;
-        this.showDetailView();
+
+        // NEU: Check für Custom Items
+        if (item.domain === 'custom') {
+            this.showCustomDetailView();
+        } else {
+            this.showDetailView();
+        }
     }
 
     showDetailView() {
@@ -3416,6 +3422,42 @@ class FastSearchCard extends HTMLElement {
         detailPanel.classList.add('visible');
         this.renderDetailView();
     }
+
+    showCustomDetailView() {
+        this.isDetailView = true;
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const detailPanel = this.shadowRoot.querySelector('.detail-panel');
+        
+        searchPanel.classList.add('hidden');
+        detailPanel.classList.add('visible');
+        
+        this.renderCustomDetailView();
+    }
+    
+    renderCustomDetailView() {
+        const detailPanel = this.shadowRoot.querySelector('.detail-panel');
+        if (!this.currentDetailItem) return;
+        
+        const item = this.currentDetailItem;
+        
+        const leftPaneHTML = this.getCustomDetailLeftPaneHTML(item);
+        const rightPaneHTML = this.getCustomDetailRightPaneHTML(item);
+    
+        detailPanel.innerHTML = `
+            <div class="detail-content">
+                <div class="detail-left">${leftPaneHTML}</div>
+                <div class="detail-divider"></div>
+                <div class="detail-right">${rightPaneHTML}</div>
+            </div>
+        `;
+    
+        this.shadowRoot.querySelector('.back-button').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handleBackClick();
+        });
+    
+        this.setupCustomDetailTabs(item);
+    }    
 
     handleBackClick() {
         this.isDetailView = false;
@@ -3744,6 +3786,36 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
+
+    getCustomDetailLeftPaneHTML(item) {
+        const newBackButtonSVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
+        
+        const customType = item.custom_data?.type || 'unknown';
+        const backgroundImage = this.getCustomBackgroundImage(item);
+        
+        return `
+            <div class="detail-left-header">
+                <button class="back-button">${newBackButtonSVG}</button>
+                <div class="detail-title-area">
+                    <h3 class="detail-name">${item.name}</h3>
+                    <p class="detail-area">${item.area}</p>
+                </div>
+            </div>
+            <div class="icon-content">
+                <div class="icon-background-wrapper">
+                    <div class="icon-background" style="background-image: url('${backgroundImage}');">
+                    </div>
+                </div>
+                <div class="detail-info-row">
+                    <div class="status-indicator-large ${item.isActive ? 'active' : ''}">${this.getCustomStatus(item)}</div>
+                    <div class="quick-stats">
+                        ${this.getCustomQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
     
     // 2. Ändere getDetailRightPaneHTML - füge tabsHTML am Anfang hinzu
     getDetailRightPaneHTML(item) {
@@ -3775,6 +3847,175 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
+
+    getCustomDetailRightPaneHTML(item) {
+        const tabsHTML = `
+            <div class="detail-tabs-container desktop-tabs">
+                <div class="detail-tabs">
+                    <span class="tab-slider"></span>
+                    <a href="#" class="detail-tab active" data-tab="info" title="Info">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 16v-4"/>
+                            <path d="M12 8h.01"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="detail-tab" data-tab="actions" title="Aktionen">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M5 3l14 9-14 9V3z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        `;
+        
+        return `
+            ${tabsHTML}
+            <div id="tab-content-container">
+                <div class="detail-tab-content active" data-tab-content="info">
+                    ${this.getCustomInfoHTML(item)}
+                </div>
+                <div class="detail-tab-content" data-tab-content="actions">
+                    ${this.getCustomActionsHTML(item)}
+                </div>
+            </div>
+        `;
+    }
+
+    
+    getCustomInfoHTML(item) {
+        const customData = item.custom_data || {};
+        
+        switch (customData.type) {
+            case 'input_select':
+                return `
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">
+                            ${item.name}
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
+                            Input Select Option
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 16px;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                                Quelle
+                            </div>
+                            <div style="font-size: 14px; color: var(--text-primary);">
+                                ${customData.entity}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            default:
+                return `
+                    <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 16px; margin-bottom: 8px;">${item.name}</div>
+                        <div style="font-size: 13px;">Custom Item Details</div>
+                    </div>
+                `;
+        }
+    }
+    
+    getCustomActionsHTML(item) {
+        const customData = item.custom_data || {};
+        
+        switch (customData.type) {
+            case 'input_select':
+                return `
+                    <div style="padding: 20px;">
+                        <div class="device-control-row" style="margin-top: 0;">
+                            <button class="device-control-button" data-custom-action="select" title="Auswählen">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"/>
+                                </svg>
+                            </button>
+                            <button class="device-control-button" data-custom-action="copy" title="Kopieren">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            default:
+                return `
+                    <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 14px;">Keine Aktionen verfügbar</div>
+                    </div>
+                `;
+        }
+    }    
+
+
+    getCustomStatus(item) {
+        if (item.isActive) {
+            return 'Ausgewählt';
+        }
+        return 'Verfügbar';
+    }
+    
+    getCustomQuickStats(item) {
+        const stats = [];
+        const customData = item.custom_data || {};
+        
+        switch (customData.type) {
+            case 'input_select':
+                stats.push('Input Select');
+                if (customData.entity) {
+                    stats.push(customData.entity.split('.')[1]);
+                }
+                break;
+        }
+        
+        return stats;
+    }
+    
+    getCustomBackgroundImage(item) {
+        const baseUrl = 'https://raw.githubusercontent.com/fastender/Fast-Search-Card/refs/heads/main/docs/';
+        const customData = item.custom_data || {};
+        
+        switch (customData.type) {
+            case 'input_select':
+                return baseUrl + 'custom-recipe.png'; // Du kannst später Custom-Bilder hinzufügen
+            default:
+                return baseUrl + 'custom-default.png';
+        }
+    }
+    
+    setupCustomDetailTabs(item) {
+        // Verwende die bestehende setupDetailTabs Logik
+        this.setupDetailTabs(item);
+        
+        // Custom Action Event Listeners
+        const actionButtons = this.shadowRoot.querySelectorAll('[data-custom-action]');
+        actionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const action = button.dataset.customAction;
+                this.handleCustomAction(item, action);
+            });
+        });
+    }
+    
+    handleCustomAction(item, action) {
+        const customData = item.custom_data || {};
+        
+        switch (action) {
+            case 'select':
+                if (customData.type === 'input_select') {
+                    this._hass.callService('input_select', 'select_option', {
+                        entity_id: customData.entity,
+                        option: customData.option
+                    });
+                    console.log(`Selected: ${customData.option} in ${customData.entity}`);
+                }
+                break;
+            case 'copy':
+                navigator.clipboard.writeText(item.name);
+                console.log(`Copied to clipboard: ${item.name}`);
+                break;
+        }
+    }
 
 
     
