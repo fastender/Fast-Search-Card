@@ -2571,10 +2571,7 @@ class FastSearchCard extends HTMLElement {
             console.log('📂 Category items:', categoryItems.length); // DEBUG
             
             // Top Suggestion von MiniSearch holen
-            const searchResults = this.searchIndex.search(query, { 
-                ...this.searchOptions.searchOptions,
-                fuzzy: 0.4 // Höhere Fuzzy-Toleranz für Autocomplete
-            });
+            const searchResults = this.searchIndex.search(query);
             console.log('📊 Autocomplete search results:', searchResults); // DEBUG
             
             // Beste Kategorie-passende Suggestion finden
