@@ -2593,12 +2593,20 @@ class FastSearchCard extends HTMLElement {
     }
     
     showSuggestion(query, suggestionText) {
+        console.log('🔍 Suggestion:', query, '→', suggestionText); // DEBUG
+        
         const suggestionInput = this.shadowRoot.querySelector('.search-suggestion');
+
+        if (!suggestionInput) {
+            console.error('❌ suggestion input not found'); // DEBUG
+            return;
+        }
         
         // Suggestion = query + rest of suggestion in gray
         const completion = suggestionText.slice(query.length);
         this.currentSuggestion = suggestionText;
-        
+
+        console.log('💡 Setting suggestion value:', query + completion); // DEBUG
         suggestionInput.value = query + completion;
     }
     
