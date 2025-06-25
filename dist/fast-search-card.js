@@ -2932,7 +2932,7 @@ class FastSearchCard extends HTMLElement {
         clearTimeout(this.renderTimeout);
         this.renderTimeout = setTimeout(() => {
             this.renderResults();
-        }, 50);
+        }, 100);
     }
 
     renderGridResults(resultsGrid) {
