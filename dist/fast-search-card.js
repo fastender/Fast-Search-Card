@@ -2573,6 +2573,11 @@ class FastSearchCard extends HTMLElement {
             // Top Suggestion von MiniSearch holen
             const searchResults = this.searchIndex.search(query);
             console.log('📊 Autocomplete search results:', searchResults); // DEBUG
+
+            // NEU HINZUFÜGEN:
+            console.log('🔍 First result details:', searchResults[0]); // DEBUG
+            console.log('🔍 First result name:', searchResults[0]?.name); // DEBUG
+            console.log('🔍 Query to match:', query.toLowerCase()); // DEBUG            
             
             // Beste Kategorie-passende Suggestion finden
             const bestMatch = searchResults.find(result => 
@@ -2592,6 +2597,10 @@ class FastSearchCard extends HTMLElement {
                     item.name.toLowerCase().startsWith(query.toLowerCase())
                 );
                 console.log('🔄 Prefix match:', prefixMatch); // DEBUG
+
+                // NEU HINZUFÜGEN:
+                console.log('🔍 First category item name:', categoryItems[0]?.name); // DEBUG
+                console.log('🔍 Looking for names starting with:', query.toLowerCase()); // DEBUG                
                 
                 if (prefixMatch) {
                     console.log('✅ Found prefix match, showing suggestion'); // DEBUG
