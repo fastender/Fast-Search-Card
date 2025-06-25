@@ -2555,60 +2555,45 @@ class FastSearchCard extends HTMLElement {
     }
     
     updateAutocomplete(query) {
-        console.log('🔍 updateAutocomplete called with:', query); // DEBUG
+        console.log('🔍 updateAutocomplete called with:', query);
         
         if (!this.searchIndex || !query.trim()) {
-            console.log('❌ No searchIndex or empty query'); // DEBUG
+            console.log('❌ No searchIndex or empty query');
             this.clearSuggestion();
             return;
         }
         
         try {
-            console.log('✅ Starting autocomplete search...'); // DEBUG
+            console.log('✅ Starting autocomplete search...');
             
-            // Kategorie-Items für aktuellen Modus holen
-            const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
-            console.log('📂 Category items:', categoryItems.length); // DEBUG
-            
-            // Top Suggestion von MiniSearch holen
             const searchResults = this.searchIndex.search(query);
-            console.log('📊 Autocomplete search results:', searchResults); // DEBUG
-
-            // NEU HINZUFÜGEN:
-            console.log('🔍 First result details:', searchResults[0]); // DEBUG
-            console.log('🔍 First result name:', searchResults[0]?.name); // DEBUG
-            console.log('🔍 Query to match:', query.toLowerCase()); // DEBUG            
+            console.log('📊 Autocomplete search results:', searchResults);
             
-            // Beste Kategorie-passende Suggestion finden
-            const bestMatch = searchResults.find(result => 
-                this.isItemInCategory(result, this.activeCategory) && 
-                result.name.toLowerCase().startsWith(query.toLowerCase())
-            );
-            console.log('🎯 Best match:', bestMatch); // DEBUG
-            
-            if (bestMatch) {
-                console.log('✅ Found best match, showing suggestion'); // DEBUG
-                this.showSuggestion(query, bestMatch.name);
-            } else {
-                console.log('🔄 No best match, trying fallback...'); // DEBUG
+            if (searchResults.length > 0) {
+                const firstResult = searchResults[0];
+                console.log('🔍 First result details:', firstResult);
                 
-                // Fallback: Prefix-Match in aktuellen Items
-                const prefixMatch = categoryItems.find(item => 
-                    item.name.toLowerCase().startsWith(query.toLowerCase())
-                );
-                console.log('🔄 Prefix match:', prefixMatch); // DEBUG
-
-                // NEU HINZUFÜGEN:
-                console.log('🔍 First category item name:', categoryItems[0]?.name); // DEBUG
-                console.log('🔍 Looking for names starting with:', query.toLowerCase()); // DEBUG                
+                // Suggestion basierend auf dem gefundenen Feld
+                let suggestionText = '';
                 
-                if (prefixMatch) {
-                    console.log('✅ Found prefix match, showing suggestion'); // DEBUG
-                    this.showSuggestion(query, prefixMatch.name);
-                } else {
-                    console.log('❌ No matches found, clearing suggestion'); // DEBUG
-                    this.clearSuggestion();
+                // Prüfe Name
+                if (firstResult.name.toLowerCase().includes(query.toLowerCase())) {
+                    suggestionText = firstResult.name;
                 }
+                // Prüfe Area 
+                else if (firstResult.area.toLowerCase().includes(query.toLowerCase())) {
+                    suggestionText = firstResult.area;
+                }
+                // Fallback: Erstes Ergebnis Name
+                else {
+                    suggestionText = firstResult.name;
+                }
+                
+                console.log('💡 Suggestion text:', suggestionText);
+                this.showSuggestion(query, suggestionText);
+            } else {
+                console.log('❌ No search results');
+                this.clearSuggestion();
             }
             
         } catch (error) {
