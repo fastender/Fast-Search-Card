@@ -15,6 +15,7 @@ class MiniSearch {
         this.storedFields = {};
         this.index = {};
         this.termCount = 0;
+        this.renderTimeout = null;
         
         this.extractField = (document, fieldName) => {
             return fieldName.split('.').reduce((doc, key) => doc && doc[key], document);
@@ -2328,7 +2329,7 @@ class FastSearchCard extends HTMLElement {
         // NEU HINZUFÜGEN: MiniSearch Index erstellen/aktualisieren
         this.rebuildSearchIndex();
         
-        this.showCurrentCategoryItems();
+        this.debouncedRenderResults();
         this.updateSubcategoryCounts();
         
         console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered)`);
@@ -2720,7 +2721,7 @@ class FastSearchCard extends HTMLElement {
         }
 
         this.logSearchPerformance(query, startTime, 'MiniSearch', this.filteredItems.length);
-        this.renderResults();
+        this.debouncedRenderResults();
     }
     
     fallbackSearch(query, categoryItems) {
@@ -2851,7 +2852,7 @@ class FastSearchCard extends HTMLElement {
 
     showCurrentCategoryItems() {
         this.filteredItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
-        if (this.activeSubcategory !== 'all') { this.filterBySubcategory(); } else { this.renderResults(); }
+        if (this.activeSubcategory !== 'all') { this.filterBySubcategory(); } else { this.debouncedRenderResults(); }
     }
 
     isItemInCategory(item, category) {
@@ -2871,7 +2872,7 @@ class FastSearchCard extends HTMLElement {
         }
         if (this.activeSubcategory === 'none') { 
             this.filteredItems = []; 
-            this.renderResults(); 
+            this.debouncedRenderResults(); 
             return; 
         }
     
@@ -2887,7 +2888,7 @@ class FastSearchCard extends HTMLElement {
             this.filteredItems = categoryItems.filter(item => domains.includes(item.domain));
         }
         
-        this.renderResults();
+        this.debouncedRenderResults();
     }    
 
     renderResults() {
@@ -2925,7 +2926,15 @@ class FastSearchCard extends HTMLElement {
         const renderDuration = performance.now() - renderStartTime; // ← NEU HINZUFÜGEN
         console.log(`🎨 renderResults took ${renderDuration.toFixed(2)}ms`); // ← NEU HINZUFÜGEN
     }
-    
+
+    // NEU: Separate Methode nach renderResults()
+    debouncedRenderResults() {
+        clearTimeout(this.renderTimeout);
+        this.renderTimeout = setTimeout(() => {
+            this.renderResults();
+        }, 50);
+    }
+
     renderGridResults(resultsGrid) {
         resultsGrid.innerHTML = '';
         const groupedItems = this.groupItemsByArea();
@@ -3007,7 +3016,7 @@ class FastSearchCard extends HTMLElement {
     toggleViewMode() {
         this.currentViewMode = this.currentViewMode === 'grid' ? 'list' : 'grid';
         this.updateViewToggleIcon();
-        this.renderResults();
+        this.debouncedRenderResults();
     }
     
     updateViewToggleIcon() {
@@ -3031,7 +3040,7 @@ class FastSearchCard extends HTMLElement {
         this.updateSubcategoryToggleIcon();
         this.updateSubcategoryChips();
         this.activeSubcategory = 'all'; // Reset selection
-        this.renderResults();
+        this.debouncedRenderResults();
     }
     
     updateSubcategoryToggleIcon() {
@@ -3380,7 +3389,7 @@ class FastSearchCard extends HTMLElement {
             
             this.updateCategoryIcon();
             this.updatePlaceholder();
-            this.renderResults();
+            this.debouncedRenderResults();
         }
     }
     
