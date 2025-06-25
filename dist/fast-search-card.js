@@ -3923,8 +3923,13 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-
     getCustomDetailRightPaneHTML(item) {
+        // Check für Markdown Content
+        if (item.custom_data?.type === 'input_select' && item.custom_data?.markdown_content) {
+            return this.getMarkdownEditorDetailHTML(item);
+        }
+        
+        // Fallback für andere Custom Types (dein bestehender Code)
         const tabsHTML = `
             <div class="detail-tabs-container desktop-tabs">
                 <div class="detail-tabs">
@@ -3958,6 +3963,467 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
+    getMarkdownEditorDetailHTML(item) {
+        const tabsHTML = `
+            <div class="detail-tabs-container desktop-tabs">
+                <div class="detail-tabs">
+                    <span class="tab-slider"></span>
+                    <a href="#" class="detail-tab active" data-tab="view" title="Ansicht">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="detail-tab" data-tab="edit" title="Bearbeiten">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        `;
+        
+        return `
+            ${tabsHTML}
+            <div id="tab-content-container">
+                <div class="detail-tab-content active" data-tab-content="view">
+                    ${this.renderMarkdownAccordions(item.custom_data.markdown_content, item.name)}
+                </div>
+                <div class="detail-tab-content" data-tab-content="edit">
+                    ${this.getMarkdownEditorHTML(item)}
+                </div>
+            </div>
+        `;
+    }
+
+    getMarkdownEditorHTML(item) {
+        const entityId = item.attributes.markdown_entity;
+        const currentContent = item.custom_data.markdown_content || '';
+        
+        return `
+            <div class="markdown-editor-container">
+                <div class="editor-header">
+                    <div class="editor-title">📝 ${item.name} bearbeiten</div>
+                    <div class="editor-controls">
+                        <button class="editor-btn" data-action="save" title="Speichern">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17,21 17,13 7,13 7,21"/>
+                                <polyline points="7,3 7,8 15,8"/>
+                            </svg>
+                        </button>
+                        <button class="editor-btn" data-action="preview" title="Live-Preview">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="editor-content">
+                    <textarea 
+                        class="markdown-textarea" 
+                        data-entity="${entityId}"
+                        placeholder="# Dein Titel
+    
+    ## Sektion 1
+    - Liste Item 1
+    - Liste Item 2
+    
+    ## Sektion 2
+    1. Nummerierte Liste
+    2. Noch ein Punkt
+    
+    > Tipp: Nutze **fett** und *kursiv*"
+                    >${currentContent}</textarea>
+                    
+                    <div class="live-preview hidden">
+                        <div class="preview-content"></div>
+                    </div>
+                </div>
+                
+                <div class="editor-footer">
+                    <div class="status-indicator" data-status="ready">
+                        <span class="status-text">Bereit zum Bearbeiten</span>
+                    </div>
+                    <div class="markdown-help">
+                        <details>
+                            <summary>📚 Markdown Hilfe</summary>
+                            <div class="help-content">
+                                <strong># Überschrift 1</strong><br>
+                                <strong>## Überschrift 2</strong><br>
+                                <strong>**fett**</strong> → <strong>fett</strong><br>
+                                <strong>*kursiv*</strong> → <em>kursiv</em><br>
+                                <strong>- Liste</strong> → • Liste<br>
+                                <strong>1. Nummeriert</strong> → 1. Nummeriert<br>
+                                <strong>> Zitat</strong> → Blockquote
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+            
+            <style>
+                .markdown-editor-container {
+                    padding: 20px;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                }
+                
+                .editor-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                    padding-bottom: 12px;
+                }
+                
+                .editor-title {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: var(--text-primary);
+                }
+                
+                .editor-controls {
+                    display: flex;
+                    gap: 8px;
+                }
+                
+                .editor-btn {
+                    width: 36px;
+                    height: 36px;
+                    border: none;
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 8px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s ease;
+                    color: var(--text-secondary);
+                }
+                
+                .editor-btn:hover {
+                    background: rgba(255,255,255,0.2);
+                    color: var(--text-primary);
+                    transform: scale(1.05);
+                }
+                
+                .editor-btn.active {
+                    background: var(--accent);
+                    color: white;
+                }
+                
+                .editor-btn svg {
+                    width: 18px;
+                    height: 18px;
+                }
+                
+                .editor-content {
+                    flex: 1;
+                    position: relative;
+                    min-height: 300px;
+                }
+                
+                .markdown-textarea {
+                    width: 100%;
+                    height: 100%;
+                    min-height: 300px;
+                    background: rgba(0,0,0,0.3);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 12px;
+                    color: var(--text-primary);
+                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                    font-size: 14px;
+                    line-height: 1.5;
+                    padding: 16px;
+                    resize: vertical;
+                    outline: none;
+                    transition: all 0.2s ease;
+                }
+                
+                .markdown-textarea:focus {
+                    border-color: var(--accent);
+                    box-shadow: 0 0 0 2px rgba(0,122,255,0.2);
+                }
+                
+                .markdown-textarea::placeholder {
+                    color: rgba(255,255,255,0.4);
+                    font-style: italic;
+                }
+                
+                .live-preview {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    width: 50%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 12px;
+                    padding: 16px;
+                    overflow-y: auto;
+                }
+                
+                .live-preview.hidden {
+                    display: none;
+                }
+                
+                .preview-content {
+                    color: var(--text-primary);
+                    line-height: 1.6;
+                }
+                
+                .preview-content h1, .preview-content h2, .preview-content h3 {
+                    color: var(--text-primary);
+                    margin: 16px 0 8px 0;
+                }
+                
+                .preview-content ul, .preview-content ol {
+                    margin: 8px 0;
+                    padding-left: 20px;
+                }
+                
+                .preview-content blockquote {
+                    background: rgba(255,255,255,0.05);
+                    border-left: 4px solid var(--accent);
+                    padding: 12px 16px;
+                    margin: 12px 0;
+                    border-radius: 8px;
+                    font-style: italic;
+                }
+                
+                .editor-footer {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding-top: 12px;
+                    border-top: 1px solid rgba(255,255,255,0.1);
+                }
+                
+                .status-indicator {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 13px;
+                    color: var(--text-secondary);
+                }
+                
+                .status-indicator[data-status="saving"]::before {
+                    content: "💾";
+                }
+                
+                .status-indicator[data-status="saved"]::before {
+                    content: "✅";
+                }
+                
+                .status-indicator[data-status="error"]::before {
+                    content: "❌";
+                }
+                
+                .status-indicator[data-status="ready"]::before {
+                    content: "📝";
+                }
+                
+                .markdown-help details {
+                    color: var(--text-secondary);
+                }
+                
+                .markdown-help summary {
+                    cursor: pointer;
+                    font-size: 13px;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    transition: background 0.2s ease;
+                }
+                
+                .markdown-help summary:hover {
+                    background: rgba(255,255,255,0.1);
+                }
+                
+                .help-content {
+                    margin-top: 8px;
+                    padding: 12px;
+                    background: rgba(0,0,0,0.3);
+                    border-radius: 8px;
+                    font-size: 12px;
+                    line-height: 1.4;
+                }
+            </style>
+        `;
+    }    
+
+    setupMarkdownEditor(item) {
+        const textarea = this.shadowRoot.querySelector('.markdown-textarea');
+        const saveBtn = this.shadowRoot.querySelector('[data-action="save"]');
+        const previewBtn = this.shadowRoot.querySelector('[data-action="preview"]');
+        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
+        const statusText = this.shadowRoot.querySelector('.status-text');
+        const livePreview = this.shadowRoot.querySelector('.live-preview');
+        const previewContent = this.shadowRoot.querySelector('.preview-content');
+        
+        if (!textarea) return; // Kein Editor vorhanden
+        
+        let saveTimeout;
+        let isPreviewMode = false;
+        
+        // Auto-Save beim Tippen
+        textarea.addEventListener('input', () => {
+            statusIndicator.dataset.status = 'saving';
+            statusText.textContent = 'Wird gespeichert...';
+            
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                this.saveMarkdownContent(item, textarea.value);
+            }, 1000); // 1 Sekunde Delay
+        });
+        
+        // Manueller Save Button
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                clearTimeout(saveTimeout);
+                this.saveMarkdownContent(item, textarea.value);
+            });
+        }
+        
+        // Live-Preview Toggle
+        if (previewBtn && livePreview && previewContent) {
+            previewBtn.addEventListener('click', () => {
+                isPreviewMode = !isPreviewMode;
+                
+                if (isPreviewMode) {
+                    // Zeige Preview
+                    livePreview.classList.remove('hidden');
+                    textarea.style.width = '50%';
+                    previewBtn.classList.add('active');
+                    
+                    // Update Preview Content
+                    const html = this.parseMarkdown(textarea.value);
+                    previewContent.innerHTML = html;
+                    
+                    // Live-Update beim Tippen
+                    textarea.addEventListener('input', this.updatePreview);
+                } else {
+                    // Verstecke Preview
+                    livePreview.classList.add('hidden');
+                    textarea.style.width = '100%';
+                    previewBtn.classList.remove('active');
+                    
+                    textarea.removeEventListener('input', this.updatePreview);
+                }
+            });
+        }
+        
+        // Update Preview Function
+        this.updatePreview = () => {
+            if (isPreviewMode && previewContent) {
+                const html = this.parseMarkdown(textarea.value);
+                previewContent.innerHTML = html;
+            }
+        };
+    }
+
+    saveMarkdownContent(item, content) {
+        const entityId = item.attributes.markdown_entity;
+        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
+        const statusText = this.shadowRoot.querySelector('.status-text');
+        
+        if (!entityId || !this._hass) {
+            this.showSaveStatus('error', 'Fehler: Entity nicht gefunden');
+            return;
+        }
+        
+        console.log(`💾 Saving markdown to ${entityId}:`, content);
+        
+        // Show saving status
+        this.showSaveStatus('saving', 'Wird gespeichert...');
+        
+        // Call Home Assistant service
+        this._hass.callService('input_text', 'set_value', {
+            entity_id: entityId,
+            value: content
+        }).then(() => {
+            // Success
+            this.showSaveStatus('saved', 'Gespeichert!');
+            
+            // Update local content
+            item.custom_data.markdown_content = content;
+            
+            // Update view tab with new content
+            this.updateViewTab(item);
+            
+            console.log('✅ Markdown saved successfully');
+            
+        }).catch((error) => {
+            // Error
+            this.showSaveStatus('error', 'Fehler beim Speichern');
+            console.error('❌ Error saving markdown:', error);
+        });
+    }
+    
+    showSaveStatus(status, message) {
+        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
+        const statusText = this.shadowRoot.querySelector('.status-text');
+        
+        if (statusIndicator && statusText) {
+            statusIndicator.dataset.status = status;
+            statusText.textContent = message;
+            
+            // Reset nach 3 Sekunden
+            if (status === 'saved' || status === 'error') {
+                setTimeout(() => {
+                    statusIndicator.dataset.status = 'ready';
+                    statusText.textContent = 'Bereit zum Bearbeiten';
+                }, 3000);
+            }
+        }
+    }
+    
+    updateViewTab(item) {
+        const viewTabContent = this.shadowRoot.querySelector('[data-tab-content="view"]');
+        if (viewTabContent && item.custom_data.markdown_content) {
+            // Re-render accordions with new content
+            viewTabContent.innerHTML = this.renderMarkdownAccordions(item.custom_data.markdown_content, item.name);
+            
+            // Re-setup accordion event listeners
+            this.setupAccordionListeners();
+        }
+    }
+    
+    setupAccordionListeners() {
+        const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
+        accordionHeaders.forEach(header => {
+            // Remove old listeners
+            header.replaceWith(header.cloneNode(true));
+            
+            // Add new listeners
+            const newHeader = this.shadowRoot.querySelector(`[data-accordion="${header.dataset.accordion}"]`);
+            if (newHeader) {
+                newHeader.addEventListener('click', () => {
+                    const index = newHeader.dataset.accordion;
+                    const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
+                    const arrow = newHeader.querySelector('.accordion-arrow');
+                    
+                    const isOpen = content.classList.contains('open');
+                    
+                    if (isOpen) {
+                        content.classList.remove('open');
+                        newHeader.classList.remove('active');
+                        arrow.textContent = '▶';
+                    } else {
+                        content.classList.add('open');
+                        newHeader.classList.add('active');
+                        arrow.textContent = '▼';
+                    }
+                });
+            }
+        });
+    }    
+    
     getCustomInfoHTML(item) {
         const customData = item.custom_data || {};
         
@@ -4211,6 +4677,9 @@ class FastSearchCard extends HTMLElement {
                 this.handleCustomAction(item, action);
             });
         });
+
+        // NEU: Markdown Editor Event Listeners
+        this.setupMarkdownEditor(item);        
         
         // NEU: Accordion Event Listeners
         const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
