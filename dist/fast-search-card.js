@@ -2541,13 +2541,22 @@ class FastSearchCard extends HTMLElement {
             const markdownEntityId = `input_text.recipe_${option.toLowerCase().replace(/\s+/g, '_')}`;
             
             const markdownState = this._hass.states[markdownEntityId];
-            const markdownContent = markdownState ? (markdownState.state || markdownState.attributes.value || markdownState.attributes.initial) : null;
-            const hasMarkdown = markdownContent && markdownContent.trim().length > 0;
+            
+            let markdownContent = null;
+            if (markdownState) {
+                markdownContent = markdownState.state || 
+                                 markdownState.attributes.value || 
+                                 markdownState.attributes.initial || 
+                                 markdownState.attributes.text || 
+                                 'NO_CONTENT_FOUND';
+            }
             
             console.log(`📝 Checking for markdown: ${markdownEntityId}`);
             console.log(`📝 State:`, markdownState?.state);
             console.log(`📝 Attributes:`, markdownState?.attributes);
-            console.log(`📝 Found content:`, !!hasMarkdown);
+            console.log(`🔍 Final content:`, markdownContent);
+            
+            const hasMarkdown = markdownContent && markdownContent !== 'NO_CONTENT_FOUND' && markdownContent.trim().length > 0;
             
             return {
                 id: `custom_${dataSource.entity}_${index}`,
