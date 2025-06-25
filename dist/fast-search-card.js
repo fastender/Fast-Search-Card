@@ -2261,9 +2261,6 @@ class FastSearchCard extends HTMLElement {
     updateItems() {
         if (!this._hass) return;
         
-        console.log(`⏱️ updateItems started`); // ← NEU HINZUFÜGEN
-        const startTime = performance.now(); // ← NEU HINZUFÜGEN
-        
         let allEntityConfigs = [];
         
         // 1. Auto-Discovery wenn aktiviert
@@ -2285,57 +2282,44 @@ class FastSearchCard extends HTMLElement {
             console.log(`Added ${this._config.entities.length} manual entities`);
         }
         
-        console.log(`⏱️ Processing ${allEntityConfigs.length} entities`); // ← NEU HINZUFÜGEN
+        console.log(`Total entities to process: ${allEntityConfigs.length}`);
         
-
-
         // 3. Entity-Objekte erstellen (wie bisher)
         this.allItems = allEntityConfigs.map(entityConfig => {
-            try {
-                const entityId = entityConfig.entity;
-                const state = this._hass.states[entityId];
-                if (!state) {
-                    console.warn(`Entity not found: ${entityId}`);
-                    return null;
-                }
-                
-                const domain = entityId.split('.')[0];
-                const areaName = entityConfig.area || this.getEntityArea(entityId, state);
-                
-                return {
-                    id: entityId,
-                    name: entityConfig.title || state.attributes.friendly_name || entityId,
-                    domain: domain,
-                    category: this.categorizeEntity(domain),
-                    area: areaName,
-                    state: state.state,
-                    attributes: state.attributes,
-                    icon: this.getEntityIcon(domain),
-                    isActive: this.isEntityActive(state),
-                    auto_discovered: entityConfig.auto_discovered || false
-                };
-            } catch (error) {
-                console.error(`Error processing ${entityConfig.entity}:`, error);
+            const entityId = entityConfig.entity;
+            const state = this._hass.states[entityId];
+            if (!state) {
+                console.warn(`Entity not found: ${entityId}`);
                 return null;
             }
-        }).filter(Boolean);        
-
-
-        
+            
+            const domain = entityId.split('.')[0];
+            const areaName = entityConfig.area || this.getEntityArea(entityId, state);
+            
+            return {
+                id: entityId,
+                name: entityConfig.title || state.attributes.friendly_name || entityId,
+                domain: domain,
+                category: this.categorizeEntity(domain),
+                area: areaName,
+                state: state.state,
+                attributes: state.attributes,
+                icon: this.getEntityIcon(domain),
+                isActive: this.isEntityActive(state),
+                auto_discovered: entityConfig.auto_discovered || false // Debug-Info
+            };
+        }).filter(Boolean);
         
         this.allItems.sort((a, b) => a.area.localeCompare(b.area));
         
         // NEU HINZUFÜGEN: MiniSearch Index erstellen/aktualisieren
         this.rebuildSearchIndex();
         
-        this.renderResults();
+        this.showCurrentCategoryItems();
         this.updateSubcategoryCounts();
         
         console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered)`);
-        
-        const duration = performance.now() - startTime; // ← NEU HINZUFÜGEN
-        console.log(`⏱️ updateItems took ${duration.toFixed(2)}ms`); // ← NEU HINZUFÜGEN
-    }
+    }    
     
 
     rebuildSearchIndex() {
@@ -2891,26 +2875,19 @@ class FastSearchCard extends HTMLElement {
     }    
 
     renderResults() {
-        const renderStartTime = performance.now();
-        
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
         const resultsList = this.shadowRoot.querySelector('.results-list');
         
-        // Clear old animation timeouts
+        // Clear timeouts
         this.animationTimeouts.forEach(timeout => clearTimeout(timeout));
         this.animationTimeouts = [];
         
-        // Show/Hide containers
+        // Hide both containers initially
         resultsGrid.style.display = this.currentViewMode === 'grid' ? 'grid' : 'none';
         resultsList.classList.toggle('active', this.currentViewMode === 'list');
         
-        // NEU: Prüfung ob noch initialisiert wird
         if (this.filteredItems.length === 0) {
-            const isInitializing = !this.allItems || this.allItems.length === 0;
-            const emptyState = isInitializing 
-                ? `<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Lade Geräte...</div><div class="empty-subtitle">Einen Moment bitte</div></div>`
-                : `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
-            
+            const emptyState = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
             if (this.currentViewMode === 'grid') {
                 resultsGrid.innerHTML = emptyState;
             } else {
@@ -2920,207 +2897,12 @@ class FastSearchCard extends HTMLElement {
         }
         
         if (this.currentViewMode === 'grid') {
-            this.smartUpdateGrid(resultsGrid);
+            this.renderGridResults(resultsGrid);
         } else {
-            this.smartUpdateList(resultsList);
-        }
-        
-        const renderDuration = performance.now() - renderStartTime;
-        console.log(`🎨 Smart renderResults took ${renderDuration.toFixed(2)}ms`);
-    }        
-
-    
-    
-    smartUpdateGrid(container) {
-        const existingCards = new Map();
-        const existingHeaders = new Map();
-        
-        // 1. Sammle bestehende Elements
-        container.querySelectorAll('.device-card').forEach(card => {
-            const entityId = card.dataset.entity;
-            if (entityId) existingCards.set(entityId, card);
-        });
-        
-        container.querySelectorAll('.area-header').forEach(header => {
-            existingHeaders.set(header.textContent, header);
-        });
-        
-        // 2. Gruppiere Items
-        const groupedItems = this.groupItemsByArea();
-        const processedAreas = new Set();
-        
-        let cardIndex = 0;
-        Object.keys(groupedItems).sort().forEach(area => {
-            // Area Header handling
-            let areaHeader = existingHeaders.get(area);
-            if (!areaHeader) {
-                areaHeader = document.createElement('div');
-                areaHeader.className = 'area-header';
-                areaHeader.textContent = area;
-                container.appendChild(areaHeader);
-            }
-            processedAreas.add(area);
-            existingHeaders.delete(area); // Mark as handled
-            
-            // Device Cards handling
-            groupedItems[area].forEach(item => {
-                const existingCard = existingCards.get(item.id);
-                
-                if (existingCard) {
-                    // UPDATE: Nur Status aktualisieren
-                    this.updateDeviceCard(existingCard, item);
-                    existingCards.delete(item.id); // Mark as handled
-                } else {
-                    // CREATE: Neu erstellen
-                    const newCard = this.createDeviceCard(item);
-                    container.appendChild(newCard);
-                    
-                    // Animation nur für neue Cards
-                    if (!this.hasAnimated && cardIndex < 15) {
-                        const timeout = setTimeout(() => {
-                            this.animateElementIn(newCard, { 
-                                opacity: [0, 1], 
-                                transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)'] 
-                            });
-                        }, cardIndex * 30);
-                        this.animationTimeouts.push(timeout);
-                    }
-                }
-                cardIndex++;
-            });
-        });
-        
-        // 3. REMOVE: Nicht mehr benötigte Elements
-        existingCards.forEach(oldCard => oldCard.remove());
-        existingHeaders.forEach(oldHeader => oldHeader.remove());
-        
-        this.hasAnimated = true;
-    }
-    
-    
-        
-    smartUpdateList(container) {
-        const existingItems = new Map();
-        const existingHeaders = new Map();
-        
-        // 1. Sammle bestehende Elements
-        container.querySelectorAll('.device-list-item').forEach(item => {
-            const entityId = item.dataset.entity;
-            if (entityId) existingItems.set(entityId, item);
-        });
-        
-        container.querySelectorAll('.area-header').forEach(header => {
-            existingHeaders.set(header.textContent, header);
-        });
-        
-        // 2. Gruppiere Items
-        const groupedItems = this.groupItemsByArea();
-        
-        let itemIndex = 0;
-        Object.keys(groupedItems).sort().forEach(area => {
-            // Area Header handling
-            let areaHeader = existingHeaders.get(area);
-            if (!areaHeader) {
-                areaHeader = document.createElement('div');
-                areaHeader.className = 'area-header';
-                areaHeader.textContent = area;
-                container.appendChild(areaHeader);
-            }
-            existingHeaders.delete(area);
-            
-            // List Items handling
-            groupedItems[area].forEach(item => {
-                const existingItem = existingItems.get(item.id);
-                
-                if (existingItem) {
-                    // UPDATE: Nur Status aktualisieren
-                    this.updateDeviceListItem(existingItem, item);
-                    existingItems.delete(item.id);
-                } else {
-                    // CREATE: Neu erstellen
-                    const newItem = this.createDeviceListItem(item);
-                    container.appendChild(newItem);
-                    
-                    // Animation nur für neue Items
-                    if (!this.hasAnimated && itemIndex < 15) {
-                        const timeout = setTimeout(() => {
-                            this.animateElementIn(newItem, { 
-                                opacity: [0, 1], 
-                                transform: ['translateX(-20px)', 'translateX(0)'] 
-                            });
-                        }, itemIndex * 20);
-                        this.animationTimeouts.push(timeout);
-                    }
-                }
-                itemIndex++;
-            });
-        });
-        
-        // 3. REMOVE: Nicht mehr benötigte Elements
-        existingItems.forEach(oldItem => oldItem.remove());
-        existingHeaders.forEach(oldHeader => oldHeader.remove());
-        
-        this.hasAnimated = true;
-    }
-    
-    
-    
-    
-    updateDeviceCard(cardElement, item) {
-        const state = this._hass.states[item.id];
-        if (!state) return;
-        
-        const isActive = this.isEntityActive(state);
-        const wasActive = cardElement.classList.contains('active');
-        
-        // Update classes
-        cardElement.classList.toggle('active', isActive);
-        
-        // Update status text
-        const statusElement = cardElement.querySelector('.device-status');
-        if (statusElement) {
-            statusElement.textContent = this.getEntityStatus(state);
-        }
-        
-        // Animate state change
-        if (isActive !== wasActive) {
-            this.animateStateChange(cardElement, isActive);
+            this.renderListResults(resultsList);
         }
     }
     
-    updateDeviceListItem(listElement, item) {
-        const state = this._hass.states[item.id];
-        if (!state) return;
-        
-        const isActive = this.isEntityActive(state);
-        const wasActive = listElement.classList.contains('active');
-        
-        // Update classes
-        listElement.classList.toggle('active', isActive);
-        
-        // Update status text
-        const statusElement = listElement.querySelector('.device-list-status');
-        if (statusElement) {
-            statusElement.textContent = this.getEntityStatus(state);
-        }
-        
-        // Update quick action button if exists
-        const quickActionBtn = listElement.querySelector('.device-list-quick-action');
-        if (quickActionBtn) {
-            this.updateQuickActionButton(quickActionBtn, item.id, state);
-        }
-        
-        // Animate state change
-        if (isActive !== wasActive) {
-            this.animateStateChange(listElement, isActive);
-        }
-    }
-
-
-    
-
-    
-
     renderGridResults(resultsGrid) {
         resultsGrid.innerHTML = '';
         const groupedItems = this.groupItemsByArea();
@@ -3135,12 +2917,12 @@ class FastSearchCard extends HTMLElement {
             groupedItems[area].forEach((item) => {
                 const card = this.createDeviceCard(item);
                 resultsGrid.appendChild(card);
-                if (!this.hasAnimated && cardIndex < 15) { // ← NUR erste 15 animieren
+                if (!this.hasAnimated) {
                     const timeout = setTimeout(() => {
                         this.animateElementIn(card, { opacity: [0, 1], transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)'] });
-                    }, cardIndex * 30); // ← Schneller: 30ms statt 50ms
+                    }, cardIndex * 50);
                     this.animationTimeouts.push(timeout);
-                }                
+                }
                 cardIndex++;
             });
         });
@@ -3161,18 +2943,15 @@ class FastSearchCard extends HTMLElement {
             groupedItems[area].forEach((item) => {
                 const listItem = this.createDeviceListItem(item);
                 resultsList.appendChild(listItem);
-
-
-                if (!this.hasAnimated && itemIndex < 15) { // ← Animation-Limit auch hier
+                if (!this.hasAnimated) {
                     const timeout = setTimeout(() => {
                         this.animateElementIn(listItem, { 
                             opacity: [0, 1], 
                             transform: ['translateX(-20px)', 'translateX(0)'] 
                         });
-                    }, itemIndex * 20); // ← Noch schneller für List-View
+                    }, itemIndex * 30);
                     this.animationTimeouts.push(timeout);
                 }
-                
                 itemIndex++;
             });
         });
