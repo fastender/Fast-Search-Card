@@ -2538,7 +2538,7 @@ class FastSearchCard extends HTMLElement {
         
         return state.attributes.options.map((option, index) => {
             // Check für Markdown Content
-            const markdownEntityId = `input_text.recipe_${option.toLowerCase().replace(/\s+/g, '_')}_markdown`;
+            const markdownEntityId = `input_text.recipe_${option.toLowerCase().replace(/\s+/g, '_')}`;
             const markdownState = this._hass.states[markdownEntityId];
             const hasMarkdown = markdownState && markdownState.state;
             
