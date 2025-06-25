@@ -2526,6 +2526,8 @@ class FastSearchCard extends HTMLElement {
     }    
 
     handleSearchInput(value) {
+        console.log('📝 handleSearchInput called with:', value); // ← DIESE ZEILE HINZUFÜGEN
+        
         // Standard search logic
         this.handleSearch(value);
         
