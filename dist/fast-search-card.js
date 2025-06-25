@@ -2544,16 +2544,28 @@ class FastSearchCard extends HTMLElement {
             
             let markdownContent = null;
             if (markdownState) {
-                markdownContent = markdownState.state || 
-                                 markdownState.attributes.value || 
-                                 markdownState.attributes.initial || 
-                                 markdownState.attributes.text || 
-                                 'NO_CONTENT_FOUND';
+                let rawContent = markdownState.state || 
+                                markdownState.attributes.value || 
+                                markdownState.attributes.initial || 
+                                markdownState.attributes.text || 
+                                'NO_CONTENT_FOUND';
+                
+                // NEU: Parse JSON wenn es ein JSON String ist
+                if (typeof rawContent === 'string' && rawContent.startsWith('value: "')) {
+                    try {
+                        // Extrahiere Content aus 'value: "..."' Format
+                        const match = rawContent.match(/value: "(.*)"/);
+                        if (match) {
+                            markdownContent = match[1].replace(/\\n/g, '\n'); // \n zu echten Newlines
+                        }
+                    } catch (e) {
+                        markdownContent = rawContent;
+                    }
+                } else {
+                    markdownContent = rawContent;
+                }
             }
             
-            console.log(`📝 Checking for markdown: ${markdownEntityId}`);
-            console.log(`📝 State:`, markdownState?.state);
-            console.log(`📝 Attributes:`, markdownState?.attributes);
             console.log(`🔍 Final content:`, markdownContent);
             
             const hasMarkdown = markdownContent && markdownContent !== 'NO_CONTENT_FOUND' && markdownContent.trim().length > 0;
