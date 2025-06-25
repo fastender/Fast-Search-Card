@@ -2642,6 +2642,7 @@ class FastSearchCard extends HTMLElement {
     }
 
 
+
     async parseDynamicFolders(dataSource) {
         console.log('🗂️ Parsing dynamic folders...');
         
@@ -2668,7 +2669,7 @@ class FastSearchCard extends HTMLElement {
             }
         };
         
-        // Erstelle Items für jeden Ordner
+        // Erstelle Items für jeden Ordner (OHNE await in map)
         const folderItems = folders.map((folder, index) => ({
             id: `folder_${folder.folder_name}`,
             name: folder.display_name,
@@ -2687,13 +2688,16 @@ class FastSearchCard extends HTMLElement {
                 type: 'folder',
                 folder_name: folder.folder_name,
                 folder_path: folder.path,
-                files: await this.scanFolderFiles(folder.folder_name)
+                files: this.scanFolderFiles(folder.folder_name) // ← OHNE await!
             }
         }));
         
         console.log(`🗂️ Found ${folders.length} folders, created ${folderItems.length + 1} items`);
         return [folderManagerItem, ...folderItems];
     }
+
+
+    
     
     async parseFileCollection(dataSource) {
         console.log(`📁 Parsing file collection: ${dataSource.path}`);
@@ -2726,8 +2730,9 @@ class FastSearchCard extends HTMLElement {
             }
         }));
     }
+
     
-    async scanFolderFiles(folderName) {
+    scanFolderFiles(folderName) { // ← OHNE async!
         // Für jetzt: Mock-Data
         const mockFiles = {
             'rezepte': ['pizza_margherita.md', 'pasta_carbonara.md'],
