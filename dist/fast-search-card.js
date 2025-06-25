@@ -253,8 +253,11 @@ class FastSearchCard extends HTMLElement {
                 },
                 fuzzy: 0.3        // Fuzzy-Threshold (0-1, niedriger = strenger)
             }
-        };
+        };    
         
+        // NEU: Autocomplete State
+        this.currentSuggestion = '';
+        this.autocompleteTimeout = null;        
     }
 
     setConfig(config) {
@@ -476,6 +479,15 @@ class FastSearchCard extends HTMLElement {
                 stroke-linejoin: round;
             }
 
+
+
+
+            .search-input-container {
+                position: relative;
+                flex: 1;
+                min-width: 0;
+            }
+            
             .search-input {
                 flex: 1;
                 border: none;
@@ -485,11 +497,37 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-primary);
                 font-family: inherit;
                 min-width: 0;
+                position: relative;
+                z-index: 2;
+                background: transparent;
             }
-
+            
             .search-input::placeholder {
                 color: var(--text-secondary);
             }
+            
+            .search-suggestion {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                border: none;
+                background: transparent;
+                outline: none;
+                font-size: 24px;
+                font-family: inherit;
+                color: rgba(255, 255, 255, 0.4);
+                pointer-events: none;
+                z-index: 1;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+
+
+
+
+            
 
             .clear-button {
                 width: 24px;
@@ -1822,6 +1860,7 @@ class FastSearchCard extends HTMLElement {
             <div class="main-container">
                 <div class="search-row">
                     <div class="search-panel glass-panel">
+                    
                         <div class="search-wrapper">
                             <div class="category-icon">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -1830,13 +1869,21 @@ class FastSearchCard extends HTMLElement {
                                 </svg>
                             </div>
                             
-                            <input 
-                                type="text" 
-                                class="search-input" 
-                                placeholder="Geräte suchen..."
-                                autocomplete="off"
-                                spellcheck="false"
-                            >
+
+                            <div class="search-input-container">
+                                <input type="text" class="search-suggestion" readonly tabindex="-1">
+                                <input 
+                                    type="text" 
+                                    class="search-input" 
+                                    placeholder="Geräte suchen..."
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                >
+                            </div>                            
+
+
+
+
                             
                             <button class="clear-button">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -1987,14 +2034,18 @@ class FastSearchCard extends HTMLElement {
 
     setupEventListeners() {
         const searchInput = this.shadowRoot.querySelector('.search-input');
+        const suggestionInput = this.shadowRoot.querySelector('.search-suggestion');        
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         const categoryIcon = this.shadowRoot.querySelector('.category-icon');
         const filterIcon = this.shadowRoot.querySelector('.filter-icon');
         const categoryButtons = this.shadowRoot.querySelectorAll('.category-button');
-        // Back button listener is now set dynamically in renderDetailView
-    
-        searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
+        
+        // Input Events
+        searchInput.addEventListener('input', (e) => this.handleSearchInput(e.target.value));
+        searchInput.addEventListener('keydown', (e) => this.handleSearchKeydown(e));
         searchInput.addEventListener('focus', () => this.handleSearchFocus());
+        searchInput.addEventListener('blur', () => this.clearSuggestion());
+
         clearButton.addEventListener('click', (e) => { e.stopPropagation(); this.clearSearch(); });
         categoryIcon.addEventListener('click', (e) => { e.stopPropagation(); this.toggleCategoryButtons(); });
         filterIcon.addEventListener('click', (e) => { e.stopPropagation(); this.handleFilterClick(); });
@@ -2080,8 +2131,11 @@ class FastSearchCard extends HTMLElement {
     clearSearch() {
         const searchInput = this.shadowRoot.querySelector('.search-input');
         const clearButton = this.shadowRoot.querySelector('.clear-button');
+        
         searchInput.value = '';
         this.isSearching = false; 
+        this.clearSuggestion(); // NEU HINZUFÜGEN
+        
         const animation = this.animateElementOut(clearButton);
         animation.finished.then(() => { clearButton.classList.remove('visible'); });
         this.hasAnimated = false;
@@ -2469,6 +2523,98 @@ class FastSearchCard extends HTMLElement {
     logSearchPerformance(query, startTime, method, resultCount) {
         const duration = performance.now() - startTime;
         console.log(`🔍 Search "${query}" via ${method}: ${resultCount} results in ${duration.toFixed(2)}ms`);
+    }    
+
+    handleSearchInput(value) {
+        // Standard search logic
+        this.handleSearch(value);
+        
+        // Autocomplete logic
+        if (value.length >= 2) {
+            clearTimeout(this.autocompleteTimeout);
+            this.autocompleteTimeout = setTimeout(() => {
+                this.updateAutocomplete(value);
+            }, 150); // Debounce
+        } else {
+            this.clearSuggestion();
+        }
+    }
+    
+    handleSearchKeydown(e) {
+        if (e.key === 'Tab' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            this.acceptSuggestion();
+        } else if (e.key === 'Escape') {
+            this.clearSuggestion();
+        }
+    }
+    
+    updateAutocomplete(query) {
+        if (!this.searchIndex || !query.trim()) {
+            this.clearSuggestion();
+            return;
+        }
+        
+        try {
+            // Kategorie-Items für aktuellen Modus holen
+            const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+            
+            // Top Suggestion von MiniSearch holen
+            const searchResults = this.searchIndex.search(query, { 
+                ...this.searchOptions.searchOptions,
+                fuzzy: 0.4 // Höhere Fuzzy-Toleranz für Autocomplete
+            });
+            
+            // Beste Kategorie-passende Suggestion finden
+            const bestMatch = searchResults.find(result => 
+                this.isItemInCategory(result, this.activeCategory) && 
+                result.name.toLowerCase().startsWith(query.toLowerCase())
+            );
+            
+            if (bestMatch) {
+                this.showSuggestion(query, bestMatch.name);
+            } else {
+                // Fallback: Prefix-Match in aktuellen Items
+                const prefixMatch = categoryItems.find(item => 
+                    item.name.toLowerCase().startsWith(query.toLowerCase())
+                );
+                
+                if (prefixMatch) {
+                    this.showSuggestion(query, prefixMatch.name);
+                } else {
+                    this.clearSuggestion();
+                }
+            }
+            
+        } catch (error) {
+            console.error('Autocomplete error:', error);
+            this.clearSuggestion();
+        }
+    }
+    
+    showSuggestion(query, suggestionText) {
+        const suggestionInput = this.shadowRoot.querySelector('.search-suggestion');
+        
+        // Suggestion = query + rest of suggestion in gray
+        const completion = suggestionText.slice(query.length);
+        this.currentSuggestion = suggestionText;
+        
+        suggestionInput.value = query + completion;
+    }
+    
+    acceptSuggestion() {
+        if (this.currentSuggestion) {
+            const searchInput = this.shadowRoot.querySelector('.search-input');
+            searchInput.value = this.currentSuggestion;
+            this.handleSearch(this.currentSuggestion);
+            this.clearSuggestion();
+        }
+    }
+    
+    clearSuggestion() {
+        const suggestionInput = this.shadowRoot.querySelector('.search-suggestion');
+        suggestionInput.value = '';
+        this.currentSuggestion = '';
     }    
 
     showCurrentCategoryItems() {
