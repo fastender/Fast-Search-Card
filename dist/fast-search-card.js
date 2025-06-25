@@ -2555,38 +2555,52 @@ class FastSearchCard extends HTMLElement {
     }
     
     updateAutocomplete(query) {
+        console.log('🔍 updateAutocomplete called with:', query); // DEBUG
+        
         if (!this.searchIndex || !query.trim()) {
+            console.log('❌ No searchIndex or empty query'); // DEBUG
             this.clearSuggestion();
             return;
         }
         
         try {
+            console.log('✅ Starting autocomplete search...'); // DEBUG
+            
             // Kategorie-Items für aktuellen Modus holen
             const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+            console.log('📂 Category items:', categoryItems.length); // DEBUG
             
             // Top Suggestion von MiniSearch holen
             const searchResults = this.searchIndex.search(query, { 
                 ...this.searchOptions.searchOptions,
                 fuzzy: 0.4 // Höhere Fuzzy-Toleranz für Autocomplete
             });
+            console.log('📊 Autocomplete search results:', searchResults); // DEBUG
             
             // Beste Kategorie-passende Suggestion finden
             const bestMatch = searchResults.find(result => 
                 this.isItemInCategory(result, this.activeCategory) && 
                 result.name.toLowerCase().startsWith(query.toLowerCase())
             );
+            console.log('🎯 Best match:', bestMatch); // DEBUG
             
             if (bestMatch) {
+                console.log('✅ Found best match, showing suggestion'); // DEBUG
                 this.showSuggestion(query, bestMatch.name);
             } else {
+                console.log('🔄 No best match, trying fallback...'); // DEBUG
+                
                 // Fallback: Prefix-Match in aktuellen Items
                 const prefixMatch = categoryItems.find(item => 
                     item.name.toLowerCase().startsWith(query.toLowerCase())
                 );
+                console.log('🔄 Prefix match:', prefixMatch); // DEBUG
                 
                 if (prefixMatch) {
+                    console.log('✅ Found prefix match, showing suggestion'); // DEBUG
                     this.showSuggestion(query, prefixMatch.name);
                 } else {
+                    console.log('❌ No matches found, clearing suggestion'); // DEBUG
                     this.clearSuggestion();
                 }
             }
@@ -2596,7 +2610,7 @@ class FastSearchCard extends HTMLElement {
             this.clearSuggestion();
         }
     }
-    
+        
     showSuggestion(query, suggestionText) {
         console.log('🔍 Suggestion:', query, '→', suggestionText); // DEBUG
         
