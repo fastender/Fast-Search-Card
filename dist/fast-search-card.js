@@ -280,7 +280,14 @@ class FastSearchCard extends HTMLElement {
             
             // Bestehend: Manual entities (optional)
             entities: config.entities || [],
-            
+
+            // NEU: Custom Mode Config
+            custom_mode: {
+                enabled: false,
+                data_source: null,
+                ...config.custom_mode
+            },
+                                
             ...config
         };
         
@@ -2038,6 +2045,14 @@ class FastSearchCard extends HTMLElement {
                                 <path d="M16 8v4"/>
                             </svg>
                         </button>
+
+                        <!-- NEU HINZUFÜGEN: -->
+                        <button class="category-button glass-panel" data-category="custom" title="Custom">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/>
+                                <path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"/>
+                            </svg>
+                        </button>                        
                     </div>
                 </div>
             </div>
@@ -2242,7 +2257,8 @@ class FastSearchCard extends HTMLElement {
             devices: `<svg viewBox="0 0 24 24" fill="none"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>`,
             scripts: `<svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
             automations: `<svg viewBox="0 0 24 24" fill="none"><path d="M12 2v6l3-3 3 3"/><path d="M12 18v4"/><circle cx="12" cy="12" r="2"/></svg>`,
-            scenes: `<svg viewBox="0 0 24 24" fill="none"><path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><path d="M8 3v4"/></svg>`
+            scenes: `<svg viewBox="0 0 24 24" fill="none"><path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><path d="M8 3v4"/></svg>`,
+            custom: `<svg viewBox="0 0 24 24" fill="none"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"/></svg>`
         };
         categoryIcon.innerHTML = icons[this.activeCategory] || icons.devices;
     }
@@ -2253,7 +2269,8 @@ class FastSearchCard extends HTMLElement {
             devices: 'Geräte suchen...',
             scripts: 'Skripte suchen...',
             automations: 'Automationen suchen...',
-            scenes: 'Szenen suchen...'
+            scenes: 'Szenen suchen...',
+            custom: 'Custom suchen...'
         };
         searchInput.placeholder = placeholders[this.activeCategory] || placeholders.devices;
     }
@@ -2269,6 +2286,13 @@ class FastSearchCard extends HTMLElement {
             allEntityConfigs = [...discoveredEntities];
             console.log(`Auto-discovered: ${discoveredEntities.length} entities`);
         }
+
+        // NEU: 1.5. Custom Data Sources
+        if (this.activeCategory === 'custom' && this._config.custom_mode.enabled) {
+            const customItems = this.parseCustomDataSource();
+            allEntityConfigs = [...customItems];
+            console.log(`Custom items: ${customItems.length} items`);
+        }        
         
         // 2. Manuelle Entities hinzufügen (überschreiben Auto-Discovery)
         if (this._config.entities && this._config.entities.length > 0) {
@@ -2470,6 +2494,62 @@ class FastSearchCard extends HTMLElement {
             return 'Ohne Raum';
         }
     }
+
+    parseCustomDataSource() {
+        if (!this._config.custom_mode.enabled || !this._config.custom_mode.data_source) {
+            return [];
+        }
+        
+        const dataSource = this._config.custom_mode.data_source;
+        
+        switch (dataSource.type) {
+            case 'input_select':
+                return this.parseInputSelect(dataSource);
+            case 'calendar':
+                return this.parseCalendar(dataSource);
+            case 'todo_list':
+                return this.parseTodoList(dataSource);
+            case 'template':
+                return this.parseTemplate(dataSource);
+            default:
+                console.warn(`Unknown custom data source type: ${dataSource.type}`);
+                return [];
+        }
+    }
+    
+    parseInputSelect(dataSource) {
+        if (!this._hass || !dataSource.entity) {
+            return [];
+        }
+        
+        const state = this._hass.states[dataSource.entity];
+        if (!state || !state.attributes.options) {
+            console.warn(`Input select entity not found: ${dataSource.entity}`);
+            return [];
+        }
+        
+        return state.attributes.options.map((option, index) => ({
+            id: `custom_${dataSource.entity}_${index}`,
+            name: option,
+            domain: 'custom',
+            category: 'custom',
+            area: dataSource.area || 'Custom',
+            state: state.state === option ? 'selected' : 'available',
+            attributes: {
+                friendly_name: option,
+                custom_type: 'input_select',
+                source_entity: dataSource.entity
+            },
+            icon: dataSource.icon || '📄',
+            isActive: state.state === option,
+            custom_data: {
+                type: 'input_select',
+                option: option,
+                entity: dataSource.entity
+            }
+        }));
+    }
+
     
     isSystemEntity(entityId, state) {
         // System-Entitäten überspringen
@@ -2844,6 +2924,7 @@ class FastSearchCard extends HTMLElement {
             case 'scripts': return item.domain === 'script';
             case 'automations': return item.domain === 'automation';
             case 'scenes': return item.domain === 'scene';
+            case 'custom': return item.domain === 'custom';
             default: return true;
         }
     }
