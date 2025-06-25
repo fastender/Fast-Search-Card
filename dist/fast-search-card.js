@@ -2539,10 +2539,15 @@ class FastSearchCard extends HTMLElement {
         return state.attributes.options.map((option, index) => {
             // Check für Markdown Content
             const markdownEntityId = `input_text.recipe_${option.toLowerCase().replace(/\s+/g, '_')}`;
-            const markdownState = this._hass.states[markdownEntityId];
-            const hasMarkdown = markdownState && markdownState.state;
             
-            console.log(`📝 Checking for markdown: ${markdownEntityId}, found: ${!!hasMarkdown}`);
+            const markdownState = this._hass.states[markdownEntityId];
+            const markdownContent = markdownState ? (markdownState.state || markdownState.attributes.value || markdownState.attributes.initial) : null;
+            const hasMarkdown = markdownContent && markdownContent.trim().length > 0;
+            
+            console.log(`📝 Checking for markdown: ${markdownEntityId}`);
+            console.log(`📝 State:`, markdownState?.state);
+            console.log(`📝 Attributes:`, markdownState?.attributes);
+            console.log(`📝 Found content:`, !!hasMarkdown);
             
             return {
                 id: `custom_${dataSource.entity}_${index}`,
@@ -2563,7 +2568,7 @@ class FastSearchCard extends HTMLElement {
                     type: 'input_select',
                     option: option,
                     entity: dataSource.entity,
-                    markdown_content: hasMarkdown ? markdownState.state : null
+                    markdown_content: hasMarkdown ? markdownContent : null
                 }
             };
         });
