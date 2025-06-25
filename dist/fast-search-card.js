@@ -2261,6 +2261,9 @@ class FastSearchCard extends HTMLElement {
     updateItems() {
         if (!this._hass) return;
         
+        console.log(`⏱️ updateItems started`); // ← NEU HINZUFÜGEN
+        const startTime = performance.now(); // ← NEU HINZUFÜGEN
+        
         let allEntityConfigs = [];
         
         // 1. Auto-Discovery wenn aktiviert
@@ -2282,32 +2285,11 @@ class FastSearchCard extends HTMLElement {
             console.log(`Added ${this._config.entities.length} manual entities`);
         }
         
-        console.log(`Total entities to process: ${allEntityConfigs.length}`);
+        console.log(`⏱️ Processing ${allEntityConfigs.length} entities`); // ← NEU HINZUFÜGEN
         
         // 3. Entity-Objekte erstellen (wie bisher)
         this.allItems = allEntityConfigs.map(entityConfig => {
-            const entityId = entityConfig.entity;
-            const state = this._hass.states[entityId];
-            if (!state) {
-                console.warn(`Entity not found: ${entityId}`);
-                return null;
-            }
-            
-            const domain = entityId.split('.')[0];
-            const areaName = entityConfig.area || this.getEntityArea(entityId, state);
-            
-            return {
-                id: entityId,
-                name: entityConfig.title || state.attributes.friendly_name || entityId,
-                domain: domain,
-                category: this.categorizeEntity(domain),
-                area: areaName,
-                state: state.state,
-                attributes: state.attributes,
-                icon: this.getEntityIcon(domain),
-                isActive: this.isEntityActive(state),
-                auto_discovered: entityConfig.auto_discovered || false // Debug-Info
-            };
+            // ... existing code bleibt gleich ...
         }).filter(Boolean);
         
         this.allItems.sort((a, b) => a.area.localeCompare(b.area));
@@ -2319,7 +2301,10 @@ class FastSearchCard extends HTMLElement {
         this.updateSubcategoryCounts();
         
         console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered)`);
-    }    
+        
+        const duration = performance.now() - startTime; // ← NEU HINZUFÜGEN
+        console.log(`⏱️ updateItems took ${duration.toFixed(2)}ms`); // ← NEU HINZUFÜGEN
+    }
     
 
     rebuildSearchIndex() {
@@ -2875,6 +2860,9 @@ class FastSearchCard extends HTMLElement {
     }    
 
     renderResults() {
+        console.log(`🎨 Rendering ${this.filteredItems.length} items in ${this.currentViewMode} mode`); // ← NEU HINZUFÜGEN
+        const renderStartTime = performance.now(); // ← NEU HINZUFÜGEN
+        
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
         const resultsList = this.shadowRoot.querySelector('.results-list');
         
@@ -2901,6 +2889,9 @@ class FastSearchCard extends HTMLElement {
         } else {
             this.renderListResults(resultsList);
         }
+        
+        const renderDuration = performance.now() - renderStartTime; // ← NEU HINZUFÜGEN
+        console.log(`🎨 renderResults took ${renderDuration.toFixed(2)}ms`); // ← NEU HINZUFÜGEN
     }
     
     renderGridResults(resultsGrid) {
