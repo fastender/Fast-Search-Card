@@ -2536,26 +2536,68 @@ class FastSearchCard extends HTMLElement {
         
         console.log(`🍳 Parsing input_select: ${dataSource.entity}, options:`, state.attributes.options);
         
-        return state.attributes.options.map((option, index) => ({
-            id: `custom_${dataSource.entity}_${index}`,
-            name: option,
-            domain: 'custom',
-            category: 'custom',
-            area: dataSource.area || 'Custom',
-            state: state.state === option ? 'selected' : 'available',
-            attributes: {
-                friendly_name: option,
-                custom_type: 'input_select',
-                source_entity: dataSource.entity
-            },
-            icon: dataSource.icon || '📄',
-            isActive: state.state === option,
-            custom_data: {
-                type: 'input_select',
-                option: option,
-                entity: dataSource.entity
-            }
-        }));
+        return state.attributes.options.map((option, index) => {
+            // Check für Markdown Content
+            const markdownEntityId = `input_text.recipe_${option.toLowerCase().replace(/\s+/g, '_')}_markdown`;
+            const markdownState = this._hass.states[markdownEntityId];
+            const hasMarkdown = markdownState && markdownState.state;
+            
+            console.log(`📝 Checking for markdown: ${markdownEntityId}, found: ${!!hasMarkdown}`);
+            
+            return {
+                id: `custom_${dataSource.entity}_${index}`,
+                name: option,
+                domain: 'custom',
+                category: 'custom',
+                area: dataSource.area || 'Custom',
+                state: state.state === option ? 'selected' : 'available',
+                attributes: {
+                    friendly_name: option,
+                    custom_type: 'input_select',
+                    source_entity: dataSource.entity,
+                    markdown_entity: hasMarkdown ? markdownEntityId : null
+                },
+                icon: dataSource.icon || '📄',
+                isActive: state.state === option,
+                custom_data: {
+                    type: 'input_select',
+                    option: option,
+                    entity: dataSource.entity,
+                    markdown_content: hasMarkdown ? markdownState.state : null
+                }
+            };
+        });
+    }
+
+    parseMarkdown(markdown) {
+        if (!markdown) return '';
+        
+        // Einfacher Markdown Parser
+        let html = markdown
+            // Headers
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            
+            // Bold & Italic
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            
+            // Lists
+            .replace(/^\- (.*$)/gim, '<li>$1</li>')
+            .replace(/^(\d+)\. (.*$)/gim, '<li>$1. $2</li>')
+            
+            // Blockquotes
+            .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
+            
+            // Line breaks
+            .replace(/\n/g, '<br>');
+        
+        // Wrap lists
+        html = html.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
+        
+        console.log('🎨 Parsed Markdown:', html);
+        return html;
     }
 
     
@@ -3890,10 +3932,15 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-    
     getCustomInfoHTML(item) {
         const customData = item.custom_data || {};
         
+        // MARKDOWN CONTENT mit Accordions
+        if (customData.markdown_content) {
+            return this.renderMarkdownAccordions(customData.markdown_content, item.name);
+        }
+        
+        // Fallback für andere Custom Types
         switch (customData.type) {
             case 'input_select':
                 return `
@@ -3923,6 +3970,128 @@ class FastSearchCard extends HTMLElement {
                 `;
         }
     }
+
+    
+    renderMarkdownAccordions(markdownContent, title) {
+        console.log('🎨 Rendering accordions for:', title);
+        
+        // Parse Markdown zu HTML
+        const html = this.parseMarkdown(markdownContent);
+        
+        // Split nach H2 Überschriften für Accordions
+        const sections = this.extractAccordionSections(html);
+        
+        let accordionHTML = `
+            <div style="padding: 20px;">
+                <div style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 20px; text-align: center;">
+                    ${title}
+                </div>
+                <div class="accordion-container">
+        `;
+        
+        sections.forEach((section, index) => {
+            const isFirst = index === 0;
+            accordionHTML += `
+                <div class="accordion-item">
+                    <div class="accordion-header ${isFirst ? 'active' : ''}" data-accordion="${index}">
+                        <span>${section.title}</span>
+                        <span class="accordion-arrow">${isFirst ? '▼' : '▶'}</span>
+                    </div>
+                    <div class="accordion-content ${isFirst ? 'open' : ''}" data-content="${index}">
+                        ${section.content}
+                    </div>
+                </div>
+            `;
+        });
+        
+        accordionHTML += `
+                </div>
+            </div>
+            <style>
+                .accordion-item {
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 12px;
+                    margin-bottom: 8px;
+                    overflow: hidden;
+                }
+                .accordion-header {
+                    padding: 16px 20px;
+                    background: rgba(255,255,255,0.05);
+                    cursor: pointer;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-weight: 600;
+                    color: var(--text-primary);
+                    transition: all 0.3s ease;
+                }
+                .accordion-header:hover {
+                    background: rgba(255,255,255,0.1);
+                }
+                .accordion-header.active {
+                    background: rgba(0,122,255,0.2);
+                }
+                .accordion-content {
+                    padding: 0 20px;
+                    max-height: 0;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                    color: var(--text-secondary);
+                }
+                .accordion-content.open {
+                    padding: 20px;
+                    max-height: 500px;
+                }
+                .accordion-content h1, .accordion-content h2, .accordion-content h3 {
+                    color: var(--text-primary);
+                    margin: 10px 0;
+                }
+                .accordion-content ul {
+                    list-style: none;
+                    padding-left: 0;
+                }
+                .accordion-content li {
+                    padding: 4px 0;
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                }
+                .accordion-content li:last-child {
+                    border-bottom: none;
+                }
+                .accordion-content blockquote {
+                    background: rgba(255,255,255,0.05);
+                    border-left: 4px solid var(--accent);
+                    padding: 12px 16px;
+                    margin: 12px 0;
+                    border-radius: 8px;
+                    font-style: italic;
+                }
+            </style>
+        `;
+        
+        return accordionHTML;
+    }
+
+
+    extractAccordionSections(html) {
+        const sections = [];
+        
+        // Split HTML nach H2 Tags
+        const parts = html.split(/<h2>(.*?)<\/h2>/);
+        
+        // Erstes Teil (vor erstem H2) überspringen
+        for (let i = 1; i < parts.length; i += 2) {
+            const title = parts[i];
+            const content = parts[i + 1] || '';
+            
+            sections.push({
+                title: title.trim(),
+                content: content.trim()
+            });
+        }
+        
+        console.log('📋 Extracted sections:', sections);
+        return sections;
+    }    
     
     getCustomActionsHTML(item) {
         const customData = item.custom_data || {};
@@ -4001,6 +4170,29 @@ class FastSearchCard extends HTMLElement {
             button.addEventListener('click', () => {
                 const action = button.dataset.customAction;
                 this.handleCustomAction(item, action);
+            });
+        });
+        
+        // NEU: Accordion Event Listeners
+        const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
+        accordionHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const index = header.dataset.accordion;
+                const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
+                const arrow = header.querySelector('.accordion-arrow');
+                
+                // Toggle
+                const isOpen = content.classList.contains('open');
+                
+                if (isOpen) {
+                    content.classList.remove('open');
+                    header.classList.remove('active');
+                    arrow.textContent = '▶';
+                } else {
+                    content.classList.add('open');
+                    header.classList.add('active');
+                    arrow.textContent = '▼';
+                }
             });
         });
     }
