@@ -1,3 +1,203 @@
+// MiniSearch Local Implementation (~5KB)
+// Source: https://github.com/lucaong/minisearch (MIT License)
+class MiniSearch {
+    constructor(options = {}) {
+        this.fields = options.fields || [];
+        this.storeFields = options.storeFields || this.fields;
+        this.searchOptions = options.searchOptions || {};
+        this.idField = options.idField || 'id';
+        
+        this.documentCount = 0;
+        this.documentIds = {};
+        this.fieldIds = {};
+        this.fieldLength = {};
+        this.averageFieldLength = {};
+        this.storedFields = {};
+        this.index = {};
+        this.termCount = 0;
+        
+        this.extractField = (document, fieldName) => {
+            return fieldName.split('.').reduce((doc, key) => doc && doc[key], document);
+        };
+    }
+    
+    add(document) {
+        const id = this.extractField(document, this.idField);
+        if (this.documentIds[id]) {
+            this.discard(id);
+        }
+        
+        this.documentIds[id] = this.documentCount++;
+        this.storedFields[id] = {};
+        
+        for (const field of this.storeFields) {
+            this.storedFields[id][field] = this.extractField(document, field);
+        }
+        
+        for (const field of this.fields) {
+            const value = this.extractField(document, field);
+            if (value == null) continue;
+            
+            const text = String(value).toLowerCase();
+            const tokens = this.tokenize(text);
+            
+            if (!this.fieldIds[field]) {
+                this.fieldIds[field] = Object.keys(this.fieldIds).length;
+                this.fieldLength[field] = {};
+                this.averageFieldLength[field] = 0;
+            }
+            
+            this.fieldLength[field][id] = tokens.length;
+            
+            for (const token of tokens) {
+                this.addTerm(token, id, field);
+            }
+        }
+        
+        this.updateAverageFieldLength();
+    }
+    
+    addAll(documents) {
+        for (const document of documents) {
+            this.add(document);
+        }
+    }
+    
+    search(query, options = {}) {
+        const searchOptions = { ...this.searchOptions, ...options };
+        const queryTokens = this.tokenize(query.toLowerCase());
+        const results = new Map();
+        
+        for (const token of queryTokens) {
+            const matches = this.searchToken(token, searchOptions);
+            
+            for (const [id, score] of matches) {
+                if (results.has(id)) {
+                    results.set(id, results.get(id) + score);
+                } else {
+                    results.set(id, score);
+                }
+            }
+        }
+        
+        return Array.from(results.entries())
+            .map(([id, score]) => ({ ...this.storedFields[id], score }))
+            .sort((a, b) => b.score - a.score);
+    }
+    
+    tokenize(text) {
+        return text.split(/\W+/).filter(token => token.length > 0);
+    }
+    
+    addTerm(term, docId, field) {
+        if (!this.index[term]) {
+            this.index[term] = {};
+        }
+        if (!this.index[term][field]) {
+            this.index[term][field] = {};
+        }
+        if (!this.index[term][field][docId]) {
+            this.index[term][field][docId] = 0;
+        }
+        this.index[term][field][docId]++;
+    }
+    
+    searchToken(token, options) {
+        const results = new Map();
+        const boost = options.boost || {};
+        const fuzzy = options.fuzzy || 0;
+        
+        // Exact matches
+        if (this.index[token]) {
+            for (const field in this.index[token]) {
+                const fieldBoost = boost[field] || 1;
+                for (const docId in this.index[token][field]) {
+                    const tf = this.index[token][field][docId];
+                    const score = tf * fieldBoost;
+                    const currentScore = results.get(docId) || 0;
+                    results.set(docId, currentScore + score);
+                }
+            }
+        }
+        
+        // Fuzzy matches
+        if (fuzzy > 0) {
+            for (const indexedToken in this.index) {
+                if (indexedToken === token) continue;
+                
+                const similarity = this.fuzzyMatch(token, indexedToken);
+                if (similarity >= fuzzy) {
+                    for (const field in this.index[indexedToken]) {
+                        const fieldBoost = (boost[field] || 1) * similarity * 0.8; // Fuzzy penalty
+                        for (const docId in this.index[indexedToken][field]) {
+                            const tf = this.index[indexedToken][field][docId];
+                            const score = tf * fieldBoost;
+                            const currentScore = results.get(docId) || 0;
+                            results.set(docId, currentScore + score);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return results;
+    }
+    
+    fuzzyMatch(a, b) {
+        if (a === b) return 1;
+        if (a.length === 0 || b.length === 0) return 0;
+        
+        // Simple fuzzy matching - checks if all characters of 'a' appear in 'b' in order
+        let aIndex = 0;
+        for (let bIndex = 0; bIndex < b.length && aIndex < a.length; bIndex++) {
+            if (a[aIndex] === b[bIndex]) {
+                aIndex++;
+            }
+        }
+        
+        if (aIndex === a.length) {
+            return Math.max(0.3, 1 - Math.abs(a.length - b.length) / Math.max(a.length, b.length));
+        }
+        
+        return 0;
+    }
+    
+    updateAverageFieldLength() {
+        for (const field in this.fieldLength) {
+            const lengths = Object.values(this.fieldLength[field]);
+            this.averageFieldLength[field] = lengths.reduce((sum, len) => sum + len, 0) / lengths.length;
+        }
+    }
+    
+    discard(id) {
+        delete this.documentIds[id];
+        delete this.storedFields[id];
+        
+        for (const field in this.fieldLength) {
+            delete this.fieldLength[field][id];
+        }
+        
+        // Remove from index (simplified)
+        for (const term in this.index) {
+            for (const field in this.index[term]) {
+                delete this.index[term][field][id];
+                if (Object.keys(this.index[term][field]).length === 0) {
+                    delete this.index[term][field];
+                }
+            }
+            if (Object.keys(this.index[term]).length === 0) {
+                delete this.index[term];
+            }
+        }
+        
+        this.updateAverageFieldLength();
+    }
+}
+
+
+
+
+
 class FastSearchCard extends HTMLElement {
     constructor() {
         super();
@@ -37,7 +237,24 @@ class FastSearchCard extends HTMLElement {
         this.musicAssistantEnqueueMode = 'play'; // 'play', 'add', 'next'
         this.maListenersAttached = new WeakSet(); // Verhindert doppelte Event Listeners
         this.lastMusicAssistantResults = null; // Cache für Suchergebnisse
-        this.musicAssistantConfigEntryId = null; // Cache für die Config Entry ID        
+        this.musicAssistantConfigEntryId = null; // Cache für die Config Entry ID       
+
+        // NEU HINZUFÜGEN: MiniSearch Integration
+        this.searchIndex = null;
+        this.searchOptions = {
+            fields: ['name', 'area', 'id'],
+            storeFields: ['id', 'name', 'domain', 'category', 'area', 'state', 'attributes', 'icon', 'isActive'],
+            idField: 'id',
+            searchOptions: {
+                boost: { 
+                    name: 1.0,    // Höchste Priorität für Gerätename
+                    area: 0.7,    // Mittlere Priorität für Raum
+                    id: 0.3       // Niedrigste Priorität für ID
+                },
+                fuzzy: 0.3        // Fuzzy-Threshold (0-1, niedriger = strenger)
+            }
+        };
+        
     }
 
     setConfig(config) {
@@ -1992,9 +2209,29 @@ class FastSearchCard extends HTMLElement {
             };
         }).filter(Boolean);
         this.allItems.sort((a, b) => a.area.localeCompare(b.area));
+
+        // NEU HINZUFÜGEN: MiniSearch Index erstellen/aktualisieren
+        this.rebuildSearchIndex();        
+        
         this.showCurrentCategoryItems();
         this.updateSubcategoryCounts();
     }
+
+    rebuildSearchIndex() {
+        // Neuen Index erstellen
+        this.searchIndex = new MiniSearch(this.searchOptions);
+        
+        // Alle Items zum Index hinzufügen
+        if (this.allItems && this.allItems.length > 0) {
+            try {
+                this.searchIndex.addAll(this.allItems);
+                console.log(`Search index built with ${this.allItems.length} items`);
+            } catch (error) {
+                console.error('Error building search index:', error);
+                this.searchIndex = null; // Fallback to old search
+            }
+        }
+    }    
 
     getSubcategoryStatusText(subcategory, count) {
         const textMap = { 'lights': 'An', 'climate': 'Aktiv', 'covers': 'Offen', 'media': 'Aktiv' };
@@ -2176,14 +2413,63 @@ class FastSearchCard extends HTMLElement {
     }
 
     performSearch(query) {
-        if (!query.trim()) { this.showCurrentCategoryItems(); return; }
-        const searchTerm = query.toLowerCase();
-        this.filteredItems = this.allItems.filter(item => {
-            if (!this.isItemInCategory(item, this.activeCategory)) return false;
-            return item.name.toLowerCase().includes(searchTerm) || item.id.toLowerCase().includes(searchTerm) || item.area.toLowerCase().includes(searchTerm);
-        });
+
+        const startTime = performance.now(); // Am Anfang hinzufügen
+        
+        if (!query.trim()) { 
+            this.showCurrentCategoryItems(); 
+            return; 
+        }
+        
+        // Kategorie-Items für aktuellen Modus holen
+        const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+        
+        // MiniSearch verwenden falls verfügbar
+        if (this.searchIndex && categoryItems.length > 0) {
+            try {
+                // Suche mit MiniSearch - Fuzzy + Gewichtung
+                const searchResults = this.searchIndex.search(query);
+                
+                // Ergebnisse nach aktueller Kategorie filtern
+                this.filteredItems = searchResults
+                    .filter(result => this.isItemInCategory(result, this.activeCategory))
+                    .map(result => {
+                        // Original Item-Objekt mit Score anreichern
+                        const originalItem = this.allItems.find(item => item.id === result.id);
+                        return originalItem ? { ...originalItem, searchScore: result.score } : null;
+                    })
+                    .filter(Boolean);
+                    
+                console.log(`MiniSearch found ${this.filteredItems.length} results for "${query}"`);
+                
+            } catch (error) {
+                console.error('MiniSearch error, falling back to simple search:', error);
+                this.fallbackSearch(query, categoryItems);
+            }
+        } else {
+            // Fallback zur alten Suche
+            this.fallbackSearch(query, categoryItems);
+        }
+
+        this.logSearchPerformance(query, startTime, 'MiniSearch', this.filteredItems.length);
         this.renderResults();
     }
+    
+    fallbackSearch(query, categoryItems) {
+        const searchTerm = query.toLowerCase();
+        this.filteredItems = categoryItems.filter(item => {
+            return item.name.toLowerCase().includes(searchTerm) || 
+                   item.id.toLowerCase().includes(searchTerm) || 
+                   item.area.toLowerCase().includes(searchTerm);
+        });
+        
+        console.log(`Fallback search found ${this.filteredItems.length} results for "${query}"`);
+    }
+
+    logSearchPerformance(query, startTime, method, resultCount) {
+        const duration = performance.now() - startTime;
+        console.log(`🔍 Search "${query}" via ${method}: ${resultCount} results in ${duration.toFixed(2)}ms`);
+    }    
 
     showCurrentCategoryItems() {
         this.filteredItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
