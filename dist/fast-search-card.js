@@ -2860,6 +2860,7 @@ class FastSearchCard extends HTMLElement {
     }    
 
     renderResults() {
+        console.log('🚨 renderResults called!'); // ← Test ob Methode läuft
         console.log(`🎨 Rendering ${this.filteredItems.length} items in ${this.currentViewMode} mode`); // ← NEU HINZUFÜGEN
         const renderStartTime = performance.now(); // ← NEU HINZUFÜGEN
         
