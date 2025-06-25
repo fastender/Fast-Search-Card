@@ -2940,12 +2940,12 @@ class FastSearchCard extends HTMLElement {
             groupedItems[area].forEach((item) => {
                 const card = this.createDeviceCard(item);
                 resultsGrid.appendChild(card);
-                if (!this.hasAnimated) {
+                if (!this.hasAnimated && cardIndex < 15) { // ← NUR erste 15 animieren
                     const timeout = setTimeout(() => {
                         this.animateElementIn(card, { opacity: [0, 1], transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)'] });
-                    }, cardIndex * 50);
+                    }, cardIndex * 30); // ← Schneller: 30ms statt 50ms
                     this.animationTimeouts.push(timeout);
-                }
+                }                
                 cardIndex++;
             });
         });
@@ -2966,15 +2966,18 @@ class FastSearchCard extends HTMLElement {
             groupedItems[area].forEach((item) => {
                 const listItem = this.createDeviceListItem(item);
                 resultsList.appendChild(listItem);
-                if (!this.hasAnimated) {
+
+
+                if (!this.hasAnimated && itemIndex < 15) { // ← Animation-Limit auch hier
                     const timeout = setTimeout(() => {
                         this.animateElementIn(listItem, { 
                             opacity: [0, 1], 
                             transform: ['translateX(-20px)', 'translateX(0)'] 
                         });
-                    }, itemIndex * 30);
+                    }, itemIndex * 20); // ← Noch schneller für List-View
                     this.animationTimeouts.push(timeout);
                 }
+                
                 itemIndex++;
             });
         });
