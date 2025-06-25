@@ -2286,13 +2286,13 @@ class FastSearchCard extends HTMLElement {
             allEntityConfigs = [...discoveredEntities];
             console.log(`Auto-discovered: ${discoveredEntities.length} entities`);
         }
-
-        // NEU: 1.5. Custom Data Sources
-        if (this.activeCategory === 'custom' && this._config.custom_mode.enabled) {
+    
+        // 1.5. Custom Data Sources (NEU: IMMER prüfen, nicht nur bei activeCategory)
+        if (this._config.custom_mode.enabled) {
             const customItems = this.parseCustomDataSource();
-            allEntityConfigs = [...customItems];
-            console.log(`Custom items: ${customItems.length} items`);
-        }        
+            allEntityConfigs = [...allEntityConfigs, ...customItems];
+            console.log(`🍳 Custom items: ${customItems.length} items`);
+        }
         
         // 2. Manuelle Entities hinzufügen (überschreiben Auto-Discovery)
         if (this._config.entities && this._config.entities.length > 0) {
@@ -2308,8 +2308,14 @@ class FastSearchCard extends HTMLElement {
         
         console.log(`Total entities to process: ${allEntityConfigs.length}`);
         
-        // 3. Entity-Objekte erstellen (wie bisher)
+        // 3. Entity-Objekte erstellen
         this.allItems = allEntityConfigs.map(entityConfig => {
+            // Custom Items bereits fertig verarbeitet
+            if (entityConfig.domain === 'custom') {
+                return entityConfig;
+            }
+            
+            // Regular HA entities
             const entityId = entityConfig.entity;
             const state = this._hass.states[entityId];
             if (!state) {
@@ -2330,7 +2336,7 @@ class FastSearchCard extends HTMLElement {
                 attributes: state.attributes,
                 icon: this.getEntityIcon(domain),
                 isActive: this.isEntityActive(state),
-                auto_discovered: entityConfig.auto_discovered || false // Debug-Info
+                auto_discovered: entityConfig.auto_discovered || false
             };
         }).filter(Boolean);
         
@@ -2342,8 +2348,8 @@ class FastSearchCard extends HTMLElement {
         this.showCurrentCategoryItems();
         this.updateSubcategoryCounts();
         
-        console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered)`);
-    }    
+        console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered, ${this.allItems.filter(i => i.domain === 'custom').length} custom)`);
+    }
     
 
     rebuildSearchIndex() {
@@ -2527,6 +2533,8 @@ class FastSearchCard extends HTMLElement {
             console.warn(`Input select entity not found: ${dataSource.entity}`);
             return [];
         }
+        
+        console.log(`🍳 Parsing input_select: ${dataSource.entity}, options:`, state.attributes.options);
         
         return state.attributes.options.map((option, index) => ({
             id: `custom_${dataSource.entity}_${index}`,
