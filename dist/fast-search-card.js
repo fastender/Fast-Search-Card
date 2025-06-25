@@ -2287,10 +2287,41 @@ class FastSearchCard extends HTMLElement {
         
         console.log(`⏱️ Processing ${allEntityConfigs.length} entities`); // ← NEU HINZUFÜGEN
         
+
+
         // 3. Entity-Objekte erstellen (wie bisher)
         this.allItems = allEntityConfigs.map(entityConfig => {
-            // ... existing code bleibt gleich ...
-        }).filter(Boolean);
+            try {
+                const entityId = entityConfig.entity;
+                const state = this._hass.states[entityId];
+                if (!state) {
+                    console.warn(`Entity not found: ${entityId}`);
+                    return null;
+                }
+                
+                const domain = entityId.split('.')[0];
+                const areaName = entityConfig.area || this.getEntityArea(entityId, state);
+                
+                return {
+                    id: entityId,
+                    name: entityConfig.title || state.attributes.friendly_name || entityId,
+                    domain: domain,
+                    category: this.categorizeEntity(domain),
+                    area: areaName,
+                    state: state.state,
+                    attributes: state.attributes,
+                    icon: this.getEntityIcon(domain),
+                    isActive: this.isEntityActive(state),
+                    auto_discovered: entityConfig.auto_discovered || false
+                };
+            } catch (error) {
+                console.error(`Error processing ${entityConfig.entity}:`, error);
+                return null;
+            }
+        }).filter(Boolean);        
+
+
+        
         
         this.allItems.sort((a, b) => a.area.localeCompare(b.area));
         
