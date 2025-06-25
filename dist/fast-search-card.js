@@ -3988,9 +3988,22 @@ class FastSearchCard extends HTMLElement {
     
     renderMarkdownAccordions(markdownContent, title) {
         console.log('🎨 Rendering accordions for:', title);
+        console.log('🎨 RAW markdown content received:', markdownContent);
+        console.log('🎨 Content type:', typeof markdownContent);
+        console.log('🎨 Content length:', markdownContent?.length);        
+
+        if (!markdownContent || markdownContent === 'unknown' || markdownContent === 'NO_CONTENT_FOUND') {
+            return `
+                <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                    <div style="font-size: 16px; margin-bottom: 8px;">⚠️ Kein Markdown Content</div>
+                    <div style="font-size: 13px;">Content: "${markdownContent}"</div>
+                </div>
+            `;
+        }        
         
         // Parse Markdown zu HTML
         const html = this.parseMarkdown(markdownContent);
+        console.log('🎨 Parsed HTML:', html);
         
         // Split nach H2 Überschriften für Accordions
         const sections = this.extractAccordionSections(html);
