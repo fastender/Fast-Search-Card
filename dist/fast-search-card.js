@@ -2526,21 +2526,24 @@ class FastSearchCard extends HTMLElement {
     }    
 
     handleSearchInput(value) {
-        console.log('📝 handleSearchInput called with:', value); // ← DIESE ZEILE HINZUFÜGEN
+        console.log('📝 handleSearchInput called with:', value);
         
         // Standard search logic
         this.handleSearch(value);
         
         // Autocomplete logic
         if (value.length >= 2) {
+            console.log('🕐 Setting autocomplete timeout for:', value); // DEBUG
             clearTimeout(this.autocompleteTimeout);
             this.autocompleteTimeout = setTimeout(() => {
+                console.log('⏰ Timeout fired, calling updateAutocomplete:', value); // DEBUG
                 this.updateAutocomplete(value);
             }, 150); // Debounce
         } else {
+            console.log('❌ Value too short, clearing suggestion'); // DEBUG
             this.clearSuggestion();
         }
-    }
+    }    
     
     handleSearchKeydown(e) {
         if (e.key === 'Tab' || e.key === 'ArrowRight') {
