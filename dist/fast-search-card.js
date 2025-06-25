@@ -15,7 +15,6 @@ class MiniSearch {
         this.storedFields = {};
         this.index = {};
         this.termCount = 0;
-        this.renderTimeout = null;
         
         this.extractField = (document, fieldName) => {
             return fieldName.split('.').reduce((doc, key) => doc && doc[key], document);
@@ -2329,7 +2328,7 @@ class FastSearchCard extends HTMLElement {
         // NEU HINZUFÜGEN: MiniSearch Index erstellen/aktualisieren
         this.rebuildSearchIndex();
         
-        this.debouncedRenderResults();
+        this.renderResults();
         this.updateSubcategoryCounts();
         
         console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered)`);
@@ -2721,7 +2720,7 @@ class FastSearchCard extends HTMLElement {
         }
 
         this.logSearchPerformance(query, startTime, 'MiniSearch', this.filteredItems.length);
-        this.debouncedRenderResults();
+        this.renderResults();
     }
     
     fallbackSearch(query, categoryItems) {
@@ -2852,7 +2851,7 @@ class FastSearchCard extends HTMLElement {
 
     showCurrentCategoryItems() {
         this.filteredItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
-        if (this.activeSubcategory !== 'all') { this.filterBySubcategory(); } else { this.debouncedRenderResults(); }
+        if (this.activeSubcategory !== 'all') { this.filterBySubcategory(); } else { this.renderResults(); }
     }
 
     isItemInCategory(item, category) {
@@ -2872,7 +2871,7 @@ class FastSearchCard extends HTMLElement {
         }
         if (this.activeSubcategory === 'none') { 
             this.filteredItems = []; 
-            this.debouncedRenderResults(); 
+            this.renderResults(); 
             return; 
         }
     
@@ -2888,29 +2887,27 @@ class FastSearchCard extends HTMLElement {
             this.filteredItems = categoryItems.filter(item => domains.includes(item.domain));
         }
         
-        this.debouncedRenderResults();
+        this.renderResults();
     }    
 
     renderResults() {
-        console.log('🚨 renderResults called!'); // ← Test ob Methode läuft
-        console.log(`🎨 Rendering ${this.filteredItems.length} items in ${this.currentViewMode} mode`); // ← NEU HINZUFÜGEN
-        const renderStartTime = performance.now(); // ← NEU HINZUFÜGEN
+        const renderStartTime = performance.now();
         
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
         const resultsList = this.shadowRoot.querySelector('.results-list');
         
-        // Clear timeouts
+        // Clear old animation timeouts
         this.animationTimeouts.forEach(timeout => clearTimeout(timeout));
         this.animationTimeouts = [];
         
-        // Hide both containers initially
+        // Show/Hide containers
         resultsGrid.style.display = this.currentViewMode === 'grid' ? 'grid' : 'none';
         resultsList.classList.toggle('active', this.currentViewMode === 'list');
         
         if (this.filteredItems.length === 0) {
             const emptyState = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
             if (this.currentViewMode === 'grid') {
-                resultsGrid.innerHTML = emptyState;
+                resultsGrid.innerHTML = emptyState; // OK für empty state
             } else {
                 resultsList.innerHTML = emptyState;
             }
@@ -2918,22 +2915,206 @@ class FastSearchCard extends HTMLElement {
         }
         
         if (this.currentViewMode === 'grid') {
-            this.renderGridResults(resultsGrid);
+            this.smartUpdateGrid(resultsGrid);
         } else {
-            this.renderListResults(resultsList);
+            this.smartUpdateList(resultsList);
         }
         
-        const renderDuration = performance.now() - renderStartTime; // ← NEU HINZUFÜGEN
-        console.log(`🎨 renderResults took ${renderDuration.toFixed(2)}ms`); // ← NEU HINZUFÜGEN
+        const renderDuration = performance.now() - renderStartTime;
+        console.log(`🎨 Smart renderResults took ${renderDuration.toFixed(2)}ms`);
+    }        
+
+    
+    
+    smartUpdateGrid(container) {
+        const existingCards = new Map();
+        const existingHeaders = new Map();
+        
+        // 1. Sammle bestehende Elements
+        container.querySelectorAll('.device-card').forEach(card => {
+            const entityId = card.dataset.entity;
+            if (entityId) existingCards.set(entityId, card);
+        });
+        
+        container.querySelectorAll('.area-header').forEach(header => {
+            existingHeaders.set(header.textContent, header);
+        });
+        
+        // 2. Gruppiere Items
+        const groupedItems = this.groupItemsByArea();
+        const processedAreas = new Set();
+        
+        let cardIndex = 0;
+        Object.keys(groupedItems).sort().forEach(area => {
+            // Area Header handling
+            let areaHeader = existingHeaders.get(area);
+            if (!areaHeader) {
+                areaHeader = document.createElement('div');
+                areaHeader.className = 'area-header';
+                areaHeader.textContent = area;
+                container.appendChild(areaHeader);
+            }
+            processedAreas.add(area);
+            existingHeaders.delete(area); // Mark as handled
+            
+            // Device Cards handling
+            groupedItems[area].forEach(item => {
+                const existingCard = existingCards.get(item.id);
+                
+                if (existingCard) {
+                    // UPDATE: Nur Status aktualisieren
+                    this.updateDeviceCard(existingCard, item);
+                    existingCards.delete(item.id); // Mark as handled
+                } else {
+                    // CREATE: Neu erstellen
+                    const newCard = this.createDeviceCard(item);
+                    container.appendChild(newCard);
+                    
+                    // Animation nur für neue Cards
+                    if (!this.hasAnimated && cardIndex < 15) {
+                        const timeout = setTimeout(() => {
+                            this.animateElementIn(newCard, { 
+                                opacity: [0, 1], 
+                                transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)'] 
+                            });
+                        }, cardIndex * 30);
+                        this.animationTimeouts.push(timeout);
+                    }
+                }
+                cardIndex++;
+            });
+        });
+        
+        // 3. REMOVE: Nicht mehr benötigte Elements
+        existingCards.forEach(oldCard => oldCard.remove());
+        existingHeaders.forEach(oldHeader => oldHeader.remove());
+        
+        this.hasAnimated = true;
+    }
+    
+    
+        
+    smartUpdateList(container) {
+        const existingItems = new Map();
+        const existingHeaders = new Map();
+        
+        // 1. Sammle bestehende Elements
+        container.querySelectorAll('.device-list-item').forEach(item => {
+            const entityId = item.dataset.entity;
+            if (entityId) existingItems.set(entityId, item);
+        });
+        
+        container.querySelectorAll('.area-header').forEach(header => {
+            existingHeaders.set(header.textContent, header);
+        });
+        
+        // 2. Gruppiere Items
+        const groupedItems = this.groupItemsByArea();
+        
+        let itemIndex = 0;
+        Object.keys(groupedItems).sort().forEach(area => {
+            // Area Header handling
+            let areaHeader = existingHeaders.get(area);
+            if (!areaHeader) {
+                areaHeader = document.createElement('div');
+                areaHeader.className = 'area-header';
+                areaHeader.textContent = area;
+                container.appendChild(areaHeader);
+            }
+            existingHeaders.delete(area);
+            
+            // List Items handling
+            groupedItems[area].forEach(item => {
+                const existingItem = existingItems.get(item.id);
+                
+                if (existingItem) {
+                    // UPDATE: Nur Status aktualisieren
+                    this.updateDeviceListItem(existingItem, item);
+                    existingItems.delete(item.id);
+                } else {
+                    // CREATE: Neu erstellen
+                    const newItem = this.createDeviceListItem(item);
+                    container.appendChild(newItem);
+                    
+                    // Animation nur für neue Items
+                    if (!this.hasAnimated && itemIndex < 15) {
+                        const timeout = setTimeout(() => {
+                            this.animateElementIn(newItem, { 
+                                opacity: [0, 1], 
+                                transform: ['translateX(-20px)', 'translateX(0)'] 
+                            });
+                        }, itemIndex * 20);
+                        this.animationTimeouts.push(timeout);
+                    }
+                }
+                itemIndex++;
+            });
+        });
+        
+        // 3. REMOVE: Nicht mehr benötigte Elements
+        existingItems.forEach(oldItem => oldItem.remove());
+        existingHeaders.forEach(oldHeader => oldHeader.remove());
+        
+        this.hasAnimated = true;
+    }
+    
+    
+    
+    
+    updateDeviceCard(cardElement, item) {
+        const state = this._hass.states[item.id];
+        if (!state) return;
+        
+        const isActive = this.isEntityActive(state);
+        const wasActive = cardElement.classList.contains('active');
+        
+        // Update classes
+        cardElement.classList.toggle('active', isActive);
+        
+        // Update status text
+        const statusElement = cardElement.querySelector('.device-status');
+        if (statusElement) {
+            statusElement.textContent = this.getEntityStatus(state);
+        }
+        
+        // Animate state change
+        if (isActive !== wasActive) {
+            this.animateStateChange(cardElement, isActive);
+        }
+    }
+    
+    updateDeviceListItem(listElement, item) {
+        const state = this._hass.states[item.id];
+        if (!state) return;
+        
+        const isActive = this.isEntityActive(state);
+        const wasActive = listElement.classList.contains('active');
+        
+        // Update classes
+        listElement.classList.toggle('active', isActive);
+        
+        // Update status text
+        const statusElement = listElement.querySelector('.device-list-status');
+        if (statusElement) {
+            statusElement.textContent = this.getEntityStatus(state);
+        }
+        
+        // Update quick action button if exists
+        const quickActionBtn = listElement.querySelector('.device-list-quick-action');
+        if (quickActionBtn) {
+            this.updateQuickActionButton(quickActionBtn, item.id, state);
+        }
+        
+        // Animate state change
+        if (isActive !== wasActive) {
+            this.animateStateChange(listElement, isActive);
+        }
     }
 
-    // NEU: Separate Methode nach renderResults()
-    debouncedRenderResults() {
-        clearTimeout(this.renderTimeout);
-        this.renderTimeout = setTimeout(() => {
-            this.renderResults();
-        }, 100);
-    }
+
+    
+
+    
 
     renderGridResults(resultsGrid) {
         resultsGrid.innerHTML = '';
@@ -3016,7 +3197,7 @@ class FastSearchCard extends HTMLElement {
     toggleViewMode() {
         this.currentViewMode = this.currentViewMode === 'grid' ? 'list' : 'grid';
         this.updateViewToggleIcon();
-        this.debouncedRenderResults();
+        this.renderResults();
     }
     
     updateViewToggleIcon() {
@@ -3040,7 +3221,7 @@ class FastSearchCard extends HTMLElement {
         this.updateSubcategoryToggleIcon();
         this.updateSubcategoryChips();
         this.activeSubcategory = 'all'; // Reset selection
-        this.debouncedRenderResults();
+        this.renderResults();
     }
     
     updateSubcategoryToggleIcon() {
@@ -3389,7 +3570,7 @@ class FastSearchCard extends HTMLElement {
             
             this.updateCategoryIcon();
             this.updatePlaceholder();
-            this.debouncedRenderResults();
+            this.renderResults();
         }
     }
     
