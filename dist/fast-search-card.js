@@ -281,10 +281,12 @@ class FastSearchCard extends HTMLElement {
             // Bestehend: Manual entities (optional)
             entities: config.entities || [],
 
-            // NEU: Custom Mode Config
             custom_mode: {
                 enabled: false,
                 data_source: null,
+                category_name: 'Custom',
+                icon: '📄', 
+                area: 'Custom',
                 ...config.custom_mode
             },
                                 
@@ -292,8 +294,12 @@ class FastSearchCard extends HTMLElement {
         };
         
         // Validierung
-        if (!this._config.auto_discover && (!this._config.entities || this._config.entities.length === 0)) {
-            throw new Error('Either auto_discover must be true or entities must be provided');
+        const hasAutoDiscover = this._config.auto_discover;
+        const hasEntities = this._config.entities && this._config.entities.length > 0;
+        const hasCustomMode = this._config.custom_mode && this._config.custom_mode.enabled;
+        
+        if (!hasAutoDiscover && !hasEntities && !hasCustomMode) {
+            throw new Error('Either auto_discover must be true, entities must be provided, or custom_mode must be enabled');
         }
         
         // NEU HINZUFÜGEN nach der config Zuweisung:
@@ -2501,99 +2507,229 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    parseCustomDataSource() {
-        if (!this._config.custom_mode.enabled || !this._config.custom_mode.data_source) {
-            return [];
-        }
-        
+    async parseCustomDataSource() {
         const dataSource = this._config.custom_mode.data_source;
         
         switch (dataSource.type) {
-            case 'input_select':
-                return this.parseInputSelect(dataSource);
-            case 'calendar':
-                return this.parseCalendar(dataSource);
-            case 'todo_list':
-                return this.parseTodoList(dataSource);
-            case 'template':
-                return this.parseTemplate(dataSource);
+            case 'template_sensor':
+                return this.parseTemplateSensor(dataSource);
+            case 'sensor': 
+                return this.parseSensor(dataSource);
+            // input_select case ENTFERNEN
             default:
-                console.warn(`Unknown custom data source type: ${dataSource.type}`);
+                console.warn(`Unknown data source type: ${dataSource.type}`);
                 return [];
         }
     }
-    
-    parseInputSelect(dataSource) {
-        if (!this._hass || !dataSource.entity) {
-            return [];
-        }
-        
+
+    parseTemplateSensor(dataSource) {
         const state = this._hass.states[dataSource.entity];
-        if (!state || !state.attributes.options) {
-            console.warn(`Input select entity not found: ${dataSource.entity}`);
+        if (!state || !state.attributes) {
+            console.warn(`Template Sensor not found: ${dataSource.entity}`);
             return [];
         }
+    
+        const contentAttr = dataSource.content_attribute || 'items';
+        let items = state.attributes[contentAttr];
         
-        console.log(`🍳 Parsing input_select: ${dataSource.entity}, options:`, state.attributes.options);
-        
-        return state.attributes.options.map((option, index) => {
-            // Check für Markdown Content
-            const markdownEntityId = `input_text.recipe_${option.toLowerCase().replace(/\s+/g, '_')}`;
-            
-            const markdownState = this._hass.states[markdownEntityId];
-            
-            let markdownContent = null;
-            if (markdownState) {
-                let rawContent = markdownState.state || 
-                                markdownState.attributes.value || 
-                                markdownState.attributes.initial || 
-                                markdownState.attributes.text || 
-                                'NO_CONTENT_FOUND';
-                
-                // NEU: Parse JSON wenn es ein JSON String ist
-                if (typeof rawContent === 'string' && rawContent.startsWith('value: "')) {
-                    try {
-                        // Extrahiere Content aus 'value: "..."' Format
-                        const match = rawContent.match(/value: "(.*)"/);
-                        if (match) {
-                            markdownContent = match[1].replace(/\\n/g, '\n'); // \n zu echten Newlines
-                        }
-                    } catch (e) {
-                        markdownContent = rawContent;
-                    }
-                } else {
-                    markdownContent = rawContent;
-                }
+        // Parse JSON string if needed
+        if (typeof items === 'string') {
+            try {
+                items = JSON.parse(items);
+            } catch (e) {
+                console.error('Failed to parse JSON from template sensor:', e);
+                return [];
             }
-            
-            console.log(`🔍 Final content:`, markdownContent);
-            
-            const hasMarkdown = markdownContent && markdownContent !== 'NO_CONTENT_FOUND' && markdownContent.trim().length > 0;
-            
-            return {
-                id: `custom_${dataSource.entity}_${index}`,
-                name: option,
+        }
+        
+        if (!Array.isArray(items)) {
+            console.warn(`No valid array found in ${contentAttr}`);
+            return [];
+        }
+    
+        const fields = dataSource.fields || {
+            name: 'name',
+            content: 'content',
+            icon: 'icon'
+        };
+    
+        return items.map((item, index) => ({
+            id: `template_${dataSource.entity}_${item.id || index}`,
+            name: item[fields.name] || `Item ${index + 1}`,
+            domain: 'custom',
+            category: 'custom',
+            area: this._config.custom_mode.area || 'Template',
+            state: 'available',
+            attributes: {
+                friendly_name: item[fields.name],
+                custom_type: 'template_sensor',
+                source_entity: dataSource.entity
+            },
+            icon: item[fields.icon] || this._config.custom_mode.icon || '📊',
+            isActive: false,
+            custom_data: {
+                type: 'template_sensor',
+                content: item[fields.content] || this.generateFallbackContent(item),
+                metadata: item
+            }
+        }));
+    }
+    
+    generateFallbackContent(item) {
+        let content = `# ${item.name || 'Template Item'}\n\n`;
+        Object.entries(item).forEach(([key, value]) => {
+            if (key !== 'name' && key !== 'content') {
+                content += `- **${key}:** ${value}\n`;
+            }
+        });
+        return content;
+    }    
+
+    parseSensor(dataSource) {
+        const state = this._hass.states[dataSource.entity];
+        if (!state || !state.attributes) {
+            console.warn(`Sensor not found: ${dataSource.entity}`);
+            return [];
+        }
+    
+        // Try to find array data in attributes
+        const possibleArrays = ['items', 'data', 'list', 'entries', 'components'];
+        let items = null;
+        
+        for (const attrName of possibleArrays) {
+            if (state.attributes[attrName]) {
+                items = state.attributes[attrName];
+                break;
+            }
+        }
+        
+        // If custom attribute specified, use that
+        if (dataSource.content_attribute) {
+            items = state.attributes[dataSource.content_attribute];
+        }
+        
+        // Parse JSON if string
+        if (typeof items === 'string') {
+            try {
+                items = JSON.parse(items);
+            } catch (e) {
+                console.error('Failed to parse JSON from sensor:', e);
+                return [];
+            }
+        }
+        
+        // If no array found, create single item from sensor itself
+        if (!Array.isArray(items)) {
+            return [{
+                id: `sensor_${dataSource.entity}`,
+                name: state.attributes.friendly_name || state.entity_id,
                 domain: 'custom',
                 category: 'custom',
-                area: dataSource.area || 'Custom',
-                state: state.state === option ? 'selected' : 'available',
+                area: this._config.custom_mode.area || 'Sensors',
+                state: state.state,
                 attributes: {
-                    friendly_name: option,
-                    custom_type: 'input_select',
-                    source_entity: dataSource.entity,
-                    markdown_entity: hasMarkdown ? markdownEntityId : null
+                    friendly_name: state.attributes.friendly_name,
+                    custom_type: 'sensor_single',
+                    source_entity: dataSource.entity
                 },
-                icon: dataSource.icon || '📄',
-                isActive: state.state === option,
+                icon: this._config.custom_mode.icon || '📊',
+                isActive: false,
                 custom_data: {
-                    type: 'input_select',
-                    option: option,
-                    entity: dataSource.entity,
-                    markdown_content: hasMarkdown ? markdownContent : null
+                    type: 'sensor_single',
+                    content: this.generateSensorContent(state),
+                    metadata: { sensor_state: state.state, ...state.attributes }
                 }
-            };
-        });
+            }];
+        }
+        
+        // Process array items
+        const fields = dataSource.fields || {
+            name: 'name',
+            content: 'content',
+            icon: 'icon'
+        };
+    
+        return items.map((item, index) => ({
+            id: `sensor_${dataSource.entity}_${item.id || index}`,
+            name: item[fields.name] || `Item ${index + 1}`,
+            domain: 'custom',
+            category: 'custom',
+            area: this._config.custom_mode.area || 'Sensors',
+            state: 'available',
+            attributes: {
+                friendly_name: item[fields.name],
+                custom_type: 'sensor_array',
+                source_entity: dataSource.entity
+            },
+            icon: item[fields.icon] || this._config.custom_mode.icon || '📊',
+            isActive: false,
+            custom_data: {
+                type: 'sensor_array',
+                content: item[fields.content] || this.generateFallbackContent(item),
+                metadata: item
+            }
+        }));
     }
+    
+    generateSensorContent(state) {
+        // Auto-generate markdown from sensor attributes
+        let content = `# ${state.attributes.friendly_name || state.entity_id}\n\n`;
+        content += `## Aktueller Wert\n**${state.state}** ${state.attributes.unit_of_measurement || ''}\n\n`;
+        
+        content += `## Attribute\n`;
+        Object.entries(state.attributes).forEach(([key, value]) => {
+            if (!['friendly_name', 'unit_of_measurement'].includes(key)) {
+                content += `- **${key}:** ${value}\n`;
+            }
+        });
+    
+        content += `\n## Historie\n`;
+        content += `Letzte Aktualisierung: ${new Date(state.last_updated).toLocaleString()}\n`;
+    
+        return content;
+    }    
+
+    // NACH parseCustomDataSource() hinzufügen:
+    parseTemplateSensor(dataSource) {
+        const state = this._hass.states[dataSource.entity];
+        if (!state || !state.attributes) {
+            return [];
+        }
+    
+        const contentAttr = dataSource.content_attribute || 'items';
+        let items = state.attributes[contentAttr];
+        
+        // Parse JSON string if needed
+        if (typeof items === 'string') {
+            try {
+                items = JSON.parse(items);
+            } catch (e) {
+                return [];
+            }
+        }
+        
+        if (!Array.isArray(items)) return [];
+    
+        return items.map((item, index) => ({
+            id: `template_${dataSource.entity}_${item.id || index}`,
+            name: item.name || `Item ${index + 1}`,
+            domain: 'custom',
+            category: 'custom',
+            area: this._config.custom_mode.area,
+            state: 'available',
+            attributes: {
+                friendly_name: item.name,
+                custom_type: 'template_sensor'
+            },
+            icon: item.icon || this._config.custom_mode.icon,
+            isActive: false,
+            custom_data: {
+                type: 'template_sensor',
+                content: item.content,
+                metadata: item
+            }
+        }));
+    }    
 
     parseMarkdown(markdown) {
         if (!markdown) return '';
@@ -3951,14 +4087,8 @@ class FastSearchCard extends HTMLElement {
         `;
         
         return `
-            ${tabsHTML}
-            <div id="tab-content-container">
-                <div class="detail-tab-content active" data-tab-content="info">
-                    ${this.getCustomInfoHTML(item)}
-                </div>
-                <div class="detail-tab-content" data-tab-content="actions">
-                    ${this.getCustomActionsHTML(item)}
-                </div>
+            <div id="tab-content-container" style="padding: 20px;">
+                ${this.renderMarkdownAccordions(item.custom_data.content, item.name)}
             </div>
         `;
     }
@@ -4657,31 +4787,32 @@ class FastSearchCard extends HTMLElement {
         const baseUrl = 'https://raw.githubusercontent.com/fastender/Fast-Search-Card/refs/heads/main/docs/';
         const customData = item.custom_data || {};
         
+        // 1. Prüfe ob Item ein eigenes Bild hat
+        if (customData.metadata && customData.metadata.image_url) {
+            return customData.metadata.image_url;
+        }
+        
+        // 2. Fallback basierend auf Template Sensor Type
         switch (customData.type) {
-            case 'input_select':
-                return baseUrl + 'custom-recipe.png'; // Du kannst später Custom-Bilder hinzufügen
+            case 'template_sensor':
+                return baseUrl + 'template-sensor.png';
+            case 'sensor':
+                return baseUrl + 'sensor-data.png';
             default:
                 return baseUrl + 'custom-default.png';
         }
     }
     
     setupCustomDetailTabs(item) {
-        // Verwende die bestehende setupDetailTabs Logik
-        this.setupDetailTabs(item);
+        // NUR Accordion Event Listeners - kein setupDetailTabs mehr
+        this.setupAccordionListeners();
         
-        // Custom Action Event Listeners
-        const actionButtons = this.shadowRoot.querySelectorAll('[data-custom-action]');
-        actionButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const action = button.dataset.customAction;
-                this.handleCustomAction(item, action);
-            });
-        });
-
-        // NEU: Markdown Editor Event Listeners
-        this.setupMarkdownEditor(item);        
-        
-        // NEU: Accordion Event Listeners
+        // Markdown Editor falls gewünscht (optional)
+        // this.setupMarkdownEditor(item);
+    }
+    
+    // Neue separate Method hinzufügen:
+    setupAccordionListeners() {
         const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
         accordionHeaders.forEach(header => {
             header.addEventListener('click', () => {
