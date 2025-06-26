@@ -281,15 +281,22 @@ class FastSearchCard extends HTMLElement {
             // Bestehend: Manual entities (optional)
             entities: config.entities || [],
 
-            // NEU: Custom Mode Config (ERWEITERT)
+            // NEU: Custom Mode Config (FÜR TEMPLATES)
             custom_mode: {
                 enabled: false,
                 data_source: null,
-                category_name: 'Custom',  // NEU: Benutzerdefinierbarer Name
-                icon: '📄',               // NEU: Benutzerdefinierbares Icon  
-                area: 'Custom',           // NEU: Benutzerdefinierbarer Bereich
-                markdown_pattern: 'input_text.recipe_{option}', // NEU: Flexibles Pattern
-                markdown_entities: {},    // NEU: Explizite Entity-Zuordnung
+                category_name: 'Custom',
+                icon: '📄',
+                area: 'Custom',
+                
+                // ALTE Input Text Optionen (können entfernt werden)
+                // markdown_pattern: 'input_text.recipe_{option}',
+                // markdown_entities: {},
+                
+                // NEUE Template Optionen
+                template_pattern: 'text.recipe_{option}',   // NEU: Pattern für Template Entities
+                template_entities: {},                      // NEU: Explizite Template-Zuordnung
+                
                 ...config.custom_mode
             },
                                 
@@ -2563,206 +2570,70 @@ class FastSearchCard extends HTMLElement {
             return [];
         }
         
-        console.log(`🍳 Processing ${state.attributes.options.length} options:`, state.attributes.options);
+        console.log(`📋 Processing ${state.attributes.options.length} options für Templates`);
         
-        // ALLE Markdown-Entities parallel initialisieren
-        const initPromises = state.attributes.options.map(async (option, index) => {
-            // Flexible Markdown Entity Resolution
-            let markdownEntityId = null;
+        const results = [];
+        
+        for (const [index, option] of state.attributes.options.entries()) {
+            // Template Entity ID bestimmen
+            let templateEntityId = null;
             
-            if (this._config.custom_mode.markdown_entities && 
-                this._config.custom_mode.markdown_entities[option]) {
-                markdownEntityId = this._config.custom_mode.markdown_entities[option];
-                console.log(`📋 Explicit mapping: ${option} → ${markdownEntityId}`);
-            } else if (this._config.custom_mode.markdown_pattern) {
+            if (this._config.custom_mode.template_entities && 
+                this._config.custom_mode.template_entities[option]) {
+                // Explizite Zuordnung: "Pasta Bolognese": "text.recipe_pasta"
+                templateEntityId = this._config.custom_mode.template_entities[option];
+            } else if (this._config.custom_mode.template_pattern) {
+                // Pattern: "text.recipe_{option}"
                 const sanitizedOption = option.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-                markdownEntityId = this._config.custom_mode.markdown_pattern.replace('{option}', sanitizedOption);
-                console.log(`📋 Pattern mapping: ${option} → ${markdownEntityId}`);
+                templateEntityId = this._config.custom_mode.template_pattern.replace('{option}', sanitizedOption);
             } else {
+                // Fallback Pattern
                 const sanitizedOption = option.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-                markdownEntityId = `input_text.recipe_${sanitizedOption}`;
-                console.log(`📋 Fallback mapping: ${option} → ${markdownEntityId}`);
+                templateEntityId = `text.recipe_${sanitizedOption}`;
             }
             
-            // Auto-Initialize Markdown Content
-            let markdownContent = null;
-            if (markdownEntityId && this._hass.states[markdownEntityId]) {
-                markdownContent = await this.initializeMarkdownEntity(markdownEntityId);
+            console.log(`📝 ${option} → ${templateEntityId}`);
+            
+            // Template Content laden (einfach!)
+            let templateContent = null;
+            const templateState = this._hass.states[templateEntityId];
+            if (templateState && templateState.state && templateState.state !== 'unknown') {
+                templateContent = templateState.state;
+                console.log(`✅ Template gefunden: ${templateContent.length} Zeichen`);
+            } else {
+                console.warn(`❌ Template nicht gefunden: ${templateEntityId}`);
             }
             
-            const hasMarkdown = markdownContent && markdownContent !== 'unknown' && markdownContent.trim().length > 0;
-            
-            return {
+            results.push({
                 id: `custom_${dataSource.entity}_${index}`,
                 name: option,
                 domain: 'custom',
                 category: this._config.custom_mode.category_name?.toLowerCase().replace(/\s+/g, '_') || 'custom',
-                area: this._config.custom_mode.area || dataSource.area || 'Custom',
+                area: this._config.custom_mode.area || 'Custom',
                 state: state.state === option ? 'selected' : 'available',
                 attributes: {
                     friendly_name: option,
-                    custom_type: 'input_select',
+                    custom_type: 'input_select_template',
                     source_entity: dataSource.entity,
-                    markdown_entity: hasMarkdown ? markdownEntityId : null,
+                    template_entity: templateEntityId,
                     category_display_name: this._config.custom_mode.category_name || 'Custom'
                 },
-                icon: this._config.custom_mode.icon || dataSource.icon || '📄',
+                icon: this._config.custom_mode.icon || '📄',
                 isActive: state.state === option,
                 custom_data: {
-                    type: 'input_select',
+                    type: 'input_select_template',
                     option: option,
                     entity: dataSource.entity,
-                    markdown_content: hasMarkdown ? markdownContent : null,
+                    template_content: templateContent,
                     category_name: this._config.custom_mode.category_name || 'Custom'
                 }
-            };
-        });
+            });
+        }
         
-        // Warte auf ALLE Initialisierungen
-        console.log(`⏳ Warte auf Initialisierung von ${initPromises.length} Items...`);
-        const results = await Promise.all(initPromises);
-        console.log(`✅ Initialized ${results.length} custom items`);
-        
+        console.log(`✅ Verarbeitet: ${results.length} Template-Items`);
         return results;
     }
 
-    async initializeMarkdownEntity(entityId) {
-        if (!this._hass || !entityId) return null;
-        
-        const state = this._hass.states[entityId];
-        if (!state) {
-            console.warn(`❌ Entity ${entityId} nicht gefunden`);
-            return null;
-        }
-        
-        const currentState = state.state;
-        const initialValue = state.attributes.initial;
-        
-        // Prüfe verschiedene Update-Szenarien
-        const needsInitialization = !currentState || 
-                                   currentState === 'unknown' || 
-                                   currentState.trim() === '' ||
-                                   currentState === 'unavailable';
-        
-        const needsUpdate = initialValue && 
-                           initialValue !== currentState && 
-                           initialValue.trim().length > 0 &&
-                           this.shouldUpdateFromInitial(currentState, initialValue);
-        
-        if (needsInitialization) {
-            if (initialValue && initialValue.trim().length > 0) {
-                console.log(`🔧 Auto-initialisiere ${entityId} (erste Erstellung)`);
-                return await this.performStateUpdate(entityId, initialValue);
-            } else {
-                console.warn(`⚠️ ${entityId} hat keinen initial Wert`);
-                return null;
-            }
-        } else if (needsUpdate) {
-            console.log(`🔄 Auto-update ${entityId} (initial Wert hat sich geändert)`);
-            console.log(`📝 Alt: ${currentState.length} Zeichen`);
-            console.log(`📝 Neu: ${initialValue.length} Zeichen`);
-            return await this.performStateUpdate(entityId, initialValue);
-        } else {
-            console.log(`✅ ${entityId} bereits aktuell: ${currentState.length} Zeichen`);
-            return currentState;
-        }
-    }
-
-    shouldUpdateFromInitial(currentState, initialValue) {
-        // Einfache Heuristik: Update wenn initial deutlich anders ist
-        
-        // 1. Längenvergleich - initial ist mindestens 20% länger
-        const lengthDifference = initialValue.length - currentState.length;
-        const lengthThreshold = currentState.length * 0.2; // 20% Schwellenwert
-        
-        if (lengthDifference > lengthThreshold && lengthDifference > 50) {
-            console.log(`📏 Length check: ${lengthDifference} Zeichen Unterschied (>${lengthThreshold.toFixed(0)} threshold)`);
-            return true;
-        }
-        
-        // 2. Content-Hash Vergleich (einfach)
-        const currentHash = this.simpleHash(currentState.trim());
-        const initialHash = this.simpleHash(initialValue.trim());
-        
-        if (currentHash !== initialHash) {
-            console.log(`🔍 Content check: Hash unterschiedlich (${currentHash} vs ${initialHash})`);
-            return true;
-        }
-        
-        // 3. Markdown-Header Vergleich
-        const currentHeaders = this.extractMarkdownHeaders(currentState);
-        const initialHeaders = this.extractMarkdownHeaders(initialValue);
-        
-        if (JSON.stringify(currentHeaders) !== JSON.stringify(initialHeaders)) {
-            console.log(`📑 Headers check: Struktur geändert`, {current: currentHeaders, initial: initialHeaders});
-            return true;
-        }
-        
-        return false;
-    }
-    
-    simpleHash(text) {
-        // Einfache Hash-Funktion für Content-Vergleich
-        let hash = 0;
-        for (let i = 0; i < text.length; i++) {
-            const char = text.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
-        }
-        return hash;
-    }
-    
-    extractMarkdownHeaders(text) {
-        // Extrahiere H1 und H2 Headers für Struktur-Vergleich
-        const headers = [];
-        const lines = text.split('\n');
-        
-        for (const line of lines) {
-            const trimmed = line.trim();
-            if (trimmed.startsWith('# ')) {
-                headers.push('H1: ' + trimmed.substring(2));
-            } else if (trimmed.startsWith('## ')) {
-                headers.push('H2: ' + trimmed.substring(3));
-            }
-        }
-        
-        return headers;
-    }
-    
-    async performStateUpdate(entityId, newValue) {
-        try {
-            await this._hass.callService('input_text', 'set_value', {
-                entity_id: entityId,
-                value: newValue
-            });
-            
-            // Warte auf State-Update mit verbesserter Logik
-            let attempts = 0;
-            while (attempts < 8) { // Mehr Versuche
-                await new Promise(resolve => setTimeout(resolve, 300)); // Längere Wartezeit
-                const updatedState = this._hass.states[entityId];
-                
-                if (updatedState && updatedState.state !== 'unknown') {
-                    const updatedValue = updatedState.state.trim();
-                    const expectedValue = newValue.trim();
-                    
-                    // Prüfe ob Update erfolgreich (mindestens 80% der erwarteten Länge)
-                    if (updatedValue.length >= expectedValue.length * 0.8) {
-                        console.log(`✅ ${entityId} erfolgreich aktualisiert (${updatedValue.length}/${expectedValue.length} Zeichen)`);
-                        return updatedState.state;
-                    }
-                }
-                attempts++;
-            }
-            
-            console.warn(`⚠️ ${entityId} Update-Timeout, verwende neuen Wert direkt`);
-            return newValue;
-            
-        } catch (error) {
-            console.error(`❌ Fehler beim Aktualisieren von ${entityId}:`, error);
-            return newValue; // Fallback
-        }
-    }
     
     parseMarkdown(markdown) {
         if (!markdown) return '';
