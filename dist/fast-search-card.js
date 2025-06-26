@@ -2351,7 +2351,11 @@ class FastSearchCard extends HTMLElement {
             };
         }).filter(Boolean);
         
-        this.allItems.sort((a, b) => a.area.localeCompare(b.area));
+        this.allItems.sort((a, b) => {
+            const areaA = a.area || 'Unbekannt';
+            const areaB = b.area || 'Unbekannt';
+            return areaA.localeCompare(areaB);
+        });
         
         // NEU HINZUFÜGEN: MiniSearch Index erstellen/aktualisieren
         this.rebuildSearchIndex();
