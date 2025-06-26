@@ -2635,51 +2635,37 @@ class FastSearchCard extends HTMLElement {
             return null;
         }
         
-        // Prüfe ob State leer oder unknown ist  
         const currentState = state.state;
+        const initialValue = state.attributes.initial;
+        
+        // Prüfe verschiedene Update-Szenarien
         const needsInitialization = !currentState || 
                                    currentState === 'unknown' || 
                                    currentState.trim() === '' ||
                                    currentState === 'unavailable';
         
+        const needsUpdate = initialValue && 
+                           initialValue !== currentState && 
+                           initialValue.trim().length > 0 &&
+                           this.shouldUpdateFromInitial(currentState, initialValue);
+        
         if (needsInitialization) {
-            const initialValue = state.attributes.initial;
             if (initialValue && initialValue.trim().length > 0) {
-                console.log(`🔧 Auto-initialisiere ${entityId}`);
-                
-                try {
-                    await this._hass.callService('input_text', 'set_value', {
-                        entity_id: entityId,
-                        value: initialValue
-                    });
-                    
-                    // Warte bis State aktualisiert ist
-                    let attempts = 0;
-                    while (attempts < 5) {
-                        await new Promise(resolve => setTimeout(resolve, 200));
-                        const updatedState = this._hass.states[entityId];
-                        if (updatedState && updatedState.state !== 'unknown' && updatedState.state.trim().length > 0) {
-                            console.log(`✅ ${entityId} erfolgreich initialisiert`);
-                            return updatedState.state;
-                        }
-                        attempts++;
-                    }
-                    
-                    console.warn(`⚠️ ${entityId} konnte nicht initialisiert werden, verwende initial Wert`);
-                    return initialValue;
-                    
-                } catch (error) {
-                    console.error(`❌ Fehler beim Initialisieren von ${entityId}:`, error);
-                    return initialValue;
-                }
+                console.log(`🔧 Auto-initialisiere ${entityId} (erste Erstellung)`);
+                return await this.performStateUpdate(entityId, initialValue);
             } else {
                 console.warn(`⚠️ ${entityId} hat keinen initial Wert`);
                 return null;
             }
+        } else if (needsUpdate) {
+            console.log(`🔄 Auto-update ${entityId} (initial Wert hat sich geändert)`);
+            console.log(`📝 Alt: ${currentState.length} Zeichen`);
+            console.log(`📝 Neu: ${initialValue.length} Zeichen`);
+            return await this.performStateUpdate(entityId, initialValue);
+        } else {
+            console.log(`✅ ${entityId} bereits aktuell: ${currentState.length} Zeichen`);
+            return currentState;
         }
-        
-        console.log(`✅ ${entityId} bereits initialisiert: ${currentState.length} Zeichen`);
-        return currentState;
     }
     
     parseMarkdown(markdown) {
