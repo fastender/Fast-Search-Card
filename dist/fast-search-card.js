@@ -318,8 +318,11 @@ class FastSearchCard extends HTMLElement {
         this._hass = hass;
         
         const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
+
         if (shouldUpdateAll) {
-            this.updateItems();
+            this.updateItems().catch(error => {
+                console.error('Error updating items:', error);
+            });
         }
         
         if (this.isDetailView && this.currentDetailItem) {
@@ -2304,7 +2307,7 @@ class FastSearchCard extends HTMLElement {
         return `${categoryName} suchen...`;
     }    
 
-    updateItems() {
+    async updateItems() {
         if (!this._hass) return;
         
         let allEntityConfigs = [];
@@ -2318,7 +2321,8 @@ class FastSearchCard extends HTMLElement {
     
         // 1.5. Custom Data Sources (NEU: IMMER prüfen, nicht nur bei activeCategory)
         if (this._config.custom_mode.enabled) {
-            const customItems = this.parseCustomDataSource();
+            console.log(`🔄 Loading custom items...`);
+            const customItems = await this.parseCustomDataSource();
             allEntityConfigs = [...allEntityConfigs, ...customItems];
             console.log(`🍳 Custom items: ${customItems.length} items`);
         }
@@ -2530,7 +2534,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    parseCustomDataSource() {
+    async parseCustomDataSource() {
         if (!this._config.custom_mode.enabled || !this._config.custom_mode.data_source) {
             return [];
         }
@@ -2539,7 +2543,7 @@ class FastSearchCard extends HTMLElement {
         
         switch (dataSource.type) {
             case 'input_select':
-                return this.parseInputSelect(dataSource);
+                return await this.parseInputSelect(dataSource); // ← await hinzugefügt
             case 'calendar':
                 return this.parseCalendar(dataSource);
             case 'todo_list':
@@ -2552,70 +2556,41 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
-    parseInputSelect(dataSource) {
-        if (!this._hass || !dataSource.entity) {
-            return [];
-        }
-        
+    async parseInputSelect(dataSource) {
         const state = this._hass.states[dataSource.entity];
         if (!state || !state.attributes.options) {
             console.warn(`Input select entity not found: ${dataSource.entity}`);
             return [];
         }
         
-        console.log(`🍳 Parsing input_select: ${dataSource.entity}, options:`, state.attributes.options);
+        console.log(`🍳 Processing ${state.attributes.options.length} options:`, state.attributes.options);
         
-        return state.attributes.options.map((option, index) => {
-            // NEU: Flexible Markdown Entity Resolution
+        // ALLE Markdown-Entities parallel initialisieren
+        const initPromises = state.attributes.options.map(async (option, index) => {
+            // Flexible Markdown Entity Resolution
             let markdownEntityId = null;
             
-            // 1. Explizite Zuordnung hat Priorität
             if (this._config.custom_mode.markdown_entities && 
                 this._config.custom_mode.markdown_entities[option]) {
                 markdownEntityId = this._config.custom_mode.markdown_entities[option];
                 console.log(`📋 Explicit mapping: ${option} → ${markdownEntityId}`);
-            } 
-            // 2. Pattern-basierte Zuordnung
-            else if (this._config.custom_mode.markdown_pattern) {
+            } else if (this._config.custom_mode.markdown_pattern) {
                 const sanitizedOption = option.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
                 markdownEntityId = this._config.custom_mode.markdown_pattern.replace('{option}', sanitizedOption);
                 console.log(`📋 Pattern mapping: ${option} → ${markdownEntityId}`);
-            }
-            // 3. Fallback zu alter Methode
-            else {
-                markdownEntityId = `input_text.recipe_${option.toLowerCase().replace(/\s+/g, '_')}`;
+            } else {
+                const sanitizedOption = option.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+                markdownEntityId = `input_text.recipe_${sanitizedOption}`;
                 console.log(`📋 Fallback mapping: ${option} → ${markdownEntityId}`);
-            }            
-            
-            const markdownState = this._hass.states[markdownEntityId];
-            
-            let markdownContent = null;
-            if (markdownState) {
-                let rawContent = markdownState.state || 
-                                markdownState.attributes.value || 
-                                markdownState.attributes.initial || 
-                                markdownState.attributes.text || 
-                                'NO_CONTENT_FOUND';
-                
-                // NEU: Parse JSON wenn es ein JSON String ist
-                if (typeof rawContent === 'string' && rawContent.startsWith('value: "')) {
-                    try {
-                        // Extrahiere Content aus 'value: "..."' Format
-                        const match = rawContent.match(/value: "(.*)"/);
-                        if (match) {
-                            markdownContent = match[1].replace(/\\n/g, '\n'); // \n zu echten Newlines
-                        }
-                    } catch (e) {
-                        markdownContent = rawContent;
-                    }
-                } else {
-                    markdownContent = rawContent;
-                }
             }
             
-            console.log(`🔍 Final content:`, markdownContent);
+            // Auto-Initialize Markdown Content
+            let markdownContent = null;
+            if (markdownEntityId && this._hass.states[markdownEntityId]) {
+                markdownContent = await this.initializeMarkdownEntity(markdownEntityId);
+            }
             
-            const hasMarkdown = markdownContent && markdownContent !== 'NO_CONTENT_FOUND' && markdownContent.trim().length > 0;
+            const hasMarkdown = markdownContent && markdownContent !== 'unknown' && markdownContent.trim().length > 0;
             
             return {
                 id: `custom_${dataSource.entity}_${index}`,
@@ -2629,7 +2604,7 @@ class FastSearchCard extends HTMLElement {
                     custom_type: 'input_select',
                     source_entity: dataSource.entity,
                     markdown_entity: hasMarkdown ? markdownEntityId : null,
-                    category_display_name: this._config.custom_mode.category_name || 'Custom' // NEU
+                    category_display_name: this._config.custom_mode.category_name || 'Custom'
                 },
                 icon: this._config.custom_mode.icon || dataSource.icon || '📄',
                 isActive: state.state === option,
@@ -2638,12 +2613,75 @@ class FastSearchCard extends HTMLElement {
                     option: option,
                     entity: dataSource.entity,
                     markdown_content: hasMarkdown ? markdownContent : null,
-                    category_name: this._config.custom_mode.category_name || 'Custom' // NEU
+                    category_name: this._config.custom_mode.category_name || 'Custom'
                 }
             };
         });
+        
+        // Warte auf ALLE Initialisierungen
+        console.log(`⏳ Warte auf Initialisierung von ${initPromises.length} Items...`);
+        const results = await Promise.all(initPromises);
+        console.log(`✅ Initialized ${results.length} custom items`);
+        
+        return results;
     }
 
+    async initializeMarkdownEntity(entityId) {
+        if (!this._hass || !entityId) return null;
+        
+        const state = this._hass.states[entityId];
+        if (!state) {
+            console.warn(`❌ Entity ${entityId} nicht gefunden`);
+            return null;
+        }
+        
+        // Prüfe ob State leer oder unknown ist  
+        const currentState = state.state;
+        const needsInitialization = !currentState || 
+                                   currentState === 'unknown' || 
+                                   currentState.trim() === '' ||
+                                   currentState === 'unavailable';
+        
+        if (needsInitialization) {
+            const initialValue = state.attributes.initial;
+            if (initialValue && initialValue.trim().length > 0) {
+                console.log(`🔧 Auto-initialisiere ${entityId}`);
+                
+                try {
+                    await this._hass.callService('input_text', 'set_value', {
+                        entity_id: entityId,
+                        value: initialValue
+                    });
+                    
+                    // Warte bis State aktualisiert ist
+                    let attempts = 0;
+                    while (attempts < 5) {
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                        const updatedState = this._hass.states[entityId];
+                        if (updatedState && updatedState.state !== 'unknown' && updatedState.state.trim().length > 0) {
+                            console.log(`✅ ${entityId} erfolgreich initialisiert`);
+                            return updatedState.state;
+                        }
+                        attempts++;
+                    }
+                    
+                    console.warn(`⚠️ ${entityId} konnte nicht initialisiert werden, verwende initial Wert`);
+                    return initialValue;
+                    
+                } catch (error) {
+                    console.error(`❌ Fehler beim Initialisieren von ${entityId}:`, error);
+                    return initialValue;
+                }
+            } else {
+                console.warn(`⚠️ ${entityId} hat keinen initial Wert`);
+                return null;
+            }
+        }
+        
+        console.log(`✅ ${entityId} bereits initialisiert: ${currentState.length} Zeichen`);
+        return currentState;
+    }
+    
     parseMarkdown(markdown) {
         if (!markdown) return '';
         
