@@ -2556,32 +2556,37 @@ class FastSearchCard extends HTMLElement {
             return [];
         }
     
-        const fields = dataSource.fields || {
-            name: 'name',
-            content: 'content',
-            icon: 'icon'
-        };
+        // ← HIER ERSETZEN:
+        return items.map((item, index) => {
+            const storageEntity = item.storage_entity; // Der neue Schlüssel
+            let content = item.content || 'Kein Inhalt.'; // Fallback
     
-        return items.map((item, index) => ({
-            id: `template_${dataSource.entity}_${item.id || index}`,
-            name: item[fields.name] || `Item ${index + 1}`,
-            domain: 'custom',
-            category: 'custom',
-            area: this._config.custom_mode.area || 'Template',
-            state: 'available',
-            attributes: {
-                friendly_name: item[fields.name],
-                custom_type: 'template_sensor',
-                source_entity: dataSource.entity
-            },
-            icon: item[fields.icon] || this._config.custom_mode.icon || '📊',
-            isActive: false,
-            custom_data: {
-                type: 'template_sensor',
-                content: item[fields.content] || this.generateFallbackContent(item),
-                metadata: item
+            // Wenn eine storage_entity existiert, lies ihren Zustand aus
+            if (storageEntity && this._hass.states[storageEntity]) {
+                content = this._hass.states[storageEntity].state;
             }
-        }));
+    
+            return {
+                id: `template_${dataSource.entity}_${item.id || index}`,
+                name: item.name || `Item ${index + 1}`,
+                domain: 'custom',
+                category: 'custom',
+                area: item.area || this._config.custom_mode.area,
+                state: 'available',
+                attributes: {
+                    friendly_name: item.name,
+                    custom_type: 'template_sensor',
+                    source_entity: dataSource.entity
+                },
+                icon: item.icon || this._config.custom_mode.icon,
+                isActive: false,
+                custom_data: {
+                    type: 'template_sensor',
+                    content: content, // Hier wird der korrekte Inhalt geladen
+                    metadata: item // Hier ist der storage_entity Name gespeichert
+                }
+            };
+        });
     }
     
     generateFallbackContent(item) {
@@ -4238,42 +4243,37 @@ class FastSearchCard extends HTMLElement {
     }
 
     saveMarkdownContent(item, content) {
-        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
-        const statusText = this.shadowRoot.querySelector('.status-text');
-        
-        console.log(`💾 Saving content for ${item.name}:`, content);
-        
-        // Show saving status
+        console.log(`💾 Saving content for ${item.name}...`);
         this.showSaveStatus('saving', 'Wird gespeichert...');
-        
-        // Update local content immediately
-        item.custom_data.content = content;
-        
-        // Update view tab with new content (if visible)
-        this.updateViewTab(item);
-        
-        // Simulate save success (Template Sensoren sind read-only)
-        setTimeout(() => {
-            this.showSaveStatus('saved', 'Gespeichert!');
-        }, 500);
-    }
     
-    showSaveStatus(status, message) {
-        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
-        const statusText = this.shadowRoot.querySelector('.status-text');
-        
-        if (statusIndicator && statusText) {
-            statusIndicator.dataset.status = status;
-            statusText.textContent = message;
-            
-            // Reset nach 3 Sekunden
-            if (status === 'saved' || status === 'error') {
-                setTimeout(() => {
-                    statusIndicator.dataset.status = 'ready';
-                    statusText.textContent = 'Bereit zum Bearbeiten';
-                }, 3000);
-            }
+        // Finde die Speicher-Entität aus den Metadaten
+        const storageEntity = item.custom_data?.metadata?.storage_entity;
+    
+        if (!storageEntity) {
+            console.error('❌ Keine storage_entity für dieses Item definiert. Speichern nicht möglich.');
+            this.showSaveStatus('error', 'Speicher-Entität fehlt!');
+            // Fallback: Lokales Speichern, damit die UI zumindest reagiert
+            item.custom_data.content = content;
+            this.updateViewTab(item);
+            return;
         }
+    
+        // Rufe den input_text.set_value Service auf
+        this._hass.callService('input_text', 'set_value', {
+            entity_id: storageEntity,
+            value: content
+        }).then(() => {
+            console.log('✅ Content erfolgreich gespeichert in:', storageEntity);
+            this.showSaveStatus('saved', 'Gespeichert!');
+    
+            // Update den lokalen Zustand, um sofortiges Feedback zu geben
+            item.custom_data.content = content;
+            this.updateViewTab(item);
+    
+        }).catch(error => {
+            console.error('❌ Fehler beim Speichern des input_text:', error);
+            this.showSaveStatus('error', 'Fehler beim Speichern!');
+        });
     }
     
     updateViewTab(item) {
