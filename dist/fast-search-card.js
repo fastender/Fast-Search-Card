@@ -4065,42 +4065,8 @@ class FastSearchCard extends HTMLElement {
     }
 
     getCustomDetailRightPaneHTML(item) {
-        // Check für Markdown Content
-        if (item.custom_data?.type === 'input_select' && item.custom_data?.markdown_content) {
-            return this.getMarkdownEditorDetailHTML(item);
-        }
-        
-        // Fallback für andere Custom Types (dein bestehender Code)
-        const tabsHTML = `
-            <div class="detail-tabs-container desktop-tabs">
-                <div class="detail-tabs">
-                    <span class="tab-slider"></span>
-                    <a href="#" class="detail-tab active" data-tab="info" title="Info">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M12 16v-4"/>
-                            <path d="M12 8h.01"/>
-                        </svg>
-                    </a>
-                    <a href="#" class="detail-tab" data-tab="actions" title="Aktionen">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M5 3l14 9-14 9V3z"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-        `;
-        
         return `
-            <div id="tab-content-container" style="padding: 20px;">
-                ${this.renderMarkdownAccordions(item.custom_data.content, item.name)}
-            </div>
-        `;
-    }
-
-    getMarkdownEditorDetailHTML(item) {
-        const tabsHTML = `
-            <div class="detail-tabs-container desktop-tabs">
+            <div class="detail-tabs-container">
                 <div class="detail-tabs">
                     <span class="tab-slider"></span>
                     <a href="#" class="detail-tab active" data-tab="view" title="Ansicht">
@@ -4117,13 +4083,9 @@ class FastSearchCard extends HTMLElement {
                     </a>
                 </div>
             </div>
-        `;
-        
-        return `
-            ${tabsHTML}
             <div id="tab-content-container">
                 <div class="detail-tab-content active" data-tab-content="view">
-                    ${this.renderMarkdownAccordions(item.custom_data.markdown_content, item.name)}
+                    ${this.renderMarkdownAccordions(item.custom_data.content, item.name)}
                 </div>
                 <div class="detail-tab-content" data-tab-content="edit">
                     ${this.getMarkdownEditorHTML(item)}
@@ -4133,8 +4095,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     getMarkdownEditorHTML(item) {
-        const entityId = item.attributes.markdown_entity;
-        const currentContent = item.custom_data.markdown_content || '';
+        const currentContent = item.custom_data.content || '';
         
         return `
             <div class="markdown-editor-container">
@@ -4160,7 +4121,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="editor-content">
                     <textarea 
                         class="markdown-textarea" 
-                        data-entity="${entityId}"
+                        data-item-id="${item.id}"
                         placeholder="# Dein Titel
     
     ## Sektion 1
@@ -4199,8 +4160,319 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
             </div>
+        `;
+    }
+
+    setupMarkdownEditor(item) {
+        const textarea = this.shadowRoot.querySelector('.markdown-textarea');
+        const saveBtn = this.shadowRoot.querySelector('[data-action="save"]');
+        const previewBtn = this.shadowRoot.querySelector('[data-action="preview"]');
+        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
+        const statusText = this.shadowRoot.querySelector('.status-text');
+        const livePreview = this.shadowRoot.querySelector('.live-preview');
+        const previewContent = this.shadowRoot.querySelector('.preview-content');
+        
+        if (!textarea) return; // Kein Editor vorhanden
+        
+        let saveTimeout;
+        let isPreviewMode = false;
+        
+        // Auto-Save beim Tippen
+        textarea.addEventListener('input', () => {
+            statusIndicator.dataset.status = 'saving';
+            statusText.textContent = 'Wird gespeichert...';
             
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                this.saveMarkdownContent(item, textarea.value);
+            }, 1000); // 1 Sekunde Delay
+        });
+        
+        // Manueller Save Button
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                clearTimeout(saveTimeout);
+                this.saveMarkdownContent(item, textarea.value);
+            });
+        }
+        
+        // Live-Preview Toggle
+        if (previewBtn && livePreview && previewContent) {
+            previewBtn.addEventListener('click', () => {
+                isPreviewMode = !isPreviewMode;
+                
+                if (isPreviewMode) {
+                    // Zeige Preview
+                    livePreview.classList.remove('hidden');
+                    textarea.style.width = '50%';
+                    previewBtn.classList.add('active');
+                    
+                    // Update Preview Content
+                    const html = this.parseMarkdown(textarea.value);
+                    previewContent.innerHTML = html;
+                    
+                    // Live-Update beim Tippen
+                    textarea.addEventListener('input', this.updatePreview);
+                } else {
+                    // Verstecke Preview
+                    livePreview.classList.add('hidden');
+                    textarea.style.width = '100%';
+                    previewBtn.classList.remove('active');
+                    
+                    textarea.removeEventListener('input', this.updatePreview);
+                }
+            });
+        }
+        
+        // Update Preview Function
+        this.updatePreview = () => {
+            if (isPreviewMode && previewContent) {
+                const html = this.parseMarkdown(textarea.value);
+                previewContent.innerHTML = html;
+            }
+        };
+    }
+
+    saveMarkdownContent(item, content) {
+        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
+        const statusText = this.shadowRoot.querySelector('.status-text');
+        
+        console.log(`💾 Saving content for ${item.name}:`, content);
+        
+        // Show saving status
+        this.showSaveStatus('saving', 'Wird gespeichert...');
+        
+        // Update local content immediately
+        item.custom_data.content = content;
+        
+        // Update view tab with new content (if visible)
+        this.updateViewTab(item);
+        
+        // Simulate save success (Template Sensoren sind read-only)
+        setTimeout(() => {
+            this.showSaveStatus('saved', 'Gespeichert!');
+        }, 500);
+    }
+    
+    showSaveStatus(status, message) {
+        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
+        const statusText = this.shadowRoot.querySelector('.status-text');
+        
+        if (statusIndicator && statusText) {
+            statusIndicator.dataset.status = status;
+            statusText.textContent = message;
+            
+            // Reset nach 3 Sekunden
+            if (status === 'saved' || status === 'error') {
+                setTimeout(() => {
+                    statusIndicator.dataset.status = 'ready';
+                    statusText.textContent = 'Bereit zum Bearbeiten';
+                }, 3000);
+            }
+        }
+    }
+    
+    updateViewTab(item) {
+        const viewTabContent = this.shadowRoot.querySelector('[data-tab-content="view"]');
+        if (viewTabContent && item.custom_data.content) {
+            viewTabContent.innerHTML = this.renderMarkdownAccordions(item.custom_data.content, item.name);
+            this.setupAccordionListeners();
+        }
+    }
+    
+    setupAccordionListeners() {
+        const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
+        accordionHeaders.forEach(header => {
+            // Remove old listeners
+            header.replaceWith(header.cloneNode(true));
+            
+            // Add new listeners
+            const newHeader = this.shadowRoot.querySelector(`[data-accordion="${header.dataset.accordion}"]`);
+            if (newHeader) {
+                newHeader.addEventListener('click', () => {
+                    const index = newHeader.dataset.accordion;
+                    const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
+                    const arrow = newHeader.querySelector('.accordion-arrow');
+                    
+                    const isOpen = content.classList.contains('open');
+                    
+                    if (isOpen) {
+                        content.classList.remove('open');
+                        newHeader.classList.remove('active');
+                        arrow.textContent = '▶';
+                    } else {
+                        content.classList.add('open');
+                        newHeader.classList.add('active');
+                        arrow.textContent = '▼';
+                    }
+                });
+            }
+        });
+    }    
+    
+    getCustomInfoHTML(item) {
+        const customData = item.custom_data || {};
+        
+        // MARKDOWN CONTENT mit Accordions
+        if (customData.content) {  // ← ÄNDERN: markdown_content zu content
+            return this.renderMarkdownAccordions(customData.content, item.name);
+        }
+        
+        // Fallback für andere Custom Types
+        switch (customData.type) {
+            case 'template_sensor':
+                return `
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">
+                            ${item.name}
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
+                            Template Sensor Item
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 16px;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                                Quelle
+                            </div>
+                            <div style="font-size: 14px; color: var(--text-primary);">
+                                ${item.attributes.source_entity}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            case 'sensor':
+                return `
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">
+                            ${item.name}
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
+                            Sensor Data Item
+                        </div>
+                    </div>
+                `;
+            default:
+                return `
+                    <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 16px; margin-bottom: 8px;">${item.name}</div>
+                        <div style="font-size: 13px;">Custom Item Details</div>
+                    </div>
+                `;
+        }
+    }
+
+    
+    renderMarkdownAccordions(markdownContent, title) {
+        console.log('🎨 Rendering accordions for:', title);
+        console.log('🎨 RAW markdown content received:', markdownContent);
+        console.log('🎨 Content type:', typeof markdownContent);
+        console.log('🎨 Content length:', markdownContent?.length);        
+
+        if (!markdownContent || markdownContent === 'unknown' || markdownContent === 'NO_CONTENT_FOUND') {
+            return `
+                <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                    <div style="font-size: 16px; margin-bottom: 8px;">⚠️ Kein Markdown Content</div>
+                    <div style="font-size: 13px;">Content: "${markdownContent}"</div>
+                </div>
+            `;
+        }        
+        
+        // Parse Markdown zu HTML
+        const html = this.parseMarkdown(markdownContent);
+        console.log('🎨 Parsed HTML:', html);
+        
+        // Split nach H2 Überschriften für Accordions
+        const sections = this.extractAccordionSections(html);
+        
+        let accordionHTML = `
+            <div style="padding: 20px;">
+                <div style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 20px; text-align: center;">
+                    ${title}
+                </div>
+                <div class="accordion-container">
+        `;
+        
+        sections.forEach((section, index) => {
+            const isFirst = index === 0;
+            accordionHTML += `
+                <div class="accordion-item">
+                    <div class="accordion-header ${isFirst ? 'active' : ''}" data-accordion="${index}">
+                        <span>${section.title}</span>
+                        <span class="accordion-arrow">${isFirst ? '▼' : '▶'}</span>
+                    </div>
+                    <div class="accordion-content ${isFirst ? 'open' : ''}" data-content="${index}">
+                        ${section.content}
+                    </div>
+                </div>
+            `;
+        });
+        
+        accordionHTML += `
+                </div>
+            </div>
             <style>
+                .accordion-item {
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 12px;
+                    margin-bottom: 8px;
+                    overflow: hidden;
+                }
+                .accordion-header {
+                    padding: 16px 20px;
+                    background: rgba(255,255,255,0.05);
+                    cursor: pointer;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-weight: 600;
+                    color: var(--text-primary);
+                    transition: all 0.3s ease;
+                }
+                .accordion-header:hover {
+                    background: rgba(255,255,255,0.1);
+                }
+                .accordion-header.active {
+                    background: rgba(0,122,255,0.2);
+                }
+                .accordion-content {
+                    padding: 0 20px;
+                    max-height: 0;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                    color: var(--text-secondary);
+                }
+                .accordion-content.open {
+                    padding: 20px;
+                    max-height: 500px;
+                }
+                .accordion-content h1, .accordion-content h2, .accordion-content h3 {
+                    color: var(--text-primary);
+                    margin: 10px 0;
+                }
+                .accordion-content ul {
+                    list-style: none;
+                    padding-left: 0;
+                }
+                .accordion-content li {
+                    padding: 4px 0;
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                }
+                .accordion-content li:last-child {
+                    border-bottom: none;
+                }
+                .accordion-content blockquote {
+                    background: rgba(255,255,255,0.05);
+                    border-left: 4px solid var(--accent);
+                    padding: 12px 16px;
+                    margin: 12px 0;
+                    border-radius: 8px;
+                    font-style: italic;
+                }
+
+
+
+
+                
+                /* Markdown Editor Styles */
                 .markdown-editor-container {
                     padding: 20px;
                     height: 100%;
@@ -4388,323 +4660,17 @@ class FastSearchCard extends HTMLElement {
                     font-size: 12px;
                     line-height: 1.4;
                 }
-            </style>
-        `;
-    }    
 
-    setupMarkdownEditor(item) {
-        const textarea = this.shadowRoot.querySelector('.markdown-textarea');
-        const saveBtn = this.shadowRoot.querySelector('[data-action="save"]');
-        const previewBtn = this.shadowRoot.querySelector('[data-action="preview"]');
-        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
-        const statusText = this.shadowRoot.querySelector('.status-text');
-        const livePreview = this.shadowRoot.querySelector('.live-preview');
-        const previewContent = this.shadowRoot.querySelector('.preview-content');
-        
-        if (!textarea) return; // Kein Editor vorhanden
-        
-        let saveTimeout;
-        let isPreviewMode = false;
-        
-        // Auto-Save beim Tippen
-        textarea.addEventListener('input', () => {
-            statusIndicator.dataset.status = 'saving';
-            statusText.textContent = 'Wird gespeichert...';
-            
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                this.saveMarkdownContent(item, textarea.value);
-            }, 1000); // 1 Sekunde Delay
-        });
-        
-        // Manueller Save Button
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
-                clearTimeout(saveTimeout);
-                this.saveMarkdownContent(item, textarea.value);
-            });
-        }
-        
-        // Live-Preview Toggle
-        if (previewBtn && livePreview && previewContent) {
-            previewBtn.addEventListener('click', () => {
-                isPreviewMode = !isPreviewMode;
+
+
+
+
+
+
+
+
+
                 
-                if (isPreviewMode) {
-                    // Zeige Preview
-                    livePreview.classList.remove('hidden');
-                    textarea.style.width = '50%';
-                    previewBtn.classList.add('active');
-                    
-                    // Update Preview Content
-                    const html = this.parseMarkdown(textarea.value);
-                    previewContent.innerHTML = html;
-                    
-                    // Live-Update beim Tippen
-                    textarea.addEventListener('input', this.updatePreview);
-                } else {
-                    // Verstecke Preview
-                    livePreview.classList.add('hidden');
-                    textarea.style.width = '100%';
-                    previewBtn.classList.remove('active');
-                    
-                    textarea.removeEventListener('input', this.updatePreview);
-                }
-            });
-        }
-        
-        // Update Preview Function
-        this.updatePreview = () => {
-            if (isPreviewMode && previewContent) {
-                const html = this.parseMarkdown(textarea.value);
-                previewContent.innerHTML = html;
-            }
-        };
-    }
-
-    saveMarkdownContent(item, content) {
-        const entityId = item.attributes.markdown_entity;
-        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
-        const statusText = this.shadowRoot.querySelector('.status-text');
-        
-        if (!entityId || !this._hass) {
-            this.showSaveStatus('error', 'Fehler: Entity nicht gefunden');
-            return;
-        }
-        
-        console.log(`💾 Saving markdown to ${entityId}:`, content);
-        
-        // Show saving status
-        this.showSaveStatus('saving', 'Wird gespeichert...');
-        
-        // Call Home Assistant service
-        this._hass.callService('input_text', 'set_value', {
-            entity_id: entityId,
-            value: content
-        }).then(() => {
-            // Success
-            this.showSaveStatus('saved', 'Gespeichert!');
-            
-            // Update local content
-            item.custom_data.markdown_content = content;
-            
-            // Update view tab with new content
-            this.updateViewTab(item);
-            
-            console.log('✅ Markdown saved successfully');
-            
-        }).catch((error) => {
-            // Error
-            this.showSaveStatus('error', 'Fehler beim Speichern');
-            console.error('❌ Error saving markdown:', error);
-        });
-    }
-    
-    showSaveStatus(status, message) {
-        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
-        const statusText = this.shadowRoot.querySelector('.status-text');
-        
-        if (statusIndicator && statusText) {
-            statusIndicator.dataset.status = status;
-            statusText.textContent = message;
-            
-            // Reset nach 3 Sekunden
-            if (status === 'saved' || status === 'error') {
-                setTimeout(() => {
-                    statusIndicator.dataset.status = 'ready';
-                    statusText.textContent = 'Bereit zum Bearbeiten';
-                }, 3000);
-            }
-        }
-    }
-    
-    updateViewTab(item) {
-        const viewTabContent = this.shadowRoot.querySelector('[data-tab-content="view"]');
-        if (viewTabContent && item.custom_data.markdown_content) {
-            // Re-render accordions with new content
-            viewTabContent.innerHTML = this.renderMarkdownAccordions(item.custom_data.markdown_content, item.name);
-            
-            // Re-setup accordion event listeners
-            this.setupAccordionListeners();
-        }
-    }
-    
-    setupAccordionListeners() {
-        const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
-        accordionHeaders.forEach(header => {
-            // Remove old listeners
-            header.replaceWith(header.cloneNode(true));
-            
-            // Add new listeners
-            const newHeader = this.shadowRoot.querySelector(`[data-accordion="${header.dataset.accordion}"]`);
-            if (newHeader) {
-                newHeader.addEventListener('click', () => {
-                    const index = newHeader.dataset.accordion;
-                    const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
-                    const arrow = newHeader.querySelector('.accordion-arrow');
-                    
-                    const isOpen = content.classList.contains('open');
-                    
-                    if (isOpen) {
-                        content.classList.remove('open');
-                        newHeader.classList.remove('active');
-                        arrow.textContent = '▶';
-                    } else {
-                        content.classList.add('open');
-                        newHeader.classList.add('active');
-                        arrow.textContent = '▼';
-                    }
-                });
-            }
-        });
-    }    
-    
-    getCustomInfoHTML(item) {
-        const customData = item.custom_data || {};
-        
-        // MARKDOWN CONTENT mit Accordions
-        if (customData.markdown_content) {
-            return this.renderMarkdownAccordions(customData.markdown_content, item.name);
-        }
-        
-        // Fallback für andere Custom Types
-        switch (customData.type) {
-            case 'input_select':
-                return `
-                    <div style="padding: 20px; text-align: center;">
-                        <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">
-                            ${item.name}
-                        </div>
-                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
-                            Input Select Option
-                        </div>
-                        <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 16px;">
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
-                                Quelle
-                            </div>
-                            <div style="font-size: 14px; color: var(--text-primary);">
-                                ${customData.entity}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            default:
-                return `
-                    <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
-                        <div style="font-size: 16px; margin-bottom: 8px;">${item.name}</div>
-                        <div style="font-size: 13px;">Custom Item Details</div>
-                    </div>
-                `;
-        }
-    }
-
-    
-    renderMarkdownAccordions(markdownContent, title) {
-        console.log('🎨 Rendering accordions for:', title);
-        console.log('🎨 RAW markdown content received:', markdownContent);
-        console.log('🎨 Content type:', typeof markdownContent);
-        console.log('🎨 Content length:', markdownContent?.length);        
-
-        if (!markdownContent || markdownContent === 'unknown' || markdownContent === 'NO_CONTENT_FOUND') {
-            return `
-                <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
-                    <div style="font-size: 16px; margin-bottom: 8px;">⚠️ Kein Markdown Content</div>
-                    <div style="font-size: 13px;">Content: "${markdownContent}"</div>
-                </div>
-            `;
-        }        
-        
-        // Parse Markdown zu HTML
-        const html = this.parseMarkdown(markdownContent);
-        console.log('🎨 Parsed HTML:', html);
-        
-        // Split nach H2 Überschriften für Accordions
-        const sections = this.extractAccordionSections(html);
-        
-        let accordionHTML = `
-            <div style="padding: 20px;">
-                <div style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 20px; text-align: center;">
-                    ${title}
-                </div>
-                <div class="accordion-container">
-        `;
-        
-        sections.forEach((section, index) => {
-            const isFirst = index === 0;
-            accordionHTML += `
-                <div class="accordion-item">
-                    <div class="accordion-header ${isFirst ? 'active' : ''}" data-accordion="${index}">
-                        <span>${section.title}</span>
-                        <span class="accordion-arrow">${isFirst ? '▼' : '▶'}</span>
-                    </div>
-                    <div class="accordion-content ${isFirst ? 'open' : ''}" data-content="${index}">
-                        ${section.content}
-                    </div>
-                </div>
-            `;
-        });
-        
-        accordionHTML += `
-                </div>
-            </div>
-            <style>
-                .accordion-item {
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 12px;
-                    margin-bottom: 8px;
-                    overflow: hidden;
-                }
-                .accordion-header {
-                    padding: 16px 20px;
-                    background: rgba(255,255,255,0.05);
-                    cursor: pointer;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    font-weight: 600;
-                    color: var(--text-primary);
-                    transition: all 0.3s ease;
-                }
-                .accordion-header:hover {
-                    background: rgba(255,255,255,0.1);
-                }
-                .accordion-header.active {
-                    background: rgba(0,122,255,0.2);
-                }
-                .accordion-content {
-                    padding: 0 20px;
-                    max-height: 0;
-                    overflow: hidden;
-                    transition: all 0.3s ease;
-                    color: var(--text-secondary);
-                }
-                .accordion-content.open {
-                    padding: 20px;
-                    max-height: 500px;
-                }
-                .accordion-content h1, .accordion-content h2, .accordion-content h3 {
-                    color: var(--text-primary);
-                    margin: 10px 0;
-                }
-                .accordion-content ul {
-                    list-style: none;
-                    padding-left: 0;
-                }
-                .accordion-content li {
-                    padding: 4px 0;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
-                }
-                .accordion-content li:last-child {
-                    border-bottom: none;
-                }
-                .accordion-content blockquote {
-                    background: rgba(255,255,255,0.05);
-                    border-left: 4px solid var(--accent);
-                    padding: 12px 16px;
-                    margin: 12px 0;
-                    border-radius: 8px;
-                    font-style: italic;
-                }
             </style>
         `;
         
@@ -4737,19 +4703,22 @@ class FastSearchCard extends HTMLElement {
         const customData = item.custom_data || {};
         
         switch (customData.type) {
-            case 'input_select':
+            case 'template_sensor':
+            case 'sensor':
                 return `
                     <div style="padding: 20px;">
                         <div class="device-control-row" style="margin-top: 0;">
-                            <button class="device-control-button" data-custom-action="select" title="Auswählen">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20,6 9,17 4,12"/>
-                                </svg>
-                            </button>
                             <button class="device-control-button" data-custom-action="copy" title="Kopieren">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                            </button>
+                            <button class="device-control-button" data-custom-action="reload" title="Neu laden">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23,4 23,10 17,10"/>
+                                    <polyline points="1,20 1,14 7,14"/>
+                                    <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4-4.64,4.36A9,9,0,0,1,3.51,15"/>
                                 </svg>
                             </button>
                         </div>
@@ -4762,7 +4731,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 `;
         }
-    }    
+    }
 
 
     getCustomStatus(item) {
@@ -4777,10 +4746,16 @@ class FastSearchCard extends HTMLElement {
         const customData = item.custom_data || {};
         
         switch (customData.type) {
-            case 'input_select':
-                stats.push('Input Select');
-                if (customData.entity) {
-                    stats.push(customData.entity.split('.')[1]);
+            case 'template_sensor':
+                stats.push('Template Sensor');
+                if (customData.metadata && customData.metadata.category) {
+                    stats.push(customData.metadata.category);
+                }
+                break;
+            case 'sensor':
+                stats.push('Sensor Data');
+                if (customData.metadata && customData.metadata.sensor_state) {
+                    stats.push(`Status: ${customData.metadata.sensor_state}`);
                 }
                 break;
         }
@@ -4809,11 +4784,43 @@ class FastSearchCard extends HTMLElement {
     }
     
     setupCustomDetailTabs(item) {
-        // NUR Accordion Event Listeners - kein setupDetailTabs mehr
+        // Tab-System Event Listeners
+        const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
+        if (tabsContainer) {
+            const tabs = tabsContainer.querySelectorAll('.detail-tab');
+            const slider = tabsContainer.querySelector('.tab-slider');
+            const contents = this.shadowRoot.querySelectorAll('.detail-tab-content');
+    
+            const moveSlider = (targetTab) => {
+                slider.style.width = `${targetTab.offsetWidth}px`;
+                slider.style.left = `${targetTab.offsetLeft}px`;
+            };
+            
+            const activeTab = tabsContainer.querySelector('.detail-tab.active');
+            if (activeTab) {
+                moveSlider(activeTab);
+            }
+    
+            tabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = tab.dataset.tab;
+                    
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    moveSlider(tab);
+                    
+                    contents.forEach(c => c.classList.remove('active'));
+                    this.shadowRoot.querySelector(`[data-tab-content="${targetId}"]`).classList.add('active');
+                });
+            });
+        }
+    
+        // Accordion Event Listeners
         this.setupAccordionListeners();
         
-        // Markdown Editor falls gewünscht (optional)
-        // this.setupMarkdownEditor(item);
+        // Markdown Editor Setup
+        this.setupMarkdownEditor(item);
     }
     
     // Neue separate Method hinzufügen:
@@ -4845,18 +4852,19 @@ class FastSearchCard extends HTMLElement {
         const customData = item.custom_data || {};
         
         switch (action) {
-            case 'select':
-                if (customData.type === 'input_select') {
-                    this._hass.callService('input_select', 'select_option', {
-                        entity_id: customData.entity,
-                        option: customData.option
-                    });
-                    console.log(`Selected: ${customData.option} in ${customData.entity}`);
-                }
-                break;
             case 'copy':
-                navigator.clipboard.writeText(item.name);
+                // Kopiere den gesamten Markdown-Content
+                const contentToCopy = customData.content || item.name;
+                navigator.clipboard.writeText(contentToCopy);
                 console.log(`Copied to clipboard: ${item.name}`);
+                break;
+            case 'reload':
+                // Template Sensor neu laden
+                if (customData.type === 'template_sensor' || customData.type === 'sensor') {
+                    console.log(`Reloading data for: ${item.name}`);
+                    // Trigger updateItems to refresh the template sensor data
+                    this.updateItems();
+                }
                 break;
         }
     }
