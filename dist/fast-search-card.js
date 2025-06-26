@@ -281,36 +281,20 @@ class FastSearchCard extends HTMLElement {
             // Bestehend: Manual entities (optional)
             entities: config.entities || [],
 
-            // NEU: Custom Mode Config (FÜR TEMPLATES)
+            // NEU: Custom Mode Config
             custom_mode: {
                 enabled: false,
                 data_source: null,
-                category_name: 'Custom',
-                icon: '📄',
-                area: 'Custom',
-                
-                // ALTE Input Text Optionen (können entfernt werden)
-                // markdown_pattern: 'input_text.recipe_{option}',
-                // markdown_entities: {},
-                
-                // NEUE Template Optionen
-                template_pattern: 'text.recipe_{option}',   // NEU: Pattern für Template Entities
-                template_entities: {},                      // NEU: Explizite Template-Zuordnung
-                
                 ...config.custom_mode
             },
                                 
             ...config
         };
-
-        // Validierung (ERWEITERT für Custom-Support)
-        const hasAutoDiscover = this._config.auto_discover;
-        const hasEntities = this._config.entities && this._config.entities.length > 0;
-        const hasCustomMode = this._config.custom_mode && this._config.custom_mode.enabled;
         
-        if (!hasAutoDiscover && !hasEntities && !hasCustomMode) {
-            throw new Error('Either auto_discover must be true, entities must be provided, or custom_mode must be enabled');
-        }        
+        // Validierung
+        if (!this._config.auto_discover && (!this._config.entities || this._config.entities.length === 0)) {
+            throw new Error('Either auto_discover must be true or entities must be provided');
+        }
         
         // NEU HINZUFÜGEN nach der config Zuweisung:
         this.currentViewMode = this._config.default_view || 'grid';
@@ -325,11 +309,8 @@ class FastSearchCard extends HTMLElement {
         this._hass = hass;
         
         const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
-
         if (shouldUpdateAll) {
-            this.updateItems().catch(error => {
-                console.error('Error updating items:', error);
-            });
+            this.updateItems();
         }
         
         if (this.isDetailView && this.currentDetailItem) {
@@ -2277,25 +2258,10 @@ class FastSearchCard extends HTMLElement {
             scripts: `<svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
             automations: `<svg viewBox="0 0 24 24" fill="none"><path d="M12 2v6l3-3 3 3"/><path d="M12 18v4"/><circle cx="12" cy="12" r="2"/></svg>`,
             scenes: `<svg viewBox="0 0 24 24" fill="none"><path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><path d="M8 3v4"/></svg>`,
-            custom: this.getCustomCategoryIcon() // NEU: Dynamisches Icon
+            custom: `<svg viewBox="0 0 24 24" fill="none"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"/></svg>`
         };
         categoryIcon.innerHTML = icons[this.activeCategory] || icons.devices;
     }
-
-    getCustomCategoryIcon() {
-        // Wenn ein Emoji/Text konfiguriert ist
-        if (this._config.custom_mode.icon && !this._config.custom_mode.icon.includes('<svg')) {
-            return `<span style="font-size: 20px; line-height: 1;">${this._config.custom_mode.icon}</span>`;
-        }
-        
-        // Wenn ein SVG konfiguriert ist
-        if (this._config.custom_mode.icon && this._config.custom_mode.icon.includes('<svg')) {
-            return this._config.custom_mode.icon;
-        }
-        
-        // Fallback SVG
-        return `<svg viewBox="0 0 24 24" fill="none"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"/></svg>`;
-    }    
 
     updatePlaceholder() {
         const searchInput = this.shadowRoot.querySelector('.search-input');
@@ -2304,17 +2270,12 @@ class FastSearchCard extends HTMLElement {
             scripts: 'Skripte suchen...',
             automations: 'Automationen suchen...',
             scenes: 'Szenen suchen...',
-            custom: this.getCustomPlaceholder() // NEU: Dynamischer Placeholder
+            custom: 'Custom suchen...'
         };
         searchInput.placeholder = placeholders[this.activeCategory] || placeholders.devices;
     }
 
-    getCustomPlaceholder() {
-        const categoryName = this._config.custom_mode.category_name || 'Custom';
-        return `${categoryName} suchen...`;
-    }    
-
-    async updateItems() {
+    updateItems() {
         if (!this._hass) return;
         
         let allEntityConfigs = [];
@@ -2328,8 +2289,7 @@ class FastSearchCard extends HTMLElement {
     
         // 1.5. Custom Data Sources (NEU: IMMER prüfen, nicht nur bei activeCategory)
         if (this._config.custom_mode.enabled) {
-            console.log(`🔄 Loading custom items...`);
-            const customItems = await this.parseCustomDataSource();
+            const customItems = this.parseCustomDataSource();
             allEntityConfigs = [...allEntityConfigs, ...customItems];
             console.log(`🍳 Custom items: ${customItems.length} items`);
         }
@@ -2541,7 +2501,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    async parseCustomDataSource() {
+    parseCustomDataSource() {
         if (!this._config.custom_mode.enabled || !this._config.custom_mode.data_source) {
             return [];
         }
@@ -2550,7 +2510,7 @@ class FastSearchCard extends HTMLElement {
         
         switch (dataSource.type) {
             case 'input_select':
-                return await this.parseInputSelect(dataSource); // ← await hinzugefügt
+                return this.parseInputSelect(dataSource);
             case 'calendar':
                 return this.parseCalendar(dataSource);
             case 'todo_list':
@@ -2563,78 +2523,78 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
-    async parseInputSelect(dataSource) {
+    parseInputSelect(dataSource) {
+        if (!this._hass || !dataSource.entity) {
+            return [];
+        }
+        
         const state = this._hass.states[dataSource.entity];
         if (!state || !state.attributes.options) {
             console.warn(`Input select entity not found: ${dataSource.entity}`);
             return [];
         }
         
-        console.log(`📋 Processing ${state.attributes.options.length} options für Templates`);
+        console.log(`🍳 Parsing input_select: ${dataSource.entity}, options:`, state.attributes.options);
         
-        const results = [];
-        
-        for (const [index, option] of state.attributes.options.entries()) {
-            // Template Entity ID bestimmen
-            let templateEntityId = null;
+        return state.attributes.options.map((option, index) => {
+            // Check für Markdown Content
+            const markdownEntityId = `input_text.recipe_${option.toLowerCase().replace(/\s+/g, '_')}`;
             
-            if (this._config.custom_mode.template_entities && 
-                this._config.custom_mode.template_entities[option]) {
-                // Explizite Zuordnung: "Pasta Bolognese": "text.recipe_pasta"
-                templateEntityId = this._config.custom_mode.template_entities[option];
-            } else if (this._config.custom_mode.template_pattern) {
-                // Pattern: "text.recipe_{option}"
-                const sanitizedOption = option.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-                templateEntityId = this._config.custom_mode.template_pattern.replace('{option}', sanitizedOption);
-            } else {
-                // Fallback Pattern
-                const sanitizedOption = option.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-                templateEntityId = `text.recipe_${sanitizedOption}`;
+            const markdownState = this._hass.states[markdownEntityId];
+            
+            let markdownContent = null;
+            if (markdownState) {
+                let rawContent = markdownState.state || 
+                                markdownState.attributes.value || 
+                                markdownState.attributes.initial || 
+                                markdownState.attributes.text || 
+                                'NO_CONTENT_FOUND';
+                
+                // NEU: Parse JSON wenn es ein JSON String ist
+                if (typeof rawContent === 'string' && rawContent.startsWith('value: "')) {
+                    try {
+                        // Extrahiere Content aus 'value: "..."' Format
+                        const match = rawContent.match(/value: "(.*)"/);
+                        if (match) {
+                            markdownContent = match[1].replace(/\\n/g, '\n'); // \n zu echten Newlines
+                        }
+                    } catch (e) {
+                        markdownContent = rawContent;
+                    }
+                } else {
+                    markdownContent = rawContent;
+                }
             }
             
-            console.log(`📝 ${option} → ${templateEntityId}`);
+            console.log(`🔍 Final content:`, markdownContent);
             
-            // Template Content laden (einfach!)
-            let templateContent = null;
-            const templateState = this._hass.states[templateEntityId];
-            if (templateState && templateState.state && templateState.state !== 'unknown') {
-                templateContent = templateState.state;
-                console.log(`✅ Template gefunden: ${templateContent.length} Zeichen`);
-            } else {
-                console.warn(`❌ Template nicht gefunden: ${templateEntityId}`);
-            }
+            const hasMarkdown = markdownContent && markdownContent !== 'NO_CONTENT_FOUND' && markdownContent.trim().length > 0;
             
-            results.push({
+            return {
                 id: `custom_${dataSource.entity}_${index}`,
                 name: option,
                 domain: 'custom',
-                category: this._config.custom_mode.category_name?.toLowerCase().replace(/\s+/g, '_') || 'custom',
-                area: this._config.custom_mode.area || 'Custom',
+                category: 'custom',
+                area: dataSource.area || 'Custom',
                 state: state.state === option ? 'selected' : 'available',
                 attributes: {
                     friendly_name: option,
-                    custom_type: 'input_select_template',
+                    custom_type: 'input_select',
                     source_entity: dataSource.entity,
-                    template_entity: templateEntityId,
-                    category_display_name: this._config.custom_mode.category_name || 'Custom'
+                    markdown_entity: hasMarkdown ? markdownEntityId : null
                 },
-                icon: this._config.custom_mode.icon || '📄',
+                icon: dataSource.icon || '📄',
                 isActive: state.state === option,
                 custom_data: {
-                    type: 'input_select_template',
+                    type: 'input_select',
                     option: option,
                     entity: dataSource.entity,
-                    template_content: templateContent,
-                    category_name: this._config.custom_mode.category_name || 'Custom'
+                    markdown_content: hasMarkdown ? markdownContent : null
                 }
-            });
-        }
-        
-        console.log(`✅ Verarbeitet: ${results.length} Template-Items`);
-        return results;
+            };
+        });
     }
 
-    
     parseMarkdown(markdown) {
         if (!markdown) return '';
         
