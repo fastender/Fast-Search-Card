@@ -2295,9 +2295,14 @@ class FastSearchCard extends HTMLElement {
     
         // 1.5. Custom Data Sources (NEU: IMMER prüfen, nicht nur bei activeCategory)
         if (this._config.custom_mode.enabled) {
-            const customItems = this.parseCustomDataSource();
-            allEntityConfigs = [...allEntityConfigs, ...customItems];
-            console.log(`🍳 Custom items: ${customItems.length} items`);
+            console.log(`🔄 Loading custom items...`);
+            const customItems = await this.parseCustomDataSource();
+            if (customItems && Array.isArray(customItems)) { // ← Sicherheitscheck hinzufügen
+                allEntityConfigs = [...allEntityConfigs, ...customItems];
+                console.log(`🍳 Custom items: ${customItems.length} items`);
+            } else {
+                console.log(`🍳 No custom items found`);
+            }
         }
         
         // 2. Manuelle Entities hinzufügen (überschreiben Auto-Discovery)
