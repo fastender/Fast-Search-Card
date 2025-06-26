@@ -2281,7 +2281,7 @@ class FastSearchCard extends HTMLElement {
         searchInput.placeholder = placeholders[this.activeCategory] || placeholders.devices;
     }
 
-    updateItems() {
+    async updateItems() {
         if (!this._hass) return;
         
         let allEntityConfigs = [];
