@@ -4259,7 +4259,7 @@ class FastSearchCard extends HTMLElement {
         }
     
         // Rufe den input_text.set_value Service auf
-        this._hass.callService('input_text', 'set_value', {
+        this._hass.callService('text', 'set_value', {
             entity_id: storageEntity,
             value: content
         }).then(() => {
