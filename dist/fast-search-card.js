@@ -295,11 +295,15 @@ class FastSearchCard extends HTMLElement {
                                 
             ...config
         };
+
+        // Validierung (ERWEITERT für Custom-Support)
+        const hasAutoDiscover = this._config.auto_discover;
+        const hasEntities = this._config.entities && this._config.entities.length > 0;
+        const hasCustomMode = this._config.custom_mode && this._config.custom_mode.enabled;
         
-        // Validierung
-        if (!this._config.auto_discover && (!this._config.entities || this._config.entities.length === 0)) {
-            throw new Error('Either auto_discover must be true or entities must be provided');
-        }
+        if (!hasAutoDiscover && !hasEntities && !hasCustomMode) {
+            throw new Error('Either auto_discover must be true, entities must be provided, or custom_mode must be enabled');
+        }        
         
         // NEU HINZUFÜGEN nach der config Zuweisung:
         this.currentViewMode = this._config.default_view || 'grid';
