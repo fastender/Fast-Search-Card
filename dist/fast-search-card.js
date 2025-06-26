@@ -281,10 +281,15 @@ class FastSearchCard extends HTMLElement {
             // Bestehend: Manual entities (optional)
             entities: config.entities || [],
 
-            // NEU: Custom Mode Config
+            // NEU: Custom Mode Config (ERWEITERT)
             custom_mode: {
                 enabled: false,
                 data_source: null,
+                category_name: 'Custom',  // NEU: Benutzerdefinierbarer Name
+                icon: '📄',               // NEU: Benutzerdefinierbares Icon  
+                area: 'Custom',           // NEU: Benutzerdefinierbarer Bereich
+                markdown_pattern: 'input_text.recipe_{option}', // NEU: Flexibles Pattern
+                markdown_entities: {},    // NEU: Explizite Entity-Zuordnung
                 ...config.custom_mode
             },
                                 
@@ -2258,10 +2263,25 @@ class FastSearchCard extends HTMLElement {
             scripts: `<svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
             automations: `<svg viewBox="0 0 24 24" fill="none"><path d="M12 2v6l3-3 3 3"/><path d="M12 18v4"/><circle cx="12" cy="12" r="2"/></svg>`,
             scenes: `<svg viewBox="0 0 24 24" fill="none"><path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><path d="M8 3v4"/></svg>`,
-            custom: `<svg viewBox="0 0 24 24" fill="none"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"/></svg>`
+            custom: this.getCustomCategoryIcon() // NEU: Dynamisches Icon
         };
         categoryIcon.innerHTML = icons[this.activeCategory] || icons.devices;
     }
+
+    getCustomCategoryIcon() {
+        // Wenn ein Emoji/Text konfiguriert ist
+        if (this._config.custom_mode.icon && !this._config.custom_mode.icon.includes('<svg')) {
+            return `<span style="font-size: 20px; line-height: 1;">${this._config.custom_mode.icon}</span>`;
+        }
+        
+        // Wenn ein SVG konfiguriert ist
+        if (this._config.custom_mode.icon && this._config.custom_mode.icon.includes('<svg')) {
+            return this._config.custom_mode.icon;
+        }
+        
+        // Fallback SVG
+        return `<svg viewBox="0 0 24 24" fill="none"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"/></svg>`;
+    }    
 
     updatePlaceholder() {
         const searchInput = this.shadowRoot.querySelector('.search-input');
@@ -2270,10 +2290,15 @@ class FastSearchCard extends HTMLElement {
             scripts: 'Skripte suchen...',
             automations: 'Automationen suchen...',
             scenes: 'Szenen suchen...',
-            custom: 'Custom suchen...'
+            custom: this.getCustomPlaceholder() // NEU: Dynamischer Placeholder
         };
         searchInput.placeholder = placeholders[this.activeCategory] || placeholders.devices;
     }
+
+    getCustomPlaceholder() {
+        const categoryName = this._config.custom_mode.category_name || 'Custom';
+        return `${categoryName} suchen...`;
+    }    
 
     updateItems() {
         if (!this._hass) return;
@@ -2537,8 +2562,26 @@ class FastSearchCard extends HTMLElement {
         console.log(`🍳 Parsing input_select: ${dataSource.entity}, options:`, state.attributes.options);
         
         return state.attributes.options.map((option, index) => {
-            // Check für Markdown Content
-            const markdownEntityId = `input_text.recipe_${option.toLowerCase().replace(/\s+/g, '_')}`;
+            // NEU: Flexible Markdown Entity Resolution
+            let markdownEntityId = null;
+            
+            // 1. Explizite Zuordnung hat Priorität
+            if (this._config.custom_mode.markdown_entities && 
+                this._config.custom_mode.markdown_entities[option]) {
+                markdownEntityId = this._config.custom_mode.markdown_entities[option];
+                console.log(`📋 Explicit mapping: ${option} → ${markdownEntityId}`);
+            } 
+            // 2. Pattern-basierte Zuordnung
+            else if (this._config.custom_mode.markdown_pattern) {
+                const sanitizedOption = option.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+                markdownEntityId = this._config.custom_mode.markdown_pattern.replace('{option}', sanitizedOption);
+                console.log(`📋 Pattern mapping: ${option} → ${markdownEntityId}`);
+            }
+            // 3. Fallback zu alter Methode
+            else {
+                markdownEntityId = `input_text.recipe_${option.toLowerCase().replace(/\s+/g, '_')}`;
+                console.log(`📋 Fallback mapping: ${option} → ${markdownEntityId}`);
+            }            
             
             const markdownState = this._hass.states[markdownEntityId];
             
@@ -2574,22 +2617,24 @@ class FastSearchCard extends HTMLElement {
                 id: `custom_${dataSource.entity}_${index}`,
                 name: option,
                 domain: 'custom',
-                category: 'custom',
-                area: dataSource.area || 'Custom',
+                category: this._config.custom_mode.category_name?.toLowerCase().replace(/\s+/g, '_') || 'custom',
+                area: this._config.custom_mode.area || dataSource.area || 'Custom',
                 state: state.state === option ? 'selected' : 'available',
                 attributes: {
                     friendly_name: option,
                     custom_type: 'input_select',
                     source_entity: dataSource.entity,
-                    markdown_entity: hasMarkdown ? markdownEntityId : null
+                    markdown_entity: hasMarkdown ? markdownEntityId : null,
+                    category_display_name: this._config.custom_mode.category_name || 'Custom' // NEU
                 },
-                icon: dataSource.icon || '📄',
+                icon: this._config.custom_mode.icon || dataSource.icon || '📄',
                 isActive: state.state === option,
                 custom_data: {
                     type: 'input_select',
                     option: option,
                     entity: dataSource.entity,
-                    markdown_content: hasMarkdown ? markdownContent : null
+                    markdown_content: hasMarkdown ? markdownContent : null,
+                    category_name: this._config.custom_mode.category_name || 'Custom' // NEU
                 }
             };
         });
