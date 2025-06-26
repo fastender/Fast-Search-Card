@@ -4074,6 +4074,18 @@ class FastSearchCard extends HTMLElement {
     }
 
     getCustomDetailRightPaneHTML(item) {
+        const isEditable = item.custom_data.metadata?.storage_entity;
+        
+        if (!isEditable) {
+            // Read-only Template Sensor: Nur Accordion View
+            return `
+                <div id="tab-content-container" style="padding: 20px;">
+                    ${this.renderMarkdownAccordions(item.custom_data.content, item.name)}
+                </div>
+            `;
+        }
+        
+        // Editable (MQTT/Text Entity): Tab-System mit Editor
         return `
             <div class="detail-tabs-container">
                 <div class="detail-tabs">
@@ -4788,7 +4800,15 @@ class FastSearchCard extends HTMLElement {
     }
     
     setupCustomDetailTabs(item) {
-        // Tab-System Event Listeners
+        const isEditable = item.custom_data.metadata?.storage_entity;
+        
+        if (!isEditable) {
+            // Read-only: Nur Accordion Logic
+            this.setupAccordionListeners();
+            return;
+        }
+        
+        // Editable: Full Tab System + Editor
         const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
         if (tabsContainer) {
             const tabs = tabsContainer.querySelectorAll('.detail-tab');
@@ -4820,10 +4840,7 @@ class FastSearchCard extends HTMLElement {
             });
         }
     
-        // Accordion Event Listeners
         this.setupAccordionListeners();
-        
-        // Markdown Editor Setup
         this.setupMarkdownEditor(item);
     }
     
