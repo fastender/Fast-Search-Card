@@ -2524,30 +2524,24 @@ class FastSearchCard extends HTMLElement {
                 return this.parseTemplateSensor(dataSource);
             case 'sensor': 
                 return this.parseSensor(dataSource);
-            // input_select case ENTFERNEN
             default:
                 console.warn(`Unknown data source type: ${dataSource.type}`);
                 return [];
         }
     }
 
-    parseTemplateSensor(dataSource) {
-        console.log('🔍 DEBUG: parseTemplateSensor called');
-        console.log('🔍 DEBUG: dataSource =', dataSource);
-        console.log('🔍 DEBUG: dataSource.entity =', dataSource.entity);
-        
+    parseTemplateSensor(dataSource) {   
         const state = this._hass.states[dataSource.entity];
-        console.log('🔍 DEBUG: Found state =', state);
-        
-        console.log('🔍 DEBUG: state.attributes =', state.attributes);
+
+        // HINZUFÜGEN: Sicherheitscheck
+        if (!state || !state.attributes) {
+            console.warn(`Template Sensor not found: ${dataSource.entity}`);
+            return [];
+        }        
         
         const contentAttr = dataSource.content_attribute || 'items';
-        console.log('🔍 DEBUG: Looking for attribute:', contentAttr);
-        
         let items = state.attributes[contentAttr];
-        console.log('🔍 DEBUG: Raw items =', items);
-        console.log('🔍 DEBUG: Items type =', typeof items);
-        
+
         // Parse JSON string if needed
         if (typeof items === 'string') {
             try {
