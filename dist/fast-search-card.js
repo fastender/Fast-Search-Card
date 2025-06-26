@@ -2667,6 +2667,102 @@ class FastSearchCard extends HTMLElement {
             return currentState;
         }
     }
+
+    shouldUpdateFromInitial(currentState, initialValue) {
+        // Einfache Heuristik: Update wenn initial deutlich anders ist
+        
+        // 1. Längenvergleich - initial ist mindestens 20% länger
+        const lengthDifference = initialValue.length - currentState.length;
+        const lengthThreshold = currentState.length * 0.2; // 20% Schwellenwert
+        
+        if (lengthDifference > lengthThreshold && lengthDifference > 50) {
+            console.log(`📏 Length check: ${lengthDifference} Zeichen Unterschied (>${lengthThreshold.toFixed(0)} threshold)`);
+            return true;
+        }
+        
+        // 2. Content-Hash Vergleich (einfach)
+        const currentHash = this.simpleHash(currentState.trim());
+        const initialHash = this.simpleHash(initialValue.trim());
+        
+        if (currentHash !== initialHash) {
+            console.log(`🔍 Content check: Hash unterschiedlich (${currentHash} vs ${initialHash})`);
+            return true;
+        }
+        
+        // 3. Markdown-Header Vergleich
+        const currentHeaders = this.extractMarkdownHeaders(currentState);
+        const initialHeaders = this.extractMarkdownHeaders(initialValue);
+        
+        if (JSON.stringify(currentHeaders) !== JSON.stringify(initialHeaders)) {
+            console.log(`📑 Headers check: Struktur geändert`, {current: currentHeaders, initial: initialHeaders});
+            return true;
+        }
+        
+        return false;
+    }
+    
+    simpleHash(text) {
+        // Einfache Hash-Funktion für Content-Vergleich
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) {
+            const char = text.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return hash;
+    }
+    
+    extractMarkdownHeaders(text) {
+        // Extrahiere H1 und H2 Headers für Struktur-Vergleich
+        const headers = [];
+        const lines = text.split('\n');
+        
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('# ')) {
+                headers.push('H1: ' + trimmed.substring(2));
+            } else if (trimmed.startsWith('## ')) {
+                headers.push('H2: ' + trimmed.substring(3));
+            }
+        }
+        
+        return headers;
+    }
+    
+    async performStateUpdate(entityId, newValue) {
+        try {
+            await this._hass.callService('input_text', 'set_value', {
+                entity_id: entityId,
+                value: newValue
+            });
+            
+            // Warte auf State-Update mit verbesserter Logik
+            let attempts = 0;
+            while (attempts < 8) { // Mehr Versuche
+                await new Promise(resolve => setTimeout(resolve, 300)); // Längere Wartezeit
+                const updatedState = this._hass.states[entityId];
+                
+                if (updatedState && updatedState.state !== 'unknown') {
+                    const updatedValue = updatedState.state.trim();
+                    const expectedValue = newValue.trim();
+                    
+                    // Prüfe ob Update erfolgreich (mindestens 80% der erwarteten Länge)
+                    if (updatedValue.length >= expectedValue.length * 0.8) {
+                        console.log(`✅ ${entityId} erfolgreich aktualisiert (${updatedValue.length}/${expectedValue.length} Zeichen)`);
+                        return updatedState.state;
+                    }
+                }
+                attempts++;
+            }
+            
+            console.warn(`⚠️ ${entityId} Update-Timeout, verwende neuen Wert direkt`);
+            return newValue;
+            
+        } catch (error) {
+            console.error(`❌ Fehler beim Aktualisieren von ${entityId}:`, error);
+            return newValue; // Fallback
+        }
+    }
     
     parseMarkdown(markdown) {
         if (!markdown) return '';
