@@ -1049,8 +1049,17 @@ class FastSearchCard extends HTMLElement {
             /* Detail Tabs */
             .detail-tabs-container {
                 display: flex;
-                justify-content: center;
+                justify-content: flex-end;
+                padding-right: 20px;
+                padding-top: 20px;
+                padding-bottom: 10px;                
             }
+
+           @media (max-width: 768px) {
+                .detail-tabs-container {
+                    padding-right: 10px;
+                }
+                
             .detail-tabs {
                 position: relative;
                 background: rgba(0, 0, 0, 0.25);
@@ -1987,16 +1996,16 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(0, 0, 0, 0.3);
             }
             .accordion-arrow {
-                width: 24px;
-                height: 24px;
+                width: 34px;
+                height: 34px;
                 transition: transform 0.3s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
             .accordion-arrow svg {
-                width: 20px;
-                height: 20px;
+                width: 30px;
+                height: 30px;
                 stroke: currentColor;
                 transition: transform 0.3s ease;
             }
@@ -5178,7 +5187,7 @@ class FastSearchCard extends HTMLElement {
         const sections = this.extractAccordionSections(html);
         
         let accordionHTML = `
-            <div style="padding: 20px;">
+            <div>
                 <div class="accordion-container">
         `;
         
