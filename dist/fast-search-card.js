@@ -1883,6 +1883,352 @@ class FastSearchCard extends HTMLElement {
                 stroke-linecap: round;
                 stroke-linejoin: round;
             }            
+
+
+            /* Custom Items Specific Styles */
+            .icon-background.custom-item {
+                opacity: 1 !important;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+            
+            .custom-item-card {
+                background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+                border: 1px solid rgba(255,255,255,0.15);
+            }
+            
+            .custom-item-card:hover {
+                background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.08));
+                box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            }
+            
+            .custom-item-icon {
+                background: linear-gradient(135deg, #FF6B35, #F7931E);
+                color: white;
+                font-weight: bold;
+            }
+            
+            .custom-detail-status {
+                background: linear-gradient(135deg, #06D6A0, #118AB2);
+                color: white;
+                font-weight: 600;
+            }
+
+
+            /* Custom Items: Flexible Höhe für Accordions */
+            .detail-panel.custom-detail {
+                height: auto;
+                min-height: 700px;
+                max-height: none;
+            }
+            
+            .detail-panel.custom-detail .detail-right {
+                overflow-y: auto;
+                max-height: none;
+                height: auto;
+            }
+            
+            .detail-panel.custom-detail #tab-content-container {
+                max-height: none;
+                height: auto;
+                overflow-y: visible;
+            }
+            
+            .detail-panel.custom-detail .accordion-content.open {
+                max-height: none;
+                height: auto;
+            }
+            
+            /* Für Mobile Custom Items */
+            @media (max-width: 768px) {
+                .detail-panel.custom-detail {
+                    height: auto;
+                    min-height: 600px;
+                }
+                
+                .detail-panel.custom-detail .detail-right {
+                    height: auto;
+                    max-height: none;
+                }
+            }           
+
+
+            .accordion-item {
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 12px;
+                margin-bottom: 8px;
+                overflow: hidden;
+            }
+            .accordion-header {
+                padding: 16px 20px;
+                background: rgba(255,255,255,0.05);
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-weight: 600;
+                color: var(--text-primary);
+                transition: all 0.3s ease;
+            }
+            .accordion-header:hover {
+                background: rgba(255,255,255,0.1);
+            }
+            .accordion-header.active {
+                background: rgba(0,122,255,0.2);
+            }
+            .accordion-arrow {
+                width: 24px;
+                height: 24px;
+                transition: transform 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .accordion-arrow svg {
+                width: 20px;
+                height: 20px;
+                stroke: currentColor;
+                transition: transform 0.3s ease;
+            }
+            .accordion-header.active .accordion-arrow svg {
+                transform: rotate(45deg);
+            }
+            .accordion-content {
+                padding: 0 20px;
+                max-height: 0;
+                overflow: hidden;
+                transition: all 0.3s ease;
+                color: var(--text-secondary);
+            }
+            .accordion-content.open {
+                padding: 20px;
+                max-height: 500px;
+            }
+            .accordion-content h1, .accordion-content h2, .accordion-content h3 {
+                color: var(--text-primary);
+                margin: 10px 0;
+            }
+            .accordion-content ul {
+                list-style: none;
+                padding-left: 0;
+            }
+            .accordion-content li {
+                padding: 4px 0;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+            .accordion-content li:last-child {
+                border-bottom: none;
+            }
+            .accordion-content blockquote {
+                background: rgba(255,255,255,0.05);
+                border-left: 4px solid var(--accent);
+                padding: 12px 16px;
+                margin: 12px 0;
+                border-radius: 8px;
+                font-style: italic;
+            }            
+
+
+
+
+
+
+
+
+            
+            /* Markdown Editor Styles */
+            .markdown-editor-container {
+                padding: 20px;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .editor-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+                padding-bottom: 12px;
+            }
+            
+            .editor-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            
+            .editor-controls {
+                display: flex;
+                gap: 8px;
+            }
+            
+            .editor-btn {
+                width: 36px;
+                height: 36px;
+                border: none;
+                background: rgba(255,255,255,0.1);
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                color: var(--text-secondary);
+            }
+            
+            .editor-btn:hover {
+                background: rgba(255,255,255,0.2);
+                color: var(--text-primary);
+                transform: scale(1.05);
+            }
+            
+            .editor-btn.active {
+                background: var(--accent);
+                color: white;
+            }
+            
+            .editor-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .editor-content {
+                flex: 1;
+                position: relative;
+                min-height: 300px;
+            }
+            
+            .markdown-textarea {
+                width: 100%;
+                height: 100%;
+                min-height: 300px;
+                background: rgba(0,0,0,0.3);
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 12px;
+                color: var(--text-primary);
+                font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                font-size: 14px;
+                line-height: 1.5;
+                padding: 16px;
+                resize: vertical;
+                outline: none;
+                transition: all 0.2s ease;
+            }
+            
+            .markdown-textarea:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 2px rgba(0,122,255,0.2);
+            }
+            
+            .markdown-textarea::placeholder {
+                color: rgba(255,255,255,0.4);
+                font-style: italic;
+            }
+            
+            .live-preview {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 50%;
+                height: 100%;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 12px;
+                padding: 16px;
+                overflow-y: auto;
+            }
+            
+            .live-preview.hidden {
+                display: none;
+            }
+            
+            .preview-content {
+                color: var(--text-primary);
+                line-height: 1.6;
+            }
+            
+            .preview-content h1, .preview-content h2, .preview-content h3 {
+                color: var(--text-primary);
+                margin: 16px 0 8px 0;
+            }
+            
+            .preview-content ul, .preview-content ol {
+                margin: 8px 0;
+                padding-left: 20px;
+            }
+            
+            .preview-content blockquote {
+                background: rgba(255,255,255,0.05);
+                border-left: 4px solid var(--accent);
+                padding: 12px 16px;
+                margin: 12px 0;
+                border-radius: 8px;
+                font-style: italic;
+            }
+            
+            .editor-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-top: 12px;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            
+            .status-indicator {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+                color: var(--text-secondary);
+            }
+            
+            .status-indicator[data-status="saving"]::before {
+                content: "💾";
+            }
+            
+            .status-indicator[data-status="saved"]::before {
+                content: "✅";
+            }
+            
+            .status-indicator[data-status="error"]::before {
+                content: "❌";
+            }
+            
+            .status-indicator[data-status="ready"]::before {
+                content: "📝";
+            }
+            
+            .markdown-help details {
+                color: var(--text-secondary);
+            }
+            
+            .markdown-help summary {
+                cursor: pointer;
+                font-size: 13px;
+                padding: 4px 8px;
+                border-radius: 6px;
+                transition: background 0.2s ease;
+            }
+            
+            .markdown-help summary:hover {
+                background: rgba(255,255,255,0.1);
+            }
+            
+            .help-content {
+                margin-top: 8px;
+                padding: 12px;
+                background: rgba(0,0,0,0.3);
+                border-radius: 8px;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+
+
+
                                     
             </style>
 
@@ -2971,6 +3317,16 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+
+    getCustomStatusText(item) {
+        const metadata = item.custom_data?.metadata || {};
+        
+        // Zeige relevante Info als Status
+        if (metadata.category) return metadata.category;
+        if (metadata.type) return metadata.type;
+        return 'Custom Item';
+    }    
+
     performSearch(query) {
 
         const startTime = performance.now(); // Am Anfang hinzufügen
@@ -3279,11 +3635,35 @@ class FastSearchCard extends HTMLElement {
     createDeviceCard(item) {
         const card = document.createElement('div');
         card.className = `device-card ${item.isActive ? 'active' : ''}`;
+        
+        if (item.domain === 'custom') {
+            card.className += ' custom-item-card';
+        }
+        
         card.dataset.entity = item.id;
-        card.innerHTML = `<div class="device-icon">${item.icon}</div><div class="device-info"><div class="device-name">${item.name}</div><div class="device-status">${this.getEntityStatus(this._hass.states[item.id])}</div></div>`;
+        
+        const statusText = item.domain === 'custom' ? 
+            this.getCustomStatusText(item) : 
+            this.getEntityStatus(this._hass.states[item.id]);
+
+        
+        card.innerHTML = `<div class="device-icon">${item.icon}</div><div class="device-info"><div class="device-name">${item.name}</div><div class="device-status">${statusText}</div></div>`;
         card.addEventListener('click', () => this.handleDeviceClick(item, card));
         return card;
     }
+
+
+
+    getCustomStatusText(item) {
+        const metadata = item.custom_data?.metadata || {};
+        
+        if (metadata.category) return metadata.category;
+        if (metadata.type) return metadata.type;
+        return 'Custom Item';
+    }
+
+
+    
 
 
     toggleViewMode() {
@@ -3421,12 +3801,17 @@ class FastSearchCard extends HTMLElement {
         
         const quickActionHTML = this.getQuickActionHTML(item);
         
+        // Custom Items behandeln
+        const statusText = item.domain === 'custom' ? 
+            this.getCustomStatusText(item) : 
+            this.getEntityStatus(this._hass.states[item.id]);
+        
         listItem.innerHTML = `
             <div class="device-list-icon">${item.icon}</div>
             <div class="device-list-content">
                 <div class="device-list-area">${item.area}</div>
                 <div class="device-list-name">${item.name}</div>
-                <div class="device-list-status">${this.getEntityStatus(this._hass.states[item.id])}</div>
+                <div class="device-list-status">${statusText}</div>
             </div>
             ${quickActionHTML}
         `;
@@ -3453,7 +3838,7 @@ class FastSearchCard extends HTMLElement {
         }
         
         return listItem;
-    }    
+    }
 
     getQuickActionHTML(item) {
         const state = this._hass.states[item.id];
@@ -3656,10 +4041,10 @@ class FastSearchCard extends HTMLElement {
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
         
         searchPanel.classList.add('hidden');
-        detailPanel.classList.add('visible');
+        detailPanel.classList.add('visible', 'custom-detail'); // <- Hier custom-detail hinzufügen
         
         this.renderCustomDetailView();
-    }
+    }    
     
     renderCustomDetailView() {
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
@@ -4030,11 +4415,12 @@ class FastSearchCard extends HTMLElement {
             </div>
             <div class="icon-content">
                 <div class="icon-background-wrapper">
-                    <div class="icon-background" style="background-image: url('${backgroundImage}');">
+                    <div class="icon-background custom-item" style="background-image: url('${backgroundImage}');">
                     </div>
                 </div>
-                <div class="detail-info-row">
-                    <div class="status-indicator-large ${item.isActive ? 'active' : ''}">${this.getCustomStatus(item)}</div>
+
+             
+                <div class="detail-info-row">                    
                     <div class="quick-stats">
                         ${this.getCustomQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('')}
                     </div>
@@ -4402,9 +4788,6 @@ class FastSearchCard extends HTMLElement {
         
         let accordionHTML = `
             <div style="padding: 20px;">
-                <div style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 20px; text-align: center;">
-                    ${title}
-                </div>
                 <div class="accordion-container">
         `;
         
@@ -4423,276 +4806,24 @@ class FastSearchCard extends HTMLElement {
             `;
         });
         
+
         accordionHTML += `
+            <div class="accordion-item">
+                <div class="accordion-header ${isFirst ? 'active' : ''}" data-accordion="${index}">
+                    <span>${section.title}</span>
+                    <span class="accordion-arrow">
+                        <svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 12H12M18 12H12M12 12V6M12 12V18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </span>
+                </div>
+                <div class="accordion-content ${isFirst ? 'open' : ''}" data-content="${index}">
+                    ${section.content}
                 </div>
             </div>
-            <style>
-                .accordion-item {
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 12px;
-                    margin-bottom: 8px;
-                    overflow: hidden;
-                }
-                .accordion-header {
-                    padding: 16px 20px;
-                    background: rgba(255,255,255,0.05);
-                    cursor: pointer;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    font-weight: 600;
-                    color: var(--text-primary);
-                    transition: all 0.3s ease;
-                }
-                .accordion-header:hover {
-                    background: rgba(255,255,255,0.1);
-                }
-                .accordion-header.active {
-                    background: rgba(0,122,255,0.2);
-                }
-                .accordion-content {
-                    padding: 0 20px;
-                    max-height: 0;
-                    overflow: hidden;
-                    transition: all 0.3s ease;
-                    color: var(--text-secondary);
-                }
-                .accordion-content.open {
-                    padding: 20px;
-                    max-height: 500px;
-                }
-                .accordion-content h1, .accordion-content h2, .accordion-content h3 {
-                    color: var(--text-primary);
-                    margin: 10px 0;
-                }
-                .accordion-content ul {
-                    list-style: none;
-                    padding-left: 0;
-                }
-                .accordion-content li {
-                    padding: 4px 0;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
-                }
-                .accordion-content li:last-child {
-                    border-bottom: none;
-                }
-                .accordion-content blockquote {
-                    background: rgba(255,255,255,0.05);
-                    border-left: 4px solid var(--accent);
-                    padding: 12px 16px;
-                    margin: 12px 0;
-                    border-radius: 8px;
-                    font-style: italic;
-                }
-
-
-
-
-                
-                /* Markdown Editor Styles */
-                .markdown-editor-container {
-                    padding: 20px;
-                    height: 100%;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 16px;
-                }
-                
-                .editor-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
-                    padding-bottom: 12px;
-                }
-                
-                .editor-title {
-                    font-size: 18px;
-                    font-weight: 600;
-                    color: var(--text-primary);
-                }
-                
-                .editor-controls {
-                    display: flex;
-                    gap: 8px;
-                }
-                
-                .editor-btn {
-                    width: 36px;
-                    height: 36px;
-                    border: none;
-                    background: rgba(255,255,255,0.1);
-                    border-radius: 8px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.2s ease;
-                    color: var(--text-secondary);
-                }
-                
-                .editor-btn:hover {
-                    background: rgba(255,255,255,0.2);
-                    color: var(--text-primary);
-                    transform: scale(1.05);
-                }
-                
-                .editor-btn.active {
-                    background: var(--accent);
-                    color: white;
-                }
-                
-                .editor-btn svg {
-                    width: 18px;
-                    height: 18px;
-                }
-                
-                .editor-content {
-                    flex: 1;
-                    position: relative;
-                    min-height: 300px;
-                }
-                
-                .markdown-textarea {
-                    width: 100%;
-                    height: 100%;
-                    min-height: 300px;
-                    background: rgba(0,0,0,0.3);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 12px;
-                    color: var(--text-primary);
-                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-                    font-size: 14px;
-                    line-height: 1.5;
-                    padding: 16px;
-                    resize: vertical;
-                    outline: none;
-                    transition: all 0.2s ease;
-                }
-                
-                .markdown-textarea:focus {
-                    border-color: var(--accent);
-                    box-shadow: 0 0 0 2px rgba(0,122,255,0.2);
-                }
-                
-                .markdown-textarea::placeholder {
-                    color: rgba(255,255,255,0.4);
-                    font-style: italic;
-                }
-                
-                .live-preview {
-                    position: absolute;
-                    top: 0;
-                    right: 0;
-                    width: 50%;
-                    height: 100%;
-                    background: rgba(255,255,255,0.05);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 12px;
-                    padding: 16px;
-                    overflow-y: auto;
-                }
-                
-                .live-preview.hidden {
-                    display: none;
-                }
-                
-                .preview-content {
-                    color: var(--text-primary);
-                    line-height: 1.6;
-                }
-                
-                .preview-content h1, .preview-content h2, .preview-content h3 {
-                    color: var(--text-primary);
-                    margin: 16px 0 8px 0;
-                }
-                
-                .preview-content ul, .preview-content ol {
-                    margin: 8px 0;
-                    padding-left: 20px;
-                }
-                
-                .preview-content blockquote {
-                    background: rgba(255,255,255,0.05);
-                    border-left: 4px solid var(--accent);
-                    padding: 12px 16px;
-                    margin: 12px 0;
-                    border-radius: 8px;
-                    font-style: italic;
-                }
-                
-                .editor-footer {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding-top: 12px;
-                    border-top: 1px solid rgba(255,255,255,0.1);
-                }
-                
-                .status-indicator {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 13px;
-                    color: var(--text-secondary);
-                }
-                
-                .status-indicator[data-status="saving"]::before {
-                    content: "💾";
-                }
-                
-                .status-indicator[data-status="saved"]::before {
-                    content: "✅";
-                }
-                
-                .status-indicator[data-status="error"]::before {
-                    content: "❌";
-                }
-                
-                .status-indicator[data-status="ready"]::before {
-                    content: "📝";
-                }
-                
-                .markdown-help details {
-                    color: var(--text-secondary);
-                }
-                
-                .markdown-help summary {
-                    cursor: pointer;
-                    font-size: 13px;
-                    padding: 4px 8px;
-                    border-radius: 6px;
-                    transition: background 0.2s ease;
-                }
-                
-                .markdown-help summary:hover {
-                    background: rgba(255,255,255,0.1);
-                }
-                
-                .help-content {
-                    margin-top: 8px;
-                    padding: 12px;
-                    background: rgba(0,0,0,0.3);
-                    border-radius: 8px;
-                    font-size: 12px;
-                    line-height: 1.4;
-                }
-
-
-
-
-
-
-
-
-
-
-                
-            </style>
         `;
-        
-        return accordionHTML;
-    }
+
+
 
 
     extractAccordionSections(html) {
@@ -4755,19 +4886,23 @@ class FastSearchCard extends HTMLElement {
         return ''; // Leer statt "Verfügbar"
     }
     
+
     getCustomQuickStats(item) {
         const stats = [];
         const metadata = item.custom_data?.metadata || {};
+        const quickStatsConfig = this._config.custom_mode?.quick_stats || [];
         
-        // Alle Felder außer content, name, id, icon, image_url
-        Object.entries(metadata).forEach(([key, value]) => {
-            if (!['content', 'name', 'id', 'icon', 'image_url'].includes(key)) {
-                stats.push(`${key}: ${value}`);
+        quickStatsConfig.forEach(statConfig => {
+            const value = metadata[statConfig.field];
+            if (value) {
+                const icon = statConfig.icon || '📄';
+                const displayValue = statConfig.label ? `${statConfig.label}: ${value}` : value;
+                stats.push(`${icon} ${displayValue}`);
             }
         });
         
         return stats;
-    }
+    }    
     
     getCustomBackgroundImage(item) {
             const customData = item.custom_data || {};
@@ -4842,14 +4977,14 @@ class FastSearchCard extends HTMLElement {
         this.setupMarkdownEditor(item);
     }
     
-    // Neue separate Method hinzufügen:
+
+
     setupAccordionListeners() {
         const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
         accordionHeaders.forEach(header => {
             header.addEventListener('click', () => {
                 const index = header.dataset.accordion;
                 const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
-                const arrow = header.querySelector('.accordion-arrow');
                 
                 // Toggle
                 const isOpen = content.classList.contains('open');
@@ -4857,16 +4992,14 @@ class FastSearchCard extends HTMLElement {
                 if (isOpen) {
                     content.classList.remove('open');
                     header.classList.remove('active');
-                    arrow.textContent = '▶';
                 } else {
                     content.classList.add('open');
                     header.classList.add('active');
-                    arrow.textContent = '▼';
                 }
             });
         });
     }
-    
+        
     handleCustomAction(item, action) {
         const customData = item.custom_data || {};
         
