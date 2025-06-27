@@ -2202,12 +2202,13 @@ class FastSearchCard extends HTMLElement {
                 font-style: italic;
             }
             
-            .editor-footer {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
+            .editor-footer {            
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;  /* ← Exakt drei gleiche Spalten */
+                align-items: flex-start;
                 padding-top: 12px;
                 border-top: 1px solid rgba(255,255,255,0.1);
+                gap: 16px;                
             }
             
             .status-indicator {
@@ -2216,7 +2217,16 @@ class FastSearchCard extends HTMLElement {
                 gap: 8px;
                 font-size: 13px;
                 color: var(--text-secondary);
+                justify-self: start;
             }
+
+            .editor-info {
+                justify-self: center;  /* ← Mitte */
+            }
+            
+            .markdown-help {
+                justify-self: end;  /* ← Rechts */
+            }            
             
             .status-indicator[data-status="saving"]::before {
                 content: "💾";
