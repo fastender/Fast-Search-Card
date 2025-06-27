@@ -2795,31 +2795,52 @@ class FastSearchCard extends HTMLElement {
         
         console.log(`📄 Processing ${items.length} static items with prefix: ${sourcePrefix}`);
         
-        return items.map((item, index) => ({
-            id: `${sourcePrefix}_${item.id || index}`,
-            name: item.name || `Static Item ${index + 1}`,
-            domain: 'custom',
-            category: 'custom',
-            area: item.area || dataSource.area || this._config.custom_mode.area,
-            state: 'available',
-            attributes: {
-                friendly_name: item.name,
-                custom_type: 'static',
-                source_prefix: sourcePrefix,
-                source_index: sourceIndex
-            },
-            icon: item.icon || dataSource.icon || this._config.custom_mode.icon,
-            isActive: false,
-            custom_data: {
-                type: 'static',
-                content: item.content || `# ${item.name}\n\nStatischer Eintrag`,
-                metadata: {
-                    ...item,
-                    data_source: 'static',
-                    source_index: sourceIndex
+        return items.map((item, index) => {
+            const itemId = `${sourcePrefix}_${item.id || index}`;
+            
+            // 🆕 HIER: Prüfe ob gespeicherte Version in localStorage existiert
+            const storageKey = `fast_search_static_${itemId}`;
+            let content = item.content || `# ${item.name}\n\nStatischer Eintrag`;
+            
+            try {
+                const savedData = localStorage.getItem(storageKey);
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    content = parsedData.content || content; // Verwende gespeicherten Content
+                    console.log(`✅ Loaded saved content for: ${item.name}`);
                 }
+            } catch (error) {
+                console.warn(`⚠️ Could not load saved content for ${item.name}:`, error);
+                // Fallback to original content
             }
-        }));
+            
+            return {
+                id: itemId,
+                name: item.name || `Static Item ${index + 1}`,
+                domain: 'custom',
+                category: 'custom',
+                area: item.area || dataSource.area || this._config.custom_mode.area,
+                state: 'available',
+                attributes: {
+                    friendly_name: item.name,
+                    custom_type: 'static',
+                    source_prefix: sourcePrefix,
+                    source_index: sourceIndex
+                },
+                icon: item.icon || dataSource.icon || this._config.custom_mode.icon,
+                isActive: false,
+                custom_data: {
+                    type: 'static',
+                    content: content, // 🆕 Hier wird der gespeicherte Content verwendet
+                    metadata: {
+                        ...item,
+                        data_source: 'static',
+                        source_index: sourceIndex,
+                        has_saved_content: !!localStorage.getItem(storageKey) // Info ob gespeichert
+                    }
+                }
+            };
+        });
     }
     
     // NEU: MQTT Sensor Support (Grundgerüst)
