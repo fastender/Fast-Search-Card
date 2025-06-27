@@ -4817,6 +4817,7 @@ class FastSearchCard extends HTMLElement {
         `;
         
         return accordionHTML;
+   
     
     // NEUE METHODE - AUSSERHALB der renderMarkdownAccordions Methode
     extractAccordionSections(html) {
