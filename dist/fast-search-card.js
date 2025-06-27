@@ -3084,6 +3084,10 @@ class FastSearchCard extends HTMLElement {
     }
  
     parseTemplateSensor(dataSource, sourceIndex = 0) {   
+
+        console.log('🔥 parseTemplateSensor AUFGERUFEN!');
+        console.log('🔥 dataSource:', dataSource);
+        
         const state = this._hass.states[dataSource.entity];
         
         if (!state || !state.attributes) {
@@ -3093,6 +3097,8 @@ class FastSearchCard extends HTMLElement {
         
         const contentAttr = dataSource.content_attribute || 'items';
         let items = state.attributes[contentAttr];
+
+        console.log('🔥 RAW items from state:', items);
         
         // Parse logic...
         if (typeof items === 'string') {
