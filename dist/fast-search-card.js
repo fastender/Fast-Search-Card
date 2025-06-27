@@ -3303,47 +3303,7 @@ class FastSearchCard extends HTMLElement {
         return content;
     }    
 
-    // NACH parseCustomDataSource() hinzufügen:
-    parseTemplateSensor(dataSource) {
-        const state = this._hass.states[dataSource.entity];
-        if (!state || !state.attributes) {
-            return [];
-        }
-    
-        const contentAttr = dataSource.content_attribute || 'items';
-        let items = state.attributes[contentAttr];
-        
-        // Parse JSON string if needed
-        if (typeof items === 'string') {
-            try {
-                items = JSON.parse(items);
-            } catch (e) {
-                return [];
-            }
-        }
-        
-        if (!Array.isArray(items)) return [];
-    
-        return items.map((item, index) => ({
-            id: `template_${dataSource.entity}_${item.id || index}`,
-            name: item.name || `Item ${index + 1}`,
-            domain: 'custom',
-            category: 'custom',
-            area: this._config.custom_mode.area,
-            state: 'available',
-            attributes: {
-                friendly_name: item.name,
-                custom_type: 'template_sensor'
-            },
-            icon: item.icon || this._config.custom_mode.icon,
-            isActive: false,
-            custom_data: {
-                type: 'template_sensor',
-                content: item.content,
-                metadata: item
-            }
-        }));
-    }    
+
 
     parseMarkdown(markdown) {
         if (!markdown) return '';
