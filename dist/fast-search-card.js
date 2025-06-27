@@ -4769,7 +4769,7 @@ class FastSearchCard extends HTMLElement {
         console.log('🎨 RAW markdown content received:', markdownContent);
         console.log('🎨 Content type:', typeof markdownContent);
         console.log('🎨 Content length:', markdownContent?.length);        
-
+        
         if (!markdownContent || markdownContent === 'unknown' || markdownContent === 'NO_CONTENT_FOUND') {
             return `
                 <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
@@ -4797,7 +4797,11 @@ class FastSearchCard extends HTMLElement {
                 <div class="accordion-item">
                     <div class="accordion-header ${isFirst ? 'active' : ''}" data-accordion="${index}">
                         <span>${section.title}</span>
-                        <span class="accordion-arrow">${isFirst ? '▼' : '▶'}</span>
+                        <span class="accordion-arrow">
+                            <svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 12H12M18 12H12M12 12V6M12 12V18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </span>
                     </div>
                     <div class="accordion-content ${isFirst ? 'open' : ''}" data-content="${index}">
                         ${section.content}
@@ -4807,25 +4811,14 @@ class FastSearchCard extends HTMLElement {
         });
         
 
-    accordionHTML += `
-        <div class="accordion-item">
-            <div class="accordion-header ${isFirst ? 'active' : ''}" data-accordion="${index}">
-                <span>${section.title}</span>
-                <span class="accordion-arrow">
-                    <svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 12H12M18 12H12M12 12V6M12 12V18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                </span>
+        accordionHTML += `
+                </div>
             </div>
-            <div class="accordion-content ${isFirst ? 'open' : ''}" data-content="${index}">
-                ${section.content}
-            </div>
-        </div>
-    `;
-
-
-
-
+        `;
+        
+        return accordionHTML;
+    
+    // NEUE METHODE - AUSSERHALB der renderMarkdownAccordions Methode
     extractAccordionSections(html) {
         const sections = [];
         
@@ -4845,8 +4838,11 @@ class FastSearchCard extends HTMLElement {
         
         console.log('📋 Extracted sections:', sections);
         return sections;
-    }    
-    
+    }
+
+
+
+        
     getCustomActionsHTML(item) {
         const customData = item.custom_data || {};
         
