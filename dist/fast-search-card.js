@@ -3057,7 +3057,7 @@ class FastSearchCard extends HTMLElement {
             // Entferne Markdown-Syntax
             .replace(/#{1,6}\s/g, '')           // Headers
             .replace(/\*\*(.*?)\*\*/g, '$1')    // Bold
-            .replace /\*(.*?)\*/g, '$1')        // Italic
+            .replace(/\*(.*?)\*/g, '$1')        // Italic ← KORRIGIERT: Klammern hinzugefügt
             .replace(/`(.*?)`/g, '$1')          // Code
             .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Links
             .replace(/>\s/g, '')                // Blockquotes
