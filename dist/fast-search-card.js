@@ -1938,6 +1938,7 @@ class FastSearchCard extends HTMLElement {
             .detail-panel.custom-detail .accordion-content.open {
                 max-height: none;
                 height: auto;
+                background: rgba(0, 0, 0, 0.3);
             }
             
             /* Für Mobile Custom Items */
@@ -1955,7 +1956,7 @@ class FastSearchCard extends HTMLElement {
 
 
             .accordion-item {
-                border: 1px solid rgba(255,255,255,0.1);
+                border: 0px solid rgba(255,255,255,0.1);
                 border-radius: 12px;
                 margin-bottom: 8px;
                 overflow: hidden;
@@ -1975,7 +1976,7 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(255,255,255,0.1);
             }
             .accordion-header.active {
-                background: rgba(0,122,255,0.2);
+                background: rgba(0, 0, 0, 0.3);
             }
             .accordion-arrow {
                 width: 24px;
