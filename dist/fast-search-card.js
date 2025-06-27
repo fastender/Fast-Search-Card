@@ -2843,7 +2843,6 @@ class FastSearchCard extends HTMLElement {
         });
     }
     
-    // NEU: MQTT Sensor Support (Grundgerüst)
     parseMqttSensor(dataSource, sourceIndex = 0) {
         const state = this._hass.states[dataSource.entity];
         if (!state || !state.attributes) {
@@ -2873,6 +2872,8 @@ class FastSearchCard extends HTMLElement {
                             dataSource.entity.replace(/[^a-zA-Z0-9]/g, '_') || 
                             `mqtt_${sourceIndex}`;
         
+        console.log(`📡 Processing ${items.length} MQTT items with prefix: ${sourcePrefix}`);
+        
         return items.map((item, index) => ({
             id: `${sourcePrefix}_${item.id || index}`,
             name: item.name || `MQTT Item ${index + 1}`,
@@ -2882,7 +2883,7 @@ class FastSearchCard extends HTMLElement {
             state: 'available',
             attributes: {
                 friendly_name: item.name,
-                custom_type: 'mqtt_sensor',
+                custom_type: 'mqtt',
                 source_entity: dataSource.entity,
                 source_prefix: sourcePrefix,
                 source_index: sourceIndex
@@ -2890,7 +2891,7 @@ class FastSearchCard extends HTMLElement {
             icon: item.icon || dataSource.icon || '📡',
             isActive: false,
             custom_data: {
-                type: 'mqtt_sensor',
+                type: 'mqtt',
                 content: item.content || `# ${item.name}\n\nMQTT Eintrag`,
                 metadata: {
                     ...item,
@@ -4970,38 +4971,97 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
-    // NEU: MQTT Data speichern
     saveToMqtt(item, content) {
         console.log(`💾 Saving to MQTT: ${item.name}`);
         
-        // MQTT Topic generieren
-        const mqttTopic = `homeassistant/fast_search/custom/${item.id}`;
+        // Source Entity und Collection Info holen
+        const sourceEntity = item.attributes.source_entity;
+        const sourcePrefix = item.attributes.source_prefix;
         
-        const mqttPayload = {
-            id: item.id,
-            name: item.name,
-            content: content,
-            updated_at: new Date().toISOString(),
-            type: 'fast_search_custom',
-            source_prefix: item.attributes?.source_prefix
+        if (!sourceEntity) {
+            console.error('❌ No source entity for MQTT item');
+            this.showSaveStatus('error', 'MQTT Konfigurationsfehler!');
+            return;
+        }
+        
+        const state = this._hass.states[sourceEntity];
+        if (!state || !state.attributes) {
+            console.error('❌ Could not load current MQTT collection state');
+            this.showSaveStatus('error', 'MQTT Sensor nicht gefunden!');
+            return;
+        }
+        
+        // Aktuelle Items aus MQTT Sensor holen
+        let items = state.attributes.items || [];
+        if (typeof items === 'string') {
+            try {
+                items = JSON.parse(items);
+            } catch (e) {
+                console.error('❌ Failed to parse current MQTT items:', e);
+                this.showSaveStatus('error', 'MQTT Daten-Fehler!');
+                return;
+            }
+        }
+        
+        if (!Array.isArray(items)) {
+            console.error('❌ MQTT items is not an array');
+            this.showSaveStatus('error', 'MQTT Datenformat-Fehler!');
+            return;
+        }
+        
+        // Das spezifische Item in der Collection finden und updaten
+        const itemId = item.id.replace(`${sourcePrefix}_`, ''); // Remove prefix
+        const itemIndex = items.findIndex(i => i.id === itemId);
+        
+        if (itemIndex >= 0) {
+            // Update existing item
+            items[itemIndex] = {
+                ...items[itemIndex],
+                content: content,
+                last_modified: new Date().toISOString()
+            };
+            console.log(`✅ Updated existing item: ${itemId}`);
+        } else {
+            // Add as new item (fallback)
+            console.warn('⚠️ Item not found in collection, adding as new');
+            items.push({
+                id: itemId,
+                name: item.name,
+                content: content,
+                last_modified: new Date().toISOString()
+            });
+        }
+        
+        // MQTT Topic aus Source Entity ableiten
+        // z.B. sensor.cooking_bookmarks → homeassistant/fast_search/cooking_bookmarks/data
+        const entityName = sourceEntity.replace('sensor.', '');
+        const mqttTopic = `homeassistant/fast_search/${entityName}/data`;
+        
+        const payload = {
+            items: items,
+            count: items.length,
+            last_updated: new Date().toISOString(),
+            updated_by: 'fast_search_card'
         };
         
-        // MQTT Publish
+        console.log(`📡 Publishing to MQTT topic: ${mqttTopic}`);
+        
+        // MQTT Publish mit retain: true
         this._hass.callService('mqtt', 'publish', {
             topic: mqttTopic,
-            payload: JSON.stringify(mqttPayload),
-            retain: true  // Nachricht behalten für neue Subscriber
+            payload: JSON.stringify(payload),
+            retain: true  // 🔑 Persistent über Restarts!
         }).then(() => {
-            console.log('✅ MQTT publish erfolgreich:', mqttTopic);
+            console.log('✅ MQTT collection updated successfully');
             this.showSaveStatus('saved', 'Via MQTT gespeichert!');
             
-            // Lokales Update
+            // Lokales Update für sofortiges UI Feedback
             item.custom_data.content = content;
             this.updateViewTab(item);
             
         }).catch(error => {
-            console.error('❌ MQTT publish fehlgeschlagen:', error);
-            this.showSaveStatus('error', 'MQTT Fehler!');
+            console.error('❌ MQTT publish failed:', error);
+            this.showSaveStatus('error', 'MQTT Publish-Fehler!');
         });
     }
     
