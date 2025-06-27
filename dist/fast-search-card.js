@@ -2221,11 +2221,9 @@ class FastSearchCard extends HTMLElement {
             }
 
             .editor-info {
-                justify-self: center;  /* ← Mitte */
             }
             
             .markdown-help {
-                justify-self: end;  /* ← Rechts */
             }            
             
             .status-indicator[data-status="saving"]::before {
