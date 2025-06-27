@@ -4627,13 +4627,14 @@ class FastSearchCard extends HTMLElement {
     }
 
     getCustomDetailRightPaneHTML(item) {
-        const isEditable = item.custom_data.metadata?.storage_entity;
-
-        // NEU: Editierbar check - Static und MQTT sind editierbar
-        const isEditable = customData.type === 'static' || customData.type === 'mqtt';        
+        const customData = item.custom_data || {};
         
-        if (!isEditable) {
-            // Read-only: Nur Accordion View (Template Sensor)
+        // ÄNDERE: isEditable → isEditableInRightPane (oder anderen Namen)
+        const isEditableInRightPane = customData.type === 'static' || customData.type === 'mqtt' || 
+                                      (customData.type === 'template_sensor' && customData.metadata?.storage_entity);
+        
+        if (!isEditableInRightPane) {
+            // Read-only: Nur Accordion View
             return `
                 <div id="tab-content-container" style="padding: 20px;">
                     ${this.renderMarkdownAccordions(item.custom_data.content, item.name)}
@@ -4641,7 +4642,7 @@ class FastSearchCard extends HTMLElement {
             `;
         }
         
-        // Editable: Tab-System mit Editor (Static + MQTT)
+        // Editable: Tab-System mit Editor
         return `
             <div class="detail-tabs-container">
                 <div class="detail-tabs">
@@ -5215,13 +5216,10 @@ class FastSearchCard extends HTMLElement {
     setupCustomDetailTabs(item) {
         const customData = item.custom_data || {};
         
-        // NEU: Erweiterte Editierbar-Logik
-        const isEditable = 
-            // Template Sensor mit storage_entity (wie bisher)
+        // ÄNDERE: isEditable → isEditableInSetup (oder anderen Namen)
+        const isEditableInSetup = 
             (customData.type === 'template_sensor' && customData.metadata?.storage_entity) ||
-            // Static Data (immer editierbar)
             customData.type === 'static' ||
-            // MQTT Data (immer editierbar)
             customData.type === 'mqtt';
         
         if (!isEditable) {
