@@ -4770,7 +4770,6 @@ class FastSearchCard extends HTMLElement {
     }
     
     getCustomBackgroundImage(item) {
-        const baseUrl = 'https://raw.githubusercontent.com/fastender/Fast-Search-Card/refs/heads/main/docs/';
         const customData = item.custom_data || {};
         
         // 1. Prüfe ob Item ein eigenes Bild hat
