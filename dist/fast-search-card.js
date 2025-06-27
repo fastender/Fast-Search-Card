@@ -4834,6 +4834,31 @@ class FastSearchCard extends HTMLElement {
         };
     }
 
+    // NEU: showSaveStatus() Method hinzufügen
+    showSaveStatus(status, message) {
+        const statusIndicator = this.shadowRoot.querySelector('.status-indicator');
+        const statusText = this.shadowRoot.querySelector('.status-text');
+        
+        if (!statusIndicator || !statusText) {
+            console.warn('Status indicator elements not found');
+            return;
+        }
+        
+        // Update status
+        statusIndicator.dataset.status = status;
+        statusText.textContent = message;
+        
+        // Auto-clear nach 3 Sekunden (außer bei "ready")
+        if (status !== 'ready') {
+            setTimeout(() => {
+                statusIndicator.dataset.status = 'ready';
+                statusText.textContent = 'Bereit zum Bearbeiten';
+            }, 3000);
+        }
+        
+        console.log(`📱 Status: ${status} - ${message}`);
+    }    
+
     saveMarkdownContent(item, content) {
         const customData = item.custom_data || {};
         const customType = customData.type;
