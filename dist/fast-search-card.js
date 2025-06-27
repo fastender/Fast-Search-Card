@@ -283,6 +283,7 @@ class FastSearchCard extends HTMLElement {
 
             custom_mode: {
                 enabled: false,
+                data_sources: [],
                 data_source: null,
                 category_name: 'Custom',
                 icon: '📄', 
@@ -293,20 +294,27 @@ class FastSearchCard extends HTMLElement {
             ...config
         };
         
-        // Validierung
+        // Erweiterte Validierung
         const hasAutoDiscover = this._config.auto_discover;
         const hasEntities = this._config.entities && this._config.entities.length > 0;
         const hasCustomMode = this._config.custom_mode && this._config.custom_mode.enabled;
         
-        if (!hasAutoDiscover && !hasEntities && !hasCustomMode) {
-            throw new Error('Either auto_discover must be true, entities must be provided, or custom_mode must be enabled');
+        // NEU: Custom Mode Validierung
+        let hasValidCustomData = false;
+        if (hasCustomMode) {
+            const hasMultipleSources = this._config.custom_mode.data_sources && 
+                                      this._config.custom_mode.data_sources.length > 0;
+            const hasLegacySource = this._config.custom_mode.data_source;
+            hasValidCustomData = hasMultipleSources || hasLegacySource;
         }
         
-        // NEU HINZUFÜGEN nach der config Zuweisung:
-        this.currentViewMode = this._config.default_view || 'grid';
+        if (!hasAutoDiscover && !hasEntities && !hasValidCustomData) {
+            throw new Error('Either auto_discover must be true, entities must be provided, or custom_mode must be enabled with valid data sources');
+        }
         
+        this.currentViewMode = this._config.default_view || 'grid';
         this.render();
-    }    
+    }
 
     set hass(hass) {
         if (!hass) return;
@@ -2643,7 +2651,7 @@ class FastSearchCard extends HTMLElement {
         // 1.5. Custom Data Sources (NEU: IMMER prüfen, nicht nur bei activeCategory)
         if (this._config.custom_mode.enabled) {
             console.log(`🔄 Loading custom items...`);
-            const customItems = await this.parseCustomDataSource();
+            const customItems = await this.parseCustomDataSources();
             if (customItems && Array.isArray(customItems)) { // ← Sicherheitscheck hinzufügen
                 allEntityConfigs = [...allEntityConfigs, ...customItems];
                 console.log(`🍳 Custom items: ${customItems.length} items`);
@@ -2672,7 +2680,7 @@ class FastSearchCard extends HTMLElement {
             if (entityConfig.domain === 'custom') {
                 return entityConfig;
             }
-            
+
             // Regular HA entities
             const entityId = entityConfig.entity;
             const state = this._hass.states[entityId];
@@ -2704,16 +2712,174 @@ class FastSearchCard extends HTMLElement {
             return areaA.localeCompare(areaB);
         });
         
-        // NEU HINZUFÜGEN: MiniSearch Index erstellen/aktualisieren
-        this.rebuildSearchIndex();
-        
+        this.rebuildSearchIndex();      
         this.showCurrentCategoryItems();
         this.updateSubcategoryCounts();
         
         console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered, ${this.allItems.filter(i => i.domain === 'custom').length} custom)`);
     }
-    
 
+
+    // NEU: Hauptmethode für Multiple Data Sources
+    async parseCustomDataSources() {
+        const customMode = this._config.custom_mode;
+        let allCustomItems = [];
+        
+        // NEU: Multiple data_sources unterstützen
+        if (customMode.data_sources && customMode.data_sources.length > 0) {
+            console.log(`🔗 Processing ${customMode.data_sources.length} data sources...`);
+            
+            for (let i = 0; i < customMode.data_sources.length; i++) {
+                const dataSource = customMode.data_sources[i];
+                console.log(`📊 Processing data source ${i + 1}/${customMode.data_sources.length}: ${dataSource.type}`);
+                
+                try {
+                    const items = await this.parseSingleDataSource(dataSource, i);
+                    if (items && Array.isArray(items)) {
+                        allCustomItems = [...allCustomItems, ...items];
+                        console.log(`✅ Loaded ${items.length} items from ${dataSource.entity || dataSource.type}`);
+                    } else {
+                        console.warn(`⚠️ No items returned from data source ${i + 1}`);
+                    }
+                } catch (error) {
+                    console.error(`❌ Error processing data source ${i + 1}:`, error);
+                    continue; // Skip fehlerhafte Datenquelle, aber andere fortsetzen
+                }
+            }
+        }
+        // LEGACY: Einzelne data_source unterstützen (Rückwärtskompatibilität)
+        else if (customMode.data_source) {
+            console.log(`📄 Processing single legacy data source...`);
+            try {
+                allCustomItems = await this.parseSingleDataSource(customMode.data_source, 0);
+            } catch (error) {
+                console.error(`❌ Error processing legacy data source:`, error);
+                allCustomItems = [];
+            }
+        }
+        
+        console.log(`🎯 Total custom items loaded: ${allCustomItems.length}`);
+        return allCustomItems || [];
+    }
+    
+    // NEU: Einzelne Datenquelle verarbeiten
+    async parseSingleDataSource(dataSource, index = 0) {
+        // Validierung
+        if (!dataSource || !dataSource.type) {
+            console.warn('Invalid data source: missing type');
+            return [];
+        }
+        
+        console.log(`🔍 Parsing ${dataSource.type} data source:`, dataSource.entity || 'static');
+        
+        switch (dataSource.type) {
+            case 'template_sensor':
+                return this.parseTemplateSensor(dataSource, index);
+            case 'sensor': 
+                return this.parseSensor(dataSource, index);
+            case 'mqtt':
+                return this.parseMqttSensor(dataSource, index);
+            case 'static':
+                return this.parseStaticData(dataSource, index);
+            default:
+                console.warn(`Unknown data source type: ${dataSource.type}`);
+                return [];
+        }
+    }    
+
+
+    // NEU: Static Data Support
+    parseStaticData(dataSource, sourceIndex = 0) {
+        const items = dataSource.items || [];
+        const sourcePrefix = dataSource.prefix || `static_${sourceIndex}`;
+        
+        console.log(`📄 Processing ${items.length} static items with prefix: ${sourcePrefix}`);
+        
+        return items.map((item, index) => ({
+            id: `${sourcePrefix}_${item.id || index}`,
+            name: item.name || `Static Item ${index + 1}`,
+            domain: 'custom',
+            category: 'custom',
+            area: item.area || dataSource.area || this._config.custom_mode.area,
+            state: 'available',
+            attributes: {
+                friendly_name: item.name,
+                custom_type: 'static',
+                source_prefix: sourcePrefix,
+                source_index: sourceIndex
+            },
+            icon: item.icon || dataSource.icon || this._config.custom_mode.icon,
+            isActive: false,
+            custom_data: {
+                type: 'static',
+                content: item.content || `# ${item.name}\n\nStatischer Eintrag`,
+                metadata: {
+                    ...item,
+                    data_source: 'static',
+                    source_index: sourceIndex
+                }
+            }
+        }));
+    }
+    
+    // NEU: MQTT Sensor Support (Grundgerüst)
+    parseMqttSensor(dataSource, sourceIndex = 0) {
+        const state = this._hass.states[dataSource.entity];
+        if (!state || !state.attributes) {
+            console.warn(`MQTT Sensor not found: ${dataSource.entity}`);
+            return [];
+        }
+        
+        const contentAttr = dataSource.content_attribute || 'items';
+        let items = state.attributes[contentAttr];
+        
+        // Parse JSON string if needed
+        if (typeof items === 'string') {
+            try {
+                items = JSON.parse(items);
+            } catch (e) {
+                console.error('Failed to parse JSON from MQTT sensor:', e);
+                return [];
+            }
+        }
+        
+        if (!Array.isArray(items)) {
+            console.warn(`No valid array found in MQTT sensor ${contentAttr}`);
+            return [];
+        }
+    
+        const sourcePrefix = dataSource.prefix || 
+                            dataSource.entity.replace(/[^a-zA-Z0-9]/g, '_') || 
+                            `mqtt_${sourceIndex}`;
+        
+        return items.map((item, index) => ({
+            id: `${sourcePrefix}_${item.id || index}`,
+            name: item.name || `MQTT Item ${index + 1}`,
+            domain: 'custom',
+            category: 'custom',
+            area: item.area || dataSource.area || this._config.custom_mode.area,
+            state: 'available',
+            attributes: {
+                friendly_name: item.name,
+                custom_type: 'mqtt_sensor',
+                source_entity: dataSource.entity,
+                source_prefix: sourcePrefix,
+                source_index: sourceIndex
+            },
+            icon: item.icon || dataSource.icon || '📡',
+            isActive: false,
+            custom_data: {
+                type: 'mqtt_sensor',
+                content: item.content || `# ${item.name}\n\nMQTT Eintrag`,
+                metadata: {
+                    ...item,
+                    data_source: dataSource.entity,
+                    source_index: sourceIndex
+                }
+            }
+        }));
+    }
+    
     rebuildSearchIndex() {
         // Neuen Index erstellen
         this.searchIndex = new MiniSearch(this.searchOptions);
@@ -2863,24 +3029,10 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    async parseCustomDataSource() {
-        const dataSource = this._config.custom_mode.data_source;
-        
-        switch (dataSource.type) {
-            case 'template_sensor':
-                return this.parseTemplateSensor(dataSource);
-            case 'sensor': 
-                return this.parseSensor(dataSource);
-            default:
-                console.warn(`Unknown data source type: ${dataSource.type}`);
-                return [];
-        }
-    }
-
-    parseTemplateSensor(dataSource) {   
+    parseTemplateSensor(dataSource, sourceIndex = 0) {   
         const state = this._hass.states[dataSource.entity];
-
-        // HINZUFÜGEN: Sicherheitscheck
+        
+        // Sicherheitscheck
         if (!state || !state.attributes) {
             console.warn(`Template Sensor not found: ${dataSource.entity}`);
             return [];
@@ -2888,7 +3040,7 @@ class FastSearchCard extends HTMLElement {
         
         const contentAttr = dataSource.content_attribute || 'items';
         let items = state.attributes[contentAttr];
-
+        
         // Parse JSON string if needed
         if (typeof items === 'string') {
             try {
@@ -2904,9 +3056,13 @@ class FastSearchCard extends HTMLElement {
             return [];
         }
     
-        // ← HIER ERSETZEN:
+        // NEU: Source-Prefix für eindeutige IDs bei Multiple Sources
+        const sourcePrefix = dataSource.prefix || 
+                            dataSource.entity.replace(/[^a-zA-Z0-9]/g, '_') || 
+                            `source_${sourceIndex}`;
+    
         return items.map((item, index) => {
-            const storageEntity = item.storage_entity; // Der neue Schlüssel
+            const storageEntity = item.storage_entity; // Für editierbare Template Sensors
             let content = item.content || 'Kein Inhalt.'; // Fallback
     
             // Wenn eine storage_entity existiert, lies ihren Zustand aus
@@ -2915,23 +3071,32 @@ class FastSearchCard extends HTMLElement {
             }
     
             return {
-                id: `template_${dataSource.entity}_${item.id || index}`,
+                // NEU: Eindeutige ID mit Source-Prefix (statt hartkodiert "template_")
+                id: `${sourcePrefix}_${item.id || index}`,
                 name: item.name || `Item ${index + 1}`,
                 domain: 'custom',
                 category: 'custom',
-                area: item.area || this._config.custom_mode.area,
+                // NEU: area kann auch von dataSource kommen
+                area: item.area || dataSource.area || this._config.custom_mode.area,
                 state: 'available',
                 attributes: {
                     friendly_name: item.name,
                     custom_type: 'template_sensor',
-                    source_entity: dataSource.entity
+                    source_entity: dataSource.entity,
+                    source_prefix: sourcePrefix, // NEU: Für Debugging
+                    source_index: sourceIndex    // NEU: Für Debugging
                 },
-                icon: item.icon || this._config.custom_mode.icon,
+                // NEU: icon kann auch von dataSource kommen
+                icon: item.icon || dataSource.icon || this._config.custom_mode.icon,
                 isActive: false,
                 custom_data: {
                     type: 'template_sensor',
                     content: content, // Hier wird der korrekte Inhalt geladen
-                    metadata: item // Hier ist der storage_entity Name gespeichert
+                    metadata: {
+                        ...item, // Hier ist der storage_entity Name gespeichert
+                        data_source: dataSource.entity, // NEU: Quelle vermerken
+                        source_index: sourceIndex       // NEU: Index vermerken
+                    }
                 }
             };
         });
