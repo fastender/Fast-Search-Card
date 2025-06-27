@@ -1054,11 +1054,6 @@ class FastSearchCard extends HTMLElement {
                 padding-top: 20px;
                 padding-bottom: 10px;                
             }
-
-           @media (max-width: 768px) {
-                .detail-tabs-container {
-                    padding-right: 10px;
-                }
                 
             .detail-tabs {
                 position: relative;
