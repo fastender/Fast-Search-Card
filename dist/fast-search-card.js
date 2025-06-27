@@ -2218,6 +2218,7 @@ class FastSearchCard extends HTMLElement {
                 font-size: 13px;
                 color: var(--text-secondary);
                 justify-self: start;
+                line-height: 1.1em;
             }
 
             .editor-info {
@@ -4793,7 +4794,7 @@ class FastSearchCard extends HTMLElement {
                 
                 <div class="editor-footer">
                     <div class="status-indicator" data-status="ready">
-                        <span class="status-text">Bereit</span>
+                        <span class="status-text">Bereit zum Bearbeiten</span>
                     </div>
                     <div class="editor-info">
                         <small style="color: var(--text-secondary); font-size: 12px;">${saveInfo}</small>
