@@ -4025,7 +4025,7 @@ class FastSearchCard extends HTMLElement {
                 <button class="back-button">${newBackButtonSVG}</button>
                 <div class="detail-title-area">
                     <h3 class="detail-name">${item.name}</h3>
-                    <p class="detail-area">${item.area}</p>
+                    <p class="detail-area">${item.custom_data.metadata?.category || 'Custom'}</p>
                 </div>
             </div>
             <div class="icon-content">
@@ -4752,30 +4752,19 @@ class FastSearchCard extends HTMLElement {
 
 
     getCustomStatus(item) {
-        if (item.isActive) {
-            return 'Ausgewählt';
-        }
-        return 'Verfügbar';
+        return ''; // Leer statt "Verfügbar"
     }
     
     getCustomQuickStats(item) {
         const stats = [];
-        const customData = item.custom_data || {};
+        const metadata = item.custom_data?.metadata || {};
         
-        switch (customData.type) {
-            case 'template_sensor':
-                stats.push('Template Sensor');
-                if (customData.metadata && customData.metadata.category) {
-                    stats.push(customData.metadata.category);
-                }
-                break;
-            case 'sensor':
-                stats.push('Sensor Data');
-                if (customData.metadata && customData.metadata.sensor_state) {
-                    stats.push(`Status: ${customData.metadata.sensor_state}`);
-                }
-                break;
-        }
+        // Alle Felder außer content, name, id, icon, image_url
+        Object.entries(metadata).forEach(([key, value]) => {
+            if (!['content', 'name', 'id', 'icon', 'image_url'].includes(key)) {
+                stats.push(`${key}: ${value}`);
+            }
+        });
         
         return stats;
     }
@@ -4789,7 +4778,8 @@ class FastSearchCard extends HTMLElement {
             return customData.metadata.image_url;
         }
         
-        // 2. Fallback basierend auf Template Sensor Type
+        // 2. Fallback basierend auf Type
+        const baseUrl = 'https://raw.githubusercontent.com/fastender/Fast-Search-Card/refs/heads/main/docs/';
         switch (customData.type) {
             case 'template_sensor':
                 return baseUrl + 'template-sensor.png';
