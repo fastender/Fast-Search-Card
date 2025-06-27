@@ -2593,8 +2593,21 @@ class FastSearchCard extends HTMLElement {
         selectedButton.classList.add('active');
         selectedButton.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
         this.activeCategory = category;
+
+        // Reset subcategory mode für Custom
+        if (category === 'custom') {
+            this.subcategoryMode = 'categories'; // Start with categories for custom
+        } else {
+            this.subcategoryMode = 'categories'; // Standard mode for others
+        }        
+
+
+
+        
         this.updateCategoryIcon();
         this.updatePlaceholder();
+        this.updateSubcategoryToggleIcon();
+        this.updateSubcategoryChips();
         this.hideCategoryButtons();
         // this.expandPanel(); // ENTFERNT
         // this.showCurrentCategoryItems(); // ENTFERNT
@@ -3720,18 +3733,36 @@ class FastSearchCard extends HTMLElement {
     
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
         
-        if (this.subcategoryMode === 'areas') {
-            // Filter by area/room
+        if (this.activeCategory === 'custom') {
+            // Custom Category Filtering
+            if (this.subcategoryMode === 'categories') {
+                // Filter by metadata.category
+                this.filteredItems = categoryItems.filter(item => {
+                    const category = item.custom_data?.metadata?.category;
+                    return category === this.activeSubcategory;
+                });
+            } else if (this.subcategoryMode === 'areas') {
+                // Filter by area
+                this.filteredItems = categoryItems.filter(item => item.area === this.activeSubcategory);
+            } else if (this.subcategoryMode === 'types') {
+                // Filter by custom_data.type
+                this.filteredItems = categoryItems.filter(item => {
+                    const type = item.custom_data?.type;
+                    return type === this.activeSubcategory;
+                });
+            }
+        } else if (this.subcategoryMode === 'areas') {
+            // Standard area filtering
             this.filteredItems = categoryItems.filter(item => item.area === this.activeSubcategory);
         } else {
-            // Filter by device category (existing logic)
+            // Standard device category filtering
             const domainMap = { 'lights': ['light', 'switch'], 'climate': ['climate', 'fan'], 'covers': ['cover'], 'media': ['media_player'] };
             const domains = domainMap[this.activeSubcategory] || [];
             this.filteredItems = categoryItems.filter(item => domains.includes(item.domain));
         }
         
         this.renderResults();
-    }    
+    }
 
     renderResults() {
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
@@ -3884,7 +3915,17 @@ class FastSearchCard extends HTMLElement {
     }
 
     toggleSubcategoryMode() {
-        this.subcategoryMode = this.subcategoryMode === 'categories' ? 'areas' : 'categories';
+        if (this.activeCategory === 'custom') {
+            // Custom Category: 3 Modi cycling
+            const customModes = ['categories', 'areas', 'types'];
+            const currentIndex = customModes.indexOf(this.subcategoryMode);
+            const nextIndex = (currentIndex + 1) % customModes.length;
+            this.subcategoryMode = customModes[nextIndex];
+        } else {
+            // Standard: 2 Modi cycling
+            this.subcategoryMode = this.subcategoryMode === 'categories' ? 'areas' : 'categories';
+        }
+        
         this.updateSubcategoryToggleIcon();
         this.updateSubcategoryChips();
         this.activeSubcategory = 'all'; // Reset selection
@@ -3896,26 +3937,160 @@ class FastSearchCard extends HTMLElement {
         const categoriesIcon = subcategoryToggle.querySelector('.categories-icon');
         const areasIcon = subcategoryToggle.querySelector('.areas-icon');
         
-        if (this.subcategoryMode === 'areas') {
-            categoriesIcon.style.display = 'none';
-            areasIcon.style.display = 'block';
-            subcategoryToggle.title = 'Kategorien anzeigen';
+        // Verstecke alle Icons
+        categoriesIcon.style.display = 'none';
+        areasIcon.style.display = 'none';
+        
+        if (this.activeCategory === 'custom') {
+            // Custom Category Icons
+            if (this.subcategoryMode === 'categories') {
+                categoriesIcon.style.display = 'block';
+                subcategoryToggle.title = 'Nach Räumen filtern';
+            } else if (this.subcategoryMode === 'areas') {
+                areasIcon.style.display = 'block';
+                subcategoryToggle.title = 'Nach Typen filtern';
+            } else { // types
+                categoriesIcon.style.display = 'block';
+                subcategoryToggle.title = 'Nach Kategorien filtern';
+            }
         } else {
-            categoriesIcon.style.display = 'block';
-            areasIcon.style.display = 'none';
-            subcategoryToggle.title = 'Räume anzeigen';
+            // Standard Icons
+            if (this.subcategoryMode === 'areas') {
+                areasIcon.style.display = 'block';
+                subcategoryToggle.title = 'Kategorien anzeigen';
+            } else {
+                categoriesIcon.style.display = 'block';
+                subcategoryToggle.title = 'Räume anzeigen';
+            }
         }
     }
     
     updateSubcategoryChips() {
         const subcategoriesContainer = this.shadowRoot.querySelector('.subcategories');
         
-        if (this.subcategoryMode === 'areas') {
+        if (this.activeCategory === 'custom') {
+            this.renderCustomSubcategoryChips(subcategoriesContainer);
+        } else if (this.subcategoryMode === 'areas') {
             this.renderAreaChips(subcategoriesContainer);
         } else {
             this.renderCategoryChips(subcategoriesContainer);
         }
     }
+
+    renderCustomSubcategoryChips(container) {
+        const customItems = this.allItems.filter(item => item.domain === 'custom');
+        
+        if (this.subcategoryMode === 'categories') {
+            // Categories aus metadata sammeln
+            const categories = new Set();
+            customItems.forEach(item => {
+                const category = item.custom_data?.metadata?.category;
+                if (category) categories.add(category);
+            });
+            
+            const chipsHTML = ['Alle', ...Array.from(categories).sort(), 'Keine'].map(cat => {
+                const isActive = (cat === 'Alle' && this.activeSubcategory === 'all') || 
+                                (cat === this.activeSubcategory);
+                
+                let count;
+                if (cat === 'Alle') {
+                    count = customItems.length;
+                } else if (cat === 'Keine') {
+                    count = customItems.filter(item => !item.custom_data?.metadata?.category).length;
+                } else {
+                    count = customItems.filter(item => item.custom_data?.metadata?.category === cat).length;
+                }
+                
+                const subcategoryValue = cat === 'Alle' ? 'all' : 
+                                       cat === 'Keine' ? 'none' : cat;
+                
+                return `
+                    <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
+                        <div class="chip-content">
+                            <span class="subcategory-name">${cat}</span>
+                            <span class="subcategory-status">${count} Items</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = chipsHTML;
+            
+        } else if (this.subcategoryMode === 'areas') {
+            // Custom Areas (nur aus Custom Items)
+            const areas = new Set(customItems.map(item => item.area).filter(Boolean));
+            
+            const chipsHTML = ['Alle Räume', ...Array.from(areas).sort(), 'Keine'].map(area => {
+                const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
+                                (area === this.activeSubcategory);
+                
+                let count;
+                if (area === 'Alle Räume') {
+                    count = customItems.length;
+                } else if (area === 'Keine') {
+                    count = customItems.filter(item => !item.area).length;
+                } else {
+                    count = customItems.filter(item => item.area === area).length;
+                }
+                
+                const subcategoryValue = area === 'Alle Räume' ? 'all' : 
+                                       area === 'Keine' ? 'none' : area;
+                
+                return `
+                    <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
+                        <div class="chip-content">
+                            <span class="subcategory-name">${area}</span>
+                            <span class="subcategory-status">${count} Items</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = chipsHTML;
+            
+        } else if (this.subcategoryMode === 'types') {
+            // Custom Types
+            const types = new Set(customItems.map(item => item.custom_data?.type).filter(Boolean));
+            
+            const typeLabels = {
+                'template_sensor': 'Template Sensor',
+                'mqtt': 'MQTT',
+                'static': 'Static',
+                'sensor': 'Sensor'
+            };
+            
+            const chipsHTML = ['Alle', ...Array.from(types).sort(), 'Keine'].map(type => {
+                const isActive = (type === 'Alle' && this.activeSubcategory === 'all') || 
+                                (type === this.activeSubcategory);
+                
+                let count;
+                if (type === 'Alle') {
+                    count = customItems.length;
+                } else if (type === 'Keine') {
+                    count = customItems.filter(item => !item.custom_data?.type).length;
+                } else {
+                    count = customItems.filter(item => item.custom_data?.type === type).length;
+                }
+                
+                const displayName = type === 'Alle' || type === 'Keine' ? type : 
+                                   (typeLabels[type] || type);
+                
+                const subcategoryValue = type === 'Alle' ? 'all' : 
+                                       type === 'Keine' ? 'none' : type;
+                
+                return `
+                    <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
+                        <div class="chip-content">
+                            <span class="subcategory-name">${displayName}</span>
+                            <span class="subcategory-status">${count} Items</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = chipsHTML;
+        }
+    }    
     
     renderAreaChips(container) {
         // Get all unique areas from items
