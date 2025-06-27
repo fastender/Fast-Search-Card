@@ -4807,21 +4807,21 @@ class FastSearchCard extends HTMLElement {
         });
         
 
-        accordionHTML += `
-            <div class="accordion-item">
-                <div class="accordion-header ${isFirst ? 'active' : ''}" data-accordion="${index}">
-                    <span>${section.title}</span>
-                    <span class="accordion-arrow">
-                        <svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 12H12M18 12H12M12 12V6M12 12V18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                    </span>
-                </div>
-                <div class="accordion-content ${isFirst ? 'open' : ''}" data-content="${index}">
-                    ${section.content}
-                </div>
+    accordionHTML += `
+        <div class="accordion-item">
+            <div class="accordion-header ${isFirst ? 'active' : ''}" data-accordion="${index}">
+                <span>${section.title}</span>
+                <span class="accordion-arrow">
+                    <svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 12H12M18 12H12M12 12V6M12 12V18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </span>
             </div>
-        `;
+            <div class="accordion-content ${isFirst ? 'open' : ''}" data-content="${index}">
+                ${section.content}
+            </div>
+        </div>
+    `;
 
 
 
