@@ -2159,11 +2159,24 @@ class FastSearchCard extends HTMLElement {
                 padding: 16px;
                 overflow-y: auto;
                 box-sizing: border-box;
+                transition: width 0.3s ease;
             }
             
             .live-preview.hidden {
                 display: none;
             }
+
+            /* NEU: Full-Width Preview Mode */
+            .live-preview.fullwidth {
+                width: 100% !important;
+                left: 0;
+                right: 0;
+            }
+            
+            /* NEU: Textarea hidden when preview is fullwidth */
+            .markdown-textarea.preview-hidden {
+                display: none;
+            }            
             
             .preview-content {
                 color: var(--text-primary);
@@ -4836,24 +4849,22 @@ class FastSearchCard extends HTMLElement {
                 isPreviewMode = !isPreviewMode;
                 
                 if (isPreviewMode) {
-                    // Zeige Preview
+                    // Zeige Full-Width Preview (Editor versteckt)
                     livePreview.classList.remove('hidden');
-                    textarea.style.width = '50%';
+                    livePreview.classList.add('fullwidth');  // ← NEU: Full-width CSS class
+                    textarea.classList.add('preview-hidden'); // ← NEU: Textarea verstecken
                     previewBtn.classList.add('active');
                     
                     // Update Preview Content
                     const html = this.parseMarkdown(textarea.value);
                     previewContent.innerHTML = html;
                     
-                    // Live-Update beim Tippen
-                    textarea.addEventListener('input', this.updatePreview);
                 } else {
-                    // Verstecke Preview
+                    // Verstecke Preview, zeige Editor
                     livePreview.classList.add('hidden');
-                    textarea.style.width = '100%';
+                    livePreview.classList.remove('fullwidth');  // ← NEU: Full-width entfernen
+                    textarea.classList.remove('preview-hidden'); // ← NEU: Textarea wieder zeigen
                     previewBtn.classList.remove('active');
-                    
-                    textarea.removeEventListener('input', this.updatePreview);
                 }
             });
         }
