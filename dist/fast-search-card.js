@@ -2948,21 +2948,127 @@ class FastSearchCard extends HTMLElement {
     }
     
     rebuildSearchIndex() {
-        // Neuen Index erstellen
-        this.searchIndex = new MiniSearch(this.searchOptions);
+        // Standard search options für normale Items
+        const standardSearchOptions = {
+            fields: ['name', 'area', 'id'],
+            storeFields: ['id', 'name', 'domain', 'category', 'area', 'state', 'attributes', 'icon', 'isActive'],
+            idField: 'id',
+            searchOptions: {
+                boost: { 
+                    name: 1.0,
+                    area: 0.7,
+                    id: 0.3
+                },
+                fuzzy: 0.3
+            }
+        };
+    
+        // Erweiterte search options für Custom Items
+        const customSearchOptions = {
+            fields: [
+                'name',           // Item name
+                'area',           // Area
+                'id',             // ID
+                'content',        // Markdown content (VOLLTEXT!)
+                'category',       // metadata.category
+                'difficulty',     // metadata.difficulty  
+                'time',           // metadata.time
+                'icon',           // metadata.icon
+                'type',           // custom_data.type
+                'all_metadata'    // Alle metadata als String (flexibel für neue Felder)
+            ],
+            storeFields: ['id', 'name', 'domain', 'category', 'area', 'state', 'attributes', 'icon', 'isActive', 'custom_data'],
+            idField: 'id',
+            searchOptions: {
+                boost: { 
+                    name: 2.0,        // Höchste Priorität
+                    category: 1.5,    // Hoch für Kategorien
+                    difficulty: 1.2,  // Mittel-hoch
+                    time: 1.0,        // Standard
+                    content: 0.8,     // Niedriger für Volltext
+                    area: 0.7,        // Standard
+                    all_metadata: 0.5, // Niedrig für catch-all
+                    id: 0.3           // Niedrigste Priorität
+                },
+                fuzzy: 0.4  // Höhere Fuzzy-Toleranz für Custom
+            }
+        };
+    
+        // Erstelle zwei getrennte Indizes
+        this.searchIndex = new MiniSearch(standardSearchOptions);
+        this.customSearchIndex = new MiniSearch(customSearchOptions);
         
-        // Alle Items zum Index hinzufügen
         if (this.allItems && this.allItems.length > 0) {
             try {
-                this.searchIndex.addAll(this.allItems);
-                console.log(`Search index built with ${this.allItems.length} items`);
+                // Standard Items (non-custom)
+                const standardItems = this.allItems.filter(item => item.domain !== 'custom');
+                if (standardItems.length > 0) {
+                    this.searchIndex.addAll(standardItems);
+                }
+                
+                // Custom Items mit erweiterten Feldern
+                const customItems = this.allItems
+                    .filter(item => item.domain === 'custom')
+                    .map(item => this.enrichCustomItemForSearch(item));
+                    
+                if (customItems.length > 0) {
+                    this.customSearchIndex.addAll(customItems);
+                }
+                
+                console.log(`Search index built: ${standardItems.length} standard, ${customItems.length} custom items`);
             } catch (error) {
                 console.error('Error building search index:', error);
-                this.searchIndex = null; // Fallback to old search
+                this.searchIndex = null;
+                this.customSearchIndex = null;
             }
         }
-    }    
+    }
 
+    enrichCustomItemForSearch(item) {
+        const metadata = item.custom_data?.metadata || {};
+        const content = item.custom_data?.content || '';
+        
+        // Extrahiere alle Metadata-Werte als durchsuchbaren String
+        const allMetadataValues = Object.entries(metadata)
+            .filter(([key, value]) => 
+                key !== 'content' && // Content separat behandeln
+                typeof value === 'string' || typeof value === 'number'
+            )
+            .map(([key, value]) => `${key}:${value}`)
+            .join(' ');
+        
+        return {
+            ...item,
+            // Erweiterte Suchfelder
+            content: this.stripMarkdown(content),           // Content ohne Markdown-Syntax
+            category: metadata.category || '',              // z.B. "Hauptspeise"
+            difficulty: metadata.difficulty || '',          // z.B. "Mittel"
+            time: metadata.time || '',                      // z.B. "25 min"
+            icon: metadata.icon || item.icon || '',         // Icon
+            type: item.custom_data?.type || '',             // "template_sensor", "mqtt", etc.
+            all_metadata: allMetadataValues                 // Catch-all für neue Felder
+        };
+    }
+
+    stripMarkdown(markdown) {
+        if (!markdown) return '';
+        
+        return markdown
+            // Entferne Markdown-Syntax
+            .replace(/#{1,6}\s/g, '')           // Headers
+            .replace(/\*\*(.*?)\*\*/g, '$1')    // Bold
+            .replace /\*(.*?)\*/g, '$1')        // Italic
+            .replace(/`(.*?)`/g, '$1')          // Code
+            .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Links
+            .replace(/>\s/g, '')                // Blockquotes
+            .replace(/[-*+]\s/g, '')            // Lists
+            .replace(/\d+\.\s/g, '')            // Numbered lists
+            .replace(/\n+/g, ' ')               // Newlines zu Spaces
+            .replace(/\s+/g, ' ')               // Mehrfache Spaces
+            .trim();
+    }
+
+    
     discoverEntities() {
         if (!this._hass) {
             console.warn('HASS not available for auto-discovery');
@@ -3536,45 +3642,61 @@ class FastSearchCard extends HTMLElement {
     }    
 
     performSearch(query) {
-
-        const startTime = performance.now(); // Am Anfang hinzufügen
+        const startTime = performance.now();
         
         if (!query.trim()) { 
             this.showCurrentCategoryItems(); 
             return; 
         }
         
-        // Kategorie-Items für aktuellen Modus holen
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
         
-        // MiniSearch verwenden falls verfügbar
-        if (this.searchIndex && categoryItems.length > 0) {
+        if (this.activeCategory === 'custom' && this.customSearchIndex) {
+            // CUSTOM SEARCH mit erweitertem Index
             try {
-                // Suche mit MiniSearch - Fuzzy + Gewichtung
-                const searchResults = this.searchIndex.search(query);
+                const searchResults = this.customSearchIndex.search(query);
                 
-                // Ergebnisse nach aktueller Kategorie filtern
                 this.filteredItems = searchResults
-                    .filter(result => this.isItemInCategory(result, this.activeCategory))
+                    .filter(result => this.isItemInCategory(result, 'custom'))
                     .map(result => {
-                        // Original Item-Objekt mit Score anreichern
                         const originalItem = this.allItems.find(item => item.id === result.id);
                         return originalItem ? { ...originalItem, searchScore: result.score } : null;
                     })
                     .filter(Boolean);
                     
-                console.log(`MiniSearch found ${this.filteredItems.length} results for "${query}"`);
+                console.log(`Custom search found ${this.filteredItems.length} results for "${query}"`);
                 
             } catch (error) {
-                console.error('MiniSearch error, falling back to simple search:', error);
+                console.error('Custom search error, falling back:', error);
+                this.fallbackSearch(query, categoryItems);
+            }
+        } else if (this.searchIndex && categoryItems.length > 0) {
+            // STANDARD SEARCH
+            try {
+                const searchResults = this.searchIndex.search(query);
+                
+                this.filteredItems = searchResults
+                    .filter(result => this.isItemInCategory(result, this.activeCategory))
+                    .map(result => {
+                        const originalItem = this.allItems.find(item => item.id === result.id);
+                        return originalItem ? { ...originalItem, searchScore: result.score } : null;
+                    })
+                    .filter(Boolean);
+                    
+                console.log(`Standard search found ${this.filteredItems.length} results for "${query}"`);
+                
+            } catch (error) {
+                console.error('Standard search error, falling back:', error);
                 this.fallbackSearch(query, categoryItems);
             }
         } else {
-            // Fallback zur alten Suche
+            // FALLBACK SEARCH
             this.fallbackSearch(query, categoryItems);
         }
-
-        this.logSearchPerformance(query, startTime, 'MiniSearch', this.filteredItems.length);
+    
+        this.logSearchPerformance(query, startTime, 
+            this.activeCategory === 'custom' ? 'CustomSearch' : 'StandardSearch', 
+            this.filteredItems.length);
         this.renderResults();
     }
     
