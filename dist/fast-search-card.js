@@ -3083,11 +3083,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
  
-    parseTemplateSensor(dataSource, sourceIndex = 0) {   
-        console.log('🚨 parseTemplateSensor CALLED!', dataSource.entity);
-        console.log('🔥 parseTemplateSensor AUFGERUFEN!');
-        console.log('🔥 dataSource:', dataSource);
-        
+    parseTemplateSensor(dataSource, sourceIndex = 0) {           
         const state = this._hass.states[dataSource.entity];
         
         if (!state || !state.attributes) {
@@ -3097,8 +3093,6 @@ class FastSearchCard extends HTMLElement {
         
         const contentAttr = dataSource.content_attribute || 'items';
         let items = state.attributes[contentAttr];
-
-        console.log('🔥 RAW items from state:', items);
         
         // Parse logic...
         if (typeof items === 'string') {
@@ -3118,11 +3112,6 @@ class FastSearchCard extends HTMLElement {
         const sourcePrefix = dataSource.prefix || 
                             dataSource.entity.replace(/[^a-zA-Z0-9]/g, '_') || 
                             `source_${sourceIndex}`;
-    
-        // 🔍 DEBUG: Schaue was in den Items steht
-        console.log('🔍 DEBUG Template Sensor Items:');
-        console.log('DataSource:', dataSource);
-        console.log('Items:', items);
     
         return items.map((item, index) => {
             const storageEntity = item.storage_entity;
@@ -3151,12 +3140,6 @@ class FastSearchCard extends HTMLElement {
             else {
                 itemArea = 'Ohne Raum';
             }
-    
-            console.log(`🏠 Processing ${item.name}:`);
-            console.log(`  - item.area: "${item.area}"`);
-            console.log(`  - dataSource.area: "${dataSource.area}"`);
-            console.log(`  - config area: "${this._config.custom_mode?.area}"`);
-            console.log(`  - Final area: "${itemArea}"`);
     
             return {
                 id: `${sourcePrefix}_${item.id || index}`,
@@ -3332,7 +3315,6 @@ class FastSearchCard extends HTMLElement {
         // Wrap lists
         html = html.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
         
-        console.log('🎨 Parsed Markdown:', html);
         return html;
     }
 
@@ -5139,11 +5121,7 @@ class FastSearchCard extends HTMLElement {
 
     
 
-    renderMarkdownAccordions(markdownContent, title) {
-        console.log('🎨 Rendering accordions for:', title);
-        console.log('🎨 RAW markdown content received:', markdownContent);
-        console.log('🎨 Content type:', typeof markdownContent);
-        console.log('🎨 Content length:', markdownContent?.length);        
+    renderMarkdownAccordions(markdownContent, title) {  
         
         if (!markdownContent || markdownContent === 'unknown' || markdownContent === 'NO_CONTENT_FOUND') {
             return `
@@ -5156,7 +5134,6 @@ class FastSearchCard extends HTMLElement {
         
         // Parse Markdown zu HTML
         const html = this.parseMarkdown(markdownContent);
-        console.log('🎨 Parsed HTML:', html);
         
         // Split nach H2 Überschriften für Accordions
         const sections = this.extractAccordionSections(html);
@@ -5211,7 +5188,6 @@ class FastSearchCard extends HTMLElement {
             });
         }
         
-        console.log('📋 Extracted sections:', sections);
         return sections;
     }
 
@@ -5295,13 +5271,8 @@ class FastSearchCard extends HTMLElement {
     getCustomBackgroundImage(item) {
             const customData = item.custom_data || {};
             
-            console.log('🖼️ getCustomBackgroundImage called for:', item.name);
-            console.log('🖼️ customData:', customData);
-            console.log('🖼️ metadata:', customData.metadata);
-            
             // 1. Prüfe ob Item ein eigenes Bild hat
             if (customData.metadata && customData.metadata.image_url) {
-                console.log('✅ Found image_url:', customData.metadata.image_url);
                 return customData.metadata.image_url;
             }
             
