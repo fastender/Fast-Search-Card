@@ -4628,9 +4628,12 @@ class FastSearchCard extends HTMLElement {
 
     getCustomDetailRightPaneHTML(item) {
         const isEditable = item.custom_data.metadata?.storage_entity;
+
+        // NEU: Editierbar check - Static und MQTT sind editierbar
+        const isEditable = customData.type === 'static' || customData.type === 'mqtt';        
         
         if (!isEditable) {
-            // Read-only Template Sensor: Nur Accordion View
+            // Read-only: Nur Accordion View (Template Sensor)
             return `
                 <div id="tab-content-container" style="padding: 20px;">
                     ${this.renderMarkdownAccordions(item.custom_data.content, item.name)}
@@ -4638,7 +4641,7 @@ class FastSearchCard extends HTMLElement {
             `;
         }
         
-        // Editable (MQTT/Text Entity): Tab-System mit Editor
+        // Editable: Tab-System mit Editor (Static + MQTT)
         return `
             <div class="detail-tabs-container">
                 <div class="detail-tabs">
@@ -4670,6 +4673,26 @@ class FastSearchCard extends HTMLElement {
 
     getMarkdownEditorHTML(item) {
         const currentContent = item.custom_data.content || '';
+        const customData = item.custom_data || {};
+        const customType = customData.type;
+        
+        // Type-spezifische Info und Attribute
+        let saveInfo = '';
+        let dataAttributes = `data-item-id="${item.id}" data-item-type="${customType}"`;
+        
+        if (customType === 'static') {
+            saveInfo = '💾 Speichert lokal im Browser (nicht persistent zwischen Sessions)';
+        } else if (customType === 'mqtt') {
+            saveInfo = '📡 Speichert via MQTT (persistent auf Server)';
+        } else if (customType === 'template_sensor') {
+            const storageEntity = customData.metadata?.storage_entity;
+            if (storageEntity) {
+                saveInfo = `🏠 Speichert in Home Assistant Entity: ${storageEntity}`;
+                dataAttributes += ` data-storage-entity="${storageEntity}"`;
+            } else {
+                saveInfo = '👁️ Read-Only Template Sensor';
+            }
+        }
         
         return `
             <div class="markdown-editor-container">
@@ -4695,7 +4718,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="editor-content">
                     <textarea 
                         class="markdown-textarea" 
-                        data-item-id="${item.id}"
+                        ${dataAttributes}
                         placeholder="# Dein Titel
     
     ## Sektion 1
@@ -4717,6 +4740,9 @@ class FastSearchCard extends HTMLElement {
                 <div class="editor-footer">
                     <div class="status-indicator" data-status="ready">
                         <span class="status-text">Bereit zum Bearbeiten</span>
+                    </div>
+                    <div class="editor-info">
+                        <small style="color: var(--text-secondary); font-size: 12px;">${saveInfo}</small>
                     </div>
                     <div class="markdown-help">
                         <details>
@@ -4808,16 +4834,42 @@ class FastSearchCard extends HTMLElement {
     }
 
     saveMarkdownContent(item, content) {
-        console.log(`💾 Saving content for ${item.name}...`);
+        const customData = item.custom_data || {};
+        const customType = customData.type;
+        
+        console.log(`💾 Saving content for ${item.name} (Type: ${customType})`);
         this.showSaveStatus('saving', 'Wird gespeichert...');
     
-        // Finde die Speicher-Entität aus den Metadaten
+        switch (customType) {
+            case 'template_sensor':
+                this.saveToInputText(item, content);
+                break;
+                
+            case 'static':
+                this.saveToStatic(item, content);
+                break;
+                
+            case 'mqtt':
+                this.saveToMqtt(item, content);
+                break;
+                
+            default:
+                console.error('❌ Unbekannter Custom Type:', customType);
+                this.showSaveStatus('error', 'Unbekannter Datentyp!');
+                // Fallback: Lokales Update
+                item.custom_data.content = content;
+                this.updateViewTab(item);
+        }
+    }
+    
+    // Template Sensor (bestehende Logik)
+    saveToInputText(item, content) {
         const storageEntity = item.custom_data?.metadata?.storage_entity;
     
         if (!storageEntity) {
-            console.error('❌ Keine storage_entity für dieses Item definiert. Speichern nicht möglich.');
+            console.error('❌ Keine storage_entity für dieses Template Sensor Item definiert.');
             this.showSaveStatus('error', 'Speicher-Entität fehlt!');
-            // Fallback: Lokales Speichern, damit die UI zumindest reagiert
+            // Fallback: Lokales Speichern
             item.custom_data.content = content;
             this.updateViewTab(item);
             return;
@@ -4831,13 +4883,78 @@ class FastSearchCard extends HTMLElement {
             console.log('✅ Content erfolgreich gespeichert in:', storageEntity);
             this.showSaveStatus('saved', 'Gespeichert!');
     
-            // Update den lokalen Zustand, um sofortiges Feedback zu geben
+            // Update den lokalen Zustand
             item.custom_data.content = content;
             this.updateViewTab(item);
     
         }).catch(error => {
             console.error('❌ Fehler beim Speichern des input_text:', error);
             this.showSaveStatus('error', 'Fehler beim Speichern!');
+        });
+    }
+    
+    // NEU: Static Data speichern (Browser LocalStorage)
+    saveToStatic(item, content) {
+        console.log(`💾 Saving static content: ${item.name}`);
+        
+        try {
+            const storageKey = `fast_search_static_${item.id}`;
+            const staticData = {
+                content: content,
+                updated_at: new Date().toISOString(),
+                item_id: item.id,
+                item_name: item.name
+            };
+            
+            // Browser localStorage verwenden
+            localStorage.setItem(storageKey, JSON.stringify(staticData));
+            
+            this.showSaveStatus('saved', 'Lokal gespeichert!');
+            
+            // Lokales Update für sofortiges Feedback
+            item.custom_data.content = content;
+            this.updateViewTab(item);
+            
+            console.log(`✅ Static content saved to localStorage: ${storageKey}`);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim lokalen Speichern:', error);
+            this.showSaveStatus('error', 'Speichern fehlgeschlagen!');
+        }
+    }
+    
+    // NEU: MQTT Data speichern
+    saveToMqtt(item, content) {
+        console.log(`💾 Saving to MQTT: ${item.name}`);
+        
+        // MQTT Topic generieren
+        const mqttTopic = `homeassistant/fast_search/custom/${item.id}`;
+        
+        const mqttPayload = {
+            id: item.id,
+            name: item.name,
+            content: content,
+            updated_at: new Date().toISOString(),
+            type: 'fast_search_custom',
+            source_prefix: item.attributes?.source_prefix
+        };
+        
+        // MQTT Publish
+        this._hass.callService('mqtt', 'publish', {
+            topic: mqttTopic,
+            payload: JSON.stringify(mqttPayload),
+            retain: true  // Nachricht behalten für neue Subscriber
+        }).then(() => {
+            console.log('✅ MQTT publish erfolgreich:', mqttTopic);
+            this.showSaveStatus('saved', 'Via MQTT gespeichert!');
+            
+            // Lokales Update
+            item.custom_data.content = content;
+            this.updateViewTab(item);
+            
+        }).catch(error => {
+            console.error('❌ MQTT publish fehlgeschlagen:', error);
+            this.showSaveStatus('error', 'MQTT Fehler!');
         });
     }
     
@@ -5096,7 +5213,16 @@ class FastSearchCard extends HTMLElement {
         }
     
     setupCustomDetailTabs(item) {
-        const isEditable = item.custom_data.metadata?.storage_entity;
+        const customData = item.custom_data || {};
+        
+        // NEU: Erweiterte Editierbar-Logik
+        const isEditable = 
+            // Template Sensor mit storage_entity (wie bisher)
+            (customData.type === 'template_sensor' && customData.metadata?.storage_entity) ||
+            // Static Data (immer editierbar)
+            customData.type === 'static' ||
+            // MQTT Data (immer editierbar)
+            customData.type === 'mqtt';
         
         if (!isEditable) {
             // Read-only: Nur Accordion Logic
@@ -5139,7 +5265,7 @@ class FastSearchCard extends HTMLElement {
         this.setupAccordionListeners();
         this.setupMarkdownEditor(item);
     }
-    
+        
 
 
     setupAccordionListeners() {
