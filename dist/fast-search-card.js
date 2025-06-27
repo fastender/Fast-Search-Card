@@ -4683,12 +4683,11 @@ class FastSearchCard extends HTMLElement {
     getCustomDetailRightPaneHTML(item) {
         const customData = item.custom_data || {};
         
-        // ÄNDERE: isEditable → isEditableInRightPane (oder anderen Namen)
-        const isEditableInRightPane = customData.type === 'static' || customData.type === 'mqtt' || 
-                                      (customData.type === 'template_sensor' && customData.metadata?.storage_entity);
+        // NUR MQTT ist editierbar
+        const isEditable = customData.type === 'mqtt';
         
-        if (!isEditableInRightPane) {
-            // Read-only: Nur Accordion View
+        if (!isEditable) {
+            // Read-only: Nur Accordion View (Template Sensor + Static)
             return `
                 <div id="tab-content-container" style="padding: 20px;">
                     ${this.renderMarkdownAccordions(item.custom_data.content, item.name)}
@@ -4696,7 +4695,7 @@ class FastSearchCard extends HTMLElement {
             `;
         }
         
-        // Editable: Tab-System mit Editor
+        // Editable: Tab-System mit Editor (nur MQTT)
         return `
             <div class="detail-tabs-container">
                 <div class="detail-tabs">
@@ -4731,22 +4730,14 @@ class FastSearchCard extends HTMLElement {
         const customData = item.custom_data || {};
         const customType = customData.type;
         
-        // Type-spezifische Info und Attribute
+        // Nur für MQTT relevante Info
         let saveInfo = '';
         let dataAttributes = `data-item-id="${item.id}" data-item-type="${customType}"`;
         
-        if (customType === 'static') {
-            saveInfo = '💾 Speichert lokal im Browser (nicht persistent zwischen Sessions)';
-        } else if (customType === 'mqtt') {
-            saveInfo = '📡 Persistent';
-        } else if (customType === 'template_sensor') {
-            const storageEntity = customData.metadata?.storage_entity;
-            if (storageEntity) {
-                saveInfo = `🏠 Speichert in Home Assistant Entity: ${storageEntity}`;
-                dataAttributes += ` data-storage-entity="${storageEntity}"`;
-            } else {
-                saveInfo = '👁️ Read-Only Template Sensor';
-            }
+        if (customType === 'mqtt') {
+            saveInfo = '📡 Speichert via MQTT (persistent auf Server)';
+        } else {
+            saveInfo = '🚫 Dieser Item-Typ ist nicht editierbar';
         }
         
         return `
@@ -4755,17 +4746,10 @@ class FastSearchCard extends HTMLElement {
                     <div class="editor-title">📝 ${item.name} bearbeiten</div>
                     <div class="editor-controls">
                         <button class="editor-btn" data-action="save" title="Speichern">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                                <polyline points="17,21 17,13 7,13 7,21"/>
-                                <polyline points="7,3 7,8 15,8"/>
-                            </svg>
+                            <!-- Save SVG -->
                         </button>
-                        <button class="editor-btn" data-action="preview" title="Live-Preview">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
+                        <button class="editor-btn" data-action="preview" title="Full-Preview">
+                            <!-- Preview SVG -->
                         </button>
                     </div>
                 </div>
@@ -4800,18 +4784,7 @@ class FastSearchCard extends HTMLElement {
                         <small style="color: var(--text-secondary); font-size: 12px;">${saveInfo}</small>
                     </div>
                     <div class="markdown-help">
-                        <details>
-                            <summary>📚 Hilfe</summary>
-                            <div class="help-content">
-                                <strong># Überschrift 1</strong><br>
-                                <strong>## Überschrift 2</strong><br>
-                                <strong>**fett**</strong> → <strong>fett</strong><br>
-                                <strong>*kursiv*</strong> → <em>kursiv</em><br>
-                                <strong>- Liste</strong> → • Liste<br>
-                                <strong>1. Nummeriert</strong> → 1. Nummeriert<br>
-                                <strong>> Zitat</strong> → Blockquote
-                            </div>
-                        </details>
+                        <!-- Markdown Hilfe -->
                     </div>
                 </div>
             </div>
@@ -4918,25 +4891,13 @@ class FastSearchCard extends HTMLElement {
         console.log(`💾 Saving content for ${item.name} (Type: ${customType})`);
         this.showSaveStatus('saving', 'Wird gespeichert...');
     
-        switch (customType) {
-            case 'template_sensor':
-                this.saveToInputText(item, content);
-                break;
-                
-            case 'static':
-                this.saveToStatic(item, content);
-                break;
-                
-            case 'mqtt':
-                this.saveToMqtt(item, content);
-                break;
-                
-            default:
-                console.error('❌ Unbekannter Custom Type:', customType);
-                this.showSaveStatus('error', 'Unbekannter Datentyp!');
-                // Fallback: Lokales Update
-                item.custom_data.content = content;
-                this.updateViewTab(item);
+        // NUR MQTT unterstützen
+        if (customType === 'mqtt') {
+            this.saveToMqtt(item, content);
+        } else {
+            console.error('❌ Editieren nur für MQTT Items erlaubt:', customType);
+            this.showSaveStatus('error', 'Nur MQTT Items sind editierbar!');
+            return;
         }
     }
     
@@ -5352,11 +5313,8 @@ class FastSearchCard extends HTMLElement {
     setupCustomDetailTabs(item) {
         const customData = item.custom_data || {};
         
-        // DIESE ZEILE FEHLT - Variable definieren:
-        const isEditable = 
-            (customData.type === 'template_sensor' && customData.metadata?.storage_entity) ||
-            customData.type === 'static' ||
-            customData.type === 'mqtt';
+        // NUR MQTT ist editierbar
+        const isEditable = customData.type === 'mqtt';
         
         if (!isEditable) {
             // Read-only: Nur Accordion Logic
@@ -5364,7 +5322,7 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // Editable: Full Tab System + Editor
+        // Editable: Full Tab System + Editor (nur für MQTT)
         const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
         if (tabsContainer) {
             const tabs = tabsContainer.querySelectorAll('.detail-tab');
