@@ -3082,11 +3082,10 @@ class FastSearchCard extends HTMLElement {
             return 'Ohne Raum';
         }
     }
-
+ 
     parseTemplateSensor(dataSource, sourceIndex = 0) {   
         const state = this._hass.states[dataSource.entity];
         
-        // Sicherheitscheck
         if (!state || !state.attributes) {
             console.warn(`Template Sensor not found: ${dataSource.entity}`);
             return [];
@@ -3095,7 +3094,7 @@ class FastSearchCard extends HTMLElement {
         const contentAttr = dataSource.content_attribute || 'items';
         let items = state.attributes[contentAttr];
         
-        // Parse JSON string if needed
+        // Parse logic...
         if (typeof items === 'string') {
             try {
                 items = JSON.parse(items);
@@ -3110,46 +3109,56 @@ class FastSearchCard extends HTMLElement {
             return [];
         }
     
-        // NEU: Source-Prefix für eindeutige IDs bei Multiple Sources
         const sourcePrefix = dataSource.prefix || 
                             dataSource.entity.replace(/[^a-zA-Z0-9]/g, '_') || 
                             `source_${sourceIndex}`;
     
-        return items.map((item, index) => {
-            const storageEntity = item.storage_entity; // Für editierbare Template Sensors
-            let content = item.content || 'Kein Inhalt.'; // Fallback
+        // 🔍 DEBUG: Schaue was in den Items steht
+        console.log('🔍 DEBUG Template Sensor Items:');
+        console.log('DataSource area:', dataSource.area);
+        console.log('Items:', items);
     
-            // Wenn eine storage_entity existiert, lies ihren Zustand aus
+        return items.map((item, index) => {
+            const storageEntity = item.storage_entity;
+            let content = item.content || 'Kein Inhalt.';
+    
             if (storageEntity && this._hass.states[storageEntity]) {
                 content = this._hass.states[storageEntity].state;
             }
     
+            // 🔍 DEBUG: Area Logic
+            console.log(`🏠 Processing ${item.name}:`);
+            console.log(`  - item.area: "${item.area}"`);
+            console.log(`  - dataSource.area: "${dataSource.area}"`);
+            console.log(`  - custom_mode.area: "${this._config.custom_mode.area}"`);
+    
+            let itemArea = item.area || dataSource.area || this._config.custom_mode.area || 'Ohne Raum';
+            
+            console.log(`  - Final area: "${itemArea}"`);
+    
             return {
-                // NEU: Eindeutige ID mit Source-Prefix (statt hartkodiert "template_")
                 id: `${sourcePrefix}_${item.id || index}`,
                 name: item.name || `Item ${index + 1}`,
                 domain: 'custom',
                 category: 'custom',
-                // NEU: area kann auch von dataSource kommen
-                area: item.area || dataSource.area || this._config.custom_mode.area,
+                area: itemArea,
                 state: 'available',
                 attributes: {
                     friendly_name: item.name,
                     custom_type: 'template_sensor',
                     source_entity: dataSource.entity,
-                    source_prefix: sourcePrefix, // NEU: Für Debugging
-                    source_index: sourceIndex    // NEU: Für Debugging
+                    source_prefix: sourcePrefix,
+                    source_index: sourceIndex
                 },
-                // NEU: icon kann auch von dataSource kommen
                 icon: item.icon || dataSource.icon || this._config.custom_mode.icon,
                 isActive: false,
                 custom_data: {
                     type: 'template_sensor',
-                    content: content, // Hier wird der korrekte Inhalt geladen
+                    content: content,
                     metadata: {
-                        ...item, // Hier ist der storage_entity Name gespeichert
-                        data_source: dataSource.entity, // NEU: Quelle vermerken
-                        source_index: sourceIndex       // NEU: Index vermerken
+                        ...item,
+                        data_source: dataSource.entity,
+                        source_index: sourceIndex
                     }
                 }
             };
