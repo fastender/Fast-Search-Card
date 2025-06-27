@@ -3084,7 +3084,7 @@ class FastSearchCard extends HTMLElement {
     }
  
     parseTemplateSensor(dataSource, sourceIndex = 0) {   
-
+        console.log('🚨 parseTemplateSensor CALLED!', dataSource.entity);
         console.log('🔥 parseTemplateSensor AUFGERUFEN!');
         console.log('🔥 dataSource:', dataSource);
         
