@@ -2052,11 +2052,13 @@ class FastSearchCard extends HTMLElement {
             
             /* Markdown Editor Styles */
             .markdown-editor-container {
-                padding: 20px;
+                padding: 0px;
                 height: 100%;
                 display: flex;
                 flex-direction: column;
                 gap: 16px;
+                max-width: 100%;
+                box-sizing: border-box;
             }
             
             .editor-header {
@@ -2112,6 +2114,8 @@ class FastSearchCard extends HTMLElement {
                 flex: 1;
                 position: relative;
                 min-height: 300px;
+                max-width: 100%;
+                box-sizing: border-box;
             }
             
             .markdown-textarea {
@@ -2129,6 +2133,8 @@ class FastSearchCard extends HTMLElement {
                 resize: vertical;
                 outline: none;
                 transition: all 0.2s ease;
+                max-width: 100%;
+                box-sizing: border-box;
             }
             
             .markdown-textarea:focus {
@@ -2152,6 +2158,7 @@ class FastSearchCard extends HTMLElement {
                 border-radius: 12px;
                 padding: 16px;
                 overflow-y: auto;
+                box-sizing: border-box;
             }
             
             .live-preview.hidden {
