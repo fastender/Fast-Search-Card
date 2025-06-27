@@ -5216,8 +5216,8 @@ class FastSearchCard extends HTMLElement {
     setupCustomDetailTabs(item) {
         const customData = item.custom_data || {};
         
-        // ÄNDERE: isEditable → isEditableInSetup (oder anderen Namen)
-        const isEditableInSetup = 
+        // DIESE ZEILE FEHLT - Variable definieren:
+        const isEditable = 
             (customData.type === 'template_sensor' && customData.metadata?.storage_entity) ||
             customData.type === 'static' ||
             customData.type === 'mqtt';
