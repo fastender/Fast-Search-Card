@@ -2153,8 +2153,8 @@ class FastSearchCard extends HTMLElement {
                 right: 0;
                 width: 50%;
                 height: 100%;
-                background: rgba(255,255,255,0.05);
-                border: 1px solid rgba(255,255,255,0.1);
+                background: rgba(0,0,0,0.35);
+                border: 1px solid rgba(0,0,0,0.35);
                 border-radius: 12px;
                 padding: 16px;
                 overflow-y: auto;
@@ -4730,7 +4730,7 @@ class FastSearchCard extends HTMLElement {
         if (customType === 'static') {
             saveInfo = '💾 Speichert lokal im Browser (nicht persistent zwischen Sessions)';
         } else if (customType === 'mqtt') {
-            saveInfo = '📡 Speichert via MQTT (persistent auf Server)';
+            saveInfo = '📡 Speichert via MQTT';
         } else if (customType === 'template_sensor') {
             const storageEntity = customData.metadata?.storage_entity;
             if (storageEntity) {
@@ -4793,7 +4793,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
                     <div class="markdown-help">
                         <details>
-                            <summary>📚 Markdown Hilfe</summary>
+                            <summary>📚 Hilfe</summary>
                             <div class="help-content">
                                 <strong># Überschrift 1</strong><br>
                                 <strong>## Überschrift 2</strong><br>
