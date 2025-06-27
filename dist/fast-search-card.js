@@ -4770,24 +4770,32 @@ class FastSearchCard extends HTMLElement {
     }
     
     getCustomBackgroundImage(item) {
-        const customData = item.custom_data || {};
-        
-        // 1. Prüfe ob Item ein eigenes Bild hat
-        if (customData.metadata && customData.metadata.image_url) {
-            return customData.metadata.image_url;
+            const customData = item.custom_data || {};
+            
+            console.log('🖼️ getCustomBackgroundImage called for:', item.name);
+            console.log('🖼️ customData:', customData);
+            console.log('🖼️ metadata:', customData.metadata);
+            
+            // 1. Prüfe ob Item ein eigenes Bild hat
+            if (customData.metadata && customData.metadata.image_url) {
+                console.log('✅ Found image_url:', customData.metadata.image_url);
+                return customData.metadata.image_url;
+            }
+            
+            // 2. Fallback basierend auf Type
+            const baseUrl = 'https://raw.githubusercontent.com/fastender/Fast-Search-Card/refs/heads/main/docs/';
+            const fallbackImage = baseUrl + 'custom-default.png';
+            console.log('⚠️ Using fallback image:', fallbackImage);
+            
+            switch (customData.type) {
+                case 'template_sensor':
+                    return baseUrl + 'template-sensor.png';
+                case 'sensor':
+                    return baseUrl + 'sensor-data.png';
+                default:
+                    return fallbackImage;
+            }
         }
-        
-        // 2. Fallback basierend auf Type
-        const baseUrl = 'https://raw.githubusercontent.com/fastender/Fast-Search-Card/refs/heads/main/docs/';
-        switch (customData.type) {
-            case 'template_sensor':
-                return baseUrl + 'template-sensor.png';
-            case 'sensor':
-                return baseUrl + 'sensor-data.png';
-            default:
-                return baseUrl + 'custom-default.png';
-        }
-    }
     
     setupCustomDetailTabs(item) {
         const isEditable = item.custom_data.metadata?.storage_entity;
