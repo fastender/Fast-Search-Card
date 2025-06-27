@@ -2266,7 +2266,6 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(0,0,0,0.3);
                 border-radius: 8px;
                 font-size: 12px;
-                line-height: 1.4;
             }
 
 
@@ -4740,7 +4739,7 @@ class FastSearchCard extends HTMLElement {
         if (customType === 'static') {
             saveInfo = '💾 Speichert lokal im Browser (nicht persistent zwischen Sessions)';
         } else if (customType === 'mqtt') {
-            saveInfo = '📡 Speichert via MQTT';
+            saveInfo = '📡 Persistent';
         } else if (customType === 'template_sensor') {
             const storageEntity = customData.metadata?.storage_entity;
             if (storageEntity) {
@@ -4796,7 +4795,7 @@ class FastSearchCard extends HTMLElement {
                 
                 <div class="editor-footer">
                     <div class="status-indicator" data-status="ready">
-                        <span class="status-text">Bereit zum Bearbeiten</span>
+                        <span class="status-text">Bereit</span>
                     </div>
                     <div class="editor-info">
                         <small style="color: var(--text-secondary); font-size: 12px;">${saveInfo}</small>
