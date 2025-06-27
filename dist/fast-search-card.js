@@ -4764,6 +4764,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     
+
     renderMarkdownAccordions(markdownContent, title) {
         console.log('🎨 Rendering accordions for:', title);
         console.log('🎨 RAW markdown content received:', markdownContent);
@@ -4810,14 +4811,13 @@ class FastSearchCard extends HTMLElement {
             `;
         });
         
-
         accordionHTML += `
                 </div>
             </div>
         `;
         
         return accordionHTML;
-   
+    } // <- DIESE KLAMMER HAT GEFEHLT!
     
     // NEUE METHODE - AUSSERHALB der renderMarkdownAccordions Methode
     extractAccordionSections(html) {
