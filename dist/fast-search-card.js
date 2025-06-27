@@ -3115,7 +3115,7 @@ class FastSearchCard extends HTMLElement {
     
         // 🔍 DEBUG: Schaue was in den Items steht
         console.log('🔍 DEBUG Template Sensor Items:');
-        console.log('DataSource area:', dataSource.area);
+        console.log('DataSource:', dataSource);
         console.log('Items:', items);
     
         return items.map((item, index) => {
@@ -3126,14 +3126,30 @@ class FastSearchCard extends HTMLElement {
                 content = this._hass.states[storageEntity].state;
             }
     
-            // 🔍 DEBUG: Area Logic
+            // 🔍 FIXED: Verbesserte Area Logic - Item area hat höchste Priorität
+            let itemArea;
+            
+            // 1. Priorität: Area direkt am Item definiert
+            if (item.area && item.area.trim() !== '') {
+                itemArea = item.area.trim();
+            }
+            // 2. Priorität: Area in der dataSource definiert  
+            else if (dataSource.area && dataSource.area.trim() !== '') {
+                itemArea = dataSource.area.trim();
+            }
+            // 3. Priorität: Global definierte Area in custom_mode
+            else if (this._config.custom_mode?.area && this._config.custom_mode.area.trim() !== '') {
+                itemArea = this._config.custom_mode.area.trim();
+            }
+            // 4. Fallback
+            else {
+                itemArea = 'Ohne Raum';
+            }
+    
             console.log(`🏠 Processing ${item.name}:`);
             console.log(`  - item.area: "${item.area}"`);
             console.log(`  - dataSource.area: "${dataSource.area}"`);
-            console.log(`  - custom_mode.area: "${this._config.custom_mode.area}"`);
-    
-            let itemArea = item.area || dataSource.area || this._config.custom_mode.area || 'Ohne Raum';
-            
+            console.log(`  - config area: "${this._config.custom_mode?.area}"`);
             console.log(`  - Final area: "${itemArea}"`);
     
             return {
@@ -3148,15 +3164,17 @@ class FastSearchCard extends HTMLElement {
                     custom_type: 'template_sensor',
                     source_entity: dataSource.entity,
                     source_prefix: sourcePrefix,
-                    source_index: sourceIndex
+                    source_index: sourceIndex,
+                    area: itemArea  // 🆕 Explizit auch in attributes setzen
                 },
-                icon: item.icon || dataSource.icon || this._config.custom_mode.icon,
+                icon: item.icon || dataSource.icon || this._config.custom_mode?.icon,
                 isActive: false,
                 custom_data: {
                     type: 'template_sensor',
                     content: content,
                     metadata: {
                         ...item,
+                        area: itemArea,  // 🆕 Auch in metadata
                         data_source: dataSource.entity,
                         source_index: sourceIndex
                     }
