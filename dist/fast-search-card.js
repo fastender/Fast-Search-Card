@@ -5264,11 +5264,28 @@ class FastSearchCard extends HTMLElement {
         return ''; // Leer statt "Verfügbar"
     }
     
-
     getCustomQuickStats(item) {
         const stats = [];
         const metadata = item.custom_data?.metadata || {};
-        const quickStatsConfig = this._config.custom_mode?.quick_stats || [];
+        
+        // NEU: quick_stats von der spezifischen Data Source lesen
+        const sourceEntity = item.attributes?.source_entity;
+        let quickStatsConfig = [];
+        
+        // Finde die Data Source Config für dieses Item
+        if (this._config.custom_mode?.data_sources) {
+            const dataSource = this._config.custom_mode.data_sources.find(ds => 
+                ds.entity === sourceEntity || 
+                (ds.type === 'static' && item.attributes?.source_prefix?.startsWith(ds.prefix))
+            );
+            
+            quickStatsConfig = dataSource?.quick_stats || [];
+        }
+        
+        // Fallback: Global quick_stats (bestehende Logik)
+        if (quickStatsConfig.length === 0) {
+            quickStatsConfig = this._config.custom_mode?.quick_stats || [];
+        }
         
         quickStatsConfig.forEach(statConfig => {
             const value = metadata[statConfig.field];
@@ -5280,7 +5297,7 @@ class FastSearchCard extends HTMLElement {
         });
         
         return stats;
-    }    
+    }
     
     getCustomBackgroundImage(item) {
             const customData = item.custom_data || {};
