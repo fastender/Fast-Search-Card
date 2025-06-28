@@ -2959,7 +2959,7 @@ class FastSearchCard extends HTMLElement {
                     area: 0.7,
                     id: 0.3
                 },
-                fuzzy: 0.3
+                fuzzy: 0.4
             }
         };
     
@@ -2990,7 +2990,7 @@ class FastSearchCard extends HTMLElement {
                     all_metadata: 0.5, // Niedrig für catch-all
                     id: 0.3           // Niedrigste Priorität
                 },
-                fuzzy: 0.4  // Höhere Fuzzy-Toleranz für Custom
+                fuzzy: 0.5  // Höhere Fuzzy-Toleranz für Custom
             }
         };
     
@@ -3469,6 +3469,187 @@ class FastSearchCard extends HTMLElement {
         };
     }    
 
+    preprocessQuery(query) {
+        let processedQuery = query.toLowerCase().trim();
+        
+        // 1. Entferne häufige Leerzeichen-Probleme
+        processedQuery = processedQuery.replace(/\s+/g, ' '); // Mehrfache Leerzeichen
+        
+        // 2. Normalisiere häufige Schreibweisen
+        const normalizations = {
+            // Zeit-Normalisierungen
+            'min': ' min',
+            'mins': ' min',
+            'minuten': ' min',
+            'stunden': ' h',
+            'std': ' h',
+            
+            // Häufige Tippfehler (für deine Rezepte)
+            'carboanra': 'carbonara',
+            'carbonnara': 'carbonara', 
+            'tiramisu': 'tiramisu',
+            'tiramisù': 'tiramisu',
+            'tiramisú': 'tiramisu',
+            'margherita': 'margherita',
+            'margarita': 'margherita', // Häufiger Fehler
+            'margarhita': 'margherita',
+            
+            // Akzent-Normalisierung
+            'café': 'cafe',
+            'crème': 'creme',
+            'naïve': 'naive'
+        };
+        
+        // Wende Normalisierungen an
+        Object.entries(normalizations).forEach(([wrong, correct]) => {
+            const regex = new RegExp(`\\b${wrong}\\b`, 'gi');
+            processedQuery = processedQuery.replace(regex, correct);
+        });
+        
+        // 3. Entferne häufige Füllwörter bei Custom Search
+        if (this.activeCategory === 'custom') {
+            const stopWords = ['der', 'die', 'das', 'und', 'oder', 'mit', 'ohne', 'für', 'von', 'zu', 'in', 'an', 'auf'];
+            const words = processedQuery.split(' ');
+            const filteredWords = words.filter(word => 
+                word.length > 2 && !stopWords.includes(word)
+            );
+            
+            // Nur filtern wenn genug Wörter übrig bleiben
+            if (filteredWords.length > 0 && filteredWords.length >= words.length * 0.5) {
+                processedQuery = filteredWords.join(' ');
+            }
+        }
+        
+        return processedQuery;
+    }    
+
+    enhanceSearchResults(results, originalQuery) {
+        // Zusätzliche Fuzzy-Matches für sehr ähnliche Begriffe
+        const enhancedResults = [...results];
+        
+        if (results.length < 3 && originalQuery.length >= 4) {
+            // Versuche ähnliche Begriffe zu finden
+            const similarMatches = this.findSimilarMatches(originalQuery);
+            enhancedResults.push(...similarMatches);
+        }
+        
+        // Sortiere nach Relevanz (Score + String-Ähnlichkeit)
+        enhancedResults.sort((a, b) => {
+            const scoreA = a.searchScore || a.score || 0;
+            const scoreB = b.searchScore || b.score || 0;
+            
+            // Bei ähnlichen Scores: bevorzuge exakte Matches
+            if (Math.abs(scoreA - scoreB) < 0.1) {
+                const exactMatchA = a.name.toLowerCase().includes(originalQuery.toLowerCase()) ? 1 : 0;
+                const exactMatchB = b.name.toLowerCase().includes(originalQuery.toLowerCase()) ? 1 : 0;
+                return exactMatchB - exactMatchA;
+            }
+            
+            return scoreB - scoreA;
+        });
+        
+        // Entferne Duplikate
+        const uniqueResults = enhancedResults.filter((item, index, array) => 
+            array.findIndex(other => other.id === item.id) === index
+        );
+        
+        return uniqueResults;
+    }    
+
+    calculateContentSimilarity(query, content) {
+        if (!content || query.length < 3) return 0;
+        
+        const cleanContent = this.stripMarkdown(content).toLowerCase();
+        const queryWords = query.toLowerCase().split(' ').filter(w => w.length > 2);
+        
+        let totalSimilarity = 0;
+        let matchedWords = 0;
+        
+        queryWords.forEach(word => {
+            // Suche ähnliche Wörter im Content
+            const contentWords = cleanContent.split(' ').filter(w => w.length > 2);
+            
+            for (const contentWord of contentWords) {
+                const similarity = this.calculateStringSimilarity(word, contentWord);
+                if (similarity > 0.7) {
+                    totalSimilarity += similarity;
+                    matchedWords++;
+                    break; // Nur besten Match pro Query-Word
+                }
+            }
+        });
+        
+        return matchedWords > 0 ? totalSimilarity / queryWords.length : 0;
+    }
+    
+    calculateStringSimilarity(str1, str2) {
+        // Levenshtein Distance implementierung (vereinfacht)
+        const matrix = [];
+        const len1 = str1.length;
+        const len2 = str2.length;
+        
+        if (len1 === 0) return len2 === 0 ? 1 : 0;
+        if (len2 === 0) return 0;
+        
+        // Matrix initialisieren
+        for (let i = 0; i <= len1; i++) {
+            matrix[i] = [i];
+        }
+        for (let j = 0; j <= len2; j++) {
+            matrix[0][j] = j;
+        }
+        
+        // Matrix füllen
+        for (let i = 1; i <= len1; i++) {
+            for (let j = 1; j <= len2; j++) {
+                const cost = str1[i-1] === str2[j-1] ? 0 : 1;
+                matrix[i][j] = Math.min(
+                    matrix[i-1][j] + 1,     // Deletion
+                    matrix[i][j-1] + 1,     // Insertion  
+                    matrix[i-1][j-1] + cost // Substitution
+                );
+            }
+        }
+        
+        // Ähnlichkeit berechnen (0-1)
+        const maxLen = Math.max(len1, len2);
+        return 1 - (matrix[len1][len2] / maxLen);
+    }    
+
+    findSimilarMatches(query) {
+        const similarMatches = [];
+        const categoryItems = this.allItems.filter(item => 
+            this.isItemInCategory(item, this.activeCategory)
+        );
+        
+        categoryItems.forEach(item => {
+            const similarity = this.calculateStringSimilarity(query.toLowerCase(), item.name.toLowerCase());
+            
+            // Wenn sehr ähnlich (>70%), als Match betrachten
+            if (similarity > 0.7) {
+                similarMatches.push({
+                    ...item,
+                    searchScore: similarity * 0.8, // Etwas niedrigerer Score als exakte Matches
+                    fuzzyMatch: true
+                });
+            }
+            
+            // Auch Content durchsuchen bei Custom Items
+            if (item.domain === 'custom' && item.custom_data?.content) {
+                const contentSimilarity = this.calculateContentSimilarity(query, item.custom_data.content);
+                if (contentSimilarity > 0.6) {
+                    similarMatches.push({
+                        ...item,
+                        searchScore: contentSimilarity * 0.6,
+                        fuzzyMatch: true
+                    });
+                }
+            }
+        });
+        
+        return similarMatches;
+    }    
+
     normalizeFilterKey(key) {
         // Mapping von verschiedenen Bezeichnungen zu Standard-Keys
         const keyMappings = {
@@ -3722,15 +3903,19 @@ class FastSearchCard extends HTMLElement {
             return; 
         }
         
+        // NEU: Query preprocessing
+        const preprocessedQuery = this.preprocessQuery(query);
+        
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
         
-        // NEU: Parse Filter-Syntax
-        const parsedQuery = this.parseFilterSyntax(query);
+        // KORREKTUR: Parse Filter-Syntax mit preprocessedQuery (nicht original query)
+        const parsedQuery = this.parseFilterSyntax(preprocessedQuery);
         const searchQuery = parsedQuery.cleanedQuery;
         
         if (parsedQuery.filters.length > 0) {
             console.log('Filter-Syntax detected:', {
-                original: parsedQuery.originalQuery,
+                original: query,
+                preprocessed: preprocessedQuery,  // ← NEU hinzugefügt
                 cleaned: parsedQuery.cleanedQuery,
                 filters: parsedQuery.filters
             });
@@ -3744,6 +3929,9 @@ class FastSearchCard extends HTMLElement {
                 if (searchQuery.trim()) {
                     // Normale Suche mit Rest-Query
                     searchResults = this.customSearchIndex.search(searchQuery);
+                    
+                    // ← NEU: Enhance results mit Fuzzy Matching
+                    searchResults = this.enhanceSearchResults(searchResults, query);
                 } else {
                     // Nur Filter, keine Text-Suche → alle Custom Items
                     searchResults = categoryItems.map(item => ({ ...item, score: 1 }));
@@ -3753,22 +3941,22 @@ class FastSearchCard extends HTMLElement {
                     .filter(result => this.isItemInCategory(result, 'custom'))
                     .map(result => {
                         const originalItem = this.allItems.find(item => item.id === result.id);
-                        return originalItem ? { ...originalItem, searchScore: result.score } : null;
+                        return originalItem ? { ...originalItem, searchScore: result.score || result.searchScore } : null;  // ← KORREKTUR
                     })
                     .filter(Boolean);
                 
-                // NEU: Filter-Syntax anwenden
+                // Filter-Syntax anwenden
                 filteredResults = this.applyFilterSyntax(filteredResults, parsedQuery.filters);
                 
                 this.filteredItems = filteredResults;
-                console.log(`Custom search with filters: ${this.filteredItems.length} results (${parsedQuery.filters.length} filters applied)`);
+                console.log(`Enhanced Custom search: ${this.filteredItems.length} results (${parsedQuery.filters.length} filters applied)`);  // ← GEÄNDERT
                 
             } catch (error) {
                 console.error('Custom search error, falling back:', error);
                 this.fallbackSearch(query, categoryItems);
             }
         } else if (this.searchIndex && categoryItems.length > 0) {
-            // STANDARD SEARCH (ohne Filter-Syntax für non-custom)
+            // STANDARD SEARCH mit preprocessing
             try {
                 const searchResults = this.searchIndex.search(searchQuery);
                 
@@ -3780,7 +3968,7 @@ class FastSearchCard extends HTMLElement {
                     })
                     .filter(Boolean);
                     
-                console.log(`Standard search found ${this.filteredItems.length} results`);
+                console.log(`Enhanced Standard search: ${this.filteredItems.length} results`);  // ← GEÄNDERT
                 
             } catch (error) {
                 console.error('Standard search error, falling back:', error);
@@ -3791,7 +3979,7 @@ class FastSearchCard extends HTMLElement {
             this.fallbackSearch(query, categoryItems);
         }
     
-        this.logSearchPerformance(query, startTime, 'FilterSearch', this.filteredItems.length);
+        this.logSearchPerformance(query, startTime, 'EnhancedFuzzySearch', this.filteredItems.length);  // ← GEÄNDERT
         this.renderResults();
     }
 
