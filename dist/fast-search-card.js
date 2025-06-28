@@ -2279,32 +2279,41 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 justify-content: flex-start;
                 padding-top: 60px;
-                background: transparent; /* Transparenter Hintergrund */
+                background: transparent;
                 z-index: 1000;
-                pointer-events: none; /* ← HINZUFÜGEN: Verhindert Klick-Blockierung */
+                pointer-events: none;
+                opacity: 0; /* ← HINZUFÜGEN: Initial unsichtbar */
             }
             
             .greeting-content {
                 display: flex;
                 align-items: center;
                 gap: 16px;
-                margin-bottom: 50px; /* Mindestens 50px Abstand zur Suchkarte */
+                margin-bottom: 50px;
                 pointer-events: auto;
+                opacity: 0; /* ← HINZUFÜGEN: Initial unsichtbar */
+                transform: translateY(30px) scale(0.9); /* ← HINZUFÜGEN */
             }
             
             .greeting-icon {
                 width: 50px;
                 height: auto;
+                opacity: 0; /* ← HINZUFÜGEN: Initial unsichtbar */
+                transform: scale(0.8); /* ← HINZUFÜGEN */
             }
             
             .greeting-text {
                 font-size: 24px;
                 font-weight: 600;
                 color: var(--text-primary);
+                opacity: 0; /* ← HINZUFÜGEN: Initial unsichtbar */
+                transform: translateX(20px); /* ← HINZUFÜGEN */
             }
             
             .main-container {
-                margin-top: 120px; /* Platz für Begrüßung + 50px Abstand */
+                margin-top: 120px;
+                opacity: 0; /* ← HINZUFÜGEN: Initial unsichtbar */
+                transform: translateY(30px); /* ← HINZUFÜGEN */
             }
 
                                     
@@ -2531,77 +2540,93 @@ class FastSearchCard extends HTMLElement {
         const greetingTextEl = this.shadowRoot.getElementById('greeting-text');
         const greetingContent = this.shadowRoot.getElementById('greeting-content');
         const greetingIcon = this.shadowRoot.getElementById('greeting-icon');
-        const mainContainer = this.shadowRoot.getElementById('main-container');
+        const greetingOverlay = this.shadowRoot.getElementById('greeting-overlay');
         
         if (greetingTextEl) {
             greetingTextEl.textContent = greetingText;
         }
         
-        // Initial state: Begrüßung unsichtbar, Suchkarte unsichtbar
-        greetingContent.style.opacity = '0';
-        greetingContent.style.transform = 'translateY(30px) scale(0.9)';
-        greetingIcon.style.opacity = '0';
-        greetingTextEl.style.opacity = '0';
-        mainContainer.style.opacity = '0';
-        mainContainer.style.transform = 'translateY(30px)';
-        
-        // 1. Begrüßung animiert einblenden
-        greetingContent.animate([
-            { opacity: 0, transform: 'translateY(30px) scale(0.9)' },
-            { opacity: 1, transform: 'translateY(0) scale(1)' }
-        ], {
-            duration: 800,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
-        
-        // 2. Icon fade in (nach 200ms)
-        setTimeout(() => {
-            greetingIcon.animate([
-                { opacity: 0, transform: 'scale(0.8)' },
-                { opacity: 1, transform: 'scale(1)' }
+        // Warte etwas länger vor Begrüßungs-Animation
+        setTimeout(async () => {
+            // 1. Overlay einblenden
+            greetingOverlay.animate([
+                { opacity: 0 },
+                { opacity: 1 }
             ], {
-                duration: 600,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                duration: 400,
+                easing: 'ease-out',
                 fill: 'forwards'
             });
-        }, 200);
-        
-        // 3. Text slide in (nach 400ms)
-        setTimeout(() => {
-            greetingTextEl.animate([
-                { opacity: 0, transform: 'translateX(20px)' },
-                { opacity: 1, transform: 'translateX(0)' }
-            ], {
-                duration: 700,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                fill: 'forwards'
-            });
-        }, 400);
-        
-        // 4. Nach 1.5 Sekunden Suchkarte einblenden
-        setTimeout(() => {
-            this.showMainCard();
-        }, 1500);
+            
+            // 2. Content container slide in (nach 200ms)
+            setTimeout(() => {
+                greetingContent.animate([
+                    { opacity: 0, transform: 'translateY(30px) scale(0.9)' },
+                    { opacity: 1, transform: 'translateY(0) scale(1)' }
+                ], {
+                    duration: 800,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    fill: 'forwards'
+                });
+            }, 200);
+            
+            // 3. Icon fade in (nach 600ms)
+            setTimeout(() => {
+                greetingIcon.animate([
+                    { opacity: 0, transform: 'scale(0.8)' },
+                    { opacity: 1, transform: 'scale(1)' }
+                ], {
+                    duration: 800,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    fill: 'forwards'
+                });
+            }, 600);
+            
+            // 4. Text slide in (nach 900ms)
+            setTimeout(() => {
+                greetingTextEl.animate([
+                    { opacity: 0, transform: 'translateX(20px)' },
+                    { opacity: 1, transform: 'translateX(0)' }
+                ], {
+                    duration: 900,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    fill: 'forwards'
+                });
+            }, 900);
+            
+            // 5. Nach 2.5 Sekunden Suchkarte elegant einblenden
+            setTimeout(() => {
+                this.showMainCard();
+            }, 2500);
+            
+        }, 800); // ← Längere Verzögerung vor Begrüßung
     }
     
-
 
     showMainCard() {
         const mainContainer = this.shadowRoot.getElementById('main-container');
         
         if (mainContainer) {
-            // Suchkarte animiert einblenden
+            // Elegantes Fade-in der Suchkarte
             mainContainer.animate([
-                { opacity: 0, transform: 'translateY(30px)' },
-                { opacity: 1, transform: 'translateY(0)' }
+                { 
+                    opacity: 0, 
+                    transform: 'translateY(40px) scale(0.95)',
+                    filter: 'blur(5px)'
+                },
+                { 
+                    opacity: 1, 
+                    transform: 'translateY(0) scale(1)',
+                    filter: 'blur(0px)'
+                }
             ], {
-                duration: 800,
+                duration: 1200,
                 easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 fill: 'forwards'
             });
         }
-    }    
+    }
+    
 
 
         
