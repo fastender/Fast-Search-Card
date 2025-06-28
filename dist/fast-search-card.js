@@ -4064,7 +4064,9 @@ class FastSearchCard extends HTMLElement {
                 console.log('⏰ Timeout fired, checking autocomplete type:', value);
                 
                 // NEU: Prüfe zuerst Filter-Autocomplete
+                console.log('🔧 About to call updateFilterAutocomplete...');
                 const usedFilterAutocomplete = this.updateFilterAutocomplete(value);
+                console.log('🔧 Filter autocomplete result:', usedFilterAutocomplete);
                 
                 if (!usedFilterAutocomplete) {
                     // Standard Autocomplete nur wenn kein Filter-Autocomplete
@@ -4177,16 +4179,25 @@ class FastSearchCard extends HTMLElement {
                 
                 if (suggestions.length > 0) {
                     const suggestion = suggestions[0];
-                    const fullSuggestion = query.replace(filterValue, suggestion);
-                    this.showSuggestion(query, fullSuggestion);
-                    return true; // Filter-Autocomplete verwendet
+                    
+                    // ✅ KORREKTUR: Prüfe ob Suggestion mit filterValue beginnt
+                    if (suggestion.toLowerCase().startsWith(filterValue.toLowerCase())) {
+                        // ✅ KORREKTUR: Korrekte Regex-Ersetzung
+                        const fullSuggestion = query.replace(new RegExp(`${filterKey}:${filterValue}$`), `${filterKey}:${suggestion}`);
+                        this.showSuggestion(query, fullSuggestion);
+                        return true; // Filter-Autocomplete verwendet
+                    }
                 }
+                
+                // ✅ NEU: Auch wenn keine Suggestions, trotzdem als Filter-Autocomplete behandeln
+                this.clearSuggestion();
+                return true; // Verhindert Standard-Autocomplete
             }
         }
         
         // Erkenne unvollständige Filter-Keys
         const partialFilterMatch = query.match(/(\w+)$/);
-        if (partialFilterMatch) {
+        if (partialFilterMatch && !query.includes(':')) {
             const partialKey = partialFilterMatch[1].toLowerCase();
             const filterKeys = ['typ:', 'kategorie:', 'raum:', 'schwierigkeit:', 'zeit:', 'status:', 'priority:'];
             
@@ -4202,7 +4213,7 @@ class FastSearchCard extends HTMLElement {
         }
         
         return false; // Kein Filter-Autocomplete
-    }    
+    }  
 
     getFilterValueSuggestions(filterKey, partialValue) {
             const customItems = this.allItems.filter(item => item.domain === 'custom');
