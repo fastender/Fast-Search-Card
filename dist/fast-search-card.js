@@ -2281,6 +2281,7 @@ class FastSearchCard extends HTMLElement {
                 padding-top: 60px;
                 background: transparent; /* Transparenter Hintergrund */
                 z-index: 1000;
+                pointer-events: none; /* ← HINZUFÜGEN: Verhindert Klick-Blockierung */
             }
             
             .greeting-content {
@@ -2288,6 +2289,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 gap: 16px;
                 margin-bottom: 50px; /* Mindestens 50px Abstand zur Suchkarte */
+                pointer-events: auto;
             }
             
             .greeting-icon {
@@ -2325,7 +2327,7 @@ class FastSearchCard extends HTMLElement {
                 </div>
             </div>
 
-            <div class="main-container"> id="main-container">
+            <div class="main-container" id="main-container">
                 <div class="search-row">
                     <div class="search-panel glass-panel">
                     
@@ -2583,6 +2585,8 @@ class FastSearchCard extends HTMLElement {
         }, 1500);
     }
     
+
+
     showMainCard() {
         const mainContainer = this.shadowRoot.getElementById('main-container');
         
@@ -2597,7 +2601,7 @@ class FastSearchCard extends HTMLElement {
                 fill: 'forwards'
             });
         }
-    }
+    }    
 
 
         
