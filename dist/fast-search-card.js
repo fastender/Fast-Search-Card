@@ -4169,7 +4169,7 @@ class FastSearchCard extends HTMLElement {
         console.log('🎯 updateFilterAutocomplete called with:', query);
         
         // Erkenne ob User Filter-Syntax tippt
-        const filterMatch = query.match(/(\w+):(\w*)$/);
+        const filterMatch = query.match(/([^\s:]+):([^\s:]*)$/);
         console.log('🔍 Filter match:', filterMatch);
         
         if (filterMatch) {
