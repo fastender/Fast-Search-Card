@@ -4166,33 +4166,53 @@ class FastSearchCard extends HTMLElement {
     }
 
     updateFilterAutocomplete(query) {
+        console.log('🎯 updateFilterAutocomplete called with:', query);
+        
         // Erkenne ob User Filter-Syntax tippt
         const filterMatch = query.match(/(\w+):(\w*)$/);
+        console.log('🔍 Filter match:', filterMatch);
         
         if (filterMatch) {
             const [, filterKey, filterValue] = filterMatch;
+            console.log('🔑 Filter parts:', { filterKey, filterValue });
+            
             const normalizedKey = this.normalizeFilterKey(filterKey.toLowerCase());
+            console.log('🎲 Normalized key:', normalizedKey);
             
             if (normalizedKey && this.activeCategory === 'custom') {
+                console.log('✅ Valid filter key and custom category');
+                
                 // Zeige verfügbare Werte für den Filter-Key
                 const suggestions = this.getFilterValueSuggestions(normalizedKey, filterValue);
+                console.log('💡 Filter suggestions:', suggestions);
                 
                 if (suggestions.length > 0) {
                     const suggestion = suggestions[0];
+                    console.log('🎯 Best suggestion:', suggestion);
                     
                     // ✅ KORREKTUR: Prüfe ob Suggestion mit filterValue beginnt
                     if (suggestion.toLowerCase().startsWith(filterValue.toLowerCase())) {
                         // ✅ KORREKTUR: Korrekte Regex-Ersetzung
                         const fullSuggestion = query.replace(new RegExp(`${filterKey}:${filterValue}$`), `${filterKey}:${suggestion}`);
+                        console.log(`💡 Filter Suggestion: "${query}" → "${fullSuggestion}"`);
                         this.showSuggestion(query, fullSuggestion);
                         return true; // Filter-Autocomplete verwendet
+                    } else {
+                        console.log('❌ Suggestion does not start with filter value');
                     }
+                } else {
+                    console.log('❌ No suggestions found');
                 }
                 
                 // ✅ NEU: Auch wenn keine Suggestions, trotzdem als Filter-Autocomplete behandeln
+                console.log(`⚠️ No filter suggestions found, but still filter syntax`);
                 this.clearSuggestion();
                 return true; // Verhindert Standard-Autocomplete
+            } else {
+                console.log('❌ Invalid filter key or not custom category');
             }
+        } else {
+            console.log('❌ No filter syntax detected');
         }
         
         // Erkenne unvollständige Filter-Keys
@@ -4207,13 +4227,15 @@ class FastSearchCard extends HTMLElement {
             
             if (matchingKey) {
                 const suggestion = query.replace(new RegExp(partialKey + '$'), matchingKey);
+                console.log(`💡 Filter Key Suggestion: "${query}" → "${suggestion}"`);
                 this.showSuggestion(query, suggestion);
                 return true; // Filter-Key Autocomplete verwendet
             }
         }
         
+        console.log('❌ No filter autocomplete used');
         return false; // Kein Filter-Autocomplete
-    }  
+    }
 
     getFilterValueSuggestions(filterKey, partialValue) {
             const customItems = this.allItems.filter(item => item.domain === 'custom');
