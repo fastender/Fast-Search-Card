@@ -4238,14 +4238,29 @@ class FastSearchCard extends HTMLElement {
             
             values.forEach(value => {
                 const lowerValue = value.toLowerCase();
-                if (lowerValue.includes(partialValue.toLowerCase())) {
+                const lowerPartial = partialValue.toLowerCase();
+                
+                // ✅ KORREKTUR: Verwende startsWith statt includes
+                if (lowerValue.startsWith(lowerPartial)) {
                     suggestions.add(value);
                 }
             });
         });
         
-        return Array.from(suggestions).sort();
-    }    
+        // ✅ NEU: Sortiere nach Länge (kürzeste zuerst) für bessere Autocomplete-Erfahrung
+        return Array.from(suggestions).sort((a, b) => {
+            const aLower = a.toLowerCase();
+            const bLower = b.toLowerCase();
+            const partial = partialValue.toLowerCase();
+            
+            // Exakte Matches zuerst
+            if (aLower === partial && bLower !== partial) return -1;
+            if (bLower === partial && aLower !== partial) return 1;
+            
+            // Dann nach Länge sortieren (kürzeste zuerst)
+            return a.length - b.length;
+        });
+    }
         
     showSuggestion(query, suggestionText) {
         console.log('🔍 Suggestion:', query, '→', suggestionText); // DEBUG
