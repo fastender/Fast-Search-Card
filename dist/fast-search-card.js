@@ -3437,6 +3437,80 @@ class FastSearchCard extends HTMLElement {
         return html;
     }
 
+    parseFilterSyntax(query) {
+        // Erkenne Filter-Syntax: "präfix:wert rest des queries"
+        const filterPattern = /(\w+):([^\s]+)/g;
+        const filters = [];
+        let cleanedQuery = query;
+        
+        let match;
+        while ((match = filterPattern.exec(query)) !== null) {
+            const [fullMatch, key, value] = match;
+            
+            // Normalisiere Filter-Keys (deutsch und englisch)
+            const normalizedKey = this.normalizeFilterKey(key.toLowerCase());
+            
+            if (normalizedKey) {
+                filters.push({
+                    key: normalizedKey,
+                    value: value.toLowerCase(),
+                    originalFilter: fullMatch
+                });
+                
+                // Entferne Filter aus dem Haupt-Query
+                cleanedQuery = cleanedQuery.replace(fullMatch, '').trim();
+            }
+        }
+        
+        return {
+            originalQuery: query,
+            cleanedQuery: cleanedQuery,
+            filters: filters
+        };
+    }    
+
+    normalizeFilterKey(key) {
+        // Mapping von verschiedenen Bezeichnungen zu Standard-Keys
+        const keyMappings = {
+            // Type/Typ
+            'typ': 'type',
+            'type': 'type',
+            'art': 'type',
+            
+            // Category/Kategorie  
+            'kategorie': 'category',
+            'category': 'category',
+            'cat': 'category',
+            'gruppe': 'category',
+            
+            // Area/Raum
+            'raum': 'area',
+            'area': 'area',
+            'bereich': 'area',
+            'zimmer': 'area',
+            
+            // Difficulty/Schwierigkeit
+            'schwierigkeit': 'difficulty',
+            'difficulty': 'difficulty',
+            'level': 'difficulty',
+            
+            // Time/Zeit
+            'zeit': 'time',
+            'time': 'time',
+            'dauer': 'time',
+            
+            // Status
+            'status': 'status',
+            'zustand': 'status',
+            
+            // Priority/Priorität
+            'priorität': 'priority',
+            'priority': 'priority',
+            'prio': 'priority'
+        };
+        
+        return keyMappings[key] || null;
+    }    
     
     isSystemEntity(entityId, state) {
         // System-Entitäten überspringen
@@ -3631,7 +3705,6 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-
     getCustomStatusText(item) {
         const metadata = item.custom_data?.metadata || {};
         
@@ -3651,29 +3724,53 @@ class FastSearchCard extends HTMLElement {
         
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
         
+        // NEU: Parse Filter-Syntax
+        const parsedQuery = this.parseFilterSyntax(query);
+        const searchQuery = parsedQuery.cleanedQuery;
+        
+        if (parsedQuery.filters.length > 0) {
+            console.log('Filter-Syntax detected:', {
+                original: parsedQuery.originalQuery,
+                cleaned: parsedQuery.cleanedQuery,
+                filters: parsedQuery.filters
+            });
+        }
+        
         if (this.activeCategory === 'custom' && this.customSearchIndex) {
-            // CUSTOM SEARCH mit erweitertem Index
+            // CUSTOM SEARCH mit Filter-Syntax
             try {
-                const searchResults = this.customSearchIndex.search(query);
+                let searchResults;
                 
-                this.filteredItems = searchResults
+                if (searchQuery.trim()) {
+                    // Normale Suche mit Rest-Query
+                    searchResults = this.customSearchIndex.search(searchQuery);
+                } else {
+                    // Nur Filter, keine Text-Suche → alle Custom Items
+                    searchResults = categoryItems.map(item => ({ ...item, score: 1 }));
+                }
+                
+                let filteredResults = searchResults
                     .filter(result => this.isItemInCategory(result, 'custom'))
                     .map(result => {
                         const originalItem = this.allItems.find(item => item.id === result.id);
                         return originalItem ? { ...originalItem, searchScore: result.score } : null;
                     })
                     .filter(Boolean);
-                    
-                console.log(`Custom search found ${this.filteredItems.length} results for "${query}"`);
+                
+                // NEU: Filter-Syntax anwenden
+                filteredResults = this.applyFilterSyntax(filteredResults, parsedQuery.filters);
+                
+                this.filteredItems = filteredResults;
+                console.log(`Custom search with filters: ${this.filteredItems.length} results (${parsedQuery.filters.length} filters applied)`);
                 
             } catch (error) {
                 console.error('Custom search error, falling back:', error);
                 this.fallbackSearch(query, categoryItems);
             }
         } else if (this.searchIndex && categoryItems.length > 0) {
-            // STANDARD SEARCH
+            // STANDARD SEARCH (ohne Filter-Syntax für non-custom)
             try {
-                const searchResults = this.searchIndex.search(query);
+                const searchResults = this.searchIndex.search(searchQuery);
                 
                 this.filteredItems = searchResults
                     .filter(result => this.isItemInCategory(result, this.activeCategory))
@@ -3683,7 +3780,7 @@ class FastSearchCard extends HTMLElement {
                     })
                     .filter(Boolean);
                     
-                console.log(`Standard search found ${this.filteredItems.length} results for "${query}"`);
+                console.log(`Standard search found ${this.filteredItems.length} results`);
                 
             } catch (error) {
                 console.error('Standard search error, falling back:', error);
@@ -3694,11 +3791,59 @@ class FastSearchCard extends HTMLElement {
             this.fallbackSearch(query, categoryItems);
         }
     
-        this.logSearchPerformance(query, startTime, 
-            this.activeCategory === 'custom' ? 'CustomSearch' : 'StandardSearch', 
-            this.filteredItems.length);
+        this.logSearchPerformance(query, startTime, 'FilterSearch', this.filteredItems.length);
         this.renderResults();
     }
+
+    applyFilterSyntax(items, filters) {
+        if (!filters || filters.length === 0) {
+            return items;
+        }
+        
+        return items.filter(item => {
+            return filters.every(filter => {
+                const metadata = item.custom_data?.metadata || {};
+                
+                switch (filter.key) {
+                    case 'type':
+                        const itemType = (item.custom_data?.type || '').toLowerCase();
+                        return itemType.includes(filter.value);
+                        
+                    case 'category':
+                        const category = (metadata.category || '').toLowerCase();
+                        return category.includes(filter.value);
+                        
+                    case 'area':
+                        const area = (item.area || '').toLowerCase();
+                        return area.includes(filter.value);
+                        
+                    case 'difficulty':
+                        const difficulty = (metadata.difficulty || '').toLowerCase();
+                        return difficulty.includes(filter.value);
+                        
+                    case 'time':
+                        const time = (metadata.time || '').toLowerCase();
+                        return time.includes(filter.value);
+                        
+                    case 'status':
+                        const status = (metadata.status || '').toLowerCase();
+                        return status.includes(filter.value);
+                        
+                    case 'priority':
+                        const priority = (metadata.priority || metadata.priorität || '').toLowerCase();
+                        return priority.includes(filter.value);
+                        
+                    default:
+                        // Fallback: Suche in allen Metadata-Feldern
+                        const allMetadata = Object.values(metadata)
+                            .filter(value => typeof value === 'string')
+                            .join(' ')
+                            .toLowerCase();
+                        return allMetadata.includes(filter.value);
+                }
+            });
+        });
+    }    
     
     fallbackSearch(query, categoryItems) {
         const searchTerm = query.toLowerCase();
