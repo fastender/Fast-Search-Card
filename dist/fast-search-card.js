@@ -4205,62 +4205,62 @@ class FastSearchCard extends HTMLElement {
     }    
 
     getFilterValueSuggestions(filterKey, partialValue) {
-        const customItems = this.allItems.filter(item => item.domain === 'custom');
-        const suggestions = new Set();
-        
-        customItems.forEach(item => {
-            const metadata = item.custom_data?.metadata || {};
+            const customItems = this.allItems.filter(item => item.domain === 'custom');
+            const suggestions = new Set();
             
-            let values = [];
-            switch (filterKey) {
-                case 'type':
-                    values = [item.custom_data?.type].filter(Boolean);
-                    break;
-                case 'category':
-                    values = [metadata.category].filter(Boolean);
-                    break;
-                case 'area':
-                    values = [item.area].filter(Boolean);
-                    break;
-                case 'difficulty':
-                    values = [metadata.difficulty].filter(Boolean);
-                    break;
-                case 'time':
-                    values = [metadata.time].filter(Boolean);
-                    break;
-                case 'status':
-                    values = [metadata.status].filter(Boolean);
-                    break;
-                case 'priority':
-                    values = [metadata.priority, metadata.priorität].filter(Boolean);
-                    break;
-            }
-            
-            values.forEach(value => {
-                const lowerValue = value.toLowerCase();
-                const lowerPartial = partialValue.toLowerCase();
+            customItems.forEach(item => {
+                const metadata = item.custom_data?.metadata || {};
                 
-                // ✅ KORREKTUR: Verwende startsWith statt includes
-                if (lowerValue.startsWith(lowerPartial)) {
-                    suggestions.add(value);
+                let values = [];
+                switch (filterKey) {
+                    case 'type':
+                        values = [item.custom_data?.type].filter(Boolean);
+                        break;
+                    case 'category':
+                        values = [metadata.category].filter(Boolean);
+                        break;
+                    case 'area':
+                        values = [item.area].filter(Boolean);
+                        break;
+                    case 'difficulty':
+                        values = [metadata.difficulty].filter(Boolean);
+                        break;
+                    case 'time':
+                        values = [metadata.time].filter(Boolean);
+                        break;
+                    case 'status':
+                        values = [metadata.status].filter(Boolean);
+                        break;
+                    case 'priority':
+                        values = [metadata.priority, metadata.priorität].filter(Boolean);
+                        break;
                 }
+                
+                values.forEach(value => {
+                    const lowerValue = value.toLowerCase();
+                    const lowerPartial = partialValue.toLowerCase();
+                    
+                    // ✅ KORREKTUR: Verwende startsWith statt includes
+                    if (lowerValue.startsWith(lowerPartial)) {
+                        suggestions.add(value);
+                    }
+                });
             });
-        });
-        
-        // ✅ NEU: Sortiere nach Länge (kürzeste zuerst) für bessere Autocomplete-Erfahrung
-        return Array.from(suggestions).sort((a, b) => {
-            const aLower = a.toLowerCase();
-            const bLower = b.toLowerCase();
-            const partial = partialValue.toLowerCase();
             
-            // Exakte Matches zuerst
-            if (aLower === partial && bLower !== partial) return -1;
-            if (bLower === partial && aLower !== partial) return 1;
-            
-            // Dann nach Länge sortieren (kürzeste zuerst)
-            return a.length - b.length;
-        });
-    }
+            // ✅ NEU: Sortiere nach Länge (kürzeste zuerst) für bessere Autocomplete-Erfahrung
+            return Array.from(suggestions).sort((a, b) => {
+                const aLower = a.toLowerCase();
+                const bLower = b.toLowerCase();
+                const partial = partialValue.toLowerCase();
+                
+                // Exakte Matches zuerst
+                if (aLower === partial && bLower !== partial) return -1;
+                if (bLower === partial && aLower !== partial) return 1;
+                
+                // Dann nach Länge sortieren (kürzeste zuerst)
+                return a.length - b.length;
+            });
+        }
         
     showSuggestion(query, suggestionText) {
         console.log('🔍 Suggestion:', query, '→', suggestionText); // DEBUG
