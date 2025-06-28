@@ -2277,9 +2277,9 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
-                gap: 20px;
-                background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,0,0,0.6));
+                justify-content: flex-start;
+                padding-top: 60px;
+                background: transparent; /* Transparenter Hintergrund */
                 z-index: 1000;
             }
             
@@ -2287,6 +2287,7 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 align-items: center;
                 gap: 16px;
+                margin-bottom: 50px; /* Mindestens 50px Abstand zur Suchkarte */
             }
             
             .greeting-icon {
@@ -2298,6 +2299,10 @@ class FastSearchCard extends HTMLElement {
                 font-size: 24px;
                 font-weight: 600;
                 color: var(--text-primary);
+            }
+            
+            .main-container {
+                margin-top: 120px; /* Platz für Begrüßung + 50px Abstand */
             }
 
                                     
@@ -2501,41 +2506,54 @@ class FastSearchCard extends HTMLElement {
         this.setupEventListeners();
         this.updateViewToggleIcon();
         this.updateSubcategoryToggleIcon();
-    }
 
-    
+        // Starte Begrüßung nach kurzer Verzögerung (warte auf HASS)
+        setTimeout(() => {
+            this.showGreeting();
+        }, 500); // Längere Verzögerung für HASS user info
+    }    
+
     async showGreeting() {
-        const userName = this._hass?.user?.name || 'User';
+        if (!this._hass || !this._hass.user) {
+            console.warn('HASS user info not available yet');
+            // Fallback: Zeige Suchkarte direkt
+            setTimeout(() => this.showMainCard(), 100);
+            return;
+        }
+        
+        const userName = this._hass.user.name || this._hass.user.username || 'User';
+        console.log('Username found:', userName);
+        
         const greetingText = this.getRandomGreeting(userName);
         
         const greetingTextEl = this.shadowRoot.getElementById('greeting-text');
         const greetingContent = this.shadowRoot.getElementById('greeting-content');
         const greetingIcon = this.shadowRoot.getElementById('greeting-icon');
+        const mainContainer = this.shadowRoot.getElementById('main-container');
         
         if (greetingTextEl) {
             greetingTextEl.textContent = greetingText;
         }
         
-        // Initial state: alles unsichtbar
+        // Initial state: Begrüßung unsichtbar, Suchkarte unsichtbar
         greetingContent.style.opacity = '0';
-        greetingContent.style.transform = 'translateY(30px)';
+        greetingContent.style.transform = 'translateY(30px) scale(0.9)';
         greetingIcon.style.opacity = '0';
         greetingTextEl.style.opacity = '0';
-        greetingTextEl.style.transform = 'translateX(20px)';
+        mainContainer.style.opacity = '0';
+        mainContainer.style.transform = 'translateY(30px)';
         
-        // Animation Sequence mit Web Animations API
-        
-        // 1. Content container slide in
-        const contentAnimation = greetingContent.animate([
-            { opacity: 0, transform: 'translateY(30px)' },
-            { opacity: 1, transform: 'translateY(0)' }
+        // 1. Begrüßung animiert einblenden
+        greetingContent.animate([
+            { opacity: 0, transform: 'translateY(30px) scale(0.9)' },
+            { opacity: 1, transform: 'translateY(0) scale(1)' }
         ], {
             duration: 800,
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
             fill: 'forwards'
         });
         
-        // 2. Icon fade in (nach 300ms)
+        // 2. Icon fade in (nach 200ms)
         setTimeout(() => {
             greetingIcon.animate([
                 { opacity: 0, transform: 'scale(0.8)' },
@@ -2545,9 +2563,9 @@ class FastSearchCard extends HTMLElement {
                 easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 fill: 'forwards'
             });
-        }, 300);
+        }, 200);
         
-        // 3. Text slide in (nach 500ms)
+        // 3. Text slide in (nach 400ms)
         setTimeout(() => {
             greetingTextEl.animate([
                 { opacity: 0, transform: 'translateX(20px)' },
@@ -2557,40 +2575,21 @@ class FastSearchCard extends HTMLElement {
                 easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 fill: 'forwards'
             });
-        }, 500);
+        }, 400);
         
-        // 4. Nach 2.5 Sekunden zur Hauptkarte wechseln
+        // 4. Nach 1.5 Sekunden Suchkarte einblenden
         setTimeout(() => {
-            this.hideGreeting();
-        }, 2500);
+            this.showMainCard();
+        }, 1500);
     }
     
-    async hideGreeting() {
-        const overlay = this.shadowRoot.getElementById('greeting-overlay');
+    showMainCard() {
         const mainContainer = this.shadowRoot.getElementById('main-container');
         
-        if (overlay && mainContainer) {
-            // Greeting fadeout animation
-            const fadeOut = overlay.animate([
-                { opacity: 1, transform: 'translateY(0)' },
-                { opacity: 0, transform: 'translateY(-20px)' }
-            ], {
-                duration: 800,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                fill: 'forwards'
-            });
-            
-            // Warte auf fadeout, dann zeige main container
-            await fadeOut.finished;
-            
-            overlay.style.display = 'none';
-            
-            // Main container fade in
-            mainContainer.style.opacity = '0';
-            mainContainer.style.transform = 'translateY(20px)';
-            
+        if (mainContainer) {
+            // Suchkarte animiert einblenden
             mainContainer.animate([
-                { opacity: 0, transform: 'translateY(20px)' },
+                { opacity: 0, transform: 'translateY(30px)' },
                 { opacity: 1, transform: 'translateY(0)' }
             ], {
                 duration: 800,
@@ -2599,6 +2598,9 @@ class FastSearchCard extends HTMLElement {
             });
         }
     }
+
+
+        
     
     getRandomGreeting(userName) {
         const hour = new Date().getHours();
