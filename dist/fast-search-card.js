@@ -2267,13 +2267,60 @@ class FastSearchCard extends HTMLElement {
                 font-size: 12px;
             }
 
-
-
+            /* Greeting Overlay Styles */
+            .greeting-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 20px;
+                background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,0,0,0.6));
+                z-index: 1000;
+            }
+            
+            .greeting-content {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+            
+            .greeting-icon {
+                width: 50px;
+                height: auto;
+            }
+            
+            .greeting-text {
+                font-size: 24px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
 
                                     
             </style>
 
-            <div class="main-container">
+            <div class="greeting-overlay" id="greeting-overlay">
+                <div class="greeting-content" id="greeting-content">
+                    <svg class="greeting-icon" id="greeting-icon" viewBox="0 0 1644 1021" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="lg-greeting" x1="0" x2="1" y1="0" y2="0">
+                                <stop stop-color="#93dbe9" offset="0"></stop>
+                                <stop stop-color="#689cc5" offset="1"></stop>
+                            </linearGradient>
+                        </defs>
+                        <path d="M 1444 511 C 1444 687 1132 892 964 947 C 796 1002 457 994 353 851 C 249 708 188 269 292 126 C 396 -17 779 71 947 125 C 1115 179 1444 335 1444 511" fill="url(#lg-greeting)" opacity="0.6">
+                            <animate attributeName="d" dur="10s" repeatCount="indefinite" values="M 1444 511 C 1444 687 1132 892 964 947 C 796 1002 457 994 353 851 C 249 708 188 269 292 126 C 396 -17 779 71 947 125 C 1115 179 1444 335 1444 511;M 1337 511 C 1337 677 1129 917 971 968 C 813 1019 465 975 367 841 C 269 707 242 295 340 161 C 438 27 793 62 951 113 C 1109 164 1337 345 1337 511;M 1522 511 C 1522 694 1134 880 960 936 C 786 992 491 976 384 828 C 277 680 237 312 345 164 C 453 16 781 44 955 101 C 1129 158 1522 328 1522 511;M 1444 511 C 1444 687 1132 892 964 947 C 796 1002 457 994 353 851 C 249 708 188 269 292 126 C 396 -17 779 71 947 125 C 1115 179 1444 335 1444 511"></animate>
+                        </path>
+                    </svg>
+                    <div class="greeting-text" id="greeting-text">Hallo!</div>
+                </div>
+            </div>
+
+            <div class="main-container"> id="main-container">
                 <div class="search-row">
                     <div class="search-panel glass-panel">
                     
@@ -2455,6 +2502,126 @@ class FastSearchCard extends HTMLElement {
         this.updateViewToggleIcon();
         this.updateSubcategoryToggleIcon();
     }
+
+    
+    async showGreeting() {
+        const userName = this._hass?.user?.name || 'User';
+        const greetingText = this.getRandomGreeting(userName);
+        
+        const greetingTextEl = this.shadowRoot.getElementById('greeting-text');
+        const greetingContent = this.shadowRoot.getElementById('greeting-content');
+        const greetingIcon = this.shadowRoot.getElementById('greeting-icon');
+        
+        if (greetingTextEl) {
+            greetingTextEl.textContent = greetingText;
+        }
+        
+        // Initial state: alles unsichtbar
+        greetingContent.style.opacity = '0';
+        greetingContent.style.transform = 'translateY(30px)';
+        greetingIcon.style.opacity = '0';
+        greetingTextEl.style.opacity = '0';
+        greetingTextEl.style.transform = 'translateX(20px)';
+        
+        // Animation Sequence mit Web Animations API
+        
+        // 1. Content container slide in
+        const contentAnimation = greetingContent.animate([
+            { opacity: 0, transform: 'translateY(30px)' },
+            { opacity: 1, transform: 'translateY(0)' }
+        ], {
+            duration: 800,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+        
+        // 2. Icon fade in (nach 300ms)
+        setTimeout(() => {
+            greetingIcon.animate([
+                { opacity: 0, transform: 'scale(0.8)' },
+                { opacity: 1, transform: 'scale(1)' }
+            ], {
+                duration: 600,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+        }, 300);
+        
+        // 3. Text slide in (nach 500ms)
+        setTimeout(() => {
+            greetingTextEl.animate([
+                { opacity: 0, transform: 'translateX(20px)' },
+                { opacity: 1, transform: 'translateX(0)' }
+            ], {
+                duration: 700,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+        }, 500);
+        
+        // 4. Nach 2.5 Sekunden zur Hauptkarte wechseln
+        setTimeout(() => {
+            this.hideGreeting();
+        }, 2500);
+    }
+    
+    async hideGreeting() {
+        const overlay = this.shadowRoot.getElementById('greeting-overlay');
+        const mainContainer = this.shadowRoot.getElementById('main-container');
+        
+        if (overlay && mainContainer) {
+            // Greeting fadeout animation
+            const fadeOut = overlay.animate([
+                { opacity: 1, transform: 'translateY(0)' },
+                { opacity: 0, transform: 'translateY(-20px)' }
+            ], {
+                duration: 800,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+            
+            // Warte auf fadeout, dann zeige main container
+            await fadeOut.finished;
+            
+            overlay.style.display = 'none';
+            
+            // Main container fade in
+            mainContainer.style.opacity = '0';
+            mainContainer.style.transform = 'translateY(20px)';
+            
+            mainContainer.animate([
+                { opacity: 0, transform: 'translateY(20px)' },
+                { opacity: 1, transform: 'translateY(0)' }
+            ], {
+                duration: 800,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+        }
+    }
+    
+    getRandomGreeting(userName) {
+        const hour = new Date().getHours();
+        const greetings = [
+            `Hallo ${userName}! 👋`,
+            `Hey ${userName}, bereit für die Suche? 🔍`,
+            `Willkommen zurück, ${userName}! ✨`,
+            `${userName}, lass uns was finden! 🎯`,
+            `Schön dich zu sehen, ${userName}! 😊`,
+            `Ready to explore, ${userName}? 🚀`
+        ];
+        
+        // Zeitbasierte Begrüßungen
+        if (hour < 12) {
+            greetings.unshift(`Guten Morgen, ${userName}! 🌅`);
+        } else if (hour < 18) {
+            greetings.unshift(`Guten Tag, ${userName}! ☀️`);
+        } else {
+            greetings.unshift(`Guten Abend, ${userName}! 🌙`);
+        }
+        
+        return greetings[Math.floor(Math.random() * greetings.length)];
+    }   
 
     setupEventListeners() {
         const searchInput = this.shadowRoot.querySelector('.search-input');
