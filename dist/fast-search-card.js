@@ -2607,21 +2607,19 @@ class FastSearchCard extends HTMLElement {
         const mainContainer = this.shadowRoot.getElementById('main-container');
         
         if (mainContainer) {
-            // Elegantes Fade-in der Suchkarte
+            // Sanftes Fade-in ohne Ruckeln
             mainContainer.animate([
                 { 
                     opacity: 0, 
-                    transform: 'translateY(40px) scale(0.95)',
-                    filter: 'blur(5px)'
+                    transform: 'translateY(20px)'
                 },
                 { 
                     opacity: 1, 
-                    transform: 'translateY(0) scale(1)',
-                    filter: 'blur(0px)'
+                    transform: 'translateY(0)'
                 }
             ], {
-                duration: 1200,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                duration: 1000,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', // Sanfteres Easing
                 fill: 'forwards'
             });
         }
