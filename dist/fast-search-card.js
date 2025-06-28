@@ -4058,17 +4058,24 @@ class FastSearchCard extends HTMLElement {
         
         // Autocomplete logic
         if (value.length >= 2) {
-            console.log('🕐 Setting autocomplete timeout for:', value); // DEBUG
+            console.log('🕐 Setting autocomplete timeout for:', value);
             clearTimeout(this.autocompleteTimeout);
             this.autocompleteTimeout = setTimeout(() => {
-                console.log('⏰ Timeout fired, calling updateAutocomplete:', value); // DEBUG
-                this.updateAutocomplete(value);
-            }, 150); // Debounce
+                console.log('⏰ Timeout fired, checking autocomplete type:', value);
+                
+                // NEU: Prüfe zuerst Filter-Autocomplete
+                const usedFilterAutocomplete = this.updateFilterAutocomplete(value);
+                
+                if (!usedFilterAutocomplete) {
+                    // Standard Autocomplete nur wenn kein Filter-Autocomplete
+                    this.updateAutocomplete(value);
+                }
+            }, 150);
         } else {
-            console.log('❌ Value too short, clearing suggestion'); // DEBUG
+            console.log('❌ Value too short, clearing suggestion');
             this.clearSuggestion();
         }
-    }    
+    }
     
     handleSearchKeydown(e) {
         if (e.key === 'Tab' || e.key === 'ArrowRight') {
@@ -4078,46 +4085,75 @@ class FastSearchCard extends HTMLElement {
             this.clearSuggestion();
         }
     }
-    
+
     updateAutocomplete(query) {
         console.log('🔍 updateAutocomplete called with:', query);
         
-        if (!this.searchIndex || !query.trim()) {
-            console.log('❌ No searchIndex or empty query');
+        if (!query.trim() || query.length < 2) {
+            console.log('❌ Query too short or empty');
+            this.clearSuggestion();
+            return;
+        }
+        
+        // NEU: Verwende den richtigen Index basierend auf Category
+        let searchIndex;
+        if (this.activeCategory === 'custom' && this.customSearchIndex) {
+            searchIndex = this.customSearchIndex;
+        } else if (this.searchIndex) {
+            searchIndex = this.searchIndex;
+        } else {
+            console.log('❌ No search index available');
             this.clearSuggestion();
             return;
         }
         
         try {
-            console.log('✅ Starting autocomplete search...');
+            console.log('✅ Starting autocomplete search with correct index...');
             
-            const searchResults = this.searchIndex.search(query);
+            const searchResults = searchIndex.search(query);
             console.log('📊 Autocomplete search results:', searchResults);
             
-            if (searchResults.length > 0) {
-                const firstResult = searchResults[0];
+            // NEU: Filtere nach aktueller Category
+            const categoryResults = searchResults.filter(result => 
+                this.isItemInCategory(result, this.activeCategory)
+            );
+            
+            console.log('📊 Category-filtered results:', categoryResults);
+            
+            if (categoryResults.length > 0) {
+                const firstResult = categoryResults[0];
                 console.log('🔍 First result details:', firstResult);
                 
                 // Suggestion basierend auf dem gefundenen Feld
                 let suggestionText = '';
                 
-                // Prüfe Name
-                if (firstResult.name.toLowerCase().includes(query.toLowerCase())) {
-                    suggestionText = firstResult.name;
-                }
-                // Prüfe Area 
-                else if (firstResult.area.toLowerCase().includes(query.toLowerCase())) {
-                    suggestionText = firstResult.area;
-                }
-                // Fallback: Erstes Ergebnis Name
-                else {
-                    suggestionText = firstResult.name;
+                // Intelligentere Suggestion-Logik
+                if (this.activeCategory === 'custom') {
+                    // Für Custom Items: bessere Feld-Priorisierung
+                    if (firstResult.name && firstResult.name.toLowerCase().includes(query.toLowerCase())) {
+                        suggestionText = firstResult.name;
+                    } else if (firstResult.category && firstResult.category.toLowerCase().includes(query.toLowerCase())) {
+                        suggestionText = firstResult.category;
+                    } else if (firstResult.area && firstResult.area.toLowerCase().includes(query.toLowerCase())) {
+                        suggestionText = firstResult.area;
+                    } else {
+                        suggestionText = firstResult.name; // Fallback
+                    }
+                } else {
+                    // Für Standard Items
+                    if (firstResult.name && firstResult.name.toLowerCase().includes(query.toLowerCase())) {
+                        suggestionText = firstResult.name;
+                    } else if (firstResult.area && firstResult.area.toLowerCase().includes(query.toLowerCase())) {
+                        suggestionText = firstResult.area;
+                    } else {
+                        suggestionText = firstResult.name;
+                    }
                 }
                 
                 console.log('💡 Suggestion text:', suggestionText);
                 this.showSuggestion(query, suggestionText);
             } else {
-                console.log('❌ No search results');
+                console.log('❌ No category results');
                 this.clearSuggestion();
             }
             
@@ -4126,6 +4162,90 @@ class FastSearchCard extends HTMLElement {
             this.clearSuggestion();
         }
     }
+
+    updateFilterAutocomplete(query) {
+        // Erkenne ob User Filter-Syntax tippt
+        const filterMatch = query.match(/(\w+):(\w*)$/);
+        
+        if (filterMatch) {
+            const [, filterKey, filterValue] = filterMatch;
+            const normalizedKey = this.normalizeFilterKey(filterKey.toLowerCase());
+            
+            if (normalizedKey && this.activeCategory === 'custom') {
+                // Zeige verfügbare Werte für den Filter-Key
+                const suggestions = this.getFilterValueSuggestions(normalizedKey, filterValue);
+                
+                if (suggestions.length > 0) {
+                    const suggestion = suggestions[0];
+                    const fullSuggestion = query.replace(filterValue, suggestion);
+                    this.showSuggestion(query, fullSuggestion);
+                    return true; // Filter-Autocomplete verwendet
+                }
+            }
+        }
+        
+        // Erkenne unvollständige Filter-Keys
+        const partialFilterMatch = query.match(/(\w+)$/);
+        if (partialFilterMatch) {
+            const partialKey = partialFilterMatch[1].toLowerCase();
+            const filterKeys = ['typ:', 'kategorie:', 'raum:', 'schwierigkeit:', 'zeit:', 'status:', 'priority:'];
+            
+            const matchingKey = filterKeys.find(key => 
+                key.startsWith(partialKey) && key.length > partialKey.length
+            );
+            
+            if (matchingKey) {
+                const suggestion = query.replace(new RegExp(partialKey + '$'), matchingKey);
+                this.showSuggestion(query, suggestion);
+                return true; // Filter-Key Autocomplete verwendet
+            }
+        }
+        
+        return false; // Kein Filter-Autocomplete
+    }    
+
+    getFilterValueSuggestions(filterKey, partialValue) {
+        const customItems = this.allItems.filter(item => item.domain === 'custom');
+        const suggestions = new Set();
+        
+        customItems.forEach(item => {
+            const metadata = item.custom_data?.metadata || {};
+            
+            let values = [];
+            switch (filterKey) {
+                case 'type':
+                    values = [item.custom_data?.type].filter(Boolean);
+                    break;
+                case 'category':
+                    values = [metadata.category].filter(Boolean);
+                    break;
+                case 'area':
+                    values = [item.area].filter(Boolean);
+                    break;
+                case 'difficulty':
+                    values = [metadata.difficulty].filter(Boolean);
+                    break;
+                case 'time':
+                    values = [metadata.time].filter(Boolean);
+                    break;
+                case 'status':
+                    values = [metadata.status].filter(Boolean);
+                    break;
+                case 'priority':
+                    values = [metadata.priority, metadata.priorität].filter(Boolean);
+                    break;
+            }
+            
+            values.forEach(value => {
+                const lowerValue = value.toLowerCase();
+                if (lowerValue.includes(partialValue.toLowerCase())) {
+                    suggestions.add(value);
+                }
+            });
+        });
+        
+        return Array.from(suggestions).sort();
+    }    
         
     showSuggestion(query, suggestionText) {
         console.log('🔍 Suggestion:', query, '→', suggestionText); // DEBUG
