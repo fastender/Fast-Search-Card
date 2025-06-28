@@ -3475,15 +3475,16 @@ class FastSearchCard extends HTMLElement {
         // 1. Entferne häufige Leerzeichen-Probleme
         processedQuery = processedQuery.replace(/\s+/g, ' '); // Mehrfache Leerzeichen
         
-        // 2. Normalisiere häufige Schreibweisen
+        // 2. NEUE: Zeit-Pattern direkt behandeln (vor anderen Normalisierungen)
+        processedQuery = processedQuery.replace(/(\d+)min\b/g, '$1 min');
+        processedQuery = processedQuery.replace(/(\d+)mins\b/g, '$1 min');
+        processedQuery = processedQuery.replace(/(\d+)h\b/g, '$1 h');
+        processedQuery = processedQuery.replace(/(\d+)std\b/g, '$1 h');
+        processedQuery = processedQuery.replace(/(\d+)stunden\b/g, '$1 h');
+        processedQuery = processedQuery.replace(/(\d+)minuten\b/g, '$1 min');
+        
+        // 3. Normalisiere häufige Schreibweisen (GEÄNDERT - Zeit-Patterns entfernt)
         const normalizations = {
-            // Zeit-Normalisierungen
-            'min': ' min',
-            'mins': ' min',
-            'minuten': ' min',
-            'stunden': ' h',
-            'std': ' h',
-            
             // Häufige Tippfehler (für deine Rezepte)
             'carboanra': 'carbonara',
             'carbonnara': 'carbonara', 
