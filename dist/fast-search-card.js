@@ -665,7 +665,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             .filter-main-button.active {
-                background: rgba(255, 255, 255, 0.35);
+                background: var(--accent);
             }
             
             .filter-main-button svg {
@@ -700,11 +700,11 @@ class FastSearchCard extends HTMLElement {
                 gap: 3px;
                 background: rgba(0, 0, 0, 0.4);
                 border-radius: 60px;
-                padding: 8px 1px 8px 1px;
-                border: 3px solid rgba(255, 255, 255, 0);
+                padding: 10px 0px 10px 0px;
+                border: 0px solid rgba(255, 255, 255, 0);
                 transform: translateX(20px) scale(0.8);
                 transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                height: 35px;
+                height: 25px;
             }
             
             .filter-groups.visible .filter-group {
@@ -720,8 +720,8 @@ class FastSearchCard extends HTMLElement {
             }
             
             .filter-button {
-                width: 50px;
-                height: 50px;
+                width: 45px;
+                height: 45px;
                 border: none;
                 background: rgba(255, 255, 255, 0);
                 border-radius: 60px;
@@ -732,16 +732,16 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 gap: 3px;
                 transition: all 0.2s ease;
-                padding: 8px 3px 8px 3px;
+                padding: 0px;
                 box-sizing: border-box;
             }
             
             .filter-button:hover {
-                background: rgba(255, 255, 255, 0.2);
+                background: rgba(0, 0, 0, 0.25);
             }
             
             .filter-button.active {
-                background: rgba(0, 122, 255, 0.8);
+                background: rgba(0, 0, 0, 0.35);
             }
             
             .filter-button svg {
@@ -760,6 +760,7 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 text-overflow: ellipsis;
                 max-width: 100%;
+                display: none;
             }
             
 
