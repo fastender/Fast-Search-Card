@@ -692,14 +692,14 @@ class FastSearchCard extends HTMLElement {
             .filter-group {
                 display: flex;
                 align-items: center;
-                gap: 12px;
+                gap: 4px;
                 background: rgba(0, 0, 0, 0.4);
-                backdrop-filter: blur(10px);
-                border-radius: 20px;
-                padding: 8px 12px;
+                border-radius: 60px;
+                padding: 8px 1px 8px 1px;
                 border: 1px solid rgba(255, 255, 255, 0.1);
                 transform: translateX(20px) scale(0.8);
                 transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                height: 45px;
             }
             
             .filter-groups.visible .filter-group {
@@ -718,22 +718,21 @@ class FastSearchCard extends HTMLElement {
                 width: 60px;
                 height: 60px;
                 border: none;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
+                background: rgba(255, 255, 255, 0);
+                border-radius: 60px;
                 cursor: pointer;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 4px;
+                gap: 6px;
                 transition: all 0.2s ease;
-                padding: 8px 6px;
+                padding: 8px 3px 8px 3px;
                 box-sizing: border-box;
             }
             
             .filter-button:hover {
                 background: rgba(255, 255, 255, 0.2);
-                transform: scale(1.1);
             }
             
             .filter-button.active {
@@ -748,7 +747,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             .filter-button-label {
-                font-size: 10px;
+                font-size: 8px;
                 font-weight: 500;
                 color: white;
                 text-align: center;
