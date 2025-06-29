@@ -1133,7 +1133,7 @@ class FastSearchCard extends HTMLElement {
             
             .category-button:hover {
                 transform: scale(1.05);
-                
+                background: var(--accent-light);
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             }
 
@@ -2735,28 +2735,30 @@ class FastSearchCard extends HTMLElement {
 
     handleCategorySelect(selectedButton) {
         const category = selectedButton.dataset.category;
-        if (category === this.activeCategory) return;
+        
+        // NEU: Wenn gleiche Kategorie → Menü schließen
+        if (category === this.activeCategory) {
+            this.hideCategoryButtons();
+            return;
+        }
+        
         this.shadowRoot.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
         selectedButton.classList.add('active');
         selectedButton.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
         this.activeCategory = category;
-
+        
         // Reset subcategory mode für Custom
         if (category === 'custom') {
             this.subcategoryMode = 'categories'; // Start with categories for custom
         } else {
             this.subcategoryMode = 'categories'; // Standard mode for others
         }        
-
-
-
         
         this.updateCategoryIcon();
         this.updatePlaceholder();
         this.updateSubcategoryToggleIcon();
         this.updateSubcategoryChips();
         this.hideCategoryButtons();
-
         // Hinzufügen:
         this.updateTypeButtonVisibility();
         this.updateFilterButtonStates();        
