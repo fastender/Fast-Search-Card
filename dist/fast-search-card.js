@@ -546,6 +546,12 @@ class FastSearchCard extends HTMLElement {
             .search-input::placeholder {
                 color: var(--text-secondary);
             }
+
+            .search-input.filter-active {
+                pointer-events: none;
+                opacity: 0.5;
+                cursor: default;
+            }            
             
             .search-suggestion {
                 position: absolute;
@@ -2779,11 +2785,12 @@ class FastSearchCard extends HTMLElement {
             filterMainButton.classList.add('active');
             filterGroups.classList.add('visible');
             
-            // Placeholder-Text verstecken
+            // Input komplett deaktivieren
             if (searchInput) {
                 searchInput.placeholder = '';
-                searchInput.setAttribute('readonly', 'true'); // ← NEU
-                searchInput.blur(); // ← Focus entfernen
+                searchInput.classList.add('filter-active');
+                searchInput.blur(); // Focus entfernen
+                searchInput.setAttribute('tabindex', '-1'); // Tab-Navigation deaktivieren
             }
             
             this.updateTypeButtonVisibility();
@@ -2793,10 +2800,11 @@ class FastSearchCard extends HTMLElement {
             filterMainButton.classList.remove('active');
             filterGroups.classList.remove('visible');
             
-            // Placeholder-Text wieder anzeigen
+            // Input wieder aktivieren
             if (searchInput) {
                 this.updatePlaceholder();
-                searchInput.removeAttribute('readonly'); // ← NEU
+                searchInput.classList.remove('filter-active');
+                searchInput.removeAttribute('tabindex'); // Tab-Navigation aktivieren
             }
         }
     }
