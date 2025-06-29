@@ -2578,10 +2578,8 @@ class FastSearchCard extends HTMLElement {
         searchInput.addEventListener('keydown', (e) => this.handleSearchKeydown(e));
         searchInput.addEventListener('focus', () => this.handleSearchFocus());
         searchInput.addEventListener('blur', () => this.clearSuggestion());
-
         clearButton.addEventListener('click', (e) => { e.stopPropagation(); this.clearSearch(); });
         categoryIcon.addEventListener('click', (e) => { e.stopPropagation(); this.toggleCategoryButtons(); });
-
         categoryButtons.forEach(button => {
             button.addEventListener('click', (e) => { e.stopPropagation(); this.handleCategorySelect(button); });
         });
@@ -2623,29 +2621,33 @@ class FastSearchCard extends HTMLElement {
                 }, 150);
             }
         });
+    
+        // Filter Button Events
+        const filterMainButton = this.shadowRoot.querySelector('.filter-main-button');
+        const filterGroups = this.shadowRoot.querySelector('.filter-groups');
+        
+        if (filterMainButton) {
+            filterMainButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleFilter();
+            });
+        }
+        
+        // Filter Group Button Events
+        if (filterGroups) {
+            filterGroups.addEventListener('click', (e) => {
+                const filterButton = e.target.closest('.filter-button');
+                if (filterButton) {
+                    e.stopPropagation();
+                    this.handleFilterButtonClick(filterButton);
+                }
+            });
+        }
     }
 
-    // Filter Button Events
-    const filterMainButton = this.shadowRoot.querySelector('.filter-main-button');
-    const filterGroups = this.shadowRoot.querySelector('.filter-groups');
+
+
     
-    if (filterMainButton) {
-        filterMainButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleFilter();
-        });
-    }
-    
-    // Filter Group Button Events
-    if (filterGroups) {
-        filterGroups.addEventListener('click', (e) => {
-            const filterButton = e.target.closest('.filter-button');
-            if (filterButton) {
-                e.stopPropagation();
-                this.handleFilterButtonClick(filterButton);
-            }
-        });
-    }
     
     handleSearch(query) {
         const clearButton = this.shadowRoot.querySelector('.clear-button');
