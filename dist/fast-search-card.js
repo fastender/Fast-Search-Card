@@ -2776,7 +2776,8 @@ class FastSearchCard extends HTMLElement {
         
         const filterMainButton = this.shadowRoot.querySelector('.filter-main-button');
         const filterGroups = this.shadowRoot.querySelector('.filter-groups');
-        const searchInputContainer = this.shadowRoot.querySelector('.search-input-container'); // ← Container statt Input
+        const searchInputContainer = this.shadowRoot.querySelector('.search-input-container');
+        const categoryIcon = this.shadowRoot.querySelector('.category-icon'); // ← NEU
         
         if (this.isFilterOpen) {
             // Filter öffnen
@@ -2788,6 +2789,13 @@ class FastSearchCard extends HTMLElement {
                 searchInputContainer.style.opacity = '0';
                 searchInputContainer.style.pointerEvents = 'none';
                 searchInputContainer.style.visibility = 'hidden';
+            }
+            
+            // Category-Icon verstecken
+            if (categoryIcon) {
+                categoryIcon.style.opacity = '0';
+                categoryIcon.style.pointerEvents = 'none';
+                categoryIcon.style.visibility = 'hidden';
             }
             
             this.updateTypeButtonVisibility();
@@ -2803,8 +2811,16 @@ class FastSearchCard extends HTMLElement {
                 searchInputContainer.style.pointerEvents = 'auto';
                 searchInputContainer.style.visibility = 'visible';
             }
+            
+            // Category-Icon wieder anzeigen
+            if (categoryIcon) {
+                categoryIcon.style.opacity = '1';
+                categoryIcon.style.pointerEvents = 'auto';
+                categoryIcon.style.visibility = 'visible';
+            }
         }
     }
+        
     
     handleFilterButtonClick(button) {
         const action = button.dataset.action;
