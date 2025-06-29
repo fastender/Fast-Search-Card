@@ -665,8 +665,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             .filter-main-button.active {
-                background: rgba(255, 255, 255, 0.3);
-                box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.35);
             }
             
             .filter-main-button svg {
@@ -698,14 +697,14 @@ class FastSearchCard extends HTMLElement {
             .filter-group {
                 display: flex;
                 align-items: center;
-                gap: 4px;
+                gap: 3px;
                 background: rgba(0, 0, 0, 0.4);
                 border-radius: 60px;
                 padding: 8px 1px 8px 1px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: 3px solid rgba(255, 255, 255, 0);
                 transform: translateX(20px) scale(0.8);
                 transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                height: 45px;
+                height: 35px;
             }
             
             .filter-groups.visible .filter-group {
@@ -721,8 +720,8 @@ class FastSearchCard extends HTMLElement {
             }
             
             .filter-button {
-                width: 60px;
-                height: 60px;
+                width: 50px;
+                height: 50px;
                 border: none;
                 background: rgba(255, 255, 255, 0);
                 border-radius: 60px;
@@ -731,7 +730,7 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 6px;
+                gap: 3px;
                 transition: all 0.2s ease;
                 padding: 8px 3px 8px 3px;
                 box-sizing: border-box;
@@ -743,7 +742,6 @@ class FastSearchCard extends HTMLElement {
             
             .filter-button.active {
                 background: rgba(0, 122, 255, 0.8);
-                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
             }
             
             .filter-button svg {
