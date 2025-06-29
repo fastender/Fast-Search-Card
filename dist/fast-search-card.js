@@ -2783,9 +2783,10 @@ class FastSearchCard extends HTMLElement {
             // Placeholder-Text verstecken
             if (searchInput) {
                 searchInput.placeholder = '';
+                searchInput.setAttribute('readonly', 'true'); // ← NEU
+                searchInput.blur(); // ← Focus entfernen
             }
             
-            // Type Button für Custom Category anzeigen
             this.updateTypeButtonVisibility();
             
         } else {
@@ -2796,6 +2797,7 @@ class FastSearchCard extends HTMLElement {
             // Placeholder-Text wieder anzeigen
             if (searchInput) {
                 this.updatePlaceholder();
+                searchInput.removeAttribute('readonly'); // ← NEU
             }
         }
     }
