@@ -1133,13 +1133,13 @@ class FastSearchCard extends HTMLElement {
             
             .category-button:hover {
                 transform: scale(1.05);
-                border-color: var(--accent);
+                
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             }
 
             .category-button.active {
                 background: var(--accent-light);
-                box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+                
             }
 
             .category-button svg {
@@ -1153,7 +1153,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .category-button.active svg {
-                stroke: var(--accent);
+                stroke: var(--text-primary);
             }
 
             .empty-state {
