@@ -2350,8 +2350,166 @@ class FastSearchCard extends HTMLElement {
                 font-size: 12px;
             }
 
-
-
+            /* History Tab Styles */
+            .history-container {
+                padding: 20px;
+                height: 100%;
+                overflow-y: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            .history-container::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .history-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            
+            .history-header h3 {
+                margin: 0;
+                color: var(--text-primary);
+                font-size: 16px;
+                font-weight: 600;
+            }
+            
+            .history-controls {
+                display: flex;
+                gap: 8px;
+            }
+            
+            .history-btn {
+                padding: 6px 12px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 12px;
+                color: var(--text-secondary);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            
+            .history-btn.active, .history-btn:hover {
+                background: var(--accent);
+                color: white;
+                border-color: var(--accent);
+            }
+            
+            .history-stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .stat-card {
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.12);
+                border-radius: 12px;
+                padding: 12px;
+                text-align: center;
+            }
+            
+            .stat-title {
+                font-size: 11px;
+                color: var(--text-secondary);
+                margin-bottom: 4px;
+                font-weight: 500;
+            }
+            
+            .stat-value {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            
+            .timeline-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .timeline-event {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px;
+                background: rgba(255,255,255,0.05);
+                border-radius: 12px;
+                transition: all 0.2s ease;
+            }
+            
+            .timeline-event:hover {
+                background: rgba(255,255,255,0.1);
+            }
+            
+            .timeline-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--text-secondary);
+                flex-shrink: 0;
+            }
+            
+            .timeline-event.active .timeline-dot {
+                background: #4CAF50;
+            }
+            
+            .timeline-event.inactive .timeline-dot {
+                background: #757575;
+            }
+            
+            .timeline-content {
+                flex: 1;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .timeline-time {
+                font-size: 12px;
+                color: var(--text-secondary);
+                font-weight: 500;
+            }
+            
+            .timeline-state {
+                font-size: 13px;
+                color: var(--text-primary);
+                font-weight: 600;
+            }
+            
+            .loading-indicator {
+                text-align: center;
+                color: var(--text-secondary);
+                padding: 40px 20px;
+                font-style: italic;
+                font-size: 14px;
+            }
+            
+            /* Mobile Responsive */
+            @media (max-width: 768px) {
+                .history-header {
+                    flex-direction: column;
+                    gap: 12px;
+                    align-items: flex-start;
+                }
+                
+                .history-stats {
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 8px;
+                }
+                
+                .timeline-content {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 4px;
+                }
+            }
 
                                     
             </style>
@@ -5726,7 +5884,7 @@ class FastSearchCard extends HTMLElement {
             <div id="tab-content-container">
                  ${tabsConfig.map(tab => `
                     <div class="detail-tab-content ${tab.default ? 'active' : ''}" data-tab-content="${tab.id}">
-                        ${tab.id === 'controls' ? controlsHTML : `<div>${tab.title} coming soon.</div>`}
+                        ${this.getTabContent(tab.id, item, controlsHTML)}
                     </div>
                 `).join('')}
             </div>
@@ -5778,6 +5936,312 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
+    getTabContent(tabId, item, controlsHTML) {
+        switch(tabId) {
+            case 'controls':
+                return controlsHTML;
+            case 'history':
+                return this.getHistoryHTML(item);
+            case 'shortcuts':
+                return `<div style="padding: 20px; text-align: center; color: var(--text-secondary);">Shortcuts coming soon.</div>`;
+            default:
+                return `<div style="padding: 20px; text-align: center; color: var(--text-secondary);">${tabId} coming soon.</div>`;
+        }
+    }    
+
+    getHistoryHTML(item) {
+        const state = this._hass.states[item.id];
+        if (!state) return '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">Keine Verlaufsdaten verfügbar</div>';
+        
+        return `
+            <div class="history-container">
+                <div class="history-header">
+                    <h3>Verlauf für ${item.name}</h3>
+                    <div class="history-controls">
+                        <button class="history-btn" data-period="1d" data-entity="${item.id}">24h</button>
+                        <button class="history-btn active" data-period="7d" data-entity="${item.id}">7 Tage</button>
+                        <button class="history-btn" data-period="30d" data-entity="${item.id}">30 Tage</button>
+                    </div>
+                </div>
+                
+                <div class="history-stats">
+                    <div class="stat-card">
+                        <div class="stat-title">Letzte Aktivität</div>
+                        <div class="stat-value">${this.formatLastChanged(state.last_changed)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Status</div>
+                        <div class="stat-value">${this.getDetailedStateText(item).status}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Heute aktiv</div>
+                        <div class="stat-value" id="today-active-${item.id}">Wird geladen...</div>
+                    </div>
+                </div>
+                
+                <div class="history-timeline" id="history-timeline-${item.id}">
+                    <div class="loading-indicator">Verlaufsdaten werden geladen...</div>
+                </div>
+            </div>
+        `;
+    }    
+
+    formatLastChanged(timestamp) {
+        const now = new Date();
+        const changed = new Date(timestamp);
+        const diffMinutes = Math.floor((now - changed) / 1000 / 60);
+        
+        if (diffMinutes < 1) return 'Gerade eben';
+        if (diffMinutes < 60) return `vor ${diffMinutes} Min`;
+        if (diffMinutes < 1440) return `vor ${Math.floor(diffMinutes / 60)} Std`;
+        return `vor ${Math.floor(diffMinutes / 1440)} Tagen`;
+    }    
+
+    async loadHistoryData(item, period = '7d') {
+        if (!this._hass) return null;
+        
+        const endTime = new Date();
+        const startTime = new Date();
+        
+        switch(period) {
+            case '1d': 
+                startTime.setDate(endTime.getDate() - 1); 
+                break;
+            case '7d': 
+                startTime.setDate(endTime.getDate() - 7); 
+                break;
+            case '30d': 
+                startTime.setDate(endTime.getDate() - 30); 
+                break;
+        }
+        
+        try {
+            const historyData = await this._hass.callApi('GET', 
+                `history/period/${startTime.toISOString()}?filter_entity_id=${item.id}&end_time=${endTime.toISOString()}`
+            );
+            
+            return this.processHistoryData(historyData[0] || [], item);
+        } catch (error) {
+            console.error('Fehler beim Laden der Verlaufsdaten:', error);
+            return null;
+        }
+    }    
+
+    processHistoryData(rawData, item) {
+        if (!rawData || rawData.length === 0) return null;
+        
+        const events = rawData.map(entry => ({
+            timestamp: new Date(entry.last_changed),
+            state: entry.state,
+            attributes: entry.attributes,
+            friendlyState: this.getFriendlyStateName(entry.state, item.domain)
+        }));
+        
+        // Sortiere nach Datum (neueste zuerst)
+        events.sort((a, b) => b.timestamp - a.timestamp);
+        
+        return {
+            events: events.slice(0, 20), // Nur die letzten 20 Events
+            stats: this.calculateTodayStats(events, item)
+        };
+    }
+
+    getFriendlyStateName(state, domain) {
+        switch(domain) {
+            case 'light':
+            case 'switch':
+                return state === 'on' ? 'Eingeschaltet' : 'Ausgeschaltet';
+            case 'climate':
+                const climateStates = {
+                    'off': 'Aus',
+                    'heat': 'Heizen',
+                    'cool': 'Kühlen',
+                    'auto': 'Automatik',
+                    'dry': 'Entfeuchten',
+                    'fan_only': 'Nur Lüfter'
+                };
+                return climateStates[state] || state;
+            case 'cover':
+                const coverStates = {
+                    'open': 'Offen',
+                    'closed': 'Geschlossen',
+                    'opening': 'Öffnet sich',
+                    'closing': 'Schließt sich'
+                };
+                return coverStates[state] || state;
+            case 'media_player':
+                const mediaStates = {
+                    'playing': 'Spielt',
+                    'paused': 'Pausiert',
+                    'idle': 'Bereit',
+                    'off': 'Aus'
+                };
+                return mediaStates[state] || state;
+            default:
+                return state;
+        }
+    }
+    
+    calculateTodayStats(events, item) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const todayEvents = events.filter(event => event.timestamp >= today);
+        
+        let activeMinutes = 0;
+        let currentState = null;
+        
+        // Berechne aktive Zeit heute
+        for (let i = todayEvents.length - 1; i >= 0; i--) {
+            const event = todayEvents[i];
+            
+            if (i === todayEvents.length - 1) {
+                currentState = event.state;
+                continue;
+            }
+            
+            const nextEvent = todayEvents[i + 1];
+            const duration = (nextEvent.timestamp - event.timestamp) / 1000 / 60; // Minuten
+            
+            if (this.isActiveState(currentState, item.domain)) {
+                activeMinutes += duration;
+            }
+            
+            currentState = event.state;
+        }
+        
+        // Berechne Zeit vom letzten Event bis jetzt
+        if (todayEvents.length > 0 && this.isActiveState(currentState, item.domain)) {
+            const lastEvent = todayEvents[0];
+            const nowMinutes = (new Date() - lastEvent.timestamp) / 1000 / 60;
+            activeMinutes += nowMinutes;
+        }
+        
+        return {
+            activeMinutes: Math.round(activeMinutes),
+            activeHours: (activeMinutes / 60).toFixed(1),
+            eventCount: todayEvents.length
+        };
+    }
+
+    isActiveState(state, domain) {
+        switch(domain) {
+            case 'light':
+            case 'switch':
+            case 'fan':
+                return state === 'on';
+            case 'climate':
+                return state !== 'off';
+            case 'cover':
+                return state === 'open';
+            case 'media_player':
+                return ['playing', 'paused'].includes(state);
+            default:
+                return state === 'on';
+        }
+    }
+
+    setupHistoryEventListeners(item) {
+        // History-Buttons Event Listeners
+        const historyButtons = this.shadowRoot.querySelectorAll('.history-btn');
+        historyButtons.forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const period = button.dataset.period;
+                const entityId = button.dataset.entity;
+                
+                // Update active button
+                historyButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Load and display history data
+                await this.loadAndDisplayHistory(item, period);
+            });
+        });
+        
+        // Initial load of 7-day history
+        this.loadAndDisplayHistory(item, '7d');
+    }    
+
+    async loadAndDisplayHistory(item, period) {
+        const timelineContainer = this.shadowRoot.getElementById(`history-timeline-${item.id}`);
+        const todayActiveElement = this.shadowRoot.getElementById(`today-active-${item.id}`);
+        
+        if (!timelineContainer) return;
+        
+        // Loading state
+        timelineContainer.innerHTML = '<div class="loading-indicator">Lade Verlaufsdaten...</div>';
+        
+        try {
+            const historyData = await this.loadHistoryData(item, period);
+            
+            if (!historyData || !historyData.events || historyData.events.length === 0) {
+                timelineContainer.innerHTML = '<div class="loading-indicator">Keine Verlaufsdaten gefunden.</div>';
+                if (todayActiveElement) todayActiveElement.textContent = '0 Std';
+                return;
+            }
+            
+            // Update today active stats
+            if (todayActiveElement) {
+                todayActiveElement.textContent = `${historyData.stats.activeHours} Std`;
+            }
+            
+            // Render timeline
+            this.renderHistoryTimeline(historyData.events, timelineContainer, item);
+            
+        } catch (error) {
+            console.error('History loading error:', error);
+            timelineContainer.innerHTML = '<div class="loading-indicator">Fehler beim Laden der Daten.</div>';
+        }
+    }
+
+    renderHistoryTimeline(events, container, item) {
+        const timelineHTML = events.map(event => {
+            const timeString = this.formatEventTime(event.timestamp);
+            const stateClass = this.isActiveState(event.state, item.domain) ? 'active' : 'inactive';
+            
+            return `
+                <div class="timeline-event ${stateClass}">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-time">${timeString}</div>
+                        <div class="timeline-state">${event.friendlyState}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = `<div class="timeline-list">${timelineHTML}</div>`;
+    }
+
+    formatEventTime(timestamp) {
+        const now = new Date();
+        const event = new Date(timestamp);
+        const today = new Date(now);
+        today.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        const timeString = event.toLocaleTimeString('de-DE', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        if (event >= today) {
+            return `Heute ${timeString}`;
+        } else if (event >= yesterday) {
+            return `Gestern ${timeString}`;
+        } else {
+            const dateString = event.toLocaleDateString('de-DE', { 
+                weekday: 'short', 
+                day: '2-digit', 
+                month: '2-digit' 
+            });
+            return `${dateString} ${timeString}`;
+        }
+    }
+    
+    
+    
     getMarkdownEditorHTML(item) {
         const currentContent = item.custom_data.content || '';
         const customData = item.custom_data || {};
@@ -7427,7 +7891,11 @@ class FastSearchCard extends HTMLElement {
         } else if (item.domain === 'media_player') {
             this.setupMediaPlayerControls(item);            
         }
+    
+        // History Event Listeners hinzufügen  ← HIER EINFÜGEN
+        this.setupHistoryEventListeners(item);
     }
+        
     
     setupLightControls(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
