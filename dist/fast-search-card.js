@@ -2354,7 +2354,7 @@ class FastSearchCard extends HTMLElement {
             .history-container {
                 padding: 20px;
                 height: 100%;
-                overflow-y: auto;
+                overflow: visible;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
             }
