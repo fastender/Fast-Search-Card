@@ -3413,76 +3413,60 @@ class FastSearchCard extends HTMLElement {
     }
     
     getEntityArea(entityId, state) {
-        try {
-            // 1. Echte Home Assistant Area (höchste Priorität)
-            if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
-                const entityRegistry = this._hass.entities[entityId];
-                if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
-                    const area = this._hass.areas[entityRegistry.area_id];
-                    console.log(`✅ Found HA area for ${entityId}: ${area.name}`);
-                    return area.name;
-                }
-            }
-    
-            // 2. Device-based Area (über Device Registry)
-            if (this._hass.devices && this._hass.entities && this._hass.entities[entityId]) {
-                const entityRegistry = this._hass.entities[entityId];
-                if (entityRegistry.device_id && this._hass.devices[entityRegistry.device_id]) {
-                    const device = this._hass.devices[entityRegistry.device_id];
-                    
-                    // Device hat Area
-                    if (device.area_id && this._hass.areas && this._hass.areas[device.area_id]) {
-                        const area = this._hass.areas[device.area_id];
-                        console.log(`✅ Found device area for ${entityId}: ${area.name}`);
+            try {
+                // 1. PRIORITÄT: Echte Home Assistant Area (Entity Registry)
+                if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
+                    const entityRegistry = this._hass.entities[entityId];
+                    if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
+                        const area = this._hass.areas[entityRegistry.area_id];
                         return area.name;
                     }
+                }
+    
+                // 2. PRIORITÄT: Device-based Area (Device Registry)
+                if (this._hass.devices && this._hass.entities && this._hass.entities[entityId]) {
+                    const entityRegistry = this._hass.entities[entityId];
+                    if (entityRegistry.device_id && this._hass.devices[entityRegistry.device_id]) {
+                        const device = this._hass.devices[entityRegistry.device_id];
+                        
+                        if (device.area_id && this._hass.areas && this._hass.areas[device.area_id]) {
+                            const area = this._hass.areas[device.area_id];
+                            return area.name;
+                        }
+                    }
+                }
+    
+                // 3. PRIORITÄT: Intelligente friendly_name Analyse
+                if (state.attributes.friendly_name) {
+                    const friendlyName = state.attributes.friendly_name;
                     
-                    // Device Name als Area verwenden (wie "Temp2")
-                    if (device.name && device.name !== entityId && device.name.length > 2) {
-                        console.log(`✅ Using device name as area for ${entityId}: ${device.name}`);
-                        return device.name;
+                    // Liste der echten Areas aus Home Assistant für Matching
+                    const realAreas = this._hass.areas ? Object.values(this._hass.areas).map(area => area.name.toLowerCase()) : [];
+                    
+                    // Suche nach echten Area-Namen im friendly_name (case-insensitive)
+                    for (const areaName of realAreas) {
+                        if (friendlyName.toLowerCase().includes(areaName)) {
+                            // Finde die echte Area mit richtigem Case
+                            const matchedArea = Object.values(this._hass.areas).find(area => 
+                                area.name.toLowerCase() === areaName
+                            );
+                            if (matchedArea) {
+                                return matchedArea.name;
+                            }
+                        }
                     }
                 }
-            }
-    
-            // 3. State attributes fallback
-            if (state.attributes.device_class || state.attributes.friendly_name) {
-                const friendlyName = state.attributes.friendly_name || '';
                 
-                // Versuche Area aus friendly_name zu extrahieren: "Wohnzimmer Temp2-1"
-                const nameParts = friendlyName.split(' ');
-                if (nameParts.length > 1) {
-                    const possibleArea = nameParts[0];
-                    if (possibleArea.length > 3) {
-                        console.log(`✅ Extracted area from friendly_name for ${entityId}: ${possibleArea}`);
-                        return possibleArea;
-                    }
-                }
-            }
-    
-            // 4. Entity-ID parsing (letzter Fallback)
-            const parts = entityId.split('.');
-            if (parts.length > 1) {
-                const namePart = parts[1];
-                const segments = namePart.split('_');
+                // PURISTISCHER ANSATZ: Kein "Erstes-Wort-Fallback" mehr
+                // Wenn nichts Eindeutiges gefunden wird, ist es "Ohne Raum"
+                // Dies verhindert das Raten und fördert saubere Daten in Home Assistant
+                return 'Ohne Raum';
                 
-                // "temp2_1" → "Temp2"
-                if (segments.length > 0 && segments[0].length > 1) {
-                    const areaGuess = segments[0];
-                    const capitalizedArea = areaGuess.charAt(0).toUpperCase() + areaGuess.slice(1);
-                    console.log(`⚠️ Fallback area for ${entityId}: ${capitalizedArea}`);
-                    return capitalizedArea;
-                }
+            } catch (error) {
+                console.warn(`❌ Error getting area for ${entityId}:`, error);
+                return 'Ohne Raum';
             }
-            
-            console.log(`❌ No area found for ${entityId}, using default`);
-            return 'Ohne Raum';
-            
-        } catch (error) {
-            console.warn(`❌ Error getting area for ${entityId}:`, error);
-            return 'Ohne Raum';
         }
-    }
  
     parseTemplateSensor(dataSource, sourceIndex = 0) {           
         const state = this._hass.states[dataSource.entity];
