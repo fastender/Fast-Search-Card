@@ -224,6 +224,10 @@ class FastSearchCard extends HTMLElement {
         this.currentViewMode = 'grid';
         this.subcategoryMode = 'categories';
 
+        // Filter UI State
+        this.isFilterOpen = false;
+        this.filterOpenTimeout = null;        
+
         // Circular Slider State
         this.circularSliders = {};
         this.lightUpdateTimeout = null;
@@ -624,6 +628,137 @@ class FastSearchCard extends HTMLElement {
                 stroke-linecap: round;
                 stroke-linejoin: round;
             }
+
+            /* Filter Container & Animation Styles */
+            .filter-container {
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: 0;
+            }
+            
+            .filter-main-button {
+                width: 44px;
+                height: 44px;
+                border: none;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                z-index: 10;
+                flex-shrink: 0;
+            }
+            
+            .filter-main-button:hover {
+                background: rgba(255, 255, 255, 0.25);
+                transform: scale(1.05);
+            }
+            
+            .filter-main-button.active {
+                background: rgba(255, 255, 255, 0.3);
+                box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+            }
+            
+            .filter-main-button svg {
+                width: 20px;
+                height: 20px;
+                stroke: rgba(255, 255, 255, 0.8);
+                stroke-width: 1.5;
+            }
+            
+            .filter-groups {
+                position: absolute;
+                right: 100%;
+                top: 50%;
+                transform: translateY(-50%);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-right: 12px;
+                opacity: 0;
+                pointer-events: none;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .filter-groups.visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            
+            .filter-group {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                background: rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 8px 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                transform: translateX(20px) scale(0.8);
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .filter-groups.visible .filter-group {
+                transform: translateX(0) scale(1);
+            }
+            
+            .filter-groups.visible .filter-group:nth-child(1) {
+                transition-delay: 0.1s;
+            }
+            
+            .filter-groups.visible .filter-group:nth-child(2) {
+                transition-delay: 0.2s;
+            }
+            
+            .filter-button {
+                width: 60px;
+                height: 60px;
+                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                transition: all 0.2s ease;
+                padding: 8px 6px;
+                box-sizing: border-box;
+            }
+            
+            .filter-button:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.1);
+            }
+            
+            .filter-button.active {
+                background: rgba(0, 122, 255, 0.8);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            }
+            
+            .filter-button svg {
+                width: 20px;
+                height: 20px;
+                flex-shrink: 0;
+            }
+            
+            .filter-button-label {
+                font-size: 10px;
+                font-weight: 500;
+                color: white;
+                text-align: center;
+                line-height: 1;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+            }
+            
 
             .subcategories {
                 display: flex;
@@ -1801,33 +1936,6 @@ class FastSearchCard extends HTMLElement {
                 order: -1; /* ← NEU: Area über Name positionieren */
                 line-height: 1.05em;
             }
-            
-            .view-toggle-button {
-                width: 24px;
-                height: 24px;
-                border: none;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 6px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                transition: all 0.2s ease;
-            }
-            
-            .view-toggle-button:hover {
-                background: rgba(255, 255, 255, 0.2);
-            }
-            
-            .view-toggle-button svg {
-                width: 18px;
-                height: 18px;
-                stroke: var(--text-secondary);
-                stroke-width: 2;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }
 
             .device-list-quick-action {
                 width: 32px;
@@ -1866,36 +1974,7 @@ class FastSearchCard extends HTMLElement {
             
             .device-list-quick-action.active svg {
                 stroke: var(--accent);
-            }
-
-            .subcategory-toggle-button {
-                width: 24px;
-                height: 24px;
-                border: none;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 6px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                transition: all 0.2s ease;
-            }
-            
-            .subcategory-toggle-button:hover {
-                background: rgba(255, 255, 255, 0.2);
-                transform: scale(1.05);
-            }
-            
-            .subcategory-toggle-button svg {
-                width: 18px;
-                height: 18px;
-                stroke: var(--text-secondary);
-                stroke-width: 2;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }            
-
+            }         
 
             /* Custom Items Specific Styles */
             .icon-background.custom-item {
@@ -2298,57 +2377,87 @@ class FastSearchCard extends HTMLElement {
                             </div>                            
 
 
-
-
-                            
                             <button class="clear-button">
                                 <svg viewBox="0 0 24 24" fill="none">
                                     <line x1="18" y1="6" x2="6" y2="18"/>
                                     <line x1="6" y1="6" x2="18" y2="18"/>
                                 </svg>
                             </button>
-
-                            <button class="view-toggle-button" title="Ansicht wechseln">
-                                <svg viewBox="0 0 24 24" fill="none" class="grid-icon">
-                                    <rect x="3" y="3" width="7" height="7"/>
-                                    <rect x="14" y="3" width="7" height="7"/>
-                                    <rect x="3" y="14" width="7" height="7"/>
-                                    <rect x="14" y="14" width="7" height="7"/>
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="none" class="list-icon" style="display: none;">
-                                    <line x1="8" y1="6" x2="21" y2="6"/>
-                                    <line x1="8" y1="12" x2="21" y2="12"/>
-                                    <line x1="8" y1="18" x2="21" y2="18"/>
-                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
-                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
-                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
-                                </svg>
-                            </button>
-
-                            <button class="subcategory-toggle-button" title="Filter wechseln">
-                                <svg viewBox="0 0 24 24" fill="none" class="categories-icon">
-                                    <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/>
-                                    <path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"/>
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="none" class="areas-icon" style="display: none;">
-                                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"/>
-                                    <polyline points="9,22 9,12 15,12 15,22"/>
-                                </svg>
-                            </button>
                             
-                            <div class="filter-icon">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <line x1="4" y1="21" x2="4" y2="14"/>
-                                    <line x1="4" y1="10" x2="4" y2="3"/>
-                                    <line x1="12" y1="21" x2="12" y2="12"/>
-                                    <line x1="12" y1="8" x2="12" y2="3"/>
-                                    <line x1="20" y1="21" x2="20" y2="16"/>
-                                    <line x1="20" y1="12" x2="20" y2="3"/>
-                                    <line x1="1" y1="14" x2="7" y2="14"/>
-                                    <line x1="9" y1="8" x2="15" y2="8"/>
-                                    <line x1="17" y1="16" x2="23" y2="16"/>
-                                </svg>
+                            <div class="filter-container">
+                                <div class="filter-groups" id="filterGroups">
+                                    <!-- View Group -->
+                                    <div class="filter-group">
+                                        <button class="filter-button active" data-action="grid" title="Grid-Ansicht">
+                                            <svg viewBox="0 0 24 24" fill="none">
+                                                <path d="M14 20.4V14.6C14 14.2686 14.2686 14 14.6 14H20.4C20.7314 14 21 14.2686 21 14.6V20.4C21 20.7314 20.7314 21 20.4 21H14.6C14.2686 21 14 20.7314 14 20.4Z" stroke="#ffffff" stroke-width="1"></path>
+                                                <path d="M3 20.4V14.6C3 14.2686 3.26863 14 3.6 14H9.4C9.73137 14 10 14.2686 10 14.6V20.4C10 20.7314 9.73137 21 9.4 21H3.6C3.26863 21 3 20.7314 3 20.4Z" stroke="#ffffff" stroke-width="1"></path>
+                                                <path d="M14 9.4V3.6C14 3.26863 14.2686 3 14.6 3H20.4C20.7314 3 21 3.26863 21 3.6V9.4C21 9.73137 20.7314 10 20.4 10H14.6C14.2686 10 14 9.73137 14 9.4Z" stroke="#ffffff" stroke-width="1"></path>
+                                                <path d="M3 9.4V3.6C3 3.26863 3.26863 3 3.6 3H9.4C9.73137 3 10 3.26863 10 3.6V9.4C10 9.73137 9.73137 10 9.4 10H3.6C3.26863 10 3 9.73137 3 9.4Z" stroke="#ffffff" stroke-width="1"></path>
+                                            </svg>
+                                            <span class="filter-button-label">Grid</span>
+                                        </button>
+                                        <button class="filter-button" data-action="list" title="Listen-Ansicht">
+                                            <svg viewBox="0 0 24 24" fill="none">
+                                                <path d="M8 6L20 6" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M4 6.01L4.01 5.99889" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M4 12.01L4.01 11.9989" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M4 18.01L4.01 17.9989" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M8 12L20 12" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M8 18L20 18" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                            </svg>
+                                            <span class="filter-button-label">Liste</span>
+                                        </button>
+                                    </div>
+                            
+                                    <!-- Filter Group -->
+                                    <div class="filter-group">
+                                        <button class="filter-button active" data-action="categories" title="Kategorien">
+                                            <svg viewBox="0 0 24 24" fill="none">
+                                                <path d="M20.777 13.3453L13.4799 21.3721C12.6864 22.245 11.3136 22.245 10.5201 21.3721L3.22304 13.3453C2.52955 12.5825 2.52955 11.4175 3.22304 10.6547L10.5201 2.62787C11.3136 1.755 12.6864 1.755 13.4799 2.62787L20.777 10.6547C21.4705 11.4175 21.4705 12.5825 20.777 13.3453Z" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                            </svg>
+                                            <span class="filter-button-label">Kategorie</span>
+                                        </button>
+                                        <button class="filter-button" data-action="areas" title="Räume">
+                                            <svg viewBox="0 0 24 24" fill="none">
+                                                <path d="M11 19V21" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M11 12V16" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M16 12V16L14 16" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M21 12L8 12" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M5 12H3" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M3 5L12 3L21 5" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                <path d="M21 8.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V8.6C3 8.26863 3.26863 8 3.6 8H20.4C20.7314 8 21 8.26863 21 8.6Z" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                            </svg>
+                                            <span class="filter-button-label">Räume</span>
+                                        </button>
+                                        <button class="filter-button" data-action="types" title="Typen" style="display: none;" id="typeButton">
+                                            <svg viewBox="0 0 24 24" fill="none">
+                                                <path d="M5.21173 15.1113L2.52473 12.4243C2.29041 12.1899 2.29041 11.8101 2.52473 11.5757L5.21173 8.88873C5.44605 8.65442 5.82595 8.65442 6.06026 8.88873L8.74727 11.5757C8.98158 11.8101 8.98158 12.1899 8.74727 12.4243L6.06026 15.1113C5.82595 15.3456 5.44605 15.3456 5.21173 15.1113Z" stroke="#ffffff" stroke-width="1"></path>
+                                                <path d="M11.5757 21.475L8.88874 18.788C8.65443 18.5537 8.65443 18.1738 8.88874 17.9395L11.5757 15.2525C11.8101 15.0182 12.19 15.0182 12.4243 15.2525L15.1113 17.9395C15.3456 18.1738 15.3456 18.5537 15.1113 18.788L12.4243 21.475C12.19 21.7094 11.8101 21.7094 11.5757 21.475Z" stroke="#ffffff" stroke-width="1"></path>
+                                                <path d="M11.5757 8.7475L8.88874 6.06049C8.65443 5.82618 8.65443 5.44628 8.88874 5.21197L11.5757 2.52496C11.8101 2.29065 12.19 2.29065 12.4243 2.52496L15.1113 5.21197C15.3456 5.44628 15.3456 5.82618 15.1113 6.06049L12.4243 8.7475C12.19 8.98181 11.8101 8.98181 11.5757 8.7475Z" stroke="#ffffff" stroke-width="1"></path>
+                                                <path d="M17.9396 15.1113L15.2526 12.4243C15.0183 12.1899 15.0183 11.8101 15.2526 11.5757L17.9396 8.88873C18.174 8.65442 18.5539 8.65442 18.7882 8.88873L21.4752 11.5757C21.7095 11.8101 21.7095 12.1899 21.4752 12.4243L18.7882 15.1113C18.5539 15.3456 18.174 15.3456 17.9396 15.1113Z" stroke="#ffffff" stroke-width="1"></path>
+                                            </svg>
+                                            <span class="filter-button-label">Typen</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <button class="filter-main-button" id="filterMainButton">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <line x1="4" y1="21" x2="4" y2="14"></line>
+                                        <line x1="4" y1="10" x2="4" y2="3"></line>
+                                        <line x1="12" y1="21" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12" y2="3"></line>
+                                        <line x1="20" y1="21" x2="20" y2="16"></line>
+                                        <line x1="20" y1="12" x2="20" y2="3"></line>
+                                        <line x1="1" y1="14" x2="7" y2="14"></line>
+                                        <line x1="9" y1="8" x2="15" y2="8"></line>
+                                        <line x1="17" y1="16" x2="23" y2="16"></line>
+                                    </svg>
+                                </button>
                             </div>
+
+                            
                         </div>
 
                         <div class="results-container">
@@ -2472,15 +2581,6 @@ class FastSearchCard extends HTMLElement {
 
         clearButton.addEventListener('click', (e) => { e.stopPropagation(); this.clearSearch(); });
         categoryIcon.addEventListener('click', (e) => { e.stopPropagation(); this.toggleCategoryButtons(); });
-        filterIcon.addEventListener('click', (e) => { e.stopPropagation(); this.handleFilterClick(); });
-
-        // NEU HINZUFÜGEN:
-        const viewToggle = this.shadowRoot.querySelector('.view-toggle-button');
-        viewToggle.addEventListener('click', (e) => { e.stopPropagation(); this.toggleViewMode(); });
-
-        // NEU HINZUFÜGEN:
-        const subcategoryToggle = this.shadowRoot.querySelector('.subcategory-toggle-button');
-        subcategoryToggle.addEventListener('click', (e) => { e.stopPropagation(); this.toggleSubcategoryMode(); });
 
         categoryButtons.forEach(button => {
             button.addEventListener('click', (e) => { e.stopPropagation(); this.handleCategorySelect(button); });
@@ -2494,6 +2594,10 @@ class FastSearchCard extends HTMLElement {
             if (!e.target.closest('fast-search-card')) {
                 this.hideCategoryButtons();
                 this.collapsePanel();
+                // Filter schließen wenn außerhalb geklickt
+                if (this.isFilterOpen) {
+                    this.toggleFilter();
+                }
             }
         });
     
@@ -2521,6 +2625,28 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
+    // Filter Button Events
+    const filterMainButton = this.shadowRoot.querySelector('.filter-main-button');
+    const filterGroups = this.shadowRoot.querySelector('.filter-groups');
+    
+    if (filterMainButton) {
+        filterMainButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleFilter();
+        });
+    }
+    
+    // Filter Group Button Events
+    if (filterGroups) {
+        filterGroups.addEventListener('click', (e) => {
+            const filterButton = e.target.closest('.filter-button');
+            if (filterButton) {
+                e.stopPropagation();
+                this.handleFilterButtonClick(filterButton);
+            }
+        });
+    }
+    
     handleSearch(query) {
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         const searchInput = this.shadowRoot.querySelector('.search-input');
@@ -2609,6 +2735,10 @@ class FastSearchCard extends HTMLElement {
         this.updateSubcategoryToggleIcon();
         this.updateSubcategoryChips();
         this.hideCategoryButtons();
+
+        // Hinzufügen:
+        this.updateTypeButtonVisibility();
+        this.updateFilterButtonStates();        
         // this.expandPanel(); // ENTFERNT
         // this.showCurrentCategoryItems(); // ENTFERNT
     }
@@ -2636,10 +2766,115 @@ class FastSearchCard extends HTMLElement {
         this.filterBySubcategory();
     }
 
-    handleFilterClick() {
-        const filterIcon = this.shadowRoot.querySelector('.filter-icon');
-        filterIcon.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(180deg)' }, { transform: 'rotate(0deg)' }], { duration: 600, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+    toggleFilter() {
+        this.isFilterOpen = !this.isFilterOpen;
+        
+        const filterMainButton = this.shadowRoot.querySelector('.filter-main-button');
+        const filterGroups = this.shadowRoot.querySelector('.filter-groups');
+        const searchInput = this.shadowRoot.querySelector('.search-input');
+        
+        if (this.isFilterOpen) {
+            // Filter öffnen
+            filterMainButton.classList.add('active');
+            filterGroups.classList.add('visible');
+            
+            // Placeholder-Text verstecken
+            if (searchInput) {
+                searchInput.placeholder = '';
+            }
+            
+            // Type Button für Custom Category anzeigen
+            this.updateTypeButtonVisibility();
+            
+        } else {
+            // Filter schließen
+            filterMainButton.classList.remove('active');
+            filterGroups.classList.remove('visible');
+            
+            // Placeholder-Text wieder anzeigen
+            if (searchInput) {
+                this.updatePlaceholder();
+            }
+        }
     }
+    
+    handleFilterButtonClick(button) {
+        const action = button.dataset.action;
+        const group = button.closest('.filter-group');
+        
+        // Visual feedback
+        button.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(0.9)' },
+            { transform: 'scale(1)' }
+        ], { duration: 150, easing: 'ease-out' });
+        
+        // Remove active from siblings
+        const siblings = group.querySelectorAll('.filter-button');
+        siblings.forEach(sibling => sibling.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Handle actions
+        switch (action) {
+            case 'grid':
+                this.currentViewMode = 'grid';
+                this.renderResults();
+                break;
+            case 'list':
+                this.currentViewMode = 'list';
+                this.renderResults();
+                break;
+            case 'categories':
+                this.subcategoryMode = 'categories';
+                this.updateSubcategoryChips();
+                this.activeSubcategory = 'all';
+                this.renderResults();
+                break;
+            case 'areas':
+                this.subcategoryMode = 'areas';
+                this.updateSubcategoryChips();
+                this.activeSubcategory = 'all';
+                this.renderResults();
+                break;
+            case 'types':
+                this.subcategoryMode = 'types';
+                this.updateSubcategoryChips();
+                this.activeSubcategory = 'all';
+                this.renderResults();
+                break;
+        }
+    }
+    
+    updateTypeButtonVisibility() {
+        const typeButton = this.shadowRoot.querySelector('#typeButton');
+        if (typeButton) {
+            const shouldShow = this.activeCategory === 'custom';
+            typeButton.style.display = shouldShow ? 'flex' : 'none';
+        }
+    }
+    
+    updateFilterButtonStates() {
+        const filterGroups = this.shadowRoot.querySelector('.filter-groups');
+        if (!filterGroups) return;
+        
+        // Update view buttons
+        const gridBtn = filterGroups.querySelector('[data-action="grid"]');
+        const listBtn = filterGroups.querySelector('[data-action="list"]');
+        
+        if (gridBtn && listBtn) {
+            gridBtn.classList.toggle('active', this.currentViewMode === 'grid');
+            listBtn.classList.toggle('active', this.currentViewMode === 'list');
+        }
+        
+        // Update subcategory buttons
+        const categoriesBtn = filterGroups.querySelector('[data-action="categories"]');
+        const areasBtn = filterGroups.querySelector('[data-action="areas"]');
+        const typesBtn = filterGroups.querySelector('[data-action="types"]');
+        
+        if (categoriesBtn) categoriesBtn.classList.toggle('active', this.subcategoryMode === 'categories');
+        if (areasBtn) areasBtn.classList.toggle('active', this.subcategoryMode === 'areas');
+        if (typesBtn) typesBtn.classList.toggle('active', this.subcategoryMode === 'types');
+    }    
 
     expandPanel() {
         if (this.isPanelExpanded) return;
@@ -2648,6 +2883,9 @@ class FastSearchCard extends HTMLElement {
         searchPanel.classList.add('expanded');
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (!searchInput.value.trim()) { this.showCurrentCategoryItems(); }
+
+        // Update filter button states when panel expands
+        this.updateFilterButtonStates();        
     }
 
     collapsePanel() {
@@ -4520,22 +4758,13 @@ class FastSearchCard extends HTMLElement {
         this.currentViewMode = this.currentViewMode === 'grid' ? 'list' : 'grid';
         this.updateViewToggleIcon();
         this.renderResults();
+        // Hinzufügen:
+        this.updateFilterButtonStates();        
     }
     
     updateViewToggleIcon() {
-        const viewToggle = this.shadowRoot.querySelector('.view-toggle-button');
-        const gridIcon = viewToggle.querySelector('.grid-icon');
-        const listIcon = viewToggle.querySelector('.list-icon');
-        
-        if (this.currentViewMode === 'list') {
-            gridIcon.style.display = 'none';
-            listIcon.style.display = 'block';
-            viewToggle.title = 'Grid-Ansicht';
-        } else {
-            gridIcon.style.display = 'block';
-            listIcon.style.display = 'none';
-            viewToggle.title = 'Listen-Ansicht';
-        }
+        // Legacy method - now handled by filter buttons
+        this.updateFilterButtonStates();
     }
 
     toggleSubcategoryMode() {
@@ -4554,39 +4783,14 @@ class FastSearchCard extends HTMLElement {
         this.updateSubcategoryChips();
         this.activeSubcategory = 'all'; // Reset selection
         this.renderResults();
+        
+        // Hinzufügen:
+        this.updateFilterButtonStates();        
     }
     
     updateSubcategoryToggleIcon() {
-        const subcategoryToggle = this.shadowRoot.querySelector('.subcategory-toggle-button');
-        const categoriesIcon = subcategoryToggle.querySelector('.categories-icon');
-        const areasIcon = subcategoryToggle.querySelector('.areas-icon');
-        
-        // Verstecke alle Icons
-        categoriesIcon.style.display = 'none';
-        areasIcon.style.display = 'none';
-        
-        if (this.activeCategory === 'custom') {
-            // Custom Category Icons
-            if (this.subcategoryMode === 'categories') {
-                categoriesIcon.style.display = 'block';
-                subcategoryToggle.title = 'Nach Räumen filtern';
-            } else if (this.subcategoryMode === 'areas') {
-                areasIcon.style.display = 'block';
-                subcategoryToggle.title = 'Nach Typen filtern';
-            } else { // types
-                categoriesIcon.style.display = 'block';
-                subcategoryToggle.title = 'Nach Kategorien filtern';
-            }
-        } else {
-            // Standard Icons
-            if (this.subcategoryMode === 'areas') {
-                areasIcon.style.display = 'block';
-                subcategoryToggle.title = 'Kategorien anzeigen';
-            } else {
-                categoriesIcon.style.display = 'block';
-                subcategoryToggle.title = 'Räume anzeigen';
-            }
-        }
+        // Legacy method - now handled by filter buttons
+        this.updateFilterButtonStates();
     }
     
     updateSubcategoryChips() {
