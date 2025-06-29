@@ -2776,19 +2776,18 @@ class FastSearchCard extends HTMLElement {
         
         const filterMainButton = this.shadowRoot.querySelector('.filter-main-button');
         const filterGroups = this.shadowRoot.querySelector('.filter-groups');
-        const searchInput = this.shadowRoot.querySelector('.search-input');
+        const searchInputContainer = this.shadowRoot.querySelector('.search-input-container'); // ← Container statt Input
         
         if (this.isFilterOpen) {
             // Filter öffnen
             filterMainButton.classList.add('active');
             filterGroups.classList.add('visible');
             
-            // Input komplett deaktivieren
-            if (searchInput) {
-                searchInput.placeholder = '';
-                searchInput.classList.add('filter-active');
-                searchInput.blur(); // Focus entfernen
-                searchInput.setAttribute('tabindex', '-1'); // Tab-Navigation deaktivieren
+            // Input-Container komplett verstecken
+            if (searchInputContainer) {
+                searchInputContainer.style.opacity = '0';
+                searchInputContainer.style.pointerEvents = 'none';
+                searchInputContainer.style.visibility = 'hidden';
             }
             
             this.updateTypeButtonVisibility();
@@ -2798,11 +2797,11 @@ class FastSearchCard extends HTMLElement {
             filterMainButton.classList.remove('active');
             filterGroups.classList.remove('visible');
             
-            // Input wieder aktivieren
-            if (searchInput) {
-                this.updatePlaceholder();
-                searchInput.classList.remove('filter-active');
-                searchInput.removeAttribute('tabindex'); // Tab-Navigation aktivieren
+            // Input-Container wieder anzeigen
+            if (searchInputContainer) {
+                searchInputContainer.style.opacity = '1';
+                searchInputContainer.style.pointerEvents = 'auto';
+                searchInputContainer.style.visibility = 'visible';
             }
         }
     }
