@@ -2518,47 +2518,58 @@ class FastSearchCard extends HTMLElement {
 
                     <div class="category-buttons">
                         <button class="category-button glass-panel active" data-category="devices" title="Geräte">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                <path d="M12 18h.01"/>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 15.4V8.6C8 8.26863 8.26863 8 8.6 8H15.4C15.7314 8 16 8.26863 16 8.6V15.4C16 15.7314 15.7314 16 15.4 16H8.6C8.26863 16 8 15.7314 8 15.4Z"/>
+                                <path d="M20 4.6V19.4C20 19.7314 19.7314 20 19.4 20H4.6C4.26863 20 4 19.7314 4 19.4V4.6C4 4.26863 4.26863 4 4.6 4H19.4C19.7314 4 20 4.26863 20 4.6Z"/>
+                                <path d="M17 4V2"/><path d="M12 4V2"/><path d="M7 4V2"/>
+                                <path d="M7 20V22"/><path d="M12 20V22"/><path d="M17 20V22"/>
+                                <path d="M20 17H22"/><path d="M20 12H22"/><path d="M20 7H22"/>
+                                <path d="M4 17H2"/><path d="M4 12H2"/><path d="M4 7H2"/>
                             </svg>
                         </button>
                         
                         <button class="category-button glass-panel" data-category="scripts" title="Skripte">
-                           <svg viewBox="0 0 24 24" fill="none">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14,2 14,8 20,8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                <polyline points="10,9 9,9 8,9"/>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143"/>
+                                <path d="M6 17L20 17"/><path d="M6 21L20 21"/>
+                                <path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17"/>
+                                <path d="M9 7L15 7"/>
                             </svg>
                         </button>
                         
                         <button class="category-button glass-panel" data-category="automations" title="Automationen">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <path d="M12 2v6l3-3 3 3"/>
-                                <path d="M12 18v4"/>
-                                <path d="M8 8v8"/>
-                                <path d="M16 8v8"/>
-                                <circle cx="12" cy="12" r="2"/>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15 12L15 15"/><path d="M12 3V6"/><path d="M18 12L18 15"/>
+                                <path d="M12 18L21 18"/><path d="M18 21H21"/><path d="M6 12H9"/>
+                                <path d="M6 6.01111L6.01 6"/><path d="M12 12.0111L12.01 12"/>
+                                <path d="M3 12.0111L3.01 12"/><path d="M12 9.01111L12.01 9"/>
+                                <path d="M12 15.0111L12.01 15"/><path d="M15 21.0111L15.01 21"/>
+                                <path d="M12 21.0111L12.01 21"/><path d="M21 12.0111L21.01 12"/>
+                                <path d="M21 15.0111L21.01 15"/><path d="M18 6.01111L18.01 6"/>
+                                <path d="M9 3.6V8.4C9 8.73137 8.73137 9 8.4 9H3.6C3.26863 9 3 8.73137 3 8.4V3.6C3 3.26863 3.26863 3 3.6 3H8.4C8.73137 3 9 3.26863 9 3.6Z"/>
+                                <path d="M21 3.6V8.4C21 8.73137 20.7314 9 20.4 9H15.6C15.2686 9 15 8.73137 15 8.4V3.6C15 3.26863 15.2686 3 15.6 3H20.4C20.7314 3 21 3.26863 21 3.6Z"/>
+                                <path d="M6 18.0111L6.01 18"/>
+                                <path d="M9 15.6V20.4C9 20.7314 8.73137 21 8.4 21H3.6C3.26863 21 3 20.7314 3 20.4V15.6C3 15.2686 3.26863 15 3.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z"/>
                             </svg>
                         </button>
                         
                         <button class="category-button glass-panel" data-category="scenes" title="Szenen">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <path d="M2 3h6l2 13 13-13v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
-                                <path d="M8 3v4"/>
-                                <path d="M16 8v4"/>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.5096 9.54C20.4243 9.77932 20.2918 9.99909 20.12 10.1863C19.9483 10.3735 19.7407 10.5244 19.5096 10.63C18.2796 11.1806 17.2346 12.0745 16.5002 13.2045C15.7659 14.3345 15.3733 15.6524 15.3696 17C15.3711 17.4701 15.418 17.9389 15.5096 18.4C15.5707 18.6818 15.5747 18.973 15.5215 19.2564C15.4682 19.5397 15.3588 19.8096 15.1996 20.05C15.0649 20.2604 14.8877 20.4403 14.6793 20.5781C14.4709 20.7158 14.2359 20.8085 13.9896 20.85C13.4554 20.9504 12.9131 21.0006 12.3696 21C11.1638 21.0006 9.97011 20.7588 8.85952 20.2891C7.74893 19.8194 6.74405 19.1314 5.90455 18.2657C5.06506 17.4001 4.40807 16.3747 3.97261 15.2502C3.53714 14.1257 3.33208 12.9252 3.36959 11.72C3.4472 9.47279 4.3586 7.33495 5.92622 5.72296C7.49385 4.11097 9.60542 3.14028 11.8496 3H12.3596C14.0353 3.00042 15.6777 3.46869 17.1017 4.35207C18.5257 5.23544 19.6748 6.49885 20.4196 8C20.6488 8.47498 20.6812 9.02129 20.5096 9.52V9.54Z"/>
+                                <path d="M8 16.01L8.01 15.9989"/><path d="M6 12.01L6.01 11.9989"/>
+                                <path d="M8 8.01L8.01 7.99889"/><path d="M12 6.01L12.01 5.99889"/>
+                                <path d="M16 8.01L16.01 7.99889"/>
                             </svg>
                         </button>
-
-                        <!-- NEU HINZUFÜGEN: -->
+                    
                         <button class="category-button glass-panel" data-category="custom" title="Custom">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/>
-                                <path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"/>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 7.35304L21 16.647C21 16.8649 20.8819 17.0656 20.6914 17.1715L12.2914 21.8381C12.1102 21.9388 11.8898 21.9388 11.7086 21.8381L3.30861 17.1715C3.11814 17.0656 3 16.8649 3 16.647L2.99998 7.35304C2.99998 7.13514 3.11812 6.93437 3.3086 6.82855L11.7086 2.16188C11.8898 2.06121 12.1102 2.06121 12.2914 2.16188L20.6914 6.82855C20.8818 6.93437 21 7.13514 21 7.35304Z"/>
+                                <path d="M20.5 16.7222L12.2914 12.1619C12.1102 12.0612 11.8898 12.0612 11.7086 12.1619L3.5 16.7222"/>
+                                <path d="M3.52844 7.29357L11.7086 11.8381C11.8898 11.9388 12.1102 11.9388 12.2914 11.8381L20.5 7.27777"/>
+                                <path d="M12 21L12 3"/>
                             </svg>
-                        </button>                        
+                        </button>                                            
                     </div>
                 </div>
             </div>
