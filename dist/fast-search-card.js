@@ -7130,35 +7130,41 @@ class FastSearchCard extends HTMLElement {
             ctx.stroke();
         }
         
-        // Horizontal Grid Lines - 10er Schritte (11 Linien für 0-100%)
-        for (let i = 0; i <= 10; i++) {
-            const y = padding + (chartHeight / 10) * i;
-            ctx.beginPath();
-            ctx.moveTo(padding, y);
-            ctx.lineTo(padding + chartWidth, y);
-            ctx.stroke();
-        }
+        // DYNAMISCHE Y-Achsen-Logic
+        const minLabelSpacing = 30; // Mindestens 30px Platz pro Label
+        const maxLabelCount = Math.floor(chartHeight / minLabelSpacing);
+        const stepCount = Math.min(10, maxLabelCount); // Maximal 10 Schritte
         
-        // Y-axis Labels - 10er Schritte mit ausreichend Abstand
-        ctx.fillStyle = 'rgba(255,255,255,0.8)';
-        ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
-        ctx.textAlign = 'right';
-        
-        for (let i = 0; i <= 10; i++) { // 11 Labels (0% bis 100%)
-            const y = padding + (chartHeight / 10) * i + 4;
-            const value = maxValue - (valueRange / 10) * i; // 10er Schritte
-            
-            // Formatierung
-            let text;
-            if (unit === '%') {
-                // Für Prozent: immer ganze Zahlen
-                text = Math.round(value) + '%';
-            } else {
-                text = value.toFixed(1) + unit;
+        if (stepCount > 1) {
+            // Horizontal Grid Lines - DYNAMISCH
+            for (let i = 0; i <= stepCount; i++) {
+                const y = padding + (chartHeight / stepCount) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + chartWidth, y);
+                ctx.stroke();
             }
             
-            ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.fillText(text, padding - 25, y); // -25 für ausreichend Platz
+            // Y-axis Labels - DYNAMISCH mit ausreichend Abstand
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'right';
+            
+            for (let i = 0; i <= stepCount; i++) {
+                const y = padding + (chartHeight / stepCount) * i + 4;
+                const value = maxValue - (valueRange / stepCount) * i;
+                
+                // Formatierung
+                let text;
+                if (unit === '%') {
+                    text = Math.round(value) + '%';
+                } else {
+                    text = value.toFixed(1) + unit;
+                }
+                
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                ctx.fillText(text, padding - 25, y);
+            }
         }
     }
     
