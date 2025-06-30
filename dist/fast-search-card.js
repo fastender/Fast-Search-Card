@@ -2516,6 +2516,54 @@ class FastSearchCard extends HTMLElement {
                 font-style: italic;
                 font-size: 14px;
             }
+
+            /* Chart Container */
+            .history-chart-container {
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 16px;
+                padding: 20px;
+                margin-bottom: 20px;
+                height: 200px;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .chart-loading {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: var(--text-secondary);
+                font-size: 14px;
+                font-style: italic;
+            }
+            
+            .chart-canvas {
+                width: 100%;
+                height: 100%;
+            }
+            
+            /* Chart Legend */
+            .chart-legend {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+                margin-top: 12px;
+                font-size: 12px;
+            }
+            
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            
+            .legend-color {
+                width: 12px;
+                height: 12px;
+                border-radius: 2px;
+            }            
             
             /* Mobile Responsive */
             @media (max-width: 768px) {
@@ -6010,12 +6058,17 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
                 
+                <!-- NEU: Diagramm-Container -->
+                <div class="history-chart-container" id="history-chart-${item.id}">
+                    <div class="chart-loading">📊 Diagramm wird geladen...</div>
+                </div>
+                
                 <div class="history-timeline" id="history-timeline-${item.id}">
                     <div class="loading-indicator">Verlaufsdaten werden geladen...</div>
                 </div>
             </div>
         `;
-    }    
+    }        
 
     formatLastChanged(timestamp) {
         const now = new Date();
@@ -6210,11 +6263,15 @@ class FastSearchCard extends HTMLElement {
     async loadAndDisplayHistory(item, period) {
         const timelineContainer = this.shadowRoot.getElementById(`history-timeline-${item.id}`);
         const todayActiveElement = this.shadowRoot.getElementById(`today-active-${item.id}`);
+        const chartContainer = this.shadowRoot.getElementById(`history-chart-${item.id}`);
         
         if (!timelineContainer) return;
         
         // Loading state
         timelineContainer.innerHTML = '<div class="loading-indicator">Lade Verlaufsdaten...</div>';
+        if (chartContainer) {
+            chartContainer.innerHTML = '<div class="chart-loading">📊 Diagramm wird geladen...</div>';
+        }
         
         try {
             const historyData = await this.loadHistoryData(item, period);
@@ -6222,6 +6279,9 @@ class FastSearchCard extends HTMLElement {
             if (!historyData || !historyData.events || historyData.events.length === 0) {
                 timelineContainer.innerHTML = '<div class="loading-indicator">Keine Verlaufsdaten gefunden.</div>';
                 if (todayActiveElement) todayActiveElement.textContent = '0 Std';
+                if (chartContainer) {
+                    chartContainer.innerHTML = '<div class="chart-loading">Keine Daten für Diagramm verfügbar</div>';
+                }
                 return;
             }
             
@@ -6247,14 +6307,377 @@ class FastSearchCard extends HTMLElement {
                 `;
             }
             
+            // NEU: Render Chart
+            if (chartContainer) {
+                this.renderHistoryChart(historyData.events, chartContainer, item, period);
+            }
+            
             // Render timeline
             this.renderHistoryTimeline(historyData.events, timelineContainer, item, warningHTML);
             
         } catch (error) {
             console.error('History loading error:', error);
             timelineContainer.innerHTML = '<div class="loading-indicator">Fehler beim Laden der Daten.</div>';
+            if (chartContainer) {
+                chartContainer.innerHTML = '<div class="chart-loading">Fehler beim Laden des Diagramms</div>';
+            }
         }
     }
+
+    renderHistoryChart(events, container, item, period) {
+        // Bestimme Chart-Typ basierend auf Gerät
+        const chartType = this.getChartType(item);
+        
+        if (chartType === 'none') {
+            container.innerHTML = '<div class="chart-loading">Keine Diagramm-Darstellung für diesen Gerätetyp</div>';
+            return;
+        }
+        
+        // Erstelle Canvas Element
+        container.innerHTML = `
+            <canvas class="chart-canvas" id="chart-canvas-${item.id}"></canvas>
+            <div class="chart-legend" id="chart-legend-${item.id}"></div>
+        `;
+        
+        const canvas = container.querySelector('.chart-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Setze Canvas-Größe
+        const rect = container.getBoundingClientRect();
+        canvas.width = rect.width - 40;
+        canvas.height = 160;
+        
+        // Bereite Daten vor
+        const chartData = this.prepareChartData(events, item, period);
+        
+        // Zeichne Chart basierend auf Typ
+        switch(chartType) {
+            case 'line':
+                this.drawLineChart(ctx, chartData, canvas.width, canvas.height);
+                break;
+            case 'bar':
+                this.drawBarChart(ctx, chartData, canvas.width, canvas.height);
+                break;
+            case 'activity':
+                this.drawActivityChart(ctx, chartData, canvas.width, canvas.height);
+                break;
+        }
+        
+        // Zeichne Legende
+        this.drawChartLegend(container.querySelector('.chart-legend'), chartData, item);
+    }    
+
+    getChartType(item) {
+        switch(item.domain) {
+            case 'climate':
+                return 'line'; // Temperatur-Verlauf
+            case 'light':
+                return 'line'; // Helligkeits-Verlauf
+            case 'cover':
+                return 'line'; // Positions-Verlauf
+            case 'media_player':
+                return 'activity'; // On/Off Activity
+            case 'switch':
+                return 'activity'; // On/Off Activity
+            default:
+                return 'activity';
+        }
+    }
+    
+    prepareChartData(events, item, period) {
+        const chartType = this.getChartType(item);
+        
+        if (chartType === 'line') {
+            return this.prepareLineChartData(events, item, period);
+        } else if (chartType === 'activity') {
+            return this.prepareActivityChartData(events, item, period);
+        }
+        
+        return null;
+    }
+    
+    prepareLineChartData(events, item, period) {
+        const dataPoints = [];
+        
+        // Sortiere Events chronologisch (älteste zuerst)
+        const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
+        
+        sortedEvents.forEach(event => {
+            let value = null;
+            
+            switch(item.domain) {
+                case 'climate':
+                    // Temperatur-Werte
+                    value = event.attributes?.temperature || event.attributes?.current_temperature;
+                    break;
+                case 'light':
+                    // Helligkeit in %
+                    if (event.state === 'on') {
+                        value = event.attributes?.brightness ? Math.round((event.attributes.brightness / 255) * 100) : 100;
+                    } else {
+                        value = 0;
+                    }
+                    break;
+                case 'cover':
+                    // Position in %
+                    value = event.attributes?.current_position ?? (event.state === 'open' ? 100 : 0);
+                    break;
+            }
+            
+            if (value !== null) {
+                dataPoints.push({
+                    timestamp: event.timestamp,
+                    value: value,
+                    label: this.formatChartTime(event.timestamp, period)
+                });
+            }
+        });
+        
+        return {
+            type: 'line',
+            points: dataPoints,
+            minValue: Math.min(...dataPoints.map(p => p.value)),
+            maxValue: Math.max(...dataPoints.map(p => p.value)),
+            unit: this.getUnit(item),
+            color: this.getChartColor(item)
+        };
+    }
+    
+    prepareActivityChartData(events, item, period) {
+        // Gruppiere Events nach Tagen für Balkendiagramm
+        const dayGroups = {};
+        
+        events.forEach(event => {
+            const dayKey = event.timestamp.toDateString();
+            if (!dayGroups[dayKey]) {
+                dayGroups[dayKey] = [];
+            }
+            dayGroups[dayKey].push(event);
+        });
+        
+        const barData = [];
+        
+        Object.keys(dayGroups).forEach(dayKey => {
+            const dayEvents = dayGroups[dayKey];
+            let activeMinutes = 0;
+            
+            // Berechne aktive Zeit für diesen Tag
+            for (let i = dayEvents.length - 1; i >= 0; i--) {
+                if (i === 0) break;
+                
+                const currentEvent = dayEvents[i];
+                const nextEvent = dayEvents[i - 1];
+                const duration = (nextEvent.timestamp - currentEvent.timestamp) / 1000 / 60;
+                
+                if (this.isActiveState(currentEvent.state, item.domain)) {
+                    activeMinutes += duration;
+                }
+            }
+            
+            barData.push({
+                day: new Date(dayKey),
+                value: activeMinutes / 60, // Stunden
+                label: this.formatChartTime(new Date(dayKey), period)
+            });
+        });
+        
+        // Sortiere nach Datum
+        barData.sort((a, b) => a.day - b.day);
+        
+        return {
+            type: 'bar',
+            bars: barData,
+            maxValue: Math.max(...barData.map(b => b.value)),
+            unit: 'Std',
+            color: this.getChartColor(item)
+        };
+    }    
+
+    getUnit(item) {
+        switch(item.domain) {
+            case 'climate':
+                return '°C';
+            case 'light':
+            case 'cover':
+                return '%';
+            default:
+                return '';
+        }
+    }
+    
+    getChartColor(item) {
+        switch(item.domain) {
+            case 'climate':
+                return '#2E8B57'; // Grün
+            case 'light':
+                return '#FFD700'; // Gold
+            case 'cover':
+                return '#4A90E2'; // Blau
+            case 'media_player':
+                return '#1DB954'; // Spotify Grün
+            default:
+                return '#007AFF'; // Standard Blau
+        }
+    }
+    
+    formatChartTime(timestamp, period) {
+        if (period === '1d') {
+            return timestamp.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+        } else {
+            return timestamp.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+        }
+    }
+    
+    drawLineChart(ctx, data, width, height) {
+        const padding = 40;
+        const chartWidth = width - (padding * 2);
+        const chartHeight = height - (padding * 2);
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+        
+        // Set styles
+        ctx.strokeStyle = '#333';
+        ctx.fillStyle = '#666';
+        ctx.font = '10px Arial';
+        
+        // Draw axes
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, height - padding);
+        ctx.lineTo(width - padding, height - padding);
+        ctx.stroke();
+        
+        if (data.points.length === 0) return;
+        
+        // Calculate scales
+        const xStep = chartWidth / (data.points.length - 1);
+        const valueRange = data.maxValue - data.minValue;
+        const yScale = valueRange > 0 ? chartHeight / valueRange : 1;
+        
+        // Draw grid lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 5; i++) {
+            const y = padding + (chartHeight / 5) * i;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(width - padding, y);
+            ctx.stroke();
+            
+            // Y-axis labels
+            const value = data.maxValue - (valueRange / 5) * i;
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.fillText(value.toFixed(1) + data.unit, 5, y + 3);
+        }
+        
+        // Draw line
+        ctx.strokeStyle = data.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        data.points.forEach((point, index) => {
+            const x = padding + (index * xStep);
+            const y = height - padding - ((point.value - data.minValue) * yScale);
+            
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+            
+            // Draw point
+            ctx.fillStyle = data.color;
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+        
+        ctx.stroke();
+    }
+    
+    drawActivityChart(ctx, data, width, height) {
+        const padding = 40;
+        const chartWidth = width - (padding * 2);
+        const chartHeight = height - (padding * 2);
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+        
+        // Set styles
+        ctx.strokeStyle = '#333';
+        ctx.fillStyle = '#666';
+        ctx.font = '10px Arial';
+        
+        // Draw axes
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, height - padding);
+        ctx.lineTo(width - padding, height - padding);
+        ctx.stroke();
+        
+        if (data.bars.length === 0) return;
+        
+        // Calculate scales
+        const barWidth = chartWidth / data.bars.length * 0.8;
+        const barSpacing = chartWidth / data.bars.length * 0.2;
+        const yScale = data.maxValue > 0 ? chartHeight / data.maxValue : 1;
+        
+        // Draw bars
+        ctx.fillStyle = data.color;
+        data.bars.forEach((bar, index) => {
+            const x = padding + (index * (barWidth + barSpacing)) + barSpacing / 2;
+            const barHeight = bar.value * yScale;
+            const y = height - padding - barHeight;
+            
+            ctx.fillRect(x, y, barWidth, barHeight);
+            
+            // Bar label
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.save();
+            ctx.translate(x + barWidth / 2, height - padding + 15);
+            ctx.rotate(-Math.PI / 4);
+            ctx.fillText(bar.label, 0, 0);
+            ctx.restore();
+            
+            ctx.fillStyle = data.color;
+        });
+        
+        // Y-axis labels
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        for (let i = 0; i <= 5; i++) {
+            const y = padding + (chartHeight / 5) * i;
+            const value = data.maxValue - (data.maxValue / 5) * i;
+            ctx.fillText(value.toFixed(1) + data.unit, 5, y + 3);
+        }
+    }
+    
+    drawChartLegend(container, data, item) {
+        const legendHTML = `
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: ${data.color}"></div>
+                <span>${this.getLegendLabel(item)}</span>
+            </div>
+        `;
+        container.innerHTML = legendHTML;
+    }
+    
+    getLegendLabel(item) {
+        switch(item.domain) {
+            case 'climate':
+                return 'Temperatur';
+            case 'light':
+                return 'Helligkeit';
+            case 'cover':
+                return 'Position';
+            case 'media_player':
+                return 'Aktive Zeit';
+            case 'switch':
+                return 'Einschaltzeit';
+            default:
+                return 'Aktivität';
+        }
+    }    
 
     renderHistoryTimeline(events, container, item, warningHTML = '') {
         const timelineHTML = events.map(event => {
