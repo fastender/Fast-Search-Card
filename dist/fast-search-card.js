@@ -6828,8 +6828,10 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        // Initial load of 7-day history
-        this.loadAndDisplayHistory(item, '7d');
+        // WICHTIG: Initial load ohne Verzögerung
+        setTimeout(() => {
+            this.loadAndDisplayHistory(item, '7d');
+        }, 50); // Reduziert von ursprünglich länger auf 50ms
     }    
 
     async loadAndDisplayHistory(item, period) {
@@ -7070,11 +7072,10 @@ class FastSearchCard extends HTMLElement {
         });
         
         // Cleanup bei Chart-Destroy
-        canvas._tooltipCleanup = () => {
-            if (tooltip.parentNode) {
-                tooltip.parentNode.removeChild(tooltip);
-            }
-        };
+        canvas.addEventListener('mouseleave', () => {
+            tooltip.style.opacity = '0';
+            this.clearHighlight(canvas, values, config, width, height, timestamps, 'period'); // Hier period richtig setzen
+        });
     }
     
     highlightDataPoint(canvas, dataIndex, values, padding, chartWidth, chartHeight, color) {
@@ -7109,12 +7110,12 @@ class FastSearchCard extends HTMLElement {
         ctx.setLineDash([]);
     }
     
-    clearHighlight(canvas, values, config, width, height, timestamps) {
+    clearHighlight(canvas, values, config, width, height, timestamps, period = '7d') {
         const ctx = canvas.getContext('2d');
         
         // Komplett neu zeichnen
         ctx.clearRect(0, 0, width, height);
-        this.drawModernChart(ctx, values, config, width, height, timestamps, 'period');
+        this.drawModernChart(ctx, values, config, width, height, timestamps, period);
     }
     
     drawModernGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue, valueRange, unit) {
@@ -7129,29 +7130,34 @@ class FastSearchCard extends HTMLElement {
             ctx.stroke();
         }
         
-        // Horizontal Grid Lines mit mehr Abstand (nur 4 statt 5)
-        for (let i = 0; i <= 4; i++) {
-            const y = padding + (chartHeight / 4) * i;
+        // Horizontal Grid Lines - nur 3 Linien für mehr Abstand
+        for (let i = 0; i <= 3; i++) {
+            const y = padding + (chartHeight / 3) * i;
             ctx.beginPath();
             ctx.moveTo(padding, y);
             ctx.lineTo(padding + chartWidth, y);
             ctx.stroke();
         }
         
-        // Y-axis Labels - TRANSPARENT + mehr Abstand
+        // Y-axis Labels - 30% mehr Abstand + richtige 100% Anzeige
         ctx.fillStyle = 'rgba(255,255,255,0.8)';
         ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
         ctx.textAlign = 'right';
         
-        for (let i = 0; i <= 4; i++) { // Nur 4 Labels statt 5
-            const y = padding + (chartHeight / 4) * i + 5;
-            const value = maxValue - (valueRange / 4) * i; // Angepasst auf 4 Schritte
+        for (let i = 0; i <= 3; i++) { // Nur 3 Labels für mehr Abstand
+            const y = padding + (chartHeight / 3) * i + 5;
+            const value = maxValue - (valueRange / 3) * i; // 3 Schritte statt 4
             
-            const text = value.toFixed(1) + unit;
+            // FIX: Korrekte Formatierung für 100%
+            let text;
+            if (unit === '%' && value >= 99.5) {
+                text = '100.0%'; // Zeige 100.0% statt 00.0%
+            } else {
+                text = value.toFixed(1) + unit;
+            }
             
-            // KEIN dunkler Hintergrund mehr - nur Text
             ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.fillText(text, padding - 12, y);
+            ctx.fillText(text, padding - 16, y); // -16 statt -12 für mehr Abstand
         }
     }
     
