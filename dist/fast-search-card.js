@@ -15,6 +15,9 @@ class MiniSearch {
         this.storedFields = {};
         this.index = {};
         this.termCount = 0;
+
+        // Nur Memory initialisieren
+        this.customTimers = {};        
         
         this.extractField = (document, fieldName) => {
             return fieldName.split('.').reduce((doc, key) => doc && doc[key], document);
@@ -325,6 +328,13 @@ class FastSearchCard extends HTMLElement {
         
         const oldHass = this._hass;
         this._hass = hass;
+
+        // NEU: Beim ersten Laden Timer aus Input Helper laden
+        if (!oldHass && hass) {
+            setTimeout(() => {
+                this.loadTimersFromInputHelper();
+            }, 100);
+        }        
         
         const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
         if (shouldUpdateAll) {
@@ -3285,30 +3295,22 @@ class FastSearchCard extends HTMLElement {
         this.showEditPanel(newTimer, item, 'add');
     }
     
-    handleDeleteTimer(timerId, item) {
+    async handleDeleteTimer(timerId, item) {
         if (confirm('Timer löschen?')) {
-            console.log('Delete timer:', timerId);
-            
-            // Custom Timer löschen
-            if (this.customTimers && this.customTimers[item.id]) {
-                const timerIndex = this.customTimers[item.id].findIndex(t => t.id === timerId);
-                if (timerIndex !== -1) {
-                    const timer = this.customTimers[item.id][timerIndex];
-                    
-                    // Cancel Timeout falls vorhanden
-                    if (timer.timeoutId) {
-                        clearTimeout(timer.timeoutId);
-                    }
-                    
-                    // Remove from array
-                    this.customTimers[item.id].splice(timerIndex, 1);
-                    
-                    this.showTimerFeedback('Timer gelöscht!', 'success');
-                }
+            try {
+                // Aus Input Helper entfernen
+                await this.removeTimerFromInputHelper(timerId);
+                
+                // Aus Memory entfernen
+                this.removeTimerFromMemory(timerId, item.id);
+                
+                this.showTimerFeedback('Timer gelöscht!', 'success');
+                this.refreshTimerList(item);
+                
+            } catch (error) {
+                console.error('Error deleting timer:', error);
+                this.showTimerFeedback('Fehler beim Löschen!', 'error');
             }
-            
-            // Refresh the list
-            this.refreshTimerList(item);
         }
     }
     
@@ -6805,18 +6807,8 @@ class FastSearchCard extends HTMLElement {
     }
 
     async createTimerForDevice(item, formData) {
-        // Für jetzt: Speichere Timer in Component State und erstelle delayed action
         const scheduledTime = this.calculateScheduledTime(formData.time);
         const timerId = `custom_timer_${Date.now()}`;
-        
-        // Speichere Timer in lokalem State
-        if (!this.customTimers) {
-            this.customTimers = {};
-        }
-        
-        if (!this.customTimers[item.id]) {
-            this.customTimers[item.id] = [];
-        }
         
         const timer = {
             id: timerId,
@@ -6833,14 +6825,198 @@ class FastSearchCard extends HTMLElement {
             created: new Date().toISOString()
         };
         
-        this.customTimers[item.id].push(timer);
-        
-        // Setze Timeout für Timer-Execution
-        this.scheduleTimerExecution(timer, item);
-        
-        console.log('Custom timer created:', timer);
-        return timerId;
+        try {
+            // Nur Input Helper verwenden
+            await this.saveTimerToInputHelper(timer);
+            
+            // In Memory für sofortige UI Updates
+            this.addTimerToMemory(timer);
+            
+            // Timer planen
+            this.scheduleTimerExecution(timer, item);
+            
+            console.log('Timer saved to Input Helper:', timer);
+            return timerId;
+            
+        } catch (error) {
+            console.error('Failed to save timer to Input Helper:', error);
+            throw new Error('Input Helper nicht gefunden! Bitte erstelle: input_text.fast_search_timers');
+        }
     }
+
+    addTimerToMemory(timer) {
+        if (!this.customTimers) {
+            this.customTimers = {};
+        }
+        if (!this.customTimers[timer.deviceId]) {
+            this.customTimers[timer.deviceId] = [];
+        }
+        this.customTimers[timer.deviceId].push(timer);
+    }
+    
+    removeTimerFromMemory(timerId, deviceId) {
+        if (this.customTimers && this.customTimers[deviceId]) {
+            const timerIndex = this.customTimers[deviceId].findIndex(t => t.id === timerId);
+            if (timerIndex !== -1) {
+                const timer = this.customTimers[deviceId][timerIndex];
+                
+                // Cancel Timeout
+                if (timer.timeoutId) {
+                    clearTimeout(timer.timeoutId);
+                }
+                
+                this.customTimers[deviceId].splice(timerIndex, 1);
+            }
+        }
+    }    
+
+    async saveTimerToInputHelper(timer) {
+        const inputEntityId = 'input_text.fast_search_timers';
+        
+        // Prüfe ob Input Helper existiert
+        if (!this._hass.states[inputEntityId]) {
+            throw new Error(`Input Helper ${inputEntityId} not found`);
+        }
+        
+        try {
+            // Lade bestehende Timer
+            let existingTimers = [];
+            const currentState = this._hass.states[inputEntityId];
+            
+            if (currentState && currentState.state && currentState.state !== 'unknown') {
+                try {
+                    existingTimers = JSON.parse(currentState.state);
+                    if (!Array.isArray(existingTimers)) {
+                        existingTimers = [];
+                    }
+                } catch (e) {
+                    console.warn('Could not parse existing timers, starting fresh');
+                    existingTimers = [];
+                }
+            }
+            
+            // Füge neuen Timer hinzu
+            existingTimers.push(timer);
+            
+            // Speichere zurück
+            await this._hass.callService('input_text', 'set_value', {
+                entity_id: inputEntityId,
+                value: JSON.stringify(existingTimers)
+            });
+            
+            console.log('Timer saved to Input Helper successfully');
+            
+        } catch (error) {
+            console.error('Error saving to Input Helper:', error);
+            throw error;
+        }
+    }
+    
+    async loadTimersFromInputHelper() {
+        const inputEntityId = 'input_text.fast_search_timers';
+        
+        if (!this._hass.states[inputEntityId]) {
+            console.warn(`Input Helper ${inputEntityId} not found`);
+            this.showInputHelperSetupInfo();
+            return;
+        }
+        
+        try {
+            const currentState = this._hass.states[inputEntityId];
+            
+            if (!currentState || !currentState.state || currentState.state === 'unknown') {
+                console.log('Input Helper is empty');
+                return;
+            }
+            
+            const timers = JSON.parse(currentState.state);
+            
+            if (!Array.isArray(timers)) {
+                console.warn('Invalid timer data in Input Helper');
+                return;
+            }
+            
+            // Reset Memory
+            this.customTimers = {};
+            
+            // Lade nur noch gültige Timer
+            const now = new Date();
+            const validTimers = [];
+            
+            for (const timer of timers) {
+                const timerTime = new Date(timer.scheduledTime);
+                
+                if (timer.active && timerTime > now) {
+                    // Timer ist noch gültig
+                    this.addTimerToMemory(timer);
+                    this.scheduleTimerExecution(timer, { id: timer.deviceId });
+                    validTimers.push(timer);
+                    
+                    console.log('Restored timer:', timer.id, 'for', timer.scheduledTime);
+                } else {
+                    console.log('Skipped expired timer:', timer.id);
+                }
+            }
+            
+            // Aktualisiere Input Helper (entferne abgelaufene Timer)
+            if (validTimers.length !== timers.length) {
+                await this.updateInputHelperTimers(validTimers);
+            }
+            
+        } catch (error) {
+            console.error('Error loading timers from Input Helper:', error);
+        }
+    }
+
+    showInputHelperSetupInfo() {
+        console.warn(`
+    🔧 SETUP ERFORDERLICH:
+    
+    Bitte erstelle einen Input Helper in Home Assistant:
+    
+    1. Settings > Devices & Services > Helpers
+    2. "Create Helper" > "Text"
+    3. Name: "Fast Search Timers"
+    4. Entity ID: input_text.fast_search_timers
+    5. Maximum length: 10000
+    
+    Ohne diesen Helper funktionieren Timer nicht!
+        `);
+        
+        // Optional: Toast Nachricht zeigen
+        this.showTimerFeedback('Input Helper fehlt! Siehe Console für Setup.', 'error');
+    }    
+    
+    async updateInputHelperTimers(timers) {
+        const inputEntityId = 'input_text.fast_search_timers';
+        
+        try {
+            await this._hass.callService('input_text', 'set_value', {
+                entity_id: inputEntityId,
+                value: JSON.stringify(timers)
+            });
+        } catch (error) {
+            console.error('Error updating Input Helper:', error);
+        }
+    }
+    
+    async removeTimerFromInputHelper(timerId) {
+        const inputEntityId = 'input_text.fast_search_timers';
+        
+        try {
+            const currentState = this._hass.states[inputEntityId];
+            
+            if (!currentState || !currentState.state) return;
+            
+            let timers = JSON.parse(currentState.state);
+            timers = timers.filter(timer => timer.id !== timerId);
+            
+            await this.updateInputHelperTimers(timers);
+            
+        } catch (error) {
+            console.error('Error removing timer from Input Helper:', error);
+        }
+    }    
 
     scheduleTimerExecution(timer, item) {
         const now = new Date();
