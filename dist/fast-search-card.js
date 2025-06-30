@@ -2800,6 +2800,160 @@ class FastSearchCard extends HTMLElement {
                 font-size: 12px;
                 opacity: 0.7;
             }            
+
+
+            .shortcuts-edit-panel {
+                background: rgba(0,0,0,0.3);
+                border: 1px solid rgba(255,255,255,0.2);
+                border-radius: 12px;
+                padding: 20px;
+                margin: 16px 0;
+                animation: slideDown 0.3s ease;
+            }
+            
+            .shortcuts-edit-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 16px;
+            }
+            
+            .shortcuts-edit-header h4 {
+                margin: 0;
+                color: var(--text-primary);
+                font-size: 16px;
+                font-weight: 600;
+            }
+            
+            .shortcuts-edit-close {
+                width: 24px;
+                height: 24px;
+                border: none;
+                background: rgba(255,255,255,0.1);
+                border-radius: 50%;
+                color: var(--text-secondary);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+                transition: all 0.2s ease;
+            }
+            
+            .shortcuts-edit-close:hover {
+                background: rgba(255,255,255,0.2);
+            }
+            
+            .shortcuts-edit-content {
+                margin-bottom: 16px;
+            }
+            
+            .shortcuts-edit-field {
+                margin-bottom: 16px;
+            }
+            
+            .shortcuts-edit-label {
+                display: block;
+                font-size: 12px;
+                color: var(--text-secondary);
+                margin-bottom: 6px;
+                font-weight: 500;
+            }
+            
+            .shortcuts-edit-input,
+            .shortcuts-edit-select {
+                width: 100%;
+                padding: 10px 12px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 8px;
+                color: var(--text-primary);
+                font-size: 14px;
+                font-family: inherit;
+                outline: none;
+                transition: all 0.2s ease;
+            }
+            
+            .shortcuts-edit-input:focus,
+            .shortcuts-edit-select:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 2px rgba(0,122,255,0.2);
+            }
+            
+            .shortcuts-edit-toggle-group {
+                display: flex;
+                gap: 8px;
+            }
+            
+            .shortcuts-edit-toggle {
+                flex: 1;
+                padding: 8px 12px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 8px;
+                color: var(--text-secondary);
+                cursor: pointer;
+                text-align: center;
+                font-size: 13px;
+                transition: all 0.2s ease;
+            }
+            
+            .shortcuts-edit-toggle.active {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: white;
+            }
+            
+            .shortcuts-edit-actions {
+                display: flex;
+                gap: 12px;
+                justify-content: flex-end;
+            }
+            
+            .shortcuts-btn-secondary,
+            .shortcuts-btn-primary {
+                padding: 8px 16px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }
+            
+            .shortcuts-btn-secondary {
+                background: rgba(255,255,255,0.08);
+                color: var(--text-secondary);
+            }
+            
+            .shortcuts-btn-secondary:hover {
+                background: rgba(255,255,255,0.15);
+            }
+            
+            .shortcuts-btn-primary {
+                background: var(--accent);
+                color: white;
+            }
+            
+            .shortcuts-btn-primary:hover {
+                background: #0056CC;
+            }
+            
+            .shortcuts-timeline-event:not(.editing) {
+                opacity: 0.3;
+                pointer-events: none;
+            }
+            
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }            
                                     
             </style>
 
@@ -3113,13 +3267,33 @@ class FastSearchCard extends HTMLElement {
 
 
     handleEditTimer(timerId, item) {
-        console.log('Edit timer:', timerId);
-        // TODO: Implement edit mode
+        const timer = this.getDeviceTimers(item.id).find(t => t.id === timerId);
+        if (!timer) return;
+        
+        this.showEditPanel(timer, item, 'edit');
+    }
+    
+    handleAddTimer(item) {
+        const newTimer = {
+            id: 'new',
+            time: '12:00',
+            action: 'turn_on',
+            duration: null,
+            repeat: 'once'
+        };
+        
+        this.showEditPanel(newTimer, item, 'add');
     }
     
     handleDeleteTimer(timerId, item) {
-        console.log('Delete timer:', timerId);
-        // TODO: Implement delete
+        // Simple confirmation
+        if (confirm('Timer löschen?')) {
+            console.log('Delete timer:', timerId);
+            
+            // TODO: Implement actual deletion
+            // For now, just refresh the list
+            this.refreshTimerList(item);
+        }
     }
     
     handleTimerClick(timerId, item) {
@@ -3127,10 +3301,139 @@ class FastSearchCard extends HTMLElement {
         // TODO: Implement timer click (maybe edit?)
     }
     
-    handleAddTimer(item) {
-        console.log('Add new timer for:', item.name);
-        // TODO: Implement add timer
+    showEditPanel(timer, item, mode) {
+        const editPanel = this.shadowRoot.getElementById('shortcuts-edit-panel');
+        const titleElement = this.shadowRoot.getElementById('edit-panel-title');
+        const contentElement = this.shadowRoot.getElementById('edit-panel-content');
+        
+        // Update title
+        titleElement.textContent = mode === 'add' ? 'Neuer Timer' : 'Timer bearbeiten';
+        
+        // Generate device-specific form
+        contentElement.innerHTML = this.getTimerEditForm(timer, item);
+        
+        // Show panel
+        editPanel.style.display = 'block';
+        
+        // Fade other timers
+        this.fadeOtherTimers(timer.id);
+        
+        // Setup form event listeners
+        this.setupEditFormListeners(timer, item, mode);
     }
+    
+    getTimerEditForm(timer, item) {
+        const actionOptions = this.getDeviceActionOptions(item.domain);
+        
+        return `
+            <div class="shortcuts-edit-field">
+                <label class="shortcuts-edit-label">⏰ Zeit</label>
+                <input type="time" class="shortcuts-edit-input" id="edit-time" value="${timer.time || '12:00'}">
+            </div>
+            
+            <div class="shortcuts-edit-field">
+                <label class="shortcuts-edit-label">${this.getActionLabel(item.domain)} Aktion</label>
+                <div class="shortcuts-edit-toggle-group" id="edit-actions">
+                    ${actionOptions.map(option => `
+                        <button class="shortcuts-edit-toggle ${timer.action === option.value ? 'active' : ''}" 
+                                data-action="${option.value}">
+                            ${option.icon} ${option.label}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+            
+            ${this.getDeviceSpecificFields(timer, item)}
+            
+            <div class="shortcuts-edit-field">
+                <label class="shortcuts-edit-label">🔄 Wiederholen</label>
+                <div class="shortcuts-edit-toggle-group" id="edit-repeat">
+                    <button class="shortcuts-edit-toggle ${timer.repeat === 'once' ? 'active' : ''}" data-repeat="once">Einmalig</button>
+                    <button class="shortcuts-edit-toggle ${timer.repeat === 'daily' ? 'active' : ''}" data-repeat="daily">Täglich</button>
+                    <button class="shortcuts-edit-toggle ${timer.repeat === 'weekdays' ? 'active' : ''}" data-repeat="weekdays">Wochentags</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    getDeviceActionOptions(domain) {
+        switch(domain) {
+            case 'light':
+                return [
+                    { value: 'turn_on', icon: '💡', label: 'Ein' },
+                    { value: 'turn_off', icon: '🔴', label: 'Aus' }
+                ];
+            case 'climate':
+                return [
+                    { value: 'heat', icon: '🔥', label: 'Heizen' },
+                    { value: 'cool', icon: '❄️', label: 'Kühlen' },
+                    { value: 'turn_off', icon: '🔴', label: 'Aus' }
+                ];
+            case 'cover':
+                return [
+                    { value: 'open', icon: '⬆️', label: 'Öffnen' },
+                    { value: 'close', icon: '⬇️', label: 'Schließen' }
+                ];
+            default:
+                return [
+                    { value: 'turn_on', icon: '▶️', label: 'Ein' },
+                    { value: 'turn_off', icon: '⏹️', label: 'Aus' }
+                ];
+        }
+    }
+    
+    getActionLabel(domain) {
+        const labels = {
+            'light': '💡',
+            'climate': '🌡️',
+            'cover': '🪟',
+            'media_player': '🎵'
+        };
+        return labels[domain] || '⚙️';
+    }
+    
+    getDeviceSpecificFields(timer, item) {
+        switch(item.domain) {
+            case 'light':
+                return `
+                    <div class="shortcuts-edit-field">
+                        <label class="shortcuts-edit-label">⏱️ Dauer</label>
+                        <div class="shortcuts-edit-toggle-group">
+                            <button class="shortcuts-edit-toggle ${!timer.duration ? 'active' : ''}" data-duration="permanent">Permanent</button>
+                            <button class="shortcuts-edit-toggle ${timer.duration ? 'active' : ''}" data-duration="timed">Zeitgesteuert</button>
+                        </div>
+                        ${timer.duration ? `<input type="number" class="shortcuts-edit-input" id="edit-duration" value="${timer.duration}" placeholder="Minuten" style="margin-top: 8px;">` : ''}
+                    </div>
+                `;
+            case 'climate':
+                return `
+                    <div class="shortcuts-edit-field">
+                        <label class="shortcuts-edit-label">🎯 Temperatur</label>
+                        <input type="number" class="shortcuts-edit-input" id="edit-temperature" value="${timer.temperature || 22}" min="16" max="30" step="0.5">
+                    </div>
+                    <div class="shortcuts-edit-field">
+                        <label class="shortcuts-edit-label">⏱️ Dauer (Minuten)</label>
+                        <input type="number" class="shortcuts-edit-input" id="edit-duration" value="${timer.duration || 60}" placeholder="0 = Permanent">
+                    </div>
+                `;
+            default:
+                return '';
+        }
+    }
+    
+    fadeOtherTimers(editingId) {
+        const timerEvents = this.shadowRoot.querySelectorAll('.shortcuts-timeline-event');
+        timerEvents.forEach(event => {
+            if (event.dataset.timerId !== editingId) {
+                event.classList.add('editing');
+            }
+        });
+    }
+
+
+
+
+    
     
     
     handleSearch(query) {
@@ -6291,6 +6594,22 @@ class FastSearchCard extends HTMLElement {
                         <div class="shortcuts-timeline-list" id="shortcuts-timer-list">
                             ${this.getTimerTimelineHTML(item)}
                         </div>
+                        
+                        <!-- NEU: Edit Panel -->
+                        <div class="shortcuts-edit-panel" id="shortcuts-edit-panel" style="display: none;">
+                            <div class="shortcuts-edit-header">
+                                <h4 id="edit-panel-title">Timer bearbeiten</h4>
+                                <button class="shortcuts-edit-close" id="edit-panel-close">✕</button>
+                            </div>
+                            <div class="shortcuts-edit-content" id="edit-panel-content">
+                                <!-- Dynamic content wird hier eingefügt -->
+                            </div>
+                            <div class="shortcuts-edit-actions">
+                                <button class="shortcuts-btn-secondary" id="edit-panel-cancel">Abbrechen</button>
+                                <button class="shortcuts-btn-primary" id="edit-panel-save">Speichern</button>
+                            </div>
+                        </div>
+                        
                         <button class="shortcuts-add-button" data-add-timer>
                             + Neuer Timer
                         </button>
@@ -6302,12 +6621,11 @@ class FastSearchCard extends HTMLElement {
                         <p>Skripte Content</p>
                     </div>
                 </div>
-            </div>
         `;
     }
 
     setupShortcutsEventListeners(item) {
-        // Tab-Switching Logic
+        // Bestehende Tab-Switching Logic...
         const shortcutsButtons = this.shadowRoot.querySelectorAll('.shortcuts-btn');
         shortcutsButtons.forEach(button => {
             button.addEventListener('click', (e) => {
@@ -6324,7 +6642,7 @@ class FastSearchCard extends HTMLElement {
             });
         });
     
-        // Timer Event Listeners
+        // Bestehende Timer Event Listeners...
         const timerList = this.shadowRoot.querySelector('#shortcuts-timer-list');
         if (timerList) {
             timerList.addEventListener('click', (e) => {
@@ -6344,14 +6662,150 @@ class FastSearchCard extends HTMLElement {
             });
         }
         
-        // Add Timer Button
+        // Bestehende Add Timer Button...
         const addTimerBtn = this.shadowRoot.querySelector('[data-add-timer]');
         if (addTimerBtn) {
             addTimerBtn.addEventListener('click', () => {
                 this.handleAddTimer(item);
             });
         }
+    
+        // NEU: Edit Panel Event Listeners
+        const editPanelClose = this.shadowRoot.getElementById('edit-panel-close');
+        const editPanelCancel = this.shadowRoot.getElementById('edit-panel-cancel');
+        const editPanelSave = this.shadowRoot.getElementById('edit-panel-save');
+    
+        if (editPanelClose) {
+            editPanelClose.addEventListener('click', () => {
+                this.hideEditPanel();
+            });
+        }
+    
+        if (editPanelCancel) {
+            editPanelCancel.addEventListener('click', () => {
+                this.hideEditPanel();
+            });
+        }
+    
+        if (editPanelSave) {
+            editPanelSave.addEventListener('click', () => {
+                this.saveTimer(item);
+            });
+        }
     }
+
+    setupEditFormListeners(timer, item, mode) {
+        // Action Toggle Buttons
+        const actionGroup = this.shadowRoot.getElementById('edit-actions');
+        if (actionGroup) {
+            actionGroup.addEventListener('click', (e) => {
+                const toggle = e.target.closest('.shortcuts-edit-toggle');
+                if (!toggle) return;
+                
+                // Update active state
+                actionGroup.querySelectorAll('.shortcuts-edit-toggle').forEach(btn => 
+                    btn.classList.remove('active')
+                );
+                toggle.classList.add('active');
+            });
+        }
+    
+        // Repeat Toggle Buttons
+        const repeatGroup = this.shadowRoot.getElementById('edit-repeat');
+        if (repeatGroup) {
+            repeatGroup.addEventListener('click', (e) => {
+                const toggle = e.target.closest('.shortcuts-edit-toggle');
+                if (!toggle) return;
+                
+                // Update active state
+                repeatGroup.querySelectorAll('.shortcuts-edit-toggle').forEach(btn => 
+                    btn.classList.remove('active')
+                );
+                toggle.classList.add('active');
+            });
+        }
+    
+        // Duration Toggle (nur für Licht)
+        const durationToggles = this.shadowRoot.querySelectorAll('[data-duration]');
+        durationToggles.forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                const durationType = e.target.dataset.duration;
+                
+                // Update active state
+                durationToggles.forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                // Show/Hide duration input
+                const durationInput = this.shadowRoot.getElementById('edit-duration');
+                if (durationType === 'timed' && !durationInput) {
+                    // Add duration input
+                    const inputHTML = `<input type="number" class="shortcuts-edit-input" id="edit-duration" value="30" placeholder="Minuten" style="margin-top: 8px;">`;
+                    e.target.parentElement.insertAdjacentHTML('afterend', inputHTML);
+                } else if (durationType === 'permanent' && durationInput) {
+                    // Remove duration input
+                    durationInput.remove();
+                }
+            });
+        });
+    }
+
+    hideEditPanel() {
+        const editPanel = this.shadowRoot.getElementById('shortcuts-edit-panel');
+        editPanel.style.display = 'none';
+        
+        // Restore timer visibility
+        const timerEvents = this.shadowRoot.querySelectorAll('.shortcuts-timeline-event');
+        timerEvents.forEach(event => {
+            event.classList.remove('editing');
+        });
+    }
+    
+    saveTimer(item) {
+        // Collect form data
+        const formData = this.collectTimerFormData();
+        
+        if (!formData) {
+            console.error('Invalid form data');
+            return;
+        }
+        
+        console.log('Saving timer:', formData);
+        
+        // TODO: Implement actual timer saving
+        // For now, just hide panel and show success
+        this.hideEditPanel();
+        
+        // Refresh timer list
+        this.refreshTimerList(item);
+    }
+    
+    collectTimerFormData() {
+        const time = this.shadowRoot.getElementById('edit-time')?.value;
+        const activeAction = this.shadowRoot.querySelector('#edit-actions .shortcuts-edit-toggle.active')?.dataset.action;
+        const activeRepeat = this.shadowRoot.querySelector('#edit-repeat .shortcuts-edit-toggle.active')?.dataset.repeat;
+        const temperature = this.shadowRoot.getElementById('edit-temperature')?.value;
+        const duration = this.shadowRoot.getElementById('edit-duration')?.value;
+        
+        if (!time || !activeAction || !activeRepeat) {
+            return null;
+        }
+        
+        return {
+            time: time,
+            action: activeAction,
+            repeat: activeRepeat,
+            temperature: temperature ? parseFloat(temperature) : null,
+            duration: duration ? parseInt(duration) : null
+        };
+    }
+    
+    refreshTimerList(item) {
+        const timerList = this.shadowRoot.getElementById('shortcuts-timer-list');
+        if (timerList) {
+            timerList.innerHTML = this.getTimerTimelineHTML(item);
+        }
+    }
+
     
 
     getTimerTimelineHTML(item) {
