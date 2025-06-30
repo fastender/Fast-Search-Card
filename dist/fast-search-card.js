@@ -674,31 +674,13 @@ class ChartFactory {
 
     // History-Data für Charts aufbereiten
     static prepareHistoryDataForChart(events, sensorType) {
-        console.log('🔍 prepareHistoryDataForChart called with:', {
-            eventsCount: events?.length || 0,
-            sensorType: sensorType,
-            firstEvent: events?.[0]
-        });
-        
-        if (!events || events.length === 0) {
-            console.log('❌ No events provided');
-            return [[], []];
-        }
+        if (!events || events.length === 0) return [[], []];
     
         const timestamps = [];
         const values = [];
     
-        events.forEach((event, index) => {
+        events.forEach(event => {
             let value = null;
-    
-            // Debug: Zeige Event-Struktur
-            if (index === 0) {
-                console.log('📊 First event structure:', {
-                    state: event.state,
-                    attributes: event.attributes,
-                    timestamp: event.timestamp
-                });
-            }
     
             // Extrahiere Wert basierend auf Sensor-Type
             switch(sensorType) {
@@ -723,26 +705,19 @@ class ChartFactory {
                 case 'volume':
                     value = event.attributes?.volume_level ? Math.round(event.attributes.volume_level * 100) : null;
                     break;
-
                 default:
-                    // Generic fallback - VERBESSERT
                     if (event.state === 'on' || event.state === 'off') {
-                        // Boolean states als 1/0
                         value = event.state === 'on' ? 1 : 0;
                     } else if (event.state === 'open' || event.state === 'closed') {
-                        // Cover states
                         value = event.state === 'open' ? 1 : 0;
                     } else {
-                        // Numeric states
                         value = parseFloat(event.state);
                         if (isNaN(value)) {
-                            // Try common attribute names
                             value = event.attributes?.current_temperature ||
                                    event.attributes?.brightness ||
                                    event.attributes?.current_position ||
                                    event.attributes?.volume_level;
                             
-                            // Als letzter Fallback: on/off als 1/0
                             if (value === undefined) {
                                 value = event.state === 'on' ? 1 : 0;
                             }
@@ -756,17 +731,8 @@ class ChartFactory {
             }
         });
     
-        console.log('📈 Chart data prepared:', {
-            sensorType: sensorType,
-            timestampsCount: timestamps.length,
-            valuesCount: values.length,
-            sampleValues: values.slice(0, 5),
-            valueRange: values.length > 0 ? [Math.min(...values), Math.max(...values)] : 'no values'
-        });
-    
         return [timestamps, values];
     }
-}
 
 
 
@@ -6903,20 +6869,29 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // DEBUG: Temporäres Canvas-Chart als Fallback
+        // Eindeutige Canvas-ID generieren
+        const canvasId = `chart-canvas-${item.id.replace(/\./g, '_')}`;
+        
+        // Canvas-Chart HTML
         container.innerHTML = `
             <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px;">
-                <canvas id="temp-chart-${item.id}" width="400" height="160"></canvas>
+                <canvas id="${canvasId}" width="400" height="160" style="width: 100%; height: 160px;"></canvas>
                 <div style="text-align: center; margin-top: 10px; color: var(--text-secondary); font-size: 12px;">
-                    ${chartConfig.label} • ${timestamps.length} Datenpunkte • ${sensorType}
+                    ${chartConfig.label} • ${timestamps.length} Datenpunkte
                 </div>
             </div>
         `;
         
-        // Zeichne einfaches Canvas-Chart
-        const canvas = container.querySelector(`#temp-chart-${item.id}`);
-        const ctx = canvas.getContext('2d');
-        this.drawSimpleChart(ctx, values, chartConfig, canvas.width, canvas.height);
+        // Warte kurz, dann zeichne Chart
+        setTimeout(() => {
+            const canvas = container.querySelector(`#${canvasId}`);
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                this.drawSimpleChart(ctx, values, chartConfig, 400, 160);
+            } else {
+                console.error('Canvas not found:', canvasId);
+            }
+        }, 100);
     }
 
     drawSimpleChart(ctx, values, config, width, height) {
