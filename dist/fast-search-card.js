@@ -3286,12 +3286,28 @@ class FastSearchCard extends HTMLElement {
     }
     
     handleDeleteTimer(timerId, item) {
-        // Simple confirmation
         if (confirm('Timer löschen?')) {
             console.log('Delete timer:', timerId);
             
-            // TODO: Implement actual deletion
-            // For now, just refresh the list
+            // Custom Timer löschen
+            if (this.customTimers && this.customTimers[item.id]) {
+                const timerIndex = this.customTimers[item.id].findIndex(t => t.id === timerId);
+                if (timerIndex !== -1) {
+                    const timer = this.customTimers[item.id][timerIndex];
+                    
+                    // Cancel Timeout falls vorhanden
+                    if (timer.timeoutId) {
+                        clearTimeout(timer.timeoutId);
+                    }
+                    
+                    // Remove from array
+                    this.customTimers[item.id].splice(timerIndex, 1);
+                    
+                    this.showTimerFeedback('Timer gelöscht!', 'success');
+                }
+            }
+            
+            // Refresh the list
             this.refreshTimerList(item);
         }
     }
@@ -6788,18 +6804,94 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-
     async createTimerForDevice(item, formData) {
-        // Berechne scheduled time
+        // Für jetzt: Speichere Timer in Component State und erstelle delayed action
         const scheduledTime = this.calculateScheduledTime(formData.time);
+        const timerId = `custom_timer_${Date.now()}`;
         
-        // Erstelle Timer Helper Entity
-        const timerEntityId = await this.createTimerHelper(item, formData, scheduledTime);
+        // Speichere Timer in lokalem State
+        if (!this.customTimers) {
+            this.customTimers = {};
+        }
         
-        // Erstelle Automation die den Timer überwacht
-        await this.createTimerAutomation(item, formData, timerEntityId, scheduledTime);
+        if (!this.customTimers[item.id]) {
+            this.customTimers[item.id] = [];
+        }
         
-        return timerEntityId;
+        const timer = {
+            id: timerId,
+            type: 'custom',
+            scheduledTime: scheduledTime.toISOString(),
+            action: formData.action,
+            active: true,
+            duration: formData.duration,
+            repeat: formData.repeat,
+            temperature: formData.temperature,
+            brightness: formData.brightness,
+            source: 'fast_search_card',
+            deviceId: item.id,
+            created: new Date().toISOString()
+        };
+        
+        this.customTimers[item.id].push(timer);
+        
+        // Setze Timeout für Timer-Execution
+        this.scheduleTimerExecution(timer, item);
+        
+        console.log('Custom timer created:', timer);
+        return timerId;
+    }
+
+    scheduleTimerExecution(timer, item) {
+        const now = new Date();
+        const timerTime = new Date(timer.scheduledTime);
+        const delay = timerTime.getTime() - now.getTime();
+        
+        if (delay <= 0) {
+            // Timer sollte sofort ausgeführt werden
+            this.executeTimer(timer, item);
+            return;
+        }
+        
+        // Setze Timeout
+        const timeoutId = setTimeout(() => {
+            this.executeTimer(timer, item);
+        }, delay);
+        
+        // Speichere Timeout ID für Cancel-Möglichkeit
+        timer.timeoutId = timeoutId;
+        
+        console.log(`Timer scheduled for ${timer.scheduledTime} (in ${Math.round(delay/1000)}s)`);
+    }
+    
+    async executeTimer(timer, item) {
+        console.log('Executing timer:', timer);
+        
+        try {
+            // Führe die geplante Aktion aus
+            const serviceCall = this.buildServiceCall(item, timer);
+            
+            await this._hass.callService(
+                serviceCall.service.split('.')[0], 
+                serviceCall.service.split('.')[1], 
+                serviceCall.data
+            );
+            
+            // Markiere Timer als abgeschlossen
+            timer.active = false;
+            timer.completed = new Date().toISOString();
+            
+            this.showTimerFeedback(`Timer ausgeführt: ${item.name} ${timer.action}`, 'success');
+            
+            // Refresh UI
+            if (this.isDetailView && this.currentDetailItem?.id === item.id) {
+                this.refreshTimerList(item);
+            }
+            
+        } catch (error) {
+            console.error('Timer execution failed:', error);
+            this.showTimerFeedback('Timer-Ausführung fehlgeschlagen!', 'error');
+        }
     }
     
     calculateScheduledTime(timeString) {
@@ -7021,6 +7113,29 @@ class FastSearchCard extends HTMLElement {
     }
     
     getTimerActionText(action, timer, domain) {
+        // Für Custom Timer
+        if (timer.type === 'custom') {
+            switch(domain) {
+                case 'light':
+                    if (action === 'turn_on') {
+                        let text = timer.duration ? `Ein für ${timer.duration}min` : 'Einschalten';
+                        if (timer.brightness) text += ` (${timer.brightness}%)`;
+                        return text;
+                    }
+                    if (action === 'turn_off') return 'Ausschalten';
+                    break;
+                case 'climate':
+                    if (action === 'heat') return `Heizen auf ${timer.temperature || 22}°C${timer.duration ? ` für ${timer.duration}min` : ''}`;
+                    if (action === 'cool') return `Kühlen auf ${timer.temperature || 22}°C${timer.duration ? ` für ${timer.duration}min` : ''}`;
+                    break;
+                case 'cover':
+                    if (action === 'open') return 'Öffnen';
+                    if (action === 'close') return 'Schließen';
+                    break;
+            }
+        }
+        
+        // Rest bleibt gleich...
         switch(domain) {
             case 'light':
                 if (action === 'turn_on') return timer.duration ? `Ein für ${timer.duration}min` : 'Einschalten';
@@ -7093,37 +7208,36 @@ class FastSearchCard extends HTMLElement {
         
         const timers = [];
         
-        // 1. Timer Helper Entities finden
+        // 1. Home Assistant Timer Helper (bestehend)
         Object.keys(this._hass.states).forEach(entityId => {
             if (entityId.startsWith('timer.')) {
                 const timerState = this._hass.states[entityId];
-                
-                // Prüfe ob Timer zu diesem Device gehört
                 if (this.isTimerForDevice(timerState, deviceId)) {
                     timers.push(this.parseTimerHelper(timerState, deviceId));
                 }
             }
         });
         
-        // 2. Automation-basierte Timer finden
+        // 2. NEU: Custom Timer aus Component State
+        if (this.customTimers && this.customTimers[deviceId]) {
+            const now = new Date();
+            
+            // Filter abgelaufene Timer raus
+            this.customTimers[deviceId] = this.customTimers[deviceId].filter(timer => {
+                const timerTime = new Date(timer.scheduledTime);
+                return timerTime > now || timer.active;
+            });
+            
+            // Füge aktive Custom Timer hinzu
+            timers.push(...this.customTimers[deviceId]);
+        }
+        
+        // 3. Automation-basierte Timer (bestehend)
         Object.keys(this._hass.states).forEach(entityId => {
             if (entityId.startsWith('automation.')) {
                 const automation = this._hass.states[entityId];
-                
-                // Prüfe ob Automation zeitbasiert ist und dieses Device betrifft
                 if (this.isTimeAutomationForDevice(automation, deviceId)) {
                     timers.push(this.parseTimeAutomation(automation, deviceId));
-                }
-            }
-        });
-        
-        // 3. Schedule Helper Entities finden
-        Object.keys(this._hass.states).forEach(entityId => {
-            if (entityId.startsWith('schedule.')) {
-                const schedule = this._hass.states[entityId];
-                
-                if (this.isScheduleForDevice(schedule, deviceId)) {
-                    timers.push(this.parseScheduleHelper(schedule, deviceId));
                 }
             }
         });
