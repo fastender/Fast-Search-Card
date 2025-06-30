@@ -665,14 +665,32 @@ class ChartFactory {
 
     // History-Data für Charts aufbereiten
     static prepareHistoryDataForChart(events, sensorType) {
-        if (!events || events.length === 0) return [[], []];
-
+        console.log('🔍 prepareHistoryDataForChart called with:', {
+            eventsCount: events?.length || 0,
+            sensorType: sensorType,
+            firstEvent: events?.[0]
+        });
+        
+        if (!events || events.length === 0) {
+            console.log('❌ No events provided');
+            return [[], []];
+        }
+    
         const timestamps = [];
         const values = [];
-
-        events.forEach(event => {
+    
+        events.forEach((event, index) => {
             let value = null;
-
+    
+            // Debug: Zeige Event-Struktur
+            if (index === 0) {
+                console.log('📊 First event structure:', {
+                    state: event.state,
+                    attributes: event.attributes,
+                    timestamp: event.timestamp
+                });
+            }
+    
             // Extrahiere Wert basierend auf Sensor-Type
             switch(sensorType) {
                 case 'temperature':
@@ -697,15 +715,31 @@ class ChartFactory {
                     value = event.attributes?.volume_level ? Math.round(event.attributes.volume_level * 100) : null;
                     break;
                 default:
-                    value = parseFloat(event.state) || null;
+                    // Generic fallback
+                    value = parseFloat(event.state);
+                    if (isNaN(value)) {
+                        // Try common attribute names
+                        value = event.attributes?.current_temperature ||
+                               event.attributes?.brightness ||
+                               event.attributes?.current_position ||
+                               event.attributes?.volume_level;
+                    }
             }
-
+    
             if (value !== null && !isNaN(value)) {
-                timestamps.push(Math.floor(event.timestamp.getTime() / 1000)); // Unix timestamp
+                timestamps.push(Math.floor(event.timestamp.getTime() / 1000));
                 values.push(value);
             }
         });
-
+    
+        console.log('📈 Chart data prepared:', {
+            sensorType: sensorType,
+            timestampsCount: timestamps.length,
+            valuesCount: values.length,
+            sampleValues: values.slice(0, 5),
+            valueRange: values.length > 0 ? [Math.min(...values), Math.max(...values)] : 'no values'
+        });
+    
         return [timestamps, values];
     }
 }
