@@ -8955,6 +8955,13 @@ class FastSearchCard extends HTMLElement {
                     
                     contents.forEach(c => c.classList.remove('active'));
                     this.shadowRoot.querySelector(`[data-tab-content="${targetId}"]`).classList.add('active');
+
+                    // NEU: History-Tab Chart sofort laden
+                    if (targetId === 'history') {
+                        setTimeout(() => {
+                            this.setupHistoryEventListeners(item);
+                        }, 150);
+                    }                    
                 });
             });
         });
