@@ -2545,42 +2545,92 @@ class FastSearchCard extends HTMLElement {
             
             .shortcuts-container {
                 padding: 20px;
-                height: 100%;
+                height: calc(100vh - 300px);
+                max-height: 500px;
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255,255,255,0.2) transparent;
+                -ms-overflow-style: none;
                 display: flex;
                 flex-direction: column;
             }
             
+            .shortcuts-container::-webkit-scrollbar {
+                width: 4px;
+            }
+            
+            .shortcuts-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .shortcuts-container::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.2);
+                border-radius: 2px;
+            }
+            
+            .shortcuts-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            
             .shortcuts-header h3 {
-                margin: 0 0 20px 0;
+                margin: 0;
                 color: var(--text-primary);
                 font-size: 16px;
                 font-weight: 600;
             }
             
-            .shortcuts-tabs {
+            .shortcuts-controls {
                 display: flex;
                 gap: 8px;
-                margin-bottom: 20px;
-                background: rgba(0, 0, 0, 0.25);
-                border-radius: 12px;
-                padding: 4px;
             }
             
-            .shortcuts-tab {
-                flex: 1;
-                padding: 8px 16px;
-                border: none;
-                background: transparent;
+            .shortcuts-btn {
+                padding: 6px 12px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 12px;
                 color: var(--text-secondary);
-                border-radius: 8px;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 500;
             }
             
-            .shortcuts-tab.active {
-                background: rgba(255, 255, 255, 0.2);
+            .shortcuts-btn.active, 
+            .shortcuts-btn:hover {
+                background: var(--accent);
+                color: white;
+                border-color: var(--accent);
+            }
+            
+            .shortcuts-stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .shortcuts-stat-card {
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.12);
+                border-radius: 12px;
+                padding: 12px;
+                text-align: center;
+            }
+            
+            .stat-title {
+                font-size: 11px;
+                color: var(--text-secondary);
+                margin-bottom: 4px;
+                font-weight: 500;
+            }
+            
+            .stat-value {
+                font-size: 14px;
+                font-weight: 600;
                 color: var(--text-primary);
             }
             
@@ -2596,57 +2646,25 @@ class FastSearchCard extends HTMLElement {
             .shortcuts-tab-content.active {
                 display: block;
             }
-
-            .shortcuts-stats {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
-                margin-bottom: 20px;
-            }
             
-            .shortcuts-stat-card {
-                background: rgba(255,255,255,0.08);
-                border: 1px solid rgba(255,255,255,0.12);
-                border-radius: 12px;
-                padding: 12px;
-                text-align: center;
-                transition: all 0.2s ease;
-            }
-            
-            .shortcuts-stat-card:hover {
-                background: rgba(255,255,255,0.12);
-            }
-            
-            .stat-title {
-                font-size: 11px;
-                color: var(--text-secondary);
-                margin-bottom: 4px;
-                font-weight: 500;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-            
-            .stat-value {
-                font-size: 14px;
-                font-weight: 600;
-                color: var(--text-primary);
-                line-height: 1.2;
-            }
-            
-            /* Mobile Anpassung */
+            /* Mobile Responsive - genau wie History */
             @media (max-width: 768px) {
+                .shortcuts-container {
+                    height: calc(100vh - 400px);
+                    max-height: 400px;
+                }
+                
+                .shortcuts-header {
+                    flex-direction: column;
+                    gap: 12px;
+                    align-items: flex-start;
+                }
+                
                 .shortcuts-stats {
+                    grid-template-columns: repeat(3, 1fr);
                     gap: 8px;
                 }
-                
-                .shortcuts-stat-card {
-                    padding: 10px;
-                }
-                
-                .stat-value {
-                    font-size: 13px;
-                }
-            }            
+            }        
                                     
             </style>
 
@@ -6093,6 +6111,11 @@ class FastSearchCard extends HTMLElement {
             <div class="shortcuts-container">
                 <div class="shortcuts-header">
                     <h3>Shortcuts für ${item.name}</h3>
+                    <div class="shortcuts-controls">
+                        <button class="shortcuts-btn active" data-shortcuts-tab="timer">Timer</button>
+                        <button class="shortcuts-btn" data-shortcuts-tab="scenes">Szenen</button>
+                        <button class="shortcuts-btn" data-shortcuts-tab="scripts">Skripte</button>
+                    </div>
                 </div>
                 
                 <div class="shortcuts-stats">
@@ -6108,12 +6131,6 @@ class FastSearchCard extends HTMLElement {
                         <div class="stat-title">Skripte</div>
                         <div class="stat-value">${stats.scripts} vorhanden</div>
                     </div>
-                </div>
-                
-                <div class="shortcuts-tabs">
-                    <button class="shortcuts-tab active" data-shortcuts-tab="timer">Timer</button>
-                    <button class="shortcuts-tab" data-shortcuts-tab="scenes">Szenen</button>
-                    <button class="shortcuts-tab" data-shortcuts-tab="scripts">Skripte</button>
                 </div>
                 
                 <div class="shortcuts-content">
