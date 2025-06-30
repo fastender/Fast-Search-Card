@@ -6945,6 +6945,9 @@ class FastSearchCard extends HTMLElement {
                 ctx.imageSmoothingQuality = 'high';
                 
                 this.drawModernChart(ctx, values, chartConfig, rect.width, 180, timestamps, period);
+                
+                // NEU: Hover-Tooltips hinzufügen
+                this.addChartTooltips(canvas, values, timestamps, chartConfig, rect.width, 180);
             }
         }, 100);
     }
@@ -6985,6 +6988,134 @@ class FastSearchCard extends HTMLElement {
         // Time Labels (X-Axis)
         this.drawTimeLabels(ctx, timestamps, padding, chartWidth, height, period);
     }
+
+    addChartTooltips(canvas, values, timestamps, config, width, height) {
+        const padding = 50;
+        const chartWidth = width - (padding * 2);
+        const chartHeight = height - (padding * 2);
+        
+        // Tooltip Element erstellen
+        let tooltip = document.createElement('div');
+        tooltip.className = 'chart-tooltip';
+        tooltip.style.cssText = `
+            position: absolute;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        `;
+        document.body.appendChild(tooltip);
+        
+        // Mouse Move Handler
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // Prüfe ob Maus im Chart-Bereich
+            if (mouseX >= padding && mouseX <= width - padding && 
+                mouseY >= padding && mouseY <= height - padding) {
+                
+                // Finde nächsten Datenpunkt
+                const relativeX = (mouseX - padding) / chartWidth;
+                const dataIndex = Math.round(relativeX * (values.length - 1));
+                
+                if (dataIndex >= 0 && dataIndex < values.length) {
+                    const value = values[dataIndex];
+                    const timestamp = timestamps[dataIndex] * 1000; // Convert to milliseconds
+                    const date = new Date(timestamp);
+                    
+                    // Formatiere Tooltip-Text
+                    const timeString = date.toLocaleString('de-DE', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    tooltip.innerHTML = `
+                        <div style="font-weight: 600; margin-bottom: 2px;">${timeString}</div>
+                        <div style="color: ${config.color};">${config.label}: ${value.toFixed(1)}${config.unit}</div>
+                    `;
+                    
+                    // Positioniere Tooltip
+                    tooltip.style.left = (e.clientX + 10) + 'px';
+                    tooltip.style.top = (e.clientY - 10) + 'px';
+                    tooltip.style.opacity = '1';
+                    
+                    // Highlight Datenpunkt
+                    this.highlightDataPoint(canvas, dataIndex, values, padding, chartWidth, chartHeight, config.color);
+                }
+            } else {
+                // Verstecke Tooltip
+                tooltip.style.opacity = '0';
+                this.clearHighlight(canvas, values, config, width, height, timestamps);
+            }
+        });
+        
+        // Mouse Leave Handler
+        canvas.addEventListener('mouseleave', () => {
+            tooltip.style.opacity = '0';
+            this.clearHighlight(canvas, values, config, width, height, timestamps);
+        });
+        
+        // Cleanup bei Chart-Destroy
+        canvas._tooltipCleanup = () => {
+            if (tooltip.parentNode) {
+                tooltip.parentNode.removeChild(tooltip);
+            }
+        };
+    }
+    
+    highlightDataPoint(canvas, dataIndex, values, padding, chartWidth, chartHeight, color) {
+        const ctx = canvas.getContext('2d');
+        const minValue = Math.min(...values);
+        const maxValue = Math.max(...values);
+        const valueRange = maxValue - minValue || 1;
+        
+        // Berechne Punkt-Position
+        const x = padding + (dataIndex / (values.length - 1)) * chartWidth;
+        const y = padding + chartHeight - ((values[dataIndex] - minValue) / valueRange) * chartHeight;
+        
+        // Zeichne Highlight-Punkt
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Vertikale Hilfslinie
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, padding + chartHeight);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+    
+    clearHighlight(canvas, values, config, width, height, timestamps) {
+        const ctx = canvas.getContext('2d');
+        
+        // Komplett neu zeichnen
+        ctx.clearRect(0, 0, width, height);
+        this.drawModernChart(ctx, values, config, width, height, timestamps, 'period');
+    }
     
     drawModernGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue, valueRange, unit) {
         // Vertical Grid Lines
@@ -6998,33 +7129,29 @@ class FastSearchCard extends HTMLElement {
             ctx.stroke();
         }
         
-        // Horizontal Grid Lines
-        for (let i = 0; i <= 5; i++) {
-            const y = padding + (chartHeight / 5) * i;
+        // Horizontal Grid Lines mit mehr Abstand (nur 4 statt 5)
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (chartHeight / 4) * i;
             ctx.beginPath();
             ctx.moveTo(padding, y);
             ctx.lineTo(padding + chartWidth, y);
             ctx.stroke();
         }
         
-        // Y-axis Labels mit Glassmorphism
+        // Y-axis Labels - TRANSPARENT + mehr Abstand
         ctx.fillStyle = 'rgba(255,255,255,0.8)';
-        ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
         ctx.textAlign = 'right';
         
-        for (let i = 0; i <= 5; i++) {
-            const y = padding + (chartHeight / 5) * i + 4;
-            const value = maxValue - (valueRange / 5) * i;
+        for (let i = 0; i <= 4; i++) { // Nur 4 Labels statt 5
+            const y = padding + (chartHeight / 4) * i + 5;
+            const value = maxValue - (valueRange / 4) * i; // Angepasst auf 4 Schritte
             
-            // Background für Labels
             const text = value.toFixed(1) + unit;
-            const textWidth = ctx.measureText(text).width;
             
-            ctx.fillStyle = 'rgba(0,0,0,0.4)';
-            ctx.fillRect(padding - textWidth - 16, y - 8, textWidth + 12, 16);
-            
+            // KEIN dunkler Hintergrund mehr - nur Text
             ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.fillText(text, padding - 8, y);
+            ctx.fillText(text, padding - 12, y);
         }
     }
     
