@@ -3118,7 +3118,50 @@ class FastSearchCard extends HTMLElement {
                     gap: 4px;
                 }
             }
-
+            
+            /* Modern Chart Styling */
+            .modern-chart-container {
+                background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+                border: 1px solid rgba(255,255,255,0.12);
+                border-radius: 16px;
+                padding: 24px;
+                margin-bottom: 20px;
+                position: relative;
+                overflow: hidden;
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+            
+            .modern-chart-container::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            }
+            
+            .chart-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 16px;
+                padding-top: 12px;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            
+            .chart-label {
+                font-weight: 600;
+                color: var(--text-primary);
+                font-size: 14px;
+            }
+            
+            .chart-stats {
+                color: var(--text-secondary);
+                font-size: 12px;
+                opacity: 0.8;
+            }
                                     
             </style>
 
@@ -6872,12 +6915,13 @@ class FastSearchCard extends HTMLElement {
         // Eindeutige Canvas-ID generieren
         const canvasId = `chart-canvas-${item.id.replace(/\./g, '_')}`;
         
-        // Canvas-Chart HTML
+        // VERBESSERTES Canvas-Chart HTML
         container.innerHTML = `
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px;">
-                <canvas id="${canvasId}" width="400" height="160" style="width: 100%; height: 160px; max-width: 400px;"></canvas>
-                <div style="text-align: center; margin-top: 10px; color: var(--text-secondary); font-size: 12px;">
-                    ${chartConfig.label} • ${timestamps.length} Datenpunkte
+            <div class="modern-chart-container">
+                <canvas id="${canvasId}" style="width: 100%; height: 180px;"></canvas>
+                <div class="chart-info">
+                    <span class="chart-label">${chartConfig.label}</span>
+                    <span class="chart-stats">${timestamps.length} Datenpunkte • ${period === '1d' ? '24h' : period === '7d' ? '7 Tage' : '30 Tage'}</span>
                 </div>
             </div>
         `;
@@ -6886,25 +6930,32 @@ class FastSearchCard extends HTMLElement {
         setTimeout(() => {
             const canvas = container.querySelector(`#${canvasId}`);
             if (canvas) {
+                // High-DPI Canvas Setup
+                const rect = canvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                
+                canvas.width = rect.width * dpr;
+                canvas.height = 180 * dpr;
+                
                 const ctx = canvas.getContext('2d');
-                this.drawSimpleChart(ctx, values, chartConfig, 400, 160);
-            } else {
-                console.error('Canvas not found:', canvasId);
+                ctx.scale(dpr, dpr);
+                
+                // Anti-aliasing
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                this.drawModernChart(ctx, values, chartConfig, rect.width, 180, timestamps, period);
             }
         }, 100);
     }
 
-    drawSimpleChart(ctx, values, config, width, height) {
-        const padding = 40;
+    drawModernChart(ctx, values, config, width, height, timestamps, period) {
+        const padding = 50;
         const chartWidth = width - (padding * 2);
         const chartHeight = height - (padding * 2);
         
         // Clear canvas
         ctx.clearRect(0, 0, width, height);
-
-        // FIX: Setze Canvas Pixel-Ratio für scharfe Darstellung
-        const dpr = window.devicePixelRatio || 1;
-        ctx.scale(dpr, dpr);        
         
         if (values.length === 0) return;
         
@@ -6912,22 +6963,115 @@ class FastSearchCard extends HTMLElement {
         const maxValue = Math.max(...values);
         const valueRange = maxValue - minValue || 1;
         
-        // Draw grid
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        // Glassmorphism Background
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, 'rgba(255,255,255,0.02)');
+        gradient.addColorStop(1, 'rgba(255,255,255,0.08)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(padding, padding, chartWidth, chartHeight);
+        
+        // Modern Grid
+        this.drawModernGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue, valueRange, config.unit);
+        
+        // Chart Area with Gradient Fill
+        this.drawChartArea(ctx, values, padding, chartWidth, chartHeight, minValue, valueRange, config.color);
+        
+        // Main Line
+        this.drawChartLine(ctx, values, padding, chartWidth, chartHeight, minValue, valueRange, config.color);
+        
+        // Data Points
+        this.drawDataPoints(ctx, values, padding, chartWidth, chartHeight, minValue, valueRange, config.color);
+        
+        // Time Labels (X-Axis)
+        this.drawTimeLabels(ctx, timestamps, padding, chartWidth, height, period);
+    }
+    
+    drawModernGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue, valueRange, unit) {
+        // Vertical Grid Lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
         ctx.lineWidth = 1;
-        for (let i = 0; i <= 4; i++) {
-            const y = padding + (chartHeight / 4) * i;
+        for (let i = 0; i <= 6; i++) {
+            const x = padding + (chartWidth / 6) * i;
             ctx.beginPath();
-            ctx.moveTo(padding, y);
-            ctx.lineTo(width - padding, y);
+            ctx.moveTo(x, padding);
+            ctx.lineTo(x, padding + chartHeight);
             ctx.stroke();
         }
         
-        // Draw line
-        ctx.strokeStyle = config.color;
-        ctx.lineWidth = 2;
+        // Horizontal Grid Lines
+        for (let i = 0; i <= 5; i++) {
+            const y = padding + (chartHeight / 5) * i;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(padding + chartWidth, y);
+            ctx.stroke();
+        }
+        
+        // Y-axis Labels mit Glassmorphism
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'right';
+        
+        for (let i = 0; i <= 5; i++) {
+            const y = padding + (chartHeight / 5) * i + 4;
+            const value = maxValue - (valueRange / 5) * i;
+            
+            // Background für Labels
+            const text = value.toFixed(1) + unit;
+            const textWidth = ctx.measureText(text).width;
+            
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.fillRect(padding - textWidth - 16, y - 8, textWidth + 12, 16);
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillText(text, padding - 8, y);
+        }
+    }
+    
+    drawChartArea(ctx, values, padding, chartWidth, chartHeight, minValue, valueRange, color) {
+        if (values.length < 2) return;
+        
+        // Gradient Fill unter der Linie
+        const gradient = ctx.createLinearGradient(0, padding, 0, padding + chartHeight);
+        const rgb = this.hexToRgb(color);
+        gradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`);
+        gradient.addColorStop(0.5, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`);
+        gradient.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.05)`);
+        
+        ctx.fillStyle = gradient;
         ctx.beginPath();
         
+        // Start point
+        const startX = padding;
+        const startY = padding + chartHeight - ((values[0] - minValue) / valueRange) * chartHeight;
+        ctx.moveTo(startX, startY);
+        
+        // Line points
+        values.forEach((value, index) => {
+            const x = padding + (index / (values.length - 1)) * chartWidth;
+            const y = padding + chartHeight - ((value - minValue) / valueRange) * chartHeight;
+            ctx.lineTo(x, y);
+        });
+        
+        // Close area to bottom
+        ctx.lineTo(padding + chartWidth, padding + chartHeight);
+        ctx.lineTo(padding, padding + chartHeight);
+        ctx.closePath();
+        ctx.fill();
+    }
+    
+    drawChartLine(ctx, values, padding, chartWidth, chartHeight, minValue, valueRange, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        // Shadow für die Linie
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 2;
+        
+        ctx.beginPath();
         values.forEach((value, index) => {
             const x = padding + (index / (values.length - 1)) * chartWidth;
             const y = padding + chartHeight - ((value - minValue) / valueRange) * chartHeight;
@@ -6938,19 +7082,66 @@ class FastSearchCard extends HTMLElement {
                 ctx.lineTo(x, y);
             }
         });
-        
         ctx.stroke();
         
-        // Y-axis labels
+        // Reset shadow
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+    }
+    
+    drawDataPoints(ctx, values, padding, chartWidth, chartHeight, minValue, valueRange, color) {
+        values.forEach((value, index) => {
+            const x = padding + (index / (values.length - 1)) * chartWidth;
+            const y = padding + chartHeight - ((value - minValue) / valueRange) * chartHeight;
+            
+            // Outer glow
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Inner point
+            ctx.fillStyle = 'rgba(255,255,255,0.95)';
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+    }
+    
+    drawTimeLabels(ctx, timestamps, padding, chartWidth, height, period) {
         ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.font = '10px Arial';
-        for (let i = 0; i <= 4; i++) {
-            const y = padding + (chartHeight / 4) * i;
-            const value = maxValue - (valueRange / 4) * i;
-            ctx.fillText(value.toFixed(1) + config.unit, 5, y + 3);
+        ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        
+        const labelCount = Math.min(6, timestamps.length);
+        for (let i = 0; i < labelCount; i++) {
+            const index = Math.floor((i / (labelCount - 1)) * (timestamps.length - 1));
+            const timestamp = timestamps[index] * 1000; // Convert to milliseconds
+            const date = new Date(timestamp);
+            
+            let label;
+            if (period === '1d') {
+                label = date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+            } else {
+                label = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+            }
+            
+            const x = padding + (i / (labelCount - 1)) * chartWidth;
+            ctx.fillText(label, x, height - 12);
         }
-    }    
+    }
+    
+    hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : { r: 0, g: 122, b: 255 };
+    }
 
+    
     renderHistoryTimeline(events, container, item, warningHTML = '') {
         const timelineHTML = events.map(event => {
             const timeString = this.formatEventTime(event.timestamp);
