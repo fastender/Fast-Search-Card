@@ -2421,6 +2421,17 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 margin-bottom: 20px;
             }
+
+            .history-warning {
+                background: rgba(255, 152, 0, 0.1);
+                border: 1px solid rgba(255, 152, 0, 0.3);
+                border-radius: 8px;
+                padding: 12px;
+                margin-bottom: 16px;
+                color: #FF9800;
+                font-size: 13px;
+                font-weight: 500;
+            }            
             
             .stat-card {
                 background: rgba(255,255,255,0.08);
@@ -6219,8 +6230,25 @@ class FastSearchCard extends HTMLElement {
                 todayActiveElement.textContent = `${historyData.stats.activeHours} Std`;
             }
             
+            // Berechne tatsächlichen Datumsbereich
+            const events = historyData.events;
+            const oldestEvent = events[events.length - 1];
+            const newestEvent = events[0];
+            const actualDays = Math.ceil((newestEvent.timestamp - oldestEvent.timestamp) / (1000 * 60 * 60 * 24));
+            
+            // Zeige Warnung wenn weniger Daten als erwartet
+            let warningHTML = '';
+            const requestedDays = period === '1d' ? 1 : period === '7d' ? 7 : 30;
+            if (actualDays < requestedDays) {
+                warningHTML = `
+                    <div class="history-warning">
+                        ⚠️ Nur Daten der letzten ${actualDays} Tage verfügbar (angefordert: ${requestedDays} Tage)
+                    </div>
+                `;
+            }
+            
             // Render timeline
-            this.renderHistoryTimeline(historyData.events, timelineContainer, item);
+            this.renderHistoryTimeline(historyData.events, timelineContainer, item, warningHTML);
             
         } catch (error) {
             console.error('History loading error:', error);
@@ -6228,7 +6256,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    renderHistoryTimeline(events, container, item) {
+    renderHistoryTimeline(events, container, item, warningHTML = '') {
         const timelineHTML = events.map(event => {
             const timeString = this.formatEventTime(event.timestamp);
             const stateClass = this.isActiveState(event.state, item.domain) ? 'active' : 'inactive';
@@ -6244,7 +6272,7 @@ class FastSearchCard extends HTMLElement {
             `;
         }).join('');
         
-        container.innerHTML = `<div class="timeline-list">${timelineHTML}</div>`;
+        container.innerHTML = warningHTML + `<div class="timeline-list">${timelineHTML}</div>`;
     }
 
     formatEventTime(timestamp) {
