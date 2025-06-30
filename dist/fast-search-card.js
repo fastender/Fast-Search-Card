@@ -2542,6 +2542,111 @@ class FastSearchCard extends HTMLElement {
                 }
             }
 
+            
+            .shortcuts-container {
+                padding: 20px;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .shortcuts-header h3 {
+                margin: 0 0 20px 0;
+                color: var(--text-primary);
+                font-size: 16px;
+                font-weight: 600;
+            }
+            
+            .shortcuts-tabs {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 20px;
+                background: rgba(0, 0, 0, 0.25);
+                border-radius: 12px;
+                padding: 4px;
+            }
+            
+            .shortcuts-tab {
+                flex: 1;
+                padding: 8px 16px;
+                border: none;
+                background: transparent;
+                color: var(--text-secondary);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 13px;
+                font-weight: 500;
+            }
+            
+            .shortcuts-tab.active {
+                background: rgba(255, 255, 255, 0.2);
+                color: var(--text-primary);
+            }
+            
+            .shortcuts-content {
+                flex: 1;
+                overflow-y: auto;
+            }
+            
+            .shortcuts-tab-content {
+                display: none;
+            }
+            
+            .shortcuts-tab-content.active {
+                display: block;
+            }
+
+            .shortcuts-stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .shortcuts-stat-card {
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.12);
+                border-radius: 12px;
+                padding: 12px;
+                text-align: center;
+                transition: all 0.2s ease;
+            }
+            
+            .shortcuts-stat-card:hover {
+                background: rgba(255,255,255,0.12);
+            }
+            
+            .stat-title {
+                font-size: 11px;
+                color: var(--text-secondary);
+                margin-bottom: 4px;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            
+            .stat-value {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-primary);
+                line-height: 1.2;
+            }
+            
+            /* Mobile Anpassung */
+            @media (max-width: 768px) {
+                .shortcuts-stats {
+                    gap: 8px;
+                }
+                
+                .shortcuts-stat-card {
+                    padding: 10px;
+                }
+                
+                .stat-value {
+                    font-size: 13px;
+                }
+            }            
                                     
             </style>
 
@@ -5971,14 +6076,105 @@ class FastSearchCard extends HTMLElement {
         switch(tabId) {
             case 'controls':
                 return controlsHTML;
+            case 'shortcuts':
+                return this.getShortcutsHTML(item);  // NEU
             case 'history':
                 return this.getHistoryHTML(item);
-            case 'shortcuts':
-                return `<div style="padding: 20px; text-align: center; color: var(--text-secondary);">Shortcuts coming soon.</div>`;
             default:
                 return `<div style="padding: 20px; text-align: center; color: var(--text-secondary);">${tabId} coming soon.</div>`;
         }
-    }    
+    }
+
+    getShortcutsHTML(item) {
+        // Stats für die Cards berechnen
+        const stats = this.getShortcutsStats(item);
+        
+        return `
+            <div class="shortcuts-container">
+                <div class="shortcuts-header">
+                    <h3>Shortcuts für ${item.name}</h3>
+                </div>
+                
+                <div class="shortcuts-stats">
+                    <div class="shortcuts-stat-card">
+                        <div class="stat-title">Timer</div>
+                        <div class="stat-value">${stats.timers} Aktiv</div>
+                    </div>
+                    <div class="shortcuts-stat-card">
+                        <div class="stat-title">Szenen</div>
+                        <div class="stat-value">${stats.scenes} vorhanden</div>
+                    </div>
+                    <div class="shortcuts-stat-card">
+                        <div class="stat-title">Skripte</div>
+                        <div class="stat-value">${stats.scripts} vorhanden</div>
+                    </div>
+                </div>
+                
+                <div class="shortcuts-tabs">
+                    <button class="shortcuts-tab active" data-shortcuts-tab="timer">Timer</button>
+                    <button class="shortcuts-tab" data-shortcuts-tab="scenes">Szenen</button>
+                    <button class="shortcuts-tab" data-shortcuts-tab="scripts">Skripte</button>
+                </div>
+                
+                <div class="shortcuts-content">
+                    <div class="shortcuts-tab-content active" data-shortcuts-content="timer">
+                        <p>Timer Content für ${item.name}</p>
+                    </div>
+                    <div class="shortcuts-tab-content" data-shortcuts-content="scenes">
+                        <p>Szenen Content</p>
+                    </div>
+                    <div class="shortcuts-tab-content" data-shortcuts-content="scripts">
+                        <p>Skripte Content</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    getShortcutsStats(item) {
+        // Placeholder Logic - wird später durch echte Discovery ersetzt
+        const deviceTimers = this.getDeviceTimers(item.id);
+        const roomScenes = this.getRoomScenes(item.area);
+        const deviceScripts = this.getDeviceScripts(item.id, item.area);
+        
+        return {
+            timers: deviceTimers.length,
+            scenes: roomScenes.length, 
+            scripts: deviceScripts.length
+        };
+    }
+    
+    // Placeholder Methoden (erstmal mit Dummy-Daten)
+    getDeviceTimers(deviceId) {
+        // TODO: Echte Timer Discovery implementieren
+        return [
+            { id: 'timer1', time: '19:00', action: 'turn_on' },
+            { id: 'timer2', time: '22:30', action: 'turn_off' }
+        ];
+    }
+    
+    getRoomScenes(deviceArea) {
+        // TODO: Echte Szenen Discovery implementieren  
+        return [
+            { id: 'scene.arbeitsplatz', name: 'Arbeitsplatz' },
+            { id: 'scene.entspannen', name: 'Entspannen' },
+            { id: 'scene.konzentration', name: 'Konzentration' }
+        ];
+    }
+    
+    getDeviceScripts(deviceId, deviceArea) {
+        // TODO: Echte Skripte Discovery implementieren
+        return [
+            { id: 'script.arbeitsplatz_vorbereiten', name: 'Arbeitsplatz vorbereiten' }
+        ];
+    }
+
+
+
+
+
+
+    
 
     getHistoryHTML(item) {
         const state = this._hass.states[item.id];
