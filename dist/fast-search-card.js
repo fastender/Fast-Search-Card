@@ -6034,11 +6034,16 @@ class FastSearchCard extends HTMLElement {
                 startTime.setDate(endTime.getDate() - 30); 
                 break;
         }
-        
+
+        console.log(`Loading history for ${item.id} from ${startTime.toISOString()} to ${endTime.toISOString()}`);
+                    
         try {
             const historyData = await this._hass.callApi('GET', 
                 `history/period/${startTime.toISOString()}?filter_entity_id=${item.id}&end_time=${endTime.toISOString()}`
             );
+
+            console.log(`History API returned:`, historyData);
+            console.log(`Events found: ${historyData[0]?.length || 0}`);
             
             return this.processHistoryData(historyData[0] || [], item);
         } catch (error) {
