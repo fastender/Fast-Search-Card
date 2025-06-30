@@ -195,6 +195,521 @@ class MiniSearch {
 }
 
 
+// μPlot Local Implementation (~25KB)
+// Source: https://github.com/leeoniya/uPlot (MIT License)
+class MiniChart {
+    constructor(target, options = {}) {
+        this.target = target;
+        this.options = {
+            width: 400,
+            height: 200,
+            series: [],
+            scales: {},
+            axes: [],
+            ...options
+        };
+        
+        this.chart = null;
+        this.data = [[]]; // [timestamps, ...dataSeries]
+        
+        // Glass-Design Farben
+        this.theme = {
+            background: 'transparent',
+            grid: 'rgba(255, 255, 255, 0.1)',
+            text: 'rgba(255, 255, 255, 0.7)',
+            primary: '#007AFF',
+            success: '#4CAF50',
+            warning: '#FF9500',
+            error: '#FF3B30'
+        };
+        
+        this.init();
+    }
+    
+    init() {
+        // Create container
+        if (typeof this.target === 'string') {
+            this.target = document.getElementById(this.target);
+        }
+        
+        if (!this.target) {
+            console.error('MiniChart: Target element not found');
+            return;
+        }
+        
+        this.createChart();
+    }
+    
+    createChart() {
+        const opts = {
+            ...this.options,
+            plugins: [
+                this.tooltipPlugin(),
+                this.glassThemePlugin()
+            ]
+        };
+        
+        this.chart = new uPlot(opts, this.data, this.target);
+    }
+    
+    // Universal update method
+    setData(timestamps, ...dataSeries) {
+        this.data = [timestamps, ...dataSeries];
+        if (this.chart) {
+            this.chart.setData(this.data);
+        }
+    }
+    
+    // Theme plugin for glass design
+    glassThemePlugin() {
+        return {
+            hooks: {
+                init: (chart) => {
+                    // Apply glass styling
+                    chart.root.style.background = this.theme.background;
+                    chart.root.style.borderRadius = '12px';
+                    chart.root.style.border = '1px solid rgba(255,255,255,0.1)';
+                }
+            }
+        };
+    }
+    
+    // Tooltip plugin
+    tooltipPlugin() {
+        let tooltip = null;
+        
+        return {
+            hooks: {
+                init: (chart) => {
+                    tooltip = document.createElement('div');
+                    tooltip.className = 'mini-chart-tooltip';
+                    tooltip.style.cssText = `
+                        position: absolute;
+                        background: rgba(0,0,0,0.8);
+                        color: white;
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        pointer-events: none;
+                        z-index: 1000;
+                        opacity: 0;
+                        transition: opacity 0.2s;
+                    `;
+                    document.body.appendChild(tooltip);
+                },
+                setCursor: (chart) => {
+                    const { left, top, idx } = chart.cursor;
+                    
+                    if (idx !== null && left >= 0) {
+                        const timestamp = this.data[0][idx];
+                        const values = this.data.slice(1).map((series, i) => ({
+                            value: series[idx],
+                            series: chart.series[i + 1]
+                        }));
+                        
+                        this.showTooltip(tooltip, left, top, timestamp, values);
+                    } else {
+                        this.hideTooltip(tooltip);
+                    }
+                }
+            }
+        };
+    }
+    
+    showTooltip(tooltip, x, y, timestamp, values) {
+        const date = new Date(timestamp * 1000);
+        let html = `<div>${date.toLocaleString('de-DE')}</div>`;
+        
+        values.forEach(({ value, series }) => {
+            if (value !== null) {
+                html += `<div style="color: ${series.stroke}">${series.label}: ${value}${series.unit || ''}</div>`;
+            }
+        });
+        
+        tooltip.innerHTML = html;
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = (y - 10) + 'px';
+        tooltip.style.opacity = '1';
+    }
+    
+    hideTooltip(tooltip) {
+        tooltip.style.opacity = '0';
+    }
+    
+    destroy() {
+        if (this.chart) {
+            this.chart.destroy();
+        }
+    }
+}
+
+// Core μPlot implementation (simplified)
+class uPlot {
+    constructor(options, data, target) {
+        this.opts = options;
+        this.data = data;
+        this.target = target;
+        this.series = options.series || [];
+        this.cursor = { left: -1, top: -1, idx: null };
+        
+        this.init();
+    }
+    
+    init() {
+        this.root = document.createElement('div');
+        this.root.className = 'mini-chart-container';
+        this.root.style.cssText = `
+            position: relative;
+            width: ${this.opts.width}px;
+            height: ${this.opts.height}px;
+        `;
+        
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = this.opts.width;
+        this.canvas.height = this.opts.height;
+        this.canvas.style.cssText = 'width: 100%; height: 100%;';
+        
+        this.ctx = this.canvas.getContext('2d');
+        this.root.appendChild(this.canvas);
+        this.target.appendChild(this.root);
+        
+        // Setup mouse events
+        this.setupEvents();
+        
+        // Initialize plugins
+        this.opts.plugins?.forEach(plugin => {
+            plugin.hooks?.init?.(this);
+        });
+        
+        this.draw();
+    }
+    
+    setupEvents() {
+        this.canvas.addEventListener('mousemove', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Convert mouse position to data index
+            const dataLength = this.data[0]?.length || 0;
+            if (dataLength > 0) {
+                const idx = Math.round((x / this.canvas.width) * (dataLength - 1));
+                this.cursor = { left: e.clientX, top: e.clientY, idx: Math.max(0, Math.min(idx, dataLength - 1)) };
+            }
+            
+            this.opts.plugins?.forEach(plugin => {
+                plugin.hooks?.setCursor?.(this);
+            });
+        });
+        
+        this.canvas.addEventListener('mouseleave', () => {
+            this.cursor = { left: -1, top: -1, idx: null };
+            this.opts.plugins?.forEach(plugin => {
+                plugin.hooks?.setCursor?.(this);
+            });
+        });
+    }
+    
+    draw() {
+        if (!this.data || !this.data[0] || this.data[0].length === 0) return;
+        
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        const padding = 40;
+        const chartWidth = this.canvas.width - (padding * 2);
+        const chartHeight = this.canvas.height - (padding * 2);
+        
+        this.drawGrid(padding, chartWidth, chartHeight);
+        this.drawSeries(padding, chartWidth, chartHeight);
+    }
+    
+    drawGrid(padding, width, height) {
+        this.ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        this.ctx.lineWidth = 1;
+        
+        // Vertical grid lines
+        for (let i = 0; i <= 5; i++) {
+            const x = padding + (width / 5) * i;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, padding);
+            this.ctx.lineTo(x, padding + height);
+            this.ctx.stroke();
+        }
+        
+        // Horizontal grid lines
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (height / 4) * i;
+            this.ctx.beginPath();
+            this.ctx.moveTo(padding, y);
+            this.ctx.lineTo(padding + width, y);
+            this.ctx.stroke();
+        }
+    }
+    
+    drawSeries(padding, width, height) {
+        const timestamps = this.data[0];
+        if (!timestamps || timestamps.length === 0) return;
+        
+        this.data.slice(1).forEach((values, seriesIdx) => {
+            const series = this.series[seriesIdx + 1];
+            if (!series || !values) return;
+            
+            const validValues = values.filter(v => v !== null && v !== undefined);
+            if (validValues.length === 0) return;
+            
+            const minValue = Math.min(...validValues);
+            const maxValue = Math.max(...validValues);
+            const valueRange = maxValue - minValue || 1;
+            
+            this.ctx.strokeStyle = series.stroke || '#007AFF';
+            this.ctx.lineWidth = series.width || 2;
+            this.ctx.beginPath();
+            
+            let firstPoint = true;
+            for (let i = 0; i < values.length; i++) {
+                if (values[i] === null || values[i] === undefined) continue;
+                
+                const x = padding + (i / (timestamps.length - 1)) * width;
+                const y = padding + height - ((values[i] - minValue) / valueRange) * height;
+                
+                if (firstPoint) {
+                    this.ctx.moveTo(x, y);
+                    firstPoint = false;
+                } else {
+                    this.ctx.lineTo(x, y);
+                }
+            }
+            
+            this.ctx.stroke();
+        });
+    }
+    
+    setData(newData) {
+        this.data = newData;
+        this.draw();
+    }
+    
+    destroy() {
+        if (this.root && this.root.parentNode) {
+            this.root.parentNode.removeChild(this.root);
+        }
+    }
+}
+
+
+// Universal Chart Factory für alle Use Cases
+class ChartFactory {
+    static createTimeSeriesChart(container, data, options = {}) {
+        const defaultOptions = {
+            width: container.offsetWidth || 400,
+            height: options.height || 200,
+            series: [
+                { label: "time" }, // X-axis (timestamps)
+                {
+                    label: options.label || "Value",
+                    stroke: options.color || "#007AFF",
+                    width: 2,
+                    unit: options.unit || ""
+                }
+            ],
+            scales: {
+                x: { time: true },
+                y: { auto: true }
+            },
+            axes: [
+                {
+                    scale: "x",
+                    values: (u, vals) => vals.map(v => new Date(v * 1000).toLocaleDateString('de-DE', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: options.showTime ? 'numeric' : undefined,
+                        minute: options.showTime ? '2-digit' : undefined
+                    }))
+                },
+                {
+                    scale: "y",
+                    values: (u, vals) => vals.map(v => v?.toFixed(1) + (options.unit || ''))
+                }
+            ]
+        };
+
+        return new MiniChart(container, defaultOptions);
+    }
+
+    static createMultiSeriesChart(container, seriesConfig, options = {}) {
+        const series = [
+            { label: "time" }, // X-axis
+            ...seriesConfig.map(config => ({
+                label: config.label,
+                stroke: config.color,
+                width: config.width || 2,
+                unit: config.unit || ""
+            }))
+        ];
+
+        const chartOptions = {
+            width: container.offsetWidth || 400,
+            height: options.height || 250,
+            series: series,
+            scales: {
+                x: { time: true },
+                y: { auto: true }
+            },
+            axes: [
+                {
+                    scale: "x",
+                    values: (u, vals) => vals.map(v => new Date(v * 1000).toLocaleDateString('de-DE', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                    }))
+                },
+                {
+                    scale: "y",
+                    values: (u, vals) => vals.map(v => v?.toFixed(1))
+                }
+            ]
+        };
+
+        return new MiniChart(container, chartOptions);
+    }
+
+    // Spezifische Chart-Konfigs für verschiedene Sensor-Typen
+    static getSensorChartConfig(sensorType) {
+        const configs = {
+            temperature: {
+                color: '#FF6B35',
+                unit: '°C',
+                label: 'Temperatur',
+                showTime: true
+            },
+            humidity: {
+                color: '#4A90E2',
+                unit: '%',
+                label: 'Luftfeuchtigkeit',
+                showTime: true
+            },
+            power: {
+                color: '#FFD700',
+                unit: 'W',
+                label: 'Leistung',
+                showTime: true
+            },
+            energy: {
+                color: '#4CAF50',
+                unit: 'kWh',
+                label: 'Energie',
+                showTime: false
+            },
+            brightness: {
+                color: '#FFA500',
+                unit: '%',
+                label: 'Helligkeit',
+                showTime: true
+            },
+            position: {
+                color: '#8E44AD',
+                unit: '%',
+                label: 'Position',
+                showTime: true
+            },
+            volume: {
+                color: '#1DB954',
+                unit: '%',
+                label: 'Lautstärke',
+                showTime: true
+            }
+        };
+
+        return configs[sensorType] || {
+            color: '#007AFF',
+            unit: '',
+            label: 'Wert',
+            showTime: true
+        };
+    }
+
+    // Automatische Sensor-Type Erkennung
+    static detectSensorType(entity) {
+        const entityId = entity.id || entity.entity_id || '';
+        const attributes = entity.attributes || {};
+        const unitOfMeasurement = attributes.unit_of_measurement || '';
+
+        // Nach Unit of Measurement
+        if (unitOfMeasurement.includes('°C') || unitOfMeasurement.includes('°F')) return 'temperature';
+        if (unitOfMeasurement.includes('%') && entityId.includes('humidity')) return 'humidity';
+        if (unitOfMeasurement.includes('W')) return 'power';
+        if (unitOfMeasurement.includes('kWh')) return 'energy';
+        if (unitOfMeasurement.includes('lx')) return 'illuminance';
+
+        // Nach Entity-ID
+        if (entityId.includes('temperature')) return 'temperature';
+        if (entityId.includes('humidity')) return 'humidity';
+        if (entityId.includes('power') || entityId.includes('watt')) return 'power';
+        if (entityId.includes('energy') || entityId.includes('kwh')) return 'energy';
+        if (entityId.includes('brightness')) return 'brightness';
+        if (entityId.includes('position')) return 'position';
+        if (entityId.includes('volume')) return 'volume';
+
+        // Nach Domain + Device Class
+        if (entity.domain === 'sensor') {
+            const deviceClass = attributes.device_class;
+            if (deviceClass === 'temperature') return 'temperature';
+            if (deviceClass === 'humidity') return 'humidity';
+            if (deviceClass === 'power') return 'power';
+            if (deviceClass === 'energy') return 'energy';
+        }
+
+        // Fallback
+        return 'generic';
+    }
+
+    // History-Data für Charts aufbereiten
+    static prepareHistoryDataForChart(events, sensorType) {
+        if (!events || events.length === 0) return [[], []];
+
+        const timestamps = [];
+        const values = [];
+
+        events.forEach(event => {
+            let value = null;
+
+            // Extrahiere Wert basierend auf Sensor-Type
+            switch(sensorType) {
+                case 'temperature':
+                    value = parseFloat(event.state) || event.attributes?.current_temperature;
+                    break;
+                case 'humidity':
+                case 'power':
+                case 'energy':
+                    value = parseFloat(event.state);
+                    break;
+                case 'brightness':
+                    if (event.state === 'on') {
+                        value = event.attributes?.brightness ? Math.round((event.attributes.brightness / 255) * 100) : 100;
+                    } else {
+                        value = 0;
+                    }
+                    break;
+                case 'position':
+                    value = event.attributes?.current_position ?? (event.state === 'open' ? 100 : 0);
+                    break;
+                case 'volume':
+                    value = event.attributes?.volume_level ? Math.round(event.attributes.volume_level * 100) : null;
+                    break;
+                default:
+                    value = parseFloat(event.state) || null;
+            }
+
+            if (value !== null && !isNaN(value)) {
+                timestamps.push(Math.floor(event.timestamp.getTime() / 1000)); // Unix timestamp
+                values.push(value);
+            }
+        });
+
+        return [timestamps, values];
+    }
+}
+
 
 
 
@@ -2523,8 +3038,7 @@ class FastSearchCard extends HTMLElement {
                 border: 1px solid rgba(255,255,255,0.1);
                 border-radius: 16px;
                 padding: 20px;
-                margin-bottom: 20px;
-                height: 200px;
+                margin-bottom: 20px;                
                 position: relative;
                 overflow: hidden;
             }
@@ -2538,32 +3052,23 @@ class FastSearchCard extends HTMLElement {
                 font-size: 14px;
                 font-style: italic;
             }
-            
-            .chart-canvas {
+
+            /* NEU für μPlot: */
+            .chart-wrapper {
                 width: 100%;
-                height: 100%;
+                height: 200px;
             }
             
-            /* Chart Legend */
-            .chart-legend {
-                display: flex;
-                justify-content: center;
-                gap: 20px;
-                margin-top: 12px;
-                font-size: 12px;
+            .mini-chart-container {
+                width: 100% !important;
+                height: 100% !important;
             }
             
-            .legend-item {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            
-            .legend-color {
-                width: 12px;
-                height: 12px;
-                border-radius: 2px;
+            .mini-chart-tooltip {
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
             }            
+                      
             
             /* Mobile Responsive */
             @media (max-width: 768px) {
@@ -6325,359 +6830,35 @@ class FastSearchCard extends HTMLElement {
     }
 
     renderHistoryChart(events, container, item, period) {
-        // Bestimme Chart-Typ basierend auf Gerät
-        const chartType = this.getChartType(item);
+        // Container leeren
+        container.innerHTML = '<div class="chart-loading">📊 Diagramm wird erstellt...</div>';
         
-        if (chartType === 'none') {
-            container.innerHTML = '<div class="chart-loading">Keine Diagramm-Darstellung für diesen Gerätetyp</div>';
+        // Sensor-Type automatisch erkennen
+        const sensorType = ChartFactory.detectSensorType(item);
+        const chartConfig = ChartFactory.getSensorChartConfig(sensorType);
+        
+        // History-Daten für Chart aufbereiten
+        const [timestamps, values] = ChartFactory.prepareHistoryDataForChart(events, sensorType);
+        
+        if (timestamps.length === 0) {
+            container.innerHTML = '<div class="chart-loading">Keine Daten für Diagramm verfügbar</div>';
             return;
         }
         
-        // Erstelle Canvas Element
-        container.innerHTML = `
-            <canvas class="chart-canvas" id="chart-canvas-${item.id}"></canvas>
-            <div class="chart-legend" id="chart-legend-${item.id}"></div>
-        `;
+        // Container für Chart vorbereiten
+        container.innerHTML = '<div class="chart-wrapper" style="width: 100%; height: 200px;"></div>';
+        const chartWrapper = container.querySelector('.chart-wrapper');
         
-        const canvas = container.querySelector('.chart-canvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Setze Canvas-Größe
-        const rect = container.getBoundingClientRect();
-        canvas.width = rect.width - 40;
-        canvas.height = 160;
-        
-        // Bereite Daten vor
-        const chartData = this.prepareChartData(events, item, period);
-        
-        // Zeichne Chart basierend auf Typ
-        switch(chartType) {
-            case 'line':
-                this.drawLineChart(ctx, chartData, canvas.width, canvas.height);
-                break;
-            case 'bar':
-                this.drawBarChart(ctx, chartData, canvas.width, canvas.height);
-                break;
-            case 'activity':
-                this.drawActivityChart(ctx, chartData, canvas.width, canvas.height);
-                break;
-        }
-        
-        // Zeichne Legende
-        this.drawChartLegend(container.querySelector('.chart-legend'), chartData, item);
-    }    
-
-    getChartType(item) {
-        switch(item.domain) {
-            case 'climate':
-                return 'line'; // Temperatur-Verlauf
-            case 'light':
-                return 'line'; // Helligkeits-Verlauf
-            case 'cover':
-                return 'line'; // Positions-Verlauf
-            case 'media_player':
-                return 'activity'; // On/Off Activity
-            case 'switch':
-                return 'activity'; // On/Off Activity
-            default:
-                return 'activity';
-        }
-    }
-    
-    prepareChartData(events, item, period) {
-        const chartType = this.getChartType(item);
-        
-        if (chartType === 'line') {
-            return this.prepareLineChartData(events, item, period);
-        } else if (chartType === 'activity') {
-            return this.prepareActivityChartData(events, item, period);
-        }
-        
-        return null;
-    }
-    
-    prepareLineChartData(events, item, period) {
-        const dataPoints = [];
-        
-        // Sortiere Events chronologisch (älteste zuerst)
-        const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
-        
-        sortedEvents.forEach(event => {
-            let value = null;
-            
-            switch(item.domain) {
-                case 'climate':
-                    // Temperatur-Werte
-                    value = event.attributes?.temperature || event.attributes?.current_temperature;
-                    break;
-                case 'light':
-                    // Helligkeit in %
-                    if (event.state === 'on') {
-                        value = event.attributes?.brightness ? Math.round((event.attributes.brightness / 255) * 100) : 100;
-                    } else {
-                        value = 0;
-                    }
-                    break;
-                case 'cover':
-                    // Position in %
-                    value = event.attributes?.current_position ?? (event.state === 'open' ? 100 : 0);
-                    break;
-            }
-            
-            if (value !== null) {
-                dataPoints.push({
-                    timestamp: event.timestamp,
-                    value: value,
-                    label: this.formatChartTime(event.timestamp, period)
-                });
-            }
+        // Chart erstellen mit μPlot
+        const chart = ChartFactory.createTimeSeriesChart(chartWrapper, [timestamps, values], {
+            ...chartConfig,
+            height: 200,
+            showTime: period === '1d' // Nur bei 24h Zeitangaben zeigen
         });
         
-        return {
-            type: 'line',
-            points: dataPoints,
-            minValue: Math.min(...dataPoints.map(p => p.value)),
-            maxValue: Math.max(...dataPoints.map(p => p.value)),
-            unit: this.getUnit(item),
-            color: this.getChartColor(item)
-        };
+        // Chart-Instanz speichern für cleanup
+        container._chartInstance = chart;
     }
-    
-    prepareActivityChartData(events, item, period) {
-        // Gruppiere Events nach Tagen für Balkendiagramm
-        const dayGroups = {};
-        
-        events.forEach(event => {
-            const dayKey = event.timestamp.toDateString();
-            if (!dayGroups[dayKey]) {
-                dayGroups[dayKey] = [];
-            }
-            dayGroups[dayKey].push(event);
-        });
-        
-        const barData = [];
-        
-        Object.keys(dayGroups).forEach(dayKey => {
-            const dayEvents = dayGroups[dayKey];
-            let activeMinutes = 0;
-            
-            // Berechne aktive Zeit für diesen Tag
-            for (let i = dayEvents.length - 1; i >= 0; i--) {
-                if (i === 0) break;
-                
-                const currentEvent = dayEvents[i];
-                const nextEvent = dayEvents[i - 1];
-                const duration = (nextEvent.timestamp - currentEvent.timestamp) / 1000 / 60;
-                
-                if (this.isActiveState(currentEvent.state, item.domain)) {
-                    activeMinutes += duration;
-                }
-            }
-            
-            barData.push({
-                day: new Date(dayKey),
-                value: activeMinutes / 60, // Stunden
-                label: this.formatChartTime(new Date(dayKey), period)
-            });
-        });
-        
-        // Sortiere nach Datum
-        barData.sort((a, b) => a.day - b.day);
-        
-        return {
-            type: 'bar',
-            bars: barData,
-            maxValue: Math.max(...barData.map(b => b.value)),
-            unit: 'Std',
-            color: this.getChartColor(item)
-        };
-    }    
-
-    getUnit(item) {
-        switch(item.domain) {
-            case 'climate':
-                return '°C';
-            case 'light':
-            case 'cover':
-                return '%';
-            default:
-                return '';
-        }
-    }
-    
-    getChartColor(item) {
-        switch(item.domain) {
-            case 'climate':
-                return '#2E8B57'; // Grün
-            case 'light':
-                return '#FFD700'; // Gold
-            case 'cover':
-                return '#4A90E2'; // Blau
-            case 'media_player':
-                return '#1DB954'; // Spotify Grün
-            default:
-                return '#007AFF'; // Standard Blau
-        }
-    }
-    
-    formatChartTime(timestamp, period) {
-        if (period === '1d') {
-            return timestamp.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-        } else {
-            return timestamp.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-        }
-    }
-    
-    drawLineChart(ctx, data, width, height) {
-        const padding = 40;
-        const chartWidth = width - (padding * 2);
-        const chartHeight = height - (padding * 2);
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, width, height);
-        
-        // Set styles
-        ctx.strokeStyle = '#333';
-        ctx.fillStyle = '#666';
-        ctx.font = '10px Arial';
-        
-        // Draw axes
-        ctx.beginPath();
-        ctx.moveTo(padding, padding);
-        ctx.lineTo(padding, height - padding);
-        ctx.lineTo(width - padding, height - padding);
-        ctx.stroke();
-        
-        if (data.points.length === 0) return;
-        
-        // Calculate scales
-        const xStep = chartWidth / (data.points.length - 1);
-        const valueRange = data.maxValue - data.minValue;
-        const yScale = valueRange > 0 ? chartHeight / valueRange : 1;
-        
-        // Draw grid lines
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-        ctx.lineWidth = 1;
-        for (let i = 0; i <= 5; i++) {
-            const y = padding + (chartHeight / 5) * i;
-            ctx.beginPath();
-            ctx.moveTo(padding, y);
-            ctx.lineTo(width - padding, y);
-            ctx.stroke();
-            
-            // Y-axis labels
-            const value = data.maxValue - (valueRange / 5) * i;
-            ctx.fillStyle = 'rgba(255,255,255,0.7)';
-            ctx.fillText(value.toFixed(1) + data.unit, 5, y + 3);
-        }
-        
-        // Draw line
-        ctx.strokeStyle = data.color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        
-        data.points.forEach((point, index) => {
-            const x = padding + (index * xStep);
-            const y = height - padding - ((point.value - data.minValue) * yScale);
-            
-            if (index === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-            
-            // Draw point
-            ctx.fillStyle = data.color;
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.fill();
-        });
-        
-        ctx.stroke();
-    }
-    
-    drawActivityChart(ctx, data, width, height) {
-        const padding = 40;
-        const chartWidth = width - (padding * 2);
-        const chartHeight = height - (padding * 2);
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, width, height);
-        
-        // Set styles
-        ctx.strokeStyle = '#333';
-        ctx.fillStyle = '#666';
-        ctx.font = '10px Arial';
-        
-        // Draw axes
-        ctx.beginPath();
-        ctx.moveTo(padding, padding);
-        ctx.lineTo(padding, height - padding);
-        ctx.lineTo(width - padding, height - padding);
-        ctx.stroke();
-        
-        if (data.bars.length === 0) return;
-        
-        // Calculate scales
-        const barWidth = chartWidth / data.bars.length * 0.8;
-        const barSpacing = chartWidth / data.bars.length * 0.2;
-        const yScale = data.maxValue > 0 ? chartHeight / data.maxValue : 1;
-        
-        // Draw bars
-        ctx.fillStyle = data.color;
-        data.bars.forEach((bar, index) => {
-            const x = padding + (index * (barWidth + barSpacing)) + barSpacing / 2;
-            const barHeight = bar.value * yScale;
-            const y = height - padding - barHeight;
-            
-            ctx.fillRect(x, y, barWidth, barHeight);
-            
-            // Bar label
-            ctx.fillStyle = 'rgba(255,255,255,0.7)';
-            ctx.save();
-            ctx.translate(x + barWidth / 2, height - padding + 15);
-            ctx.rotate(-Math.PI / 4);
-            ctx.fillText(bar.label, 0, 0);
-            ctx.restore();
-            
-            ctx.fillStyle = data.color;
-        });
-        
-        // Y-axis labels
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        for (let i = 0; i <= 5; i++) {
-            const y = padding + (chartHeight / 5) * i;
-            const value = data.maxValue - (data.maxValue / 5) * i;
-            ctx.fillText(value.toFixed(1) + data.unit, 5, y + 3);
-        }
-    }
-    
-    drawChartLegend(container, data, item) {
-        const legendHTML = `
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: ${data.color}"></div>
-                <span>${this.getLegendLabel(item)}</span>
-            </div>
-        `;
-        container.innerHTML = legendHTML;
-    }
-    
-    getLegendLabel(item) {
-        switch(item.domain) {
-            case 'climate':
-                return 'Temperatur';
-            case 'light':
-                return 'Helligkeit';
-            case 'cover':
-                return 'Position';
-            case 'media_player':
-                return 'Aktive Zeit';
-            case 'switch':
-                return 'Einschaltzeit';
-            default:
-                return 'Aktivität';
-        }
-    }    
 
     renderHistoryTimeline(events, container, item, warningHTML = '') {
         const timelineHTML = events.map(event => {
