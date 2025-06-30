@@ -7119,6 +7119,16 @@ class FastSearchCard extends HTMLElement {
     }
     
     drawModernGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue, valueRange, unit) {
+        // Debug-Ausgabe für Fehlerdiagnose
+        console.log('Y-Achse Debug:', { minValue, maxValue, valueRange, unit });
+        
+        // Sicherheitsabfrage für Y-Achse
+        if (valueRange === 0 || !isFinite(valueRange) || isNaN(valueRange)) {
+            valueRange = 1;
+            maxValue = minValue + 1;
+            console.log('Y-Achse korrigiert:', { minValue, maxValue, valueRange });
+        }
+        
         // Vertical Grid Lines
         ctx.strokeStyle = 'rgba(255,255,255,0.06)';
         ctx.lineWidth = 1;
@@ -7130,41 +7140,46 @@ class FastSearchCard extends HTMLElement {
             ctx.stroke();
         }
         
-        // DYNAMISCHE Y-Achsen-Logic
-        const minLabelSpacing = 30; // Mindestens 30px Platz pro Label
-        const maxLabelCount = Math.floor(chartHeight / minLabelSpacing);
-        const stepCount = Math.min(10, maxLabelCount); // Maximal 10 Schritte
+        // KORRIGIERTE Y-Achsen-Logic - Feste 5 Schritte für bessere Lesbarkeit
+        const ySteps = 5;
         
-        if (stepCount > 1) {
-            // Horizontal Grid Lines - DYNAMISCH
-            for (let i = 0; i <= stepCount; i++) {
-                const y = padding + (chartHeight / stepCount) * i;
-                ctx.beginPath();
-                ctx.moveTo(padding, y);
-                ctx.lineTo(padding + chartWidth, y);
-                ctx.stroke();
+        // Horizontal Grid Lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= ySteps; i++) {
+            const y = padding + (chartHeight / ySteps) * i;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(padding + chartWidth, y);
+            ctx.stroke();
+        }
+        
+        // Y-axis Labels - KORRIGIERT
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle'; // Wichtig für korrekte Positionierung
+        
+        for (let i = 0; i <= ySteps; i++) {
+            const y = padding + (chartHeight / ySteps) * i;
+            const value = maxValue - (valueRange / ySteps) * i;
+            
+            // Verbesserte Formatierung
+            let displayValue;
+            if (unit === '%') {
+                displayValue = Math.round(value) + '%';
+            } else if (unit === '°C') {
+                displayValue = value.toFixed(1) + '°C';
+            } else if (Math.abs(value) >= 1000) {
+                displayValue = (value / 1000).toFixed(1) + 'k' + unit;
+            } else if (Math.abs(value) >= 100) {
+                displayValue = Math.round(value) + unit;
+            } else {
+                displayValue = value.toFixed(1) + unit;
             }
             
-            // Y-axis Labels - DYNAMISCH mit ausreichend Abstand
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
-            ctx.textAlign = 'right';
-            
-            for (let i = 0; i <= stepCount; i++) {
-                const y = padding + (chartHeight / stepCount) * i + 4;
-                const value = maxValue - (valueRange / stepCount) * i;
-                
-                // Formatierung
-                let text;
-                if (unit === '%') {
-                    text = Math.round(value) + '%';
-                } else {
-                    text = value.toFixed(1) + unit;
-                }
-                
-                ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                ctx.fillText(text, padding - 25, y);
-            }
+            // Label zeichnen mit ausreichend Abstand
+            ctx.fillText(displayValue, padding - 10, y);
         }
     }
     
