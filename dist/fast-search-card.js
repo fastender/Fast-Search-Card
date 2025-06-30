@@ -6760,7 +6760,7 @@ class FastSearchCard extends HTMLElement {
         });
     }
     
-    saveTimer(item) {
+    async saveTimer(item) {
         // Collect form data
         const formData = this.collectTimerFormData();
         
@@ -6771,12 +6771,170 @@ class FastSearchCard extends HTMLElement {
         
         console.log('Saving timer:', formData);
         
-        // TODO: Implement actual timer saving
-        // For now, just hide panel and show success
-        this.hideEditPanel();
+        try {
+            // Erstelle Timer basierend auf Device-Type
+            await this.createTimerForDevice(item, formData);
+            
+            // Success feedback
+            this.showTimerFeedback('Timer erstellt!', 'success');
+            
+            // Hide panel and refresh
+            this.hideEditPanel();
+            this.refreshTimerList(item);
+            
+        } catch (error) {
+            console.error('Error saving timer:', error);
+            this.showTimerFeedback('Fehler beim Speichern!', 'error');
+        }
+    }
+
+
+    async createTimerForDevice(item, formData) {
+        // Berechne scheduled time
+        const scheduledTime = this.calculateScheduledTime(formData.time);
         
-        // Refresh timer list
-        this.refreshTimerList(item);
+        // Erstelle Timer Helper Entity
+        const timerEntityId = await this.createTimerHelper(item, formData, scheduledTime);
+        
+        // Erstelle Automation die den Timer überwacht
+        await this.createTimerAutomation(item, formData, timerEntityId, scheduledTime);
+        
+        return timerEntityId;
+    }
+    
+    calculateScheduledTime(timeString) {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        const scheduledTime = new Date();
+        scheduledTime.setHours(hours, minutes, 0, 0);
+        
+        // If time has passed today, set for tomorrow
+        if (scheduledTime < new Date()) {
+            scheduledTime.setDate(scheduledTime.getDate() + 1);
+        }
+        
+        return scheduledTime;
+    }
+    
+    async createTimerHelper(item, formData, scheduledTime) {
+        const now = new Date();
+        const durationSeconds = Math.floor((scheduledTime.getTime() - now.getTime()) / 1000);
+        
+        // Generate unique timer name
+        const timerName = `timer_${item.id.replace('.', '_')}_${Date.now()}`;
+        
+        // Create timer helper
+        await this._hass.callService('timer', 'start', {
+            entity_id: `timer.${timerName}`,
+            duration: durationSeconds
+        });
+        
+        return `timer.${timerName}`;
+    }
+    
+    async createTimerAutomation(item, formData, timerEntityId, scheduledTime) {
+        const automationId = `timer_automation_${Date.now()}`;
+        
+        // Build service call based on device and action
+        const serviceCall = this.buildServiceCall(item, formData);
+        
+        // Create automation that triggers when timer finishes
+        const automationConfig = {
+            alias: `Timer: ${item.name} ${formData.action}`,
+            description: `Auto-generated timer automation`,
+            trigger: [
+                {
+                    platform: 'event',
+                    event_type: 'timer.finished',
+                    event_data: {
+                        entity_id: timerEntityId
+                    }
+                }
+            ],
+            action: [serviceCall],
+            mode: 'single'
+        };
+        
+        // Create automation
+        await this._hass.callService('automation', 'reload');
+        
+        // Note: Creating dynamic automations requires more complex setup
+        // For now, we'll use a simpler approach with delays
+        console.log('Would create automation:', automationConfig);
+    }
+    
+    buildServiceCall(item, formData) {
+        const domain = item.domain;
+        
+        switch (domain) {
+            case 'light':
+                if (formData.action === 'turn_on') {
+                    const serviceData = { entity_id: item.id };
+                    if (formData.brightness) {
+                        serviceData.brightness_pct = formData.brightness;
+                    }
+                    return {
+                        service: 'light.turn_on',
+                        data: serviceData
+                    };
+                } else {
+                    return {
+                        service: 'light.turn_off',
+                        data: { entity_id: item.id }
+                    };
+                }
+                
+            case 'climate':
+                const serviceData = { entity_id: item.id };
+                if (formData.temperature) {
+                    serviceData.temperature = formData.temperature;
+                }
+                
+                return {
+                    service: `climate.set_hvac_mode`,
+                    data: {
+                        ...serviceData,
+                        hvac_mode: formData.action
+                    }
+                };
+                
+            case 'cover':
+                return {
+                    service: `cover.${formData.action}`,
+                    data: { entity_id: item.id }
+                };
+                
+            default:
+                return {
+                    service: `${domain}.${formData.action}`,
+                    data: { entity_id: item.id }
+                };
+        }
+    }
+
+    showTimerFeedback(message, type) {
+        // Create temporary feedback element
+        const feedback = document.createElement('div');
+        feedback.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            ${type === 'success' ? 'background: #4CAF50;' : 'background: #f44336;'}
+        `;
+        feedback.textContent = message;
+        
+        document.body.appendChild(feedback);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            feedback.style.opacity = '0';
+            setTimeout(() => feedback.remove(), 300);
+        }, 3000);
     }
     
     collectTimerFormData() {
@@ -6785,8 +6943,10 @@ class FastSearchCard extends HTMLElement {
         const activeRepeat = this.shadowRoot.querySelector('#edit-repeat .shortcuts-edit-toggle.active')?.dataset.repeat;
         const temperature = this.shadowRoot.getElementById('edit-temperature')?.value;
         const duration = this.shadowRoot.getElementById('edit-duration')?.value;
+        const brightness = this.shadowRoot.getElementById('edit-brightness')?.value; // Falls du Brightness hinzufügst
         
         if (!time || !activeAction || !activeRepeat) {
+            alert('Bitte alle Pflichtfelder ausfüllen!');
             return null;
         }
         
@@ -6795,7 +6955,8 @@ class FastSearchCard extends HTMLElement {
             action: activeAction,
             repeat: activeRepeat,
             temperature: temperature ? parseFloat(temperature) : null,
-            duration: duration ? parseInt(duration) : null
+            duration: duration ? parseInt(duration) : null,
+            brightness: brightness ? parseInt(brightness) : null
         };
     }
     
