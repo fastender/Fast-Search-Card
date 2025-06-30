@@ -628,19 +628,26 @@ class ChartFactory {
         };
     }
 
-    // Automatische Sensor-Type Erkennung
+    // Automatische Sensor-Type Erkennung - VERBESSERT
     static detectSensorType(entity) {
         const entityId = entity.id || entity.entity_id || '';
         const attributes = entity.attributes || {};
         const unitOfMeasurement = attributes.unit_of_measurement || '';
-
+        const domain = entity.domain || '';
+    
         // Nach Unit of Measurement
         if (unitOfMeasurement.includes('°C') || unitOfMeasurement.includes('°F')) return 'temperature';
         if (unitOfMeasurement.includes('%') && entityId.includes('humidity')) return 'humidity';
         if (unitOfMeasurement.includes('W')) return 'power';
         if (unitOfMeasurement.includes('kWh')) return 'energy';
         if (unitOfMeasurement.includes('lx')) return 'illuminance';
-
+    
+        // Nach Domain
+        if (domain === 'light') return 'brightness';
+        if (domain === 'cover') return 'position';
+        if (domain === 'climate') return 'temperature';
+        if (domain === 'media_player') return 'volume';
+    
         // Nach Entity-ID
         if (entityId.includes('temperature')) return 'temperature';
         if (entityId.includes('humidity')) return 'humidity';
@@ -649,8 +656,8 @@ class ChartFactory {
         if (entityId.includes('brightness')) return 'brightness';
         if (entityId.includes('position')) return 'position';
         if (entityId.includes('volume')) return 'volume';
-
-        // Nach Domain + Device Class
+    
+        // Nach Device Class
         if (entity.domain === 'sensor') {
             const deviceClass = attributes.device_class;
             if (deviceClass === 'temperature') return 'temperature';
@@ -658,8 +665,10 @@ class ChartFactory {
             if (deviceClass === 'power') return 'power';
             if (deviceClass === 'energy') return 'energy';
         }
-
-        // Fallback
+    
+        // Fallback für Lichter/Schalter
+        if (domain === 'light' || domain === 'switch') return 'brightness';
+    
         return 'generic';
     }
 
@@ -714,15 +723,30 @@ class ChartFactory {
                 case 'volume':
                     value = event.attributes?.volume_level ? Math.round(event.attributes.volume_level * 100) : null;
                     break;
+
                 default:
-                    // Generic fallback
-                    value = parseFloat(event.state);
-                    if (isNaN(value)) {
-                        // Try common attribute names
-                        value = event.attributes?.current_temperature ||
-                               event.attributes?.brightness ||
-                               event.attributes?.current_position ||
-                               event.attributes?.volume_level;
+                    // Generic fallback - VERBESSERT
+                    if (event.state === 'on' || event.state === 'off') {
+                        // Boolean states als 1/0
+                        value = event.state === 'on' ? 1 : 0;
+                    } else if (event.state === 'open' || event.state === 'closed') {
+                        // Cover states
+                        value = event.state === 'open' ? 1 : 0;
+                    } else {
+                        // Numeric states
+                        value = parseFloat(event.state);
+                        if (isNaN(value)) {
+                            // Try common attribute names
+                            value = event.attributes?.current_temperature ||
+                                   event.attributes?.brightness ||
+                                   event.attributes?.current_position ||
+                                   event.attributes?.volume_level;
+                            
+                            // Als letzter Fallback: on/off als 1/0
+                            if (value === undefined) {
+                                value = event.state === 'on' ? 1 : 0;
+                            }
+                        }
                     }
             }
     
