@@ -733,7 +733,7 @@ class ChartFactory {
     
         return [timestamps, values];
     }
-
+}
 
 
 
