@@ -6914,9 +6914,9 @@ class FastSearchCard extends HTMLElement {
         // Eindeutige Canvas-ID generieren
         const canvasId = `chart-canvas-${item.id.replace(/\./g, '_')}`;
         
-        // VERBESSERTES Canvas-Chart HTML
+        // VERBESSERTES Canvas-Chart HTML mit Fade-Animation
         container.innerHTML = `
-            <div class="modern-chart-container">
+            <div class="modern-chart-container" style="opacity: 0; transition: opacity 0.5s ease;">
                 <canvas id="${canvasId}" style="width: 100%; height: 180px;"></canvas>
                 <div class="chart-info">
                     <span class="chart-label">${chartConfig.label}</span>
@@ -6925,10 +6925,12 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
         
-        // Warte kurz, dann zeichne Chart
+        // Warte kurz, dann zeichne Chart mit Fade-In
         setTimeout(() => {
             const canvas = container.querySelector(`#${canvasId}`);
-            if (canvas) {
+            const chartContainer = container.querySelector('.modern-chart-container');
+            
+            if (canvas && chartContainer) {
                 // High-DPI Canvas Setup
                 const rect = canvas.getBoundingClientRect();
                 const dpr = window.devicePixelRatio || 1;
@@ -6944,11 +6946,12 @@ class FastSearchCard extends HTMLElement {
                 ctx.imageSmoothingQuality = 'high';
                 
                 this.drawModernChart(ctx, values, chartConfig, rect.width, 180, timestamps, period);
-                
-                // NEU: Hover-Tooltips hinzufügen
                 this.addChartTooltips(canvas, values, timestamps, chartConfig, rect.width, 180);
+                
+                // FADE-IN Animation
+                chartContainer.style.opacity = '1';
             }
-        }, 100);
+        }, 50); // Reduziert auf 50ms
     }
 
     drawModernChart(ctx, values, config, width, height, timestamps, period) {
@@ -7127,34 +7130,35 @@ class FastSearchCard extends HTMLElement {
             ctx.stroke();
         }
         
-        // Horizontal Grid Lines - nur 3 Linien für mehr Abstand
-        for (let i = 0; i <= 3; i++) {
-            const y = padding + (chartHeight / 3) * i;
+        // Horizontal Grid Lines - 10er Schritte (11 Linien für 0-100%)
+        for (let i = 0; i <= 10; i++) {
+            const y = padding + (chartHeight / 10) * i;
             ctx.beginPath();
             ctx.moveTo(padding, y);
             ctx.lineTo(padding + chartWidth, y);
             ctx.stroke();
         }
         
-        // Y-axis Labels - 30% mehr Abstand + richtige 100% Anzeige
+        // Y-axis Labels - 10er Schritte mit ausreichend Abstand
         ctx.fillStyle = 'rgba(255,255,255,0.8)';
-        ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
         ctx.textAlign = 'right';
         
-        for (let i = 0; i <= 3; i++) { // Nur 3 Labels für mehr Abstand
-            const y = padding + (chartHeight / 3) * i + 5;
-            const value = maxValue - (valueRange / 3) * i; // 3 Schritte statt 4
+        for (let i = 0; i <= 10; i++) { // 11 Labels (0% bis 100%)
+            const y = padding + (chartHeight / 10) * i + 4;
+            const value = maxValue - (valueRange / 10) * i; // 10er Schritte
             
-            // FIX: Korrekte Formatierung für 100%
+            // Formatierung
             let text;
-            if (unit === '%' && value >= 99.5) {
-                text = '100.0%'; // Zeige 100.0% statt 00.0%
+            if (unit === '%') {
+                // Für Prozent: immer ganze Zahlen
+                text = Math.round(value) + '%';
             } else {
                 text = value.toFixed(1) + unit;
             }
             
             ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.fillText(text, padding - 16, y); // -16 statt -12 für mehr Abstand
+            ctx.fillText(text, padding - 25, y); // -25 für ausreichend Platz
         }
     }
     
