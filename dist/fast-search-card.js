@@ -2664,7 +2664,142 @@ class FastSearchCard extends HTMLElement {
                     grid-template-columns: repeat(3, 1fr);
                     gap: 8px;
                 }
-            }        
+            }    
+
+            .shortcuts-timeline-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .shortcuts-timeline-event {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px;
+                background: rgba(255,255,255,0.05);
+                border-radius: 12px;
+                transition: all 0.2s ease;
+                cursor: pointer;
+            }
+            
+            .shortcuts-timeline-event:hover {
+                background: rgba(255,255,255,0.1);
+            }
+            
+            .shortcuts-timeline-event.editing {
+                background: rgba(0,122,255,0.1);
+                border: 1px solid rgba(0,122,255,0.3);
+            }
+            
+            .shortcuts-timeline-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--text-secondary);
+                flex-shrink: 0;
+            }
+            
+            .shortcuts-timeline-event.active .shortcuts-timeline-dot {
+                background: #4CAF50;
+            }
+            
+            .shortcuts-timeline-event.inactive .shortcuts-timeline-dot {
+                background: #757575;
+            }
+            
+            .shortcuts-timeline-content {
+                flex: 1;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .shortcuts-timeline-info {
+                flex: 1;
+            }
+            
+            .shortcuts-timeline-action {
+                font-size: 13px;
+                color: var(--text-primary);
+                font-weight: 600;
+                line-height: 1.2;
+            }
+            
+            .shortcuts-timeline-time {
+                font-size: 12px;
+                color: var(--text-secondary);
+                font-weight: 500;
+                margin-top: 2px;
+            }
+            
+            .shortcuts-timeline-controls {
+                display: flex;
+                gap: 8px;
+            }
+            
+            .shortcuts-timeline-btn {
+                width: 24px;
+                height: 24px;
+                border: none;
+                background: rgba(255,255,255,0.1);
+                border-radius: 4px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                transition: all 0.2s ease;
+            }
+            
+            .shortcuts-timeline-btn:hover {
+                background: rgba(255,255,255,0.2);
+            }
+            
+            .shortcuts-add-button {
+                width: 100%;
+                padding: 12px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 12px;
+                color: var(--text-secondary);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            
+            .shortcuts-add-button:hover {
+                background: rgba(255,255,255,0.12);
+                color: var(--text-primary);
+            }
+            
+            .shortcuts-empty-state {
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-secondary);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .empty-icon {
+                font-size: 24px;
+                opacity: 0.5;
+            }
+            
+            .empty-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            
+            .empty-subtitle {
+                font-size: 12px;
+                opacity: 0.7;
+            }            
                                     
             </style>
 
@@ -2977,7 +3112,25 @@ class FastSearchCard extends HTMLElement {
     }
 
 
-
+    handleEditTimer(timerId, item) {
+        console.log('Edit timer:', timerId);
+        // TODO: Implement edit mode
+    }
+    
+    handleDeleteTimer(timerId, item) {
+        console.log('Delete timer:', timerId);
+        // TODO: Implement delete
+    }
+    
+    handleTimerClick(timerId, item) {
+        console.log('Timer clicked:', timerId);
+        // TODO: Implement timer click (maybe edit?)
+    }
+    
+    handleAddTimer(item) {
+        console.log('Add new timer for:', item.name);
+        // TODO: Implement add timer
+    }
     
     
     handleSearch(query) {
@@ -6135,7 +6288,12 @@ class FastSearchCard extends HTMLElement {
                 
                 <div class="shortcuts-content">
                     <div class="shortcuts-tab-content active" data-shortcuts-content="timer">
-                        <p>Timer Content für ${item.name}</p>
+                        <div class="shortcuts-timeline-list" id="shortcuts-timer-list">
+                            ${this.getTimerTimelineHTML(item)}
+                        </div>
+                        <button class="shortcuts-add-button" data-add-timer>
+                            + Neuer Timer
+                        </button>
                     </div>
                     <div class="shortcuts-tab-content" data-shortcuts-content="scenes">
                         <p>Szenen Content</p>
@@ -6147,6 +6305,145 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
+
+    setupShortcutsEventListeners(item) {
+        // Tab-Switching Logic
+        const shortcutsButtons = this.shadowRoot.querySelectorAll('.shortcuts-btn');
+        shortcutsButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const targetTab = button.dataset.shortcutsTab;
+                
+                // Update active button
+                shortcutsButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update content
+                const contents = this.shadowRoot.querySelectorAll('.shortcuts-tab-content');
+                contents.forEach(content => content.classList.remove('active'));
+                this.shadowRoot.querySelector(`[data-shortcuts-content="${targetTab}"]`).classList.add('active');
+            });
+        });
+    
+        // Timer Event Listeners
+        const timerList = this.shadowRoot.querySelector('#shortcuts-timer-list');
+        if (timerList) {
+            timerList.addEventListener('click', (e) => {
+                const editBtn = e.target.closest('[data-edit-timer]');
+                const deleteBtn = e.target.closest('[data-delete-timer]');
+                const timerEvent = e.target.closest('.shortcuts-timeline-event');
+                
+                if (editBtn) {
+                    e.stopPropagation();
+                    this.handleEditTimer(editBtn.dataset.editTimer, item);
+                } else if (deleteBtn) {
+                    e.stopPropagation();
+                    this.handleDeleteTimer(deleteBtn.dataset.deleteTimer, item);
+                } else if (timerEvent) {
+                    this.handleTimerClick(timerEvent.dataset.timerId, item);
+                }
+            });
+        }
+        
+        // Add Timer Button
+        const addTimerBtn = this.shadowRoot.querySelector('[data-add-timer]');
+        if (addTimerBtn) {
+            addTimerBtn.addEventListener('click', () => {
+                this.handleAddTimer(item);
+            });
+        }
+    }
+    
+
+    getTimerTimelineHTML(item) {
+        const deviceTimers = this.getDeviceTimers(item.id);
+        
+        if (deviceTimers.length === 0) {
+            return `
+                <div class="shortcuts-empty-state">
+                    <div class="empty-icon">⏰</div>
+                    <div class="empty-title">Keine Timer aktiv</div>
+                    <div class="empty-subtitle">Erstelle deinen ersten Timer</div>
+                </div>
+            `;
+        }
+        
+        return deviceTimers.map(timer => {
+            const timeString = this.formatTimerTime(timer);
+            const actionIcon = this.getTimerActionIcon(timer.action, item.domain);
+            const statusClass = timer.active ? 'active' : 'inactive';
+            
+            return `
+                <div class="shortcuts-timeline-event ${statusClass}" data-timer-id="${timer.id}">
+                    <div class="shortcuts-timeline-dot"></div>
+                    <div class="shortcuts-timeline-content">
+                        <div class="shortcuts-timeline-info">
+                            <div class="shortcuts-timeline-action">
+                                ${actionIcon} ${this.getTimerActionText(timer.action, timer, item.domain)}
+                            </div>
+                            <div class="shortcuts-timeline-time">${timeString}</div>
+                        </div>
+                        <div class="shortcuts-timeline-controls">
+                            <button class="shortcuts-timeline-btn" data-edit-timer="${timer.id}" title="Bearbeiten">✏️</button>
+                            <button class="shortcuts-timeline-btn" data-delete-timer="${timer.id}" title="Löschen">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }    
+
+    getTimerActionIcon(action, domain) {
+        const icons = {
+            'turn_on': '💡',
+            'turn_off': '🔴',
+            'set_brightness': '🔆',
+            'heat': '🔥',
+            'cool': '❄️',
+            'open': '⬆️',
+            'close': '⬇️'
+        };
+        return icons[action] || '⚙️';
+    }
+    
+    getTimerActionText(action, timer, domain) {
+        switch(domain) {
+            case 'light':
+                if (action === 'turn_on') return timer.duration ? `Ein für ${timer.duration}min` : 'Einschalten';
+                if (action === 'turn_off') return 'Ausschalten';
+                if (action === 'set_brightness') return `Dimmen auf ${timer.brightness || 50}%`;
+                break;
+            case 'climate':
+                if (action === 'heat') return `Heizen auf ${timer.temperature || 22}°C${timer.duration ? ` für ${timer.duration}min` : ''}`;
+                if (action === 'cool') return `Kühlen auf ${timer.temperature || 22}°C${timer.duration ? ` für ${timer.duration}min` : ''}`;
+                break;
+            case 'cover':
+                if (action === 'open') return 'Öffnen';
+                if (action === 'close') return 'Schließen';
+                break;
+        }
+        return action;
+    }
+    
+    formatTimerTime(timer) {
+        const now = new Date();
+        const timerTime = new Date(timer.scheduledTime);
+        
+        if (timerTime.toDateString() === now.toDateString()) {
+            return `Heute ${timerTime.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
+        } else {
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            if (timerTime.toDateString() === tomorrow.toDateString()) {
+                return `Morgen ${timerTime.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
+            }
+        }
+        
+        return timerTime.toLocaleString('de-DE', { 
+            weekday: 'short', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    }    
 
     getShortcutsStats(item) {
         // Placeholder Logic - wird später durch echte Discovery ersetzt
@@ -8169,7 +8466,10 @@ class FastSearchCard extends HTMLElement {
     
         // History Event Listeners hinzufügen  ← HIER EINFÜGEN
         this.setupHistoryEventListeners(item);
-    }
+
+        // NEU: Shortcuts Tab Event Listeners
+        this.setupShortcutsEventListeners(item);        
+    }    
         
     
     setupLightControls(item) {
