@@ -2353,14 +2353,29 @@ class FastSearchCard extends HTMLElement {
             /* History Tab Styles */
             .history-container {
                 padding: 20px;
-                height: 100%;
-                overflow: visible;
-                scrollbar-width: none;
+                height: calc(100vh - 300px); /* Feste Höhe statt 100% */
+                max-height: 500px; /* Fallback für kleinere Screens */
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255,255,255,0.2) transparent;
                 -ms-overflow-style: none;
             }
             
             .history-container::-webkit-scrollbar {
-                display: none;
+                width: 4px;
+            }
+            
+            .history-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .history-container::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.2);
+                border-radius: 2px;
+            }
+            
+            .history-container::-webkit-scrollbar-thumb:hover {
+                background: rgba(255,255,255,0.3);
             }
             
             .history-header {
@@ -2493,6 +2508,11 @@ class FastSearchCard extends HTMLElement {
             
             /* Mobile Responsive */
             @media (max-width: 768px) {
+                .history-container {
+                    height: calc(100vh - 400px);
+                    max-height: 400px;
+                }            
+                
                 .history-header {
                     flex-direction: column;
                     gap: 12px;
