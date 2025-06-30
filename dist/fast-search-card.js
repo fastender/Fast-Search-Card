@@ -6609,8 +6609,8 @@ class FastSearchCard extends HTMLElement {
                 <div class="history-header">
                     <h3>Verlauf für ${item.name}</h3>
                     <div class="history-controls">
-                        <button class="history-btn" data-period="1d" data-entity="${item.id}">24h</button>
-                        <button class="history-btn active" data-period="7d" data-entity="${item.id}">7 Tage</button>
+                        <button class="history-btn active" data-period="1d" data-entity="${item.id}">24h</button>
+                        <button class="history-btn" data-period="7d" data-entity="${item.id}">7 Tage</button>
                         <button class="history-btn" data-period="30d" data-entity="${item.id}">30 Tage</button>
                     </div>
                 </div>
@@ -6828,7 +6828,7 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        this.loadAndDisplayHistory(item, '7d');
+        this.loadAndDisplayHistory(item, '1d');
     }    
 
     async loadAndDisplayHistory(item, period) {
