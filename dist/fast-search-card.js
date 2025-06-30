@@ -6065,6 +6065,15 @@ class FastSearchCard extends HTMLElement {
         // Sortiere nach Datum (neueste zuerst)
         events.sort((a, b) => b.timestamp - a.timestamp);
         
+        // DEBUG: Zeige Datumsbereich der Events
+        if (events.length > 0) {
+            const oldestEvent = events[events.length - 1];
+            const newestEvent = events[0];
+            console.log(`Event range: ${oldestEvent.timestamp.toLocaleDateString()} - ${newestEvent.timestamp.toLocaleDateString()}`);
+            console.log(`Oldest event: ${oldestEvent.timestamp.toISOString()}`);
+            console.log(`Newest event: ${newestEvent.timestamp.toISOString()}`);
+        }
+        
         return {
             events: events.slice(0, 20), // Nur die letzten 20 Events
             stats: this.calculateTodayStats(events, item)
