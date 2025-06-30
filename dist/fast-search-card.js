@@ -7139,28 +7139,27 @@ class FastSearchCard extends HTMLElement {
             ctx.stroke();
         }
         
-        // Y-axis Labels - 10er Schritte mit ausreichend Abstand
+        // Y-axis Labels - DYNAMISCH statt fest
         ctx.fillStyle = 'rgba(255,255,255,0.8)';
         ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
         ctx.textAlign = 'right';
         
-        for (let i = 0; i <= 10; i++) { // 11 Labels (0% bis 100%)
-            const y = padding + (chartHeight / 10) * i + 4;
-            const value = maxValue - (valueRange / 10) * i; // 10er Schritte
-            
-            // Formatierung
-            let text;
-            if (unit === '%') {
-                // Für Prozent: immer ganze Zahlen
-                text = Math.round(value) + '%';
-            } else {
-                text = value.toFixed(1) + unit;
+        const minLabelSpacing = 30; // Mindestens 30px Platz pro Label
+        const maxLabelCount = Math.floor(chartHeight / minLabelSpacing);
+        const stepCount = Math.min(10, maxLabelCount); // Maximal 10 Schritte, aber weniger wenn kein Platz
+        
+        if (stepCount > 1) {
+            for (let i = 0; i <= stepCount; i++) {
+                const y = padding + (chartHeight / stepCount) * i + 4;
+                const value = maxValue - (valueRange / stepCount) * i;
+        
+                let text = (unit === '%') 
+                    ? Math.round(value) + '%' 
+                    : value.toFixed(1) + unit;
+        
+                ctx.fillText(text, padding - 25, y);
             }
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.fillText(text, padding - 25, y); // -25 für ausreichend Platz
         }
-    }
     
     drawChartArea(ctx, values, padding, chartWidth, chartHeight, minValue, valueRange, color) {
         if (values.length < 2) return;
