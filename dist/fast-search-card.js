@@ -6882,6 +6882,21 @@ class FastSearchCard extends HTMLElement {
         const now = new Date();
         const timerTime = new Date(timer.scheduledTime);
         
+        // Wenn Timer aktiv und in der Vergangenheit liegt (läuft gerade)
+        if (timer.active && timerTime < now && timer.type === 'timer_helper') {
+            const remaining = Math.max(0, Math.floor((timerTime.getTime() - now.getTime()) / 1000));
+            const hours = Math.floor(remaining / 3600);
+            const minutes = Math.floor((remaining % 3600) / 60);
+            const seconds = remaining % 60;
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} verbleibend`;
+            } else {
+                return `${minutes}:${seconds.toString().padStart(2, '0')} verbleibend`;
+            }
+        }
+        
+        // Standard time formatting
         if (timerTime.toDateString() === now.toDateString()) {
             return `Heute ${timerTime.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
         } else {
@@ -6897,7 +6912,7 @@ class FastSearchCard extends HTMLElement {
             hour: '2-digit', 
             minute: '2-digit' 
         });
-    }    
+    }
 
     getShortcutsStats(item) {
         // Placeholder Logic - wird später durch echte Discovery ersetzt
@@ -6912,14 +6927,193 @@ class FastSearchCard extends HTMLElement {
         };
     }
     
-    // Placeholder Methoden (erstmal mit Dummy-Daten)
     getDeviceTimers(deviceId) {
-        // TODO: Echte Timer Discovery implementieren
-        return [
-            { id: 'timer1', time: '19:00', action: 'turn_on' },
-            { id: 'timer2', time: '22:30', action: 'turn_off' }
-        ];
+        if (!this._hass) return [];
+        
+        const timers = [];
+        
+        // 1. Timer Helper Entities finden
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (entityId.startsWith('timer.')) {
+                const timerState = this._hass.states[entityId];
+                
+                // Prüfe ob Timer zu diesem Device gehört
+                if (this.isTimerForDevice(timerState, deviceId)) {
+                    timers.push(this.parseTimerHelper(timerState, deviceId));
+                }
+            }
+        });
+        
+        // 2. Automation-basierte Timer finden
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (entityId.startsWith('automation.')) {
+                const automation = this._hass.states[entityId];
+                
+                // Prüfe ob Automation zeitbasiert ist und dieses Device betrifft
+                if (this.isTimeAutomationForDevice(automation, deviceId)) {
+                    timers.push(this.parseTimeAutomation(automation, deviceId));
+                }
+            }
+        });
+        
+        // 3. Schedule Helper Entities finden
+        Object.keys(this._hass.states).forEach(entityId => {
+            if (entityId.startsWith('schedule.')) {
+                const schedule = this._hass.states[entityId];
+                
+                if (this.isScheduleForDevice(schedule, deviceId)) {
+                    timers.push(this.parseScheduleHelper(schedule, deviceId));
+                }
+            }
+        });
+        
+        return timers.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
     }
+
+
+
+    // NEU: Nach den bestehenden getDeviceTimers() Methoden hinzufügen
+    isTimerForDevice(timerState, deviceId) {
+        // Prüfe friendly_name oder entity_id patterns
+        const name = timerState.attributes.friendly_name || timerState.entity_id;
+        const deviceName = this._hass.states[deviceId]?.attributes.friendly_name || deviceId;
+        
+        // Simple name matching - kann verfeinert werden
+        return name.toLowerCase().includes(deviceName.toLowerCase().split(' ')[0]) ||
+               name.toLowerCase().includes(deviceId.split('.')[1]);
+    }
+
+    parseTimerHelper(timerState, deviceId) {
+        const now = new Date();
+        const remaining = timerState.attributes.remaining;
+        let scheduledTime = now;
+        
+        if (remaining && timerState.state === 'active') {
+            // Parse remaining time (format: "0:45:23")
+            const [hours, minutes, seconds] = remaining.split(':').map(Number);
+            scheduledTime = new Date(now.getTime() + (hours * 3600 + minutes * 60 + seconds) * 1000);
+        }
+        
+        return {
+            id: timerState.entity_id,
+            type: 'timer_helper',
+            scheduledTime: scheduledTime.toISOString(),
+            action: 'turn_off', // Default - Timer meist für "ausschalten"
+            active: timerState.state === 'active',
+            duration: null,
+            repeat: 'once',
+            source: timerState.entity_id
+        };
+    }
+
+    isTimeAutomationForDevice(automation, deviceId) {
+        if (!automation.attributes.action) return false;
+        
+        // Prüfe ob Device in actions ist
+        const actions = JSON.stringify(automation.attributes.action);
+        const hasDevice = actions.includes(deviceId);
+        
+        // Prüfe ob time-trigger vorhanden
+        const triggers = automation.attributes.trigger || [];
+        const hasTimeTrigger = triggers.some(trigger => 
+            trigger.platform === 'time' || 
+            trigger.platform === 'time_pattern' ||
+            trigger.at
+        );
+        
+        return hasDevice && hasTimeTrigger;
+    }
+
+    parseTimeAutomation(automation, deviceId) {
+        const triggers = automation.attributes.trigger || [];
+        const timeTrigger = triggers.find(trigger => 
+            trigger.platform === 'time' || trigger.at
+        );
+        
+        let scheduledTime = new Date();
+        if (timeTrigger && timeTrigger.at) {
+            // Parse time like "22:30:00"
+            const [hours, minutes] = timeTrigger.at.split(':').map(Number);
+            scheduledTime.setHours(hours, minutes, 0, 0);
+            
+            // If time has passed today, set for tomorrow
+            if (scheduledTime < new Date()) {
+                scheduledTime.setDate(scheduledTime.getDate() + 1);
+            }
+        }
+        
+        // Detect action type from automation actions
+        const actions = automation.attributes.action || [];
+        const deviceAction = actions.find(action => 
+            action.entity_id === deviceId || 
+            (action.entity_id && action.entity_id.includes && action.entity_id.includes(deviceId))
+        );
+        
+        let actionType = 'turn_on';
+        if (deviceAction) {
+            if (deviceAction.service) {
+                actionType = deviceAction.service.split('.')[1] || 'turn_on';
+            }
+        }
+        
+        return {
+            id: automation.entity_id,
+            type: 'automation',
+            scheduledTime: scheduledTime.toISOString(),
+            action: actionType,
+            active: automation.state === 'on',
+            duration: null,
+            repeat: 'daily', // Automations are usually recurring
+            source: automation.entity_id,
+            name: automation.attributes.friendly_name
+        };
+    }
+
+    isScheduleForDevice(schedule, deviceId) {
+        // Check if schedule name or attributes mention the device
+        const name = schedule.attributes.friendly_name || schedule.entity_id;
+        const deviceName = this._hass.states[deviceId]?.attributes.friendly_name || deviceId;
+        
+        return name.toLowerCase().includes(deviceName.toLowerCase().split(' ')[0]);
+    }
+
+    parseScheduleHelper(schedule, deviceId) {
+        // Schedule helpers haben meist next_time attribute
+        const nextTime = schedule.attributes.next_time;
+        let scheduledTime = new Date();
+        
+        if (nextTime) {
+            scheduledTime = new Date(nextTime);
+        }
+        
+        return {
+            id: schedule.entity_id,
+            type: 'schedule',
+            scheduledTime: scheduledTime.toISOString(),
+            action: 'turn_on', // Default
+            active: schedule.state === 'on',
+            duration: null,
+            repeat: 'daily', // Schedules are usually recurring
+            source: schedule.entity_id
+        };
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     
     getRoomScenes(deviceArea) {
         // TODO: Echte Szenen Discovery implementieren  
