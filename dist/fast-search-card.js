@@ -6828,10 +6828,7 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        // WICHTIG: Initial load ohne Verzögerung
-        setTimeout(() => {
-            this.loadAndDisplayHistory(item, '7d');
-        }, 50); // Reduziert von ursprünglich länger auf 50ms
+        this.loadAndDisplayHistory(item, '7d');
     }    
 
     async loadAndDisplayHistory(item, period) {
@@ -6955,7 +6952,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     drawModernChart(ctx, values, config, width, height, timestamps, period) {
-        const padding = 50;
+        const padding = 70;
         const chartWidth = width - (padding * 2);
         const chartHeight = height - (padding * 2);
         
@@ -6992,7 +6989,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     addChartTooltips(canvas, values, timestamps, config, width, height) {
-        const padding = 50;
+        const padding = 70;
         const chartWidth = width - (padding * 2);
         const chartHeight = height - (padding * 2);
         
