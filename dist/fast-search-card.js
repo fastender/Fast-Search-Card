@@ -6875,7 +6875,7 @@ class FastSearchCard extends HTMLElement {
         // Canvas-Chart HTML
         container.innerHTML = `
             <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px;">
-                <canvas id="${canvasId}" width="400" height="160" style="width: 100%; height: 160px;"></canvas>
+                <canvas id="${canvasId}" width="400" height="160" style="width: 100%; height: 160px; max-width: 400px;"></canvas>
                 <div style="text-align: center; margin-top: 10px; color: var(--text-secondary); font-size: 12px;">
                     ${chartConfig.label} • ${timestamps.length} Datenpunkte
                 </div>
@@ -6901,6 +6901,10 @@ class FastSearchCard extends HTMLElement {
         
         // Clear canvas
         ctx.clearRect(0, 0, width, height);
+
+        // FIX: Setze Canvas Pixel-Ratio für scharfe Darstellung
+        const dpr = window.devicePixelRatio || 1;
+        ctx.scale(dpr, dpr);        
         
         if (values.length === 0) return;
         
