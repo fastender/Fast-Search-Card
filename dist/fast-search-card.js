@@ -6903,20 +6903,74 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // Container für Chart vorbereiten
-        container.innerHTML = '<div class="chart-wrapper" style="width: 100%; height: 200px;"></div>';
-        const chartWrapper = container.querySelector('.chart-wrapper');
+        // DEBUG: Temporäres Canvas-Chart als Fallback
+        container.innerHTML = `
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px;">
+                <canvas id="temp-chart-${item.id}" width="400" height="160"></canvas>
+                <div style="text-align: center; margin-top: 10px; color: var(--text-secondary); font-size: 12px;">
+                    ${chartConfig.label} • ${timestamps.length} Datenpunkte • ${sensorType}
+                </div>
+            </div>
+        `;
         
-        // Chart erstellen mit μPlot
-        const chart = ChartFactory.createTimeSeriesChart(chartWrapper, [timestamps, values], {
-            ...chartConfig,
-            height: 200,
-            showTime: period === '1d' // Nur bei 24h Zeitangaben zeigen
+        // Zeichne einfaches Canvas-Chart
+        const canvas = container.querySelector(`#temp-chart-${item.id}`);
+        const ctx = canvas.getContext('2d');
+        this.drawSimpleChart(ctx, values, chartConfig, canvas.width, canvas.height);
+    }
+
+    drawSimpleChart(ctx, values, config, width, height) {
+        const padding = 40;
+        const chartWidth = width - (padding * 2);
+        const chartHeight = height - (padding * 2);
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+        
+        if (values.length === 0) return;
+        
+        const minValue = Math.min(...values);
+        const maxValue = Math.max(...values);
+        const valueRange = maxValue - minValue || 1;
+        
+        // Draw grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (chartHeight / 4) * i;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(width - padding, y);
+            ctx.stroke();
+        }
+        
+        // Draw line
+        ctx.strokeStyle = config.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        values.forEach((value, index) => {
+            const x = padding + (index / (values.length - 1)) * chartWidth;
+            const y = padding + chartHeight - ((value - minValue) / valueRange) * chartHeight;
+            
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
         });
         
-        // Chart-Instanz speichern für cleanup
-        container._chartInstance = chart;
-    }
+        ctx.stroke();
+        
+        // Y-axis labels
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = '10px Arial';
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (chartHeight / 4) * i;
+            const value = maxValue - (valueRange / 4) * i;
+            ctx.fillText(value.toFixed(1) + config.unit, 5, y + 3);
+        }
+    }    
 
     renderHistoryTimeline(events, container, item, warningHTML = '') {
         const timelineHTML = events.map(event => {
