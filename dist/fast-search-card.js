@@ -10162,21 +10162,34 @@ class FastSearchCard extends HTMLElement {
         
         // Animation 2: Timer Control nach oben (NACH Animation 1)
         fadeOutPromise.then(() => {
-            const moveUpPromise = timerControlDesign ?
-                timerControlDesign.animate([
+            console.log('🔄 fadeOutPromise beendet - bewege Timer Control nach oben');
+            
+            if (timerControlDesign && activeTimersSection) {
+                // ✅ DYNAMISCH: Echte Höhe des Active Timers Bereichs messen
+                const activeSectionHeight = activeTimersSection.offsetHeight;
+                const margin = 16; // Extra margin
+                const moveDistance = activeSectionHeight + margin;
+                
+                console.log(`📏 Active Timers Höhe: ${activeSectionHeight}px`);
+                console.log(`🔄 Bewege Timer Control um ${moveDistance}px nach oben`);
+                
+                const moveUpPromise = timerControlDesign.animate([
                     { transform: 'translateY(0)' },
-                    { transform: 'translateY(-60px)' }
+                    { transform: `translateY(-${moveDistance}px)` }  // ← Dynamische Höhe!
                 ], {
                     duration: 400,
                     fill: 'forwards',
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                }).finished : Promise.resolve();
-            
-            // Animation 3: Time Selection einblenden (NACH Animation 2)
-            moveUpPromise.then(() => {
-                this.showTimeSelection(item, action, container);
-                this.isTimeSelectionOpen = true;  // ← State setzen
-            });
+                }).finished;
+                
+                moveUpPromise.then(() => {
+                    console.log('⏰ moveUpPromise beendet - zeige Time Selection');
+                    this.showTimeSelection(item, action, container);
+                    this.isTimeSelectionOpen = true;
+                });
+            }
+        }).catch(error => {
+            console.error('❌ Fehler in fadeOutPromise:', error);
         });
     }    
 
