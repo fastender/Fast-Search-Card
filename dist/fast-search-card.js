@@ -7360,7 +7360,6 @@ class FastSearchCard extends HTMLElement {
                 console.log('📦 Presets Container:', presetsContainer);
                 console.log('📊 Current data-is-open:', presetsContainer?.getAttribute('data-is-open'));
                 
-                // VERWENDE die neue Methode statt handleExpandableButton:
                 this.handleTimerToggle(timerBtn, timerContainer);
             });
         }
@@ -7373,23 +7372,8 @@ class FastSearchCard extends HTMLElement {
             });
         }
         
-        // Timer Preset Buttons
-        const timerPresets = timerContainer.querySelectorAll('.timer-control-preset');
-        timerPresets.forEach(preset => {
-            preset.addEventListener('click', () => {
-                const action = preset.dataset.action;
-                console.log(`Timer Action ausgewählt: ${action} für ${item.name}`);
-                
-                // Visual feedback
-                timerPresets.forEach(p => p.classList.remove('active'));
-                preset.classList.add('active');
-                
-                // TODO: Nächster Schritt - Time Selection
-                setTimeout(() => {
-                    this.showTimeSelection(item, action, timerContainer);
-                }, 200);
-            });
-        });
+        // ✅ ENTFERNT: Timer Preset Buttons Event Listeners
+        // Diese werden jetzt in initializeTimerTab gehandhabt!
         
         // Load existing timers
         this.loadActiveTimers(item.id);
