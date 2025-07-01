@@ -3081,6 +3081,153 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 600;
                 text-align: center;
             }            
+
+
+
+            /* Timer Control Design (wie device-control-design) */
+            .timer-control-design {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 16px;
+                margin-top: 20px;
+                position: relative;
+                z-index: 5;
+            }
+            
+            .timer-control-row {
+                display: flex;
+                gap: 16px;
+                justify-content: center;
+                margin-top: 16px;
+                z-index: 9;
+                position: relative;
+            }
+            
+            .timer-control-button {
+                flex-basis: 60px;
+                flex-grow: 0;
+                flex-shrink: 0;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
+                color: var(--text-primary);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                padding: 8px;
+            }
+            
+            .timer-control-button svg {
+                width: 20px;
+                height: 20px;
+                stroke-width: 1;
+            }
+            
+            .timer-button-label {
+                font-size: 9px;
+                font-weight: 600;
+                line-height: 1;
+            }
+            
+            .timer-control-button:hover {
+                transform: scale(1.05);
+                background: rgba(255, 255, 255, 0.2);
+            }
+            
+            .timer-control-button.active {
+                background: var(--accent);
+                color: white;
+            }
+            
+            /* Timer Presets (wie device-control-presets) */
+            .timer-control-presets {
+                max-height: 0;
+                opacity: 0;
+                overflow: hidden;
+                transition: all 0.4s ease;
+                width: 100%;
+                max-width: 280px;
+            }
+            
+            .timer-control-presets.visible {
+                max-height: 400px;
+                opacity: 1;
+                margin-top: 30px;
+            }
+            
+            .timer-control-presets-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+                justify-items: center;
+            }
+            
+            .timer-control-preset {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2px solid transparent;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.9);
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+                background: rgba(255, 255, 255, 0.1);
+                transition: all 0.2s ease;
+                gap: 2px;
+                padding: 4px;
+            }
+            
+            .timer-control-preset:hover {
+                transform: scale(1.05);
+                background: rgba(255, 255, 255, 0.2);
+            }
+            
+            .timer-control-preset.active {
+                border-color: white;
+                background: var(--accent);
+            }
+            
+            .timer-control-preset svg {
+                width: 16px;
+                height: 16px;
+                stroke-width: 1;
+            }
+            
+            .timer-preset-label {
+                font-size: 8px;
+                font-weight: 600;
+                line-height: 1;
+            }
+            
+            /* Active Timers */
+            .active-timers {
+                margin-bottom: 16px;
+                min-height: 60px;
+            }
+            
+            .loading-timers,
+            .no-timers {
+                text-align: center;
+                color: var(--text-secondary);
+                font-style: italic;
+                padding: 20px;
+                font-size: 13px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+            }            
                                                 
             </style>
 
@@ -6553,46 +6700,66 @@ class FastSearchCard extends HTMLElement {
 
                     <div class="shortcuts-tab-content active" data-shortcuts-content="timer">
                         <div id="timer-section-${item.id}">
-                            <!-- Hauptbuttons: Timer vs Zeitplan -->
-                            <div class="timer-main-buttons">
-                                <button class="timer-main-btn active" data-timer-type="timer" data-item-id="${item.id}">
-                                    <div class="timer-btn-icon">⏰</div>
-                                    <div class="timer-btn-text">Timer</div>
-                                    <div class="timer-btn-desc">Einmalig nach Zeit</div>
-                                </button>
-                                <button class="timer-main-btn" data-timer-type="schedule" data-item-id="${item.id}">
-                                    <div class="timer-btn-icon">📅</div>
-                                    <div class="timer-btn-text">Zeitplan</div>
-                                    <div class="timer-btn-desc">Wiederkehrend</div>
-                                </button>
-                            </div>
-                            
                             <!-- Aktive Timer Anzeige -->
                             <div class="active-timers" id="active-timers-${item.id}">
                                 <div class="loading-timers">Lade Timer...</div>
                             </div>
-                        </div>
-                        
-                        <!-- Timer Modal (versteckt) -->
-                        <div class="timer-modal-overlay" id="timer-modal-${item.id}" style="display: none;">
-                            <div class="timer-modal glass-panel">
-                                <div class="timer-modal-header">
-                                    <button class="timer-back-btn">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                            <path d="M15 6L9 12L15 18"/>
+                            
+                            <!-- Timer Controls (wie device-control-row) -->
+                            <div class="timer-control-design" id="timer-control-${item.id}">
+                                <!-- Hauptbuttons: Timer vs Zeitplan -->
+                                <div class="timer-control-row">
+                                    <button class="timer-control-button" data-action="timer" data-item-id="${item.id}" title="Timer erstellen">
+                                        <svg width="24px" height="24px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                                            <path d="M12 12C15.866 12 19 8.86599 19 5H5C5 8.86599 8.13401 12 12 12ZM12 12C15.866 12 19 15.134 19 19H5C5 15.134 8.13401 12 12 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M5 2L12 2L19 2" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M5 22H12L19 22" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
+                                        <span class="timer-button-label">Timer</span>
                                     </button>
-                                    <div class="timer-modal-title">Timer erstellen</div>
-                                    <button class="timer-close-btn">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                            <line x1="18" y1="6" x2="6" y2="18"/>
-                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                    <button class="timer-control-button" data-action="schedule" data-item-id="${item.id}" title="Zeitplan erstellen">
+                                        <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                                            <path d="M12 6L12 12L18 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M12 22C17.5228 22 22 17.5228 22 12C2 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
+                                        <span class="timer-button-label">Zeitplan</span>
                                     </button>
                                 </div>
                                 
-                                <div class="timer-modal-content" id="timer-modal-content-${item.id}">
-                                    <!-- Content wird dynamisch geladen -->
+                                <!-- Timer Action Presets (versteckt) -->
+                                <div class="timer-control-presets timer-action-presets" data-is-open="false">
+                                    <div class="timer-control-presets-grid">
+                                        <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
+                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                                                <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z" stroke="currentColor" stroke-width="1"/>
+                                            </svg>
+                                            <span class="timer-preset-label">Aus</span>
+                                        </button>
+                                        <button class="timer-control-preset" data-action="turn_on" title="Einschalten">
+                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                                                <path d="M17 13C17.5523 13 18 12.5523 18 12C18 11.4477 17.5523 11 17 11C16.4477 11 16 11.4477 16 12C16 12.5523 16.4477 13 17 13Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z" stroke="currentColor" stroke-width="1"/>
+                                            </svg>
+                                            <span class="timer-preset-label">An</span>
+                                        </button>
+                                        <button class="timer-control-preset" data-action="dim_30" title="Dimmen auf 30%">
+                                            <svg width="24px" height="24px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                                                <path d="M21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M15.5 7.5L12 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <span class="timer-preset-label">30%</span>
+                                        </button>
+                                        <button class="timer-control-preset" data-action="dim_50" title="Dimmen auf 50%">
+                                            <svg width="24px" height="24px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                                                <path d="M21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M15.5 7.5L12 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <span class="timer-preset-label">50%</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -6883,23 +7050,54 @@ class FastSearchCard extends HTMLElement {
     }    
 
     setupTimerEventListeners(item) {
-        // Hauptbutton Event Listeners (Timer vs Zeitplan)
-        const mainButtons = this.shadowRoot.querySelectorAll('.timer-main-btn');
-        mainButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Animate button selection
-                this.animateTimerButtonSelection(btn, mainButtons);
+        const timerContainer = this.shadowRoot.getElementById(`timer-control-${item.id}`);
+        if (!timerContainer) return;
+        
+        // Timer Button (wie toggle-colors)
+        const timerBtn = timerContainer.querySelector('[data-action="timer"]');
+        if (timerBtn) {
+            timerBtn.addEventListener('click', () => {
+                this.handleExpandableButton(
+                    timerBtn,
+                    timerContainer,
+                    '.timer-control-presets.timer-action-presets'
+                );
+            });
+        }
+        
+        // Zeitplan Button (später)
+        const scheduleBtn = timerContainer.querySelector('[data-action="schedule"]');
+        if (scheduleBtn) {
+            scheduleBtn.addEventListener('click', () => {
+                console.log('Zeitplan Button - kommt später...');
+            });
+        }
+        
+        // Timer Preset Buttons
+        const timerPresets = timerContainer.querySelectorAll('.timer-control-preset');
+        timerPresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                const action = preset.dataset.action;
+                console.log(`Timer Action ausgewählt: ${action} für ${item.name}`);
                 
-                // Open corresponding modal
-                const timerType = btn.dataset.timerType;
+                // Visual feedback
+                timerPresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+                
+                // TODO: Nächster Schritt - Time Selection
                 setTimeout(() => {
-                    this.showTimerModal(item, timerType);
+                    this.showTimeSelection(item, action, timerContainer);
                 }, 200);
             });
         });
         
         // Load existing timers
         this.loadActiveTimers(item.id);
+    }
+    
+    showTimeSelection(item, action, container) {
+        console.log(`Zeige Time Selection für ${action}`);
+        // TODO: Time Picker als nächstes implementieren
     }
     
     animateTimerButtonSelection(selectedBtn, allButtons) {
