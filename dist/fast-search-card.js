@@ -8041,7 +8041,7 @@ class FastSearchCard extends HTMLElement {
         try {
             // KORRIGIERT: Verwende die richtige API
             const allSchedules = await this._hass.callWS({
-                type: 'scheduler'  // ← Das war der Fehler!
+                type: 'scheduler/items'  // ← KORRIGIERT
             });
             
             console.log('📋 Alle Scheduler Items (korrekte API):', allSchedules);
