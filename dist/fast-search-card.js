@@ -7490,70 +7490,39 @@ class FastSearchCard extends HTMLElement {
         };
         return labels[action] || action;
     }
-             
+               
     expandTimeSelection(timeContainer, parentContainer) {        
         console.log('🎬 Expanding Time Selection - Start');
-        console.log('🔍 timeContainer:', timeContainer);
         
-        // Animate time selection in
+        // Startwerte setzen
         timeContainer.style.maxHeight = '0px';
         timeContainer.style.opacity = '0';
-        timeContainer.setAttribute('data-is-open', 'true');
+        timeContainer.style.overflow = 'hidden';
+        timeContainer.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
         
-        console.log('🎯 Styles gesetzt, starte Animation');
-        
-        // Smooth height animation
+        // Nach kurzer Verzögerung zu Zielwerten wechseln
         requestAnimationFrame(() => {
-            console.log('🎬 RequestAnimationFrame - Hauptanimation');
-            
-            const animation = timeContainer.animate([
-                { maxHeight: '0px', opacity: 0, transform: 'translateY(-20px)' },
-                { maxHeight: '300px', opacity: 1, transform: 'translateY(0)' }
-            ], {
-                duration: 400,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                fill: 'forwards'
-            });
-            
-            // ✅ DEBUG: Nach Animation prüfen
-            animation.finished.then(() => {
-                console.log('🎯 Animation fertig - Container Styles:');
-                console.log('maxHeight:', timeContainer.style.maxHeight);
-                console.log('opacity:', timeContainer.style.opacity);
-                console.log('offsetHeight:', timeContainer.offsetHeight);
-                console.log('scrollHeight:', timeContainer.scrollHeight);
+            requestAnimationFrame(() => {
+                console.log('🎬 Setze Zielwerte');
+                timeContainer.style.maxHeight = '400px';
+                timeContainer.style.opacity = '1';
+                timeContainer.style.transform = 'translateY(0)';
             });
         });
         
-        // ✅ SCHNELLER TEST - direkt ohne Animation
+        // Unterelemente animieren
         setTimeout(() => {
-            console.log('🧪 TEST: Setze direkt ohne Animation');
-            timeContainer.style.maxHeight = '400px';
-            timeContainer.style.opacity = '1';
-            timeContainer.style.visibility = 'visible';
-        }, 1000);
-        
-        // Animate individual elements
-        setTimeout(() => {
-            console.log('🎭 Animiere Unterelemente');
-            
             const elements = timeContainer.querySelectorAll('.time-picker-wheel > *, .quick-time-buttons, .timer-create-actions');
-            console.log('🔍 Gefundene Elemente:', elements.length);
+            console.log('🎭 Animiere', elements.length, 'Unterelemente');
             
             elements.forEach((el, index) => {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(10px)';
+                el.style.transition = `all 0.3s ease ${index * 50}ms`;
                 
                 setTimeout(() => {
-                    el.animate([
-                        { opacity: 0, transform: 'translateY(10px)' },
-                        { opacity: 1, transform: 'translateY(0)' }
-                    ], {
-                        duration: 300,
-                        delay: index * 50,
-                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                        fill: 'forwards'
-                    });
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
                 }, 100);
             });
         }, 200);
