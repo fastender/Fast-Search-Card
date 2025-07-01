@@ -3084,7 +3084,7 @@ class FastSearchCard extends HTMLElement {
 
 
 
-            /* Timer Control Design (wie device-control-design) */
+            /* Timer Control Design - Scrollable wie History */
             .timer-control-design {
                 display: flex;
                 flex-direction: column;
@@ -3093,7 +3093,33 @@ class FastSearchCard extends HTMLElement {
                 margin-top: 20px;
                 position: relative;
                 z-index: 5;
+                height: calc(100vh - 400px); /* ← NEU: Feste Höhe */
+                max-height: 400px; /* ← NEU: Max Höhe */
+                overflow-y: auto; /* ← NEU: Scrollbar */
+                scrollbar-width: thin; /* ← NEU: Dünne Scrollbar */
+                scrollbar-color: rgba(255,255,255,0.2) transparent; /* ← NEU */
+                -ms-overflow-style: none; /* ← NEU */
+                padding-right: 4px; /* ← NEU: Platz für Scrollbar */
             }
+            
+            /* NEU: Webkit Scrollbar Styling */
+            .timer-control-design::-webkit-scrollbar {
+                width: 4px;
+            }
+            
+            .timer-control-design::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .timer-control-design::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.2);
+                border-radius: 2px;
+            }
+            
+            .timer-control-design::-webkit-scrollbar-thumb:hover {
+                background: rgba(255,255,255,0.3);
+            }
+            
             
             .timer-control-row {
                 display: flex;
@@ -3229,18 +3255,19 @@ class FastSearchCard extends HTMLElement {
                 border-radius: 12px;
             }      
 
-            /* Time Selection */
+            /* Timer Time Selection - für Scrolling optimiert */
             .timer-time-selection {
                 width: 100%;
                 max-width: 320px;
-                margin-top: 20px;
+                margin: 20px auto; /* ← GEÄNDERT: auto für zentrieren */
                 padding: 20px;
                 background: rgba(0, 0, 0, 0.2);
                 border-radius: 16px;
                 border: 1px solid rgba(255, 255, 255, 0.1);
                 overflow: hidden;
                 transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            }
+                flex-shrink: 0; /* ← NEU: Verhindert Schrumpfen */
+            }            
             
             .time-selection-header {
                 text-align: center;
@@ -7377,10 +7404,7 @@ class FastSearchCard extends HTMLElement {
         return labels[action] || action;
     }
     
-    expandTimeSelection(timeContainer, parentContainer) {
-        // Focus Mode für Timer Container
-        parentContainer.setAttribute('data-focus-mode', 'true');
-        
+    expandTimeSelection(timeContainer, parentContainer) {        
         // Animate time selection in
         timeContainer.style.maxHeight = '0px';
         timeContainer.style.opacity = '0';
@@ -7482,7 +7506,6 @@ class FastSearchCard extends HTMLElement {
         
         // Remove focus mode
         setTimeout(() => {
-            parentContainer.removeAttribute('data-focus-mode');
             timeContainer.remove();
         }, 300);
     }
