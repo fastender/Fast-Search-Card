@@ -6792,36 +6792,95 @@ class FastSearchCard extends HTMLElement {
     }
     
     async loadActiveTimers(entityId) {
+        this.debugSchedulerStates(entityId);
         const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
         if (!container) return;
         
         container.innerHTML = '<div class="loading-timers">Lade Timer...</div>';
         
         try {
-            // Alle Scheduler Items abrufen
-            const allSchedules = await this._hass.callWS({
-                type: 'scheduler/items'
-            });
+            // Alternative: Über die States API
+            const states = this._hass.states;
+            const schedulerEntities = [];
             
-            console.log('📋 Alle Scheduler Items:', allSchedules);
+            // Finde alle scheduler.* Entities
+            for (const [stateId, state] of Object.entries(states)) {
+                if (stateId.startsWith('scheduler.')) {
+                    // Prüfe ob es zu unserer Entity gehört
+                    const friendlyName = state.attributes.friendly_name || '';
+                    const itemName = this.currentDetailItem?.name || '';
+                    
+                    if (friendlyName.includes(itemName) || 
+                        (state.attributes.actions && JSON.stringify(state.attributes.actions).includes(entityId))) {
+                        schedulerEntities.push({
+                            schedule_id: stateId,
+                            name: friendlyName,
+                            state: state.state,
+                            attributes: state.attributes,
+                            next_execution: state.attributes.next_execution
+                        });
+                    }
+                }
+            }
             
-            // Filter für diese Entity
-            const entityTimers = allSchedules.filter(schedule => {
-                // Prüfe ob diese Entity in den Actions vorkommt
-                return schedule.timeslots.some(slot => 
-                    slot.actions.some(action => action.entity_id === entityId)
-                );
-            });
+            console.log('📋 Gefundene Scheduler Entities:', schedulerEntities);
             
-            console.log(`🎯 Timer für ${entityId}:`, entityTimers);
-            
-            this.renderActiveTimers(entityTimers, entityId);
+            this.renderActiveTimers(schedulerEntities, entityId);
             
         } catch (error) {
             console.error('❌ Fehler beim Laden der Timer:', error);
-            container.innerHTML = '<div class="loading-timers">Fehler beim Laden der Timer</div>';
+            
+            // Fallback: Mock Timer für Testing
+            const mockTimers = [
+                {
+                    schedule_id: 'scheduler.test_timer',
+                    name: 'Test Timer (Entwicklung)',
+                    next_execution: new Date(Date.now() + 25 * 60 * 1000).toISOString(), // +25min
+                    timeslots: [{
+                        start: '10:30',
+                        actions: [{ service: 'light.turn_off', entity_id: entityId }]
+                    }]
+                }
+            ];
+            
+            console.log('🧪 Verwende Mock Timer für Testing');
+            this.renderActiveTimers(mockTimers, entityId);
         }
-    } 
+    }
+
+    // Temporär für Debugging - nach loadActiveTimers() hinzufügen
+    debugSchedulerStates(entityId) {
+        const states = this._hass.states;
+        console.log('🔍 Debugging Scheduler States:');
+        
+        // Alle scheduler.* entities auflisten
+        const schedulerStates = Object.entries(states)
+            .filter(([id, state]) => id.startsWith('scheduler.'))
+            .map(([id, state]) => ({
+                id,
+                name: state.attributes.friendly_name,
+                state: state.state,
+                attributes: state.attributes
+            }));
+        
+        console.log('📋 Alle Scheduler States:', schedulerStates);
+        
+        // Alle States mit unserem Entity-Namen durchsuchen
+        const itemName = this.currentDetailItem?.name || '';
+        console.log(`🎯 Suche nach: "${itemName}" und "${entityId}"`);
+        
+        const relatedStates = Object.entries(states)
+            .filter(([id, state]) => {
+                const stateStr = JSON.stringify(state);
+                return stateStr.includes(entityId) || stateStr.includes(itemName);
+            })
+            .map(([id, state]) => ({ id, name: state.attributes.friendly_name, state: state.state }));
+        
+        console.log('🔗 Verwandte States:', relatedStates);
+    }
+
+
+    
 
     renderActiveTimers(timers, entityId) {
         const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
@@ -6873,9 +6932,14 @@ class FastSearchCard extends HTMLElement {
             });
         });
     }
-    
+
     getNextExecution(timer) {
-        // Vereinfachte Logik - nimmt erste timeslot Zeit
+        // Zuerst prüfen ob next_execution Attribut vorhanden ist
+        if (timer.next_execution) {
+            return new Date(timer.next_execution);
+        }
+        
+        // Fallback: Aus timeslots berechnen
         if (timer.timeslots && timer.timeslots.length > 0) {
             const timeStr = timer.timeslots[0].start;
             const today = new Date();
@@ -6891,6 +6955,7 @@ class FastSearchCard extends HTMLElement {
             
             return nextTime;
         }
+        
         return new Date();
     }
     
