@@ -7540,8 +7540,101 @@ class FastSearchCard extends HTMLElement {
             }, 2000);
         }
     }
+
+    async createActionTimer(item, action, durationMinutes) {
+        const future = new Date(Date.now() + durationMinutes * 60 * 1000);
+        const timeString = future.toTimeString().slice(0, 5);
+        
+        // Bestimme Service und Service Data basierend auf Action
+        const { service, serviceData } = this.getActionServiceData(item, action);
+        
+        console.log(`🔧 Service: ${service}, Data:`, serviceData);
+        
+        await this._hass.callService('scheduler', 'add', {
+            timeslots: [{
+                start: timeString,
+                actions: [{
+                    service: service,
+                    entity_id: item.id,
+                    service_data: serviceData
+                }]
+            }],
+            repeat_type: 'single',
+            name: `${item.name} - ${this.getActionLabel(action)} (${durationMinutes}min)`
+        });
+        
+        console.log(`✅ Timer erfolgreich erstellt: ${service} in ${durationMinutes} Minuten`);
+    }
     
+    getActionServiceData(item, action) {
+        const domain = item.domain;
+        
+        switch (domain) {
+            case 'light':
+                return this.getLightActionData(action);
+            case 'climate':
+                return this.getClimateActionData(action);
+            case 'media_player':
+                return this.getMediaActionData(action);
+            default:
+                return this.getGenericActionData(domain, action);
+        }
+    }
     
+    getLightActionData(action) {
+        switch (action) {
+            case 'turn_on':
+                return { service: 'light.turn_on', serviceData: {} };
+            case 'turn_off':
+                return { service: 'light.turn_off', serviceData: {} };
+            case 'dim_30':
+                return { service: 'light.turn_on', serviceData: { brightness_pct: 30 } };
+            case 'dim_50':
+                return { service: 'light.turn_on', serviceData: { brightness_pct: 50 } };
+            default:
+                return { service: 'light.turn_off', serviceData: {} };
+        }
+    }
+    
+    getClimateActionData(action) {
+        switch (action) {
+            case 'turn_on':
+                return { service: 'climate.turn_on', serviceData: {} };
+            case 'turn_off':
+                return { service: 'climate.turn_off', serviceData: {} };
+            case 'heat_22':
+                return { service: 'climate.set_temperature', serviceData: { temperature: 22 } };
+            case 'cool_18':
+                return { service: 'climate.set_temperature', serviceData: { temperature: 18 } };
+            default:
+                return { service: 'climate.turn_off', serviceData: {} };
+        }
+    }
+    
+    getMediaActionData(action) {
+        switch (action) {
+            case 'play':
+                return { service: 'media_player.media_play', serviceData: {} };
+            case 'pause':
+                return { service: 'media_player.media_pause', serviceData: {} };
+            case 'turn_off':
+                return { service: 'media_player.turn_off', serviceData: {} };
+            default:
+                return { service: 'media_player.turn_off', serviceData: {} };
+        }
+    }
+    
+    getGenericActionData(domain, action) {
+        switch (action) {
+            case 'turn_on':
+                return { service: `${domain}.turn_on`, serviceData: {} };
+            case 'turn_off':
+                return { service: `${domain}.turn_off`, serviceData: {} };
+            default:
+                return { service: `${domain}.turn_off`, serviceData: {} };
+        }
+    }
+        
     animateTimerButtonSelection(selectedBtn, allButtons) {
         // Remove active from all buttons with animation
         allButtons.forEach(btn => {
