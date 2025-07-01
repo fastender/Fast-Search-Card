@@ -7051,17 +7051,24 @@ class FastSearchCard extends HTMLElement {
 
     setupTimerEventListeners(item) {
         const timerContainer = this.shadowRoot.getElementById(`timer-control-${item.id}`);
+        console.log('🎯 Timer Container:', timerContainer);
+        
         if (!timerContainer) return;
         
         // Timer Button (wie toggle-colors)
         const timerBtn = timerContainer.querySelector('[data-action="timer"]');
+        console.log('🔘 Timer Button:', timerBtn);
+        
         if (timerBtn) {
             timerBtn.addEventListener('click', () => {
-                this.handleExpandableButton(
-                    timerBtn,
-                    timerContainer,
-                    '.timer-control-presets.timer-action-presets'
-                );
+                console.log('🖱️ Timer Button clicked!');
+                
+                const presetsContainer = timerContainer.querySelector('.timer-control-presets.timer-action-presets');
+                console.log('📦 Presets Container:', presetsContainer);
+                console.log('📊 Current data-is-open:', presetsContainer?.getAttribute('data-is-open'));
+                
+                // VERWENDE die neue Methode statt handleExpandableButton:
+                this.handleTimerToggle(timerBtn, timerContainer);
             });
         }
         
@@ -7094,6 +7101,45 @@ class FastSearchCard extends HTMLElement {
         // Load existing timers
         this.loadActiveTimers(item.id);
     }
+
+    handleTimerToggle(button, container) {
+        const presetsContainer = container.querySelector('.timer-control-presets.timer-action-presets');
+        const isCurrentlyOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+        
+        console.log('🔄 Toggle Timer Presets:', { isCurrentlyOpen, presetsContainer });
+        
+        if (!isCurrentlyOpen) {
+            // ÖFFNEN
+            button.classList.add('active');
+            presetsContainer.setAttribute('data-is-open', 'true');
+            presetsContainer.classList.add('visible');
+            
+            // Animation für die einzelnen Presets
+            const presets = presetsContainer.querySelectorAll('.timer-control-preset');
+            presets.forEach((preset, index) => {
+                preset.style.opacity = '0';
+                preset.style.transform = 'translateY(20px) scale(0.8)';
+                
+                setTimeout(() => {
+                    preset.animate([
+                        { opacity: 0, transform: 'translateY(20px) scale(0.8)' },
+                        { opacity: 1, transform: 'translateY(0) scale(1)' }
+                    ], {
+                        duration: 300,
+                        delay: index * 50,
+                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                        fill: 'forwards'
+                    });
+                }, 100);
+            });
+            
+        } else {
+            // SCHLIESSEN
+            button.classList.remove('active');
+            presetsContainer.classList.remove('visible');
+            presetsContainer.setAttribute('data-is-open', 'false');
+        }
+    }    
     
     showTimeSelection(item, action, container) {
         console.log(`Zeige Time Selection für ${action}`);
