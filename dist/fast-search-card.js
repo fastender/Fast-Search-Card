@@ -15,9 +15,6 @@ class MiniSearch {
         this.storedFields = {};
         this.index = {};
         this.termCount = 0;
-
-        // Nur Memory initialisieren
-        this.customTimers = {};        
         
         this.extractField = (document, fieldName) => {
             return fieldName.split('.').reduce((doc, key) => doc && doc[key], document);
@@ -328,13 +325,6 @@ class FastSearchCard extends HTMLElement {
         
         const oldHass = this._hass;
         this._hass = hass;
-
-        // NEU: Beim ersten Laden Timer aus Input Helper laden
-        if (!oldHass && hass) {
-            setTimeout(() => {
-                this.loadTimersFromInputHelper();
-            }, 100);
-        }        
         
         const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
         if (shouldUpdateAll) {
@@ -2555,92 +2545,42 @@ class FastSearchCard extends HTMLElement {
             
             .shortcuts-container {
                 padding: 20px;
-                height: calc(100vh - 300px);
-                max-height: 500px;
-                overflow-y: auto;
-                scrollbar-width: thin;
-                scrollbar-color: rgba(255,255,255,0.2) transparent;
-                -ms-overflow-style: none;
+                height: 100%;
                 display: flex;
                 flex-direction: column;
             }
             
-            .shortcuts-container::-webkit-scrollbar {
-                width: 4px;
-            }
-            
-            .shortcuts-container::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            
-            .shortcuts-container::-webkit-scrollbar-thumb {
-                background: rgba(255,255,255,0.2);
-                border-radius: 2px;
-            }
-            
-            .shortcuts-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-            }
-            
             .shortcuts-header h3 {
-                margin: 0;
+                margin: 0 0 20px 0;
                 color: var(--text-primary);
                 font-size: 16px;
                 font-weight: 600;
             }
             
-            .shortcuts-controls {
+            .shortcuts-tabs {
                 display: flex;
                 gap: 8px;
+                margin-bottom: 20px;
+                background: rgba(0, 0, 0, 0.25);
+                border-radius: 12px;
+                padding: 4px;
             }
             
-            .shortcuts-btn {
-                padding: 6px 12px;
-                background: rgba(255,255,255,0.08);
-                border: 1px solid rgba(255,255,255,0.15);
-                border-radius: 12px;
+            .shortcuts-tab {
+                flex: 1;
+                padding: 8px 16px;
+                border: none;
+                background: transparent;
                 color: var(--text-secondary);
+                border-radius: 8px;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                font-size: 12px;
+                font-size: 13px;
                 font-weight: 500;
             }
             
-            .shortcuts-btn.active, 
-            .shortcuts-btn:hover {
-                background: var(--accent);
-                color: white;
-                border-color: var(--accent);
-            }
-            
-            .shortcuts-stats {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
-                margin-bottom: 20px;
-            }
-            
-            .shortcuts-stat-card {
-                background: rgba(255,255,255,0.08);
-                border: 1px solid rgba(255,255,255,0.12);
-                border-radius: 12px;
-                padding: 12px;
-                text-align: center;
-            }
-            
-            .stat-title {
-                font-size: 11px;
-                color: var(--text-secondary);
-                margin-bottom: 4px;
-                font-weight: 500;
-            }
-            
-            .stat-value {
-                font-size: 14px;
-                font-weight: 600;
+            .shortcuts-tab.active {
+                background: rgba(255, 255, 255, 0.2);
                 color: var(--text-primary);
             }
             
@@ -2656,312 +2596,55 @@ class FastSearchCard extends HTMLElement {
             .shortcuts-tab-content.active {
                 display: block;
             }
-            
-            /* Mobile Responsive - genau wie History */
-            @media (max-width: 768px) {
-                .shortcuts-container {
-                    height: calc(100vh - 400px);
-                    max-height: 400px;
-                }
-                
-                .shortcuts-header {
-                    flex-direction: column;
-                    gap: 12px;
-                    align-items: flex-start;
-                }
-                
-                .shortcuts-stats {
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 8px;
-                }
-            }    
 
-            .shortcuts-timeline-list {
-                display: flex;
-                flex-direction: column;
+            .shortcuts-stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
                 gap: 12px;
                 margin-bottom: 20px;
             }
             
-            .shortcuts-timeline-event {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 12px;
-                background: rgba(255,255,255,0.05);
+            .shortcuts-stat-card {
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.12);
                 border-radius: 12px;
+                padding: 12px;
+                text-align: center;
                 transition: all 0.2s ease;
-                cursor: pointer;
             }
             
-            .shortcuts-timeline-event:hover {
-                background: rgba(255,255,255,0.1);
+            .shortcuts-stat-card:hover {
+                background: rgba(255,255,255,0.12);
             }
             
-            .shortcuts-timeline-event.editing {
-                background: rgba(0,122,255,0.1);
-                border: 1px solid rgba(0,122,255,0.3);
+            .stat-title {
+                font-size: 11px;
+                color: var(--text-secondary);
+                margin-bottom: 4px;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
             
-            .shortcuts-timeline-dot {
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-                background: var(--text-secondary);
-                flex-shrink: 0;
-            }
-            
-            .shortcuts-timeline-event.active .shortcuts-timeline-dot {
-                background: #4CAF50;
-            }
-            
-            .shortcuts-timeline-event.inactive .shortcuts-timeline-dot {
-                background: #757575;
-            }
-            
-            .shortcuts-timeline-content {
-                flex: 1;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            
-            .shortcuts-timeline-info {
-                flex: 1;
-            }
-            
-            .shortcuts-timeline-action {
-                font-size: 13px;
-                color: var(--text-primary);
+            .stat-value {
+                font-size: 14px;
                 font-weight: 600;
+                color: var(--text-primary);
                 line-height: 1.2;
             }
             
-            .shortcuts-timeline-time {
-                font-size: 12px;
-                color: var(--text-secondary);
-                font-weight: 500;
-                margin-top: 2px;
-            }
-            
-            .shortcuts-timeline-controls {
-                display: flex;
-                gap: 8px;
-            }
-            
-            .shortcuts-timeline-btn {
-                width: 24px;
-                height: 24px;
-                border: none;
-                background: rgba(255,255,255,0.1);
-                border-radius: 4px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 12px;
-                transition: all 0.2s ease;
-            }
-            
-            .shortcuts-timeline-btn:hover {
-                background: rgba(255,255,255,0.2);
-            }
-            
-            .shortcuts-add-button {
-                width: 100%;
-                padding: 12px;
-                background: rgba(255,255,255,0.08);
-                border: 1px solid rgba(255,255,255,0.15);
-                border-radius: 12px;
-                color: var(--text-secondary);
-                cursor: pointer;
-                transition: all 0.2s ease;
-                font-size: 14px;
-                font-weight: 500;
-            }
-            
-            .shortcuts-add-button:hover {
-                background: rgba(255,255,255,0.12);
-                color: var(--text-primary);
-            }
-            
-            .shortcuts-empty-state {
-                text-align: center;
-                padding: 40px 20px;
-                color: var(--text-secondary);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 8px;
-            }
-            
-            .empty-icon {
-                font-size: 24px;
-                opacity: 0.5;
-            }
-            
-            .empty-title {
-                font-size: 14px;
-                font-weight: 600;
-                color: var(--text-primary);
-            }
-            
-            .empty-subtitle {
-                font-size: 12px;
-                opacity: 0.7;
-            }            
-
-
-            .shortcuts-edit-panel {
-                background: rgba(0,0,0,0.3);
-                border: 1px solid rgba(255,255,255,0.2);
-                border-radius: 12px;
-                padding: 20px;
-                margin: 16px 0;
-                animation: slideDown 0.3s ease;
-            }
-            
-            .shortcuts-edit-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 16px;
-            }
-            
-            .shortcuts-edit-header h4 {
-                margin: 0;
-                color: var(--text-primary);
-                font-size: 16px;
-                font-weight: 600;
-            }
-            
-            .shortcuts-edit-close {
-                width: 24px;
-                height: 24px;
-                border: none;
-                background: rgba(255,255,255,0.1);
-                border-radius: 50%;
-                color: var(--text-secondary);
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 14px;
-                transition: all 0.2s ease;
-            }
-            
-            .shortcuts-edit-close:hover {
-                background: rgba(255,255,255,0.2);
-            }
-            
-            .shortcuts-edit-content {
-                margin-bottom: 16px;
-            }
-            
-            .shortcuts-edit-field {
-                margin-bottom: 16px;
-            }
-            
-            .shortcuts-edit-label {
-                display: block;
-                font-size: 12px;
-                color: var(--text-secondary);
-                margin-bottom: 6px;
-                font-weight: 500;
-            }
-            
-            .shortcuts-edit-input,
-            .shortcuts-edit-select {
-                width: 100%;
-                padding: 10px 12px;
-                background: rgba(255,255,255,0.08);
-                border: 1px solid rgba(255,255,255,0.15);
-                border-radius: 8px;
-                color: var(--text-primary);
-                font-size: 14px;
-                font-family: inherit;
-                outline: none;
-                transition: all 0.2s ease;
-            }
-            
-            .shortcuts-edit-input:focus,
-            .shortcuts-edit-select:focus {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 2px rgba(0,122,255,0.2);
-            }
-            
-            .shortcuts-edit-toggle-group {
-                display: flex;
-                gap: 8px;
-            }
-            
-            .shortcuts-edit-toggle {
-                flex: 1;
-                padding: 8px 12px;
-                background: rgba(255,255,255,0.08);
-                border: 1px solid rgba(255,255,255,0.15);
-                border-radius: 8px;
-                color: var(--text-secondary);
-                cursor: pointer;
-                text-align: center;
-                font-size: 13px;
-                transition: all 0.2s ease;
-            }
-            
-            .shortcuts-edit-toggle.active {
-                background: var(--accent);
-                border-color: var(--accent);
-                color: white;
-            }
-            
-            .shortcuts-edit-actions {
-                display: flex;
-                gap: 12px;
-                justify-content: flex-end;
-            }
-            
-            .shortcuts-btn-secondary,
-            .shortcuts-btn-primary {
-                padding: 8px 16px;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 13px;
-                font-weight: 500;
-                transition: all 0.2s ease;
-            }
-            
-            .shortcuts-btn-secondary {
-                background: rgba(255,255,255,0.08);
-                color: var(--text-secondary);
-            }
-            
-            .shortcuts-btn-secondary:hover {
-                background: rgba(255,255,255,0.15);
-            }
-            
-            .shortcuts-btn-primary {
-                background: var(--accent);
-                color: white;
-            }
-            
-            .shortcuts-btn-primary:hover {
-                background: #0056CC;
-            }
-            
-            .shortcuts-timeline-event:not(.editing) {
-                opacity: 0.3;
-                pointer-events: none;
-            }
-            
-            @keyframes slideDown {
-                from {
-                    opacity: 0;
-                    transform: translateY(-10px);
+            /* Mobile Anpassung */
+            @media (max-width: 768px) {
+                .shortcuts-stats {
+                    gap: 8px;
                 }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
+                
+                .shortcuts-stat-card {
+                    padding: 10px;
+                }
+                
+                .stat-value {
+                    font-size: 13px;
                 }
             }            
                                     
@@ -3276,182 +2959,7 @@ class FastSearchCard extends HTMLElement {
     }
 
 
-    handleEditTimer(timerId, item) {
-        const timer = this.getDeviceTimers(item.id).find(t => t.id === timerId);
-        if (!timer) return;
-        
-        this.showEditPanel(timer, item, 'edit');
-    }
-    
-    handleAddTimer(item) {
-        const newTimer = {
-            id: 'new',
-            time: '12:00',
-            action: 'turn_on',
-            duration: null,
-            repeat: 'once'
-        };
-        
-        this.showEditPanel(newTimer, item, 'add');
-    }
-    
-    async handleDeleteTimer(timerId, item) {
-        if (confirm('Timer löschen?')) {
-            try {
-                // Aus Input Helper entfernen
-                await this.removeTimerFromInputHelper(timerId);
-                
-                // Aus Memory entfernen
-                this.removeTimerFromMemory(timerId, item.id);
-                
-                this.showTimerFeedback('Timer gelöscht!', 'success');
-                this.refreshTimerList(item);
-                
-            } catch (error) {
-                console.error('Error deleting timer:', error);
-                this.showTimerFeedback('Fehler beim Löschen!', 'error');
-            }
-        }
-    }
-    
-    handleTimerClick(timerId, item) {
-        console.log('Timer clicked:', timerId);
-        // TODO: Implement timer click (maybe edit?)
-    }
-    
-    showEditPanel(timer, item, mode) {
-        const editPanel = this.shadowRoot.getElementById('shortcuts-edit-panel');
-        const titleElement = this.shadowRoot.getElementById('edit-panel-title');
-        const contentElement = this.shadowRoot.getElementById('edit-panel-content');
-        
-        // Update title
-        titleElement.textContent = mode === 'add' ? 'Neuer Timer' : 'Timer bearbeiten';
-        
-        // Generate device-specific form
-        contentElement.innerHTML = this.getTimerEditForm(timer, item);
-        
-        // Show panel
-        editPanel.style.display = 'block';
-        
-        // Fade other timers
-        this.fadeOtherTimers(timer.id);
-        
-        // Setup form event listeners
-        this.setupEditFormListeners(timer, item, mode);
-    }
-    
-    getTimerEditForm(timer, item) {
-        const actionOptions = this.getDeviceActionOptions(item.domain);
-        
-        return `
-            <div class="shortcuts-edit-field">
-                <label class="shortcuts-edit-label">⏰ Zeit</label>
-                <input type="time" class="shortcuts-edit-input" id="edit-time" value="${timer.time || '12:00'}">
-            </div>
-            
-            <div class="shortcuts-edit-field">
-                <label class="shortcuts-edit-label">${this.getActionLabel(item.domain)} Aktion</label>
-                <div class="shortcuts-edit-toggle-group" id="edit-actions">
-                    ${actionOptions.map(option => `
-                        <button class="shortcuts-edit-toggle ${timer.action === option.value ? 'active' : ''}" 
-                                data-action="${option.value}">
-                            ${option.icon} ${option.label}
-                        </button>
-                    `).join('')}
-                </div>
-            </div>
-            
-            ${this.getDeviceSpecificFields(timer, item)}
-            
-            <div class="shortcuts-edit-field">
-                <label class="shortcuts-edit-label">🔄 Wiederholen</label>
-                <div class="shortcuts-edit-toggle-group" id="edit-repeat">
-                    <button class="shortcuts-edit-toggle ${timer.repeat === 'once' ? 'active' : ''}" data-repeat="once">Einmalig</button>
-                    <button class="shortcuts-edit-toggle ${timer.repeat === 'daily' ? 'active' : ''}" data-repeat="daily">Täglich</button>
-                    <button class="shortcuts-edit-toggle ${timer.repeat === 'weekdays' ? 'active' : ''}" data-repeat="weekdays">Wochentags</button>
-                </div>
-            </div>
-        `;
-    }
-    
-    getDeviceActionOptions(domain) {
-        switch(domain) {
-            case 'light':
-                return [
-                    { value: 'turn_on', icon: '💡', label: 'Ein' },
-                    { value: 'turn_off', icon: '🔴', label: 'Aus' }
-                ];
-            case 'climate':
-                return [
-                    { value: 'heat', icon: '🔥', label: 'Heizen' },
-                    { value: 'cool', icon: '❄️', label: 'Kühlen' },
-                    { value: 'turn_off', icon: '🔴', label: 'Aus' }
-                ];
-            case 'cover':
-                return [
-                    { value: 'open', icon: '⬆️', label: 'Öffnen' },
-                    { value: 'close', icon: '⬇️', label: 'Schließen' }
-                ];
-            default:
-                return [
-                    { value: 'turn_on', icon: '▶️', label: 'Ein' },
-                    { value: 'turn_off', icon: '⏹️', label: 'Aus' }
-                ];
-        }
-    }
-    
-    getActionLabel(domain) {
-        const labels = {
-            'light': '💡',
-            'climate': '🌡️',
-            'cover': '🪟',
-            'media_player': '🎵'
-        };
-        return labels[domain] || '⚙️';
-    }
-    
-    getDeviceSpecificFields(timer, item) {
-        switch(item.domain) {
-            case 'light':
-                return `
-                    <div class="shortcuts-edit-field">
-                        <label class="shortcuts-edit-label">⏱️ Dauer</label>
-                        <div class="shortcuts-edit-toggle-group">
-                            <button class="shortcuts-edit-toggle ${!timer.duration ? 'active' : ''}" data-duration="permanent">Permanent</button>
-                            <button class="shortcuts-edit-toggle ${timer.duration ? 'active' : ''}" data-duration="timed">Zeitgesteuert</button>
-                        </div>
-                        ${timer.duration ? `<input type="number" class="shortcuts-edit-input" id="edit-duration" value="${timer.duration}" placeholder="Minuten" style="margin-top: 8px;">` : ''}
-                    </div>
-                `;
-            case 'climate':
-                return `
-                    <div class="shortcuts-edit-field">
-                        <label class="shortcuts-edit-label">🎯 Temperatur</label>
-                        <input type="number" class="shortcuts-edit-input" id="edit-temperature" value="${timer.temperature || 22}" min="16" max="30" step="0.5">
-                    </div>
-                    <div class="shortcuts-edit-field">
-                        <label class="shortcuts-edit-label">⏱️ Dauer (Minuten)</label>
-                        <input type="number" class="shortcuts-edit-input" id="edit-duration" value="${timer.duration || 60}" placeholder="0 = Permanent">
-                    </div>
-                `;
-            default:
-                return '';
-        }
-    }
-    
-    fadeOtherTimers(editingId) {
-        const timerEvents = this.shadowRoot.querySelectorAll('.shortcuts-timeline-event');
-        timerEvents.forEach(event => {
-            if (event.dataset.timerId !== editingId) {
-                event.classList.add('editing');
-            }
-        });
-    }
 
-
-
-
-    
     
     
     handleSearch(query) {
@@ -6585,11 +6093,6 @@ class FastSearchCard extends HTMLElement {
             <div class="shortcuts-container">
                 <div class="shortcuts-header">
                     <h3>Shortcuts für ${item.name}</h3>
-                    <div class="shortcuts-controls">
-                        <button class="shortcuts-btn active" data-shortcuts-tab="timer">Timer</button>
-                        <button class="shortcuts-btn" data-shortcuts-tab="scenes">Szenen</button>
-                        <button class="shortcuts-btn" data-shortcuts-tab="scripts">Skripte</button>
-                    </div>
                 </div>
                 
                 <div class="shortcuts-stats">
@@ -6607,30 +6110,15 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
                 
+                <div class="shortcuts-tabs">
+                    <button class="shortcuts-tab active" data-shortcuts-tab="timer">Timer</button>
+                    <button class="shortcuts-tab" data-shortcuts-tab="scenes">Szenen</button>
+                    <button class="shortcuts-tab" data-shortcuts-tab="scripts">Skripte</button>
+                </div>
+                
                 <div class="shortcuts-content">
                     <div class="shortcuts-tab-content active" data-shortcuts-content="timer">
-                        <div class="shortcuts-timeline-list" id="shortcuts-timer-list">
-                            ${this.getTimerTimelineHTML(item)}
-                        </div>
-                        
-                        <!-- NEU: Edit Panel -->
-                        <div class="shortcuts-edit-panel" id="shortcuts-edit-panel" style="display: none;">
-                            <div class="shortcuts-edit-header">
-                                <h4 id="edit-panel-title">Timer bearbeiten</h4>
-                                <button class="shortcuts-edit-close" id="edit-panel-close">✕</button>
-                            </div>
-                            <div class="shortcuts-edit-content" id="edit-panel-content">
-                                <!-- Dynamic content wird hier eingefügt -->
-                            </div>
-                            <div class="shortcuts-edit-actions">
-                                <button class="shortcuts-btn-secondary" id="edit-panel-cancel">Abbrechen</button>
-                                <button class="shortcuts-btn-primary" id="edit-panel-save">Speichern</button>
-                            </div>
-                        </div>
-                        
-                        <button class="shortcuts-add-button" data-add-timer>
-                            + Neuer Timer
-                        </button>
+                        <p>Timer Content für ${item.name}</p>
                     </div>
                     <div class="shortcuts-tab-content" data-shortcuts-content="scenes">
                         <p>Szenen Content</p>
@@ -6639,731 +6127,8 @@ class FastSearchCard extends HTMLElement {
                         <p>Skripte Content</p>
                     </div>
                 </div>
+            </div>
         `;
-    }
-
-    setupShortcutsEventListeners(item) {
-        // Bestehende Tab-Switching Logic...
-        const shortcutsButtons = this.shadowRoot.querySelectorAll('.shortcuts-btn');
-        shortcutsButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const targetTab = button.dataset.shortcutsTab;
-                
-                // Update active button
-                shortcutsButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                
-                // Update content
-                const contents = this.shadowRoot.querySelectorAll('.shortcuts-tab-content');
-                contents.forEach(content => content.classList.remove('active'));
-                this.shadowRoot.querySelector(`[data-shortcuts-content="${targetTab}"]`).classList.add('active');
-            });
-        });
-    
-        // Bestehende Timer Event Listeners...
-        const timerList = this.shadowRoot.querySelector('#shortcuts-timer-list');
-        if (timerList) {
-            timerList.addEventListener('click', (e) => {
-                const editBtn = e.target.closest('[data-edit-timer]');
-                const deleteBtn = e.target.closest('[data-delete-timer]');
-                const timerEvent = e.target.closest('.shortcuts-timeline-event');
-                
-                if (editBtn) {
-                    e.stopPropagation();
-                    this.handleEditTimer(editBtn.dataset.editTimer, item);
-                } else if (deleteBtn) {
-                    e.stopPropagation();
-                    this.handleDeleteTimer(deleteBtn.dataset.deleteTimer, item);
-                } else if (timerEvent) {
-                    this.handleTimerClick(timerEvent.dataset.timerId, item);
-                }
-            });
-        }
-        
-        // Bestehende Add Timer Button...
-        const addTimerBtn = this.shadowRoot.querySelector('[data-add-timer]');
-        if (addTimerBtn) {
-            addTimerBtn.addEventListener('click', () => {
-                this.handleAddTimer(item);
-            });
-        }
-    
-        // NEU: Edit Panel Event Listeners
-        const editPanelClose = this.shadowRoot.getElementById('edit-panel-close');
-        const editPanelCancel = this.shadowRoot.getElementById('edit-panel-cancel');
-        const editPanelSave = this.shadowRoot.getElementById('edit-panel-save');
-    
-        if (editPanelClose) {
-            editPanelClose.addEventListener('click', () => {
-                this.hideEditPanel();
-            });
-        }
-    
-        if (editPanelCancel) {
-            editPanelCancel.addEventListener('click', () => {
-                this.hideEditPanel();
-            });
-        }
-    
-        if (editPanelSave) {
-            editPanelSave.addEventListener('click', () => {
-                this.saveTimer(item);
-            });
-        }
-    }
-
-    setupEditFormListeners(timer, item, mode) {
-        // Action Toggle Buttons
-        const actionGroup = this.shadowRoot.getElementById('edit-actions');
-        if (actionGroup) {
-            actionGroup.addEventListener('click', (e) => {
-                const toggle = e.target.closest('.shortcuts-edit-toggle');
-                if (!toggle) return;
-                
-                // Update active state
-                actionGroup.querySelectorAll('.shortcuts-edit-toggle').forEach(btn => 
-                    btn.classList.remove('active')
-                );
-                toggle.classList.add('active');
-            });
-        }
-    
-        // Repeat Toggle Buttons
-        const repeatGroup = this.shadowRoot.getElementById('edit-repeat');
-        if (repeatGroup) {
-            repeatGroup.addEventListener('click', (e) => {
-                const toggle = e.target.closest('.shortcuts-edit-toggle');
-                if (!toggle) return;
-                
-                // Update active state
-                repeatGroup.querySelectorAll('.shortcuts-edit-toggle').forEach(btn => 
-                    btn.classList.remove('active')
-                );
-                toggle.classList.add('active');
-            });
-        }
-    
-        // Duration Toggle (nur für Licht)
-        const durationToggles = this.shadowRoot.querySelectorAll('[data-duration]');
-        durationToggles.forEach(toggle => {
-            toggle.addEventListener('click', (e) => {
-                const durationType = e.target.dataset.duration;
-                
-                // Update active state
-                durationToggles.forEach(btn => btn.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                // Show/Hide duration input
-                const durationInput = this.shadowRoot.getElementById('edit-duration');
-                if (durationType === 'timed' && !durationInput) {
-                    // Add duration input
-                    const inputHTML = `<input type="number" class="shortcuts-edit-input" id="edit-duration" value="30" placeholder="Minuten" style="margin-top: 8px;">`;
-                    e.target.parentElement.insertAdjacentHTML('afterend', inputHTML);
-                } else if (durationType === 'permanent' && durationInput) {
-                    // Remove duration input
-                    durationInput.remove();
-                }
-            });
-        });
-    }
-
-    hideEditPanel() {
-        const editPanel = this.shadowRoot.getElementById('shortcuts-edit-panel');
-        editPanel.style.display = 'none';
-        
-        // Restore timer visibility
-        const timerEvents = this.shadowRoot.querySelectorAll('.shortcuts-timeline-event');
-        timerEvents.forEach(event => {
-            event.classList.remove('editing');
-        });
-    }
-    
-    async saveTimer(item) {
-        // Collect form data
-        const formData = this.collectTimerFormData();
-        
-        if (!formData) {
-            console.error('Invalid form data');
-            return;
-        }
-        
-        console.log('Saving timer:', formData);
-        
-        try {
-            // Erstelle Timer basierend auf Device-Type
-            await this.createTimerForDevice(item, formData);
-            
-            // Success feedback
-            this.showTimerFeedback('Timer erstellt!', 'success');
-            
-            // Hide panel and refresh
-            this.hideEditPanel();
-            this.refreshTimerList(item);
-            
-        } catch (error) {
-            console.error('Error saving timer:', error);
-            this.showTimerFeedback('Fehler beim Speichern!', 'error');
-        }
-    }
-
-    async createTimerForDevice(item, formData) {
-        const scheduledTime = this.calculateScheduledTime(formData.time);
-        const timerId = `custom_timer_${Date.now()}`;
-        
-        const timer = {
-            id: timerId,
-            type: 'custom',
-            scheduledTime: scheduledTime.toISOString(),
-            action: formData.action,
-            active: true,
-            duration: formData.duration,
-            repeat: formData.repeat,
-            temperature: formData.temperature,
-            brightness: formData.brightness,
-            source: 'fast_search_card',
-            deviceId: item.id,
-            created: new Date().toISOString()
-        };
-        
-        try {
-            // Nur Input Helper verwenden
-            await this.saveTimerToInputHelper(timer);
-            
-            // In Memory für sofortige UI Updates
-            this.addTimerToMemory(timer);
-            
-            // Timer planen
-            this.scheduleTimerExecution(timer, item);
-            
-            console.log('Timer saved to Input Helper:', timer);
-            return timerId;
-            
-        } catch (error) {
-            console.error('Failed to save timer to Input Helper:', error);
-            throw new Error('Input Helper nicht gefunden! Bitte erstelle: input_text.fast_search_timers');
-        }
-    }
-
-    addTimerToMemory(timer) {
-        if (!this.customTimers) {
-            this.customTimers = {};
-        }
-        if (!this.customTimers[timer.deviceId]) {
-            this.customTimers[timer.deviceId] = [];
-        }
-        this.customTimers[timer.deviceId].push(timer);
-    }
-    
-    removeTimerFromMemory(timerId, deviceId) {
-        if (this.customTimers && this.customTimers[deviceId]) {
-            const timerIndex = this.customTimers[deviceId].findIndex(t => t.id === timerId);
-            if (timerIndex !== -1) {
-                const timer = this.customTimers[deviceId][timerIndex];
-                
-                // Cancel Timeout
-                if (timer.timeoutId) {
-                    clearTimeout(timer.timeoutId);
-                }
-                
-                this.customTimers[deviceId].splice(timerIndex, 1);
-            }
-        }
-    }    
-
-    async saveTimerToInputHelper(timer) {
-        const inputEntityId = 'input_text.fast_search_timers';
-        
-        // Prüfe ob Input Helper existiert
-        if (!this._hass.states[inputEntityId]) {
-            throw new Error(`Input Helper ${inputEntityId} not found`);
-        }
-        
-        try {
-            // Lade bestehende Timer
-            let existingTimers = [];
-            const currentState = this._hass.states[inputEntityId];
-            
-            if (currentState && currentState.state && currentState.state !== 'unknown') {
-                try {
-                    existingTimers = JSON.parse(currentState.state);
-                    if (!Array.isArray(existingTimers)) {
-                        existingTimers = [];
-                    }
-                } catch (e) {
-                    console.warn('Could not parse existing timers, starting fresh');
-                    existingTimers = [];
-                }
-            }
-            
-            // Füge neuen Timer hinzu
-            existingTimers.push(timer);
-            
-            // Speichere zurück
-            await this._hass.callService('input_text', 'set_value', {
-                entity_id: inputEntityId,
-                value: JSON.stringify(existingTimers)
-            });
-            
-            console.log('Timer saved to Input Helper successfully');
-            
-        } catch (error) {
-            console.error('Error saving to Input Helper:', error);
-            throw error;
-        }
-    }
-    
-    async loadTimersFromInputHelper() {
-        const inputEntityId = 'input_text.fast_search_timers';
-        
-        if (!this._hass.states[inputEntityId]) {
-            console.warn(`Input Helper ${inputEntityId} not found`);
-            this.showInputHelperSetupInfo();
-            return;
-        }
-        
-        try {
-            const currentState = this._hass.states[inputEntityId];
-            
-            if (!currentState || !currentState.state || currentState.state === 'unknown') {
-                console.log('Input Helper is empty');
-                return;
-            }
-            
-            const timers = JSON.parse(currentState.state);
-            
-            if (!Array.isArray(timers)) {
-                console.warn('Invalid timer data in Input Helper');
-                return;
-            }
-            
-            // Reset Memory
-            this.customTimers = {};
-            
-            // Lade nur noch gültige Timer
-            const now = new Date();
-            const validTimers = [];
-            
-            for (const timer of timers) {
-                const timerTime = new Date(timer.scheduledTime);
-                
-                if (timer.active && timerTime > now) {
-                    // Timer ist noch gültig
-                    this.addTimerToMemory(timer);
-                    this.scheduleTimerExecution(timer, { id: timer.deviceId });
-                    validTimers.push(timer);
-                    
-                    console.log('Restored timer:', timer.id, 'for', timer.scheduledTime);
-                } else {
-                    console.log('Skipped expired timer:', timer.id);
-                }
-            }
-            
-            // Aktualisiere Input Helper (entferne abgelaufene Timer)
-            if (validTimers.length !== timers.length) {
-                await this.updateInputHelperTimers(validTimers);
-            }
-            
-        } catch (error) {
-            console.error('Error loading timers from Input Helper:', error);
-        }
-    }
-
-    showInputHelperSetupInfo() {
-        console.warn(`
-    🔧 SETUP ERFORDERLICH:
-    
-    Bitte erstelle einen Input Helper in Home Assistant:
-    
-    1. Settings > Devices & Services > Helpers
-    2. "Create Helper" > "Text"
-    3. Name: "Fast Search Timers"
-    4. Entity ID: input_text.fast_search_timers
-    5. Maximum length: 10000
-    
-    Ohne diesen Helper funktionieren Timer nicht!
-        `);
-        
-        // Optional: Toast Nachricht zeigen
-        this.showTimerFeedback('Input Helper fehlt! Siehe Console für Setup.', 'error');
-    }    
-    
-    async updateInputHelperTimers(timers) {
-        const inputEntityId = 'input_text.fast_search_timers';
-        
-        try {
-            await this._hass.callService('input_text', 'set_value', {
-                entity_id: inputEntityId,
-                value: JSON.stringify(timers)
-            });
-        } catch (error) {
-            console.error('Error updating Input Helper:', error);
-        }
-    }
-    
-    async removeTimerFromInputHelper(timerId) {
-        const inputEntityId = 'input_text.fast_search_timers';
-        
-        try {
-            const currentState = this._hass.states[inputEntityId];
-            
-            if (!currentState || !currentState.state) return;
-            
-            let timers = JSON.parse(currentState.state);
-            timers = timers.filter(timer => timer.id !== timerId);
-            
-            await this.updateInputHelperTimers(timers);
-            
-        } catch (error) {
-            console.error('Error removing timer from Input Helper:', error);
-        }
-    }    
-
-    scheduleTimerExecution(timer, item) {
-        const now = new Date();
-        const timerTime = new Date(timer.scheduledTime);
-        const delay = timerTime.getTime() - now.getTime();
-        
-        if (delay <= 0) {
-            // Timer sollte sofort ausgeführt werden
-            this.executeTimer(timer, item);
-            return;
-        }
-        
-        // Setze Timeout
-        const timeoutId = setTimeout(() => {
-            this.executeTimer(timer, item);
-        }, delay);
-        
-        // Speichere Timeout ID für Cancel-Möglichkeit
-        timer.timeoutId = timeoutId;
-        
-        console.log(`Timer scheduled for ${timer.scheduledTime} (in ${Math.round(delay/1000)}s)`);
-    }
-    
-    async executeTimer(timer, item) {
-        console.log('Executing timer:', timer);
-        
-        try {
-            // Führe die geplante Aktion aus
-            const serviceCall = this.buildServiceCall(item, timer);
-            
-            await this._hass.callService(
-                serviceCall.service.split('.')[0], 
-                serviceCall.service.split('.')[1], 
-                serviceCall.data
-            );
-            
-            // Markiere Timer als abgeschlossen
-            timer.active = false;
-            timer.completed = new Date().toISOString();
-            
-            this.showTimerFeedback(`Timer ausgeführt: ${item.name} ${timer.action}`, 'success');
-            
-            // Refresh UI
-            if (this.isDetailView && this.currentDetailItem?.id === item.id) {
-                this.refreshTimerList(item);
-            }
-            
-        } catch (error) {
-            console.error('Timer execution failed:', error);
-            this.showTimerFeedback('Timer-Ausführung fehlgeschlagen!', 'error');
-        }
-    }
-    
-    calculateScheduledTime(timeString) {
-        const [hours, minutes] = timeString.split(':').map(Number);
-        const scheduledTime = new Date();
-        scheduledTime.setHours(hours, minutes, 0, 0);
-        
-        // If time has passed today, set for tomorrow
-        if (scheduledTime < new Date()) {
-            scheduledTime.setDate(scheduledTime.getDate() + 1);
-        }
-        
-        return scheduledTime;
-    }
-    
-    async createTimerHelper(item, formData, scheduledTime) {
-        const now = new Date();
-        const durationSeconds = Math.floor((scheduledTime.getTime() - now.getTime()) / 1000);
-        
-        // Generate unique timer name
-        const timerName = `timer_${item.id.replace('.', '_')}_${Date.now()}`;
-        
-        // Create timer helper
-        await this._hass.callService('timer', 'start', {
-            entity_id: `timer.${timerName}`,
-            duration: durationSeconds
-        });
-        
-        return `timer.${timerName}`;
-    }
-    
-    async createTimerAutomation(item, formData, timerEntityId, scheduledTime) {
-        const automationId = `timer_automation_${Date.now()}`;
-        
-        // Build service call based on device and action
-        const serviceCall = this.buildServiceCall(item, formData);
-        
-        // Create automation that triggers when timer finishes
-        const automationConfig = {
-            alias: `Timer: ${item.name} ${formData.action}`,
-            description: `Auto-generated timer automation`,
-            trigger: [
-                {
-                    platform: 'event',
-                    event_type: 'timer.finished',
-                    event_data: {
-                        entity_id: timerEntityId
-                    }
-                }
-            ],
-            action: [serviceCall],
-            mode: 'single'
-        };
-        
-        // Create automation
-        await this._hass.callService('automation', 'reload');
-        
-        // Note: Creating dynamic automations requires more complex setup
-        // For now, we'll use a simpler approach with delays
-        console.log('Would create automation:', automationConfig);
-    }
-    
-    buildServiceCall(item, formData) {
-        const domain = item.domain;
-        
-        switch (domain) {
-            case 'light':
-                if (formData.action === 'turn_on') {
-                    const serviceData = { entity_id: item.id };
-                    if (formData.brightness) {
-                        serviceData.brightness_pct = formData.brightness;
-                    }
-                    return {
-                        service: 'light.turn_on',
-                        data: serviceData
-                    };
-                } else {
-                    return {
-                        service: 'light.turn_off',
-                        data: { entity_id: item.id }
-                    };
-                }
-                
-            case 'climate':
-                const serviceData = { entity_id: item.id };
-                if (formData.temperature) {
-                    serviceData.temperature = formData.temperature;
-                }
-                
-                return {
-                    service: `climate.set_hvac_mode`,
-                    data: {
-                        ...serviceData,
-                        hvac_mode: formData.action
-                    }
-                };
-                
-            case 'cover':
-                return {
-                    service: `cover.${formData.action}`,
-                    data: { entity_id: item.id }
-                };
-                
-            default:
-                return {
-                    service: `${domain}.${formData.action}`,
-                    data: { entity_id: item.id }
-                };
-        }
-    }
-
-    showTimerFeedback(message, type) {
-        // Create temporary feedback element
-        const feedback = document.createElement('div');
-        feedback.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            ${type === 'success' ? 'background: #4CAF50;' : 'background: #f44336;'}
-        `;
-        feedback.textContent = message;
-        
-        document.body.appendChild(feedback);
-        
-        // Auto remove after 3 seconds
-        setTimeout(() => {
-            feedback.style.opacity = '0';
-            setTimeout(() => feedback.remove(), 300);
-        }, 3000);
-    }
-    
-    collectTimerFormData() {
-        const time = this.shadowRoot.getElementById('edit-time')?.value;
-        const activeAction = this.shadowRoot.querySelector('#edit-actions .shortcuts-edit-toggle.active')?.dataset.action;
-        const activeRepeat = this.shadowRoot.querySelector('#edit-repeat .shortcuts-edit-toggle.active')?.dataset.repeat;
-        const temperature = this.shadowRoot.getElementById('edit-temperature')?.value;
-        const duration = this.shadowRoot.getElementById('edit-duration')?.value;
-        const brightness = this.shadowRoot.getElementById('edit-brightness')?.value; // Falls du Brightness hinzufügst
-        
-        if (!time || !activeAction || !activeRepeat) {
-            alert('Bitte alle Pflichtfelder ausfüllen!');
-            return null;
-        }
-        
-        return {
-            time: time,
-            action: activeAction,
-            repeat: activeRepeat,
-            temperature: temperature ? parseFloat(temperature) : null,
-            duration: duration ? parseInt(duration) : null,
-            brightness: brightness ? parseInt(brightness) : null
-        };
-    }
-    
-    refreshTimerList(item) {
-        const timerList = this.shadowRoot.getElementById('shortcuts-timer-list');
-        if (timerList) {
-            timerList.innerHTML = this.getTimerTimelineHTML(item);
-        }
-    }
-
-    
-
-    getTimerTimelineHTML(item) {
-        const deviceTimers = this.getDeviceTimers(item.id);
-        
-        if (deviceTimers.length === 0) {
-            return `
-                <div class="shortcuts-empty-state">
-                    <div class="empty-icon">⏰</div>
-                    <div class="empty-title">Keine Timer aktiv</div>
-                    <div class="empty-subtitle">Erstelle deinen ersten Timer</div>
-                </div>
-            `;
-        }
-        
-        return deviceTimers.map(timer => {
-            const timeString = this.formatTimerTime(timer);
-            const actionIcon = this.getTimerActionIcon(timer.action, item.domain);
-            const statusClass = timer.active ? 'active' : 'inactive';
-            
-            return `
-                <div class="shortcuts-timeline-event ${statusClass}" data-timer-id="${timer.id}">
-                    <div class="shortcuts-timeline-dot"></div>
-                    <div class="shortcuts-timeline-content">
-                        <div class="shortcuts-timeline-info">
-                            <div class="shortcuts-timeline-action">
-                                ${actionIcon} ${this.getTimerActionText(timer.action, timer, item.domain)}
-                            </div>
-                            <div class="shortcuts-timeline-time">${timeString}</div>
-                        </div>
-                        <div class="shortcuts-timeline-controls">
-                            <button class="shortcuts-timeline-btn" data-edit-timer="${timer.id}" title="Bearbeiten">✏️</button>
-                            <button class="shortcuts-timeline-btn" data-delete-timer="${timer.id}" title="Löschen">🗑️</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }    
-
-    getTimerActionIcon(action, domain) {
-        const icons = {
-            'turn_on': '💡',
-            'turn_off': '🔴',
-            'set_brightness': '🔆',
-            'heat': '🔥',
-            'cool': '❄️',
-            'open': '⬆️',
-            'close': '⬇️'
-        };
-        return icons[action] || '⚙️';
-    }
-    
-    getTimerActionText(action, timer, domain) {
-        // Für Custom Timer
-        if (timer.type === 'custom') {
-            switch(domain) {
-                case 'light':
-                    if (action === 'turn_on') {
-                        let text = timer.duration ? `Ein für ${timer.duration}min` : 'Einschalten';
-                        if (timer.brightness) text += ` (${timer.brightness}%)`;
-                        return text;
-                    }
-                    if (action === 'turn_off') return 'Ausschalten';
-                    break;
-                case 'climate':
-                    if (action === 'heat') return `Heizen auf ${timer.temperature || 22}°C${timer.duration ? ` für ${timer.duration}min` : ''}`;
-                    if (action === 'cool') return `Kühlen auf ${timer.temperature || 22}°C${timer.duration ? ` für ${timer.duration}min` : ''}`;
-                    break;
-                case 'cover':
-                    if (action === 'open') return 'Öffnen';
-                    if (action === 'close') return 'Schließen';
-                    break;
-            }
-        }
-        
-        // Rest bleibt gleich...
-        switch(domain) {
-            case 'light':
-                if (action === 'turn_on') return timer.duration ? `Ein für ${timer.duration}min` : 'Einschalten';
-                if (action === 'turn_off') return 'Ausschalten';
-                if (action === 'set_brightness') return `Dimmen auf ${timer.brightness || 50}%`;
-                break;
-            case 'climate':
-                if (action === 'heat') return `Heizen auf ${timer.temperature || 22}°C${timer.duration ? ` für ${timer.duration}min` : ''}`;
-                if (action === 'cool') return `Kühlen auf ${timer.temperature || 22}°C${timer.duration ? ` für ${timer.duration}min` : ''}`;
-                break;
-            case 'cover':
-                if (action === 'open') return 'Öffnen';
-                if (action === 'close') return 'Schließen';
-                break;
-        }
-        return action;
-    }
-    
-    formatTimerTime(timer) {
-        const now = new Date();
-        const timerTime = new Date(timer.scheduledTime);
-        
-        // Wenn Timer aktiv und in der Vergangenheit liegt (läuft gerade)
-        if (timer.active && timerTime < now && timer.type === 'timer_helper') {
-            const remaining = Math.max(0, Math.floor((timerTime.getTime() - now.getTime()) / 1000));
-            const hours = Math.floor(remaining / 3600);
-            const minutes = Math.floor((remaining % 3600) / 60);
-            const seconds = remaining % 60;
-            
-            if (hours > 0) {
-                return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} verbleibend`;
-            } else {
-                return `${minutes}:${seconds.toString().padStart(2, '0')} verbleibend`;
-            }
-        }
-        
-        // Standard time formatting
-        if (timerTime.toDateString() === now.toDateString()) {
-            return `Heute ${timerTime.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
-        } else {
-            const tomorrow = new Date(now);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            if (timerTime.toDateString() === tomorrow.toDateString()) {
-                return `Morgen ${timerTime.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
-            }
-        }
-        
-        return timerTime.toLocaleString('de-DE', { 
-            weekday: 'short', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
     }
 
     getShortcutsStats(item) {
@@ -7379,192 +6144,14 @@ class FastSearchCard extends HTMLElement {
         };
     }
     
+    // Placeholder Methoden (erstmal mit Dummy-Daten)
     getDeviceTimers(deviceId) {
-        if (!this._hass) return [];
-        
-        const timers = [];
-        
-        // 1. Home Assistant Timer Helper (bestehend)
-        Object.keys(this._hass.states).forEach(entityId => {
-            if (entityId.startsWith('timer.')) {
-                const timerState = this._hass.states[entityId];
-                if (this.isTimerForDevice(timerState, deviceId)) {
-                    timers.push(this.parseTimerHelper(timerState, deviceId));
-                }
-            }
-        });
-        
-        // 2. NEU: Custom Timer aus Component State
-        if (this.customTimers && this.customTimers[deviceId]) {
-            const now = new Date();
-            
-            // Filter abgelaufene Timer raus
-            this.customTimers[deviceId] = this.customTimers[deviceId].filter(timer => {
-                const timerTime = new Date(timer.scheduledTime);
-                return timerTime > now || timer.active;
-            });
-            
-            // Füge aktive Custom Timer hinzu
-            timers.push(...this.customTimers[deviceId]);
-        }
-        
-        // 3. Automation-basierte Timer (bestehend)
-        Object.keys(this._hass.states).forEach(entityId => {
-            if (entityId.startsWith('automation.')) {
-                const automation = this._hass.states[entityId];
-                if (this.isTimeAutomationForDevice(automation, deviceId)) {
-                    timers.push(this.parseTimeAutomation(automation, deviceId));
-                }
-            }
-        });
-        
-        return timers.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
+        // TODO: Echte Timer Discovery implementieren
+        return [
+            { id: 'timer1', time: '19:00', action: 'turn_on' },
+            { id: 'timer2', time: '22:30', action: 'turn_off' }
+        ];
     }
-
-
-
-    // NEU: Nach den bestehenden getDeviceTimers() Methoden hinzufügen
-    isTimerForDevice(timerState, deviceId) {
-        // Prüfe friendly_name oder entity_id patterns
-        const name = timerState.attributes.friendly_name || timerState.entity_id;
-        const deviceName = this._hass.states[deviceId]?.attributes.friendly_name || deviceId;
-        
-        // Simple name matching - kann verfeinert werden
-        return name.toLowerCase().includes(deviceName.toLowerCase().split(' ')[0]) ||
-               name.toLowerCase().includes(deviceId.split('.')[1]);
-    }
-
-    parseTimerHelper(timerState, deviceId) {
-        const now = new Date();
-        const remaining = timerState.attributes.remaining;
-        let scheduledTime = now;
-        
-        if (remaining && timerState.state === 'active') {
-            // Parse remaining time (format: "0:45:23")
-            const [hours, minutes, seconds] = remaining.split(':').map(Number);
-            scheduledTime = new Date(now.getTime() + (hours * 3600 + minutes * 60 + seconds) * 1000);
-        }
-        
-        return {
-            id: timerState.entity_id,
-            type: 'timer_helper',
-            scheduledTime: scheduledTime.toISOString(),
-            action: 'turn_off', // Default - Timer meist für "ausschalten"
-            active: timerState.state === 'active',
-            duration: null,
-            repeat: 'once',
-            source: timerState.entity_id
-        };
-    }
-
-    isTimeAutomationForDevice(automation, deviceId) {
-        if (!automation.attributes.action) return false;
-        
-        // Prüfe ob Device in actions ist
-        const actions = JSON.stringify(automation.attributes.action);
-        const hasDevice = actions.includes(deviceId);
-        
-        // Prüfe ob time-trigger vorhanden
-        const triggers = automation.attributes.trigger || [];
-        const hasTimeTrigger = triggers.some(trigger => 
-            trigger.platform === 'time' || 
-            trigger.platform === 'time_pattern' ||
-            trigger.at
-        );
-        
-        return hasDevice && hasTimeTrigger;
-    }
-
-    parseTimeAutomation(automation, deviceId) {
-        const triggers = automation.attributes.trigger || [];
-        const timeTrigger = triggers.find(trigger => 
-            trigger.platform === 'time' || trigger.at
-        );
-        
-        let scheduledTime = new Date();
-        if (timeTrigger && timeTrigger.at) {
-            // Parse time like "22:30:00"
-            const [hours, minutes] = timeTrigger.at.split(':').map(Number);
-            scheduledTime.setHours(hours, minutes, 0, 0);
-            
-            // If time has passed today, set for tomorrow
-            if (scheduledTime < new Date()) {
-                scheduledTime.setDate(scheduledTime.getDate() + 1);
-            }
-        }
-        
-        // Detect action type from automation actions
-        const actions = automation.attributes.action || [];
-        const deviceAction = actions.find(action => 
-            action.entity_id === deviceId || 
-            (action.entity_id && action.entity_id.includes && action.entity_id.includes(deviceId))
-        );
-        
-        let actionType = 'turn_on';
-        if (deviceAction) {
-            if (deviceAction.service) {
-                actionType = deviceAction.service.split('.')[1] || 'turn_on';
-            }
-        }
-        
-        return {
-            id: automation.entity_id,
-            type: 'automation',
-            scheduledTime: scheduledTime.toISOString(),
-            action: actionType,
-            active: automation.state === 'on',
-            duration: null,
-            repeat: 'daily', // Automations are usually recurring
-            source: automation.entity_id,
-            name: automation.attributes.friendly_name
-        };
-    }
-
-    isScheduleForDevice(schedule, deviceId) {
-        // Check if schedule name or attributes mention the device
-        const name = schedule.attributes.friendly_name || schedule.entity_id;
-        const deviceName = this._hass.states[deviceId]?.attributes.friendly_name || deviceId;
-        
-        return name.toLowerCase().includes(deviceName.toLowerCase().split(' ')[0]);
-    }
-
-    parseScheduleHelper(schedule, deviceId) {
-        // Schedule helpers haben meist next_time attribute
-        const nextTime = schedule.attributes.next_time;
-        let scheduledTime = new Date();
-        
-        if (nextTime) {
-            scheduledTime = new Date(nextTime);
-        }
-        
-        return {
-            id: schedule.entity_id,
-            type: 'schedule',
-            scheduledTime: scheduledTime.toISOString(),
-            action: 'turn_on', // Default
-            active: schedule.state === 'on',
-            duration: null,
-            repeat: 'daily', // Schedules are usually recurring
-            source: schedule.entity_id
-        };
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
     
     getRoomScenes(deviceArea) {
         // TODO: Echte Szenen Discovery implementieren  
@@ -9565,10 +8152,7 @@ class FastSearchCard extends HTMLElement {
     
         // History Event Listeners hinzufügen  ← HIER EINFÜGEN
         this.setupHistoryEventListeners(item);
-
-        // NEU: Shortcuts Tab Event Listeners
-        this.setupShortcutsEventListeners(item);        
-    }    
+    }
         
     
     setupLightControls(item) {
