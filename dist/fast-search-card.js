@@ -7640,129 +7640,6 @@ class FastSearchCard extends HTMLElement {
         }, 200);
     }
 
-    class WheelTimePicker {
-        constructor(itemId, onTimeChange) {
-            this.itemId = itemId;
-            this.onTimeChange = onTimeChange;
-            this.currentHour = 0;
-            this.currentMinute = 30;
-            
-            this.hourWheel = document.getElementById(`hourWheel-${itemId}`);
-            this.minuteWheel = document.getElementById(`minuteWheel-${itemId}`);
-            this.hourPart = document.getElementById(`wheelHourPart-${itemId}`);
-            this.minutePart = document.getElementById(`wheelMinutePart-${itemId}`);
-            
-            this.init();
-        }
-        
-        init() {
-            this.createWheels();
-            this.bindEvents();
-            this.updateDisplay();
-            
-            setTimeout(() => {
-                this.scrollToValue(this.hourWheel, this.currentHour);
-                this.scrollToValue(this.minuteWheel, this.currentMinute);
-            }, 100);
-        }
-        
-        createWheels() {
-            // Stunden (00-23)
-            for (let i = 0; i < 24; i++) {
-                const item = document.createElement('div');
-                item.className = 'wheel-item';
-                item.textContent = i.toString().padStart(2, '0');
-                item.dataset.value = i;
-                this.hourWheel.appendChild(item);
-            }
-            
-            // Minuten (00-59 in 5er Schritten)
-            for (let i = 0; i < 60; i += 5) {
-                const item = document.createElement('div');
-                item.className = 'wheel-item';
-                item.textContent = i.toString().padStart(2, '0');
-                item.dataset.value = i;
-                this.minuteWheel.appendChild(item);
-            }
-        }
-        
-        bindEvents() {
-            this.hourWheel.addEventListener('scroll', () => this.handleScroll('hour'));
-            this.minuteWheel.addEventListener('scroll', () => this.handleScroll('minute'));
-            
-            this.hourWheel.addEventListener('click', (e) => {
-                if (e.target.classList.contains('wheel-item')) {
-                    this.scrollToValue(this.hourWheel, parseInt(e.target.dataset.value));
-                    this.updateFromWheels();
-                }
-            });
-            
-            this.minuteWheel.addEventListener('click', (e) => {
-                if (e.target.classList.contains('wheel-item')) {
-                    this.scrollToValue(this.minuteWheel, parseInt(e.target.dataset.value));
-                    this.updateFromWheels();
-                }
-            });
-        }
-        
-        updateFromWheels() {
-            const hourIndex = Math.round(this.hourWheel.scrollTop / 30);
-            const minuteIndex = Math.round(this.minuteWheel.scrollTop / 30);
-            
-            this.currentHour = Math.max(0, Math.min(23, hourIndex));
-            this.currentMinute = Math.max(0, Math.min(55, minuteIndex * 5));
-            
-            this.updateDisplay();
-            this.onTimeChange(this.currentHour, this.currentMinute);
-        }
-        
-        updateDisplay() {
-            this.hourPart.textContent = this.currentHour.toString().padStart(2, '0');
-            this.minutePart.textContent = this.currentMinute.toString().padStart(2, '0');
-        }
-        
-        scrollToValue(wheel, value) {
-            let index;
-            if (wheel === this.hourWheel) {
-                index = value;
-            } else {
-                index = value / 5;
-            }
-            
-            wheel.scrollTo({
-                top: index * 30,
-                behavior: 'smooth'
-            });
-        }
-        
-        handleScroll(type) {
-            clearTimeout(this.scrollTimeout);
-            this.scrollTimeout = setTimeout(() => {
-                if (type === 'hour') {
-                    const index = Math.round(this.hourWheel.scrollTop / 30);
-                    this.scrollToValue(this.hourWheel, index);
-                    this.updateFromWheels();
-                } else {
-                    const index = Math.round(this.minuteWheel.scrollTop / 30);
-                    this.scrollToValue(this.minuteWheel, index * 5);
-                    this.updateFromWheels();
-                }
-            }, 150);
-        }
-        
-        setTime(hours, minutes) {
-            this.currentHour = hours;
-            this.currentMinute = minutes;
-            this.updateDisplay();
-            this.scrollToValue(this.hourWheel, hours);
-            this.scrollToValue(this.minuteWheel, minutes);
-        }
-        
-        getTotalMinutes() {
-            return this.currentHour * 60 + this.currentMinute;
-        }
-    }    
-
     setupTimeSelectionEvents(item, action, timeContainer, parentContainer) {
         // NEU: WheelTimePicker initialisieren
         const wheelPicker = new WheelTimePicker(item.id, (hours, minutes) => {
@@ -11004,6 +10881,129 @@ class FastSearchCard extends HTMLElement {
         } catch (e) {
             console.error("Fehler beim Abspielen via Music Assistant:", e);
         }
+    }
+}
+
+class WheelTimePicker {
+    constructor(itemId, onTimeChange) {
+        this.itemId = itemId;
+        this.onTimeChange = onTimeChange;
+        this.currentHour = 0;
+        this.currentMinute = 30;
+        
+        this.hourWheel = document.getElementById(`hourWheel-${itemId}`);
+        this.minuteWheel = document.getElementById(`minuteWheel-${itemId}`);
+        this.hourPart = document.getElementById(`wheelHourPart-${itemId}`);
+        this.minutePart = document.getElementById(`wheelMinutePart-${itemId}`);
+        
+        this.init();
+    }
+    
+    init() {
+        this.createWheels();
+        this.bindEvents();
+        this.updateDisplay();
+        
+        setTimeout(() => {
+            this.scrollToValue(this.hourWheel, this.currentHour);
+            this.scrollToValue(this.minuteWheel, this.currentMinute);
+        }, 100);
+    }
+    
+    createWheels() {
+        // Stunden (00-23)
+        for (let i = 0; i < 24; i++) {
+            const item = document.createElement('div');
+            item.className = 'wheel-item';
+            item.textContent = i.toString().padStart(2, '0');
+            item.dataset.value = i;
+            this.hourWheel.appendChild(item);
+        }
+        
+        // Minuten (00-59 in 5er Schritten)
+        for (let i = 0; i < 60; i += 5) {
+            const item = document.createElement('div');
+            item.className = 'wheel-item';
+            item.textContent = i.toString().padStart(2, '0');
+            item.dataset.value = i;
+            this.minuteWheel.appendChild(item);
+        }
+    }
+    
+    bindEvents() {
+        this.hourWheel.addEventListener('scroll', () => this.handleScroll('hour'));
+        this.minuteWheel.addEventListener('scroll', () => this.handleScroll('minute'));
+        
+        this.hourWheel.addEventListener('click', (e) => {
+            if (e.target.classList.contains('wheel-item')) {
+                this.scrollToValue(this.hourWheel, parseInt(e.target.dataset.value));
+                this.updateFromWheels();
+            }
+        });
+        
+        this.minuteWheel.addEventListener('click', (e) => {
+            if (e.target.classList.contains('wheel-item')) {
+                this.scrollToValue(this.minuteWheel, parseInt(e.target.dataset.value));
+                this.updateFromWheels();
+            }
+        });
+    }
+    
+    updateFromWheels() {
+        const hourIndex = Math.round(this.hourWheel.scrollTop / 30);
+        const minuteIndex = Math.round(this.minuteWheel.scrollTop / 30);
+        
+        this.currentHour = Math.max(0, Math.min(23, hourIndex));
+        this.currentMinute = Math.max(0, Math.min(55, minuteIndex * 5));
+        
+        this.updateDisplay();
+        this.onTimeChange(this.currentHour, this.currentMinute);
+    }
+    
+    updateDisplay() {
+        this.hourPart.textContent = this.currentHour.toString().padStart(2, '0');
+        this.minutePart.textContent = this.currentMinute.toString().padStart(2, '0');
+    }
+    
+    scrollToValue(wheel, value) {
+        let index;
+        if (wheel === this.hourWheel) {
+            index = value;
+        } else {
+            index = value / 5;
+        }
+        
+        wheel.scrollTo({
+            top: index * 30,
+            behavior: 'smooth'
+        });
+    }
+    
+    handleScroll(type) {
+        clearTimeout(this.scrollTimeout);
+        this.scrollTimeout = setTimeout(() => {
+            if (type === 'hour') {
+                const index = Math.round(this.hourWheel.scrollTop / 30);
+                this.scrollToValue(this.hourWheel, index);
+                this.updateFromWheels();
+            } else {
+                const index = Math.round(this.minuteWheel.scrollTop / 30);
+                this.scrollToValue(this.minuteWheel, index * 5);
+                this.updateFromWheels();
+            }
+        }, 150);
+    }
+    
+    setTime(hours, minutes) {
+        this.currentHour = hours;
+        this.currentMinute = minutes;
+        this.updateDisplay();
+        this.scrollToValue(this.hourWheel, hours);
+        this.scrollToValue(this.minuteWheel, minutes);
+    }
+    
+    getTotalMinutes() {
+        return this.currentHour * 60 + this.currentMinute;
     }
 }
 
