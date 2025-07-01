@@ -2668,7 +2668,104 @@ class FastSearchCard extends HTMLElement {
                     font-size: 13px;
                 }
             }            
-                                    
+
+
+            /* Timer Tab Styles */
+            .timer-actions {
+                margin-top: 20px;
+                padding: 16px;
+                background: rgba(255,255,255,0.05);
+                border-radius: 12px;
+            }
+            
+            .quick-timer-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 12px;
+            }
+            
+            .timer-mode-selector {
+                display: flex;
+                gap: 4px;
+                margin-bottom: 20px;
+                background: rgba(0, 0, 0, 0.25);
+                border-radius: 12px;
+                padding: 4px;
+            }
+            
+            .timer-mode-btn {
+                flex: 1;
+                padding: 8px 12px;
+                border: none;
+                background: transparent;
+                color: var(--text-secondary);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            
+            .timer-mode-btn.active {
+                background: rgba(255, 255, 255, 0.2);
+                color: var(--text-primary);
+            }
+            
+            .quick-timer-buttons {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 8px;
+            }
+            
+            .quick-timer-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                padding: 12px 8px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 12px;
+                color: var(--text-primary);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 13px;
+                font-weight: 500;
+                text-align: center;
+            }
+            
+            .quick-timer-btn:hover {
+                background: rgba(255,255,255,0.15);
+                transform: translateY(-1px);
+            }
+            
+            .timer-icon {
+                font-size: 16px;
+            }
+            
+            .timer-text {
+                font-weight: 600;
+            }
+            
+            .timer-mode-hint {
+                font-size: 10px;
+                color: var(--text-secondary);
+                opacity: 0.8;
+            }
+            
+            .active-timers {
+                margin-bottom: 16px;
+                min-height: 60px;
+            }
+            
+            .loading-timers {
+                text-align: center;
+                color: var(--text-secondary);
+                font-style: italic;
+                padding: 20px;
+            }            
+                                                
             </style>
 
             <div class="main-container">
@@ -6136,10 +6233,50 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
                 
-                <div class="shortcuts-content">
+                <div class="shortcuts-content">            
+
                     <div class="shortcuts-tab-content active" data-shortcuts-content="timer">
-                        <p>Timer Content für ${item.name}</p>
+                        <div id="timer-section-${item.id}">
+                            <!-- Aktive Timer für dieses Gerät -->
+                            <div class="active-timers" id="active-timers-${item.id}">
+                                <div class="loading-timers">Lade Timer...</div>
+                            </div>
+                            
+                            <!-- Timer Modus Auswahl -->
+                            <div class="timer-actions">
+                                <div class="quick-timer-title">Timer Modus:</div>
+                                <div class="timer-mode-selector">
+                                    <button class="timer-mode-btn active" data-mode="duration" title="Ein- und Ausschalten">
+                                        ⏱️ Dauer-Timer
+                                    </button>
+                                    <button class="timer-mode-btn" data-mode="off-only" title="Nur Ausschalten">
+                                        ⏹️ Ausschalt-Timer
+                                    </button>
+                                </div>
+                                
+                                <div class="quick-timer-title">Schnelle Timer:</div>
+                                <div class="quick-timer-buttons">
+                                    <button class="quick-timer-btn" data-duration="30">
+                                        <span class="timer-icon">⏰</span>
+                                        <span class="timer-text">30 Min</span>
+                                        <span class="timer-mode-hint">Ein + Aus</span>
+                                    </button>
+                                    <button class="quick-timer-btn" data-duration="60">
+                                        <span class="timer-icon">⏰</span>
+                                        <span class="timer-text">1 Std</span>
+                                        <span class="timer-mode-hint">Ein + Aus</span>
+                                    </button>
+                                    <button class="quick-timer-btn" data-duration="120">
+                                        <span class="timer-icon">⏰</span>
+                                        <span class="timer-text">2 Std</span>
+                                        <span class="timer-mode-hint">Ein + Aus</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    
                     <div class="shortcuts-tab-content" data-shortcuts-content="scenes">
                         <p>Szenen Content</p>
                     </div>
