@@ -10182,10 +10182,30 @@ class FastSearchCard extends HTMLElement {
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
                 }).finished;
                 
+                // Animation 3: Time Selection einblenden UND nach oben bewegen (NACH Animation 2)
                 moveUpPromise.then(() => {
                     console.log('⏰ moveUpPromise beendet - zeige Time Selection');
                     this.showTimeSelection(item, action, container);
                     this.isTimeSelectionOpen = true;
+                    
+                    // ✅ NEU: Time Selection auch nach oben bewegen
+                    setTimeout(() => {
+                        const timeSelectionContainer = container.querySelector('.timer-time-selection');
+                        if (timeSelectionContainer && activeTimersSection) {
+                            const moveDistance = activeTimersSection.offsetHeight;
+                            
+                            console.log('🎯 Bewege auch Time Selection nach oben um:', moveDistance, 'px');
+                            
+                            timeSelectionContainer.animate([
+                                { transform: 'translateY(0)' },
+                                { transform: `translateY(-${moveDistance}px)` }
+                            ], {
+                                duration: 400,
+                                fill: 'forwards',
+                                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                            });
+                        }
+                    }, 100);
                 });
             }
         }).catch(error => {
