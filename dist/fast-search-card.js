@@ -3227,6 +3227,177 @@ class FastSearchCard extends HTMLElement {
                 font-size: 13px;
                 background: rgba(255, 255, 255, 0.05);
                 border-radius: 12px;
+            }      
+
+            /* Time Selection */
+            .timer-time-selection {
+                width: 100%;
+                max-width: 320px;
+                margin-top: 20px;
+                padding: 20px;
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 16px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                overflow: hidden;
+                transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            
+            .time-selection-header {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            
+            .selected-action-display {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 8px 16px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                display: inline-flex;
+            }
+            
+            .action-label {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            
+            .action-description {
+                font-size: 13px;
+                color: var(--text-secondary);
+            }
+            
+            /* Time Picker */
+            .time-picker-container {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+            
+            .time-picker-wheel {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 16px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 16px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .time-input-group {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .time-input {
+                width: 60px;
+                height: 40px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                color: var(--text-primary);
+                text-align: center;
+                font-size: 16px;
+                font-weight: 600;
+                outline: none;
+                transition: all 0.2s ease;
+            }
+            
+            .time-input:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+            }
+            
+            .time-label {
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            
+            .time-separator {
+                font-size: 24px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                margin: 0 4px;
+            }
+            
+            /* Quick Time Buttons */
+            .quick-time-buttons {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+            
+            .quick-time-btn {
+                padding: 8px 12px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 12px;
+                color: var(--text-secondary);
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .quick-time-btn:hover {
+                background: rgba(255, 255, 255, 0.15);
+                color: var(--text-primary);
+                transform: translateY(-1px);
+            }
+            
+            .quick-time-btn.active {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: white;
+            }
+            
+            /* Create Actions */
+            .timer-create-actions {
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+            }
+            
+            .timer-cancel-btn,
+            .timer-create-btn {
+                flex: 1;
+                padding: 12px 20px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .timer-cancel-btn {
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                color: var(--text-secondary);
+            }
+            
+            .timer-cancel-btn:hover {
+                background: rgba(255, 255, 255, 0.15);
+                color: var(--text-primary);
+            }
+            
+            .timer-create-btn {
+                background: var(--accent);
+                border: 1px solid var(--accent);
+                color: white;
+            }
+            
+            .timer-create-btn:hover {
+                background: rgba(0, 122, 255, 0.8);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
             }            
                                                 
             </style>
@@ -7142,9 +7313,211 @@ class FastSearchCard extends HTMLElement {
     }    
     
     showTimeSelection(item, action, container) {
-        console.log(`Zeige Time Selection für ${action}`);
-        // TODO: Time Picker als nächstes implementieren
+        console.log(`⏰ Zeige Time Selection für ${action}`);
+        
+        // Container für Time Selection finden oder erstellen
+        let timeSelectionContainer = container.querySelector('.timer-time-selection');
+        if (!timeSelectionContainer) {
+            timeSelectionContainer = document.createElement('div');
+            timeSelectionContainer.className = 'timer-time-selection';
+            timeSelectionContainer.setAttribute('data-is-open', 'false');
+            container.appendChild(timeSelectionContainer);
+        }
+        
+        // Time Selection HTML
+        timeSelectionContainer.innerHTML = `
+            <div class="time-selection-header">
+                <div class="selected-action-display">
+                    <span class="action-label">${this.getActionLabel(action)}</span>
+                    <span class="action-description">in...</span>
+                </div>
+            </div>
+            
+            <div class="time-picker-container">
+                <div class="time-picker-wheel">
+                    <div class="time-input-group">
+                        <input type="number" class="time-input hours" min="0" max="23" value="0" data-type="hours">
+                        <label class="time-label">Std</label>
+                    </div>
+                    <div class="time-separator">:</div>
+                    <div class="time-input-group">
+                        <input type="number" class="time-input minutes" min="0" max="59" value="30" data-type="minutes">
+                        <label class="time-label">Min</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="quick-time-buttons">
+                <button class="quick-time-btn" data-minutes="15">15min</button>
+                <button class="quick-time-btn" data-minutes="30">30min</button>
+                <button class="quick-time-btn" data-minutes="60">1h</button>
+                <button class="quick-time-btn" data-minutes="120">2h</button>
+            </div>
+            
+            <div class="timer-create-actions">
+                <button class="timer-cancel-btn">Abbrechen</button>
+                <button class="timer-create-btn">Timer erstellen</button>
+            </div>
+        `;
+        
+        // Smooth expand animation
+        this.expandTimeSelection(timeSelectionContainer, container);
+        
+        // Setup event listeners für Time Selection
+        this.setupTimeSelectionEvents(item, action, timeSelectionContainer, container);
     }
+    
+    getActionLabel(action) {
+        const labels = {
+            'turn_off': '🔴 Ausschalten',
+            'turn_on': '💡 Einschalten', 
+            'dim_30': '🌙 Dimmen 30%',
+            'dim_50': '🌗 Dimmen 50%'
+        };
+        return labels[action] || action;
+    }
+    
+    expandTimeSelection(timeContainer, parentContainer) {
+        // Focus Mode für Timer Container
+        parentContainer.setAttribute('data-focus-mode', 'true');
+        
+        // Animate time selection in
+        timeContainer.style.maxHeight = '0px';
+        timeContainer.style.opacity = '0';
+        timeContainer.setAttribute('data-is-open', 'true');
+        
+        // Smooth height animation
+        requestAnimationFrame(() => {
+            timeContainer.animate([
+                { maxHeight: '0px', opacity: 0, transform: 'translateY(-20px)' },
+                { maxHeight: '300px', opacity: 1, transform: 'translateY(0)' }
+            ], {
+                duration: 400,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+        });
+        
+        // Animate individual elements
+        setTimeout(() => {
+            const elements = timeContainer.querySelectorAll('.time-picker-wheel > *, .quick-time-buttons, .timer-create-actions');
+            elements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    el.animate([
+                        { opacity: 0, transform: 'translateY(10px)' },
+                        { opacity: 1, transform: 'translateY(0)' }
+                    ], {
+                        duration: 300,
+                        delay: index * 50,
+                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                        fill: 'forwards'
+                    });
+                }, 100);
+            });
+        }, 200);
+    }
+
+    setupTimeSelectionEvents(item, action, timeContainer, parentContainer) {
+        // Quick Time Buttons
+        const quickTimeBtns = timeContainer.querySelectorAll('.quick-time-btn');
+        quickTimeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const minutes = parseInt(btn.dataset.minutes);
+                
+                // Update time inputs
+                const hoursInput = timeContainer.querySelector('.time-input.hours');
+                const minutesInput = timeContainer.querySelector('.time-input.minutes');
+                
+                hoursInput.value = Math.floor(minutes / 60);
+                minutesInput.value = minutes % 60;
+                
+                // Visual feedback
+                quickTimeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Animate button
+                btn.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(0.95)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 150,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                });
+            });
+        });
+        
+        // Cancel Button
+        const cancelBtn = timeContainer.querySelector('.timer-cancel-btn');
+        cancelBtn.addEventListener('click', () => {
+            this.closeTimeSelection(timeContainer, parentContainer);
+        });
+        
+        // Create Timer Button
+        const createBtn = timeContainer.querySelector('.timer-create-btn');
+        createBtn.addEventListener('click', () => {
+            const hours = parseInt(timeContainer.querySelector('.time-input.hours').value) || 0;
+            const minutes = parseInt(timeContainer.querySelector('.time-input.minutes').value) || 0;
+            const totalMinutes = hours * 60 + minutes;
+            
+            if (totalMinutes > 0) {
+                this.createTimerFromSelection(item, action, totalMinutes, timeContainer, parentContainer);
+            }
+        });
+    }
+    
+    closeTimeSelection(timeContainer, parentContainer) {
+        // Animate out
+        timeContainer.animate([
+            { maxHeight: '300px', opacity: 1, transform: 'translateY(0)' },
+            { maxHeight: '0px', opacity: 0, transform: 'translateY(-20px)' }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+        
+        // Remove focus mode
+        setTimeout(() => {
+            parentContainer.removeAttribute('data-focus-mode');
+            timeContainer.remove();
+        }, 300);
+    }
+    
+    async createTimerFromSelection(item, action, durationMinutes, timeContainer, parentContainer) {
+        console.log(`🎯 Erstelle Timer: ${action} in ${durationMinutes} Minuten`);
+        
+        try {
+            // Create timer based on action
+            await this.createActionTimer(item, action, durationMinutes);
+            
+            // Success animation
+            const createBtn = timeContainer.querySelector('.timer-create-btn');
+            createBtn.textContent = '✅ Erstellt!';
+            createBtn.style.background = '#4CAF50';
+            
+            // Close after success
+            setTimeout(() => {
+                this.closeTimeSelection(timeContainer, parentContainer);
+                this.loadActiveTimers(item.id); // Refresh timer list
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ Timer Fehler:', error);
+            const createBtn = timeContainer.querySelector('.timer-create-btn');
+            createBtn.textContent = '❌ Fehler';
+            createBtn.style.background = '#f44336';
+            
+            setTimeout(() => {
+                createBtn.textContent = 'Timer erstellen';
+                createBtn.style.background = '';
+            }, 2000);
+        }
+    }
+    
     
     animateTimerButtonSelection(selectedBtn, allButtons) {
         // Remove active from all buttons with animation
