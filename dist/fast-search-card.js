@@ -7548,14 +7548,6 @@ class FastSearchCard extends HTMLElement {
     }
 
     setupTimeSelectionEvents(item, action, timeContainer, parentContainer) {
-        // ✅ NEU: Cancel Button
-        const cancelBtn = timeContainer.querySelector('.timer-cancel-btn');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => {
-                this.closeTimeSelection(parentContainer);
-            });
-        }
-        
         // Quick Time Buttons
         const quickTimeBtns = timeContainer.querySelectorAll('.quick-time-btn');
         quickTimeBtns.forEach(btn => {
@@ -7585,23 +7577,27 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        // Cancel Button
-        const cancelBtn = timeContainer.querySelector('.timer-cancel-btn');
-        cancelBtn.addEventListener('click', () => {
-            this.closeTimeSelection(timeContainer, parentContainer);
-        });
+        // ✅ NEU: Cancel Button mit neuem Namen
+        const timerCancelBtn = timeContainer.querySelector('.timer-cancel-btn');
+        if (timerCancelBtn) {
+            timerCancelBtn.addEventListener('click', () => {
+                this.closeTimeSelection(parentContainer);
+            });
+        }
         
         // Create Timer Button
         const createBtn = timeContainer.querySelector('.timer-create-btn');
-        createBtn.addEventListener('click', () => {
-            const hours = parseInt(timeContainer.querySelector('.time-input.hours').value) || 0;
-            const minutes = parseInt(timeContainer.querySelector('.time-input.minutes').value) || 0;
-            const totalMinutes = hours * 60 + minutes;
-            
-            if (totalMinutes > 0) {
-                this.createTimerFromSelection(item, action, totalMinutes, timeContainer, parentContainer);
-            }
-        });
+        if (createBtn) {
+            createBtn.addEventListener('click', () => {
+                const hours = parseInt(timeContainer.querySelector('.time-input.hours').value) || 0;
+                const minutes = parseInt(timeContainer.querySelector('.time-input.minutes').value) || 0;
+                const totalMinutes = hours * 60 + minutes;
+                
+                if (totalMinutes > 0) {
+                    this.createTimerFromSelection(item, action, totalMinutes, timeContainer, parentContainer);
+                }
+            });
+        }
     }
     
     closeTimeSelection(container) {
