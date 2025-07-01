@@ -3020,6 +3020,66 @@ class FastSearchCard extends HTMLElement {
                 font-size: 13px;
                 background: rgba(255,255,255,0.05);
                 border-radius: 12px;
+            }      
+
+            /* Timer Modal Content */
+            .step-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            
+            .device-actions {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 12px;
+            }
+            
+            .device-action-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                padding: 20px 16px;
+                background: rgba(255,255,255,0.08);
+                border: 2px solid rgba(255,255,255,0.15);
+                border-radius: 16px;
+                color: var(--text-primary);
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .device-action-btn::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            
+            .device-action-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            }
+            
+            .device-action-btn:hover::before {
+                opacity: 1;
+            }
+            
+            .action-icon {
+                font-size: 24px;
+                margin-bottom: 4px;
+            }
+            
+            .action-text {
+                font-size: 13px;
+                font-weight: 600;
+                text-align: center;
             }            
                                                 
             </style>
@@ -6898,7 +6958,179 @@ class FastSearchCard extends HTMLElement {
         // Setup modal close handlers
         this.setupModalCloseHandlers(modal, item.id);
     }
+
+    setupModalCloseHandlers(modal, itemId) {
+        const backBtn = modal.querySelector('.timer-back-btn');
+        const closeBtn = modal.querySelector('.timer-close-btn');
+        const overlay = modal;
+        
+        // Back Button
+        if (backBtn) {
+            backBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.closeTimerModal(modal);
+            });
+        }
+        
+        // Close Button  
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.closeTimerModal(modal);
+            });
+        }
+        
+        // Click outside to close
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                this.closeTimerModal(modal);
+            }
+        });
+        
+        // ESC key to close
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                this.closeTimerModal(modal);
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    }
     
+    closeTimerModal(modal) {
+        // Animate out
+        modal.animate([
+            { opacity: 1, backdropFilter: 'blur(10px)' },
+            { opacity: 0, backdropFilter: 'blur(0px)' }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+        
+        const modalContent = modal.querySelector('.timer-modal');
+        modalContent.animate([
+            { transform: 'scale(1) translateY(0)', opacity: 1 },
+            { transform: 'scale(0.9) translateY(20px)', opacity: 0 }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+        
+        // Hide after animation
+        setTimeout(() => {
+            modal.classList.remove('visible');
+            modal.style.display = 'none';
+        }, 300);
+    }
+    
+    loadTimerModalContent(item, timerType, container) {
+        if (timerType === 'timer') {
+            this.loadTimerContent(item, container);
+        } else {
+            this.loadScheduleContent(item, container);
+        }
+    }
+    
+    loadTimerContent(item, container) {
+        // Step 1: Device Actions Selection
+        const actions = this.getDeviceActions(item);
+        
+        const actionsHTML = actions.map(action => `
+            <button class="device-action-btn" data-action="${action.id}">
+                <div class="action-icon">${action.icon}</div>
+                <div class="action-text">${action.name}</div>
+            </button>
+        `).join('');
+        
+        container.innerHTML = `
+            <div class="timer-step" data-step="actions">
+                <div class="step-title">Was soll passieren?</div>
+                <div class="device-actions">
+                    ${actionsHTML}
+                </div>
+            </div>
+        `;
+        
+        // Animate in
+        const actionBtns = container.querySelectorAll('.device-action-btn');
+        actionBtns.forEach((btn, index) => {
+            btn.style.opacity = '0';
+            btn.style.transform = 'translateY(20px) scale(0.9)';
+            
+            setTimeout(() => {
+                btn.animate([
+                    { opacity: 0, transform: 'translateY(20px) scale(0.9)' },
+                    { opacity: 1, transform: 'translateY(0) scale(1)' }
+                ], {
+                    duration: 300,
+                    delay: index * 50,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    fill: 'forwards'
+                });
+            }, 100);
+        });
+        
+        // Event listeners für Action Buttons
+        actionBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.handleActionSelection(item, btn.dataset.action, container);
+            });
+        });
+    }
+    
+    loadScheduleContent(item, container) {
+        container.innerHTML = `
+            <div class="timer-step" data-step="schedule">
+                <div class="step-title">Zeitplan erstellen</div>
+                <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    Zeitplan-Feature kommt bald...
+                </div>
+            </div>
+        `;
+    }
+    
+    getDeviceActions(item) {
+        const actionsMap = {
+            'light': [
+                { id: 'turn_on', icon: '💡', name: 'Einschalten' },
+                { id: 'turn_off', icon: '🔴', name: 'Ausschalten' },
+                { id: 'dim_30', icon: '🌙', name: 'Dimmen auf 30%' },
+                { id: 'dim_50', icon: '🌗', name: 'Dimmen auf 50%' }
+            ],
+            'climate': [
+                { id: 'heat_22', icon: '🔥', name: 'Heizen auf 22°C' },
+                { id: 'cool_18', icon: '❄️', name: 'Kühlen auf 18°C' },
+                { id: 'turn_off', icon: '🔴', name: 'Ausschalten' }
+            ],
+            'media_player': [
+                { id: 'play', icon: '▶️', name: 'Abspielen' },
+                { id: 'pause', icon: '⏸️', name: 'Pausieren' },
+                { id: 'turn_off', icon: '🔴', name: 'Ausschalten' }
+            ]
+        };
+        
+        return actionsMap[item.domain] || [
+            { id: 'turn_on', icon: '🟢', name: 'Einschalten' },
+            { id: 'turn_off', icon: '🔴', name: 'Ausschalten' }
+        ];
+    }
+    
+    handleActionSelection(item, actionId, container) {
+        console.log(`Action selected: ${actionId} for ${item.name}`);
+        
+        // TODO: Next step - Time selection
+        container.innerHTML = `
+            <div class="timer-step" data-step="timing">
+                <div class="step-title">Wann soll "${actionId}" ausgeführt werden?</div>
+                <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    Time Picker kommt als nächstes...
+                </div>
+            </div>
+        `;
+    }    
+        
     updateTimerModeHints(mode) {
         const hints = this.shadowRoot.querySelectorAll('.timer-mode-hint');
         hints.forEach(hint => {
