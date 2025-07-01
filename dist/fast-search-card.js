@@ -2757,7 +2757,29 @@ class FastSearchCard extends HTMLElement {
             .active-timers {
                 margin-bottom: 16px;
                 min-height: 60px;
+                max-height: 240px; /* ← NEU: Maximale Höhe für ~3-4 Timer */
+                overflow-y: auto;  /* ← NEU: Scrollbar bei mehr Timern */
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255,255,255,0.2) transparent;
             }
+
+            /* NEU: Webkit Scrollbar Styling für Active Timers */
+            .active-timers::-webkit-scrollbar {
+                width: 4px;
+            }
+            
+            .active-timers::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .active-timers::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.2);
+                border-radius: 2px;
+            }
+            
+            .active-timers::-webkit-scrollbar-thumb:hover {
+                background: rgba(255,255,255,0.3);
+            }            
             
             .loading-timers {
                 text-align: center;
