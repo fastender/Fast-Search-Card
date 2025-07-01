@@ -3211,59 +3211,42 @@ class FastSearchCard extends HTMLElement {
             }
 
             .timer-control-preset {
-                /* Basis von timer-control-button übernehmen */
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
+                color: var(--text-primary);
+                cursor: pointer;
+                transition: all 0.2s ease;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 8px; /* Größerer Abstand zwischen Icon und Text */
-                padding: 20px 16px; /* Größeres Padding wie timer-control-button */
-                min-height: 80px; /* Mindesthöhe wie timer-control-button */
-                background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 16px; /* Größerer border-radius */
-                cursor: pointer;
-                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                position: relative;
-                overflow: hidden;
-                color: var(--text-primary);
-                
-                /* Hover States */
-                &:hover {
-                    background: rgba(255, 255, 255, 0.12);
-                    border-color: rgba(255, 255, 255, 0.2);
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-                }
-                
-                &:active {
-                    transform: translateY(0);
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-                }
-                
-                &.active {
-                    background: var(--accent);
-                    border-color: var(--accent);
-                    color: white;
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-                }
-            }
-
-            .timer-control-preset svg {
-                width: 28px; /* Größer als vorher (16px) */
-                height: 28px;
-                stroke-width: 1.5; /* Etwas dicker */
-                transition: all 0.3s ease;
+                gap: 4px;
+                padding: 8px;
             }
             
-            /* ✅ Größere Labels */
+            .timer-control-preset:hover {
+                transform: scale(1.05);
+                background: rgba(255, 255, 255, 0.2);
+            }
+            
+            .timer-control-preset.active {
+                background: var(--accent);
+                color: white;
+            }
+            
+            .timer-control-preset svg {
+                width: 20px;
+                height: 20px;
+                stroke-width: 1;
+            }
+            
             .timer-preset-label {
-                font-size: 12px; /* Größer als vorher (8px) */
+                font-size: 9px;
                 font-weight: 600;
-                line-height: 1.2;
-                text-align: center;
-                transition: all 0.3s ease;
+                line-height: 1;
             }
 
             /* ✅ Hover-Effekte für Icons und Labels */
@@ -3281,19 +3264,20 @@ class FastSearchCard extends HTMLElement {
                     grid-template-columns: repeat(2, 1fr); /* Auch mobile 2 Spalten */
                     gap: 10px;
                 }
-                
+
                 .timer-control-preset {
-                    padding: 16px 12px;
-                    min-height: 70px;
-                }
+                    width: 50px;        /* ← KLEINER für Mobile */
+                    height: 50px;       /* ← KLEINER für Mobile */
+                    padding: 6px;       /* ← WENIGER Padding */
+                }                
                 
                 .timer-control-preset svg {
-                    width: 24px;
-                    height: 24px;
+                    width: 18px;
+                    height: 18px;
                 }
                 
                 .timer-preset-label {
-                    font-size: 11px;
+                    font-size: 8px;
                 }
             }            
 
@@ -9955,57 +9939,59 @@ class FastSearchCard extends HTMLElement {
         this.initializeShortcutsEvents(item);     
     }
 
-
     initializeShortcutsEvents(item) {
-        const container = this.shadowRoot.querySelector(`#timer-section-${item.id}`)?.closest('.shortcuts-container');
-        if (!container) return;
-    
-        // ✅ Tab-Switching für alle 4 Tabs
-        const shortcutsBtns = container.querySelectorAll('.shortcuts-btn');
-        const shortcutsContents = container.querySelectorAll('.shortcuts-tab-content');
-        
-        shortcutsBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetTab = btn.dataset.shortcutsTab;
-                console.log(`🎯 Switching to tab: ${targetTab}`);
-                
-                // Alle Buttons deaktivieren
-                shortcutsBtns.forEach(b => b.classList.remove('active'));
-                // Aktuellen Button aktivieren
-                btn.classList.add('active');
-                
-                // Alle Contents verstecken
-                shortcutsContents.forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                // Ziel-Content anzeigen
-                const targetContent = container.querySelector(`[data-shortcuts-content="${targetTab}"]`);
-                if (targetContent) {
-                    targetContent.classList.add('active');
+        // ✅ WARTE bis DOM bereit ist
+        setTimeout(() => {
+            const shortcutsBtns = this.shadowRoot.querySelectorAll('.shortcuts-btn');
+            console.log('🎯 Found shortcuts buttons:', shortcutsBtns.length);
+            
+            shortcutsBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     
-                    // ✅ Tab-spezifische Initialisierung
-                    switch(targetTab) {
-                        case 'timer':
-                            this.initializeTimerTab(item, targetContent);
-                            break;
-                        case 'zeitplan':
-                            this.initializeScheduleTab(item, targetContent);
-                            break;
-                        case 'scenes':
-                            this.initializeScenesTab(item, targetContent);
-                            break;
-                        case 'scripts':
-                            this.initializeScriptsTab(item, targetContent);
-                            break;
+                    const targetTab = btn.dataset.shortcutsTab;
+                    console.log(`🎯 Switching to tab: ${targetTab}`);
+                    
+                    // Alle Buttons deaktivieren
+                    shortcutsBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Alle Contents verstecken
+                    const shortcutsContents = this.shadowRoot.querySelectorAll('.shortcuts-tab-content');
+                    shortcutsContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Ziel-Content anzeigen
+                    const targetContent = this.shadowRoot.querySelector(`[data-shortcuts-content="${targetTab}"]`);
+                    if (targetContent) {
+                        targetContent.classList.add('active');
+                        
+                        // Tab-spezifische Initialisierung
+                        switch(targetTab) {
+                            case 'timer':
+                                this.initializeTimerTab(item, targetContent);
+                                break;
+                            case 'zeitplan':
+                                this.initializeScheduleTab(item, targetContent);
+                                break;
+                            case 'scenes':
+                                this.initializeScenesTab(item, targetContent);
+                                break;
+                            case 'scripts':
+                                this.initializeScriptsTab(item, targetContent);
+                                break;
+                        }
                     }
-                }
+                });
             });
-        });
-        
-        // ✅ Initial: Timer Tab aktivieren und initialisieren
-        this.initializeTimerTab(item, container.querySelector('[data-shortcuts-content="timer"]'));
-    }
+            
+            // Initial Timer Tab aktivieren
+            const timerContent = this.shadowRoot.querySelector('[data-shortcuts-content="timer"]');
+            if (timerContent) {
+                this.initializeTimerTab(item, timerContent);
+            }
+        }, 100);
+    }        
     
     // ✅ Timer Tab Initialisierung 
     initializeTimerTab(item, container) {
