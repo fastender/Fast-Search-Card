@@ -7490,7 +7490,7 @@ class FastSearchCard extends HTMLElement {
         };
         return labels[action] || action;
     }
-        
+             
     expandTimeSelection(timeContainer, parentContainer) {        
         console.log('🎬 Expanding Time Selection - Start');
         console.log('🔍 timeContainer:', timeContainer);
@@ -7506,7 +7506,7 @@ class FastSearchCard extends HTMLElement {
         requestAnimationFrame(() => {
             console.log('🎬 RequestAnimationFrame - Hauptanimation');
             
-            timeContainer.animate([
+            const animation = timeContainer.animate([
                 { maxHeight: '0px', opacity: 0, transform: 'translateY(-20px)' },
                 { maxHeight: '300px', opacity: 1, transform: 'translateY(0)' }
             ], {
@@ -7514,7 +7514,24 @@ class FastSearchCard extends HTMLElement {
                 easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 fill: 'forwards'
             });
+            
+            // ✅ DEBUG: Nach Animation prüfen
+            animation.finished.then(() => {
+                console.log('🎯 Animation fertig - Container Styles:');
+                console.log('maxHeight:', timeContainer.style.maxHeight);
+                console.log('opacity:', timeContainer.style.opacity);
+                console.log('offsetHeight:', timeContainer.offsetHeight);
+                console.log('scrollHeight:', timeContainer.scrollHeight);
+            });
         });
+        
+        // ✅ SCHNELLER TEST - direkt ohne Animation
+        setTimeout(() => {
+            console.log('🧪 TEST: Setze direkt ohne Animation');
+            timeContainer.style.maxHeight = '400px';
+            timeContainer.style.opacity = '1';
+            timeContainer.style.visibility = 'visible';
+        }, 1000);
         
         // Animate individual elements
         setTimeout(() => {
@@ -7541,7 +7558,7 @@ class FastSearchCard extends HTMLElement {
             });
         }, 200);
     }
-
+        
     setupTimeSelectionEvents(item, action, timeContainer, parentContainer) {
         // Quick Time Buttons
         const quickTimeBtns = timeContainer.querySelectorAll('.quick-time-btn');
