@@ -3350,7 +3350,7 @@ class FastSearchCard extends HTMLElement {
             .timer-time-selection {
                 width: 100%;
                 max-width: 320px;
-                margin: 20px auto; /* ← GEÄNDERT: auto für zentrieren */
+                margin: 20px auto 0 auto;
                 padding: 20px;
                 background: rgba(0, 0, 0, 0.2);
                 border-radius: 16px;
@@ -10159,7 +10159,7 @@ class FastSearchCard extends HTMLElement {
             }).finished : Promise.resolve();
 
         console.log('🎭 fadeOutPromise erstellt, starte .then()');
-        
+
         // Animation 2: Timer Control nach oben (NACH Animation 1)
         fadeOutPromise.then(() => {
             console.log('🔄 fadeOutPromise beendet - bewege Timer Control nach oben');
@@ -10167,15 +10167,14 @@ class FastSearchCard extends HTMLElement {
             if (timerControlDesign && activeTimersSection) {
                 // ✅ DYNAMISCH: Echte Höhe des Active Timers Bereichs messen
                 const activeSectionHeight = activeTimersSection.offsetHeight;
-                const margin = 16; // Extra margin
-                const moveDistance = activeSectionHeight + margin;
+                const moveDistance = activeSectionHeight; // Ohne extra margin
                 
                 console.log(`📏 Active Timers Höhe: ${activeSectionHeight}px`);
                 console.log(`🔄 Bewege Timer Control um ${moveDistance}px nach oben`);
                 
                 const moveUpPromise = timerControlDesign.animate([
                     { transform: 'translateY(0)' },
-                    { transform: `translateY(-${moveDistance}px)` }  // ← Dynamische Höhe!
+                    { transform: `translateY(-${moveDistance}px)` }
                 ], {
                     duration: 400,
                     fill: 'forwards',
