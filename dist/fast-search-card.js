@@ -7419,7 +7419,12 @@ class FastSearchCard extends HTMLElement {
     }    
     
     showTimeSelection(item, action, container) {
-        console.log(`⏰ Zeige Time Selection für ${action}`);
+        console.log(`⏰ Zeige Time Selection für ${action} - aufgerufen von:`, new Error().stack);
+        
+        if (this.isTimeSelectionOpen) {
+            console.log('⚠️ Time Selection bereits offen - ignoriere');
+            return;
+        }
         
         let timeSelectionContainer = container.querySelector('.timer-time-selection');
         if (!timeSelectionContainer) {
@@ -7429,12 +7434,10 @@ class FastSearchCard extends HTMLElement {
             container.appendChild(timeSelectionContainer);
         }
         
-        // ✅ WICHTIG: Styles VOR innerHTML setzen
         timeSelectionContainer.style.maxHeight = '0px';
         timeSelectionContainer.style.opacity = '0';
         timeSelectionContainer.style.overflow = 'hidden';        
         
-        // Time Selection HTML
         timeSelectionContainer.innerHTML = `
             <div class="time-selection-header">
                 <div class="selected-action-display">
@@ -7469,15 +7472,13 @@ class FastSearchCard extends HTMLElement {
                 <button class="timer-create-btn">Timer erstellen</button>
             </div>
         `;
-
-        // ✅ GEÄNDERT: Animation NACH dem nächsten Frame
+        
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 this.expandTimeSelection(timeSelectionContainer, container);
             });
         });
         
-        // Setup event listeners für Time Selection
         this.setupTimeSelectionEvents(item, action, timeSelectionContainer, container);
     }
     
