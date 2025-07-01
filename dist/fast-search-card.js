@@ -2549,22 +2549,43 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
             }
-            
+
+            .shortcuts-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
             .shortcuts-header h3 {
-                margin: 0 0 20px 0;
+                margin: 0;
                 color: var(--text-primary);
                 font-size: 16px;
                 font-weight: 600;
             }
-            
-            .shortcuts-tabs {
+
+            .shortcuts-controls {
                 display: flex;
                 gap: 8px;
-                margin-bottom: 20px;
-                background: rgba(0, 0, 0, 0.25);
-                border-radius: 12px;
-                padding: 4px;
             }
+            
+            .shortcuts-btn {
+                padding: 6px 12px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 12px;
+                color: var(--text-secondary);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            
+            .shortcuts-btn.active, .shortcuts-btn:hover {
+                background: var(--accent);
+                color: white;
+                border-color: var(--accent);
+            }            
             
             .shortcuts-tab {
                 flex: 1;
@@ -6093,6 +6114,11 @@ class FastSearchCard extends HTMLElement {
             <div class="shortcuts-container">
                 <div class="shortcuts-header">
                     <h3>Shortcuts für ${item.name}</h3>
+                    <div class="shortcuts-controls">
+                        <button class="shortcuts-btn active" data-shortcuts-tab="timer">Timer</button>
+                        <button class="shortcuts-btn" data-shortcuts-tab="scenes">Szenen</button>
+                        <button class="shortcuts-btn" data-shortcuts-tab="scripts">Skripte</button>
+                    </div>                    
                 </div>
                 
                 <div class="shortcuts-stats">
@@ -6108,12 +6134,6 @@ class FastSearchCard extends HTMLElement {
                         <div class="stat-title">Skripte</div>
                         <div class="stat-value">${stats.scripts} vorhanden</div>
                     </div>
-                </div>
-                
-                <div class="shortcuts-tabs">
-                    <button class="shortcuts-tab active" data-shortcuts-tab="timer">Timer</button>
-                    <button class="shortcuts-tab" data-shortcuts-tab="scenes">Szenen</button>
-                    <button class="shortcuts-tab" data-shortcuts-tab="scripts">Skripte</button>
                 </div>
                 
                 <div class="shortcuts-content">
@@ -8152,6 +8172,23 @@ class FastSearchCard extends HTMLElement {
     
         // History Event Listeners hinzufügen  ← HIER EINFÜGEN
         this.setupHistoryEventListeners(item);
+
+        // Shortcuts-Buttons Event Listeners (NEU HINZUFÜGEN)
+        const shortcutsButtons = this.shadowRoot.querySelectorAll('.shortcuts-btn');
+        shortcutsButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const tab = button.dataset.shortcutsTab;
+                
+                // Update active button
+                shortcutsButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update content
+                const contents = this.shadowRoot.querySelectorAll('.shortcuts-tab-content');
+                contents.forEach(content => content.classList.remove('active'));
+                this.shadowRoot.querySelector(`[data-shortcuts-content="${tab}"]`).classList.add('active');
+            });
+        });        
     }
         
     
