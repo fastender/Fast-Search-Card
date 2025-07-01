@@ -10032,13 +10032,17 @@ class FastSearchCard extends HTMLElement {
                         easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
                     });
                 }
-                
-                // 2. Timer Control Design schwebt nach oben
+
+                // 2. Timer Control Design schwebt dynamisch nach oben
                 setTimeout(() => {
-                    if (timerControlDesign) {
+                    if (timerControlDesign && activeTimersSection) {
+                        // ✅ DYNAMISCH: Höhe der aktiven Timer Sektion messen
+                        const activeSectionHeight = activeTimersSection.offsetHeight;
+                        console.log(`🔄 Bewege Buttons um ${activeSectionHeight}px nach oben`);
+                        
                         timerControlDesign.animate([
                             { transform: 'translateY(0)' },
-                            { transform: 'translateY(-80px)' }
+                            { transform: `translateY(-${activeSectionHeight}px)` }
                         ], { 
                             duration: 400, 
                             fill: 'forwards',
