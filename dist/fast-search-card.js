@@ -3187,56 +3187,131 @@ class FastSearchCard extends HTMLElement {
                 opacity: 1;
                 margin-top: 30px;
             }
+
+            /* ✅ NEUE größere Timer Presets - Design von timer-control-row übernehmen */
+            .timer-control-presets.timer-action-presets,
+            .timer-control-presets.schedule-action-presets {
+                width: 100%;
+                max-width: none; /* Entferne Begrenzung */
+                margin: 0; /* Kein auto centering */
+                padding: 0; /* Kein extra padding */
+                background: transparent; /* Kein Background */
+                border: none; /* Kein Border */
+                border-radius: 0; /* Kein border-radius */
+                overflow: visible; /* Sichtbar */
+                transition: none; /* Keine Transition */
+            }
             
             .timer-control-presets-grid {
                 display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 12px;
-                justify-items: center;
+                grid-template-columns: repeat(2, 1fr); /* 2 Spalten wie timer-control-row */
+                gap: 12px; /* Größerer Abstand */
+                width: 100%;
+                padding: 0;
             }
-            
+
             .timer-control-preset {
-                width: 48px;
-                height: 48px;
-                border-radius: 50%;
-                cursor: pointer;
-                border: 2px solid transparent;
-                position: relative;
+                /* Basis von timer-control-button übernehmen */
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                font-size: 12px;
-                font-weight: 600;
-                color: rgba(255, 255, 255, 0.9);
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-                background: rgba(255, 255, 255, 0.1);
-                transition: all 0.2s ease;
-                gap: 2px;
-                padding: 4px;
+                gap: 8px; /* Größerer Abstand zwischen Icon und Text */
+                padding: 20px 16px; /* Größeres Padding wie timer-control-button */
+                min-height: 80px; /* Mindesthöhe wie timer-control-button */
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 16px; /* Größerer border-radius */
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                position: relative;
+                overflow: hidden;
+                color: var(--text-primary);
+                
+                /* Hover States */
+                &:hover {
+                    background: rgba(255, 255, 255, 0.12);
+                    border-color: rgba(255, 255, 255, 0.2);
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                }
+                
+                &:active {
+                    transform: translateY(0);
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                }
+                
+                &.active {
+                    background: var(--accent);
+                    border-color: var(--accent);
+                    color: white;
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+                }
             }
-            
-            .timer-control-preset:hover {
-                transform: scale(1.05);
-                background: rgba(255, 255, 255, 0.2);
-            }
-            
-            .timer-control-preset.active {
-                border-color: white;
-                background: var(--accent);
-            }
-            
+
             .timer-control-preset svg {
-                width: 16px;
-                height: 16px;
-                stroke-width: 1;
+                width: 28px; /* Größer als vorher (16px) */
+                height: 28px;
+                stroke-width: 1.5; /* Etwas dicker */
+                transition: all 0.3s ease;
             }
             
+            /* ✅ Größere Labels */
             .timer-preset-label {
-                font-size: 8px;
+                font-size: 12px; /* Größer als vorher (8px) */
                 font-weight: 600;
-                line-height: 1;
+                line-height: 1.2;
+                text-align: center;
+                transition: all 0.3s ease;
             }
+
+            /* ✅ Hover-Effekte für Icons und Labels */
+            .timer-control-preset:hover svg {
+                transform: scale(1.1);
+            }
+            
+            .timer-control-preset:hover .timer-preset-label {
+                transform: translateY(-1px);
+            }          
+
+            /* ✅ Mobile Anpassung */
+            @media (max-width: 768px) {
+                .timer-control-presets-grid {
+                    grid-template-columns: repeat(2, 1fr); /* Auch mobile 2 Spalten */
+                    gap: 10px;
+                }
+                
+                .timer-control-preset {
+                    padding: 16px 12px;
+                    min-height: 70px;
+                }
+                
+                .timer-control-preset svg {
+                    width: 24px;
+                    height: 24px;
+                }
+                
+                .timer-preset-label {
+                    font-size: 11px;
+                }
+            }            
+
+            /* ✅ Spezielle Behandlung für Schedule Presets */
+            .schedule-action-presets .timer-control-preset {
+                /* Gleiche Styles wie Timer, aber mit schedule-spezifischen Farben */
+                &:hover {
+                    background: rgba(120, 119, 198, 0.15); /* Lila Tint für Schedule */
+                }
+                
+                &.active {
+                    background: linear-gradient(135deg, #7877c6, #5c5ce0);
+                    border-color: #7877c6;
+                }
+            }
+
+
+            
             
             /* Active Timers */
             .active-timers {
@@ -6865,37 +6940,20 @@ class FastSearchCard extends HTMLElement {
     }
 
     getShortcutsHTML(item) {
-        // Stats für die Cards berechnen
-        const stats = this.getShortcutsStats(item);
-        
         return `
             <div class="shortcuts-container">
                 <div class="shortcuts-header">
                     <h3>Shortcuts für ${item.name}</h3>
                     <div class="shortcuts-controls">
                         <button class="shortcuts-btn active" data-shortcuts-tab="timer">Timer</button>
+                        <button class="shortcuts-btn" data-shortcuts-tab="zeitplan">Zeitplan</button>
                         <button class="shortcuts-btn" data-shortcuts-tab="scenes">Szenen</button>
                         <button class="shortcuts-btn" data-shortcuts-tab="scripts">Skripte</button>
                     </div>                    
                 </div>
                 
-                <div class="shortcuts-stats">
-                    <div class="shortcuts-stat-card">
-                        <div class="stat-title">Timer</div>
-                        <div class="stat-value">${stats.timers} Aktiv</div>
-                    </div>
-                    <div class="shortcuts-stat-card">
-                        <div class="stat-title">Szenen</div>
-                        <div class="stat-value">${stats.scenes} vorhanden</div>
-                    </div>
-                    <div class="shortcuts-stat-card">
-                        <div class="stat-title">Skripte</div>
-                        <div class="stat-value">${stats.scripts} vorhanden</div>
-                    </div>
-                </div>
-                
                 <div class="shortcuts-content">            
-
+                    <!-- ✅ TIMER TAB - Nur noch Timer-spezifische Inhalte -->
                     <div class="shortcuts-tab-content active" data-shortcuts-content="timer">
                         <div id="timer-section-${item.id}">
                             <!-- Aktive Timer Anzeige -->
@@ -6903,29 +6961,10 @@ class FastSearchCard extends HTMLElement {
                                 <div class="loading-timers">Lade Timer...</div>
                             </div>
                             
-                            <!-- Timer Controls (wie device-control-row) -->
+                            <!-- 🚨 HIER DIREKT TIMER-PRESETS - KEIN Timer/Zeitplan Button mehr -->
                             <div class="timer-control-design" id="timer-control-${item.id}">
-                                <!-- Hauptbuttons: Timer vs Zeitplan -->
-                                <div class="timer-control-row">
-                                    <button class="timer-control-button" data-action="timer" data-item-id="${item.id}" title="Timer erstellen">
-                                        <svg width="24px" height="24px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                            <path d="M12 12C15.866 12 19 8.86599 19 5H5C5 8.86599 8.13401 12 12 12ZM12 12C15.866 12 19 15.134 19 19H5C5 15.134 8.13401 12 12 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M5 2L12 2L19 2" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M5 22H12L19 22" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span class="timer-button-label">Timer</span>
-                                    </button>
-                                    <button class="timer-control-button" data-action="schedule" data-item-id="${item.id}" title="Zeitplan erstellen">
-                                        <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                            <path d="M12 6L12 12L18 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M12 22C17.5228 22 22 17.5228 22 12C2 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span class="timer-button-label">Zeitplan</span>
-                                    </button>
-                                </div>
-                                
-                                <!-- Timer Action Presets (versteckt) -->
-                                <div class="timer-control-presets timer-action-presets" data-is-open="false">
+                                <!-- ✅ Direkt die Action Presets (größeres Design) -->
+                                <div class="timer-control-presets timer-action-presets visible" data-is-open="true">
                                     <div class="timer-control-presets-grid">
                                         <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
                                             <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
@@ -6939,21 +6978,17 @@ class FastSearchCard extends HTMLElement {
                                                 <path d="M17 13C17.5523 13 18 12.5523 18 12C18 11.4477 17.5523 11 17 11C16.4477 11 16 11.4477 16 12C16 12.5523 16.4477 13 17 13Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
                                                 <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z" stroke="currentColor" stroke-width="1"/>
                                             </svg>
-                                            <span class="timer-preset-label">An</span>
+                                            <span class="timer-preset-label">Ein</span>
                                         </button>
-                                        <button class="timer-control-preset" data-action="dim_30" title="Dimmen auf 30%">
-                                            <svg width="24px" height="24px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <button class="timer-control-preset" data-action="dim_30" title="30% Helligkeit">
+                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
                                                 <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M15.5 7.5L12 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                             <span class="timer-preset-label">30%</span>
                                         </button>
-                                        <button class="timer-control-preset" data-action="dim_50" title="Dimmen auf 50%">
-                                            <svg width="24px" height="24px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <button class="timer-control-preset" data-action="dim_50" title="50% Helligkeit">
+                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
                                                 <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M15.5 7.5L12 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                             <span class="timer-preset-label">50%</span>
                                         </button>
@@ -6962,11 +6997,68 @@ class FastSearchCard extends HTMLElement {
                             </div>
                         </div>
                     </div>
-
-                    
+    
+                    <!-- ✅ NEUER ZEITPLAN TAB -->
+                    <div class="shortcuts-tab-content" data-shortcuts-content="zeitplan">
+                        <div id="schedule-section-${item.id}">
+                            <!-- Aktive Zeitpläne Anzeige -->
+                            <div class="active-schedules" id="active-schedules-${item.id}">
+                                <div class="loading-schedules">Lade Zeitpläne...</div>
+                            </div>
+                            
+                            <!-- Zeitplan Controls -->
+                            <div class="schedule-control-design" id="schedule-control-${item.id}">
+                                <!-- Zeitplan Action Presets -->
+                                <div class="timer-control-presets schedule-action-presets visible" data-is-open="true">
+                                    <div class="timer-control-presets-grid">
+                                        <button class="timer-control-preset" data-action="schedule_daily" title="Täglich">
+                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                                                <path d="M8 2V5" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M16 2V5" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M3 8H21" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M3 7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V7Z" stroke="currentColor"/>
+                                            </svg>
+                                            <span class="timer-preset-label">Täglich</span>
+                                        </button>
+                                        <button class="timer-control-preset" data-action="schedule_weekly" title="Wöchentlich">
+                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                                                <path d="M8 2V5" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M16 2V5" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M3 8H21" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M3 7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V7Z" stroke="currentColor"/>
+                                                <path d="M7 12H17" stroke="currentColor" stroke-linecap="round"/>
+                                            </svg>
+                                            <span class="timer-preset-label">Wöchentlich</span>
+                                        </button>
+                                        <button class="timer-control-preset" data-action="schedule_weekdays" title="Werktags">
+                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                                                <path d="M8 2V5" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M16 2V5" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M3 8H21" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M3 7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V7Z" stroke="currentColor"/>
+                                                <path d="M9 15H15" stroke="currentColor" stroke-linecap="round"/>
+                                            </svg>
+                                            <span class="timer-preset-label">Werktags</span>
+                                        </button>
+                                        <button class="timer-control-preset" data-action="schedule_custom" title="Benutzerdefiniert">
+                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                                                <path d="M12 6L12 12L18 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor"/>
+                                            </svg>
+                                            <span class="timer-preset-label">Custom</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- ✅ SZENEN TAB (unverändert) -->
                     <div class="shortcuts-tab-content" data-shortcuts-content="scenes">
                         <p>Szenen Content</p>
                     </div>
+                    
+                    <!-- ✅ SKRIPTE TAB (unverändert) -->
                     <div class="shortcuts-tab-content" data-shortcuts-content="scripts">
                         <p>Skripte Content</p>
                     </div>
@@ -6974,18 +7066,6 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
-
-    getShortcutsStats(item) {
-        // Placeholder Logic - wird später durch echte Discovery ersetzt
-        const deviceTimers = this.getDeviceTimers(item.id);
-        const roomScenes = this.getRoomScenes(item.area);
-        const deviceScripts = this.getDeviceScripts(item.id, item.area);
-        
-        return {
-            timers: deviceTimers.length,
-            scenes: roomScenes.length, 
-            scripts: deviceScripts.length
-        };
     }
     
     // Placeholder Methoden (erstmal mit Dummy-Daten)
@@ -9873,24 +9953,196 @@ class FastSearchCard extends HTMLElement {
         this.setupTimerEventListeners(item);        
 
         // Shortcuts-Buttons Event Listeners (NEU HINZUFÜGEN)
-        const shortcutsButtons = this.shadowRoot.querySelectorAll('.shortcuts-btn');
-        shortcutsButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const tab = button.dataset.shortcutsTab;
-                
-                // Update active button
-                shortcutsButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                
-                // Update content
-                const contents = this.shadowRoot.querySelectorAll('.shortcuts-tab-content');
-                contents.forEach(content => content.classList.remove('active'));
-                this.shadowRoot.querySelector(`[data-shortcuts-content="${tab}"]`).classList.add('active');
-            });
-        });        
+        this.initializeShortcutsEvents(item);     
     }
-        
+
+
+    initializeShortcutsEvents(item) {
+        const container = this.shadowRoot.querySelector(`#timer-section-${item.id}`)?.closest('.shortcuts-container');
+        if (!container) return;
     
+        // ✅ Tab-Switching für alle 4 Tabs
+        const shortcutsBtns = container.querySelectorAll('.shortcuts-btn');
+        const shortcutsContents = container.querySelectorAll('.shortcuts-tab-content');
+        
+        shortcutsBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.dataset.shortcutsTab;
+                console.log(`🎯 Switching to tab: ${targetTab}`);
+                
+                // Alle Buttons deaktivieren
+                shortcutsBtns.forEach(b => b.classList.remove('active'));
+                // Aktuellen Button aktivieren
+                btn.classList.add('active');
+                
+                // Alle Contents verstecken
+                shortcutsContents.forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Ziel-Content anzeigen
+                const targetContent = container.querySelector(`[data-shortcuts-content="${targetTab}"]`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                    
+                    // ✅ Tab-spezifische Initialisierung
+                    switch(targetTab) {
+                        case 'timer':
+                            this.initializeTimerTab(item, targetContent);
+                            break;
+                        case 'zeitplan':
+                            this.initializeScheduleTab(item, targetContent);
+                            break;
+                        case 'scenes':
+                            this.initializeScenesTab(item, targetContent);
+                            break;
+                        case 'scripts':
+                            this.initializeScriptsTab(item, targetContent);
+                            break;
+                    }
+                }
+            });
+        });
+        
+        // ✅ Initial: Timer Tab aktivieren und initialisieren
+        this.initializeTimerTab(item, container.querySelector('[data-shortcuts-content="timer"]'));
+    }
+    
+    // ✅ Timer Tab Initialisierung 
+    initializeTimerTab(item, container) {
+        console.log('🔥 Initializing Timer Tab for', item.name);
+        
+        // Timer Preset Buttons Event Listeners
+        const timerPresets = container.querySelectorAll('.timer-control-preset');
+        timerPresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                const action = preset.dataset.action;
+                console.log(`Timer Action ausgewählt: ${action} für ${item.name}`);
+                
+                // Visual feedback
+                timerPresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+                
+                // ✅ Direkt zur Zeit-Auswahl
+                setTimeout(() => {
+                    this.showTimeSelection(item, action, container);
+                }, 200);
+            });
+        });
+        
+        // Lade aktive Timer
+        this.loadActiveTimers(item.id);
+    }
+    
+    // ✅ Zeitplan Tab Initialisierung 
+    initializeScheduleTab(item, container) {
+        console.log('📅 Initializing Schedule Tab for', item.name);
+        
+        // Schedule Preset Buttons Event Listeners
+        const schedulePresets = container.querySelectorAll('.timer-control-preset');
+        schedulePresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                const action = preset.dataset.action;
+                console.log(`Schedule Action ausgewählt: ${action} für ${item.name}`);
+                
+                // Visual feedback
+                schedulePresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+                
+                // ✅ Zeitplan-spezifische Logik
+                setTimeout(() => {
+                    this.showScheduleConfiguration(item, action, container);
+                }, 200);
+            });
+        });
+        
+        // Lade aktive Zeitpläne
+        this.loadActiveSchedules(item.id);
+    }
+    
+    // ✅ Szenen Tab Initialisierung 
+    initializeScenesTab(item, container) {
+        console.log('🎭 Initializing Scenes Tab for', item.name);
+        
+        // TODO: Szenen-spezifische Logik implementieren
+        container.innerHTML = `
+            <div class="scenes-content">
+                <h4>Verfügbare Szenen für ${item.name}</h4>
+                <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                    Szenen-Feature wird implementiert...
+                </div>
+            </div>
+        `;
+    }
+    
+    // ✅ Skripte Tab Initialisierung 
+    initializeScriptsTab(item, container) {
+        console.log('📜 Initializing Scripts Tab for', item.name);
+        
+        // TODO: Skripte-spezifische Logik implementieren
+        container.innerHTML = `
+            <div class="scripts-content">
+                <h4>Verfügbare Skripte für ${item.name}</h4>
+                <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                    Skripte-Feature wird implementiert...
+                </div>
+            </div>
+        `;
+    }
+    
+    // ✅ Neue Methoden für Zeitplan-spezifische Funktionen
+    showScheduleConfiguration(item, scheduleType, container) {
+        console.log(`⏰ Zeige Schedule Configuration für ${scheduleType}`);
+        
+        // Container für Schedule Configuration finden oder erstellen
+        let scheduleConfigContainer = container.querySelector('.schedule-configuration');
+        if (!scheduleConfigContainer) {
+            scheduleConfigContainer = document.createElement('div');
+            scheduleConfigContainer.className = 'schedule-configuration';
+            container.appendChild(scheduleConfigContainer);
+        }
+        
+        // Schedule Configuration HTML
+        scheduleConfigContainer.innerHTML = `
+            <div class="schedule-config-header">
+                <div class="selected-schedule-display">
+                    <span class="schedule-label">${this.getScheduleLabel(scheduleType)}</span>
+                    <span class="schedule-description">Zeitplan</span>
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                ${scheduleType} Zeitplan-Konfiguration kommt als nächstes...
+            </div>
+        `;
+    }
+    
+    loadActiveSchedules(deviceId) {
+        console.log('📋 Loading active schedules for device:', deviceId);
+        
+        const schedulesContainer = this.shadowRoot.querySelector(`#active-schedules-${deviceId}`);
+        if (!schedulesContainer) return;
+        
+        // TODO: Echte Zeitplan-Discovery implementieren
+        schedulesContainer.innerHTML = `
+            <div class="no-schedules">Keine aktiven Zeitpläne</div>
+        `;
+    }
+    
+    getScheduleLabel(scheduleType) {
+        const labels = {
+            'schedule_daily': 'Täglich',
+            'schedule_weekly': 'Wöchentlich', 
+            'schedule_weekdays': 'Werktags',
+            'schedule_custom': 'Benutzerdefiniert'
+        };
+        return labels[scheduleType] || scheduleType;
+    }
+
+
+
+
+
     setupLightControls(item) {
         const lightContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
         if (!lightContainer) return;
