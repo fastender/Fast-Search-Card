@@ -3116,9 +3116,9 @@ class FastSearchCard extends HTMLElement {
                 margin-top: 20px;
                 position: relative;
                 z-index: 5;
-                height: calc(100vh - 400px); /* ← NEU: Feste Höhe */
-                max-height: 400px; /* ← NEU: Max Höhe */
-                overflow-y: auto; /* ← NEU: Scrollbar */
+                height: auto;
+                max-height: none;
+                overflow-y: visible;
                 scrollbar-width: thin; /* ← NEU: Dünne Scrollbar */
                 scrollbar-color: rgba(255,255,255,0.2) transparent; /* ← NEU */
                 -ms-overflow-style: none; /* ← NEU */
