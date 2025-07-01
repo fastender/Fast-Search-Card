@@ -7559,15 +7559,15 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        // ✅ NEU: Cancel Button mit neuem Namen
+        // ✅ Cancel Button
         const timerCancelBtn = timeContainer.querySelector('.timer-cancel-btn');
         if (timerCancelBtn) {
             timerCancelBtn.addEventListener('click', () => {
-                this.closeTimeSelection(parentContainer);
+                this.resetToInitialTimerState(parentContainer);
             });
         }
         
-        // Create Timer Button
+        // ✅ Create Timer Button
         const createBtn = timeContainer.querySelector('.timer-create-btn');
         if (createBtn) {
             createBtn.addEventListener('click', () => {
@@ -7576,7 +7576,13 @@ class FastSearchCard extends HTMLElement {
                 const totalMinutes = hours * 60 + minutes;
                 
                 if (totalMinutes > 0) {
-                    this.createTimerFromSelection(item, action, totalMinutes, timeContainer, parentContainer);
+                    this.createTimerFromSelection(item, action, totalMinutes, timeContainer, parentContainer)
+                        .then(() => {
+                            // ✅ Nach erfolgreichem Timer erstellen zurücksetzen
+                            setTimeout(() => {
+                                this.resetToInitialTimerState(parentContainer);
+                            }, 1000);
+                        });
                 }
             });
         }
@@ -7636,48 +7642,57 @@ class FastSearchCard extends HTMLElement {
 
     resetToInitialTimerState(container) {
         console.log('🔄 Reset to initial timer state');
+        this.isTimeSelectionOpen = false; // ← State zurücksetzen
         
-        // 1. Alle Button Selections zurücksetzen
-        const timerPresets = container.querySelectorAll('.timer-control-preset');
-        timerPresets.forEach(preset => {
-            preset.classList.remove('active');
-        });
-        
-        // 2. Active Timers wieder anzeigen
+        const timeSelectionContainer = container.querySelector('.timer-time-selection');
         const activeTimersSection = container.querySelector('.active-timers');
-        if (activeTimersSection) {
-            // Reset Styles
-            activeTimersSection.style.opacity = '';
-            activeTimersSection.style.transform = '';
-            
-            // Animate back in
-            activeTimersSection.animate([
-                { opacity: 0, transform: 'translateY(-20px)' },
-                { opacity: 1, transform: 'translateY(0)' }
+        const timerControlDesign = container.querySelector('.timer-control-design');
+        
+        // 1. Time Selection ausblenden und entfernen
+        if (timeSelectionContainer) {
+            timeSelectionContainer.animate([
+                { opacity: 1, transform: timeSelectionContainer.style.transform || 'translateY(0)' },
+                { opacity: 0, transform: 'translateY(20px)' }
             ], {
-                duration: 400,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                duration: 300,
                 fill: 'forwards'
+            }).finished.then(() => {
+                timeSelectionContainer.remove();
             });
         }
         
-        // 3. Timer Control Design zurück zur ursprünglichen Position
-        const timerControlDesign = container.querySelector('.timer-control-design');
+        // 2. Timer Control Design zurück zur ursprünglichen Position
         if (timerControlDesign) {
-            // Reset Transform
-            timerControlDesign.style.transform = '';
-            
-            // Animate back to original position
-            timerControlDesign.animate([
-                { transform: 'translateY(-60px)' },
-                { transform: 'translateY(0)' }
-            ], {
-                duration: 400,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                fill: 'forwards'
-            });
+            setTimeout(() => {
+                timerControlDesign.animate([
+                    { transform: timerControlDesign.style.transform || 'translateY(0)' },
+                    { transform: 'translateY(0)' }
+                ], {
+                    duration: 400,
+                    fill: 'forwards',
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                });
+            }, 100);
         }
-    }    
+        
+        // 3. Active Timers wieder einblenden
+        if (activeTimersSection) {
+            setTimeout(() => {
+                activeTimersSection.animate([
+                    { opacity: 0, transform: 'translateY(-20px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], {
+                    duration: 400,
+                    fill: 'forwards',
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                });
+            }, 200);
+        }
+        
+        // 4. Button-States zurücksetzen
+        const timerPresets = container.querySelectorAll('.timer-control-preset');
+        timerPresets.forEach(p => p.classList.remove('active'));
+    }
     
     async createTimerFromSelection(item, action, durationMinutes, timeContainer, parentContainer) {
         console.log(`🎯 Erstelle Timer: ${action} in ${durationMinutes} Minuten`);
