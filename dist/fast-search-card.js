@@ -7576,11 +7576,57 @@ class FastSearchCard extends HTMLElement {
             fill: 'forwards'
         });
         
-        // Remove focus mode
+        // ✅ NEU: Reset zum ursprünglichen Zustand
         setTimeout(() => {
             timeContainer.remove();
+            this.resetToInitialTimerState(parentContainer);
         }, 300);
     }
+
+    resetToInitialTimerState(container) {
+        console.log('🔄 Reset to initial timer state');
+        
+        // 1. Alle Button Selections zurücksetzen
+        const timerPresets = container.querySelectorAll('.timer-control-preset');
+        timerPresets.forEach(preset => {
+            preset.classList.remove('active');
+        });
+        
+        // 2. Active Timers wieder anzeigen
+        const activeTimersSection = container.querySelector('.active-timers');
+        if (activeTimersSection) {
+            // Reset Styles
+            activeTimersSection.style.opacity = '';
+            activeTimersSection.style.transform = '';
+            
+            // Animate back in
+            activeTimersSection.animate([
+                { opacity: 0, transform: 'translateY(-20px)' },
+                { opacity: 1, transform: 'translateY(0)' }
+            ], {
+                duration: 400,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+        }
+        
+        // 3. Timer Control Design zurück zur ursprünglichen Position
+        const timerControlDesign = container.querySelector('.timer-control-design');
+        if (timerControlDesign) {
+            // Reset Transform
+            timerControlDesign.style.transform = '';
+            
+            // Animate back to original position
+            timerControlDesign.animate([
+                { transform: 'translateY(-60px)' },
+                { transform: 'translateY(0)' }
+            ], {
+                duration: 400,
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                fill: 'forwards'
+            });
+        }
+    }    
     
     async createTimerFromSelection(item, action, durationMinutes, timeContainer, parentContainer) {
         console.log(`🎯 Erstelle Timer: ${action} in ${durationMinutes} Minuten`);
@@ -7607,9 +7653,14 @@ class FastSearchCard extends HTMLElement {
             createBtn.style.background = '#f44336';
             
             setTimeout(() => {
-                createBtn.textContent = 'Timer erstellen';
-                createBtn.style.background = '';
-            }, 2000);
+                this.closeTimeSelection(timeContainer, parentContainer);
+                
+                // ✅ NEU: Timer Liste neu laden nach Erfolg
+                setTimeout(() => {
+                    this.loadActiveTimers(item.id);
+                }, 400); // Warten bis Animation fertig
+                
+            }, 1000);
         }
     }
 
