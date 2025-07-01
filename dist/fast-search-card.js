@@ -6560,6 +6560,163 @@ class FastSearchCard extends HTMLElement {
         this.loadAndDisplayHistory(item, '7d');
     }    
 
+    setupTimerEventListeners(item) {
+        let currentTimerMode = 'duration'; // Default: Ein + Aus
+        
+        // Timer Mode Toggle Event Listeners
+        const modeButtons = this.shadowRoot.querySelectorAll('.timer-mode-btn');
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active from all buttons
+                modeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update current mode
+                currentTimerMode = btn.dataset.mode;
+                
+                // Update UI hints
+                this.updateTimerModeHints(currentTimerMode);
+                
+                console.log(`Timer Modus geändert zu: ${currentTimerMode}`);
+            });
+        });
+        
+        // Quick Timer Button Events
+        const quickTimerBtns = this.shadowRoot.querySelectorAll('.quick-timer-btn');
+        quickTimerBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const duration = parseInt(btn.dataset.duration);
+                console.log(`Timer Button geklickt: ${duration} Minuten, Modus: ${currentTimerMode}`);
+                
+                // Visual feedback
+                btn.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(0.95)' },
+                    { transform: 'scale(1)' }
+                ], { duration: 150, easing: 'ease-out' });
+                
+                // Create timer
+                this.createQuickTimer(item, duration, currentTimerMode);
+            });
+        });
+        
+        // Load existing timers
+        this.loadActiveTimers(item.id);
+    }
+    
+    updateTimerModeHints(mode) {
+        const hints = this.shadowRoot.querySelectorAll('.timer-mode-hint');
+        hints.forEach(hint => {
+            hint.textContent = mode === 'duration' ? 'Ein + Aus' : 'Nur Aus';
+        });
+    }    
+
+    async createQuickTimer(item, durationMinutes, mode = 'duration') {
+        console.log(`🎯 Erstelle ${mode} Timer für ${item.name}: ${durationMinutes} Minuten`);
+        
+        try {
+            if (mode === 'duration') {
+                await this.createDurationTimer(item, durationMinutes);
+            } else {
+                await this.createOffOnlyTimer(item, durationMinutes);
+            }
+            
+            console.log('✅ Timer erfolgreich erstellt!');
+            this.showTimerSuccess(item, durationMinutes, mode);
+            
+            // Refresh timer list
+            setTimeout(() => {
+                this.loadActiveTimers(item.id);
+            }, 500);
+            
+        } catch (error) {
+            console.error('❌ Timer Fehler:', error);
+            this.showTimerError(error);
+        }
+    }
+    
+    async createDurationTimer(item, durationMinutes) {
+        const now = new Date();
+        const future = new Date(now.getTime() + durationMinutes * 60 * 1000);
+        
+        console.log(`💡 Dauer-Timer: Ein um ${now.toTimeString().slice(0, 5)}, Aus um ${future.toTimeString().slice(0, 5)}`);
+        
+        // 1. Sofort einschalten
+        await this._hass.callService('scheduler', 'add', {
+            timeslots: [{
+                start: now.toTimeString().slice(0, 5),
+                actions: [{ 
+                    service: 'light.turn_on', 
+                    entity_id: item.id 
+                }]
+            }],
+            repeat_type: 'single',
+            name: `${item.name} Timer ON`
+        });
+        
+        // 2. Nach Zeit ausschalten
+        await this._hass.callService('scheduler', 'add', {
+            timeslots: [{
+                start: future.toTimeString().slice(0, 5),
+                actions: [{ 
+                    service: 'light.turn_off', 
+                    entity_id: item.id 
+                }]
+            }],
+            repeat_type: 'single',
+            name: `${item.name} Timer OFF (${durationMinutes}min)`
+        });
+    }
+    
+    async createOffOnlyTimer(item, durationMinutes) {
+        const future = new Date(Date.now() + durationMinutes * 60 * 1000);
+        
+        console.log(`🔴 Ausschalt-Timer: Aus um ${future.toTimeString().slice(0, 5)}`);
+        
+        await this._hass.callService('scheduler', 'add', {
+            timeslots: [{
+                start: future.toTimeString().slice(0, 5),
+                actions: [{ 
+                    service: 'light.turn_off', 
+                    entity_id: item.id 
+                }]
+            }],
+            repeat_type: 'single',
+            name: `${item.name} Ausschalt-Timer (${durationMinutes}min)`
+        });
+    }
+    
+    showTimerSuccess(item, duration, mode) {
+        const message = mode === 'duration' 
+            ? `Timer für ${item.name}: ${duration}min Ein+Aus`
+            : `Ausschalt-Timer für ${item.name}: ${duration}min`;
+        
+        console.log(`✅ ${message}`);
+        // TODO: Toast Notification (später)
+    }
+    
+    showTimerError(error) {
+        console.error('❌ Timer Fehler:', error);
+        // TODO: Error Toast (später)
+    }
+    
+    async loadActiveTimers(entityId) {
+        const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
+        if (!container) return;
+        
+        container.innerHTML = '<div class="loading-timers">Lade Timer...</div>';
+        
+        try {
+            // TODO: Echte Timer laden (nächster Schritt)
+            setTimeout(() => {
+                container.innerHTML = '<div class="loading-timers">Keine aktiven Timer</div>';
+            }, 1000);
+            
+        } catch (error) {
+            container.innerHTML = '<div class="loading-timers">Fehler beim Laden</div>';
+        }
+    }    
+
     async loadAndDisplayHistory(item, period) {
         const timelineContainer = this.shadowRoot.getElementById(`history-timeline-${item.id}`);
         const todayActiveElement = this.shadowRoot.getElementById(`today-active-${item.id}`);
@@ -8309,6 +8466,9 @@ class FastSearchCard extends HTMLElement {
     
         // History Event Listeners hinzufügen  ← HIER EINFÜGEN
         this.setupHistoryEventListeners(item);
+
+        // NEU HINZUFÜGEN: Timer Event Listeners
+        this.setupTimerEventListeners(item);        
 
         // Shortcuts-Buttons Event Listeners (NEU HINZUFÜGEN)
         const shortcutsButtons = this.shadowRoot.querySelectorAll('.shortcuts-btn');
