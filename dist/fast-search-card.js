@@ -6823,36 +6823,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    // Temporär für Debugging - nach loadActiveTimers() hinzufügen
-    debugSchedulerStates(entityId) {
-        const states = this._hass.states;
-        console.log('🔍 Debugging Scheduler States:');
-        
-        // Alle scheduler.* entities auflisten
-        const schedulerStates = Object.entries(states)
-            .filter(([id, state]) => id.startsWith('scheduler.'))
-            .map(([id, state]) => ({
-                id,
-                name: state.attributes.friendly_name,
-                state: state.state,
-                attributes: state.attributes
-            }));
-        
-        console.log('📋 Alle Scheduler States:', schedulerStates);
-        
-        // Alle States mit unserem Entity-Namen durchsuchen
-        const itemName = this.currentDetailItem?.name || '';
-        console.log(`🎯 Suche nach: "${itemName}" und "${entityId}"`);
-        
-        const relatedStates = Object.entries(states)
-            .filter(([id, state]) => {
-                const stateStr = JSON.stringify(state);
-                return stateStr.includes(entityId) || stateStr.includes(itemName);
-            })
-            .map(([id, state]) => ({ id, name: state.attributes.friendly_name, state: state.state }));
-        
-        console.log('🔗 Verwandte States:', relatedStates);
-    }
+
 
 
     
