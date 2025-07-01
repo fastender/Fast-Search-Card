@@ -6792,59 +6792,34 @@ class FastSearchCard extends HTMLElement {
     }
     
     async loadActiveTimers(entityId) {
-        this.debugSchedulerStates(entityId);
         const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
         if (!container) return;
         
         container.innerHTML = '<div class="loading-timers">Lade Timer...</div>';
         
         try {
-            // Alternative: Über die States API
-            const states = this._hass.states;
-            const schedulerEntities = [];
+            // KORRIGIERT: Verwende die richtige API
+            const allSchedules = await this._hass.callWS({
+                type: 'scheduler'  // ← Das war der Fehler!
+            });
             
-            // Finde alle scheduler.* Entities
-            for (const [stateId, state] of Object.entries(states)) {
-                if (stateId.startsWith('scheduler.')) {
-                    // Prüfe ob es zu unserer Entity gehört
-                    const friendlyName = state.attributes.friendly_name || '';
-                    const itemName = this.currentDetailItem?.name || '';
-                    
-                    if (friendlyName.includes(itemName) || 
-                        (state.attributes.actions && JSON.stringify(state.attributes.actions).includes(entityId))) {
-                        schedulerEntities.push({
-                            schedule_id: stateId,
-                            name: friendlyName,
-                            state: state.state,
-                            attributes: state.attributes,
-                            next_execution: state.attributes.next_execution
-                        });
-                    }
-                }
-            }
+            console.log('📋 Alle Scheduler Items (korrekte API):', allSchedules);
             
-            console.log('📋 Gefundene Scheduler Entities:', schedulerEntities);
+            // Filter für diese Entity
+            const entityTimers = allSchedules.filter(schedule => {
+                // Prüfe ob diese Entity in den timeslots/actions vorkommt
+                return schedule.timeslots && schedule.timeslots.some(slot => 
+                    slot.actions && slot.actions.some(action => action.entity_id === entityId)
+                );
+            });
             
-            this.renderActiveTimers(schedulerEntities, entityId);
+            console.log(`🎯 Timer für ${entityId}:`, entityTimers);
+            
+            this.renderActiveTimers(entityTimers, entityId);
             
         } catch (error) {
             console.error('❌ Fehler beim Laden der Timer:', error);
-            
-            // Fallback: Mock Timer für Testing
-            const mockTimers = [
-                {
-                    schedule_id: 'scheduler.test_timer',
-                    name: 'Test Timer (Entwicklung)',
-                    next_execution: new Date(Date.now() + 25 * 60 * 1000).toISOString(), // +25min
-                    timeslots: [{
-                        start: '10:30',
-                        actions: [{ service: 'light.turn_off', entity_id: entityId }]
-                    }]
-                }
-            ];
-            
-            console.log('🧪 Verwende Mock Timer für Testing');
-            this.renderActiveTimers(mockTimers, entityId);
+            container.innerHTML = '<div class="loading-timers">Fehler beim Laden der Timer</div>';
         }
     }
 
@@ -6989,8 +6964,9 @@ class FastSearchCard extends HTMLElement {
     
     async deleteTimer(timerId, entityId) {
         try {
-            await this._hass.callService('scheduler', 'remove', {
-                entity_id: timerId  // Bei scheduler.remove ist entity_id die Timer ID
+            // KORRIGIERT: Verwende callApi statt callService
+            await this._hass.callApi('POST', 'scheduler/remove', {
+                schedule_id: timerId
             });
             
             console.log(`🗑️ Timer ${timerId} gelöscht`);
@@ -7001,7 +6977,7 @@ class FastSearchCard extends HTMLElement {
         } catch (error) {
             console.error('❌ Fehler beim Löschen:', error);
         }
-    }    
+    }
 
     async loadAndDisplayHistory(item, period) {
         const timelineContainer = this.shadowRoot.getElementById(`history-timeline-${item.id}`);
