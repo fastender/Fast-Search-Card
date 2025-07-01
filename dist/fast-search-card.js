@@ -2607,8 +2607,24 @@ class FastSearchCard extends HTMLElement {
             
             .shortcuts-content {
                 flex: 1;
-                overflow-y: auto;
+                overflow-y: auto; /* ← WICHTIG für Mobile */
+                max-height: calc(100vh - 200px); /* ← Begrenzte Höhe */
+                padding-right: 4px; /* ← Platz für Scrollbar */
             }
+
+            /* ✅ Mobile Scrollbar Styling */
+            .shortcuts-content::-webkit-scrollbar {
+                width: 4px;
+            }
+            
+            .shortcuts-content::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .shortcuts-content::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 2px;
+            }            
             
             .shortcuts-tab-content {
                 display: none;
@@ -3327,15 +3343,20 @@ class FastSearchCard extends HTMLElement {
             .timer-time-selection {
                 width: 100%;
                 max-width: 320px;
-                margin: 20px auto; /* ← GEÄNDERT: auto für zentrieren */
+                margin: 20px auto;
                 padding: 20px;
                 background: rgba(0, 0, 0, 0.2);
                 border-radius: 16px;
                 border: 1px solid rgba(255, 255, 255, 0.1);
-                overflow: hidden;
-                transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                flex-shrink: 0; /* ← NEU: Verhindert Schrumpfen */
-            }            
+                overflow: visible; /* ← Wichtig für Mobile */
+                
+                /* ✅ Mobile Anpassung */
+                @media (max-width: 768px) {
+                    margin: 10px;
+                    padding: 16px;
+                    max-width: calc(100vw - 40px); /* ← Nicht über Bildschirmrand */
+                }
+            }          
             
             .time-selection-header {
                 text-align: center;
@@ -3502,13 +3523,13 @@ class FastSearchCard extends HTMLElement {
             /* iOS TimePicker Styles */
             .timer-ios-picker-container {
                 position: relative;
-                width: 120px;
+                width: 140px; /* ← FESTE Breite */
+                height: 60px; /* ← FESTE Höhe */
                 background: rgba(255, 255, 255, 0.1);
                 border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-                height: 50px;
+                border-radius: 12px; /* ← Etwas runder */
                 overflow: hidden;
-                transition: all 0.5s ease;
+                transition: border-color 0.3s ease, box-shadow 0.3s ease; /* ← NUR Border/Shadow animieren */
                 margin: 0 auto;
             }
             
@@ -3517,19 +3538,21 @@ class FastSearchCard extends HTMLElement {
                 position: absolute;
                 display: block;
                 width: 10px;
-                font-size: 24px;
-                height: 50px;
-                line-height: 42px;
+                font-size: 28px;
+                height: 60px;
+                line-height: 58px;
                 text-align: center;
                 left: 0;
                 right: 0;
                 margin: auto;
                 color: white;
+                z-index: 3; /* ← Über allem */
             }
             
             .timer-ios-picker-container.is-focus {
                 border-color: var(--accent);
                 box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.3);
+                /* KEINE width/height Änderung! */
             }
             
             .timer-ios-picker-text {
@@ -3538,16 +3561,17 @@ class FastSearchCard extends HTMLElement {
                 height: 100%;
                 left: 0;
                 top: 0;
-                font-size: 24px;
-                line-height: 42px;
+                font-size: 28px; /* ← Größere Schrift */
+                line-height: 58px; /* ← Zentriert */
                 display: flex;
                 color: white;
+                z-index: 2; /* ← Über Scroller */
             }
             
             .timer-ios-picker-text > div {
                 width: 50%;
                 text-align: center;
-                padding: 1px 8px 0 0;
+                padding-right: 8px;
             }
             
             .timer-ios-picker-container.is-focus .timer-ios-picker-text {
@@ -3560,16 +3584,19 @@ class FastSearchCard extends HTMLElement {
                 width: 100%;
                 height: 100%;
                 left: 0;
-                right: 0;
-                padding-top: 9px;
+                top: 0;
+                padding-top: 15px; /* ← Angepasst für 60px Höhe */
                 opacity: 0;
-                z-index: 0;
+                z-index: 1; /* ← Unter Text */
             }
-            
+                        
+            .timer-ios-picker-container.is-focus .timer-ios-picker-text {
+                opacity: 0;
+            }
+
             .timer-ios-picker-container.is-focus .timer-ios-picker-scroller {
                 opacity: 1;
-                z-index: 9;
-            }
+            }            
             
             .timer-ios-picker-slider {
                 position: absolute;
@@ -3612,8 +3639,36 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0;
                 z-index: 9;
                 padding: 0;
-                background: transparent;
+                background: transparent;                
             }
+
+            /* ✅ Timer iOS Picker Mobile Anpassung */
+            @media (max-width: 768px) {
+                .timer-ios-picker-container {
+                    width: 120px; /* ← Etwas kleiner auf Mobile */
+                    height: 50px;
+                }
+                
+                .timer-ios-picker-text {
+                    font-size: 24px;
+                    line-height: 48px;
+                }
+                
+                .timer-ios-picker-container::before {
+                    font-size: 24px;
+                    height: 50px;
+                    line-height: 48px;
+                }
+                
+                .timer-action-buttons {
+                    flex-direction: column; /* ← Buttons untereinander auf Mobile */
+                    gap: 8px;
+                }
+                
+                .time-selection-header {
+                    margin-bottom: 12px; /* ← Weniger Abstand */
+                }
+            }            
             
                                                 
             </style>
@@ -7713,8 +7768,53 @@ class FastSearchCard extends HTMLElement {
     
     createTimerWithDuration(item, action, minutes) {
         console.log(`Creating timer: ${action} for ${item.name} in ${minutes} minutes`);
-        // TODO: Implementiere Timer-Erstellung
-    }    
+        
+        // ✅ Verwende existierende Timer-Methode
+        this.createQuickTimer(item, minutes, 'duration');
+        
+        // ✅ Success Feedback
+        this.showTimerCreatedFeedback(item, action, minutes);
+    }
+    
+    showTimerCreatedFeedback(item, action, minutes) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        const timeText = hours > 0 ? `${hours}h ${mins}min` : `${mins}min`;
+        
+        // ✅ Kurzes Success-Popup
+        const popup = document.createElement('div');
+        popup.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--accent);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+        `;
+        popup.textContent = `Timer erstellt: ${this.getActionLabel(action)} in ${timeText}`;
+        
+        document.body.appendChild(popup);
+        
+        // Animate in & out
+        popup.animate([
+            { opacity: 0, transform: 'translate(-50%, -50%) scale(0.8)' },
+            { opacity: 1, transform: 'translate(-50%, -50%) scale(1)' }
+        ], { duration: 300, fill: 'forwards' });
+        
+        setTimeout(() => {
+            popup.animate([
+                { opacity: 1 },
+                { opacity: 0 }
+            ], { duration: 300, fill: 'forwards' }).onfinish = () => {
+                popup.remove();
+            };
+        }, 2000);
+    }
     
     getActionLabel(action) {
         const labels = {
@@ -10195,7 +10295,21 @@ class FastSearchCard extends HTMLElement {
         this.setupTimerEventListeners(item);        
 
         // Shortcuts-Buttons Event Listeners (NEU HINZUFÜGEN)
-        this.initializeShortcutsEvents(item);     
+        this.initializeShortcutsEvents(item);    
+
+        // NEU HINZUFÜGEN: Timer Event Listeners
+        this.setupTimerEventListeners(item);        
+        
+        // ✅ NEU: Shortcuts Events initialisieren
+        this.initializeShortcutsEvents(item);
+        
+        // ✅ NEU: Mobile Scrolling für Tab Content aktivieren (NACH initializeShortcutsEvents)
+        const tabContentContainer = this.shadowRoot.getElementById('tab-content-container');
+        if (tabContentContainer) {
+            tabContentContainer.style.overflowY = 'auto';
+            tabContentContainer.style.maxHeight = 'calc(100vh - 150px)';
+        }
+        
     }
 
     initializeShortcutsEvents(item) {
