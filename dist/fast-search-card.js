@@ -3461,39 +3461,160 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
             }
             
+            .timer-action-buttons {
+                display: flex;
+                gap: 12px;
+                margin-top: 20px;
+            }
+            
             .timer-cancel-btn,
             .timer-create-btn {
                 flex: 1;
-                padding: 12px 20px;
-                border-radius: 12px;
-                font-size: 14px;
+                padding: 12px;
+                border: none;
+                border-radius: 8px;
                 font-weight: 600;
                 cursor: pointer;
                 transition: all 0.2s ease;
             }
             
             .timer-cancel-btn {
-                background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                color: var(--text-secondary);
-            }
-            
-            .timer-cancel-btn:hover {
-                background: rgba(255, 255, 255, 0.15);
-                color: var(--text-primary);
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
             }
             
             .timer-create-btn {
                 background: var(--accent);
-                border: 1px solid var(--accent);
                 color: white;
             }
             
+            .timer-cancel-btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+            
             .timer-create-btn:hover {
-                background: rgba(0, 122, 255, 0.8);
                 transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-            }            
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }  
+
+            
+
+            /* iOS TimePicker Styles */
+            .timer-ios-picker-container {
+                position: relative;
+                width: 120px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                height: 50px;
+                overflow: hidden;
+                transition: all 0.5s ease;
+                margin: 0 auto;
+            }
+            
+            .timer-ios-picker-container::before {
+                content: ":";
+                position: absolute;
+                display: block;
+                width: 10px;
+                font-size: 24px;
+                height: 50px;
+                line-height: 42px;
+                text-align: center;
+                left: 0;
+                right: 0;
+                margin: auto;
+                color: white;
+            }
+            
+            .timer-ios-picker-container.is-focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.3);
+            }
+            
+            .timer-ios-picker-text {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                left: 0;
+                top: 0;
+                font-size: 24px;
+                line-height: 42px;
+                display: flex;
+                color: white;
+            }
+            
+            .timer-ios-picker-text > div {
+                width: 50%;
+                text-align: center;
+                padding: 1px 8px 0 0;
+            }
+            
+            .timer-ios-picker-container.is-focus .timer-ios-picker-text {
+                opacity: 0;
+                z-index: 9;
+            }
+            
+            .timer-ios-picker-scroller {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                left: 0;
+                right: 0;
+                padding-top: 9px;
+                opacity: 0;
+                z-index: 0;
+            }
+            
+            .timer-ios-picker-container.is-focus .timer-ios-picker-scroller {
+                opacity: 1;
+                z-index: 9;
+            }
+            
+            .timer-ios-picker-slider {
+                position: absolute;
+                width: 50%;
+                height: 100%;
+                top: 0;
+                left: 0;
+                padding: 9px 0;
+                overflow-x: hidden;
+                overflow-y: scroll;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .timer-ios-picker-slider::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .timer-ios-picker-slider + .timer-ios-picker-slider { 
+                left: 50%;
+            }
+            
+            .timer-ios-picker-slide {
+                font-size: 20px;
+                text-align: center;
+                height: 30px;
+                line-height: 30px;
+                color: white;
+            }
+            
+            .timer-ios-picker-input {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                font-size: 24px;
+                line-height: 50px;
+                text-align: center;
+                cursor: pointer;
+                border: 0;
+                opacity: 0;
+                z-index: 9;
+                padding: 0;
+                background: transparent;
+            }
+            
                                                 
             </style>
 
@@ -7412,18 +7533,17 @@ class FastSearchCard extends HTMLElement {
     }    
     
     showTimeSelection(item, action, container) {
-        console.log(`⏰ Zeige Time Selection für ${action}`);
+        console.log(`⏰ Zeige iOS Time Selection für ${action}`);
         
         // Container für Time Selection finden oder erstellen
         let timeSelectionContainer = container.querySelector('.timer-time-selection');
         if (!timeSelectionContainer) {
             timeSelectionContainer = document.createElement('div');
             timeSelectionContainer.className = 'timer-time-selection';
-            timeSelectionContainer.setAttribute('data-is-open', 'false');
             container.appendChild(timeSelectionContainer);
         }
         
-        // Time Selection HTML
+        // iOS TimePicker HTML
         timeSelectionContainer.innerHTML = `
             <div class="time-selection-header">
                 <div class="selected-action-display">
@@ -7432,39 +7552,169 @@ class FastSearchCard extends HTMLElement {
                 </div>
             </div>
             
-            <div class="time-picker-container">
-                <div class="time-picker-wheel">
-                    <div class="time-input-group">
-                        <input type="number" class="time-input hours" min="0" max="23" value="0" data-type="hours">
-                        <label class="time-label">Std</label>
+            <div class="timer-ios-picker-container" id="timer-picker-${item.id}">
+                <input type="tel" class="timer-ios-picker-input" name="timer_time">
+                <div class="timer-ios-picker-text">
+                    <div class="timer-ios-picker-hour">0</div>
+                    <div class="timer-ios-picker-minute">30</div>
+                </div>
+                <div class="timer-ios-picker-scroller">
+                    <div class="timer-ios-picker-slider is-hour">
+                        <div class="timer-ios-picker-slider-track"></div>
                     </div>
-                    <div class="time-separator">:</div>
-                    <div class="time-input-group">
-                        <input type="number" class="time-input minutes" min="0" max="59" value="30" data-type="minutes">
-                        <label class="time-label">Min</label>
+                    <div class="timer-ios-picker-slider is-minute">
+                        <div class="timer-ios-picker-slider-track"></div>
                     </div>
                 </div>
             </div>
             
-            <div class="quick-time-buttons">
-                <button class="quick-time-btn" data-minutes="15">15min</button>
-                <button class="quick-time-btn" data-minutes="30">30min</button>
-                <button class="quick-time-btn" data-minutes="60">1h</button>
-                <button class="quick-time-btn" data-minutes="120">2h</button>
-            </div>
-            
-            <div class="timer-create-actions">
+            <div class="timer-action-buttons">
                 <button class="timer-cancel-btn">Abbrechen</button>
                 <button class="timer-create-btn">Timer erstellen</button>
             </div>
         `;
         
-        // Smooth expand animation
-        this.expandTimeSelection(timeSelectionContainer, container);
+        // iOS TimePicker initialisieren
+        this.initIOSTimePicker(item, action, timeSelectionContainer);
         
-        // Setup event listeners für Time Selection
-        this.setupTimeSelectionEvents(item, action, timeSelectionContainer, container);
+        // Animate in
+        timeSelectionContainer.animate([
+            { opacity: 0, transform: 'translateY(20px)' },
+            { opacity: 1, transform: 'translateY(0)' }
+        ], {
+            duration: 400,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
     }
+
+    initIOSTimePicker(item, action, container) {
+        const pickerContainer = container.querySelector('.timer-ios-picker-container');
+        const input = container.querySelector('.timer-ios-picker-input');
+        const hourBox = container.querySelector('.timer-ios-picker-hour');
+        const minuteBox = container.querySelector('.timer-ios-picker-minute');
+        const hourSlider = container.querySelector('.timer-ios-picker-slider.is-hour .timer-ios-picker-slider-track');
+        const minSlider = container.querySelector('.timer-ios-picker-slider.is-minute .timer-ios-picker-slider-track');
+        
+        let currentTime = { hour: '0', minute: '30' };
+        
+        // Stunden 0-23 generieren
+        for(let i = 0; i < 24; i++) {
+            const hourSlide = document.createElement('div');
+            const hour = i < 10 ? `0${i}` : i.toString();
+            hourSlide.classList.add('timer-ios-picker-slide');
+            hourSlide.dataset.hour = hour;
+            hourSlide.innerText = hour;
+            hourSlider.appendChild(hourSlide);
+        }
+        
+        // Minuten in 5er Schritten
+        const minutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
+        minutes.forEach(minute => {
+            const minSlide = document.createElement('div');
+            minSlide.classList.add('timer-ios-picker-slide');
+            minSlide.dataset.minute = minute;
+            minSlide.innerText = minute;
+            minSlider.appendChild(minSlide);
+        });
+        
+        // Initial position setzen (0:30)
+        const initialMinuteSlide = container.querySelector('[data-minute="30"]');
+        minSlider.parentNode.scrollTop = initialMinuteSlide.offsetTop - 9;
+        
+        // Focus Event
+        input.addEventListener('focus', () => {
+            pickerContainer.classList.add('is-focus');
+        });
+        
+        input.addEventListener('blur', () => {
+            pickerContainer.classList.remove('is-focus');
+        });
+        
+        // Action Buttons
+        const cancelBtn = container.querySelector('.timer-cancel-btn');
+        const createBtn = container.querySelector('.timer-create-btn');
+        
+        cancelBtn.addEventListener('click', () => {
+            this.hideTimeSelection(container);
+        });
+        
+        createBtn.addEventListener('click', () => {
+            const totalMinutes = (parseInt(currentTime.hour) * 60) + parseInt(currentTime.minute);
+            this.createTimerWithDuration(item, action, totalMinutes);
+            this.hideTimeSelection(container);
+        });
+        
+        // Scroll Detection für Time Updates
+        this.setupTimerScrollDetection(container, currentTime, hourBox, minuteBox);
+    }
+    
+    setupTimerScrollDetection(container, currentTime, hourBox, minuteBox) {
+        const hourSlider = container.querySelector('.timer-ios-picker-slider.is-hour');
+        const minSlider = container.querySelector('.timer-ios-picker-slider.is-minute');
+        
+        let scrollTimeout;
+        
+        const updateTime = (slider, type) => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const slides = slider.querySelectorAll('.timer-ios-picker-slide');
+                const scrollTop = slider.scrollTop;
+                const index = Math.round(scrollTop / 30);
+                const slide = slides[Math.min(index, slides.length - 1)];
+                
+                if (slide) {
+                    const value = slide.dataset[type];
+                    currentTime[type] = value;
+                    
+                    if (type === 'hour') {
+                        hourBox.innerText = value;
+                    } else {
+                        minuteBox.innerText = value;
+                    }
+                    
+                    // Snap to position
+                    slider.scrollTo({
+                        top: slide.offsetTop - 9,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 200);
+        };
+        
+        hourSlider.addEventListener('scroll', () => updateTime(hourSlider, 'hour'));
+        minSlider.addEventListener('scroll', () => updateTime(minSlider, 'minute'));
+    }
+    
+    getActionLabel(action) {
+        const labels = {
+            'turn_on': 'Einschalten',
+            'turn_off': 'Ausschalten', 
+            'dim_30': 'Dimmen 30%',
+            'dim_50': 'Dimmen 50%'
+        };
+        return labels[action] || action;
+    }
+    
+    hideTimeSelection(container) {
+        const timeSelection = container.querySelector('.timer-time-selection');
+        if (timeSelection) {
+            timeSelection.animate([
+                { opacity: 1, transform: 'translateY(0)' },
+                { opacity: 0, transform: 'translateY(20px)' }
+            ], {
+                duration: 300,
+                fill: 'forwards'
+            }).onfinish = () => {
+                timeSelection.remove();
+            };
+        }
+    }
+    
+    createTimerWithDuration(item, action, minutes) {
+        console.log(`Creating timer: ${action} for ${item.name} in ${minutes} minutes`);
+        // TODO: Implementiere Timer-Erstellung
+    }    
     
     getActionLabel(action) {
         const labels = {
