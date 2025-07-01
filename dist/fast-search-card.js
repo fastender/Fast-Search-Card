@@ -7490,15 +7490,22 @@ class FastSearchCard extends HTMLElement {
         };
         return labels[action] || action;
     }
-    
+        
     expandTimeSelection(timeContainer, parentContainer) {        
+        console.log('🎬 Expanding Time Selection - Start');
+        console.log('🔍 timeContainer:', timeContainer);
+        
         // Animate time selection in
         timeContainer.style.maxHeight = '0px';
         timeContainer.style.opacity = '0';
         timeContainer.setAttribute('data-is-open', 'true');
         
+        console.log('🎯 Styles gesetzt, starte Animation');
+        
         // Smooth height animation
         requestAnimationFrame(() => {
+            console.log('🎬 RequestAnimationFrame - Hauptanimation');
+            
             timeContainer.animate([
                 { maxHeight: '0px', opacity: 0, transform: 'translateY(-20px)' },
                 { maxHeight: '300px', opacity: 1, transform: 'translateY(0)' }
@@ -7511,7 +7518,11 @@ class FastSearchCard extends HTMLElement {
         
         // Animate individual elements
         setTimeout(() => {
+            console.log('🎭 Animiere Unterelemente');
+            
             const elements = timeContainer.querySelectorAll('.time-picker-wheel > *, .quick-time-buttons, .timer-create-actions');
+            console.log('🔍 Gefundene Elemente:', elements.length);
+            
             elements.forEach((el, index) => {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(10px)';
