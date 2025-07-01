@@ -10001,8 +10001,8 @@ class FastSearchCard extends HTMLElement {
             }
         }, 100);
     }        
-    
-    // ✅ Timer Tab Initialisierung 
+
+    // ✅ ERSETZE die initializeTimerTab Methode:
     initializeTimerTab(item, container) {
         console.log('🔥 Initializing Timer Tab for', item.name);
         
@@ -10017,10 +10017,40 @@ class FastSearchCard extends HTMLElement {
                 timerPresets.forEach(p => p.classList.remove('active'));
                 preset.classList.add('active');
                 
-                // ✅ Direkt zur Zeit-Auswahl
+                // ✅ ANIMATION: Oberer Bereich verschwindet, unterer schwebt nach oben
+                const activeTimersSection = container.querySelector('.active-timers');
+                const timerControlDesign = container.querySelector('.timer-control-design');
+                
+                // 1. Active Timers fade out + slide up
+                if (activeTimersSection) {
+                    activeTimersSection.animate([
+                        { opacity: 1, transform: 'translateY(0)' },
+                        { opacity: 0, transform: 'translateY(-20px)' }
+                    ], { 
+                        duration: 300, 
+                        fill: 'forwards',
+                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                    });
+                }
+                
+                // 2. Timer Control Design schwebt nach oben
                 setTimeout(() => {
-                    this.showTimeSelection(item, action, container);
-                }, 200);
+                    if (timerControlDesign) {
+                        timerControlDesign.animate([
+                            { transform: 'translateY(0)' },
+                            { transform: 'translateY(-80px)' }
+                        ], { 
+                            duration: 400, 
+                            fill: 'forwards',
+                            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                        });
+                    }
+                    
+                    // 3. Zeit-Auswahl erscheint
+                    setTimeout(() => {
+                        this.showTimeSelection(item, action, container);
+                    }, 200);
+                }, 300);
             });
         });
         
