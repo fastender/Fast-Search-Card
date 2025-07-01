@@ -7066,7 +7066,6 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
-    }
     
     // Placeholder Methoden (erstmal mit Dummy-Daten)
     getDeviceTimers(deviceId) {
