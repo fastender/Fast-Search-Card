@@ -3203,12 +3203,21 @@ class FastSearchCard extends HTMLElement {
             }
             
             .timer-control-presets-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr); /* 2 Spalten wie timer-control-row */
-                gap: 12px; /* Größerer Abstand */
+                display: flex; /* ← GEÄNDERT: flex statt grid */
+                justify-content: center; /* ← Mittig */
+                align-items: center;
+                gap: 16px; /* ← Abstand zwischen Buttons */
+                margin-top: 10px; /* ← Abstand nach oben */
                 width: 100%;
-                padding: 0;
             }
+
+            /* Mobile Anpassung */
+            @media (max-width: 768px) {
+                .timer-control-presets-grid {
+                    gap: 12px; /* ← Etwas weniger Abstand auf Mobile */
+                    margin-top: 20px; /* ← Weniger Abstand nach oben */
+                }
+            }            
 
             .timer-control-preset {
                 width: 60px;
