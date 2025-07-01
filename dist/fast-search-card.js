@@ -2855,6 +2855,171 @@ class FastSearchCard extends HTMLElement {
                 font-style: italic;
                 padding: 20px;
                 font-size: 13px;
+            }         
+
+
+
+            /* Timer Main Buttons */
+            .timer-main-buttons {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .timer-main-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                padding: 20px 16px;
+                background: rgba(255,255,255,0.08);
+                border: 2px solid rgba(255,255,255,0.15);
+                border-radius: 16px;
+                color: var(--text-primary);
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .timer-main-btn::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            
+            .timer-main-btn:hover::before {
+                opacity: 1;
+            }
+            
+            .timer-main-btn.active {
+                background: var(--accent-light);
+                border-color: var(--accent);
+                color: var(--accent);
+                box-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
+            }
+            
+            .timer-btn-icon {
+                font-size: 24px;
+                margin-bottom: 4px;
+            }
+            
+            .timer-btn-text {
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 2px;
+            }
+            
+            .timer-btn-desc {
+                font-size: 11px;
+                opacity: 0.8;
+                color: var(--text-secondary);
+            }
+            
+            .timer-main-btn.active .timer-btn-desc {
+                color: var(--text-primary);
+            }
+            
+            /* Timer Modal */
+            .timer-modal-overlay {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(10px);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                pointer-events: none;
+                transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            
+            .timer-modal-overlay.visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            
+            .timer-modal {
+                width: 90vw;
+                max-width: 400px;
+                max-height: 80vh;
+                margin: 20px;
+                transform: scale(0.9) translateY(20px);
+                transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            
+            .timer-modal-overlay.visible .timer-modal {
+                transform: scale(1) translateY(0);
+            }
+            
+            .timer-modal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 20px;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+            
+            .timer-back-btn,
+            .timer-close-btn {
+                width: 36px;
+                height: 36px;
+                border: none;
+                background: rgba(255,255,255,0.1);
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                color: var(--text-primary);
+            }
+            
+            .timer-back-btn:hover,
+            .timer-close-btn:hover {
+                background: rgba(255,255,255,0.2);
+                transform: scale(1.1);
+            }
+            
+            .timer-back-btn svg,
+            .timer-close-btn svg {
+                width: 20px;
+                height: 20px;
+                stroke-width: 2;
+            }
+            
+            .timer-modal-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            
+            .timer-modal-content {
+                padding: 20px;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+            
+            /* Active Timers (aktualisiert) */
+            .active-timers {
+                margin-top: 20px;
+                min-height: 60px;
+            }
+            
+            .loading-timers,
+            .no-timers {
+                text-align: center;
+                color: var(--text-secondary);
+                font-style: italic;
+                padding: 20px;
+                font-size: 13px;
+                background: rgba(255,255,255,0.05);
+                border-radius: 12px;
             }            
                                                 
             </style>
@@ -6328,40 +6493,46 @@ class FastSearchCard extends HTMLElement {
 
                     <div class="shortcuts-tab-content active" data-shortcuts-content="timer">
                         <div id="timer-section-${item.id}">
-                            <!-- Aktive Timer für dieses Gerät -->
+                            <!-- Hauptbuttons: Timer vs Zeitplan -->
+                            <div class="timer-main-buttons">
+                                <button class="timer-main-btn active" data-timer-type="timer" data-item-id="${item.id}">
+                                    <div class="timer-btn-icon">⏰</div>
+                                    <div class="timer-btn-text">Timer</div>
+                                    <div class="timer-btn-desc">Einmalig nach Zeit</div>
+                                </button>
+                                <button class="timer-main-btn" data-timer-type="schedule" data-item-id="${item.id}">
+                                    <div class="timer-btn-icon">📅</div>
+                                    <div class="timer-btn-text">Zeitplan</div>
+                                    <div class="timer-btn-desc">Wiederkehrend</div>
+                                </button>
+                            </div>
+                            
+                            <!-- Aktive Timer Anzeige -->
                             <div class="active-timers" id="active-timers-${item.id}">
                                 <div class="loading-timers">Lade Timer...</div>
                             </div>
-                            
-                            <!-- Timer Modus Auswahl -->
-                            <div class="timer-actions">
-                                <div class="quick-timer-title">Timer Modus:</div>
-                                <div class="timer-mode-selector">
-                                    <button class="timer-mode-btn active" data-mode="duration" title="Ein- und Ausschalten">
-                                        ⏱️ Dauer-Timer
+                        </div>
+                        
+                        <!-- Timer Modal (versteckt) -->
+                        <div class="timer-modal-overlay" id="timer-modal-${item.id}" style="display: none;">
+                            <div class="timer-modal glass-panel">
+                                <div class="timer-modal-header">
+                                    <button class="timer-back-btn">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <path d="M15 6L9 12L15 18"/>
+                                        </svg>
                                     </button>
-                                    <button class="timer-mode-btn" data-mode="off-only" title="Nur Ausschalten">
-                                        ⏹️ Ausschalt-Timer
+                                    <div class="timer-modal-title">Timer erstellen</div>
+                                    <button class="timer-close-btn">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
                                     </button>
                                 </div>
                                 
-                                <div class="quick-timer-title">Schnelle Timer:</div>
-                                <div class="quick-timer-buttons">
-                                    <button class="quick-timer-btn" data-duration="30">
-                                        <span class="timer-icon">⏰</span>
-                                        <span class="timer-text">30 Min</span>
-                                        <span class="timer-mode-hint">Ein + Aus</span>
-                                    </button>
-                                    <button class="quick-timer-btn" data-duration="60">
-                                        <span class="timer-icon">⏰</span>
-                                        <span class="timer-text">1 Std</span>
-                                        <span class="timer-mode-hint">Ein + Aus</span>
-                                    </button>
-                                    <button class="quick-timer-btn" data-duration="120">
-                                        <span class="timer-icon">⏰</span>
-                                        <span class="timer-text">2 Std</span>
-                                        <span class="timer-mode-hint">Ein + Aus</span>
-                                    </button>
+                                <div class="timer-modal-content" id="timer-modal-content-${item.id}">
+                                    <!-- Content wird dynamisch geladen -->
                                 </div>
                             </div>
                         </div>
@@ -6652,47 +6823,80 @@ class FastSearchCard extends HTMLElement {
     }    
 
     setupTimerEventListeners(item) {
-        let currentTimerMode = 'duration'; // Default: Ein + Aus
-        
-        // Timer Mode Toggle Event Listeners
-        const modeButtons = this.shadowRoot.querySelectorAll('.timer-mode-btn');
-        modeButtons.forEach(btn => {
+        // Hauptbutton Event Listeners (Timer vs Zeitplan)
+        const mainButtons = this.shadowRoot.querySelectorAll('.timer-main-btn');
+        mainButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                // Remove active from all buttons
-                modeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+                // Animate button selection
+                this.animateTimerButtonSelection(btn, mainButtons);
                 
-                // Update current mode
-                currentTimerMode = btn.dataset.mode;
-                
-                // Update UI hints
-                this.updateTimerModeHints(currentTimerMode);
-                
-                console.log(`Timer Modus geändert zu: ${currentTimerMode}`);
-            });
-        });
-        
-        // Quick Timer Button Events
-        const quickTimerBtns = this.shadowRoot.querySelectorAll('.quick-timer-btn');
-        quickTimerBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const duration = parseInt(btn.dataset.duration);
-                console.log(`Timer Button geklickt: ${duration} Minuten, Modus: ${currentTimerMode}`);
-                
-                // Visual feedback
-                btn.animate([
-                    { transform: 'scale(1)' },
-                    { transform: 'scale(0.95)' },
-                    { transform: 'scale(1)' }
-                ], { duration: 150, easing: 'ease-out' });
-                
-                // Create timer
-                this.createQuickTimer(item, duration, currentTimerMode);
+                // Open corresponding modal
+                const timerType = btn.dataset.timerType;
+                setTimeout(() => {
+                    this.showTimerModal(item, timerType);
+                }, 200);
             });
         });
         
         // Load existing timers
         this.loadActiveTimers(item.id);
+    }
+    
+    animateTimerButtonSelection(selectedBtn, allButtons) {
+        // Remove active from all buttons with animation
+        allButtons.forEach(btn => {
+            if (btn !== selectedBtn && btn.classList.contains('active')) {
+                btn.animate([
+                    { transform: 'scale(1)', opacity: 1 },
+                    { transform: 'scale(0.95)', opacity: 0.7 },
+                    { transform: 'scale(1)', opacity: 1 }
+                ], {
+                    duration: 300,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                });
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Animate selected button
+        selectedBtn.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.05)' },
+            { transform: 'scale(1)' }
+        ], {
+            duration: 400,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        });
+        
+        selectedBtn.classList.add('active');
+    }
+    
+    showTimerModal(item, timerType) {
+        const modal = this.shadowRoot.getElementById(`timer-modal-${item.id}`);
+        const content = this.shadowRoot.getElementById(`timer-modal-content-${item.id}`);
+        
+        // Update modal title
+        const title = modal.querySelector('.timer-modal-title');
+        title.textContent = timerType === 'timer' ? 'Timer erstellen' : 'Zeitplan erstellen';
+        
+        // Load appropriate content
+        content.innerHTML = '<div style="text-align: center; padding: 40px;">Lade...</div>';
+        
+        // Show modal with animation
+        modal.style.display = 'flex';
+        
+        // Trigger entrance animation
+        requestAnimationFrame(() => {
+            modal.classList.add('visible');
+        });
+        
+        // Load content after animation starts
+        setTimeout(() => {
+            this.loadTimerModalContent(item, timerType, content);
+        }, 100);
+        
+        // Setup modal close handlers
+        this.setupModalCloseHandlers(modal, item.id);
     }
     
     updateTimerModeHints(mode) {
