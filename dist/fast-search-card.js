@@ -10168,7 +10168,7 @@ class FastSearchCard extends HTMLElement {
                 const activeSectionHeight = activeTimersSection.offsetHeight;
                 
                 // ✅ ANGEPASST: Weniger Bewegung für besseren Abstand
-                const moveDistance = activeSectionHeight - 60; // Reduziert um 60px
+                const moveDistance = activeSectionHeight;
                 
                 console.log(`📏 Active Timers Höhe: ${activeSectionHeight}px`);
                 console.log(`🔄 Bewege Timer Control um ${moveDistance}px nach oben`);
