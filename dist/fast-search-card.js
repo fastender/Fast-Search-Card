@@ -2764,6 +2764,97 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 font-style: italic;
                 padding: 20px;
+            }      
+
+            /* Active Timers Styles */
+            .active-timers-header {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                margin-bottom: 8px;
+                padding: 0 4px;
+            }
+            
+            .active-timers-list {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .active-timer-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 12px;
+                transition: all 0.2s ease;
+            }
+            
+            .active-timer-item:hover {
+                background: rgba(255, 255, 255, 0.12);
+            }
+            
+            .timer-info {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .timer-name {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 4px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .timer-details {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
+            
+            .timer-action {
+                font-size: 11px;
+                color: var(--text-secondary);
+                font-weight: 500;
+            }
+            
+            .timer-time {
+                font-size: 11px;
+                color: var(--accent);
+                font-weight: 600;
+            }
+            
+            .timer-delete {
+                width: 32px;
+                height: 32px;
+                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+            
+            .timer-delete:hover {
+                background: rgba(255, 0, 0, 0.2);
+                transform: scale(1.1);
+            }
+            
+            .no-timers {
+                text-align: center;
+                color: var(--text-secondary);
+                font-style: italic;
+                padding: 20px;
+                font-size: 13px;
             }            
                                                 
             </style>
@@ -6707,13 +6798,143 @@ class FastSearchCard extends HTMLElement {
         container.innerHTML = '<div class="loading-timers">Lade Timer...</div>';
         
         try {
-            // TODO: Echte Timer laden (nächster Schritt)
-            setTimeout(() => {
-                container.innerHTML = '<div class="loading-timers">Keine aktiven Timer</div>';
-            }, 1000);
+            // Alle Scheduler Items abrufen
+            const allSchedules = await this._hass.callWS({
+                type: 'scheduler/items'
+            });
+            
+            console.log('📋 Alle Scheduler Items:', allSchedules);
+            
+            // Filter für diese Entity
+            const entityTimers = allSchedules.filter(schedule => {
+                // Prüfe ob diese Entity in den Actions vorkommt
+                return schedule.timeslots.some(slot => 
+                    slot.actions.some(action => action.entity_id === entityId)
+                );
+            });
+            
+            console.log(`🎯 Timer für ${entityId}:`, entityTimers);
+            
+            this.renderActiveTimers(entityTimers, entityId);
             
         } catch (error) {
-            container.innerHTML = '<div class="loading-timers">Fehler beim Laden</div>';
+            console.error('❌ Fehler beim Laden der Timer:', error);
+            container.innerHTML = '<div class="loading-timers">Fehler beim Laden der Timer</div>';
+        }
+    } 
+
+    renderActiveTimers(timers, entityId) {
+        const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
+        if (!container) return;
+        
+        if (!timers || timers.length === 0) {
+            container.innerHTML = '<div class="no-timers">Keine aktiven Timer</div>';
+            return;
+        }
+        
+        // Timer nach nächster Ausführung sortieren
+        const sortedTimers = timers.sort((a, b) => {
+            const nextA = this.getNextExecution(a);
+            const nextB = this.getNextExecution(b);
+            return nextA - nextB;
+        });
+        
+        const timerHTML = sortedTimers.map(timer => {
+            const nextExecution = this.getNextExecution(timer);
+            const timeUntil = this.formatTimeUntil(nextExecution);
+            const action = this.getTimerAction(timer);
+            
+            return `
+                <div class="active-timer-item">
+                    <div class="timer-info">
+                        <div class="timer-name">${timer.name}</div>
+                        <div class="timer-details">
+                            <span class="timer-action">${action}</span>
+                            <span class="timer-time">${timeUntil}</span>
+                        </div>
+                    </div>
+                    <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
+                        🗑️
+                    </button>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = `
+            <div class="active-timers-header">Aktive Timer:</div>
+            <div class="active-timers-list">${timerHTML}</div>
+        `;
+        
+        // Event Listeners für Delete Buttons
+        container.querySelectorAll('.timer-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const timerId = btn.dataset.timerId;
+                this.deleteTimer(timerId, entityId);
+            });
+        });
+    }
+    
+    getNextExecution(timer) {
+        // Vereinfachte Logik - nimmt erste timeslot Zeit
+        if (timer.timeslots && timer.timeslots.length > 0) {
+            const timeStr = timer.timeslots[0].start;
+            const today = new Date();
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            
+            const nextTime = new Date();
+            nextTime.setHours(hours, minutes, 0, 0);
+            
+            // Wenn Zeit heute schon vorbei, dann morgen
+            if (nextTime <= today) {
+                nextTime.setDate(nextTime.getDate() + 1);
+            }
+            
+            return nextTime;
+        }
+        return new Date();
+    }
+    
+    formatTimeUntil(futureTime) {
+        const now = new Date();
+        const diffMs = futureTime - now;
+        
+        if (diffMs <= 0) return 'Läuft...';
+        
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMinutes / 60);
+        
+        if (diffHours > 0) {
+            const remainingMinutes = diffMinutes % 60;
+            return `in ${diffHours}h ${remainingMinutes}min`;
+        } else {
+            return `in ${diffMinutes}min`;
+        }
+    }
+    
+    getTimerAction(timer) {
+        if (timer.timeslots && timer.timeslots.length > 0) {
+            const firstAction = timer.timeslots[0].actions[0];
+            const service = firstAction.service;
+            
+            if (service.includes('turn_on')) return '🟢 Einschalten';
+            if (service.includes('turn_off')) return '🔴 Ausschalten';
+        }
+        return '⚙️ Aktion';
+    }
+    
+    async deleteTimer(timerId, entityId) {
+        try {
+            await this._hass.callService('scheduler', 'remove', {
+                entity_id: timerId  // Bei scheduler.remove ist entity_id die Timer ID
+            });
+            
+            console.log(`🗑️ Timer ${timerId} gelöscht`);
+            
+            // Timer Liste neu laden
+            this.loadActiveTimers(entityId);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Löschen:', error);
         }
     }    
 
