@@ -10122,29 +10122,30 @@ class FastSearchCard extends HTMLElement {
         }, 100);
     }        
 
-    // ✅ ERSETZE die initializeTimerTab Methode:
     initializeTimerTab(item, container) {
-        console.log('🔥 Initializing Timer Tab for', item.name);
+        console.log('🔥 NEUE VERSION 2024 - Initializing Timer Tab for', item.name);
         
-        // Timer Preset Buttons Event Listeners
         const timerPresets = container.querySelectorAll('.timer-control-preset');
+        console.log('🔍 Found timer presets:', timerPresets.length);
+        
         timerPresets.forEach(preset => {
             preset.addEventListener('click', () => {
                 const action = preset.dataset.action;
                 console.log(`Timer Action ausgewählt: ${action} für ${item.name}`);
+                console.log('🔍 isTimeSelectionOpen:', this.isTimeSelectionOpen);
                 
-                // ✅ NEUE ZUSTANDSPRÜFUNG
                 if (this.isTimeSelectionOpen) {
-                    // Nur Update, keine neue Animation
+                    console.log('⚡ Nur Update - calling updateTimeSelectionAction');
                     this.updateTimeSelectionAction(item, action, container);
                     return;
                 }
+                
+                console.log('🚀 Starte startTimerOpenSequence');
                 
                 // Visual feedback
                 timerPresets.forEach(p => p.classList.remove('active'));
                 preset.classList.add('active');
                 
-                // ✅ SEQUENZIELLE ANIMATION
                 this.startTimerOpenSequence(item, action, container);
             });
         });
@@ -10153,8 +10154,16 @@ class FastSearchCard extends HTMLElement {
     }
 
     startTimerOpenSequence(item, action, container) {
+        console.log('🎬 Starting Timer Open Sequence');
+        
         const activeTimersSection = container.querySelector('.active-timers');
         const timerControlDesign = container.querySelector('.timer-control-design');
+        
+        console.log('🔍 Elements found:', { 
+            activeTimersSection: !!activeTimersSection, 
+            timerControlDesign: !!timerControlDesign,
+            activeTimersHeight: activeTimersSection?.offsetHeight
+        });    
         
         // Animation 1: Active Timers ausblenden
         const fadeOutPromise = activeTimersSection ? 
