@@ -2543,12 +2543,15 @@ class FastSearchCard extends HTMLElement {
                 }
             }
 
-            
             .shortcuts-container {
                 padding: 20px;
-                height: 100%;
+                height: calc(100vh - 300px); /* Höhe von History-View übernehmen */
+                max-height: 500px;         /* Höhe von History-View übernehmen */
+                overflow-y: auto;          /* Scrolling für den Container aktivieren */
                 display: flex;
                 flex-direction: column;
+                scrollbar-width: thin; /* Optional: Schöne Scrollbar wie bei History */
+                scrollbar-color: rgba(255,255,255,0.2) transparent; /* Optional */
             }
 
             .shortcuts-header {
@@ -2608,7 +2611,6 @@ class FastSearchCard extends HTMLElement {
             
             .shortcuts-content {
                 flex: 1;
-                overflow-y: auto;
             }
             
             .shortcuts-tab-content {
