@@ -10156,6 +10156,8 @@ class FastSearchCard extends HTMLElement {
                 fill: 'forwards',
                 easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
             }).finished : Promise.resolve();
+
+        console.log('🎭 fadeOutPromise erstellt, starte .then()');
         
         // Animation 2: Timer Control nach oben (NACH Animation 1)
         fadeOutPromise.then(() => {
