@@ -10165,9 +10165,10 @@ class FastSearchCard extends HTMLElement {
             console.log('🔄 fadeOutPromise beendet - bewege Timer Control nach oben');
             
             if (timerControlDesign && activeTimersSection) {
-                // ✅ DYNAMISCH: Echte Höhe des Active Timers Bereichs messen
                 const activeSectionHeight = activeTimersSection.offsetHeight;
-                const moveDistance = activeSectionHeight; // Ohne extra margin
+                
+                // ✅ ANGEPASST: Weniger Bewegung für besseren Abstand
+                const moveDistance = activeSectionHeight - 60; // Reduziert um 60px
                 
                 console.log(`📏 Active Timers Höhe: ${activeSectionHeight}px`);
                 console.log(`🔄 Bewege Timer Control um ${moveDistance}px nach oben`);
