@@ -201,6 +201,7 @@ class MiniSearch {
 class FastSearchCard extends HTMLElement {
     constructor() {
         super();
+        this.isTimeSelectionOpen = false;  // ← NEU HINZUFÜGEN
         this.attachShadow({ mode: 'open' });
         
         // State Management
@@ -7436,7 +7437,6 @@ class FastSearchCard extends HTMLElement {
     showTimeSelection(item, action, container) {
         console.log(`⏰ Zeige Time Selection für ${action}`);
         
-        // Container für Time Selection finden oder erstellen
         let timeSelectionContainer = container.querySelector('.timer-time-selection');
         if (!timeSelectionContainer) {
             timeSelectionContainer = document.createElement('div');
@@ -7444,6 +7444,11 @@ class FastSearchCard extends HTMLElement {
             timeSelectionContainer.setAttribute('data-is-open', 'false');
             container.appendChild(timeSelectionContainer);
         }
+        
+        // ✅ WICHTIG: Styles VOR innerHTML setzen
+        timeSelectionContainer.style.maxHeight = '0px';
+        timeSelectionContainer.style.opacity = '0';
+        timeSelectionContainer.style.overflow = 'hidden';        
         
         // Time Selection HTML
         timeSelectionContainer.innerHTML = `
@@ -7480,9 +7485,13 @@ class FastSearchCard extends HTMLElement {
                 <button class="timer-create-btn">Timer erstellen</button>
             </div>
         `;
-        
-        // Smooth expand animation
-        this.expandTimeSelection(timeSelectionContainer, container);
+
+        // ✅ GEÄNDERT: Animation NACH dem nächsten Frame
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                this.expandTimeSelection(timeSelectionContainer, container);
+            });
+        });
         
         // Setup event listeners für Time Selection
         this.setupTimeSelectionEvents(item, action, timeSelectionContainer, container);
@@ -7539,6 +7548,14 @@ class FastSearchCard extends HTMLElement {
     }
 
     setupTimeSelectionEvents(item, action, timeContainer, parentContainer) {
+        // ✅ NEU: Cancel Button
+        const cancelBtn = timeContainer.querySelector('.timer-cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.closeTimeSelection(parentContainer);
+            });
+        }
+        
         // Quick Time Buttons
         const quickTimeBtns = timeContainer.querySelectorAll('.quick-time-btn');
         quickTimeBtns.forEach(btn => {
@@ -7587,22 +7604,56 @@ class FastSearchCard extends HTMLElement {
         });
     }
     
-    closeTimeSelection(timeContainer, parentContainer) {
-        // Animate out
-        timeContainer.animate([
-            { maxHeight: '300px', opacity: 1, transform: 'translateY(0)' },
-            { maxHeight: '0px', opacity: 0, transform: 'translateY(-20px)' }
-        ], {
-            duration: 300,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
+    closeTimeSelection(container) {
+        this.isTimeSelectionOpen = false;  // ← State zurücksetzen
         
-        // ✅ NEU: Reset zum ursprünglichen Zustand
-        setTimeout(() => {
-            timeContainer.remove();
-            this.resetToInitialTimerState(parentContainer);
-        }, 300);
+        const timeSelectionContainer = container.querySelector('.timer-time-selection');
+        const activeTimersSection = container.querySelector('.active-timers');
+        const timerControlDesign = container.querySelector('.timer-control-design');
+        
+        // 1. Time Selection ausblenden
+        if (timeSelectionContainer) {
+            timeSelectionContainer.animate([
+                { maxHeight: '300px', opacity: 1 },
+                { maxHeight: '0px', opacity: 0 }
+            ], {
+                duration: 300,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+            }).finished.then(() => {
+                timeSelectionContainer.remove();
+            });
+        }
+        
+        // 2. Timer Control zurück nach unten
+        if (timerControlDesign) {
+            timerControlDesign.animate([
+                { transform: 'translateY(-60px)' },
+                { transform: 'translateY(0)' }
+            ], {
+                duration: 400,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+            });
+        }
+        
+        // 3. Active Timers wieder einblenden
+        if (activeTimersSection) {
+            setTimeout(() => {
+                activeTimersSection.animate([
+                    { opacity: 0, transform: 'translateY(-20px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], {
+                    duration: 400,
+                    fill: 'forwards',
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                });
+            }, 200);
+        }
+        
+        // Button-States zurücksetzen
+        const timerPresets = container.querySelectorAll('.timer-control-preset');
+        timerPresets.forEach(p => p.classList.remove('active'));
     }
 
     resetToInitialTimerState(container) {
@@ -10086,54 +10137,75 @@ class FastSearchCard extends HTMLElement {
                 const action = preset.dataset.action;
                 console.log(`Timer Action ausgewählt: ${action} für ${item.name}`);
                 
+                // ✅ NEUE ZUSTANDSPRÜFUNG
+                if (this.isTimeSelectionOpen) {
+                    // Nur Update, keine neue Animation
+                    this.updateTimeSelectionAction(item, action, container);
+                    return;
+                }
+                
                 // Visual feedback
                 timerPresets.forEach(p => p.classList.remove('active'));
                 preset.classList.add('active');
                 
-                // ✅ ANIMATION: Oberer Bereich verschwindet, unterer schwebt nach oben
-                const activeTimersSection = container.querySelector('.active-timers');
-                const timerControlDesign = container.querySelector('.timer-control-design');
-                
-                // 1. Active Timers fade out + slide up
-                if (activeTimersSection) {
-                    activeTimersSection.animate([
-                        { opacity: 1, transform: 'translateY(0)' },
-                        { opacity: 0, transform: 'translateY(-20px)' }
-                    ], { 
-                        duration: 300, 
-                        fill: 'forwards',
-                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                    });
-                }
-
-                // 2. Timer Control Design schwebt dynamisch nach oben
-                setTimeout(() => {
-                    if (timerControlDesign && activeTimersSection) {
-                        // ✅ DYNAMISCH: Höhe der aktiven Timer Sektion messen
-                        const activeSectionHeight = activeTimersSection.offsetHeight;
-                        console.log(`🔄 Bewege Buttons um ${activeSectionHeight}px nach oben`);
-                        
-                        timerControlDesign.animate([
-                            { transform: 'translateY(0)' },
-                            { transform: `translateY(-${activeSectionHeight}px)` }
-                        ], { 
-                            duration: 400, 
-                            fill: 'forwards',
-                            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                        });
-                    }
-                    
-                    // 3. Zeit-Auswahl erscheint
-                    setTimeout(() => {
-                        this.showTimeSelection(item, action, container);
-                    }, 200);
-                }, 300);
+                // ✅ SEQUENZIELLE ANIMATION
+                this.startTimerOpenSequence(item, action, container);
             });
         });
         
-        // Lade aktive Timer
         this.loadActiveTimers(item.id);
     }
+
+    startTimerOpenSequence(item, action, container) {
+        const activeTimersSection = container.querySelector('.active-timers');
+        const timerControlDesign = container.querySelector('.timer-control-design');
+        
+        // Animation 1: Active Timers ausblenden
+        const fadeOutPromise = activeTimersSection ? 
+            activeTimersSection.animate([
+                { opacity: 1, transform: 'translateY(0)' },
+                { opacity: 0, transform: 'translateY(-20px)' }
+            ], { 
+                duration: 300, 
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+            }).finished : Promise.resolve();
+        
+        // Animation 2: Timer Control nach oben (NACH Animation 1)
+        fadeOutPromise.then(() => {
+            const moveUpPromise = timerControlDesign ?
+                timerControlDesign.animate([
+                    { transform: 'translateY(0)' },
+                    { transform: 'translateY(-60px)' }
+                ], {
+                    duration: 400,
+                    fill: 'forwards',
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                }).finished : Promise.resolve();
+            
+            // Animation 3: Time Selection einblenden (NACH Animation 2)
+            moveUpPromise.then(() => {
+                this.showTimeSelection(item, action, container);
+                this.isTimeSelectionOpen = true;  // ← State setzen
+            });
+        });
+    }    
+
+    updateTimeSelectionAction(item, action, container) {
+        // Nur die Überschrift ändern, keine neue Animation
+        const actionLabel = container.querySelector('.action-label');
+        if (actionLabel) {
+            actionLabel.textContent = this.getActionLabel(action);
+        }
+        
+        // Visual feedback für Buttons
+        const timerPresets = container.querySelectorAll('.timer-control-preset');
+        timerPresets.forEach(p => p.classList.remove('active'));
+        const activePreset = container.querySelector(`[data-action="${action}"]`);
+        if (activePreset) {
+            activePreset.classList.add('active');
+        }
+    }    
     
     // ✅ Zeitplan Tab Initialisierung 
     initializeScheduleTab(item, container) {
