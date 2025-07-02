@@ -3702,6 +3702,138 @@ class FastSearchCard extends HTMLElement {
             .timer-wheel-create:hover {
                 background: var(--accent-hover, #0056cc);
                 transform: translateY(-1px);
+            }          
+
+
+            /* =========================
+               ZUSÄTZLICHE CSS VERBESSERUNGEN - ZU DEINEN BESTEHENDEN STYLES HINZUFÜGEN
+               ========================= */
+            
+            /* Verbesserte Zeit-Anzeige mit Action-Indikator */
+            .wheel-time-display {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                background: rgba(var(--accent-rgb, 0, 122, 255), 0.1);
+                border-bottom: 1px solid rgba(255,255,255,0.12);
+                color: var(--text-primary, #ffffff);
+            }
+            
+            .selected-action-indicator {
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--accent, #007aff);
+                margin-bottom: 8px;
+                opacity: 0.9;
+            }
+            
+            .time-display-main {
+                display: flex;
+                align-items: center;
+                font-size: 36px;
+                font-weight: 300;
+                letter-spacing: 3px;
+                margin: 8px 0;
+            }
+            
+            .time-display-subtitle {
+                font-size: 12px;
+                color: var(--text-secondary, rgba(255,255,255,0.6));
+                margin-top: 4px;
+            }
+            
+            /* Verbesserte Wheel Time Parts */
+            .wheel-time-part {
+                min-width: 60px;
+                text-align: center;
+                position: relative;
+                background: rgba(255,255,255,0.08);
+                border-radius: 8px;
+                padding: 4px 8px;
+                margin: 0 4px;
+            }
+            
+            .wheel-time-separator {
+                margin: 0 12px;
+                opacity: 0.6;
+                font-weight: 400;
+            }
+            
+            /* Smooth Transitions für bessere UX */
+            .timer-control-design {
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            
+            .active-timers {
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            
+            /* TimePicker Container Verbesserungen */
+            .timer-time-selection {
+                background: rgba(0,0,0,0.6);
+                border-radius: 16px;
+                margin-top: 16px;
+                overflow: hidden;
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255,255,255,0.08);
+            }
+            
+            /* Wheel Controls verbessert */
+            .timer-wheel-controls {
+                display: flex;
+                justify-content: space-between;
+                padding: 20px;
+                border-top: 1px solid rgba(255,255,255,0.12);
+                background: rgba(0,0,0,0.3);
+                gap: 16px;
+            }
+            
+            .timer-wheel-btn {
+                flex: 1;
+                padding: 14px 20px;
+                border: none;
+                border-radius: 10px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .timer-wheel-cancel {
+                background: rgba(255,255,255,0.08);
+                color: rgba(255,255,255,0.8);
+                border: 1px solid rgba(255,255,255,0.15);
+            }
+            
+            .timer-wheel-cancel:hover {
+                background: rgba(255,255,255,0.15);
+                color: rgba(255,255,255,1);
+                transform: translateY(-1px);
+            }
+            
+            .timer-wheel-create {
+                background: linear-gradient(135deg, var(--accent, #007aff) 0%, #0056cc 100%);
+                color: white;
+                border: 1px solid var(--accent, #007aff);
+                box-shadow: 0 4px 12px rgba(var(--accent-rgb, 0, 122, 255), 0.3);
+            }
+            
+            .timer-wheel-create:hover {
+                background: linear-gradient(135deg, #0056cc 0%, #003d99 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(var(--accent-rgb, 0, 122, 255), 0.4);
+            }
+            
+            /* Wheel Picker Verbesserungen */
+            .wheel-picker-selection {
+                background: rgba(var(--accent-rgb, 0, 122, 255), 0.2);
+                border: 2px solid rgba(var(--accent-rgb, 0, 122, 255), 0.5);
+                border-radius: 8px;
+                box-shadow: 0 0 20px rgba(var(--accent-rgb, 0, 122, 255), 0.3);
             }            
                                                 
             </style>
@@ -7604,8 +7736,9 @@ class FastSearchCard extends HTMLElement {
         }
     }    
     
+
     // ========================
-    // ERSETZE DEINE BESTEHENDE showTimeSelection METHODE
+    // ERSETZE DEINE showTimeSelection METHODE 
     // ========================
     
     showTimeSelection(item, action, container) {
@@ -7634,49 +7767,47 @@ class FastSearchCard extends HTMLElement {
             );
         }
         
-        // Animiere das Erscheinen
+        // SEQUENZIELLE ANIMATIONEN:
         const insertedContainer = container.querySelector('.timer-time-selection');
         if (insertedContainer) {
-            // Animation 1: Time Selection einblenden
-            insertedContainer.animate([
-                { maxHeight: '0px', opacity: 0 },
-                { maxHeight: '400px', opacity: 1 }
+            
+            // 1. ACTIVE TIMERS nach oben schieben und ausblenden
+            const activeTimersAnimation = activeTimersSection?.animate([
+                { transform: 'translateY(0)', opacity: 1 },
+                { transform: 'translateY(-100px)', opacity: 0 }
             ], {
-                duration: 400,
+                duration: 300,
                 fill: 'forwards',
                 easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
             });
             
-            // Animation 2: Active Timers nach oben schieben
-            if (activeTimersSection) {
-                const moveDistance = 300; // Geschätzte Höhe des TimePickers
-                
-                activeTimersSection.animate([
-                    { transform: 'translateY(0)', opacity: 1 },
-                    { transform: `translateY(-${moveDistance}px)`, opacity: 0.3 }
+            // 2. TIMER CONTROL DESIGN (Action Buttons) nach oben schieben und ausblenden
+            const timerControlAnimation = timerControlDesign?.animate([
+                { transform: 'translateY(0)', opacity: 1 },
+                { transform: 'translateY(-100px)', opacity: 0 }
+            ], {
+                duration: 300,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+            });
+            
+            // 3. Nach den Ausblend-Animationen: TimePicker einblenden
+            setTimeout(() => {
+                insertedContainer.animate([
+                    { maxHeight: '0px', opacity: 0, transform: 'translateY(20px)' },
+                    { maxHeight: '400px', opacity: 1, transform: 'translateY(0)' }
                 ], {
                     duration: 400,
                     fill: 'forwards',
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
                 });
                 
-                // Timer Control auch nach oben bewegen
-                if (timerControlDesign) {
-                    timerControlDesign.animate([
-                        { transform: 'translateY(0)' },
-                        { transform: `translateY(-${moveDistance}px)` }
-                    ], {
-                        duration: 400,
-                        fill: 'forwards',
-                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                    });
-                }
-            }
-            
-            // Initialisiere den WheelTimePicker nach der Animation
-            setTimeout(() => {
-                this.initializeWheelTimePicker(item, action, insertedContainer);
-            }, 200);
+                // TimePicker initialisieren nach der Animation
+                setTimeout(() => {
+                    this.initializeWheelTimePicker(item, action, insertedContainer);
+                }, 200);
+                
+            }, 200); // Start TimePicker Animation 200ms nach Ausblend-Start
         }
     }
     
@@ -7897,11 +8028,11 @@ class FastSearchCard extends HTMLElement {
     }
 
     // ========================
-    // ERWEITERE DEINE BESTEHENDE resetToInitialTimerState METHODE
+    // ERSETZE DEINE resetToInitialTimerState METHODE
     // ========================
     
     resetToInitialTimerState(container) {
-        console.log('🔄 Reset to Initial Timer State (with Wheel TimePicker)');
+        console.log('🔄 Reset to Initial Timer State (with hidden Action-Buttons)');
         
         this.isTimeSelectionOpen = false;
         
@@ -7915,11 +8046,13 @@ class FastSearchCard extends HTMLElement {
             this.currentWheelTimePicker = null;
         }
         
+        // REVERSE ANIMATION SEQUENCE:
+        
         // 1. Time Selection ausblenden
         if (timeSelectionContainer) {
             timeSelectionContainer.animate([
-                { maxHeight: '400px', opacity: 1 },
-                { maxHeight: '0px', opacity: 0 }
+                { maxHeight: '400px', opacity: 1, transform: 'translateY(0)' },
+                { maxHeight: '0px', opacity: 0, transform: 'translateY(-20px)' }
             ], {
                 duration: 300,
                 fill: 'forwards',
@@ -7929,43 +8062,46 @@ class FastSearchCard extends HTMLElement {
             });
         }
         
-        // 2. Timer Control Design zurück zur ursprünglichen Position
-        if (timerControlDesign) {
-            setTimeout(() => {
+        // 2. Nach TimePicker ausblenden: Action-Buttons und Active Timers wieder einblenden
+        setTimeout(() => {
+            
+            // Timer Control Design (Action Buttons) wieder einblenden
+            if (timerControlDesign) {
                 timerControlDesign.animate([
-                    { transform: timerControlDesign.style.transform || 'translateY(0)' },
-                    { transform: 'translateY(0)' }
+                    { transform: 'translateY(-100px)', opacity: 0 },
+                    { transform: 'translateY(0)', opacity: 1 }
                 ], {
                     duration: 400,
                     fill: 'forwards',
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
                 });
-            }, 100);
-        }
-        
-        // 3. Active Timers wieder einblenden
-        if (activeTimersSection) {
-            setTimeout(() => {
+            }
+            
+            // Active Timers wieder einblenden
+            if (activeTimersSection) {
                 activeTimersSection.animate([
-                    { opacity: 0.3, transform: 'translateY(-300px)' },
-                    { opacity: 1, transform: 'translateY(0)' }
+                    { transform: 'translateY(-100px)', opacity: 0 },
+                    { transform: 'translateY(0)', opacity: 1 }
                 ], {
                     duration: 400,
                     fill: 'forwards',
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
                 });
-            }, 200);
-        }
+            }
+            
+        }, 150); // Start Einblend-Animation 150ms nach TimePicker Ausblend-Start
         
-        // 4. Button-States zurücksetzen
-        const timerPresets = container.querySelectorAll('.timer-control-preset');
-        timerPresets.forEach(p => p.classList.remove('active'));
+        // 3. Button-States zurücksetzen (nach allen Animationen)
+        setTimeout(() => {
+            const timerPresets = container.querySelectorAll('.timer-control-preset');
+            timerPresets.forEach(p => p.classList.remove('active'));
+        }, 600);
     }
 
 
 
     // ========================
-    // NEUE METHODE - HINZUFÜGEN ZU DEINER FAST SEARCH CARD KLASSE
+    // ERSETZE DEINE createWheelTimePickerHTML METHODE
     // ========================
     
     createWheelTimePickerHTML(item, action) {
@@ -7973,16 +8109,17 @@ class FastSearchCard extends HTMLElement {
         
         return `
             <div class="timer-time-selection" data-timer-id="${item.id}">
-                <div class="time-selection-header">
-                    <div class="action-label">${actionLabel}</div>
-                    <div class="action-subtitle">Wann soll diese Aktion ausgeführt werden?</div>
-                </div>
-                
                 <div class="wheel-timepicker-container">
                     <div class="wheel-time-display" id="wheel-time-display-${item.id}">
-                        <span class="wheel-time-part" id="wheel-hour-part-${item.id}">00</span>
-                        <span class="wheel-time-separator">:</span>
-                        <span class="wheel-time-part" id="wheel-minute-part-${item.id}">30</span>
+                        <div class="selected-action-indicator">
+                            ${this.getActionIcon(action)} ${actionLabel}
+                        </div>
+                        <div class="time-display-main">
+                            <span class="wheel-time-part" id="wheel-hour-part-${item.id}">00</span>
+                            <span class="wheel-time-separator">:</span>
+                            <span class="wheel-time-part" id="wheel-minute-part-${item.id}">30</span>
+                        </div>
+                        <div class="time-display-subtitle">in Stunden:Minuten</div>
                     </div>
                     
                     <div class="wheel-picker-wheels">
@@ -8007,6 +8144,25 @@ class FastSearchCard extends HTMLElement {
                 </div>
             </div>
         `;
+    }
+    
+    // ========================
+    // NEUE HELPER METHODE - Action Icon bekommen
+    // ========================
+    
+    getActionIcon(action) {
+        const iconMap = {
+            'turn_off': '🔴',
+            'turn_on': '💡', 
+            'dim_30': '🌙',
+            'dim_50': '🌗',
+            'heat_22': '🔥',
+            'cool_18': '❄️',
+            'play': '▶️',
+            'pause': '⏸️'
+        };
+        
+        return iconMap[action] || '⚙️';
     }
 
 
