@@ -11044,6 +11044,45 @@ class FastSearchCard extends HTMLElement {
                     service: 'light.turn_on',
                     service_data: { brightness: 128 } // 50% von 255
                 };
+                
+            // NEUE Climate Actions:
+            case 'heat_22':
+                return { 
+                    service: 'climate.set_temperature',
+                    service_data: { temperature: 22 }
+                };
+            case 'cool_18':
+                return { 
+                    service: 'climate.set_temperature',
+                    service_data: { temperature: 18 }
+                };
+            case 'auto_mode':
+                return { 
+                    service: 'climate.set_hvac_mode',
+                    service_data: { hvac_mode: 'auto' }
+                };
+                
+            // NEUE Media Player Actions:
+            case 'play':
+                return { service: 'media_player.media_play' };
+            case 'pause':
+                return { service: 'media_player.media_pause' };
+            case 'volume_down':
+                return { service: 'media_player.volume_down' };
+                
+            // NEUE Cover Actions:
+            case 'open_cover':
+                return { service: 'cover.open_cover' };
+            case 'close_cover':
+                return { service: 'cover.close_cover' };
+            case 'stop_cover':
+                return { service: 'cover.stop_cover' };
+            case 'set_position_50':
+                return { 
+                    service: 'cover.set_cover_position',
+                    service_data: { position: 50 }
+                };
+                
             default:
                 return { service: 'light.turn_on' };
         }
