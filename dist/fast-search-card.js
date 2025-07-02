@@ -8135,6 +8135,11 @@ class FastSearchCard extends HTMLElement {
                 
                 // Timer = keine Wochentage oder leere Wochentage-Array
                 const isTimer = !schedule.weekdays || schedule.weekdays.length === 0;
+
+                // DEBUG: Zeige alle relevanten Schedules
+                if (belongsToEntity) {
+                    console.log(`🔍 TIMER DEBUG - Schedule: ${schedule.name}, weekdays: ${JSON.stringify(schedule.weekdays)}, isTimer: ${isTimer}`);
+                }
                 
                 return belongsToEntity && isTimer;
             });
@@ -10762,9 +10767,12 @@ class FastSearchCard extends HTMLElement {
                 // Zeitplan = hat Wochentage definiert (nicht leer)
                 const weekdays = schedule.attributes.weekdays || [];
                 const isSchedule = weekdays.length > 0;
-                
-                console.log(`🔍 Schedule ${schedule.entity_id}: entities=${JSON.stringify(entities)}, weekdays=${JSON.stringify(weekdays)}, hasMatch=${hasMatch}, isSchedule=${isSchedule}`);
-                
+
+                // DEBUG: Zeige alle relevanten Schedules  
+                if (hasMatch) {
+                    console.log(`🔍 ZEITPLAN DEBUG - Schedule: ${schedule.attributes.friendly_name}, weekdays: ${JSON.stringify(weekdays)}, isSchedule: ${isSchedule}`);
+                }
+   
                 return hasMatch && isSchedule;
             });
     
