@@ -7369,7 +7369,7 @@ class FastSearchCard extends HTMLElement {
         // Diese werden jetzt in initializeTimerTab gehandhabt!
         
         // Load existing timers
-        this.(item.id);
+        this.loadActiveTimers(item.id);  // ← Das war der Fehler!
     }
 
     handleTimerToggle(button, container) {
