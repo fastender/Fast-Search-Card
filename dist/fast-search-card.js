@@ -8157,8 +8157,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
-
-    createTimerFromMinimalPicker(item, action) {
+    async createTimerFromMinimalPicker(item, action) {
         const totalMinutes = (this.timePickerState.selectedHours * 60) + this.timePickerState.selectedMinutes;
         
         if (totalMinutes === 0) {
@@ -8168,12 +8167,22 @@ class FastSearchCard extends HTMLElement {
         
         console.log(`🎯 Erstelle Timer: ${action} in ${totalMinutes} Minuten`);
         
-        // Verwende deine bestehende Timer-Erstellung
-        this.createActionTimer(item, action, totalMinutes);
-        
-        // Schließe den Picker
-        const parentContainer = this.shadowRoot.querySelector('.minimal-time-picker').closest('.shortcuts-tab-content');
-        this.closeMinimalTimePicker(parentContainer);        
+        try {
+            // Verwende deine bestehende Timer-Erstellung
+            await this.createActionTimer(item, action, totalMinutes);
+            
+            // Schließe den Picker
+            const parentContainer = this.shadowRoot.querySelector('.minimal-time-picker').closest('.shortcuts-tab-content');
+            this.closeMinimalTimePicker(parentContainer);
+            
+            // Warte kurz und lade dann die Timer-Liste neu
+            setTimeout(() => {
+                this.loadActiveTimers(item.id);
+            }, 500);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Erstellen des Timers:', error);
+        }
     }
 
     closeMinimalTimePicker(parentContainer) {
