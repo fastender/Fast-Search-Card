@@ -1353,6 +1353,9 @@ class FastSearchCard extends HTMLElement {
                     #tab-content-container.history-active {
                         padding: 0px 10px;
                     }
+                    #tab-content-container.shortcuts-active {
+                        padding: 0px 10px;
+                    }                 
                 }                
                 
                 .icon-content { 
@@ -10121,11 +10124,13 @@ class FastSearchCard extends HTMLElement {
                     const tabContainer = this.shadowRoot.querySelector('#tab-content-container');
                     
                     // Alle history-spezifischen Klassen entfernen
-                    tabContainer.classList.remove('history-active');
-                    
-                    // Wenn History Tab geklickt wird, Klasse hinzufügen
+                    tabContainer.classList.remove('history-active', 'shortcuts-active');  
+
+                    // Entsprechende Klasse hinzufügen
                     if (targetId === 'history') {
                         tabContainer.classList.add('history-active');
+                    } else if (targetId === 'shortcuts') {
+                        tabContainer.classList.add('shortcuts-active');
                     }                    
                     
                     // Sync beide Tab-Container
