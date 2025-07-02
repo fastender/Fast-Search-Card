@@ -10370,14 +10370,9 @@ class FastSearchCard extends HTMLElement {
         if (!scheduleSelectionContainer) {
             scheduleSelectionContainer = document.createElement('div');
             scheduleSelectionContainer.className = 'schedule-time-selection';
-            
-            // Panel an oberster Position einfügen
-            const activeSchedulesSection = container.querySelector('.active-schedules');
-            if (activeSchedulesSection) {
-                activeSchedulesSection.parentNode.insertBefore(scheduleSelectionContainer, activeSchedulesSection.nextSibling);
-            } else {
-                container.appendChild(scheduleSelectionContainer);
-            }
+
+            // Zeitplan-Auswahl IMMER ganz oben einfügen (wie bei Timer)
+            container.insertBefore(scheduleSelectionContainer, container.firstChild);
         }
         
         scheduleSelectionContainer.innerHTML = `
