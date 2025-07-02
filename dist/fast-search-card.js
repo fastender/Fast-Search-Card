@@ -7428,7 +7428,12 @@ class FastSearchCard extends HTMLElement {
             
             // WICHTIG: Panel wird jetzt VOR den Timer-Controls eingefügt (oberste Position)
             const timerControlDesign = container.querySelector('.timer-control-design');
-            container.insertBefore(timeSelectionContainer, timerControlDesign);
+            const activeTimersSection = container.querySelector('.active-timers');
+            if (activeTimersSection) {
+                activeTimersSection.parentNode.insertBefore(timeSelectionContainer, activeTimersSection.nextSibling);
+            } else {
+                container.appendChild(timeSelectionContainer);
+            }            
         }
         
         timeSelectionContainer.innerHTML = `
@@ -7477,6 +7482,25 @@ class FastSearchCard extends HTMLElement {
         
         this.setupTimeSelectionEvents(item, action, timeSelectionContainer, container);
     }
+
+    animateTimeSelectionContents(timeSelectionContainer) {
+        console.log('🎭 Animating time selection contents');
+        
+        const animatableElements = timeSelectionContainer.querySelectorAll(
+            '.time-selection-header, .time-picker-container, .quick-time-buttons, .timer-create-actions'
+        );
+        
+        animatableElements.forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(10px)';
+            el.style.transition = `all 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${index * 50}ms`;
+            
+            requestAnimationFrame(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            });
+        });
+    }    
     
     getActionLabel(action) {
         const labels = {
@@ -7620,7 +7644,7 @@ class FastSearchCard extends HTMLElement {
         const activeTimersSection = container.querySelector('.active-timers');
         const timerControlDesign = container.querySelector('.timer-control-design');
     
-        // 1. Zeitwahl-Panel ausblenden und entfernen
+        // 1. Zeitwahl-Panel ausblenden
         const fadeOutTimeSelection = timeSelectionContainer ? timeSelectionContainer.animate([
             { opacity: 1, transform: 'translateY(0)' },
             { opacity: 0, transform: 'translateY(-20px)' }
@@ -7631,7 +7655,6 @@ class FastSearchCard extends HTMLElement {
         }).finished : Promise.resolve();
     
         fadeOutTimeSelection.then(() => {
-            // Panel entfernen
             if (timeSelectionContainer) {
                 timeSelectionContainer.remove();
             }
