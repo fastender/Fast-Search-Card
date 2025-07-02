@@ -7428,12 +7428,7 @@ class FastSearchCard extends HTMLElement {
             
             // WICHTIG: Panel wird jetzt VOR den Timer-Controls eingefügt (oberste Position)
             const timerControlDesign = container.querySelector('.timer-control-design');
-            const activeTimersSection = container.querySelector('.active-timers');
-            if (activeTimersSection) {
-                activeTimersSection.parentNode.insertBefore(timeSelectionContainer, activeTimersSection.nextSibling);
-            } else {
-                container.appendChild(timeSelectionContainer);
-            }            
+            container.insertBefore(timeSelectionContainer, container.firstChild);         
         }
         
         timeSelectionContainer.innerHTML = `
