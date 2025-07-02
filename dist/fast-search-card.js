@@ -7549,16 +7549,22 @@ class FastSearchCard extends HTMLElement {
         
         this.setupTimeSelectionEvents(item, action, timeSelectionContainer, container);
     }   
-    
-    getActionLabel(action) {
-        const labels = {
+
+    getActionLabel(actionString) {
+        const actionLabels = {
             'turn_off': '🔴 Ausschalten',
             'turn_on': '💡 Einschalten', 
             'dim_30': '🌙 Dimmen 30%',
-            'dim_50': '🌗 Dimmen 50%'
+            'dim_50': '🌗 Dimmen 50%',
+            'toggle': '🔄 Umschalten',
+            'light.turn_on': '💡 Einschalten',
+            'light.turn_off': '💡 Ausschalten',
+            'switch.turn_on': '🔌 Einschalten',
+            'switch.turn_off': '🔌 Ausschalten'
         };
-        return labels[action] || action;
-    }
+        
+        return actionLabels[actionString] || actionString || 'Aktion';
+    }    
  
     expandTimeSelection(timeContainer, parentContainer) {        
         console.log('🎬 Expanding Time Selection - NEW VERSION');
@@ -10897,9 +10903,25 @@ class FastSearchCard extends HTMLElement {
                     timeString = timeMatch ? timeMatch[1] : firstTimeslot;
                 }
                 
-                // Action für diese Entity finden
+                // Action für diese Entity finden - KORRIGIERT
                 const entityIndex = entities.indexOf(entityId);
-                const actionForEntity = entityIndex >= 0 ? actions[entityIndex] : 'Unbekannt';
+                let actionForEntity = 'Unbekannt';
+                if (entityIndex >= 0 && actions[entityIndex]) {
+                    const action = actions[entityIndex];
+                    console.log('🔍 DEBUG Action Object:', action); // Debug-Zeile
+                    
+                    if (typeof action === 'string') {
+                        actionForEntity = this.getActionLabel(action); // Verwende deine Funktion
+                    } else if (action.service) {
+                        // Service aus Object extrahieren (z.B. "light.turn_on" -> "turn_on")
+                        const serviceAction = action.service.split('.').pop();
+                        actionForEntity = this.getActionLabel(serviceAction);
+                    } else if (action.action) {
+                        actionForEntity = this.getActionLabel(action.action);
+                    } else {
+                        actionForEntity = 'Aktion';
+                    }
+                }
                 
                 return `
                     <div class="schedule-item ${isEnabled ? 'enabled' : 'disabled'}" data-entity-id="${schedule.entity_id}">
