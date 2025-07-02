@@ -1347,6 +1347,13 @@ class FastSearchCard extends HTMLElement {
                     scrollbar-width: none;
                     max-height: 100%;
                 }
+
+                /* Mobile: History Tab spezifisches Padding */
+                @media (max-width: 768px) {
+                    .detail-tab-content[data-tab-content="history"] #tab-content-container {
+                        padding: 0px 10px;
+                    }
+                }                
                 
                 .icon-content { 
                     justify-content: flex-start; 
