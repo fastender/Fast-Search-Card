@@ -10742,45 +10742,78 @@ class FastSearchCard extends HTMLElement {
         container.innerHTML = '<div class="loading-schedules">Lade Zeitpläne...</div>';
         
         try {
-            // DEBUG: Alle Schedule-Entitäten anzeigen
             const allEntities = this._hass.states;
             const allSchedules = Object.keys(allEntities)
                 .filter(key => key.startsWith('switch.schedule_'))
                 .map(key => allEntities[key]);
     
-            console.log('🔍 DEBUG: Alle Schedule-Entitäten:', allSchedules);
-            console.log('🔍 DEBUG: Suche nach entityId:', entityId);
+            console.log('🔍 DEBUG: Alle Schedule-Entitäten:', allSchedules.length);
             
-            // DEBUG: Erste Schedule-Entität genauer anschauen
-            if (allSchedules.length > 0) {
-                console.log('🔍 DEBUG: Erste Schedule Attributes:', allSchedules[0].attributes);
-                console.log('🔍 DEBUG: Erste Schedule Timeslots:', allSchedules[0].attributes.timeslots);
-                console.log('🔍 DEBUG: Erste Schedule Actions in Timeslot:', 
-                    allSchedules[0].attributes.timeslots?.[0]?.actions);
-            }
-            
-            // DEBUG: Einfache Anzeige ALLER Schedules (erstmal ohne Filter)
-            if (allSchedules.length === 0) {
-                container.innerHTML = '<div class="no-schedules">❌ Keine Zeitpläne im System gefunden</div>';
+            // KORRIGIERTES FILTERING: entities statt actions in timeslots
+            const scheduleEntities = allSchedules.filter(schedule => {
+                const entities = schedule.attributes.entities || [];
+                const hasMatch = entities.includes(entityId);
+                console.log(`🔍 Schedule ${schedule.entity_id}: entities=${JSON.stringify(entities)}, hasMatch=${hasMatch}`);
+                return hasMatch;
+            });
+    
+            console.log(`📋 Gefundene Zeitpläne für ${entityId}:`, scheduleEntities.length);
+    
+            if (scheduleEntities.length === 0) {
+                container.innerHTML = '<div class="no-schedules">Keine aktiven Zeitpläne</div>';
                 return;
             }
     
-            // DEBUG: Zeige alle Schedules mit Details
-            const debugHTML = allSchedules.map((schedule, index) => {
+            // KORRIGIERTE ANZEIGE mit neuer Datenstruktur
+            const schedulesHTML = scheduleEntities.map(schedule => {
+                const isEnabled = schedule.state === 'on';
+                const nextTrigger = schedule.attributes.next_trigger;
+                const weekdays = schedule.attributes.weekdays || [];
                 const timeslots = schedule.attributes.timeslots || [];
+                const entities = schedule.attributes.entities || [];
+                const actions = schedule.attributes.actions || [];
+                const scheduleName = schedule.attributes.friendly_name || schedule.entity_id;
+    
+                // Erste Timeslot für Anzeige - Zeit extrahieren aus "HH:MM:SS - HH:MM:SS"
                 const firstTimeslot = timeslots[0];
-                const actions = firstTimeslot?.actions || [];
+                let timeString = 'Unbekannt';
+                if (firstTimeslot && typeof firstTimeslot === 'string') {
+                    const timeMatch = firstTimeslot.match(/^(\d{2}:\d{2})/);
+                    timeString = timeMatch ? timeMatch[1] : firstTimeslot;
+                }
+                
+                // Action für diese Entity finden
+                const entityIndex = entities.indexOf(entityId);
+                const actionForEntity = entityIndex >= 0 ? actions[entityIndex] : 'Unbekannt';
                 
                 return `
-                    <div class="schedule-item" style="border: 2px solid #007AFF; margin: 10px 0; padding: 10px;">
+                    <div class="schedule-item ${isEnabled ? 'enabled' : 'disabled'}" data-entity-id="${schedule.entity_id}">
                         <div class="schedule-info">
-                            <div><strong>Schedule ${index + 1}:</strong> ${schedule.attributes.friendly_name || schedule.entity_id}</div>
-                            <div><strong>State:</strong> ${schedule.state}</div>
-                            <div><strong>Weekdays:</strong> ${JSON.stringify(schedule.attributes.weekdays)}</div>
-                            <div><strong>Time:</strong> ${firstTimeslot?.start || 'Unbekannt'}</div>
-                            <div><strong>Actions:</strong> ${JSON.stringify(actions)}</div>
-                            <div><strong>Target Entity:</strong> ${actions.map(a => a.entity_id).join(', ')}</div>
-                            <div><strong>Matches ${entityId}?</strong> ${actions.some(a => a.entity_id === entityId) ? '✅ JA' : '❌ NEIN'}</div>
+                            <div class="schedule-main">
+                                <span class="schedule-name">${actionForEntity} um ${timeString}</span>
+                            </div>
+                            <div class="schedule-details">
+                                <span class="schedule-days">${this.formatWeekdays(weekdays)}</span>
+                                ${nextTrigger ? `<span class="schedule-next">Nächste: ${this.formatNextTrigger(nextTrigger)}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="schedule-controls">
+                            <button class="schedule-toggle-btn" data-action="toggle" title="${isEnabled ? 'Deaktivieren' : 'Aktivieren'}">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    ${isEnabled ? 
+                                        '<path d="M6 18L18 6M6 6l12 12"/>' : 
+                                        '<polyline points="20,6 9,17 4,12"/>'
+                                    }
+                                </svg>
+                            </button>
+                            <button class="schedule-delete-btn" data-action="delete" title="Löschen">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6"/>
+                                    <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
+                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -10788,17 +10821,19 @@ class FastSearchCard extends HTMLElement {
     
             container.innerHTML = `
                 <div class="schedules-header">
-                    <h4>🔍 DEBUG: Alle Zeitpläne (${allSchedules.length})</h4>
-                    <p style="font-size: 12px; color: #666;">Suche nach: ${entityId}</p>
+                    <h4>Aktive Zeitpläne (${scheduleEntities.length})</h4>
                 </div>
                 <div class="schedules-list">
-                    ${debugHTML}
+                    ${schedulesHTML}
                 </div>
             `;
     
+            // Event Listeners für Schedule Controls
+            this.setupScheduleControlEvents(container, entityId);
+    
         } catch (error) {
             console.error('❌ Fehler beim Laden der Zeitpläne:', error);
-            container.innerHTML = `<div class="schedules-error">Fehler: ${error.message}</div>`;
+            container.innerHTML = '<div class="schedules-error">Fehler beim Laden der Zeitpläne</div>';
         }
     }
 
