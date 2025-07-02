@@ -7369,7 +7369,7 @@ class FastSearchCard extends HTMLElement {
         // Diese werden jetzt in initializeTimerTab gehandhabt!
         
         // Load existing timers
-        this.loadActiveTimers(item.id);
+        this.(item.id);
     }
 
     handleTimerToggle(button, container) {
@@ -7672,7 +7672,7 @@ class FastSearchCard extends HTMLElement {
             // Close after success
             setTimeout(() => {
                 this.closeTimeSelection(timeContainer, parentContainer);
-                this.loadActiveTimers(item.id); // Refresh timer list
+                this.(item.id); // Refresh timer list
             }, 1000);
             
         } catch (error) {
@@ -7686,7 +7686,7 @@ class FastSearchCard extends HTMLElement {
                 
                 // ✅ NEU: Timer Liste neu laden nach Erfolg
                 setTimeout(() => {
-                    this.loadActiveTimers(item.id);
+                    this.(item.id);
                 }, 400); // Warten bis Animation fertig
                 
             }, 1000);
@@ -8038,7 +8038,7 @@ class FastSearchCard extends HTMLElement {
             
             // Refresh timer list
             setTimeout(() => {
-                this.loadActiveTimers(item.id);
+                this.(item.id);
             }, 500);
             
         } catch (error) {
@@ -8126,12 +8126,17 @@ class FastSearchCard extends HTMLElement {
             
             console.log('📋 Alle Scheduler Items (korrekte API):', allSchedules);
             
-            // Filter für diese Entity
+            // Filter für diese Entity UND nur echte Timer (keine Wochentage)
             const entityTimers = allSchedules.filter(schedule => {
                 // Prüfe ob diese Entity in den timeslots/actions vorkommt
-                return schedule.timeslots && schedule.timeslots.some(slot => 
+                const belongsToEntity = schedule.timeslots && schedule.timeslots.some(slot => 
                     slot.actions && slot.actions.some(action => action.entity_id === entityId)
                 );
+                
+                // Timer = keine Wochentage oder leere Wochentage-Array
+                const isTimer = !schedule.weekdays || schedule.weekdays.length === 0;
+                
+                return belongsToEntity && isTimer;
             });
             
             console.log(`🎯 Timer für ${entityId}:`, entityTimers);
@@ -10749,12 +10754,18 @@ class FastSearchCard extends HTMLElement {
     
             console.log('🔍 DEBUG: Alle Schedule-Entitäten:', allSchedules.length);
             
-            // KORRIGIERTES FILTERING: entities statt actions in timeslots
+            // KORRIGIERTES FILTERING: entities statt actions in timeslots + nur echte Zeitpläne
             const scheduleEntities = allSchedules.filter(schedule => {
                 const entities = schedule.attributes.entities || [];
                 const hasMatch = entities.includes(entityId);
-                console.log(`🔍 Schedule ${schedule.entity_id}: entities=${JSON.stringify(entities)}, hasMatch=${hasMatch}`);
-                return hasMatch;
+                
+                // Zeitplan = hat Wochentage definiert (nicht leer)
+                const weekdays = schedule.attributes.weekdays || [];
+                const isSchedule = weekdays.length > 0;
+                
+                console.log(`🔍 Schedule ${schedule.entity_id}: entities=${JSON.stringify(entities)}, weekdays=${JSON.stringify(weekdays)}, hasMatch=${hasMatch}, isSchedule=${isSchedule}`);
+                
+                return hasMatch && isSchedule;
             });
     
             console.log(`📋 Gefundene Zeitpläne für ${entityId}:`, scheduleEntities.length);
