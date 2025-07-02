@@ -201,8 +201,6 @@ class MiniSearch {
 class FastSearchCard extends HTMLElement {
     constructor() {
         super();
-        this.isTimeSelectionOpen = false;  // ← NEU HINZUFÜGEN
-        this.isScheduleSelectionOpen = false;
         this.attachShadow({ mode: 'open' });
         
         // State Management
@@ -7701,16 +7699,22 @@ class FastSearchCard extends HTMLElement {
                 console.log('📦 Presets Container:', presetsContainer);
                 console.log('📊 Current data-is-open:', presetsContainer?.getAttribute('data-is-open'));
                 
-                this.handleTimerToggle(timerBtn, timerContainer);
+                // Toggle Timer Presets
+                const presetsContainer = timerContainer.querySelector('.timer-control-presets.timer-action-presets');
+                if (presetsContainer) {
+                    const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                    presetsContainer.setAttribute('data-is-open', !isOpen);
+                    presetsContainer.classList.toggle('visible', !isOpen);
+                }
             });
         }
         
-        // Zeitplan Button (später)
-        const scheduleBtn = timerContainer.querySelector('[data-action="schedule"]');
-        if (scheduleBtn) {
-            scheduleBtn.addEventListener('click', () => {
-                console.log('Zeitplan Button - kommt später...');
-            });
+        // Zeitplan Toggle - analog zu Timer
+        const schedulePresetsContainer = timerContainer.querySelector('.timer-control-presets.schedule-action-presets');
+        if (schedulePresetsContainer) {
+            const isOpen = schedulePresetsContainer.getAttribute('data-is-open') === 'true';
+            schedulePresetsContainer.setAttribute('data-is-open', !isOpen);
+            schedulePresetsContainer.classList.toggle('visible', !isOpen);
         }
         
         // ✅ ENTFERNT: Timer Preset Buttons Event Listeners
@@ -7719,98 +7723,6 @@ class FastSearchCard extends HTMLElement {
         // Load existing timers
         this.loadActiveTimers(item.id);  // ← Das war der Fehler!
     }
-
-    handleTimerToggle(button, container) {
-        const presetsContainer = container.querySelector('.timer-control-presets.timer-action-presets');
-        const isCurrentlyOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-        
-        console.log('🔄 Toggle Timer Presets:', { isCurrentlyOpen, presetsContainer });
-        
-        if (!isCurrentlyOpen) {
-            // ÖFFNEN
-            button.classList.add('active');
-            presetsContainer.setAttribute('data-is-open', 'true');
-            presetsContainer.classList.add('visible');
-            
-            // Animation für die einzelnen Presets
-            const presets = presetsContainer.querySelectorAll('.timer-control-preset');
-            presets.forEach((preset, index) => {
-                preset.style.opacity = '0';
-                preset.style.transform = 'translateY(20px) scale(0.8)';
-                
-                setTimeout(() => {
-                    preset.animate([
-                        { opacity: 0, transform: 'translateY(20px) scale(0.8)' },
-                        { opacity: 1, transform: 'translateY(0) scale(1)' }
-                    ], {
-                        duration: 300,
-                        delay: index * 50,
-                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                        fill: 'forwards'
-                    });
-                }, 100);
-            });
-            
-        } else {
-            // SCHLIESSEN
-            button.classList.remove('active');
-            presetsContainer.classList.remove('visible');
-            presetsContainer.setAttribute('data-is-open', 'false');
-        }
-    }    
-    
-    showTimeSelection(item, action, container, animate = true) {
-        console.log(`⏰ Zeige Time Selection für ${action} - animate: ${animate}`);
-    
-        let timeSelectionContainer = container.querySelector('.timer-time-selection');
-        if (!timeSelectionContainer) {
-            timeSelectionContainer = document.createElement('div');
-            timeSelectionContainer.className = 'timer-time-selection';
-            
-            // WICHTIG: Panel wird jetzt VOR den Timer-Controls eingefügt (oberste Position)
-            const timerControlDesign = container.querySelector('.timer-control-design');
-            container.insertBefore(timeSelectionContainer, container.firstChild);         
-        }
-        
-        timeSelectionContainer.innerHTML = `
-            <div class="time-selection-header">
-                <div class="selected-action-display">
-                    <span class="action-label">${this.getActionLabel(action)}</span>
-                    <span class="action-description">in...</span>
-                </div>
-            </div>
-            
-            <div class="time-picker-container">
-                 <div class="time-picker-wheel">
-                    <div class="time-input-group">
-                        <input type="number" class="time-input hours" min="0" max="23" value="0" data-type="hours">
-                        <label class="time-label">Std</label>
-                    </div>
-                    <div class="time-separator">:</div>
-                    <div class="time-input-group">
-                        <input type="number" class="time-input minutes" min="0" max="59" value="30" data-type="minutes">
-                        <label class="time-label">Min</label>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="timer-create-actions">
-                <button class="timer-cancel-btn">Abbrechen</button>
-                <button class="timer-create-btn">Timer erstellen</button>
-            </div>
-        `;
-        
-        // Animation nur ausführen, wenn gewünscht
-        if (animate) {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    this.expandTimeSelection(timeSelectionContainer, container);
-                });
-            });
-        }
-        
-        this.setupTimeSelectionEvents(item, action, timeSelectionContainer, container);
-    }   
 
     getActionLabel(actionString) {
         const actionLabels = {
@@ -7828,82 +7740,7 @@ class FastSearchCard extends HTMLElement {
         return actionLabels[actionString] || actionString || 'Aktion';
     }    
  
-    expandTimeSelection(timeContainer, parentContainer) {        
-        console.log('🎬 Expanding Time Selection - NEW VERSION');
-        
-        // Für die neue Version wird diese Methode vereinfacht,
-        // da die Hauptanimation bereits in startTimerOpenSequence stattfindet
-        timeContainer.style.maxHeight = 'none'; // Keine Höhenbeschränkung
-        timeContainer.style.opacity = '1';
-        timeContainer.style.overflow = 'visible';
-        
-        // Kaskadierende Animation der Inhalte
-        this.animateTimeSelectionContents(timeContainer);
-    }
-        
-    setupTimeSelectionEvents(item, action, timeContainer, parentContainer) {
-        // Quick Time Buttons
-        const quickTimeBtns = timeContainer.querySelectorAll('.quick-time-btn');
-        quickTimeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const minutes = parseInt(btn.dataset.minutes);
-                
-                // Update time inputs
-                const hoursInput = timeContainer.querySelector('.time-input.hours');
-                const minutesInput = timeContainer.querySelector('.time-input.minutes');
-                
-                hoursInput.value = Math.floor(minutes / 60);
-                minutesInput.value = minutes % 60;
-                
-                // Visual feedback
-                quickTimeBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                // Animate button
-                btn.animate([
-                    { transform: 'scale(1)' },
-                    { transform: 'scale(0.95)' },
-                    { transform: 'scale(1)' }
-                ], {
-                    duration: 150,
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                });
-            });
-        });
-        
-        // ✅ Cancel Button
-        const timerCancelBtn = timeContainer.querySelector('.timer-cancel-btn');
-        if (timerCancelBtn) {
-            timerCancelBtn.addEventListener('click', () => {
-                this.resetToInitialTimerState(parentContainer);
-            });
-        }
-        
-        // ✅ Create Timer Button
-        const createBtn = timeContainer.querySelector('.timer-create-btn');
-        if (createBtn) {
-            createBtn.addEventListener('click', () => {
-                const hours = parseInt(timeContainer.querySelector('.time-input.hours').value) || 0;
-                const minutes = parseInt(timeContainer.querySelector('.time-input.minutes').value) || 0;
-                const totalMinutes = hours * 60 + minutes;
-                
-                if (totalMinutes > 0) {
-                    this.createTimerFromSelection(item, action, totalMinutes, timeContainer, parentContainer)
-                        .then(() => {
-                            // ✅ Nach erfolgreichem Timer erstellen zurücksetzen
-                            setTimeout(() => {
-                                this.resetToInitialTimerState(parentContainer);
-                            }, 1000);
-                        });
-                }
-            });
-        }
-    }
-    
-    closeTimeSelection(container) {
-        this.isTimeSelectionOpen = false;  // ← State zurücksetzen
-        
-        const timeSelectionContainer = container.querySelector('.timer-time-selection');
+    closeTimeSelection(container) {        
         const activeTimersSection = container.querySelector('.active-timers');
         const timerControlDesign = container.querySelector('.timer-control-design');
         
@@ -7954,9 +7791,8 @@ class FastSearchCard extends HTMLElement {
 
     resetToInitialTimerState(container) {
         console.log('🔄 Reset to initial timer state (NEW - Simultaneous)');
-        this.isTimeSelectionOpen = false;
     
-        const timeSelectionContainer = container.querySelector('.timer-time-selection');
+
         const activeTimersSection = container.querySelector('.active-timers');
         const timerControlDesign = container.querySelector('.timer-control-design');
     
@@ -8009,42 +7845,6 @@ class FastSearchCard extends HTMLElement {
                 console.log('✅ Reset complete - all elements restored');
             });
         });
-    }
-    
-    async createTimerFromSelection(item, action, durationMinutes, timeContainer, parentContainer) {
-        console.log(`🎯 Erstelle Timer: ${action} in ${durationMinutes} Minuten`);
-        
-        try {
-            // Create timer based on action
-            await this.createActionTimer(item, action, durationMinutes);
-            
-            // Success animation
-            const createBtn = timeContainer.querySelector('.timer-create-btn');
-            createBtn.textContent = '✅ Erstellt!';
-            createBtn.style.background = '#4CAF50';
-            
-            // Close after success
-            setTimeout(() => {
-                this.closeTimeSelection(timeContainer, parentContainer);
-                this.loadActiveTimers(item.id); // ← KORRIGIERT
-            }, 1000);
-            
-        } catch (error) {
-            console.error('❌ Timer Fehler:', error);
-            const createBtn = timeContainer.querySelector('.timer-create-btn');
-            createBtn.textContent = '❌ Fehler';
-            createBtn.style.background = '#f44336';
-            
-            setTimeout(() => {
-                this.closeTimeSelection(timeContainer, parentContainer);
-                
-                // ✅ NEU: Timer Liste neu laden nach Erfolg
-                setTimeout(() => {
-                    this.loadActiveTimers(item.id); // ← KORRIGIERT
-                }, 400); // Warten bis Animation fertig
-                
-            }, 1000);
-        }
     }
 
     async createActionTimer(item, action, durationMinutes) {
@@ -11032,134 +10832,6 @@ class FastSearchCard extends HTMLElement {
         this.loadActiveTimers(item.id);
     }
 
-    startTimerOpenSequence(item, action, container) {
-        console.log('🎬 Starting NEW Timer Open Sequence - Simultaneous fade');
-        this.isTimeSelectionOpen = true; // Zustand sofort setzen
-    
-        const activeTimersSection = container.querySelector('.active-timers');
-        const timerControlDesign = container.querySelector('.timer-control-design');
-    
-        console.log('🔍 Elements found:', { 
-            activeTimersSection: !!activeTimersSection, 
-            timerControlDesign: !!timerControlDesign
-        });
-    
-        // Animation 1: Timer-Liste und Steuerungs-Buttons GLEICHZEITIG ausblenden
-        const fadeOutTimers = activeTimersSection ? activeTimersSection.animate([
-            { opacity: 1, transform: 'translateY(0)' },
-            { opacity: 0, transform: 'translateY(-20px)' }
-        ], { 
-            duration: 300, 
-            fill: 'forwards', 
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
-        }) : null;
-    
-        const fadeOutControls = timerControlDesign ? timerControlDesign.animate([
-            { opacity: 1, transform: 'translateY(0)' },
-            { opacity: 0, transform: 'translateY(-20px)' }
-        ], { 
-            duration: 300, 
-            fill: 'forwards', 
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
-        }) : null;
-    
-        // Erstelle das Zeitwahl-Panel sofort, aber halte es unsichtbar
-        this.showTimeSelection(item, action, container, false); // false = keine sofortige Animation
-        const timeSelectionContainer = container.querySelector('.timer-time-selection');
-        
-        if (timeSelectionContainer) {
-            timeSelectionContainer.style.opacity = '0';
-            timeSelectionContainer.style.transform = 'translateY(-20px)';
-        }
-    
-        // Animation 2: Zeitwahl-Panel einblenden nach gleichzeitigem Ausblenden
-        const animations = [fadeOutTimers?.finished, fadeOutControls?.finished].filter(Boolean);
-        
-        Promise.all(animations).then(() => {
-            console.log('✅ Simultaneous fade-out complete. Starting time selection fade-in.');
-            if (timeSelectionContainer) {
-                // Sofortiges Einblenden des Zeitwahl-Panels an oberster Position
-                timeSelectionContainer.animate([
-                    { opacity: 0, transform: 'translateY(-20px)' },
-                    { opacity: 1, transform: 'translateY(0)' }
-                ], {
-                    duration: 400,
-                    fill: 'forwards',
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                }).finished.then(() => {
-                    // Kaskadierende Animation der Inhalte
-                    this.animateTimeSelectionContents(timeSelectionContainer);
-                });
-            }
-        }).catch(error => {
-            console.error('❌ Fehler in simultaneous fade-out:', error);
-        });
-    } 
-
-    startScheduleOpenSequence(item, action, container) {
-        console.log('🎬 Starting Schedule Open Sequence - Simultaneous fade');
-        this.isScheduleSelectionOpen = true; // Zustand sofort setzen
-    
-        const activeSchedulesSection = container.querySelector('.active-schedules');
-        const scheduleControlDesign = container.querySelector('.schedule-control-design');
-    
-        console.log('🔍 Elements found:', { 
-            activeSchedulesSection: !!activeSchedulesSection, 
-            scheduleControlDesign: !!scheduleControlDesign
-        });
-    
-        // Animation 1: Schedule-Liste und Steuerungs-Buttons GLEICHZEITIG ausblenden
-        const fadeOutSchedules = activeSchedulesSection ? activeSchedulesSection.animate([
-            { opacity: 1, transform: 'translateY(0)' },
-            { opacity: 0, transform: 'translateY(-20px)' }
-        ], { 
-            duration: 300, 
-            fill: 'forwards', 
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
-        }) : null;
-    
-        const fadeOutControls = scheduleControlDesign ? scheduleControlDesign.animate([
-            { opacity: 1, transform: 'translateY(0)' },
-            { opacity: 0, transform: 'translateY(-20px)' }
-        ], { 
-            duration: 300, 
-            fill: 'forwards', 
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
-        }) : null;
-    
-        // Erstelle das Schedule-Auswahl-Panel sofort, aber halte es unsichtbar
-        this.showScheduleSelection(item, action, container, false); // false = keine sofortige Animation
-        const scheduleSelectionContainer = container.querySelector('.schedule-time-selection');
-        
-        if (scheduleSelectionContainer) {
-            scheduleSelectionContainer.style.opacity = '0';
-            scheduleSelectionContainer.style.transform = 'translateY(-20px)';
-        }
-    
-        // Animation 2: Schedule-Panel einblenden nach gleichzeitigem Ausblenden
-        const animations = [fadeOutSchedules?.finished, fadeOutControls?.finished].filter(Boolean);
-        
-        Promise.all(animations).then(() => {
-            console.log('✅ Simultaneous fade-out complete. Starting schedule selection fade-in.');
-            if (scheduleSelectionContainer) {
-                // Sofortiges Einblenden des Schedule-Panels an oberster Position
-                scheduleSelectionContainer.animate([
-                    { opacity: 0, transform: 'translateY(-20px)' },
-                    { opacity: 1, transform: 'translateY(0)' }
-                ], {
-                    duration: 400,
-                    fill: 'forwards',
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                }).finished.then(() => {
-                    // Kaskadierende Animation der Inhalte
-                    this.animateScheduleSelectionContents(scheduleSelectionContainer);
-                });
-            }
-        }).catch(error => {
-            console.error('❌ Fehler in schedule simultaneous fade-out:', error);
-        });
-    }
-
     updateScheduleSelectionAction(item, action, container) {
         // Nur die Überschrift ändern, keine neue Animation
         const actionLabel = container.querySelector('.action-label');
@@ -11175,76 +10847,6 @@ class FastSearchCard extends HTMLElement {
             activePreset.classList.add('active');
         }
     }    
-
-    showScheduleSelection(item, action, container, animate = true) {
-        console.log(`⏰ Zeige Schedule Selection für ${action} - animate: ${animate}`);
-    
-        let scheduleSelectionContainer = container.querySelector('.schedule-time-selection');
-        if (!scheduleSelectionContainer) {
-            scheduleSelectionContainer = document.createElement('div');
-            scheduleSelectionContainer.className = 'schedule-time-selection';
-
-            // Zeitplan-Auswahl IMMER ganz oben einfügen (wie bei Timer)
-            container.insertBefore(scheduleSelectionContainer, container.firstChild);
-        }
-        
-        scheduleSelectionContainer.innerHTML = `
-            <div class="time-selection-header">
-                <div class="selected-action-display">
-                    <span class="action-label">${this.getActionLabel(action)}</span>
-                    <span class="action-description">Zeitplan erstellen</span>
-                </div>
-            </div>
-            
-            <div class="weekdays-selection">
-                <div class="weekdays-label">Wochentage auswählen:</div>
-                <div class="weekdays-chips">
-                    <button class="weekday-chip" data-day="mon">Mo</button>
-                    <button class="weekday-chip" data-day="tue">Di</button>
-                    <button class="weekday-chip" data-day="wed">Mi</button>
-                    <button class="weekday-chip" data-day="thu">Do</button>
-                    <button class="weekday-chip" data-day="fri">Fr</button>
-                    <button class="weekday-chip" data-day="sat">Sa</button>
-                    <button class="weekday-chip" data-day="sun">So</button>
-                </div>
-                <div class="weekday-presets">
-                    <button class="weekday-preset" data-preset="daily">Täglich</button>
-                    <button class="weekday-preset" data-preset="workday">Werktags</button>
-                    <button class="weekday-preset" data-preset="weekend">Wochenende</button>
-                </div>
-            </div>
-            
-            <div class="time-picker-container">
-                 <div class="time-picker-wheel">
-                    <div class="time-input-group">
-                        <input type="number" class="time-input hours" min="0" max="23" value="18" data-type="hours">
-                        <label class="time-label">Std</label>
-                    </div>
-                    <div class="time-separator">:</div>
-                    <div class="time-input-group">
-                        <input type="number" class="time-input minutes" min="0" max="59" value="30" data-type="minutes">
-                        <label class="time-label">Min</label>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="schedule-create-actions">
-                <button class="timer-cancel-btn">Abbrechen</button>
-                <button class="schedule-create-btn">Zeitplan erstellen</button>
-            </div>
-        `;
-        
-        // Animation nur ausführen, wenn gewünscht
-        if (animate) {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    this.expandScheduleSelection(scheduleSelectionContainer, container);
-                });
-            });
-        }
-        
-        this.setupScheduleSelectionEvents(item, action, scheduleSelectionContainer, container);
-    }
 
     animateScheduleSelectionContents(scheduleSelectionContainer) {
         console.log('🎭 Animating schedule selection contents');
@@ -11263,76 +10865,6 @@ class FastSearchCard extends HTMLElement {
                 el.style.transform = 'translateY(0)';
             });
         });
-    }    
-
-    setupScheduleSelectionEvents(item, action, scheduleContainer, parentContainer) {
-        console.log('🎯 Setting up schedule selection events');
-        
-        // ✅ Wochentag-Chips Event Listeners
-        const weekdayChips = scheduleContainer.querySelectorAll('.weekday-chip');
-        weekdayChips.forEach(chip => {
-            chip.addEventListener('click', () => {
-                chip.classList.toggle('active');
-                this.updateScheduleCreateButton(scheduleContainer);
-                
-                // Animation beim Toggle
-                chip.animate([
-                    { transform: 'scale(1)' },
-                    { transform: 'scale(0.95)' },
-                    { transform: 'scale(1)' }
-                ], {
-                    duration: 150,
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                });
-            });
-        });
-        
-        // ✅ Wochentag-Presets Event Listeners
-        const weekdayPresets = scheduleContainer.querySelectorAll('.weekday-preset');
-        weekdayPresets.forEach(preset => {
-            preset.addEventListener('click', () => {
-                const presetType = preset.dataset.preset;
-                this.applyWeekdayPreset(presetType, scheduleContainer);
-                
-                // Visual feedback
-                preset.animate([
-                    { transform: 'scale(1)' },
-                    { transform: 'scale(1.05)' },
-                    { transform: 'scale(1)' }
-                ], {
-                    duration: 200,
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                });
-            });
-        });
-        
-        // ✅ Cancel Button
-        const cancelBtn = scheduleContainer.querySelector('.timer-cancel-btn');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => {
-                this.resetToInitialScheduleState(parentContainer);
-            });
-        }
-        
-        // ✅ Create Schedule Button
-        const createBtn = scheduleContainer.querySelector('.schedule-create-btn');
-        if (createBtn) {
-            createBtn.addEventListener('click', () => {
-                const hours = parseInt(scheduleContainer.querySelector('.time-input.hours').value) || 0;
-                const minutes = parseInt(scheduleContainer.querySelector('.time-input.minutes').value) || 0;
-                const selectedDays = this.getSelectedWeekdays(scheduleContainer);
-                
-                if (selectedDays.length > 0) {
-                    this.createScheduleFromSelection(item, action, hours, minutes, selectedDays, scheduleContainer, parentContainer);
-                } else {
-                    console.warn('Keine Wochentage ausgewählt');
-                    // TODO: Error feedback
-                }
-            });
-        }
-        
-        // ✅ Initial button state update
-        this.updateScheduleCreateButton(scheduleContainer);
     }    
 
     applyWeekdayPreset(presetType, container) {
@@ -11380,64 +10912,6 @@ class FastSearchCard extends HTMLElement {
         }
     }    
 
-    async createScheduleFromSelection(item, action, hours, minutes, weekdays, scheduleContainer, parentContainer) {
-        console.log(`🎯 Erstelle Zeitplan: ${action} um ${hours}:${minutes.toString().padStart(2, '0')} an [${weekdays.join(', ')}]`);
-        
-        try {
-            // Service und Service Data basierend auf Action bestimmen
-            const serviceCall = this.getServiceCallForAction(action);
-            
-            // Zeit formatieren
-            const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-            
-            // Scheduler Service Call
-            await this._hass.callService('scheduler', 'add', {
-                weekdays: weekdays,
-                timeslots: [{
-                    start: timeString,
-                    actions: [{
-                        entity_id: item.id,
-                        service: serviceCall.service,
-                        service_data: serviceCall.service_data || {}
-                    }]
-                }],
-                name: `${item.name} ${this.getActionLabel(action)} ${weekdays.join('+')} ${timeString}`,
-                repeat_type: 'repeat'
-            });
-    
-            console.log('✅ Zeitplan erfolgreich erstellt');
-            
-            // Success animation
-            const createBtn = scheduleContainer.querySelector('.schedule-create-btn');
-            if (createBtn) {
-                createBtn.textContent = '✅ Erstellt!';
-                createBtn.disabled = true;
-            }
-            
-            // Nach erfolgreichem Erstellen zurücksetzen
-            setTimeout(() => {
-                this.resetToInitialScheduleState(parentContainer);
-                // Aktive Zeitpläne neu laden
-                this.loadActiveSchedules(item.id);
-            }, 1000);
-            
-        } catch (error) {
-            console.error('❌ Fehler beim Erstellen des Zeitplans:', error);
-            
-            // Error feedback
-            const createBtn = scheduleContainer.querySelector('.schedule-create-btn');
-            if (createBtn) {
-                createBtn.textContent = '❌ Fehler';
-                createBtn.style.backgroundColor = '#ff4444';
-                
-                setTimeout(() => {
-                    createBtn.textContent = 'Zeitplan erstellen';
-                    createBtn.style.backgroundColor = '';
-                }, 2000);
-            }
-        }
-    }    
-
     getServiceCallForAction(action) {
         switch (action) {
             case 'turn_on':
@@ -11461,7 +10935,6 @@ class FastSearchCard extends HTMLElement {
 
     resetToInitialScheduleState(container) {
         console.log('🔄 Reset to initial schedule state');
-        this.isScheduleSelectionOpen = false;
     
         const scheduleSelectionContainer = container.querySelector('.schedule-time-selection');
         const activeSchedulesSection = container.querySelector('.active-schedules');
@@ -11518,46 +10991,6 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-
-
-
-    
-    
-    animateTimeSelectionContents(timeSelectionContainer) {
-        console.log('🎭 Animating time selection contents');
-        
-        const animatableElements = timeSelectionContainer.querySelectorAll(
-            '.time-selection-header, .time-picker-container, .timer-create-actions'
-        );
-        
-        animatableElements.forEach((el, index) => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(10px)';
-            el.style.transition = `all 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${index * 50}ms`;
-            
-            // Trigger animation
-            requestAnimationFrame(() => {
-                el.style.opacity = '1';
-                el.style.transform = 'translateY(0)';
-            });
-        });
-    }    
-
-    updateTimeSelectionAction(item, action, container) {
-        // Nur die Überschrift ändern, keine neue Animation
-        const actionLabel = container.querySelector('.action-label');
-        if (actionLabel) {
-            actionLabel.textContent = this.getActionLabel(action);
-        }
-        
-        // Visual feedback für Buttons
-        const timerPresets = container.querySelectorAll('.timer-control-preset');
-        timerPresets.forEach(p => p.classList.remove('active'));
-        const activePreset = container.querySelector(`[data-action="${action}"]`);
-        if (activePreset) {
-            activePreset.classList.add('active');
-        }
-    }    
     
     initializeScheduleTab(item, container) {
         console.log('📅 Initializing Schedule Tab for', item.name);
@@ -11621,33 +11054,6 @@ class FastSearchCard extends HTMLElement {
                 <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
                     Skripte-Feature wird implementiert...
                 </div>
-            </div>
-        `;
-    }
-    
-    // ✅ Neue Methoden für Zeitplan-spezifische Funktionen
-    showScheduleConfiguration(item, scheduleType, container) {
-        console.log(`⏰ Zeige Schedule Configuration für ${scheduleType}`);
-        
-        // Container für Schedule Configuration finden oder erstellen
-        let scheduleConfigContainer = container.querySelector('.schedule-configuration');
-        if (!scheduleConfigContainer) {
-            scheduleConfigContainer = document.createElement('div');
-            scheduleConfigContainer.className = 'schedule-configuration';
-            container.appendChild(scheduleConfigContainer);
-        }
-        
-        // Schedule Configuration HTML
-        scheduleConfigContainer.innerHTML = `
-            <div class="schedule-config-header">
-                <div class="selected-schedule-display">
-                    <span class="schedule-label">${this.getScheduleLabel(scheduleType)}</span>
-                    <span class="schedule-description">Zeitplan</span>
-                </div>
-            </div>
-            
-            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                ${scheduleType} Zeitplan-Konfiguration kommt als nächstes...
             </div>
         `;
     }
