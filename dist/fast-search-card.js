@@ -8131,10 +8131,14 @@ class FastSearchCard extends HTMLElement {
                 // Prüfe ob diese Entity in den timeslots/actions vorkommt
                 const belongsToEntity = schedule.timeslots && schedule.timeslots.some(slot => 
                     slot.actions && slot.actions.some(action => action.entity_id === entityId)
-                );
-                
-                // Timer = keine Wochentage oder leere Wochentage-Array
-                const isTimer = !schedule.weekdays || schedule.weekdays.length === 0;
+                );            
+
+                // Timer = einmalige Ausführung (erkennt man am Namen oder fehlendem repeat_type)
+                const isTimer = !schedule.weekdays || 
+                                schedule.weekdays.length === 0 || 
+                                (schedule.name && schedule.name.includes('min)')) ||  // Timer haben oft "(30min)" im Namen
+                                schedule.repeat_type === 'once' ||
+                                !schedule.repeat_type;                
 
                 // DEBUG: Zeige alle relevanten Schedules
                 if (belongsToEntity) {
@@ -10766,7 +10770,13 @@ class FastSearchCard extends HTMLElement {
                 
                 // Zeitplan = hat Wochentage definiert (nicht leer)
                 const weekdays = schedule.attributes.weekdays || [];
-                const isSchedule = weekdays.length > 0;
+                
+                // Echte Zeitpläne = wiederkehrend mit spezifischen Wochentagen (nicht "daily" für Timer)
+                const isSchedule = weekdays.length > 0 && 
+                                  !schedule.attributes.friendly_name?.includes('min)') && // Keine Timer mit "(30min)"
+                                  (weekdays.includes('mon') || weekdays.includes('tue') || weekdays.includes('wed') || 
+                                   weekdays.includes('thu') || weekdays.includes('fri') || weekdays.includes('sat') || 
+                                   weekdays.includes('sun'));
 
                 // DEBUG: Zeige alle relevanten Schedules  
                 if (hasMatch) {
