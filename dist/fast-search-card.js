@@ -7421,6 +7421,178 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
+
+    getTimerPresetsForDevice(item) {
+        const domain = item.domain;
+        
+        switch (domain) {
+            case 'light':
+                return this.getLightTimerPresets();
+            case 'climate':
+                return this.getClimateTimerPresets();
+            case 'media_player':
+                return this.getMediaTimerPresets();
+            case 'cover':
+                return this.getCoverTimerPresets();
+            case 'switch':
+                return this.getSwitchTimerPresets();
+            default:
+                return this.getLightTimerPresets(); // Fallback
+        }
+    }    
+
+    getLightTimerPresets() {
+        return `
+            <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
+                <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                    <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z" stroke="currentColor" stroke-width="1"/>
+                </svg>
+                <span class="timer-preset-label">Aus</span>
+            </button>
+            <button class="timer-control-preset" data-action="turn_on" title="Einschalten">
+                <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                    <path d="M17 13C17.5523 13 18 12.5523 18 12C18 11.4477 17.5523 11 17 11C16.4477 11 16 11.4477 16 12C16 12.5523 16.4477 13 17 13Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z" stroke="currentColor" stroke-width="1"/>
+                </svg>
+                <span class="timer-preset-label">Ein</span>
+            </button>
+            <button class="timer-control-preset" data-action="dim_30" title="30% Helligkeit">
+                <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                    <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="timer-preset-label">30%</span>
+            </button>
+            <button class="timer-control-preset" data-action="dim_50" title="50% Helligkeit">
+                <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                    <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="timer-preset-label">50%</span>
+            </button>
+        `;
+    }
+    
+    getClimateTimerPresets() {
+        return `
+            <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z"/>
+                    <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z"/>
+                </svg>
+                <span class="timer-preset-label">Aus</span>
+            </button>
+            <button class="timer-control-preset" data-action="heat_22" title="Heizen 22°C">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                </svg>
+                <span class="timer-preset-label">22°C</span>
+            </button>
+            <button class="timer-control-preset" data-action="cool_18" title="Kühlen 18°C">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M2 12h20M12 2v20m8-8l-8-8-8 8"/>
+                </svg>
+                <span class="timer-preset-label">18°C</span>
+            </button>
+            <button class="timer-control-preset" data-action="auto_mode" title="Auto Modus">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 6v6l4 2"/>
+                </svg>
+                <span class="timer-preset-label">Auto</span>
+            </button>
+        `;
+    }
+
+    getMediaTimerPresets() {
+        return `
+            <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z"/>
+                    <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z"/>
+                </svg>
+                <span class="timer-preset-label">Aus</span>
+            </button>
+            <button class="timer-control-preset" data-action="play" title="Abspielen">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <polygon points="5,3 19,12 5,21"/>
+                </svg>
+                <span class="timer-preset-label">Play</span>
+            </button>
+            <button class="timer-control-preset" data-action="pause" title="Pausieren">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <rect x="6" y="4" width="4" height="16"/>
+                    <rect x="14" y="4" width="4" height="16"/>
+                </svg>
+                <span class="timer-preset-label">Pause</span>
+            </button>
+            <button class="timer-control-preset" data-action="volume_down" title="Leiser">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/>
+                    <line x1="23" y1="9" x2="17" y2="15"/>
+                    <line x1="17" y1="9" x2="23" y2="15"/>
+                </svg>
+                <span class="timer-preset-label">Leiser</span>
+            </button>
+        `;
+    }
+    
+    getCoverTimerPresets() {
+        return `
+            <button class="timer-control-preset" data-action="open_cover" title="Öffnen">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M18 15l-6-6-6 6"/>
+                </svg>
+                <span class="timer-preset-label">Öffnen</span>
+            </button>
+            <button class="timer-control-preset" data-action="close_cover" title="Schließen">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
+                <span class="timer-preset-label">Schließen</span>
+            </button>
+            <button class="timer-control-preset" data-action="stop_cover" title="Stoppen">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <rect x="6" y="6" width="12" height="12"/>
+                </svg>
+                <span class="timer-preset-label">Stop</span>
+            </button>
+            <button class="timer-control-preset" data-action="set_position_50" title="50% Position">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                </svg>
+                <span class="timer-preset-label">50%</span>
+            </button>
+        `;
+    }
+    
+    getSwitchTimerPresets() {
+        return `
+            <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z"/>
+                    <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z"/>
+                </svg>
+                <span class="timer-preset-label">Aus</span>
+            </button>
+            <button class="timer-control-preset" data-action="turn_on" title="Einschalten">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M17 13C17.5523 13 18 12.5523 18 12C18 11.4477 17.5523 11 17 11C16.4477 11 16 11.4477 16 12C16 12.5523 16.4477 13 17 13Z"/>
+                    <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z"/>
+                </svg>
+                <span class="timer-preset-label">Ein</span>
+            </button>
+        `;
+    }
+
+
+
+
+
+
+
+
+    
     
     // Placeholder Methoden (erstmal mit Dummy-Daten)
     getDeviceTimers(deviceId) {
