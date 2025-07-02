@@ -7453,13 +7453,6 @@ class FastSearchCard extends HTMLElement {
                 </div>
             </div>
             
-            <div class="quick-time-buttons">
-                <button class="quick-time-btn" data-minutes="15">15min</button>
-                <button class="quick-time-btn" data-minutes="30">30min</button>
-                <button class="quick-time-btn" data-minutes="60">1h</button>
-                <button class="quick-time-btn" data-minutes="120">2h</button>
-            </div>
-            
             <div class="timer-create-actions">
                 <button class="timer-cancel-btn">Abbrechen</button>
                 <button class="timer-create-btn">Timer erstellen</button>
@@ -7476,26 +7469,7 @@ class FastSearchCard extends HTMLElement {
         }
         
         this.setupTimeSelectionEvents(item, action, timeSelectionContainer, container);
-    }
-
-    animateTimeSelectionContents(timeSelectionContainer) {
-        console.log('🎭 Animating time selection contents');
-        
-        const animatableElements = timeSelectionContainer.querySelectorAll(
-            '.time-selection-header, .time-picker-container, .quick-time-buttons, .timer-create-actions'
-        );
-        
-        animatableElements.forEach((el, index) => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(10px)';
-            el.style.transition = `all 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${index * 50}ms`;
-            
-            requestAnimationFrame(() => {
-                el.style.opacity = '1';
-                el.style.transform = 'translateY(0)';
-            });
-        });
-    }    
+    }   
     
     getActionLabel(action) {
         const labels = {
@@ -10214,7 +10188,7 @@ class FastSearchCard extends HTMLElement {
         console.log('🎭 Animating time selection contents');
         
         const animatableElements = timeSelectionContainer.querySelectorAll(
-            '.time-selection-header, .time-picker-container, .quick-time-buttons, .timer-create-actions'
+            '.time-selection-header, .time-picker-container, .timer-create-actions'
         );
         
         animatableElements.forEach((el, index) => {
