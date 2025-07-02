@@ -7025,47 +7025,39 @@ class FastSearchCard extends HTMLElement {
                             
                             <!-- Zeitplan Controls -->
                             <div class="schedule-control-design" id="schedule-control-${item.id}">
-                                <!-- Zeitplan Action Presets -->
                                 <div class="timer-control-presets schedule-action-presets visible" data-is-open="true">
+                                    <!-- Zeitplan Action Presets -->
+                                    
                                     <div class="timer-control-presets-grid">
-                                        <button class="timer-control-preset" data-action="schedule_daily" title="Täglich">
+                                        <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
                                             <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M8 2V5" stroke="currentColor" stroke-linecap="round"/>
-                                                <path d="M16 2V5" stroke="currentColor" stroke-linecap="round"/>
-                                                <path d="M3 8H21" stroke="currentColor" stroke-linecap="round"/>
-                                                <path d="M3 7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V7Z" stroke="currentColor"/>
+                                                <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M17 13C17.5523 13 18 12.5523 18 12C18 11.4477 17.5523 11 17 11C16.4477 11 16 11.4477 16 12C16 12.5523 16.4477 13 17 13Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z" stroke="currentColor"/>
                                             </svg>
-                                            <span class="timer-preset-label">Täglich</span>
+                                            <span class="timer-preset-label">Aus</span>
                                         </button>
-                                        <button class="timer-control-preset" data-action="schedule_weekly" title="Wöchentlich">
+                                        <button class="timer-control-preset" data-action="turn_on" title="Einschalten">
                                             <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M8 2V5" stroke="currentColor" stroke-linecap="round"/>
-                                                <path d="M16 2V5" stroke="currentColor" stroke-linecap="round"/>
-                                                <path d="M3 8H21" stroke="currentColor" stroke-linecap="round"/>
-                                                <path d="M3 7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V7Z" stroke="currentColor"/>
-                                                <path d="M7 12H17" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M21 2L9 14L4 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <circle cx="12" cy="12" r="9" stroke="currentColor"/>
                                             </svg>
-                                            <span class="timer-preset-label">Wöchentlich</span>
+                                            <span class="timer-preset-label">Ein</span>
                                         </button>
-                                        <button class="timer-control-preset" data-action="schedule_weekdays" title="Werktags">
+                                        <button class="timer-control-preset" data-action="dim_30" title="Dimmen 30%">
                                             <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M8 2V5" stroke="currentColor" stroke-linecap="round"/>
-                                                <path d="M16 2V5" stroke="currentColor" stroke-linecap="round"/>
-                                                <path d="M3 8H21" stroke="currentColor" stroke-linecap="round"/>
-                                                <path d="M3 7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V7Z" stroke="currentColor"/>
-                                                <path d="M9 15H15" stroke="currentColor" stroke-linecap="round"/>
+                                                <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
-                                            <span class="timer-preset-label">Werktags</span>
+                                            <span class="timer-preset-label">30%</span>
                                         </button>
-                                        <button class="timer-control-preset" data-action="schedule_custom" title="Benutzerdefiniert">
+                                        <button class="timer-control-preset" data-action="dim_50" title="Dimmen 50%">
                                             <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M12 6L12 12L18 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor"/>
+                                                <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
-                                            <span class="timer-preset-label">Custom</span>
+                                            <span class="timer-preset-label">50%</span>
                                         </button>
                                     </div>
-                                </div>
+                               </div> 
                             </div>
                         </div>
                     </div>
@@ -10750,65 +10742,45 @@ class FastSearchCard extends HTMLElement {
         container.innerHTML = '<div class="loading-schedules">Lade Zeitpläne...</div>';
         
         try {
-            // Alle Scheduler-Entitäten laden
+            // DEBUG: Alle Schedule-Entitäten anzeigen
             const allEntities = this._hass.states;
-            const scheduleEntities = Object.keys(allEntities)
+            const allSchedules = Object.keys(allEntities)
                 .filter(key => key.startsWith('switch.schedule_'))
-                .map(key => allEntities[key])
-                .filter(entity => {
-                    // Filter nach unserem Entity
-                    const actions = entity.attributes.actions || [];
-                    return actions.some(action => action.entity_id === entityId);
-                });
+                .map(key => allEntities[key]);
     
-            console.log(`📋 Gefundene Zeitpläne für ${entityId}:`, scheduleEntities.length);
-    
-            if (scheduleEntities.length === 0) {
-                container.innerHTML = '<div class="no-schedules">Keine aktiven Zeitpläne</div>';
+            console.log('🔍 DEBUG: Alle Schedule-Entitäten:', allSchedules);
+            console.log('🔍 DEBUG: Suche nach entityId:', entityId);
+            
+            // DEBUG: Erste Schedule-Entität genauer anschauen
+            if (allSchedules.length > 0) {
+                console.log('🔍 DEBUG: Erste Schedule Attributes:', allSchedules[0].attributes);
+                console.log('🔍 DEBUG: Erste Schedule Timeslots:', allSchedules[0].attributes.timeslots);
+                console.log('🔍 DEBUG: Erste Schedule Actions in Timeslot:', 
+                    allSchedules[0].attributes.timeslots?.[0]?.actions);
+            }
+            
+            // DEBUG: Einfache Anzeige ALLER Schedules (erstmal ohne Filter)
+            if (allSchedules.length === 0) {
+                container.innerHTML = '<div class="no-schedules">❌ Keine Zeitpläne im System gefunden</div>';
                 return;
             }
     
-            // Zeitpläne in UI rendern
-            const schedulesHTML = scheduleEntities.map(schedule => {
-                const isEnabled = schedule.state === 'on';
-                const nextTrigger = schedule.attributes.next_trigger;
-                const weekdays = schedule.attributes.weekdays || [];
+            // DEBUG: Zeige alle Schedules mit Details
+            const debugHTML = allSchedules.map((schedule, index) => {
                 const timeslots = schedule.attributes.timeslots || [];
-                const scheduleName = schedule.attributes.friendly_name || schedule.entity_id;
-    
-                // Erste Timeslot für Anzeige verwenden
                 const firstTimeslot = timeslots[0];
-                const timeString = firstTimeslot ? firstTimeslot.start : 'Unbekannt';
+                const actions = firstTimeslot?.actions || [];
                 
                 return `
-                    <div class="schedule-item ${isEnabled ? 'enabled' : 'disabled'}" data-entity-id="${schedule.entity_id}">
+                    <div class="schedule-item" style="border: 2px solid #007AFF; margin: 10px 0; padding: 10px;">
                         <div class="schedule-info">
-                            <div class="schedule-main">
-                                <span class="schedule-name">${scheduleName}</span>
-                                <span class="schedule-time">${timeString}</span>
-                            </div>
-                            <div class="schedule-details">
-                                <span class="schedule-days">${this.formatWeekdays(weekdays)}</span>
-                                ${nextTrigger ? `<span class="schedule-next">Nächste: ${this.formatNextTrigger(nextTrigger)}</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="schedule-controls">
-                            <button class="schedule-toggle-btn" data-action="toggle" title="${isEnabled ? 'Deaktivieren' : 'Aktivieren'}">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    ${isEnabled ? 
-                                        '<path d="M6 18L18 6M6 6l12 12"/>' : 
-                                        '<polyline points="20,6 9,17 4,12"/>'
-                                    }
-                                </svg>
-                            </button>
-                            <button class="schedule-delete-btn" data-action="delete" title="Löschen">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="3,6 5,6 21,6"/>
-                                    <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
-                                    <line x1="10" y1="11" x2="10" y2="17"/>
-                                    <line x1="14" y1="11" x2="14" y2="17"/>
-                                </svg>
-                            </button>
+                            <div><strong>Schedule ${index + 1}:</strong> ${schedule.attributes.friendly_name || schedule.entity_id}</div>
+                            <div><strong>State:</strong> ${schedule.state}</div>
+                            <div><strong>Weekdays:</strong> ${JSON.stringify(schedule.attributes.weekdays)}</div>
+                            <div><strong>Time:</strong> ${firstTimeslot?.start || 'Unbekannt'}</div>
+                            <div><strong>Actions:</strong> ${JSON.stringify(actions)}</div>
+                            <div><strong>Target Entity:</strong> ${actions.map(a => a.entity_id).join(', ')}</div>
+                            <div><strong>Matches ${entityId}?</strong> ${actions.some(a => a.entity_id === entityId) ? '✅ JA' : '❌ NEIN'}</div>
                         </div>
                     </div>
                 `;
@@ -10816,19 +10788,17 @@ class FastSearchCard extends HTMLElement {
     
             container.innerHTML = `
                 <div class="schedules-header">
-                    <h4>Aktive Zeitpläne (${scheduleEntities.length})</h4>
+                    <h4>🔍 DEBUG: Alle Zeitpläne (${allSchedules.length})</h4>
+                    <p style="font-size: 12px; color: #666;">Suche nach: ${entityId}</p>
                 </div>
                 <div class="schedules-list">
-                    ${schedulesHTML}
+                    ${debugHTML}
                 </div>
             `;
     
-            // Event Listeners für Schedule Controls
-            this.setupScheduleControlEvents(container, entityId);
-    
         } catch (error) {
             console.error('❌ Fehler beim Laden der Zeitpläne:', error);
-            container.innerHTML = '<div class="schedules-error">Fehler beim Laden der Zeitpläne</div>';
+            container.innerHTML = `<div class="schedules-error">Fehler: ${error.message}</div>`;
         }
     }
 
