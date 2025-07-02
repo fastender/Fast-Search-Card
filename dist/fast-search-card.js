@@ -860,7 +860,7 @@ class FastSearchCard extends HTMLElement {
 
             .results-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(144px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
                 gap: 14px;
                 min-height: 200px;
                 padding-left: 20px; 
