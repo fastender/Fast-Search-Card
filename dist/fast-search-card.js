@@ -3631,7 +3631,142 @@ class FastSearchCard extends HTMLElement {
             .schedule-delete-btn:hover {
                 background: rgba(255, 82, 82, 0.2);
                 color: #ff5252;
-            }            
+            }     
+
+
+            
+            /* Minimal Time Picker Styles - Spezifische Klassen */
+            .minimal-time-picker {
+                max-width: 400px;
+                margin: 0 auto;
+                padding: 24px;
+                background: white;
+                border-radius: 12px;
+            }
+            
+            .minimal-time-picker .mtp-display-container {
+                margin-bottom: 24px;
+                height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .minimal-time-picker .mtp-controls {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+            }
+            
+            .minimal-time-picker .mtp-unit {
+                position: relative;
+                cursor: pointer;
+                user-select: none;
+            }
+            
+            .minimal-time-picker .mtp-value {
+                font-size: 24px;
+                font-family: 'Monaco', 'Menlo', monospace;
+                font-weight: bold;
+                color: #1f2937;
+                padding: 4px 8px;
+                border-radius: 4px;
+                height: 48px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .minimal-time-picker .mtp-separator {
+                font-size: 24px;
+                font-family: 'Monaco', 'Menlo', monospace;
+                font-weight: bold;
+                color: #1f2937;
+                height: 48px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .minimal-time-picker .mtp-chevron {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 4px;
+                background: white;
+                border: none;
+                border-radius: 4px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                cursor: pointer;
+                color: #6b7280;
+                z-index: 10;
+            }
+            
+            .minimal-time-picker .mtp-chevron:hover {
+                color: #2563eb;
+            }
+            
+            .minimal-time-picker .mtp-chevron-up {
+                top: -24px;
+            }
+            
+            .minimal-time-picker .mtp-chevron-down {
+                bottom: -24px;
+            }
+            
+            .minimal-time-picker .mtp-calendar-btn {
+                margin-left: 16px;
+                padding: 12px;
+                background: transparent;
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                color: #6b7280;
+                transition: all 0.2s;
+                height: 48px;
+                width: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .minimal-time-picker .mtp-calendar-btn:hover {
+                color: #2563eb;
+                background: #eff6ff;
+            }
+            
+            .minimal-time-picker .mtp-actions {
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+            }
+            
+            .minimal-time-picker .mtp-action-btn {
+                padding: 12px;
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            
+            .minimal-time-picker .mtp-cancel {
+                background: #dc2626;
+                color: white;
+            }
+            
+            .minimal-time-picker .mtp-cancel:hover {
+                background: #b91c1c;
+            }
+            
+            .minimal-time-picker .mtp-create {
+                background: #2563eb;
+                color: white;
+            }
+            
+            .minimal-time-picker .mtp-create:hover {
+                background: #1d4ed8;
+            }
+        
+            
                                                 
             </style>
 
@@ -7837,6 +7972,235 @@ class FastSearchCard extends HTMLElement {
         
         console.log(`✅ Timer erfolgreich erstellt: ${service} in ${durationMinutes} Minuten`);
     }
+
+
+
+
+    showMinimalTimePicker(item, action, container, isScheduleMode = false) {
+        console.log(`🎯 Zeige Minimal Time Picker für ${action}, Schedule Mode: ${isScheduleMode}`);
+        
+        // State variables
+        this.timePickerState = {
+            selectedHours: isScheduleMode ? 18 : 0,
+            selectedMinutes: isScheduleMode ? 0 : 30,
+            isScheduleMode: isScheduleMode,
+            hoverHours: false,
+            hoverMinutes: false
+        };
+        
+        // Container erstellen oder finden
+        let timePickerContainer = container.querySelector('.minimal-time-picker');
+        if (!timePickerContainer) {
+            timePickerContainer = document.createElement('div');
+            timePickerContainer.className = 'minimal-time-picker';
+            container.insertBefore(timePickerContainer, container.firstChild);
+        }
+        
+        // HTML erstellen
+        timePickerContainer.innerHTML = `
+            <div class="mtp-display-container">
+                <div class="mtp-controls">
+                    <!-- Stunden -->
+                    <div class="mtp-unit" data-unit="hours">
+                        <div class="mtp-value">${this.timePickerState.selectedHours.toString().padStart(2, '0')}</div>
+                    </div>
+                    
+                    <!-- Separator -->
+                    <div class="mtp-separator">:</div>
+                    
+                    <!-- Minuten -->
+                    <div class="mtp-unit" data-unit="minutes">
+                        <div class="mtp-value">${this.timePickerState.selectedMinutes.toString().padStart(2, '0')}</div>
+                    </div>
+                    
+                    <!-- Kalender Button (nur bei Schedule Mode) -->
+                    ${isScheduleMode ? `
+                        <button class="mtp-calendar-btn">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <div class="mtp-actions">
+                <button class="mtp-action-btn mtp-cancel">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <button class="mtp-action-btn mtp-create">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20,6 9,17 4,12"></polyline>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        // Event Listeners einrichten
+        this.setupMinimalTimePickerEvents(item, action, timePickerContainer);
+    }
+
+    setupMinimalTimePickerEvents(item, action, container) {
+        console.log('🎯 Setup Minimal Time Picker Events');
+        
+        // Stunden und Minuten Units
+        const hoursUnit = container.querySelector('[data-unit="hours"]');
+        const minutesUnit = container.querySelector('[data-unit="minutes"]');
+        const cancelBtn = container.querySelector('.mtp-cancel');
+        const createBtn = container.querySelector('.mtp-create');
+        
+        // Hover Events für Stunden
+        hoursUnit.addEventListener('mouseenter', () => {
+            this.showChevrons(hoursUnit, 'hours');
+        });
+        
+        hoursUnit.addEventListener('mouseleave', () => {
+            this.hideChevrons(hoursUnit);
+        });
+        
+        // Hover Events für Minuten
+        minutesUnit.addEventListener('mouseenter', () => {
+            this.showChevrons(minutesUnit, 'minutes');
+        });
+        
+        minutesUnit.addEventListener('mouseleave', () => {
+            this.hideChevrons(minutesUnit);
+        });
+        
+        // Cancel Button
+        cancelBtn.addEventListener('click', () => {
+            this.closeMinimalTimePicker(container.closest('.shortcuts-tab-content'));
+        });
+        
+        // Create Button
+        createBtn.addEventListener('click', () => {
+            if (this.timePickerState.isScheduleMode) {
+                console.log('🗓️ Zeitplan-Erstellung - TODO: Wochentage implementieren');
+                // TODO: Hier später Wochentag-Auswahl
+            } else {
+                this.createTimerFromMinimalPicker(item, action);
+            }
+        });
+    }
+    
+    showChevrons(unitElement, type) {
+        // Entferne existierende Chevrons
+        this.hideChevrons(unitElement);
+        
+        // Up Chevron
+        const upChevron = document.createElement('button');
+        upChevron.className = 'mtp-chevron mtp-chevron-up';
+        upChevron.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="18,15 12,9 6,15"></polyline>
+            </svg>
+        `;
+        upChevron.addEventListener('click', () => this.adjustTime(type, 1));
+        
+        // Down Chevron
+        const downChevron = document.createElement('button');
+        downChevron.className = 'mtp-chevron mtp-chevron-down';
+        downChevron.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6,9 12,15 18,9"></polyline>
+            </svg>
+        `;
+        downChevron.addEventListener('click', () => this.adjustTime(type, -1));
+        
+        unitElement.appendChild(upChevron);
+        unitElement.appendChild(downChevron);
+    }
+    
+    hideChevrons(unitElement) {
+        const chevrons = unitElement.querySelectorAll('.mtp-chevron');
+        chevrons.forEach(chevron => chevron.remove());
+    }
+    
+    adjustTime(type, increment) {
+        if (type === 'hours') {
+            this.timePickerState.selectedHours += increment;
+            if (this.timePickerState.selectedHours < 0) this.timePickerState.selectedHours = 23;
+            if (this.timePickerState.selectedHours > 23) this.timePickerState.selectedHours = 0;
+        } else if (type === 'minutes') {
+            this.timePickerState.selectedMinutes += (increment * 15);
+            if (this.timePickerState.selectedMinutes < 0) {
+                this.timePickerState.selectedMinutes = 45;
+                this.adjustTime('hours', -1);
+            }
+            if (this.timePickerState.selectedMinutes >= 60) {
+                this.timePickerState.selectedMinutes = 0;
+                this.adjustTime('hours', 1);
+            }
+        }
+        
+        this.updateTimeDisplay();
+    }
+    
+    updateTimeDisplay() {
+        const container = this.shadowRoot.querySelector('.minimal-time-picker');
+        if (!container) return;
+        
+        const hoursDisplay = container.querySelector('[data-unit="hours"] .mtp-value');
+        const minutesDisplay = container.querySelector('[data-unit="minutes"] .mtp-value');
+        
+        if (hoursDisplay) {
+            hoursDisplay.textContent = this.timePickerState.selectedHours.toString().padStart(2, '0');
+        }
+        if (minutesDisplay) {
+            minutesDisplay.textContent = this.timePickerState.selectedMinutes.toString().padStart(2, '0');
+        }
+    }
+    
+
+    createTimerFromMinimalPicker(item, action) {
+        const totalMinutes = (this.timePickerState.selectedHours * 60) + this.timePickerState.selectedMinutes;
+        
+        if (totalMinutes === 0) {
+            console.warn('⚠️ Timer kann nicht 0 Minuten haben');
+            return;
+        }
+        
+        console.log(`🎯 Erstelle Timer: ${action} in ${totalMinutes} Minuten`);
+        
+        // Verwende deine bestehende Timer-Erstellung
+        this.createActionTimer(item, action, totalMinutes);
+        
+        // Schließe den Picker
+        this.closeMinimalTimePicker(this.shadowRoot.getElementById(`timer-section-${item.id}`));
+    }
+    
+    closeMinimalTimePicker(parentContainer) {
+        const timePickerContainer = parentContainer.querySelector('.minimal-time-picker');
+        if (timePickerContainer) {
+            timePickerContainer.remove();
+        }
+        
+        // Reset state
+        this.timePickerState = null;
+        
+        // Zeige normale Timer-Controls wieder
+        const timerControls = parentContainer.querySelector('.timer-control-design');
+        const activeTimers = parentContainer.querySelector('.active-timers');
+        
+        if (timerControls) timerControls.style.display = 'block';
+        if (activeTimers) activeTimers.style.display = 'block';
+        
+        console.log('✅ Minimal Time Picker geschlossen');
+    }    
+
+    
+
+
+
+
+
+    
     
     getActionServiceData(item, action) {
         const domain = item.domain;
@@ -10239,21 +10603,26 @@ class FastSearchCard extends HTMLElement {
             preset.addEventListener('click', () => {
                 const action = preset.dataset.action;
                 console.log(`Timer Action ausgewählt: ${action} für ${item.name}`);
-                console.log('🔍 isTimeSelectionOpen:', this.isTimeSelectionOpen);
                 
-                if (this.isTimeSelectionOpen) {
-                    console.log('⚡ Nur Update - calling updateTimeSelectionAction');
-                    this.updateTimeSelectionAction(item, action, container);
-                    return;
+                // Skip timer/schedule toggle buttons
+                if (action === 'timer' || action === 'schedule') {
+                    return; // Diese werden separat behandelt
                 }
                 
-                console.log('🚀 Starte startTimerOpenSequence');
+                console.log(`🎯 Zeige Minimal Time Picker für Action: ${action}`);
                 
                 // Visual feedback
                 timerPresets.forEach(p => p.classList.remove('active'));
                 preset.classList.add('active');
                 
-                this.startTimerOpenSequence(item, action, container);
+                // Verstecke normale Controls
+                const timerControls = container.querySelector('.timer-control-design');
+                const activeTimers = container.querySelector('.active-timers');
+                if (timerControls) timerControls.style.display = 'none';
+                if (activeTimers) activeTimers.style.display = 'none';
+                
+                // Zeige Minimal Time Picker für Timer (nicht Schedule)
+                this.showMinimalTimePicker(item, action, container, false);
             });
         });
         
@@ -10790,33 +11159,36 @@ class FastSearchCard extends HTMLElement {
     initializeScheduleTab(item, container) {
         console.log('📅 Initializing Schedule Tab for', item.name);
         
-        // GLEICHE Action Buttons wie Timer verwenden
-        const schedulePresets = container.querySelectorAll('.timer-control-preset');
+        const schedulePresets = container.querySelectorAll('.schedule-action-presets .timer-control-preset');
         console.log('🔍 Found schedule presets:', schedulePresets.length);
         
         schedulePresets.forEach(preset => {
             preset.addEventListener('click', () => {
                 const action = preset.dataset.action;
                 console.log(`Schedule Action ausgewählt: ${action} für ${item.name}`);
-                console.log('🔍 isScheduleSelectionOpen:', this.isScheduleSelectionOpen);
                 
-                if (this.isScheduleSelectionOpen) {
-                    console.log('⚡ Nur Update - calling updateScheduleSelectionAction');
-                    this.updateScheduleSelectionAction(item, action, container);
-                    return;
+                // Skip timer/schedule toggle buttons
+                if (action === 'timer' || action === 'schedule') {
+                    return; // Diese werden separat behandelt
                 }
                 
-                console.log('🚀 Starte startScheduleOpenSequence');
+                console.log(`🎯 Zeige Minimal Time Picker für Schedule Action: ${action}`);
                 
                 // Visual feedback
                 schedulePresets.forEach(p => p.classList.remove('active'));
                 preset.classList.add('active');
                 
-                this.startScheduleOpenSequence(item, action, container);
+                // Verstecke normale Controls
+                const scheduleControls = container.querySelector('.schedule-control-design');
+                const activeSchedules = container.querySelector('.active-schedules');
+                if (scheduleControls) scheduleControls.style.display = 'none';
+                if (activeSchedules) activeSchedules.style.display = 'none';
+                
+                // Zeige Minimal Time Picker für Schedule (mit Kalender)
+                this.showMinimalTimePicker(item, action, container, true);
             });
         });
         
-        // Lade aktive Zeitpläne
         this.loadActiveSchedules(item.id);
     }
     
