@@ -7694,9 +7694,6 @@ class FastSearchCard extends HTMLElement {
         if (timerBtn) {
             timerBtn.addEventListener('click', () => {
                 console.log('🖱️ Timer Button clicked!');
-                
-                const presetsContainer = timerContainer.querySelector('.timer-control-presets.timer-action-presets');
-                console.log('📦 Presets Container:', presetsContainer);
                 console.log('📊 Current data-is-open:', presetsContainer?.getAttribute('data-is-open'));
                 
                 // Toggle Timer Presets
