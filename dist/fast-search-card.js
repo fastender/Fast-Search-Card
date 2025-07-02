@@ -8038,7 +8038,7 @@ class FastSearchCard extends HTMLElement {
             
             // Refresh timer list
             setTimeout(() => {
-                this.(item.id);
+                this.loadActiveTimers(item.id); // ← KORRIGIERT
             }, 500);
             
         } catch (error) {
