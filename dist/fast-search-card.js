@@ -3517,6 +3517,92 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(0, 122, 255, 0.8);
                 transform: translateY(-1px);
                 box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            }      
+
+
+            /* Verbesserte Schedule-Liste (Timer-Design übernommen) */
+            .active-schedules {
+                margin-bottom: 16px;
+                min-height: 60px;
+            }
+            
+            .schedules-header h4 {
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                margin: 0 0 8px 0;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            
+            .schedules-list {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .schedule-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                background: rgba(120, 119, 198, 0.1); /* Lila für Zeitpläne */
+                border-radius: 12px;
+                border: 1px solid rgba(120, 119, 198, 0.2);
+                transition: all 0.2s ease;
+            }
+            
+            .schedule-item:hover {
+                background: rgba(120, 119, 198, 0.15);
+                border-color: rgba(120, 119, 198, 0.3);
+            }
+            
+            .schedule-info {
+                flex: 1;
+            }
+            
+            .schedule-main .schedule-name {
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--text-primary);
+                margin-bottom: 2px;
+            }
+            
+            .schedule-details {
+                display: flex;
+                gap: 8px;
+                font-size: 11px;
+                color: var(--text-secondary);
+            }
+            
+            .schedule-days {
+                color: #7877c6;
+                font-weight: 500;
+            }
+            
+            .schedule-controls {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+            
+            .schedule-toggle-btn, .schedule-delete-btn {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 6px;
+                border-radius: 6px;
+                transition: all 0.2s ease;
+                color: var(--text-secondary);
+            }
+            
+            .schedule-toggle-btn:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+            
+            .schedule-delete-btn:hover {
+                background: rgba(255, 82, 82, 0.2);
+                color: #ff5252;
             }            
                                                 
             </style>
