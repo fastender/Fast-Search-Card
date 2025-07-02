@@ -202,6 +202,7 @@ class FastSearchCard extends HTMLElement {
     constructor() {
         super();
         this.isTimeSelectionOpen = false;  // ← NEU HINZUFÜGEN
+        this.isScheduleSelectionOpen = false;
         this.attachShadow({ mode: 'open' });
         
         // State Management
@@ -10184,6 +10185,438 @@ class FastSearchCard extends HTMLElement {
         });
     } 
 
+    startScheduleOpenSequence(item, action, container) {
+        console.log('🎬 Starting Schedule Open Sequence - Simultaneous fade');
+        this.isScheduleSelectionOpen = true; // Zustand sofort setzen
+    
+        const activeSchedulesSection = container.querySelector('.active-schedules');
+        const scheduleControlDesign = container.querySelector('.schedule-control-design');
+    
+        console.log('🔍 Elements found:', { 
+            activeSchedulesSection: !!activeSchedulesSection, 
+            scheduleControlDesign: !!scheduleControlDesign
+        });
+    
+        // Animation 1: Schedule-Liste und Steuerungs-Buttons GLEICHZEITIG ausblenden
+        const fadeOutSchedules = activeSchedulesSection ? activeSchedulesSection.animate([
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-20px)' }
+        ], { 
+            duration: 300, 
+            fill: 'forwards', 
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
+        }) : null;
+    
+        const fadeOutControls = scheduleControlDesign ? scheduleControlDesign.animate([
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-20px)' }
+        ], { 
+            duration: 300, 
+            fill: 'forwards', 
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
+        }) : null;
+    
+        // Erstelle das Schedule-Auswahl-Panel sofort, aber halte es unsichtbar
+        this.showScheduleSelection(item, action, container, false); // false = keine sofortige Animation
+        const scheduleSelectionContainer = container.querySelector('.schedule-time-selection');
+        
+        if (scheduleSelectionContainer) {
+            scheduleSelectionContainer.style.opacity = '0';
+            scheduleSelectionContainer.style.transform = 'translateY(-20px)';
+        }
+    
+        // Animation 2: Schedule-Panel einblenden nach gleichzeitigem Ausblenden
+        const animations = [fadeOutSchedules?.finished, fadeOutControls?.finished].filter(Boolean);
+        
+        Promise.all(animations).then(() => {
+            console.log('✅ Simultaneous fade-out complete. Starting schedule selection fade-in.');
+            if (scheduleSelectionContainer) {
+                // Sofortiges Einblenden des Schedule-Panels an oberster Position
+                scheduleSelectionContainer.animate([
+                    { opacity: 0, transform: 'translateY(-20px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], {
+                    duration: 400,
+                    fill: 'forwards',
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                }).finished.then(() => {
+                    // Kaskadierende Animation der Inhalte
+                    this.animateScheduleSelectionContents(scheduleSelectionContainer);
+                });
+            }
+        }).catch(error => {
+            console.error('❌ Fehler in schedule simultaneous fade-out:', error);
+        });
+    }
+
+    updateScheduleSelectionAction(item, action, container) {
+        // Nur die Überschrift ändern, keine neue Animation
+        const actionLabel = container.querySelector('.action-label');
+        if (actionLabel) {
+            actionLabel.textContent = this.getActionLabel(action);
+        }
+        
+        // Visual feedback für Buttons
+        const schedulePresets = container.querySelectorAll('.timer-control-preset');
+        schedulePresets.forEach(p => p.classList.remove('active'));
+        const activePreset = container.querySelector(`[data-action="${action}"]`);
+        if (activePreset) {
+            activePreset.classList.add('active');
+        }
+    }    
+
+    showScheduleSelection(item, action, container, animate = true) {
+        console.log(`⏰ Zeige Schedule Selection für ${action} - animate: ${animate}`);
+    
+        let scheduleSelectionContainer = container.querySelector('.schedule-time-selection');
+        if (!scheduleSelectionContainer) {
+            scheduleSelectionContainer = document.createElement('div');
+            scheduleSelectionContainer.className = 'schedule-time-selection';
+            
+            // Panel an oberster Position einfügen
+            const activeSchedulesSection = container.querySelector('.active-schedules');
+            if (activeSchedulesSection) {
+                activeSchedulesSection.parentNode.insertBefore(scheduleSelectionContainer, activeSchedulesSection.nextSibling);
+            } else {
+                container.appendChild(scheduleSelectionContainer);
+            }
+        }
+        
+        scheduleSelectionContainer.innerHTML = `
+            <div class="time-selection-header">
+                <div class="selected-action-display">
+                    <span class="action-label">${this.getActionLabel(action)}</span>
+                    <span class="action-description">Zeitplan erstellen</span>
+                </div>
+            </div>
+            
+            <div class="weekdays-selection">
+                <div class="weekdays-label">Wochentage auswählen:</div>
+                <div class="weekdays-chips">
+                    <button class="weekday-chip" data-day="mon">Mo</button>
+                    <button class="weekday-chip" data-day="tue">Di</button>
+                    <button class="weekday-chip" data-day="wed">Mi</button>
+                    <button class="weekday-chip" data-day="thu">Do</button>
+                    <button class="weekday-chip" data-day="fri">Fr</button>
+                    <button class="weekday-chip" data-day="sat">Sa</button>
+                    <button class="weekday-chip" data-day="sun">So</button>
+                </div>
+                <div class="weekday-presets">
+                    <button class="weekday-preset" data-preset="daily">Täglich</button>
+                    <button class="weekday-preset" data-preset="workday">Werktags</button>
+                    <button class="weekday-preset" data-preset="weekend">Wochenende</button>
+                </div>
+            </div>
+            
+            <div class="time-picker-container">
+                 <div class="time-picker-wheel">
+                    <div class="time-input-group">
+                        <input type="number" class="time-input hours" min="0" max="23" value="18" data-type="hours">
+                        <label class="time-label">Std</label>
+                    </div>
+                    <div class="time-separator">:</div>
+                    <div class="time-input-group">
+                        <input type="number" class="time-input minutes" min="0" max="59" value="30" data-type="minutes">
+                        <label class="time-label">Min</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="schedule-create-actions">
+                <button class="timer-cancel-btn">Abbrechen</button>
+                <button class="schedule-create-btn">Zeitplan erstellen</button>
+            </div>
+        `;
+        
+        // Animation nur ausführen, wenn gewünscht
+        if (animate) {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    this.expandScheduleSelection(scheduleSelectionContainer, container);
+                });
+            });
+        }
+        
+        this.setupScheduleSelectionEvents(item, action, scheduleSelectionContainer, container);
+    }
+
+    animateScheduleSelectionContents(scheduleSelectionContainer) {
+        console.log('🎭 Animating schedule selection contents');
+        
+        const animatableElements = scheduleSelectionContainer.querySelectorAll(
+            '.time-selection-header, .weekdays-selection, .time-picker-container, .schedule-create-actions'
+        );
+        
+        animatableElements.forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(10px)';
+            el.style.transition = `all 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${index * 50}ms`;
+            
+            requestAnimationFrame(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            });
+        });
+    }    
+
+    setupScheduleSelectionEvents(item, action, scheduleContainer, parentContainer) {
+        console.log('🎯 Setting up schedule selection events');
+        
+        // ✅ Wochentag-Chips Event Listeners
+        const weekdayChips = scheduleContainer.querySelectorAll('.weekday-chip');
+        weekdayChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chip.classList.toggle('active');
+                this.updateScheduleCreateButton(scheduleContainer);
+                
+                // Animation beim Toggle
+                chip.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(0.95)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 150,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                });
+            });
+        });
+        
+        // ✅ Wochentag-Presets Event Listeners
+        const weekdayPresets = scheduleContainer.querySelectorAll('.weekday-preset');
+        weekdayPresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                const presetType = preset.dataset.preset;
+                this.applyWeekdayPreset(presetType, scheduleContainer);
+                
+                // Visual feedback
+                preset.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.05)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 200,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                });
+            });
+        });
+        
+        // ✅ Cancel Button
+        const cancelBtn = scheduleContainer.querySelector('.timer-cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.resetToInitialScheduleState(parentContainer);
+            });
+        }
+        
+        // ✅ Create Schedule Button
+        const createBtn = scheduleContainer.querySelector('.schedule-create-btn');
+        if (createBtn) {
+            createBtn.addEventListener('click', () => {
+                const hours = parseInt(scheduleContainer.querySelector('.time-input.hours').value) || 0;
+                const minutes = parseInt(scheduleContainer.querySelector('.time-input.minutes').value) || 0;
+                const selectedDays = this.getSelectedWeekdays(scheduleContainer);
+                
+                if (selectedDays.length > 0) {
+                    this.createScheduleFromSelection(item, action, hours, minutes, selectedDays, scheduleContainer, parentContainer);
+                } else {
+                    console.warn('Keine Wochentage ausgewählt');
+                    // TODO: Error feedback
+                }
+            });
+        }
+        
+        // ✅ Initial button state update
+        this.updateScheduleCreateButton(scheduleContainer);
+    }    
+
+    applyWeekdayPreset(presetType, container) {
+        const weekdayChips = container.querySelectorAll('.weekday-chip');
+        
+        // Alle erst deaktivieren
+        weekdayChips.forEach(chip => chip.classList.remove('active'));
+        
+        // Je nach Preset aktivieren
+        switch (presetType) {
+            case 'daily':
+                weekdayChips.forEach(chip => chip.classList.add('active'));
+                break;
+            case 'workday':
+                ['mon', 'tue', 'wed', 'thu', 'fri'].forEach(day => {
+                    const chip = container.querySelector(`[data-day="${day}"]`);
+                    if (chip) chip.classList.add('active');
+                });
+                break;
+            case 'weekend':
+                ['sat', 'sun'].forEach(day => {
+                    const chip = container.querySelector(`[data-day="${day}"]`);
+                    if (chip) chip.classList.add('active');
+                });
+                break;
+        }
+        
+        this.updateScheduleCreateButton(container);
+    }
+    
+    getSelectedWeekdays(container) {
+        const activeChips = container.querySelectorAll('.weekday-chip.active');
+        return Array.from(activeChips).map(chip => chip.dataset.day);
+    }
+    
+    updateScheduleCreateButton(container) {
+        const createBtn = container.querySelector('.schedule-create-btn');
+        const selectedDays = this.getSelectedWeekdays(container);
+        
+        if (createBtn) {
+            createBtn.disabled = selectedDays.length === 0;
+            createBtn.textContent = selectedDays.length > 0 
+                ? `Zeitplan erstellen (${selectedDays.length} Tage)` 
+                : 'Wochentage auswählen';
+        }
+    }    
+
+    async createScheduleFromSelection(item, action, hours, minutes, weekdays, scheduleContainer, parentContainer) {
+        console.log(`🎯 Erstelle Zeitplan: ${action} um ${hours}:${minutes.toString().padStart(2, '0')} an [${weekdays.join(', ')}]`);
+        
+        try {
+            // Service und Service Data basierend auf Action bestimmen
+            const serviceCall = this.getServiceCallForAction(action);
+            
+            // Zeit formatieren
+            const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            
+            // Scheduler Service Call
+            await this._hass.callService('scheduler', 'add', {
+                weekdays: weekdays,
+                timeslots: [{
+                    start: timeString,
+                    actions: [{
+                        entity_id: item.id,
+                        service: serviceCall.service,
+                        service_data: serviceCall.service_data || {}
+                    }]
+                }],
+                name: `${item.name} ${this.getActionLabel(action)} ${weekdays.join('+')} ${timeString}`,
+                repeat_type: 'repeat'
+            });
+    
+            console.log('✅ Zeitplan erfolgreich erstellt');
+            
+            // Success animation
+            const createBtn = scheduleContainer.querySelector('.schedule-create-btn');
+            if (createBtn) {
+                createBtn.textContent = '✅ Erstellt!';
+                createBtn.disabled = true;
+            }
+            
+            // Nach erfolgreichem Erstellen zurücksetzen
+            setTimeout(() => {
+                this.resetToInitialScheduleState(parentContainer);
+                // Aktive Zeitpläne neu laden
+                this.loadActiveSchedules(item.id);
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Erstellen des Zeitplans:', error);
+            
+            // Error feedback
+            const createBtn = scheduleContainer.querySelector('.schedule-create-btn');
+            if (createBtn) {
+                createBtn.textContent = '❌ Fehler';
+                createBtn.style.backgroundColor = '#ff4444';
+                
+                setTimeout(() => {
+                    createBtn.textContent = 'Zeitplan erstellen';
+                    createBtn.style.backgroundColor = '';
+                }, 2000);
+            }
+        }
+    }    
+
+    getServiceCallForAction(action) {
+        switch (action) {
+            case 'turn_on':
+                return { service: 'light.turn_on' };
+            case 'turn_off':
+                return { service: 'light.turn_off' };
+            case 'dim_30':
+                return { 
+                    service: 'light.turn_on',
+                    service_data: { brightness: 77 } // 30% von 255
+                };
+            case 'dim_50':
+                return { 
+                    service: 'light.turn_on',
+                    service_data: { brightness: 128 } // 50% von 255
+                };
+            default:
+                return { service: 'light.turn_on' };
+        }
+    }
+
+    resetToInitialScheduleState(container) {
+        console.log('🔄 Reset to initial schedule state');
+        this.isScheduleSelectionOpen = false;
+    
+        const scheduleSelectionContainer = container.querySelector('.schedule-time-selection');
+        const activeSchedulesSection = container.querySelector('.active-schedules');
+        const scheduleControlDesign = container.querySelector('.schedule-control-design');
+    
+        // 1. Schedule-Panel ausblenden
+        const fadeOutSelection = scheduleSelectionContainer ? scheduleSelectionContainer.animate([
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-20px)' }
+        ], {
+            duration: 300,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        }).finished : Promise.resolve();
+    
+        fadeOutSelection.then(() => {
+            if (scheduleSelectionContainer) {
+                scheduleSelectionContainer.remove();
+            }
+    
+            // 2. Schedule-Liste und Steuerung GLEICHZEITIG wieder einblenden
+            const fadeInAnimations = [];
+    
+            if (activeSchedulesSection) {
+                const fadeInSchedules = activeSchedulesSection.animate([
+                    { opacity: 0, transform: 'translateY(-20px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], { 
+                    duration: 400, 
+                    fill: 'forwards', 
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
+                });
+                fadeInAnimations.push(fadeInSchedules);
+            }
+    
+            if (scheduleControlDesign) {
+                const fadeInControls = scheduleControlDesign.animate([
+                    { opacity: 0, transform: 'translateY(-20px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], { 
+                    duration: 400, 
+                    fill: 'forwards', 
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
+                });
+                fadeInAnimations.push(fadeInControls);
+            }
+    
+            // 3. Button-States zurücksetzen
+            Promise.all(fadeInAnimations.map(anim => anim.finished)).then(() => {
+                const schedulePresets = container.querySelectorAll('.timer-control-preset');
+                schedulePresets.forEach(p => p.classList.remove('active'));
+                console.log('✅ Schedule reset complete');
+            });
+        });
+    }
+
+
+
+
+    
+    
     animateTimeSelectionContents(timeSelectionContainer) {
         console.log('🎭 Animating time selection contents');
         
@@ -10220,25 +10653,32 @@ class FastSearchCard extends HTMLElement {
         }
     }    
     
-    // ✅ Zeitplan Tab Initialisierung 
     initializeScheduleTab(item, container) {
         console.log('📅 Initializing Schedule Tab for', item.name);
         
-        // Schedule Preset Buttons Event Listeners
+        // GLEICHE Action Buttons wie Timer verwenden
         const schedulePresets = container.querySelectorAll('.timer-control-preset');
+        console.log('🔍 Found schedule presets:', schedulePresets.length);
+        
         schedulePresets.forEach(preset => {
             preset.addEventListener('click', () => {
                 const action = preset.dataset.action;
                 console.log(`Schedule Action ausgewählt: ${action} für ${item.name}`);
+                console.log('🔍 isScheduleSelectionOpen:', this.isScheduleSelectionOpen);
+                
+                if (this.isScheduleSelectionOpen) {
+                    console.log('⚡ Nur Update - calling updateScheduleSelectionAction');
+                    this.updateScheduleSelectionAction(item, action, container);
+                    return;
+                }
+                
+                console.log('🚀 Starte startScheduleOpenSequence');
                 
                 // Visual feedback
                 schedulePresets.forEach(p => p.classList.remove('active'));
                 preset.classList.add('active');
                 
-                // ✅ Zeitplan-spezifische Logik
-                setTimeout(() => {
-                    this.showScheduleConfiguration(item, action, container);
-                }, 200);
+                this.startScheduleOpenSequence(item, action, container);
             });
         });
         
@@ -10303,17 +10743,192 @@ class FastSearchCard extends HTMLElement {
         `;
     }
     
-    loadActiveSchedules(deviceId) {
-        console.log('📋 Loading active schedules for device:', deviceId);
+    async loadActiveSchedules(entityId) {
+        const container = this.shadowRoot.getElementById(`active-schedules-${entityId}`);
+        if (!container) return;
         
-        const schedulesContainer = this.shadowRoot.querySelector(`#active-schedules-${deviceId}`);
-        if (!schedulesContainer) return;
+        container.innerHTML = '<div class="loading-schedules">Lade Zeitpläne...</div>';
         
-        // TODO: Echte Zeitplan-Discovery implementieren
-        schedulesContainer.innerHTML = `
-            <div class="no-schedules">Keine aktiven Zeitpläne</div>
-        `;
+        try {
+            // Alle Scheduler-Entitäten laden
+            const allEntities = this._hass.states;
+            const scheduleEntities = Object.keys(allEntities)
+                .filter(key => key.startsWith('switch.schedule_'))
+                .map(key => allEntities[key])
+                .filter(entity => {
+                    // Filter nach unserem Entity
+                    const actions = entity.attributes.actions || [];
+                    return actions.some(action => action.entity_id === entityId);
+                });
+    
+            console.log(`📋 Gefundene Zeitpläne für ${entityId}:`, scheduleEntities.length);
+    
+            if (scheduleEntities.length === 0) {
+                container.innerHTML = '<div class="no-schedules">Keine aktiven Zeitpläne</div>';
+                return;
+            }
+    
+            // Zeitpläne in UI rendern
+            const schedulesHTML = scheduleEntities.map(schedule => {
+                const isEnabled = schedule.state === 'on';
+                const nextTrigger = schedule.attributes.next_trigger;
+                const weekdays = schedule.attributes.weekdays || [];
+                const timeslots = schedule.attributes.timeslots || [];
+                const scheduleName = schedule.attributes.friendly_name || schedule.entity_id;
+    
+                // Erste Timeslot für Anzeige verwenden
+                const firstTimeslot = timeslots[0];
+                const timeString = firstTimeslot ? firstTimeslot.start : 'Unbekannt';
+                
+                return `
+                    <div class="schedule-item ${isEnabled ? 'enabled' : 'disabled'}" data-entity-id="${schedule.entity_id}">
+                        <div class="schedule-info">
+                            <div class="schedule-main">
+                                <span class="schedule-name">${scheduleName}</span>
+                                <span class="schedule-time">${timeString}</span>
+                            </div>
+                            <div class="schedule-details">
+                                <span class="schedule-days">${this.formatWeekdays(weekdays)}</span>
+                                ${nextTrigger ? `<span class="schedule-next">Nächste: ${this.formatNextTrigger(nextTrigger)}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="schedule-controls">
+                            <button class="schedule-toggle-btn" data-action="toggle" title="${isEnabled ? 'Deaktivieren' : 'Aktivieren'}">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    ${isEnabled ? 
+                                        '<path d="M6 18L18 6M6 6l12 12"/>' : 
+                                        '<polyline points="20,6 9,17 4,12"/>'
+                                    }
+                                </svg>
+                            </button>
+                            <button class="schedule-delete-btn" data-action="delete" title="Löschen">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6"/>
+                                    <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
+                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+    
+            container.innerHTML = `
+                <div class="schedules-header">
+                    <h4>Aktive Zeitpläne (${scheduleEntities.length})</h4>
+                </div>
+                <div class="schedules-list">
+                    ${schedulesHTML}
+                </div>
+            `;
+    
+            // Event Listeners für Schedule Controls
+            this.setupScheduleControlEvents(container, entityId);
+    
+        } catch (error) {
+            console.error('❌ Fehler beim Laden der Zeitpläne:', error);
+            container.innerHTML = '<div class="schedules-error">Fehler beim Laden der Zeitpläne</div>';
+        }
     }
+
+    formatWeekdays(weekdays) {
+        if (!weekdays || weekdays.length === 0) return 'Nie';
+        
+        const dayMap = {
+            'mon': 'Mo', 'tue': 'Di', 'wed': 'Mi', 'thu': 'Do',
+            'fri': 'Fr', 'sat': 'Sa', 'sun': 'So'
+        };
+        
+        // Spezielle Fälle
+        if (weekdays.includes('daily')) return 'Täglich';
+        if (weekdays.includes('workday')) return 'Werktags';
+        if (weekdays.includes('weekend')) return 'Wochenende';
+        
+        // Alle 7 Tage
+        if (weekdays.length === 7) return 'Täglich';
+        
+        // Werktags-Check
+        const workdays = ['mon', 'tue', 'wed', 'thu', 'fri'];
+        if (weekdays.length === 5 && workdays.every(day => weekdays.includes(day))) {
+            return 'Werktags';
+        }
+        
+        // Wochenende-Check
+        if (weekdays.length === 2 && weekdays.includes('sat') && weekdays.includes('sun')) {
+            return 'Wochenende';
+        }
+        
+        // Einzelne Tage
+        return weekdays.map(day => dayMap[day] || day).join(', ');
+    }
+    
+    formatNextTrigger(nextTrigger) {
+        const now = new Date();
+        const trigger = new Date(nextTrigger);
+        const diff = trigger - now;
+        
+        if (diff < 0) return 'Überfällig';
+        
+        const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+        const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+        const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+        
+        if (days > 0) return `in ${days}d ${hours}h`;
+        if (hours > 0) return `in ${hours}h ${minutes}m`;
+        return `in ${minutes}m`;
+    }
+    
+    setupScheduleControlEvents(container, entityId) {
+        const toggleBtns = container.querySelectorAll('.schedule-toggle-btn');
+        const deleteBtns = container.querySelectorAll('.schedule-delete-btn');
+        
+        toggleBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const scheduleItem = btn.closest('.schedule-item');
+                const scheduleEntityId = scheduleItem.dataset.entityId;
+                
+                try {
+                    const currentState = this._hass.states[scheduleEntityId]?.state;
+                    const newState = currentState === 'on' ? 'off' : 'on';
+                    
+                    await this._hass.callService('switch', `turn_${newState}`, {
+                        entity_id: scheduleEntityId
+                    });
+                    
+                    // UI sofort aktualisieren
+                    setTimeout(() => this.loadActiveSchedules(entityId), 500);
+                    
+                } catch (error) {
+                    console.error('Fehler beim Toggle des Zeitplans:', error);
+                }
+            });
+        });
+        
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const scheduleItem = btn.closest('.schedule-item');
+                const scheduleEntityId = scheduleItem.dataset.entityId;
+                
+                if (confirm('Zeitplan wirklich löschen?')) {
+                    try {
+                        await this._hass.callService('scheduler', 'remove', {
+                            entity_id: scheduleEntityId
+                        });
+                        
+                        // UI aktualisieren
+                        setTimeout(() => this.loadActiveSchedules(entityId), 500);
+                        
+                    } catch (error) {
+                        console.error('Fehler beim Löschen des Zeitplans:', error);
+                    }
+                }
+            });
+        });
+    }
+        
     
     getScheduleLabel(scheduleType) {
         const labels = {
