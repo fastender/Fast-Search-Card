@@ -1350,7 +1350,7 @@ class FastSearchCard extends HTMLElement {
 
                 /* Mobile: History Tab spezifisches Padding */
                 @media (max-width: 768px) {
-                    .detail-tab-content[data-tab-content="history"] #tab-content-container {
+                    #tab-content-container.history-active {
                         padding: 0px 10px;
                     }
                 }                
@@ -10116,6 +10116,17 @@ class FastSearchCard extends HTMLElement {
                 tab.addEventListener('click', (e) => {
                     e.preventDefault();
                     const targetId = tab.dataset.tab;
+
+                    // Tab-Content Container finden
+                    const tabContainer = this.shadowRoot.querySelector('#tab-content-container');
+                    
+                    // Alle history-spezifischen Klassen entfernen
+                    tabContainer.classList.remove('history-active');
+                    
+                    // Wenn History Tab geklickt wird, Klasse hinzufügen
+                    if (targetId === 'history') {
+                        tabContainer.classList.add('history-active');
+                    }                    
                     
                     // Sync beide Tab-Container
                     [desktopTabsContainer, mobileTabsContainer].forEach(container => {
