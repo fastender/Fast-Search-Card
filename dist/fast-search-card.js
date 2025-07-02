@@ -8080,7 +8080,7 @@ class FastSearchCard extends HTMLElement {
         
         // Create Button
         createBtn.addEventListener('click', () => {
-            if (this.timePickerState.isScheduleMode) {
+            if (this.timePickerState && this.timePickerState.isScheduleMode) {
                 console.log('🗓️ Zeitplan-Erstellung - TODO: Wochentage implementieren');
                 // TODO: Hier später Wochentag-Auswahl
             } else {
