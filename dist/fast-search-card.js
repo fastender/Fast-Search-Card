@@ -7329,32 +7329,7 @@ class FastSearchCard extends HTMLElement {
                                 <!-- ✅ Direkt die Action Presets (größeres Design) -->
                                 <div class="timer-control-presets timer-action-presets visible" data-is-open="true">
                                     <div class="timer-control-presets-grid">
-                                        <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
-                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z" stroke="currentColor" stroke-width="1"/>
-                                            </svg>
-                                            <span class="timer-preset-label">Aus</span>
-                                        </button>
-                                        <button class="timer-control-preset" data-action="turn_on" title="Einschalten">
-                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M17 13C17.5523 13 18 12.5523 18 12C18 11.4477 17.5523 11 17 11C16.4477 11 16 11.4477 16 12C16 12.5523 16.4477 13 17 13Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z" stroke="currentColor" stroke-width="1"/>
-                                            </svg>
-                                            <span class="timer-preset-label">Ein</span>
-                                        </button>
-                                        <button class="timer-control-preset" data-action="dim_30" title="30% Helligkeit">
-                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            <span class="timer-preset-label">30%</span>
-                                        </button>
-                                        <button class="timer-control-preset" data-action="dim_50" title="50% Helligkeit">
-                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            <span class="timer-preset-label">50%</span>
-                                        </button>
+                                        ${this.getTimerPresetsForDevice(item)}                                        
                                     </div>
                                 </div>
                             </div>
@@ -7371,37 +7346,9 @@ class FastSearchCard extends HTMLElement {
                             
                             <!-- Zeitplan Controls -->
                             <div class="schedule-control-design" id="schedule-control-${item.id}">
-                                <div class="timer-control-presets schedule-action-presets visible" data-is-open="true">
-                                    <!-- Zeitplan Action Presets -->
-                                    
+                                <div class="timer-control-presets schedule-action-presets visible" data-is-open="true">                                
                                     <div class="timer-control-presets-grid">
-                                        <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
-                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M17 13C17.5523 13 18 12.5523 18 12C18 11.4477 17.5523 11 17 11C16.4477 11 16 11.4477 16 12C16 12.5523 16.4477 13 17 13Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z" stroke="currentColor"/>
-                                            </svg>
-                                            <span class="timer-preset-label">Aus</span>
-                                        </button>
-                                        <button class="timer-control-preset" data-action="turn_on" title="Einschalten">
-                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M21 2L9 14L4 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <circle cx="12" cy="12" r="9" stroke="currentColor"/>
-                                            </svg>
-                                            <span class="timer-preset-label">Ein</span>
-                                        </button>
-                                        <button class="timer-control-preset" data-action="dim_30" title="Dimmen 30%">
-                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            <span class="timer-preset-label">30%</span>
-                                        </button>
-                                        <button class="timer-control-preset" data-action="dim_50" title="Dimmen 50%">
-                                            <svg width="24px" height="24px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                                                <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            <span class="timer-preset-label">50%</span>
-                                        </button>
+                                        ${this.getTimerPresetsForDevice(item)}                                    
                                     </div>
                                </div> 
                             </div>
