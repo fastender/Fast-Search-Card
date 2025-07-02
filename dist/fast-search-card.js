@@ -739,7 +739,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             .filter-button:hover {
-                background: rgba(0, 0, 0, 0.25);
+                background: rgba(255, 255, 255, 0.15);
             }
             
             .filter-button.active {
@@ -869,7 +869,7 @@ class FastSearchCard extends HTMLElement {
 
             .area-header {
                 grid-column: 1 / -1;
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: 600;
                 color: var(--text-secondary);
                 margin: 16px 0 0px 0;
@@ -2406,7 +2406,7 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 cursor: pointer;
                 transition: all 0.2s ease;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: 500;
             }
             
@@ -2499,13 +2499,13 @@ class FastSearchCard extends HTMLElement {
             }
             
             .timeline-time {
-                font-size: 12px;
+                font-size: 14px;
                 color: var(--text-secondary);
                 font-weight: 500;
             }
             
             .timeline-state {
-                font-size: 13px;
+                font-size: 14px;
                 color: var(--text-primary);
                 font-weight: 600;
             }
@@ -2578,7 +2578,7 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 cursor: pointer;
                 transition: all 0.2s ease;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: 500;
             }
             
