@@ -8192,7 +8192,7 @@ class FastSearchCard extends HTMLElement {
         const activeSchedules = parentContainer.querySelector('.active-schedules');
         
         if (timerControls) timerControls.style.display = '';
-        if (activeTimers) timerControls.style.display = '';
+        if (activeTimers) activeTimers.style.display = '';  // ← Das war falsch!
         if (scheduleControls) scheduleControls.style.display = '';
         if (activeSchedules) activeSchedules.style.display = '';
         
@@ -8200,8 +8200,14 @@ class FastSearchCard extends HTMLElement {
         const allPresets = parentContainer.querySelectorAll('.timer-control-preset');
         allPresets.forEach(p => p.classList.remove('active'));
         
+        // Lade aktive Timer neu
+        const entityId = parentContainer.closest('[data-entity-id]')?.dataset.entityId;
+        if (entityId) {
+            this.loadActiveTimers(entityId);
+        }
+        
         console.log('✅ Minimal Time Picker geschlossen');
-    }
+    }      
     
 
 
