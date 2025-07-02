@@ -1294,6 +1294,9 @@ class FastSearchCard extends HTMLElement {
                 
                 .mobile-tabs {
                     display: block;
+                    position: absolute;
+                    right: 0;
+                    top: 0;                    
                 }
                 
                 .detail-content { 
@@ -1315,9 +1318,13 @@ class FastSearchCard extends HTMLElement {
 
                 
                 .detail-left-header {
-                    align-items: center;
                     gap: 12px;
+                    align-items: flex-start;
+                    margin-top: 8px;             
                 }
+
+
+                
                 
                 .detail-info-row {
                     padding-left: 0;
@@ -1351,7 +1358,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .detail-title-area { 
-                    margin-top: 5px; 
+                    margin-top: 4px; 
                 }
             }            
             
@@ -2528,7 +2535,7 @@ class FastSearchCard extends HTMLElement {
                 .history-header {
                     flex-direction: column;
                     gap: 12px;
-                    align-items: flex-start;
+                    align-items: center;
                 }
                 
                 .history-stats {
@@ -2657,6 +2664,18 @@ class FastSearchCard extends HTMLElement {
             
             /* Mobile Anpassung */
             @media (max-width: 768px) {
+
+                .shortcuts-container {
+                    height: calc(100vh - 400px);
+                    max-height: 400px;
+                }            
+                
+                .shortcuts-header {
+                    flex-direction: column;
+                    gap: 12px;
+                    align-items: center;
+                }
+            
                 .shortcuts-stats {
                     gap: 8px;
                 }
