@@ -7672,7 +7672,7 @@ class FastSearchCard extends HTMLElement {
             // Close after success
             setTimeout(() => {
                 this.closeTimeSelection(timeContainer, parentContainer);
-                this.(item.id); // Refresh timer list
+                this.loadActiveTimers(item.id); // ← KORRIGIERT
             }, 1000);
             
         } catch (error) {
@@ -7686,7 +7686,7 @@ class FastSearchCard extends HTMLElement {
                 
                 // ✅ NEU: Timer Liste neu laden nach Erfolg
                 setTimeout(() => {
-                    this.(item.id);
+                    this.loadActiveTimers(item.id); // ← KORRIGIERT
                 }, 400); // Warten bis Animation fertig
                 
             }, 1000);
