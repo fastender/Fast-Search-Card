@@ -8172,9 +8172,10 @@ class FastSearchCard extends HTMLElement {
         this.createActionTimer(item, action, totalMinutes);
         
         // Schließe den Picker
-        this.closeMinimalTimePicker(this.shadowRoot.getElementById(`timer-section-${item.id}`));
+        const parentContainer = this.shadowRoot.querySelector('.minimal-time-picker').closest('.shortcuts-tab-content');
+        this.closeMinimalTimePicker(parentContainer);        
     }
-    
+
     closeMinimalTimePicker(parentContainer) {
         const timePickerContainer = parentContainer.querySelector('.minimal-time-picker');
         if (timePickerContainer) {
@@ -8187,13 +8188,20 @@ class FastSearchCard extends HTMLElement {
         // Zeige normale Timer-Controls wieder
         const timerControls = parentContainer.querySelector('.timer-control-design');
         const activeTimers = parentContainer.querySelector('.active-timers');
+        const scheduleControls = parentContainer.querySelector('.schedule-control-design');
+        const activeSchedules = parentContainer.querySelector('.active-schedules');
         
-        if (timerControls) timerControls.style.display = 'block';
-        if (activeTimers) activeTimers.style.display = 'block';
+        if (timerControls) timerControls.style.display = '';
+        if (activeTimers) timerControls.style.display = '';
+        if (scheduleControls) scheduleControls.style.display = '';
+        if (activeSchedules) activeSchedules.style.display = '';
+        
+        // Reset alle preset buttons
+        const allPresets = parentContainer.querySelectorAll('.timer-control-preset');
+        allPresets.forEach(p => p.classList.remove('active'));
         
         console.log('✅ Minimal Time Picker geschlossen');
-    }    
-
+    }
     
 
 
