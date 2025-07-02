@@ -3765,7 +3765,106 @@ class FastSearchCard extends HTMLElement {
             .minimal-time-picker .mtp-create:hover {
                 background: #1d4ed8;
             }
-        
+
+            
+            
+            /* Day Picker Styles */
+            .minimal-time-picker .mtp-day-picker {
+                width: 100%;
+                height: 48px;
+            }
+            
+            .minimal-time-picker .mtp-day-controls {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                height: 48px;
+            }
+            
+            .minimal-time-picker .mtp-chips-container {
+                flex: 1;
+                overflow-x: auto;
+                padding-bottom: 8px;
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                height: 48px;
+                margin-top: 6px;
+            }
+            
+            .minimal-time-picker .mtp-chips-container::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .minimal-time-picker .mtp-chips-container {
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            .minimal-time-picker .mtp-chip {
+                padding: 8px 16px;
+                border-radius: 25px;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s;
+                white-space: nowrap;
+                flex-shrink: 0;
+                border: 1px solid #d1d5db;
+                background: white;
+                color: #374151;
+                cursor: pointer;
+            }
+            
+            .minimal-time-picker .mtp-chip:hover {
+                background: #eff6ff;
+                border-color: #2563eb;
+            }
+            
+            .minimal-time-picker .mtp-chip.active {
+                background: #2563eb;
+                color: white;
+                border-color: #2563eb;
+            }
+            
+            .minimal-time-picker .mtp-weekday-chip {
+                padding: 8px 12px;
+                border-radius: 25px;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s;
+                white-space: nowrap;
+                flex-shrink: 0;
+                border: 1px solid #d1d5db;
+                background: white;
+                color: #374151;
+                cursor: pointer;
+            }
+            
+            .minimal-time-picker .mtp-weekday-chip:hover {
+                background: #eff6ff;
+                border-color: #2563eb;
+            }
+            
+            .minimal-time-picker .mtp-weekday-chip.active {
+                background: #2563eb;
+                color: white;
+                border-color: #2563eb;
+            }
+            
+            .minimal-time-picker .mtp-ok-btn {
+                padding: 8px 16px;
+                background: #2563eb;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                flex-shrink: 0;
+                font-weight: 500;
+            }
+            
+            .minimal-time-picker .mtp-ok-btn:hover {
+                background: #1d4ed8;
+            }        
             
                                                 
             </style>
@@ -8081,13 +8180,294 @@ class FastSearchCard extends HTMLElement {
         // Create Button
         createBtn.addEventListener('click', () => {
             if (this.timePickerState && this.timePickerState.isScheduleMode) {
-                console.log('🗓️ Zeitplan-Erstellung - TODO: Wochentage implementieren');
-                // TODO: Hier später Wochentag-Auswahl
+                this.createScheduleFromMinimalPicker(item, action);
             } else {
                 this.createTimerFromMinimalPicker(item, action);
             }
         });
+
+        // Kalender Button (nur im Schedule Mode)
+        const calendarBtn = container.querySelector('.mtp-calendar-btn');
+        if (calendarBtn) {
+            calendarBtn.addEventListener('click', () => {
+                this.showDayPicker(container);
+            });
+        }        
     }
+
+    async createScheduleFromMinimalPicker(item, action) {
+        console.log('📅 Erstelle Zeitplan vom Minimal Picker');
+        
+        // Prüfe ob Wochentage ausgewählt wurden
+        if (!this.dayPickerState || (!this.dayPickerState.daySelection && this.dayPickerState.selectedDays.length === 0)) {
+            console.warn('⚠️ Keine Wochentage ausgewählt');
+            alert('Bitte wähle zuerst Wochentage aus');
+            return;
+        }
+        
+        // Konvertiere zu weekdays Array
+        let weekdays = [];
+        if (this.dayPickerState.daySelection) {
+            switch (this.dayPickerState.daySelection) {
+                case 'daily':
+                    weekdays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+                    break;
+                case 'workday':
+                    weekdays = ['mon', 'tue', 'wed', 'thu', 'fri'];
+                    break;
+                case 'weekend':
+                    weekdays = ['sat', 'sun'];
+                    break;
+            }
+        } else {
+            weekdays = this.dayPickerState.selectedDays;
+        }
+        
+        const hours = this.timePickerState.selectedHours;
+        const minutes = this.timePickerState.selectedMinutes;
+        
+        console.log(`🎯 Erstelle Zeitplan: ${action} um ${hours}:${minutes.toString().padStart(2, '0')} an [${weekdays.join(', ')}]`);
+        
+        try {
+            // Service und Service Data basierend auf Action bestimmen
+            const serviceCall = this.getServiceCallForAction(action);
+            
+            // Zeit formatieren
+            const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            
+            // Scheduler Service Call
+            await this._hass.callService('scheduler', 'add', {
+                weekdays: weekdays,
+                timeslots: [{
+                    start: timeString,
+                    actions: [{
+                        entity_id: item.id,
+                        service: serviceCall.service,
+                        service_data: serviceCall.service_data || {}
+                    }]
+                }],
+                name: `${item.name} ${this.getActionLabel(action)} ${weekdays.join('+')} ${timeString}`,
+                repeat_type: 'repeat'
+            });
+    
+            console.log('✅ Zeitplan erfolgreich erstellt');
+            
+            // Schließe den Picker
+            const parentContainer = this.shadowRoot.querySelector('.minimal-time-picker').closest('.shortcuts-tab-content');
+            this.closeMinimalTimePicker(parentContainer);
+            
+            // Lade Zeitpläne neu
+            setTimeout(() => {
+                this.loadActiveSchedules(item.id);
+            }, 500);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Erstellen des Zeitplans:', error);
+            alert('Fehler beim Erstellen des Zeitplans');
+        }
+    }    
+    
+    showDayPicker(container) {
+        console.log('📅 Zeige Day Picker');
+        
+        // Initialize day picker state
+        this.dayPickerState = {
+            showIndividualDays: false,
+            daySelection: '',
+            selectedDays: []
+        };
+        
+        const displayContainer = container.querySelector('.mtp-display-container');
+        
+        // Ersetze Zeit-Anzeige mit Day Picker
+        displayContainer.innerHTML = `
+            <div class="mtp-day-picker">
+                <div class="mtp-day-controls">
+                    <div class="mtp-chips-container">
+                        <button class="mtp-chip" data-preset="daily">Täglich</button>
+                        <button class="mtp-chip" data-preset="workday">Werktags</button>
+                        <button class="mtp-chip" data-preset="weekend">Wochenende</button>
+                        <button class="mtp-chip" data-preset="individual">Individuell</button>
+                    </div>
+                    <button class="mtp-ok-btn">OK</button>
+                </div>
+            </div>
+        `;
+        
+        this.setupDayPickerEvents(container);
+    }
+
+    setupDayPickerEvents(container) {
+        console.log('📅 Setup Day Picker Events');
+        
+        const presetChips = container.querySelectorAll('[data-preset]');
+        const okBtn = container.querySelector('.mtp-ok-btn');
+        
+        // Preset Chips Event Listeners
+        presetChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const preset = chip.dataset.preset;
+                
+                if (preset === 'individual') {
+                    this.showIndividualDayChips(container);
+                } else {
+                    // Standard Presets
+                    presetChips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    
+                    this.dayPickerState.daySelection = preset;
+                    this.dayPickerState.selectedDays = [];
+                    this.dayPickerState.showIndividualDays = false;
+                }
+            });
+        });
+        
+        // OK Button
+        okBtn.addEventListener('click', () => {
+            this.closeDayPicker(container);
+        });
+    }
+    
+    showIndividualDayChips(container) {
+        console.log('📅 Zeige individuelle Wochentage');
+        
+        const chipsContainer = container.querySelector('.mtp-chips-container');
+        const weekdays = [
+            { key: 'mon', label: 'Mo' },
+            { key: 'tue', label: 'Di' },
+            { key: 'wed', label: 'Mi' },
+            { key: 'thu', label: 'Do' },
+            { key: 'fri', label: 'Fr' },
+            { key: 'sat', label: 'Sa' },
+            { key: 'sun', label: 'So' }
+        ];
+        
+        chipsContainer.innerHTML = weekdays.map(day => 
+            `<button class="mtp-weekday-chip" data-day="${day.key}">${day.label}</button>`
+        ).join('');
+        
+        this.dayPickerState.showIndividualDays = true;
+        this.dayPickerState.daySelection = '';
+        
+        // Event Listeners für Wochentag-Chips
+        const weekdayChips = chipsContainer.querySelectorAll('.mtp-weekday-chip');
+        weekdayChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const day = chip.dataset.day;
+                
+                if (this.dayPickerState.selectedDays.includes(day)) {
+                    // Entfernen
+                    this.dayPickerState.selectedDays = this.dayPickerState.selectedDays.filter(d => d !== day);
+                    chip.classList.remove('active');
+                } else {
+                    // Hinzufügen
+                    this.dayPickerState.selectedDays.push(day);
+                    chip.classList.add('active');
+                }
+            });
+        });
+    }    
+ 
+    closeDayPicker(container) {
+        console.log('📅 Schließe Day Picker');
+        
+        const displayContainer = container.querySelector('.mtp-display-container');
+        
+        // Erstelle Day Selection Display Text
+        let selectionText = '';
+        if (this.dayPickerState.daySelection) {
+            const labels = {
+                'daily': 'Täglich',
+                'workday': 'Werktags', 
+                'weekend': 'Wochenende'
+            };
+            selectionText = labels[this.dayPickerState.daySelection];
+        } else if (this.dayPickerState.selectedDays.length > 0) {
+            const dayLabels = {
+                'mon': 'Mo', 'tue': 'Di', 'wed': 'Mi', 'thu': 'Do',
+                'fri': 'Fr', 'sat': 'Sa', 'sun': 'So'
+            };
+            selectionText = this.dayPickerState.selectedDays.map(day => dayLabels[day]).join(', ');
+        }
+        
+        // Zurück zur Zeit-Anzeige mit Day Selection
+        displayContainer.innerHTML = `
+            <div class="mtp-controls">
+                <!-- Stunden -->
+                <div class="mtp-unit" data-unit="hours">
+                    <div class="mtp-value">${this.timePickerState.selectedHours.toString().padStart(2, '0')}</div>
+                </div>
+                
+                <!-- Separator -->
+                <div class="mtp-separator">:</div>
+                
+                <!-- Minuten -->
+                <div class="mtp-unit" data-unit="minutes">
+                    <div class="mtp-value">${this.timePickerState.selectedMinutes.toString().padStart(2, '0')}</div>
+                </div>
+                
+                <!-- Day Selection Display -->
+                ${selectionText ? `
+                    <div class="mtp-calendar-btn" style="background: #dbeafe; color: #1e40af; border-radius: 25px; padding: 8px 12px; margin-left: 16px; font-size: 14px; font-weight: 500; cursor: pointer;">
+                        ${selectionText}
+                    </div>
+                ` : `
+                    <button class="mtp-calendar-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </button>
+                `}
+            </div>
+        `;
+        
+        // Events neu einrichten
+        this.setupTimeControlEvents(container);
+        
+        // Kalender Button Event (falls noch normal)
+        const calendarBtn = container.querySelector('.mtp-calendar-btn');
+        if (calendarBtn && !selectionText) {
+            calendarBtn.addEventListener('click', () => {
+                this.showDayPicker(container);
+            });
+        } else if (calendarBtn && selectionText) {
+            calendarBtn.addEventListener('click', () => {
+                this.showDayPicker(container);
+            });
+        }
+    }
+    
+    setupTimeControlEvents(container) {
+        // Stunden und Minuten Units
+        const hoursUnit = container.querySelector('[data-unit="hours"]');
+        const minutesUnit = container.querySelector('[data-unit="minutes"]');
+        
+        if (hoursUnit) {
+            hoursUnit.addEventListener('mouseenter', () => {
+                this.showChevrons(hoursUnit, 'hours');
+            });
+            
+            hoursUnit.addEventListener('mouseleave', () => {
+                this.hideChevrons(hoursUnit);
+            });
+        }
+        
+        if (minutesUnit) {
+            minutesUnit.addEventListener('mouseenter', () => {
+                this.showChevrons(minutesUnit, 'minutes');
+            });
+            
+            minutesUnit.addEventListener('mouseleave', () => {
+                this.hideChevrons(minutesUnit);
+            });
+        }
+    }
+
+
+    
     
     showChevrons(unitElement, type) {
         // Entferne existierende Chevrons
