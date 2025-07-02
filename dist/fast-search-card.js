@@ -7418,25 +7418,18 @@ class FastSearchCard extends HTMLElement {
         }
     }    
     
-    showTimeSelection(item, action, container) {
-        console.log(`⏰ Zeige Time Selection für ${action} - aufgerufen von:`, new Error().stack);
-        
-        if (this.isTimeSelectionOpen) {
-            console.log('⚠️ Time Selection bereits offen - ignoriere');
-            return;
-        }
-        
+    showTimeSelection(item, action, container, animate = true) {
+        console.log(`⏰ Zeige Time Selection für ${action} - animate: ${animate}`);
+    
         let timeSelectionContainer = container.querySelector('.timer-time-selection');
         if (!timeSelectionContainer) {
             timeSelectionContainer = document.createElement('div');
             timeSelectionContainer.className = 'timer-time-selection';
-            timeSelectionContainer.setAttribute('data-is-open', 'false');
-            container.appendChild(timeSelectionContainer);
+            
+            // WICHTIG: Panel wird jetzt VOR den Timer-Controls eingefügt (oberste Position)
+            const timerControlDesign = container.querySelector('.timer-control-design');
+            container.insertBefore(timeSelectionContainer, timerControlDesign);
         }
-        
-        timeSelectionContainer.style.maxHeight = '0px';
-        timeSelectionContainer.style.opacity = '0';
-        timeSelectionContainer.style.overflow = 'hidden';        
         
         timeSelectionContainer.innerHTML = `
             <div class="time-selection-header">
@@ -7447,7 +7440,7 @@ class FastSearchCard extends HTMLElement {
             </div>
             
             <div class="time-picker-container">
-                <div class="time-picker-wheel">
+                 <div class="time-picker-wheel">
                     <div class="time-input-group">
                         <input type="number" class="time-input hours" min="0" max="23" value="0" data-type="hours">
                         <label class="time-label">Std</label>
@@ -7473,11 +7466,14 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
         
-        requestAnimationFrame(() => {
+        // Animation nur ausführen, wenn gewünscht
+        if (animate) {
             requestAnimationFrame(() => {
-                this.expandTimeSelection(timeSelectionContainer, container);
+                requestAnimationFrame(() => {
+                    this.expandTimeSelection(timeSelectionContainer, container);
+                });
             });
-        });
+        }
         
         this.setupTimeSelectionEvents(item, action, timeSelectionContainer, container);
     }
@@ -7491,42 +7487,18 @@ class FastSearchCard extends HTMLElement {
         };
         return labels[action] || action;
     }
-               
+ 
     expandTimeSelection(timeContainer, parentContainer) {        
-        console.log('🎬 Expanding Time Selection - Start');
+        console.log('🎬 Expanding Time Selection - NEW VERSION');
         
-        // Startwerte setzen
-        timeContainer.style.maxHeight = '0px';
-        timeContainer.style.opacity = '0';
-        timeContainer.style.overflow = 'hidden';
-        timeContainer.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+        // Für die neue Version wird diese Methode vereinfacht,
+        // da die Hauptanimation bereits in startTimerOpenSequence stattfindet
+        timeContainer.style.maxHeight = 'none'; // Keine Höhenbeschränkung
+        timeContainer.style.opacity = '1';
+        timeContainer.style.overflow = 'visible';
         
-        // Nach kurzer Verzögerung zu Zielwerten wechseln
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                console.log('🎬 Setze Zielwerte');
-                timeContainer.style.maxHeight = '400px';
-                timeContainer.style.opacity = '1';
-                timeContainer.style.transform = 'translateY(0)';
-            });
-        });
-        
-        // Unterelemente animieren
-        setTimeout(() => {
-            const elements = timeContainer.querySelectorAll('.time-picker-wheel > *, .quick-time-buttons, .timer-create-actions');
-            console.log('🎭 Animiere', elements.length, 'Unterelemente');
-            
-            elements.forEach((el, index) => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(10px)';
-                el.style.transition = `all 0.3s ease ${index * 50}ms`;
-                
-                setTimeout(() => {
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                }, 100);
-            });
-        }, 200);
+        // Kaskadierende Animation der Inhalte
+        this.animateTimeSelectionContents(timeContainer);
     }
         
     setupTimeSelectionEvents(item, action, timeContainer, parentContainer) {
@@ -7641,57 +7613,63 @@ class FastSearchCard extends HTMLElement {
     }
 
     resetToInitialTimerState(container) {
-        console.log('🔄 Reset to initial timer state');
-        this.isTimeSelectionOpen = false; // ← State zurücksetzen
-        
+        console.log('🔄 Reset to initial timer state (NEW - Simultaneous)');
+        this.isTimeSelectionOpen = false;
+    
         const timeSelectionContainer = container.querySelector('.timer-time-selection');
         const activeTimersSection = container.querySelector('.active-timers');
         const timerControlDesign = container.querySelector('.timer-control-design');
-        
-        // 1. Time Selection ausblenden und entfernen
-        if (timeSelectionContainer) {
-            timeSelectionContainer.animate([
-                { opacity: 1, transform: timeSelectionContainer.style.transform || 'translateY(0)' },
-                { opacity: 0, transform: 'translateY(20px)' }
-            ], {
-                duration: 300,
-                fill: 'forwards'
-            }).finished.then(() => {
+    
+        // 1. Zeitwahl-Panel ausblenden und entfernen
+        const fadeOutTimeSelection = timeSelectionContainer ? timeSelectionContainer.animate([
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-20px)' }
+        ], {
+            duration: 300,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+        }).finished : Promise.resolve();
+    
+        fadeOutTimeSelection.then(() => {
+            // Panel entfernen
+            if (timeSelectionContainer) {
                 timeSelectionContainer.remove();
-            });
-        }
-        
-        // 2. Timer Control Design zurück zur ursprünglichen Position
-        if (timerControlDesign) {
-            setTimeout(() => {
-                timerControlDesign.animate([
-                    { transform: timerControlDesign.style.transform || 'translateY(0)' },
-                    { transform: 'translateY(0)' }
-                ], {
-                    duration: 400,
-                    fill: 'forwards',
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                });
-            }, 100);
-        }
-        
-        // 3. Active Timers wieder einblenden
-        if (activeTimersSection) {
-            setTimeout(() => {
-                activeTimersSection.animate([
+            }
+    
+            // 2. Timer-Liste und Steuerung GLEICHZEITIG wieder einblenden
+            const fadeInAnimations = [];
+    
+            if (activeTimersSection) {
+                const fadeInTimers = activeTimersSection.animate([
                     { opacity: 0, transform: 'translateY(-20px)' },
                     { opacity: 1, transform: 'translateY(0)' }
-                ], {
-                    duration: 400,
-                    fill: 'forwards',
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                ], { 
+                    duration: 400, 
+                    fill: 'forwards', 
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
                 });
-            }, 200);
-        }
-        
-        // 4. Button-States zurücksetzen
-        const timerPresets = container.querySelectorAll('.timer-control-preset');
-        timerPresets.forEach(p => p.classList.remove('active'));
+                fadeInAnimations.push(fadeInTimers);
+            }
+    
+            if (timerControlDesign) {
+                const fadeInControls = timerControlDesign.animate([
+                    { opacity: 0, transform: 'translateY(-20px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], { 
+                    duration: 400, 
+                    fill: 'forwards', 
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
+                });
+                fadeInAnimations.push(fadeInControls);
+            }
+    
+            // 3. Button-States zurücksetzen nach Animations-Ende
+            Promise.all(fadeInAnimations.map(anim => anim.finished)).then(() => {
+                const timerPresets = container.querySelectorAll('.timer-control-preset');
+                timerPresets.forEach(p => p.classList.remove('active'));
+                console.log('✅ Reset complete - all elements restored');
+            });
+        });
     }
     
     async createTimerFromSelection(item, action, durationMinutes, timeContainer, parentContainer) {
@@ -10151,80 +10129,86 @@ class FastSearchCard extends HTMLElement {
     }
 
     startTimerOpenSequence(item, action, container) {
-        console.log('🎬 Starting Timer Open Sequence');
-        
+        console.log('🎬 Starting NEW Timer Open Sequence - Simultaneous fade');
+        this.isTimeSelectionOpen = true; // Zustand sofort setzen
+    
         const activeTimersSection = container.querySelector('.active-timers');
         const timerControlDesign = container.querySelector('.timer-control-design');
-        
+    
         console.log('🔍 Elements found:', { 
             activeTimersSection: !!activeTimersSection, 
-            timerControlDesign: !!timerControlDesign,
-            activeTimersHeight: activeTimersSection?.offsetHeight
-        });    
+            timerControlDesign: !!timerControlDesign
+        });
+    
+        // Animation 1: Timer-Liste und Steuerungs-Buttons GLEICHZEITIG ausblenden
+        const fadeOutTimers = activeTimersSection ? activeTimersSection.animate([
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-20px)' }
+        ], { 
+            duration: 300, 
+            fill: 'forwards', 
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
+        }) : null;
+    
+        const fadeOutControls = timerControlDesign ? timerControlDesign.animate([
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-20px)' }
+        ], { 
+            duration: 300, 
+            fill: 'forwards', 
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
+        }) : null;
+    
+        // Erstelle das Zeitwahl-Panel sofort, aber halte es unsichtbar
+        this.showTimeSelection(item, action, container, false); // false = keine sofortige Animation
+        const timeSelectionContainer = container.querySelector('.timer-time-selection');
         
-        // Animation 1: Active Timers ausblenden
-        const fadeOutPromise = activeTimersSection ? 
-            activeTimersSection.animate([
-                { opacity: 1, transform: 'translateY(0)' },
-                { opacity: 0, transform: 'translateY(-20px)' }
-            ], { 
-                duration: 300, 
-                fill: 'forwards',
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-            }).finished : Promise.resolve();
-
-        console.log('🎭 fadeOutPromise erstellt, starte .then()');
-
-        // Animation 2: Timer Control nach oben (NACH Animation 1)
-        fadeOutPromise.then(() => {
-            console.log('🔄 fadeOutPromise beendet - bewege Timer Control nach oben');
-            
-            if (timerControlDesign && activeTimersSection) {
-                const activeSectionHeight = activeTimersSection.offsetHeight;
-                
-                // ✅ ANGEPASST: Weniger Bewegung für besseren Abstand
-                const moveDistance = activeSectionHeight;
-                
-                console.log(`📏 Active Timers Höhe: ${activeSectionHeight}px`);
-                console.log(`🔄 Bewege Timer Control um ${moveDistance}px nach oben`);
-                
-                const moveUpPromise = timerControlDesign.animate([
-                    { transform: 'translateY(0)' },
-                    { transform: `translateY(-${moveDistance}px)` }
+        if (timeSelectionContainer) {
+            timeSelectionContainer.style.opacity = '0';
+            timeSelectionContainer.style.transform = 'translateY(-20px)';
+        }
+    
+        // Animation 2: Zeitwahl-Panel einblenden nach gleichzeitigem Ausblenden
+        const animations = [fadeOutTimers?.finished, fadeOutControls?.finished].filter(Boolean);
+        
+        Promise.all(animations).then(() => {
+            console.log('✅ Simultaneous fade-out complete. Starting time selection fade-in.');
+            if (timeSelectionContainer) {
+                // Sofortiges Einblenden des Zeitwahl-Panels an oberster Position
+                timeSelectionContainer.animate([
+                    { opacity: 0, transform: 'translateY(-20px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
                 ], {
                     duration: 400,
                     fill: 'forwards',
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                }).finished;
-                
-                // Animation 3: Time Selection einblenden UND nach oben bewegen (NACH Animation 2)
-                moveUpPromise.then(() => {
-                    console.log('⏰ moveUpPromise beendet - zeige Time Selection');
-                    this.showTimeSelection(item, action, container);
-                    this.isTimeSelectionOpen = true;
-                    
-                    // ✅ NEU: Time Selection auch nach oben bewegen
-                    setTimeout(() => {
-                        const timeSelectionContainer = container.querySelector('.timer-time-selection');
-                        if (timeSelectionContainer && activeTimersSection) {
-                            const moveDistance = activeTimersSection.offsetHeight;
-                            
-                            console.log('🎯 Bewege auch Time Selection nach oben um:', moveDistance, 'px');
-                            
-                            timeSelectionContainer.animate([
-                                { transform: 'translateY(0)' },
-                                { transform: `translateY(-${moveDistance}px)` }
-                            ], {
-                                duration: 400,
-                                fill: 'forwards',
-                                easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-                            });
-                        }
-                    }, 100);
+                }).finished.then(() => {
+                    // Kaskadierende Animation der Inhalte
+                    this.animateTimeSelectionContents(timeSelectionContainer);
                 });
             }
         }).catch(error => {
-            console.error('❌ Fehler in fadeOutPromise:', error);
+            console.error('❌ Fehler in simultaneous fade-out:', error);
+        });
+    } 
+
+    animateTimeSelectionContents(timeSelectionContainer) {
+        console.log('🎭 Animating time selection contents');
+        
+        const animatableElements = timeSelectionContainer.querySelectorAll(
+            '.time-selection-header, .time-picker-container, .quick-time-buttons, .timer-create-actions'
+        );
+        
+        animatableElements.forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(10px)';
+            el.style.transition = `all 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${index * 50}ms`;
+            
+            // Trigger animation
+            requestAnimationFrame(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            });
         });
     }    
 
