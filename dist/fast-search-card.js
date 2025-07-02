@@ -579,10 +579,10 @@ class FastSearchCard extends HTMLElement {
             
 
             .clear-button {
-                width: 24px;
-                height: 24px;
+                width: 44px;
+                height: 44px;
                 border: none;
-                background: rgba(255, 255, 255, 0.15);
+                background: rgba(0, 0, 0, 0.15);
                 border-radius: 50%;
                 cursor: pointer;
                 display: none;
@@ -599,13 +599,13 @@ class FastSearchCard extends HTMLElement {
             }
 
             .clear-button:hover {
-                background: rgba(255, 255, 255, 0.25);
+                background: rgba(0, 0, 0, 0.25);
                 transform: scale(1.1);
             }
 
             .clear-button svg {
-                width: 12px;
-                height: 12px;
+                width: 24px;
+                height: 24px;
                 stroke: var(--text-secondary);
                 stroke-width: 2;
             }
@@ -700,7 +700,7 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 align-items: center;
                 gap: 3px;
-                background: rgba(0, 0, 0, 0.4);
+                background: rgba(255, 255, 255, 0.08);
                 border-radius: 60px;
                 padding: 10px 0px 10px 0px;
                 border: 0px solid rgba(255, 255, 255, 0);
@@ -743,7 +743,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             .filter-button.active {
-                background: rgba(0, 0, 0, 0.35);
+                background: var(--accent-light);
             }
             
             .filter-button svg {
@@ -783,7 +783,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .subcategory-chip {
-                padding: 5px 15px 5px 15px;
+                padding: 10px 15px 10px 15px;
                 background: rgba(255, 255, 255, 0.08);
                 border: 0px solid rgba(255, 255, 255, 0.15);
                 border-radius: 12px;
@@ -806,7 +806,6 @@ class FastSearchCard extends HTMLElement {
 
             .subcategory-chip:hover {
                 background: rgba(255, 255, 255, 0.2);
-                transform: translateY(-1px);
             }
 
             .chip-content {
@@ -818,12 +817,12 @@ class FastSearchCard extends HTMLElement {
             }
 
             .subcategory-name {
-                font-size: 12px;
+                font-size: 16px;
                 font-weight: 600;
             }
 
             .subcategory-status {
-                font-size: 12px;
+                font-size: 16px;
                 color: var(--text-secondary);
                 opacity: 0.9;
                 min-height: 13px;
@@ -885,7 +884,7 @@ class FastSearchCard extends HTMLElement {
             .device-card {
                 background: rgba(255, 255, 255, 0.08);
                 border: 0px solid rgba(255, 255, 255, 0.12);
-                border-radius: 20px;
+                border-radius: 30px;
                 padding: 16px;
                 cursor: pointer;
                 aspect-ratio: 1;
@@ -931,7 +930,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-name {
-                font-size: 13px;
+                font-size: 18px;
                 font-weight: 600;
                 color: var(--text-primary);
                 margin: 0 0 0 0;
@@ -942,7 +941,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-status {
-                font-size: 13px;
+                font-size: 18px;
                 color: var(--text-secondary);
                 margin: 0;
                 opacity: 0.8;
@@ -1883,10 +1882,10 @@ class FastSearchCard extends HTMLElement {
             }
             
             .device-list-icon {
-                width: 48px;
-                height: 48px;
+                width: 68px;
+                height: 68px;
                 background: rgba(255, 255, 255, 0.15);
-                border-radius: 16px;
+                border-radius: 60px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1909,7 +1908,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             .device-list-name {
-                font-size: 15px;
+                font-size: 18px;
                 font-weight: 600;
                 color: var(--text-primary);
                 margin: 0;
@@ -1920,7 +1919,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             .device-list-status {
-                font-size: 15px;
+                font-size: 18px;
                 color: var(--text-secondary);
                 margin: 0;
                 opacity: 0.8;
@@ -1933,7 +1932,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             .device-list-area {
-                font-size: 15px;
+                font-size: 18px;
                 color: var(--text-secondary);
                 opacity: 0.7;
                 text-align: left;
