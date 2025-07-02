@@ -8009,168 +8009,7 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-    // ========================
-    // NEUE KLASSE - HINZUFÜGEN ZU DEINER FAST SEARCH CARD
-    // ========================
-    
-    class WheelTimePicker {
-        constructor(itemId, shadowRoot, callbacks = {}) {
-            this.itemId = itemId;
-            this.shadowRoot = shadowRoot;
-            this.callbacks = callbacks;
-            
-            // DOM Elements
-            this.timeDisplay = shadowRoot.getElementById(`wheel-time-display-${itemId}`);
-            this.hourPart = shadowRoot.getElementById(`wheel-hour-part-${itemId}`);
-            this.minutePart = shadowRoot.getElementById(`wheel-minute-part-${itemId}`);
-            this.hourWheel = shadowRoot.getElementById(`wheel-hour-picker-${itemId}`);
-            this.minuteWheel = shadowRoot.getElementById(`wheel-minute-picker-${itemId}`);
-            this.cancelBtn = shadowRoot.getElementById(`wheel-cancel-${itemId}`);
-            this.createBtn = shadowRoot.getElementById(`wheel-create-${itemId}`);
-            
-            // State
-            this.currentHour = 0;
-            this.currentMinute = 30;
-            this.scrollTimeout = null;
-            
-            this.init();
-        }
-        
-        init() {
-            console.log('🎡 Initializing WheelTimePicker for', this.itemId);
-            this.createWheels();
-            this.bindEvents();
-            this.updateDisplay();
-            
-            // Initial position setzen
-            setTimeout(() => {
-                this.scrollToValue(this.hourWheel, this.currentHour);
-                this.scrollToValue(this.minuteWheel, this.currentMinute);
-            }, 100);
-        }
-        
-        createWheels() {
-            // Stunden (00-23)
-            this.hourWheel.innerHTML = '';
-            for (let i = 0; i < 24; i++) {
-                const item = document.createElement('div');
-                item.className = 'wheel-picker-item';
-                item.textContent = i.toString().padStart(2, '0');
-                item.dataset.value = i;
-                this.hourWheel.appendChild(item);
-            }
-            
-            // Minuten (00-59 in 5er Schritten)
-            this.minuteWheel.innerHTML = '';
-            for (let i = 0; i < 60; i += 5) {
-                const item = document.createElement('div');
-                item.className = 'wheel-picker-item';
-                item.textContent = i.toString().padStart(2, '0');
-                item.dataset.value = i;
-                this.minuteWheel.appendChild(item);
-            }
-        }
-        
-        bindEvents() {
-            // Button Events
-            this.cancelBtn.addEventListener('click', () => this.handleCancel());
-            this.createBtn.addEventListener('click', () => this.handleCreate());
-            
-            // Scroll Events
-            this.hourWheel.addEventListener('scroll', () => this.handleScroll('hour'));
-            this.minuteWheel.addEventListener('scroll', () => this.handleScroll('minute'));
-            
-            // Click Events für direkte Auswahl
-            this.hourWheel.addEventListener('click', (e) => {
-                if (e.target.classList.contains('wheel-picker-item')) {
-                    this.scrollToValue(this.hourWheel, parseInt(e.target.dataset.value));
-                    this.updateFromWheels();
-                }
-            });
-            
-            this.minuteWheel.addEventListener('click', (e) => {
-                if (e.target.classList.contains('wheel-picker-item')) {
-                    this.scrollToValue(this.minuteWheel, parseInt(e.target.dataset.value));
-                    this.updateFromWheels();
-                }
-            });
-        }
-        
-        handleCancel() {
-            console.log('🚫 WheelTimePicker cancelled');
-            if (this.callbacks.onCancel) {
-                this.callbacks.onCancel();
-            }
-        }
-        
-        handleCreate() {
-            this.updateFromWheels();
-            const totalMinutes = this.currentHour * 60 + this.currentMinute;
-            
-            console.log(`⏰ WheelTimePicker create: ${totalMinutes} minutes`);
-            
-            // Visual feedback
-            this.createBtn.textContent = '✅ Erstellt!';
-            this.createBtn.style.background = '#4CAF50';
-            
-            if (this.callbacks.onCreate) {
-                this.callbacks.onCreate({
-                    hour: this.currentHour,
-                    minute: this.currentMinute,
-                    totalMinutes: totalMinutes
-                });
-            }
-        }
-        
-        updateFromWheels() {
-            const hourIndex = Math.round(this.hourWheel.scrollTop / 30);
-            const minuteIndex = Math.round(this.minuteWheel.scrollTop / 30);
-            
-            this.currentHour = Math.max(0, Math.min(23, hourIndex));
-            this.currentMinute = Math.max(0, Math.min(55, minuteIndex * 5));
-            
-            this.updateDisplay();
-        }
-        
-        updateDisplay() {
-            this.hourPart.textContent = this.currentHour.toString().padStart(2, '0');
-            this.minutePart.textContent = this.currentMinute.toString().padStart(2, '0');
-        }
-        
-        scrollToValue(wheel, value) {
-            let index;
-            if (wheel === this.hourWheel) {
-                index = value;
-            } else {
-                index = value / 5;
-            }
-            
-            wheel.scrollTo({
-                top: index * 30,
-                behavior: 'smooth'
-            });
-        }
-        
-        handleScroll(type) {
-            clearTimeout(this.scrollTimeout);
-            this.scrollTimeout = setTimeout(() => {
-                if (type === 'hour') {
-                    const index = Math.round(this.hourWheel.scrollTop / 30);
-                    this.scrollToValue(this.hourWheel, index);
-                    this.updateFromWheels();
-                } else {
-                    const index = Math.round(this.minuteWheel.scrollTop / 30);
-                    this.scrollToValue(this.minuteWheel, index * 5);
-                    this.updateFromWheels();
-                }
-            }, 150);
-        }
-        
-        destroy() {
-            clearTimeout(this.scrollTimeout);
-            // Cleanup falls nötig
-        }
-    }
+
 
 
     
@@ -11367,6 +11206,170 @@ class FastSearchCard extends HTMLElement {
         } catch (e) {
             console.error("Fehler beim Abspielen via Music Assistant:", e);
         }
+    }
+}
+
+
+// ========================
+// NEUE KLASSE - HINZUFÜGEN ZU DEINER FAST SEARCH CARD
+// ========================
+
+class WheelTimePicker {
+    constructor(itemId, shadowRoot, callbacks = {}) {
+        this.itemId = itemId;
+        this.shadowRoot = shadowRoot;
+        this.callbacks = callbacks;
+        
+        // DOM Elements
+        this.timeDisplay = shadowRoot.getElementById(`wheel-time-display-${itemId}`);
+        this.hourPart = shadowRoot.getElementById(`wheel-hour-part-${itemId}`);
+        this.minutePart = shadowRoot.getElementById(`wheel-minute-part-${itemId}`);
+        this.hourWheel = shadowRoot.getElementById(`wheel-hour-picker-${itemId}`);
+        this.minuteWheel = shadowRoot.getElementById(`wheel-minute-picker-${itemId}`);
+        this.cancelBtn = shadowRoot.getElementById(`wheel-cancel-${itemId}`);
+        this.createBtn = shadowRoot.getElementById(`wheel-create-${itemId}`);
+        
+        // State
+        this.currentHour = 0;
+        this.currentMinute = 30;
+        this.scrollTimeout = null;
+        
+        this.init();
+    }
+    
+    init() {
+        console.log('🎡 Initializing WheelTimePicker for', this.itemId);
+        this.createWheels();
+        this.bindEvents();
+        this.updateDisplay();
+        
+        // Initial position setzen
+        setTimeout(() => {
+            this.scrollToValue(this.hourWheel, this.currentHour);
+            this.scrollToValue(this.minuteWheel, this.currentMinute);
+        }, 100);
+    }
+    
+    createWheels() {
+        // Stunden (00-23)
+        this.hourWheel.innerHTML = '';
+        for (let i = 0; i < 24; i++) {
+            const item = document.createElement('div');
+            item.className = 'wheel-picker-item';
+            item.textContent = i.toString().padStart(2, '0');
+            item.dataset.value = i;
+            this.hourWheel.appendChild(item);
+        }
+        
+        // Minuten (00-59 in 5er Schritten)
+        this.minuteWheel.innerHTML = '';
+        for (let i = 0; i < 60; i += 5) {
+            const item = document.createElement('div');
+            item.className = 'wheel-picker-item';
+            item.textContent = i.toString().padStart(2, '0');
+            item.dataset.value = i;
+            this.minuteWheel.appendChild(item);
+        }
+    }
+    
+    bindEvents() {
+        // Button Events
+        this.cancelBtn.addEventListener('click', () => this.handleCancel());
+        this.createBtn.addEventListener('click', () => this.handleCreate());
+        
+        // Scroll Events
+        this.hourWheel.addEventListener('scroll', () => this.handleScroll('hour'));
+        this.minuteWheel.addEventListener('scroll', () => this.handleScroll('minute'));
+        
+        // Click Events für direkte Auswahl
+        this.hourWheel.addEventListener('click', (e) => {
+            if (e.target.classList.contains('wheel-picker-item')) {
+                this.scrollToValue(this.hourWheel, parseInt(e.target.dataset.value));
+                this.updateFromWheels();
+            }
+        });
+        
+        this.minuteWheel.addEventListener('click', (e) => {
+            if (e.target.classList.contains('wheel-picker-item')) {
+                this.scrollToValue(this.minuteWheel, parseInt(e.target.dataset.value));
+                this.updateFromWheels();
+            }
+        });
+    }
+    
+    handleCancel() {
+        console.log('🚫 WheelTimePicker cancelled');
+        if (this.callbacks.onCancel) {
+            this.callbacks.onCancel();
+        }
+    }
+    
+    handleCreate() {
+        this.updateFromWheels();
+        const totalMinutes = this.currentHour * 60 + this.currentMinute;
+        
+        console.log(`⏰ WheelTimePicker create: ${totalMinutes} minutes`);
+        
+        // Visual feedback
+        this.createBtn.textContent = '✅ Erstellt!';
+        this.createBtn.style.background = '#4CAF50';
+        
+        if (this.callbacks.onCreate) {
+            this.callbacks.onCreate({
+                hour: this.currentHour,
+                minute: this.currentMinute,
+                totalMinutes: totalMinutes
+            });
+        }
+    }
+    
+    updateFromWheels() {
+        const hourIndex = Math.round(this.hourWheel.scrollTop / 30);
+        const minuteIndex = Math.round(this.minuteWheel.scrollTop / 30);
+        
+        this.currentHour = Math.max(0, Math.min(23, hourIndex));
+        this.currentMinute = Math.max(0, Math.min(55, minuteIndex * 5));
+        
+        this.updateDisplay();
+    }
+    
+    updateDisplay() {
+        this.hourPart.textContent = this.currentHour.toString().padStart(2, '0');
+        this.minutePart.textContent = this.currentMinute.toString().padStart(2, '0');
+    }
+    
+    scrollToValue(wheel, value) {
+        let index;
+        if (wheel === this.hourWheel) {
+            index = value;
+        } else {
+            index = value / 5;
+        }
+        
+        wheel.scrollTo({
+            top: index * 30,
+            behavior: 'smooth'
+        });
+    }
+    
+    handleScroll(type) {
+        clearTimeout(this.scrollTimeout);
+        this.scrollTimeout = setTimeout(() => {
+            if (type === 'hour') {
+                const index = Math.round(this.hourWheel.scrollTop / 30);
+                this.scrollToValue(this.hourWheel, index);
+                this.updateFromWheels();
+            } else {
+                const index = Math.round(this.minuteWheel.scrollTop / 30);
+                this.scrollToValue(this.minuteWheel, index * 5);
+                this.updateFromWheels();
+            }
+        }, 150);
+    }
+    
+    destroy() {
+        clearTimeout(this.scrollTimeout);
+        // Cleanup falls nötig
     }
 }
 
