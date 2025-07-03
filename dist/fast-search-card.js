@@ -11492,59 +11492,121 @@ class FastSearchCard extends HTMLElement {
         return null;
     }
     
-    
-    // 🎯 FIND RELATED SCRIPTS  
+    // 🎯 FIND RELATED SCRIPTS - Erweiterte Metadaten-Analyse
     findRelatedScripts(deviceId, deviceArea) {
         if (!this._hass || !this.allItems) return [];
+        
+        // Device-ID und Area-ID des Ziel-Devices ermitteln
+        const targetDeviceId = this.getDeviceId(deviceId);
+        const targetAreaId = this.getAreaId(deviceId, deviceArea);
+        
+        console.log(`📜 Target Device ID: ${targetDeviceId}, Area ID: ${targetAreaId}`);
         
         return this.allItems.filter(item => {
             if (item.domain !== 'script') return false;
             
-            // METHODE 1: Gleiche Area
+            // METHODE 1: Gleiche Area (bestehend)
             if (item.area === deviceArea && deviceArea !== 'Ohne Raum') {
                 console.log(`✅ Script ${item.name} in same area: ${deviceArea}`);
                 return true;
             }
             
-            // METHODE 2: Name-Matching
+            // 🆕 METHODE 2: Script hat gleiche Area-ID
+            const scriptAreaId = this.getAreaId(item.id);
+            if (targetAreaId && scriptAreaId === targetAreaId) {
+                console.log(`✅ Script ${item.name} has same area ID: ${targetAreaId}`);
+                return true;
+            }
+            
+            // 🆕 METHODE 3: Script hat gleiche Device-ID
+            const scriptDeviceId = this.getDeviceId(item.id);
+            if (targetDeviceId && scriptDeviceId === targetDeviceId) {
+                console.log(`✅ Script ${item.name} on same device: ${targetDeviceId}`);
+                return true;
+            }
+            
+            // METHODE 4: Name-Matching (bestehend, aber erweitert)
             const scriptName = item.name.toLowerCase();
             const deviceName = deviceId.split('.')[1].toLowerCase();
             const areaName = deviceArea.toLowerCase();
             
-            if (scriptName.includes(deviceName) || scriptName.includes(areaName)) {
-                console.log(`✅ Script ${item.name} matches by name`);
-                return true;
+            // Erweiterte Name-Patterns
+            const namePatterns = [
+                deviceName,
+                areaName,
+                deviceId.replace(/[._]/g, ' ').toLowerCase(),
+                // Device-spezifische Patterns
+                deviceName.replace(/[._]/g, ' '),
+                areaName.replace(/[._]/g, ' ')
+            ];
+            
+            for (const pattern of namePatterns) {
+                if (pattern && scriptName.includes(pattern)) {
+                    console.log(`✅ Script ${item.name} matches pattern: ${pattern}`);
+                    return true;
+                }
             }
             
             return false;
         });
     }
     
-    // 🎯 FIND RELATED AUTOMATIONS
+    // 🎯 FIND RELATED AUTOMATIONS - Erweiterte Metadaten-Analyse
     findRelatedAutomations(deviceId, deviceArea) {
         if (!this._hass || !this.allItems) return [];
+        
+        // Device-ID und Area-ID des Ziel-Devices ermitteln
+        const targetDeviceId = this.getDeviceId(deviceId);
+        const targetAreaId = this.getAreaId(deviceId, deviceArea);
+        
+        console.log(`⚙️ Target Device ID: ${targetDeviceId}, Area ID: ${targetAreaId}`);
         
         return this.allItems.filter(item => {
             if (item.domain !== 'automation') return false;
             
-            // Gleiche Logik wie Scripts
+            // METHODE 1: Gleiche Area (bestehend)
             if (item.area === deviceArea && deviceArea !== 'Ohne Raum') {
                 console.log(`✅ Automation ${item.name} in same area: ${deviceArea}`);
                 return true;
             }
             
+            // 🆕 METHODE 2: Automation hat gleiche Area-ID
+            const autoAreaId = this.getAreaId(item.id);
+            if (targetAreaId && autoAreaId === targetAreaId) {
+                console.log(`✅ Automation ${item.name} has same area ID: ${targetAreaId}`);
+                return true;
+            }
+            
+            // 🆕 METHODE 3: Automation hat gleiche Device-ID
+            const autoDeviceId = this.getDeviceId(item.id);
+            if (targetDeviceId && autoDeviceId === targetDeviceId) {
+                console.log(`✅ Automation ${item.name} on same device: ${targetDeviceId}`);
+                return true;
+            }
+            
+            // METHODE 4: Name-Matching (erweitert wie bei Scripts)
             const autoName = item.name.toLowerCase();
             const deviceName = deviceId.split('.')[1].toLowerCase();
             const areaName = deviceArea.toLowerCase();
             
-            if (autoName.includes(deviceName) || autoName.includes(areaName)) {
-                console.log(`✅ Automation ${item.name} matches by name`);
-                return true;
+            const namePatterns = [
+                deviceName,
+                areaName,
+                deviceId.replace(/[._]/g, ' ').toLowerCase(),
+                deviceName.replace(/[._]/g, ' '),
+                areaName.replace(/[._]/g, ' ')
+            ];
+            
+            for (const pattern of namePatterns) {
+                if (pattern && autoName.includes(pattern)) {
+                    console.log(`✅ Automation ${item.name} matches pattern: ${pattern}`);
+                    return true;
+                }
             }
             
             return false;
         });
-    }    
+    }
 
     // 🎯 RENDER ACTION RESULTS
     renderActionResults(relatedActions, container, filter = 'all') {
