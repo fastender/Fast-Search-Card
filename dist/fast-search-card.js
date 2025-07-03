@@ -11605,11 +11605,24 @@ class FastSearchCard extends HTMLElement {
         
         // 4. Warte bis gerendert, dann simuliere Klick
         setTimeout(() => {
-            // Finde das Grid-Item für diese Action
+            // 🔍 DEBUG: Schauen was im Grid verfügbar ist
             const gridItems = this.shadowRoot.querySelectorAll('.device-grid-item');
+            console.log(`🔍 Found ${gridItems.length} grid items`);
             
+            gridItems.forEach((item, index) => {
+                console.log(`🔍 Grid item ${index}:`, {
+                    entity: item.dataset.entity,
+                    id: item.dataset.id,
+                    innerHTML: item.innerHTML.substring(0, 100) + '...'
+                });
+            });
+            
+            // Suche nach der Action
             for (const gridItem of gridItems) {
-                if (gridItem.dataset.entity === actionId) {
+                const itemId = gridItem.dataset.entity || gridItem.dataset.id;
+                console.log(`🔍 Checking: ${itemId} === ${actionId}`);
+                
+                if (itemId === actionId) {
                     console.log(`✅ Found grid item, simulating click`);
                     gridItem.click();
                     return;
