@@ -11247,7 +11247,6 @@ class FastSearchCard extends HTMLElement {
         const resultsDiv = container.querySelector('.actions-results');
         this.renderActionResults(relatedActions, resultsDiv, filter);
         
-        console.log(`✅ Filtered to show: ${filter}`);
     }
     
     // 🎯 LOAD RELATED ACTIONS - Echte Discovery
@@ -11364,7 +11363,6 @@ class FastSearchCard extends HTMLElement {
         if (scriptsChip) scriptsChip.textContent = relatedActions.scripts.length;
         if (automationsChip) automationsChip.textContent = relatedActions.automations.length;
         
-        console.log(`📊 Action counts: Total(${totalCount}), Favorites(${favoritesCount})`);
     }
 
     // 🎯 FIND RELATED SCENES
@@ -11643,32 +11641,6 @@ class FastSearchCard extends HTMLElement {
         
         return categoryMap[domain] || 'devices';
     }
-    
-    // 🎯 SWITCH TO CATEGORY
-    /*
-    switchToCategory(targetCategory) {
-        console.log(`🔄 Switching to category: ${targetCategory}`);
-        
-        // Update activeCategory
-        this.activeCategory = targetCategory;
-        
-        // Update category buttons
-        const categoryButtons = this.shadowRoot.querySelectorAll('.category-btn');
-        categoryButtons.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.category === targetCategory) {
-                btn.classList.add('active');
-            }
-        });
-        
-        // Update placeholder und icon
-        this.updateCategoryIcon();
-        this.updatePlaceholder();
-        
-        // Show items for new category
-        this.showCurrentCategoryItems();
-    }    
-    */
     
     // 🎯 TRIGGER ACTION
     triggerAction(actionId) {
