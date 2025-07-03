@@ -11601,9 +11601,13 @@ class FastSearchCard extends HTMLElement {
             console.warn(`❌ Action item not found: ${actionId}`);
             return;
         }
-        
-        // 3. Schließe aktuelle Detail-View
-        this.closeDetailView();
+
+        // 3. Schließe aktuelle Detail-View (falls offen)
+        if (this.isDetailView) {
+            this.isDetailView = false;
+            this.currentDetailItem = null;
+            this.render();
+        }        
         
         // 4. Wechsle zur Ziel-Kategorie
         this.switchToCategory(targetCategory);
