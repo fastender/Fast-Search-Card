@@ -11588,35 +11588,29 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    // 🎯 NAVIGATE TO ACTION DETAIL
+    // 🎯 NAVIGATE TO ACTION DETAIL - Vereinfacht
     navigateToActionDetail(actionId, actionDomain) {
         console.log(`🎯 Navigating to detail view for ${actionDomain}: ${actionId}`);
         
-        // 1. Bestimme Ziel-Kategorie basierend auf Domain
-        const targetCategory = this.getTargetCategoryForDomain(actionDomain);
-        
-        // 2. Finde das Action-Item in allItems
+        // 1. Finde das Action-Item in allItems
         const actionItem = this.allItems.find(item => item.id === actionId);
         if (!actionItem) {
             console.warn(`❌ Action item not found: ${actionId}`);
             return;
         }
-
-        // 3. Schließe aktuelle Detail-View (falls offen)
-        if (this.isDetailView) {
-            this.isDetailView = false;
-            this.currentDetailItem = null;
-            this.render();
-        }        
         
-        // 4. Wechsle zur Ziel-Kategorie
-        this.switchToCategory(targetCategory);
+        // 2. Bestimme Ziel-Kategorie
+        const targetCategory = this.getTargetCategoryForDomain(actionDomain);
         
-        // 5. Öffne Detail-View für die Action
-        setTimeout(() => {
-            console.log(`✅ Opening detail view for action: ${actionItem.name}`);
-            this.showDetailView(actionItem);
-        }, 100); // Kurze Verzögerung für smooth transition
+        // 3. Direkte Navigation ohne komplexe State-Changes
+        console.log(`🔄 Switching to category: ${targetCategory}`);
+        
+        // Update activeCategory
+        this.activeCategory = targetCategory;
+        
+        // 4. Zeige Detail-View direkt
+        console.log(`✅ Opening detail view for action: ${actionItem.name}`);
+        this.showDetailView(actionItem);
     }
     
     // 🎯 GET TARGET CATEGORY FOR DOMAIN
@@ -11631,6 +11625,7 @@ class FastSearchCard extends HTMLElement {
     }
     
     // 🎯 SWITCH TO CATEGORY
+    /*
     switchToCategory(targetCategory) {
         console.log(`🔄 Switching to category: ${targetCategory}`);
         
@@ -11653,6 +11648,7 @@ class FastSearchCard extends HTMLElement {
         // Show items for new category
         this.showCurrentCategoryItems();
     }    
+    */
     
     // 🎯 TRIGGER ACTION
     triggerAction(actionId) {
