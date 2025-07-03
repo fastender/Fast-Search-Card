@@ -11494,35 +11494,44 @@ class FastSearchCard extends HTMLElement {
         this.setupActionClickHandlers(container);
     }
     
-    // 🎯 RENDER ACTION ITEM - Mit Favoriten-Kennzeichnung
+    // 🎯 RENDER ACTION ITEM - Timeline-Event Design
     renderActionItem(action) {
         const state = this._hass.states[action.id];
         const isActive = this.isEntityActive(state);
         const icon = this.getEntityIcon(action.domain);
         
-        // 🌟 Favoriten-Kennzeichnung
+        // Favoriten-Kennzeichnung
+        const favoriteIcon = action.isFavorite ? '⭐ ' : '';
         const favoriteClass = action.isFavorite ? 'favorite-action' : '';
-        const favoriteIcon = action.isFavorite ? '<div class="favorite-star">⭐</div>' : '';
-        const favoriteLabel = action.isFavorite ? '<span class="favorite-label">Favorit</span>' : '';
+        
+        // Status/Meta-Info
+        const typeLabel = this.getActionTypeLabel(action.domain);
+        const sourceLabel = action.isFavorite ? 'Favorit' : 'Auto-Discovery';
+        const areaLabel = action.area !== 'Ohne Raum' ? action.area : '';
         
         return `
-            <div class="action-item ${isActive ? 'active' : ''} ${favoriteClass}" data-action-id="${action.id}">
-                <div class="action-icon">${icon}</div>
-                <div class="action-info">
-                    <div class="action-name">
-                        ${action.name}
-                        ${favoriteIcon}
+            <div class="timeline-event action-timeline-event ${favoriteClass}" 
+                 data-action-id="${action.id}" 
+                 data-action-domain="${action.domain}">
+                <div class="timeline-event-icon">
+                    ${icon}
+                </div>
+                <div class="timeline-event-content action-main-area" data-action-id="${action.id}">
+                    <div class="timeline-event-title">
+                        ${favoriteIcon}${action.name}
                     </div>
-                    <div class="action-meta">
-                        <span class="action-type">${this.getActionTypeLabel(action.domain)}</span>
-                        ${favoriteLabel}
-                        ${action.area !== 'Ohne Raum' ? `<span class="action-area">${action.area}</span>` : ''}
+                    <div class="timeline-event-details">
+                        <span class="action-type-badge">${typeLabel}</span>
+                        ${areaLabel ? `<span class="action-area-badge">${areaLabel}</span>` : ''}
+                        <span class="action-source-badge">${sourceLabel}</span>
                     </div>
                 </div>
-                <div class="action-trigger">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M8 5l8 7-8 7"/>
-                    </svg>
+                <div class="timeline-event-time action-trigger-area" data-action-id="${action.id}">
+                    <button class="action-execute-btn" title="${typeLabel} ausführen">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M8 5l8 7-8 7"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
         `;
@@ -11538,24 +11547,108 @@ class FastSearchCard extends HTMLElement {
         return labels[domain] || domain;
     }
 
-    // 🎯 SETUP ACTION CLICK HANDLERS
+    // 🎯 SETUP ACTION CLICK HANDLERS - Mit Navigation und Ausführung
     setupActionClickHandlers(container) {
-        const actionItems = container.querySelectorAll('.action-item');
-        
-        actionItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const actionId = item.dataset.actionId;
-                console.log(`🎯 Action clicked: ${actionId}`);
+        // 🎯 HAUPTBEREICH KLICKS → Navigation zur Detail-View
+        const actionMainAreas = container.querySelectorAll('.action-main-area');
+        actionMainAreas.forEach(area => {
+            area.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const actionId = area.dataset.actionId;
+                const actionDomain = area.closest('.action-timeline-event').dataset.actionDomain;
+                
+                console.log(`🎯 Navigation to detail view: ${actionId} (${actionDomain})`);
                 
                 // Visual feedback
-                item.classList.add('clicked');
-                setTimeout(() => item.classList.remove('clicked'), 200);
+                area.classList.add('clicked');
+                setTimeout(() => area.classList.remove('clicked'), 200);
+                
+                // Navigate to detail view
+                this.navigateToActionDetail(actionId, actionDomain);
+            });
+        });
+        
+        // ▶️ EXECUTE BUTTONS → Direkte Ausführung
+        const executeButtons = container.querySelectorAll('.action-execute-btn');
+        executeButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const actionId = btn.closest('.action-timeline-event').dataset.actionId;
+                console.log(`🚀 Execute action: ${actionId}`);
+                
+                // Visual feedback
+                btn.classList.add('clicked');
+                setTimeout(() => btn.classList.remove('clicked'), 150);
                 
                 // Execute action
                 this.triggerAction(actionId);
             });
         });
     }
+
+    // 🎯 NAVIGATE TO ACTION DETAIL
+    navigateToActionDetail(actionId, actionDomain) {
+        console.log(`🎯 Navigating to detail view for ${actionDomain}: ${actionId}`);
+        
+        // 1. Bestimme Ziel-Kategorie basierend auf Domain
+        const targetCategory = this.getTargetCategoryForDomain(actionDomain);
+        
+        // 2. Finde das Action-Item in allItems
+        const actionItem = this.allItems.find(item => item.id === actionId);
+        if (!actionItem) {
+            console.warn(`❌ Action item not found: ${actionId}`);
+            return;
+        }
+        
+        // 3. Schließe aktuelle Detail-View
+        this.closeDetailView();
+        
+        // 4. Wechsle zur Ziel-Kategorie
+        this.switchToCategory(targetCategory);
+        
+        // 5. Öffne Detail-View für die Action
+        setTimeout(() => {
+            console.log(`✅ Opening detail view for action: ${actionItem.name}`);
+            this.showDetailView(actionItem);
+        }, 100); // Kurze Verzögerung für smooth transition
+    }
+    
+    // 🎯 GET TARGET CATEGORY FOR DOMAIN
+    getTargetCategoryForDomain(domain) {
+        const categoryMap = {
+            'scene': 'scenes',
+            'script': 'scripts',
+            'automation': 'automations'
+        };
+        
+        return categoryMap[domain] || 'devices';
+    }
+    
+    // 🎯 SWITCH TO CATEGORY
+    switchToCategory(targetCategory) {
+        console.log(`🔄 Switching to category: ${targetCategory}`);
+        
+        // Update activeCategory
+        this.activeCategory = targetCategory;
+        
+        // Update category buttons
+        const categoryButtons = this.shadowRoot.querySelectorAll('.category-btn');
+        categoryButtons.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.category === targetCategory) {
+                btn.classList.add('active');
+            }
+        });
+        
+        // Update placeholder und icon
+        this.updateCategoryIcon();
+        this.updatePlaceholder();
+        
+        // Show items for new category
+        this.showCurrentCategoryItems();
+    }    
     
     // 🎯 TRIGGER ACTION
     triggerAction(actionId) {
