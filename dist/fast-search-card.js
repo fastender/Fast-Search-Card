@@ -11588,7 +11588,7 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    // 🎯 NAVIGATE TO ACTION DETAIL - Event-Simulation
+    // 🎯 NAVIGATE TO ACTION DETAIL - Event-Simulation mit Retry-Logik
     navigateToActionDetail(actionId, actionDomain) {
         console.log(`🎯 Simulating click on ${actionDomain}: ${actionId}`);
         
@@ -11603,16 +11603,33 @@ class FastSearchCard extends HTMLElement {
         this.currentDetailItem = null;
         this.render();
         
-        // 4. Warte bis gerendert, dann simuliere Klick
-        setTimeout(() => {
-            // 🔧 KORRIGIERT: Verwende die richtigen CSS-Selektoren
-            const viewMode = this.currentViewMode;
-            const itemSelector = viewMode === 'grid' ? '.device-card' : '.device-list-item';
-            const allItemsInView = this.shadowRoot.querySelectorAll(itemSelector);
-            
-            console.log(`🔍 Looking for items with selector: ${itemSelector}`);
-            console.log(`🔍 Found ${allItemsInView.length} items in ${viewMode} view`);
-            
+        // 4. Starte Retry-Logik
+        this.tryFindAndClickItem(actionId, 0);
+    }
+    
+    // 🔄 RETRY LOGIC für Item-Suche
+    tryFindAndClickItem(actionId, attempt) {
+        const maxAttempts = 5;
+        
+        // 🔧 KORRIGIERT: Verwende die richtigen CSS-Selektoren
+        const viewMode = this.currentViewMode;
+        const itemSelector = viewMode === 'grid' ? '.device-card' : '.device-list-item';
+        const allItemsInView = this.shadowRoot.querySelectorAll(itemSelector);
+        
+        console.log(`🔄 Attempt ${attempt + 1}: Looking for items with selector: ${itemSelector}`);
+        console.log(`🔄 Attempt ${attempt + 1}: Found ${allItemsInView.length} items in ${viewMode} view`);
+        
+        if (allItemsInView.length === 0 && attempt < maxAttempts) {
+            // Noch keine Items, nochmal versuchen
+            console.log(`⏳ No items found, retrying in 200ms...`);
+            setTimeout(() => {
+                this.tryFindAndClickItem(actionId, attempt + 1);
+            }, 200);
+            return;
+        }
+        
+        // Items gefunden oder max attempts erreicht
+        if (allItemsInView.length > 0) {
             // 🔍 DEBUG: Schauen was verfügbar ist
             allItemsInView.forEach((item, index) => {
                 console.log(`🔍 Item ${index}:`, {
@@ -11628,14 +11645,14 @@ class FastSearchCard extends HTMLElement {
                 console.log(`🔍 Checking: ${itemId} === ${actionId}`);
                 
                 if (itemId === actionId) {
-                    console.log(`✅ Found item, simulating click`);
+                    console.log(`✅ Found item after ${attempt + 1} attempts, simulating click`);
                     item.click();
                     return;
                 }
             }
-            
-            console.warn(`❌ Item not found for: ${actionId}`);
-        }, 200);
+        }
+        
+        console.warn(`❌ Item not found for: ${actionId} after ${attempt + 1} attempts`);
     }
     
     // 🎯 GET TARGET CATEGORY FOR DOMAIN
