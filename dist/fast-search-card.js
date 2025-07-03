@@ -7549,8 +7549,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="shortcuts-controls">
                         <button class="shortcuts-btn active" data-shortcuts-tab="timer">Timer</button>
                         <button class="shortcuts-btn" data-shortcuts-tab="zeitplan">Zeitplan</button>
-                        <button class="shortcuts-btn" data-shortcuts-tab="scenes">Szenen</button>
-                        <button class="shortcuts-btn" data-shortcuts-tab="scripts">Skripte</button>
+                        <button class="shortcuts-btn" data-shortcuts-tab="actions">Aktionen</button>
                     </div>                    
                 </div>
                 
@@ -7594,14 +7593,9 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     </div>
     
-                    <!-- ✅ SZENEN TAB (unverändert) -->
-                    <div class="shortcuts-tab-content" data-shortcuts-content="scenes">
-                        <p>Szenen Content</p>
-                    </div>
-                    
-                    <!-- ✅ SKRIPTE TAB (unverändert) -->
-                    <div class="shortcuts-tab-content" data-shortcuts-content="scripts">
-                        <p>Skripte Content</p>
+                    <!-- ✅ AKTIONEN TAB -->
+                    <div class="shortcuts-tab-content" data-shortcuts-content="actions">
+                        <p>Aktionen Content - wird implementiert</p>
                     </div>
                 </div>
             </div>
@@ -11132,11 +11126,8 @@ class FastSearchCard extends HTMLElement {
                             case 'zeitplan':
                                 this.initializeScheduleTab(item, targetContent);
                                 break;
-                            case 'scenes':
-                                this.initializeScenesTab(item, targetContent);
-                                break;
-                            case 'scripts':
-                                this.initializeScriptsTab(item, targetContent);
+                            case 'actions':
+                                this.initializeActionsTab(item, targetContent);
                                 break;
                         }
                     }
@@ -11150,6 +11141,46 @@ class FastSearchCard extends HTMLElement {
             }
         }, 100);
     }        
+
+    // ✅ Aktionen Tab Initialisierung 
+    initializeActionsTab(item, container) {
+        console.log('🎯 Initializing Actions Tab for', item.name);
+        
+        container.innerHTML = `
+            <div class="actions-container">
+                <div class="actions-header">
+                    <h4>Verfügbare Aktionen für ${item.name}</h4>
+                    <div class="actions-filter-chips">
+                        <button class="action-filter-chip active" data-action-filter="all">
+                            Alle <span class="chip-count" id="actions-all-count">0</span>
+                        </button>
+                        <button class="action-filter-chip" data-action-filter="scenes">
+                            🎬 Szenen <span class="chip-count" id="actions-scenes-count">0</span>
+                        </button>
+                        <button class="action-filter-chip" data-action-filter="scripts">
+                            📜 Skripte <span class="chip-count" id="actions-scripts-count">0</span>
+                        </button>
+                        <button class="action-filter-chip" data-action-filter="automations">
+                            ⚙️ Automationen <span class="chip-count" id="actions-automations-count">0</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="actions-results-container">
+                    <div class="actions-loading">
+                        🔄 Lade verfügbare Aktionen...
+                    </div>
+                    
+                    <div class="actions-results" id="actions-results-${item.id}">
+                        <!-- Content wird dynamisch gefüllt -->
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // TODO: Filter Event Listeners und Action Loading
+        console.log('Actions Tab HTML erstellt');
+    }    
 
     initializeTimerTab(item, container) {
         console.log('🔥 NEUE VERSION 2024 - Initializing Timer Tab for', item.name);
