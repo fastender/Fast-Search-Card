@@ -11588,29 +11588,29 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    // 🎯 NAVIGATE TO ACTION DETAIL - Vereinfacht
+    // 🎯 NAVIGATE TO ACTION DETAIL - Direkter Ansatz
     navigateToActionDetail(actionId, actionDomain) {
         console.log(`🎯 Navigating to detail view for ${actionDomain}: ${actionId}`);
         
-        // 1. Finde das Action-Item in allItems
-        const actionItem = this.allItems.find(item => item.id === actionId);
-        if (!actionItem) {
-            console.warn(`❌ Action item not found: ${actionId}`);
-            return;
-        }
+        // 1. Zurück zur Hauptansicht
+        this.isDetailView = false;
+        this.currentDetailItem = null;
         
-        // 2. Bestimme Ziel-Kategorie
+        // 2. Kategorie wechseln
         const targetCategory = this.getTargetCategoryForDomain(actionDomain);
-        
-        // 3. Direkte Navigation ohne komplexe State-Changes
-        console.log(`🔄 Switching to category: ${targetCategory}`);
-        
-        // Update activeCategory
         this.activeCategory = targetCategory;
         
-        // 4. Zeige Detail-View direkt
-        console.log(`✅ Opening detail view for action: ${actionItem.name}`);
-        this.showDetailView(actionItem);
+        // 3. Haupt-UI neu rendern
+        this.render();
+        
+        // 4. Nach kurzer Verzögerung Detail-View öffnen
+        setTimeout(() => {
+            const actionItem = this.allItems.find(item => item.id === actionId);
+            if (actionItem) {
+                console.log(`✅ Opening detail view for: ${actionItem.name}`);
+                this.showDetailView(actionItem);
+            }
+        }, 100);
     }
     
     // 🎯 GET TARGET CATEGORY FOR DOMAIN
