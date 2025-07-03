@@ -11588,71 +11588,49 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    // 🎯 NAVIGATE TO ACTION DETAIL - Event-Simulation mit Retry-Logik
+    // 🎯 NAVIGATE TO ACTION DETAIL - Finale, funktionierende Version
     navigateToActionDetail(actionId, actionDomain) {
         console.log(`🎯 Simulating click on ${actionDomain}: ${actionId}`);
         
         // 1. Bestimme Ziel-Kategorie
         const targetCategory = this.getTargetCategoryForDomain(actionDomain);
         
-        // 2. Wechsle Kategorie
+        // 2. Wechsle Kategorie und verlasse Detailansicht
         this.activeCategory = targetCategory;
-        
-        // 3. Rendere Hauptansicht
         this.isDetailView = false;
         this.currentDetailItem = null;
-        this.render();
         
-        // 4. Starte Retry-Logik
-        this.tryFindAndClickItem(actionId, 0);
-    }
+        // 3. ❗ ENTSCHEIDENDE ÄNDERUNG: Rufe die korrekte Funktion auf,
+        // um die Items für die neue Kategorie zu filtern und zu rendern.
+        this.showCurrentCategoryItems();
+        
+        // 4. Warte zuverlässig mit requestAnimationFrame, bis das Element da ist
+        const waitForElementAndClick = (selector, targetId, retries = 30) => {
+            const element = this.shadowRoot.querySelector(`${selector}[data-entity="${targetId}"]`);
+            
+            // Wenn Element gefunden, klicken und aufhören
+            if (element) {
+                console.log(`✅ Element ${targetId} gefunden! Klick wird ausgeführt.`);
+                element.click();
+                return;
+            }
+            
+            // Wenn Versuche aufgebraucht, abbrechen
+            if (retries <= 0) {
+                console.warn(`❌ Element ${targetId} wurde nach mehreren Versuchen nicht gefunden.`);
+                return;
+            }
+            
+            // Nächsten Versuch im nächsten Browser-Render-Frame planen (zuverlässiger als setTimeout)
+            requestAnimationFrame(() => {
+                waitForElementAndClick(selector, targetId, retries - 1);
+            });
+        };
     
-    // 🔄 RETRY LOGIC für Item-Suche
-    tryFindAndClickItem(actionId, attempt) {
-        const maxAttempts = 5;
-        
-        // 🔧 KORRIGIERT: Verwende die richtigen CSS-Selektoren
+        // Starte den Warte-Prozess
         const viewMode = this.currentViewMode;
         const itemSelector = viewMode === 'grid' ? '.device-card' : '.device-list-item';
-        const allItemsInView = this.shadowRoot.querySelectorAll(itemSelector);
-        
-        console.log(`🔄 Attempt ${attempt + 1}: Looking for items with selector: ${itemSelector}`);
-        console.log(`🔄 Attempt ${attempt + 1}: Found ${allItemsInView.length} items in ${viewMode} view`);
-        
-        if (allItemsInView.length === 0 && attempt < maxAttempts) {
-            // Noch keine Items, nochmal versuchen
-            console.log(`⏳ No items found, retrying in 200ms...`);
-            setTimeout(() => {
-                this.tryFindAndClickItem(actionId, attempt + 1);
-            }, 200);
-            return;
-        }
-        
-        // Items gefunden oder max attempts erreicht
-        if (allItemsInView.length > 0) {
-            // 🔍 DEBUG: Schauen was verfügbar ist
-            allItemsInView.forEach((item, index) => {
-                console.log(`🔍 Item ${index}:`, {
-                    entity: item.dataset.entity,
-                    id: item.dataset.id,
-                    innerHTML: item.innerHTML.substring(0, 100) + '...'
-                });
-            });
-            
-            // Suche nach der Action
-            for (const item of allItemsInView) {
-                const itemId = item.dataset.entity || item.dataset.id;                
-                console.log(`🔍 Checking: ${itemId} === ${actionId}`);
-                
-                if (itemId === actionId) {
-                    console.log(`✅ Found item after ${attempt + 1} attempts, simulating click`);
-                    item.click();
-                    return;
-                }
-            }
-        }
-        
-        console.warn(`❌ Item not found for: ${actionId} after ${attempt + 1} attempts`);
+        waitForElementAndClick(itemSelector, actionId);
     }
     
     // 🎯 GET TARGET CATEGORY FOR DOMAIN
