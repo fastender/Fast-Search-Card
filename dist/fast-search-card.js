@@ -11606,7 +11606,15 @@ class FastSearchCard extends HTMLElement {
         // 4. Warte bis gerendert, dann simuliere Klick
         setTimeout(() => {
             // 🔍 DEBUG: Schauen was im Grid verfügbar ist
-            const gridItems = this.shadowRoot.querySelectorAll('.device-grid-item');
+
+            // 🔧 KORRIGIERT: Verwende die richtigen CSS-Selektoren
+            const viewMode = this.currentViewMode;
+            const itemSelector = viewMode === 'grid' ? '.device-card' : '.device-list-item';
+            const allItemsInView = this.shadowRoot.querySelectorAll(itemSelector);
+            
+            console.log(`🔍 Looking for items with selector: ${itemSelector}`);
+            console.log(`🔍 Found ${allItemsInView.length} items in ${viewMode} view`);
+            
             console.log(`🔍 Found ${gridItems.length} grid items`);
             
             gridItems.forEach((item, index) => {
@@ -11618,8 +11626,10 @@ class FastSearchCard extends HTMLElement {
             });
             
             // Suche nach der Action
-            for (const gridItem of gridItems) {
-                const itemId = gridItem.dataset.entity || gridItem.dataset.id;
+
+
+            for (const item of allItemsInView) {
+                const itemId = item.dataset.entity || item.dataset.id;                
                 console.log(`🔍 Checking: ${itemId} === ${actionId}`);
                 
                 if (itemId === actionId) {
