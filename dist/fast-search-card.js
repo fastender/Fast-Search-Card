@@ -11588,29 +11588,36 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    // 🎯 NAVIGATE TO ACTION DETAIL - Direkter Ansatz
+    // 🎯 NAVIGATE TO ACTION DETAIL - Event-Simulation
     navigateToActionDetail(actionId, actionDomain) {
-        console.log(`🎯 Navigating to detail view for ${actionDomain}: ${actionId}`);
+        console.log(`🎯 Simulating click on ${actionDomain}: ${actionId}`);
         
-        // 1. Zurück zur Hauptansicht
-        this.isDetailView = false;
-        this.currentDetailItem = null;
-        
-        // 2. Kategorie wechseln
+        // 1. Bestimme Ziel-Kategorie
         const targetCategory = this.getTargetCategoryForDomain(actionDomain);
+        
+        // 2. Wechsle Kategorie
         this.activeCategory = targetCategory;
         
-        // 3. Haupt-UI neu rendern
+        // 3. Rendere Hauptansicht
+        this.isDetailView = false;
+        this.currentDetailItem = null;
         this.render();
         
-        // 4. Nach kurzer Verzögerung Detail-View öffnen
+        // 4. Warte bis gerendert, dann simuliere Klick
         setTimeout(() => {
-            const actionItem = this.allItems.find(item => item.id === actionId);
-            if (actionItem) {
-                console.log(`✅ Opening detail view for: ${actionItem.name}`);
-                this.showDetailView(actionItem);
+            // Finde das Grid-Item für diese Action
+            const gridItems = this.shadowRoot.querySelectorAll('.device-grid-item');
+            
+            for (const gridItem of gridItems) {
+                if (gridItem.dataset.entity === actionId) {
+                    console.log(`✅ Found grid item, simulating click`);
+                    gridItem.click();
+                    return;
+                }
             }
-        }, 100);
+            
+            console.warn(`❌ Grid item not found for: ${actionId}`);
+        }, 200);
     }
     
     // 🎯 GET TARGET CATEGORY FOR DOMAIN
