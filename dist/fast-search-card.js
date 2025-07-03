@@ -11212,26 +11212,43 @@ class FastSearchCard extends HTMLElement {
         });
     }
 
-    // 🎯 FILTER ACTION RESULTS
+    // 🎯 FILTER ACTION RESULTS - Korrigiert für Favoriten
     filterActionResults(item, filter, container) {
         console.log(`🔍 Filtering actions for ${item.name} by: ${filter}`);
         
         const deviceArea = item.area;
         const deviceId = item.id;
         
-        // Hole die Actions neu (könnte optimiert werden mit Caching)
+        // ✅ SAMMLE ALLE RELEVANTEN ACTIONS (gleiche Logik wie loadRelatedActions)
         const relatedActions = {
-            scenes: this.findRelatedScenes(deviceId, deviceArea),
-            scripts: this.findRelatedScripts(deviceId, deviceArea),
-            automations: this.findRelatedAutomations(deviceId, deviceArea)
+            scenes: [
+                ...this.findRelatedScenes(deviceId, deviceArea),
+                ...this.getFavoriteScenes(deviceId)
+            ],
+            scripts: [
+                ...this.findRelatedScripts(deviceId, deviceArea),
+                ...this.getFavoriteScripts(deviceId)
+            ],
+            automations: [
+                ...this.findRelatedAutomations(deviceId, deviceArea),
+                ...this.getFavoriteAutomations(deviceId)
+            ]
         };
+        
+        // ✅ DUPLIKATE ENTFERNEN
+        relatedActions.scenes = this.removeDuplicateActions(relatedActions.scenes);
+        relatedActions.scripts = this.removeDuplicateActions(relatedActions.scripts);
+        relatedActions.automations = this.removeDuplicateActions(relatedActions.automations);
+        
+        // ✅ FAVORITEN MARKIEREN
+        this.markFavoriteActions(relatedActions, deviceId);
         
         // Render mit Filter
         const resultsDiv = container.querySelector('.actions-results');
         this.renderActionResults(relatedActions, resultsDiv, filter);
         
         console.log(`✅ Filtered to show: ${filter}`);
-    }    
+    }
     
     // 🎯 LOAD RELATED ACTIONS - Echte Discovery
     loadRelatedActions(item, container) {
