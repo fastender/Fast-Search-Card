@@ -11178,9 +11178,278 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
         
-        // TODO: Filter Event Listeners und Action Loading
+        // Setup Filter Event Listeners
+        this.setupActionsFilterListeners(item, container);
+        
+        // Load Actions
+        this.loadRelatedActions(item, container);
+        
         console.log('Actions Tab HTML erstellt');
     }    
+
+    // 🎯 ACTIONS FILTER LISTENERS
+    setupActionsFilterListeners(item, container) {
+        const filterChips = container.querySelectorAll('.action-filter-chip');
+        
+        filterChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                // Update active state
+                filterChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                
+                // Filter results
+                const filter = chip.dataset.actionFilter;
+                console.log(`🔽 Filtering actions: ${filter}`);
+            });
+        });
+    }
+    
+    // 🎯 LOAD RELATED ACTIONS - Echte Discovery
+    loadRelatedActions(item, container) {
+        console.log(`🔍 Loading actions for device: ${item.name} in area: ${item.area}`);
+        
+        const deviceArea = item.area;
+        const deviceId = item.id;
+        const loadingDiv = container.querySelector('.actions-loading');
+        const resultsDiv = container.querySelector('.actions-results');
+        
+        // Show loading
+        loadingDiv.style.display = 'block';
+        resultsDiv.style.display = 'none';
+        
+        // ✅ SAMMLE ALLE RELEVANTEN ACTIONS
+        const relatedActions = {
+            scenes: this.findRelatedScenes(deviceId, deviceArea),
+            scripts: this.findRelatedScripts(deviceId, deviceArea),
+            automations: this.findRelatedAutomations(deviceId, deviceArea)
+        };
+        
+        console.log('🎯 Found actions:', relatedActions);
+        
+        // Update counts
+        this.updateActionCounts(relatedActions, container);
+        
+        // Render results
+        const totalActions = Object.values(relatedActions).flat().length;
+        
+        if (totalActions === 0) {
+            loadingDiv.style.display = 'none';
+            resultsDiv.innerHTML = '<p>Keine Aktionen gefunden für dieses Gerät.</p>';
+            resultsDiv.style.display = 'block';
+        } else {
+            this.renderActionResults(relatedActions, resultsDiv, 'all');
+            loadingDiv.style.display = 'none';
+            resultsDiv.style.display = 'block';
+        }
+    }
+
+    // 🎯 UPDATE ACTION COUNTS
+    updateActionCounts(relatedActions, container) {
+        const totalCount = Object.values(relatedActions).flat().length;
+        
+        // Update chip counts
+        const allChip = container.querySelector('#actions-all-count');
+        const scenesChip = container.querySelector('#actions-scenes-count');
+        const scriptsChip = container.querySelector('#actions-scripts-count');
+        const automationsChip = container.querySelector('#actions-automations-count');
+        
+        if (allChip) allChip.textContent = totalCount;
+        if (scenesChip) scenesChip.textContent = relatedActions.scenes.length;
+        if (scriptsChip) scriptsChip.textContent = relatedActions.scripts.length;
+        if (automationsChip) automationsChip.textContent = relatedActions.automations.length;
+    }
+
+    // 🎯 FIND RELATED SCENES
+    findRelatedScenes(deviceId, deviceArea) {
+        if (!this._hass || !this.allItems) return [];
+        
+        return this.allItems.filter(item => {
+            if (item.domain !== 'scene') return false;
+            
+            // METHODE 1: Direkte Entity-Analyse
+            const state = this._hass.states[item.id];
+            if (state && state.attributes.entity_id) {
+                const targetEntities = state.attributes.entity_id;
+                if (targetEntities.includes(deviceId)) {
+                    console.log(`✅ Scene ${item.name} targets device directly`);
+                    return true; // Szene betrifft dieses Gerät direkt
+                }
+            }
+            
+            // METHODE 2: Gleiche Area
+            if (item.area === deviceArea && deviceArea !== 'Ohne Raum') {
+                console.log(`✅ Scene ${item.name} in same area: ${deviceArea}`);
+                return true;
+            }
+            
+            return false;
+        });
+    }
+    
+    // 🎯 FIND RELATED SCRIPTS  
+    findRelatedScripts(deviceId, deviceArea) {
+        if (!this._hass || !this.allItems) return [];
+        
+        return this.allItems.filter(item => {
+            if (item.domain !== 'script') return false;
+            
+            // METHODE 1: Gleiche Area
+            if (item.area === deviceArea && deviceArea !== 'Ohne Raum') {
+                console.log(`✅ Script ${item.name} in same area: ${deviceArea}`);
+                return true;
+            }
+            
+            // METHODE 2: Name-Matching
+            const scriptName = item.name.toLowerCase();
+            const deviceName = deviceId.split('.')[1].toLowerCase();
+            const areaName = deviceArea.toLowerCase();
+            
+            if (scriptName.includes(deviceName) || scriptName.includes(areaName)) {
+                console.log(`✅ Script ${item.name} matches by name`);
+                return true;
+            }
+            
+            return false;
+        });
+    }
+    
+    // 🎯 FIND RELATED AUTOMATIONS
+    findRelatedAutomations(deviceId, deviceArea) {
+        if (!this._hass || !this.allItems) return [];
+        
+        return this.allItems.filter(item => {
+            if (item.domain !== 'automation') return false;
+            
+            // Gleiche Logik wie Scripts
+            if (item.area === deviceArea && deviceArea !== 'Ohne Raum') {
+                console.log(`✅ Automation ${item.name} in same area: ${deviceArea}`);
+                return true;
+            }
+            
+            const autoName = item.name.toLowerCase();
+            const deviceName = deviceId.split('.')[1].toLowerCase();
+            const areaName = deviceArea.toLowerCase();
+            
+            if (autoName.includes(deviceName) || autoName.includes(areaName)) {
+                console.log(`✅ Automation ${item.name} matches by name`);
+                return true;
+            }
+            
+            return false;
+        });
+    }    
+
+    // 🎯 RENDER ACTION RESULTS
+    renderActionResults(relatedActions, container, filter = 'all') {
+        let actionsToShow = [];
+        
+        if (filter === 'all') {
+            actionsToShow = [
+                ...relatedActions.scenes,
+                ...relatedActions.scripts,
+                ...relatedActions.automations
+            ];
+        } else {
+            actionsToShow = relatedActions[filter] || [];
+        }
+        
+        // Sort by area, then by name
+        actionsToShow.sort((a, b) => {
+            const areaCompare = (a.area || 'Ohne Raum').localeCompare(b.area || 'Ohne Raum');
+            if (areaCompare !== 0) return areaCompare;
+            return a.name.localeCompare(b.name);
+        });
+        
+        const resultsHTML = actionsToShow.map(action => this.renderActionItem(action)).join('');
+        
+        container.innerHTML = `
+            <div class="actions-grid">
+                ${resultsHTML}
+            </div>
+        `;
+        
+        // Setup click handlers
+        this.setupActionClickHandlers(container);
+    }
+    
+    // 🎯 RENDER ACTION ITEM
+    renderActionItem(action) {
+        const state = this._hass.states[action.id];
+        const isActive = this.isEntityActive(state);
+        const icon = this.getEntityIcon(action.domain);
+        
+        return `
+            <div class="action-item ${isActive ? 'active' : ''}" data-action-id="${action.id}">
+                <div class="action-icon">${icon}</div>
+                <div class="action-info">
+                    <div class="action-name">${action.name}</div>
+                    <div class="action-meta">
+                        <span class="action-type">${this.getActionTypeLabel(action.domain)}</span>
+                        ${action.area !== 'Ohne Raum' ? `<span class="action-area">${action.area}</span>` : ''}
+                    </div>
+                </div>
+                <div class="action-trigger">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M8 5l8 7-8 7"/>
+                    </svg>
+                </div>
+            </div>
+        `;
+    }
+    
+    // 🎯 HELPER METHODS
+    getActionTypeLabel(domain) {
+        const labels = {
+            scene: 'Szene',
+            script: 'Skript', 
+            automation: 'Automation'
+        };
+        return labels[domain] || domain;
+    }
+
+    // 🎯 SETUP ACTION CLICK HANDLERS
+    setupActionClickHandlers(container) {
+        const actionItems = container.querySelectorAll('.action-item');
+        
+        actionItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const actionId = item.dataset.actionId;
+                console.log(`🎯 Action clicked: ${actionId}`);
+                
+                // Visual feedback
+                item.classList.add('clicked');
+                setTimeout(() => item.classList.remove('clicked'), 200);
+                
+                // Execute action
+                this.triggerAction(actionId);
+            });
+        });
+    }
+    
+    // 🎯 TRIGGER ACTION
+    triggerAction(actionId) {
+        const domain = actionId.split('.')[0];
+        
+        console.log(`🚀 Triggering ${domain}: ${actionId}`);
+        
+        switch(domain) {
+            case 'scene':
+                this._hass.callService('scene', 'turn_on', { entity_id: actionId });
+                console.log(`✅ Scene activated: ${actionId}`);
+                break;
+            case 'script':
+                this._hass.callService('script', 'turn_on', { entity_id: actionId });
+                console.log(`✅ Script executed: ${actionId}`);
+                break;
+            case 'automation':
+                this._hass.callService('automation', 'trigger', { entity_id: actionId });
+                console.log(`✅ Automation triggered: ${actionId}`);
+                break;
+            default:
+                console.warn(`❌ Unknown action domain: ${domain}`);
+        }
+    }
+        
 
     initializeTimerTab(item, container) {
         console.log('🔥 NEUE VERSION 2024 - Initializing Timer Tab for', item.name);
