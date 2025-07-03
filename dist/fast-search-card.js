@@ -4479,9 +4479,9 @@ class FastSearchCard extends HTMLElement {
         
         let allEntityConfigs = [];
         
-        // 1. Auto-Discovery wenn aktiviert
+        // 1. Auto-Discovery wenn aktiviert (AWAIT HINZUGEFÜGT!)
         if (this._config.auto_discover) {
-            const discoveredEntities = this.discoverEntities();
+            const discoveredEntities = await this.discoverEntities(); // ← AWAIT hinzugefügt!
             allEntityConfigs = [...discoveredEntities];
             console.log(`Auto-discovered: ${discoveredEntities.length} entities`);
         }
@@ -4518,7 +4518,6 @@ class FastSearchCard extends HTMLElement {
             if (entityConfig.domain === 'custom') {
                 return entityConfig;
             }
-
             // Regular HA entities
             const entityId = entityConfig.entity;
             const state = this._hass.states[entityId];
@@ -4861,7 +4860,7 @@ class FastSearchCard extends HTMLElement {
             .trim();
     }
 
-    discoverEntities() {
+    async discoverEntities() {
         if (!this._hass) {
             console.warn('HASS not available for auto-discovery');
             return [];
