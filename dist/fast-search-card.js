@@ -294,6 +294,9 @@ class FastSearchCard extends HTMLElement {
                 area: 'Custom',
                 ...config.custom_mode
             },
+
+            // Fügen Sie DANACH diese Zeile hinzu:
+            action_favorites: config.action_favorites || {},            
                                 
             ...config
         };
