@@ -11248,9 +11248,50 @@ class FastSearchCard extends HTMLElement {
         this.renderActionResults(relatedActions, resultsDiv, filter);
         
     }
+
+    // 🔍 DEBUG: Verfügbare Metadaten analysieren
+    debugAvailableMetadata(entityId) {
+        const state = this._hass.states[entityId];
+        const entityRegistry = this._hass.entities ? this._hass.entities[entityId] : null;
+        const deviceId = entityRegistry?.device_id;
+        const device = deviceId && this._hass.devices ? this._hass.devices[deviceId] : null;
+        
+        console.log(`🔍 Entity: ${entityId}`);
+        console.log(`🔍 State:`, state);
+        console.log(`🔍 Entity Registry:`, entityRegistry);
+        console.log(`🔍 Device ID:`, deviceId);
+        console.log(`🔍 Device:`, device);
+        console.log(`🔍 Available in _hass:`, {
+            entities: !!this._hass.entities,
+            devices: !!this._hass.devices,
+            areas: !!this._hass.areas,
+            labels: !!this._hass.labels
+        });
+        
+        // Prüfe was bei Szenen/Skripten verfügbar ist
+        const sceneExample = Object.keys(this._hass.states).find(id => id.startsWith('scene.'));
+        const scriptExample = Object.keys(this._hass.states).find(id => id.startsWith('script.'));
+        
+        if (sceneExample) {
+            const sceneState = this._hass.states[sceneExample];
+            console.log(`🎬 Scene example (${sceneExample}):`, sceneState);
+            console.log(`🎬 Scene attributes:`, sceneState.attributes);
+        }
+        
+        if (scriptExample) {
+            const scriptState = this._hass.states[scriptExample];
+            console.log(`📜 Script example (${scriptExample}):`, scriptState);
+            console.log(`📜 Script attributes:`, scriptState.attributes);
+        }
+    }
     
     // 🎯 LOAD RELATED ACTIONS - Echte Discovery
     loadRelatedActions(item, container) {
+
+        // Am Anfang hinzufügen:
+        console.log(`🔍 Debugging metadata for: ${item.id}`);
+        this.debugAvailableMetadata(item.id);
+        
         console.log(`🔍 Loading actions for device: ${item.name} in area: ${item.area}`);
         
         const deviceArea = item.area;
