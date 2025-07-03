@@ -11605,8 +11605,6 @@ class FastSearchCard extends HTMLElement {
         
         // 4. Warte bis gerendert, dann simuliere Klick
         setTimeout(() => {
-            // 🔍 DEBUG: Schauen was im Grid verfügbar ist
-
             // 🔧 KORRIGIERT: Verwende die richtigen CSS-Selektoren
             const viewMode = this.currentViewMode;
             const itemSelector = viewMode === 'grid' ? '.device-card' : '.device-list-item';
@@ -11615,10 +11613,9 @@ class FastSearchCard extends HTMLElement {
             console.log(`🔍 Looking for items with selector: ${itemSelector}`);
             console.log(`🔍 Found ${allItemsInView.length} items in ${viewMode} view`);
             
-            console.log(`🔍 Found ${gridItems.length} grid items`);
-            
-            gridItems.forEach((item, index) => {
-                console.log(`🔍 Grid item ${index}:`, {
+            // 🔍 DEBUG: Schauen was verfügbar ist
+            allItemsInView.forEach((item, index) => {
+                console.log(`🔍 Item ${index}:`, {
                     entity: item.dataset.entity,
                     id: item.dataset.id,
                     innerHTML: item.innerHTML.substring(0, 100) + '...'
@@ -11626,20 +11623,18 @@ class FastSearchCard extends HTMLElement {
             });
             
             // Suche nach der Action
-
-
             for (const item of allItemsInView) {
                 const itemId = item.dataset.entity || item.dataset.id;                
                 console.log(`🔍 Checking: ${itemId} === ${actionId}`);
                 
                 if (itemId === actionId) {
-                    console.log(`✅ Found grid item, simulating click`);
-                    gridItem.click();
+                    console.log(`✅ Found item, simulating click`);
+                    item.click();
                     return;
                 }
             }
             
-            console.warn(`❌ Grid item not found for: ${actionId}`);
+            console.warn(`❌ Item not found for: ${actionId}`);
         }, 200);
     }
     
