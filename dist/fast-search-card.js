@@ -11246,12 +11246,29 @@ class FastSearchCard extends HTMLElement {
         loadingDiv.style.display = 'block';
         resultsDiv.style.display = 'none';
         
-        // ✅ SAMMLE ALLE RELEVANTEN ACTIONS
+        // ✅ SAMMLE ALLE RELEVANTEN ACTIONS (Auto-Discovery + Favoriten)
         const relatedActions = {
-            scenes: this.findRelatedScenes(deviceId, deviceArea),
-            scripts: this.findRelatedScripts(deviceId, deviceArea),
-            automations: this.findRelatedAutomations(deviceId, deviceArea)
+            scenes: [
+                ...this.findRelatedScenes(deviceId, deviceArea),
+                ...this.getFavoriteScenes(deviceId)
+            ],
+            scripts: [
+                ...this.findRelatedScripts(deviceId, deviceArea),
+                ...this.getFavoriteScripts(deviceId)
+            ],
+            automations: [
+                ...this.findRelatedAutomations(deviceId, deviceArea),
+                ...this.getFavoriteAutomations(deviceId)
+            ]
         };
+        
+        // ✅ DUPLIKATE ENTFERNEN
+        relatedActions.scenes = this.removeDuplicateActions(relatedActions.scenes);
+        relatedActions.scripts = this.removeDuplicateActions(relatedActions.scripts);
+        relatedActions.automations = this.removeDuplicateActions(relatedActions.automations);
+        
+        // ✅ FAVORITEN MARKIEREN
+        this.markFavoriteActions(relatedActions, deviceId);
         
         console.log('🎯 Found actions:', relatedActions);
         
@@ -11272,20 +11289,65 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    // 🎯 UPDATE ACTION COUNTS
+    // 🌟 REMOVE DUPLICATE ACTIONS
+    removeDuplicateActions(actions) {
+        const seen = new Set();
+        return actions.filter(action => {
+            if (seen.has(action.id)) {
+                return false;
+            }
+            seen.add(action.id);
+            return true;
+        });
+    }
+    
+    // 🌟 MARK FAVORITE ACTIONS
+    markFavoriteActions(relatedActions, deviceId) {
+        const favorites = this._config.action_favorites[deviceId];
+        if (!favorites) return;
+        
+        ['scenes', 'scripts', 'automations'].forEach(type => {
+            if (favorites[type]) {
+                relatedActions[type].forEach(action => {
+                    if (favorites[type].includes(action.id)) {
+                        action.isFavorite = true;
+                        action.favoriteReason = 'manual';
+                    }
+                });
+            }
+        });
+    }    
+
+    // 🌟 UPDATE ACTION COUNTS - Mit Favoriten
     updateActionCounts(relatedActions, container) {
-        const totalCount = Object.values(relatedActions).flat().length;
+        const allActions = Object.values(relatedActions).flat();
+        const totalCount = allActions.length;
+        const favoritesCount = allActions.filter(action => action.isFavorite).length;
         
         // Update chip counts
         const allChip = container.querySelector('#actions-all-count');
+        const favoritesChip = container.querySelector('#actions-favorites-count');
         const scenesChip = container.querySelector('#actions-scenes-count');
         const scriptsChip = container.querySelector('#actions-scripts-count');
         const automationsChip = container.querySelector('#actions-automations-count');
         
         if (allChip) allChip.textContent = totalCount;
+        if (favoritesChip) {
+            favoritesChip.textContent = favoritesCount;
+            
+            // Zeige Favoriten-Chip nur wenn Favoriten vorhanden
+            const favoritesButton = favoritesChip.parentElement;
+            if (favoritesCount > 0) {
+                favoritesButton.style.display = 'inline-block';
+            } else {
+                favoritesButton.style.display = 'none';
+            }
+        }
         if (scenesChip) scenesChip.textContent = relatedActions.scenes.length;
         if (scriptsChip) scriptsChip.textContent = relatedActions.scripts.length;
         if (automationsChip) automationsChip.textContent = relatedActions.automations.length;
+        
+        console.log(`📊 Action counts: Total(${totalCount}), Favorites(${favoritesCount})`);
     }
 
     // 🎯 FIND RELATED SCENES
@@ -11378,14 +11440,28 @@ class FastSearchCard extends HTMLElement {
                 ...relatedActions.scripts,
                 ...relatedActions.automations
             ];
+        } else if (filter === 'favorites') {
+            // 🌟 NUR FAVORITEN anzeigen
+            actionsToShow = [
+                ...relatedActions.scenes.filter(a => a.isFavorite),
+                ...relatedActions.scripts.filter(a => a.isFavorite),
+                ...relatedActions.automations.filter(a => a.isFavorite)
+            ];
         } else {
             actionsToShow = relatedActions[filter] || [];
         }
         
-        // Sort by area, then by name
+        // Sort: Favoriten zuerst, dann nach Area, dann nach Name
         actionsToShow.sort((a, b) => {
+            // Favoriten zuerst
+            if (a.isFavorite && !b.isFavorite) return -1;
+            if (!a.isFavorite && b.isFavorite) return 1;
+            
+            // Dann nach Area
             const areaCompare = (a.area || 'Ohne Raum').localeCompare(b.area || 'Ohne Raum');
             if (areaCompare !== 0) return areaCompare;
+            
+            // Dann nach Name
             return a.name.localeCompare(b.name);
         });
         
@@ -11401,19 +11477,28 @@ class FastSearchCard extends HTMLElement {
         this.setupActionClickHandlers(container);
     }
     
-    // 🎯 RENDER ACTION ITEM
+    // 🎯 RENDER ACTION ITEM - Mit Favoriten-Kennzeichnung
     renderActionItem(action) {
         const state = this._hass.states[action.id];
         const isActive = this.isEntityActive(state);
         const icon = this.getEntityIcon(action.domain);
         
+        // 🌟 Favoriten-Kennzeichnung
+        const favoriteClass = action.isFavorite ? 'favorite-action' : '';
+        const favoriteIcon = action.isFavorite ? '<div class="favorite-star">⭐</div>' : '';
+        const favoriteLabel = action.isFavorite ? '<span class="favorite-label">Favorit</span>' : '';
+        
         return `
-            <div class="action-item ${isActive ? 'active' : ''}" data-action-id="${action.id}">
+            <div class="action-item ${isActive ? 'active' : ''} ${favoriteClass}" data-action-id="${action.id}">
                 <div class="action-icon">${icon}</div>
                 <div class="action-info">
-                    <div class="action-name">${action.name}</div>
+                    <div class="action-name">
+                        ${action.name}
+                        ${favoriteIcon}
+                    </div>
                     <div class="action-meta">
                         <span class="action-type">${this.getActionTypeLabel(action.domain)}</span>
+                        ${favoriteLabel}
                         ${action.area !== 'Ohne Raum' ? `<span class="action-area">${action.area}</span>` : ''}
                     </div>
                 </div>
@@ -11478,6 +11563,61 @@ class FastSearchCard extends HTMLElement {
                 console.warn(`❌ Unknown action domain: ${domain}`);
         }
     }
+
+    // 🌟 GET FAVORITE SCENES
+    getFavoriteScenes(deviceId) {
+        const favorites = this._config.action_favorites[deviceId];
+        if (!favorites || !favorites.scenes) return [];
+        
+        return favorites.scenes.map(sceneId => {
+            const sceneItem = this.allItems.find(item => item.id === sceneId);
+            if (sceneItem) {
+                return {
+                    ...sceneItem,
+                    isFavorite: true,
+                    favoriteReason: 'manual'
+                };
+            }
+            return null;
+        }).filter(Boolean);
+    }
+    
+    // 🌟 GET FAVORITE SCRIPTS
+    getFavoriteScripts(deviceId) {
+        const favorites = this._config.action_favorites[deviceId];
+        if (!favorites || !favorites.scripts) return [];
+        
+        return favorites.scripts.map(scriptId => {
+            const scriptItem = this.allItems.find(item => item.id === scriptId);
+            if (scriptItem) {
+                return {
+                    ...scriptItem,
+                    isFavorite: true,
+                    favoriteReason: 'manual'
+                };
+            }
+            return null;
+        }).filter(Boolean);
+    }
+    
+    // 🌟 GET FAVORITE AUTOMATIONS
+    getFavoriteAutomations(deviceId) {
+        const favorites = this._config.action_favorites[deviceId];
+        if (!favorites || !favorites.automations) return [];
+        
+        return favorites.automations.map(autoId => {
+            const autoItem = this.allItems.find(item => item.id === autoId);
+            if (autoItem) {
+                return {
+                    ...autoItem,
+                    isFavorite: true,
+                    favoriteReason: 'manual'
+                };
+            }
+            return null;
+        }).filter(Boolean);
+    }
+    
         
 
     initializeTimerTab(item, container) {
