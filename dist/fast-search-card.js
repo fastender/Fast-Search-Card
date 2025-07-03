@@ -4861,7 +4861,6 @@ class FastSearchCard extends HTMLElement {
             .trim();
     }
 
-    
     discoverEntities() {
         if (!this._hass) {
             console.warn('HASS not available for auto-discovery');
@@ -4890,8 +4889,18 @@ class FastSearchCard extends HTMLElement {
                     // Entity-Filter anwenden
                     if (this._config.exclude_entities.includes(entityId)) continue;
                     
-                    // Area ermitteln
-                    const areaName = this.getEntityArea(entityId, state);
+                    // INTELLIGENTE AREA-ERMITTLUNG basierend auf Domain
+                    let areaName;
+                    if (domain === 'script') {
+                        areaName = await this.getScriptArea(entityId, state);
+                    } else if (domain === 'scene') {
+                        areaName = this.getSceneArea(entityId, state);
+                    } else if (domain === 'automation') {
+                        areaName = await this.getAutomationArea(entityId, state);
+                    } else {
+                        // Standard Area-Ermittlung für Geräte
+                        areaName = this.getEntityArea(entityId, state);
+                    }
                     
                     // Area-Filter anwenden
                     if (this._config.include_areas.length > 0 && !this._config.include_areas.includes(areaName)) continue;
@@ -4905,7 +4914,9 @@ class FastSearchCard extends HTMLElement {
                         entity: entityId,
                         title: state.attributes.friendly_name || entityId,
                         area: areaName,
-                        auto_discovered: true
+                        auto_discovered: true,
+                        domain: domain,
+                        category: this.categorizeEntity(domain)
                     });
                     
                 } catch (entityError) {
@@ -4922,6 +4933,235 @@ class FastSearchCard extends HTMLElement {
             return []; // Fallback to empty array
         }
     }
+
+    async getScriptArea(entityId, state) {
+        try {
+            console.log(`🔍 Analyzing script area for: ${entityId}`);
+            
+            // METHODE 1: Prüfe ob Skript explizit einer Area zugeordnet ist (Entity Registry)
+            if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
+                const entityRegistry = this._hass.entities[entityId];
+                if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
+                    const area = this._hass.areas[entityRegistry.area_id];
+                    console.log(`✅ Script has explicit area: ${area.name}`);
+                    return area.name;
+                }
+            }
+            
+            // METHODE 2: Analysiere Skript-Name nach Area-Keywords
+            const scriptName = state.attributes.friendly_name || entityId;
+            const detectedArea = this.extractAreaFromName(scriptName);
+            if (detectedArea !== 'Ohne Raum') {
+                console.log(`✅ Script area detected from name: ${detectedArea}`);
+                return detectedArea;
+            }
+            
+            // METHODE 3: Versuche Skript-Konfiguration zu analysieren (Advanced)
+            try {
+                const scriptConfig = await this.getScriptConfiguration(entityId);
+                if (scriptConfig) {
+                    const configArea = this.analyzeScriptTargets(scriptConfig);
+                    if (configArea !== 'Ohne Raum') {
+                        console.log(`✅ Script area detected from config: ${configArea}`);
+                        return configArea;
+                    }
+                }
+            } catch (configError) {
+                console.warn(`Could not analyze script config for ${entityId}:`, configError);
+            }
+            
+            // FALLBACK: Wenn keine Area ermittelt werden kann
+            console.log(`❌ No area found for script: ${entityId}`);
+            return 'Ohne Raum';
+            
+        } catch (error) {
+            console.warn(`❌ Error getting script area for ${entityId}:`, error);
+            return 'Ohne Raum';
+        }
+    }
+
+    // 🎯 HILFSMETHODE: Extrahiere Area aus Namen (verbesserte Version)
+    extractAreaFromName(name) {
+        if (!name) return 'Ohne Raum';
+        
+        const normalizedName = name.toLowerCase();
+        
+        // Liste der echten Areas aus Home Assistant für Matching
+        const realAreas = this._hass.areas ? 
+            Object.values(this._hass.areas).map(area => area.name.toLowerCase()) : [];
+        
+        // Suche nach echten Area-Namen im Namen (case-insensitive)
+        for (const areaName of realAreas) {
+            if (normalizedName.includes(areaName)) {
+                // Finde die echte Area mit richtigem Case
+                const matchedArea = Object.values(this._hass.areas).find(area => 
+                    area.name.toLowerCase() === areaName
+                );
+                if (matchedArea) {
+                    return matchedArea.name;
+                }
+            }
+        }
+        
+        // Zusätzliche Keywords für häufige Raum-Begriffe
+        const roomKeywords = {
+            'wohnzimmer': ['wohnzimmer', 'living', 'salon'],
+            'küche': ['küche', 'kitchen', 'kueche'],
+            'schlafzimmer': ['schlafzimmer', 'bedroom', 'schlafen'],
+            'bad': ['bad', 'bathroom', 'badezimmer'],
+            'arbeitszimmer': ['arbeitszimmer', 'office', 'büro', 'buero', 'arbeiten'],
+            'kinderzimmer': ['kinderzimmer', 'children', 'kids'],
+            'garten': ['garten', 'garden', 'outdoor'],
+            'garage': ['garage', 'carport'],
+            'keller': ['keller', 'basement', 'cellar']
+        };
+        
+        for (const [room, keywords] of Object.entries(roomKeywords)) {
+            if (keywords.some(keyword => normalizedName.includes(keyword))) {
+                // Prüfe ob dieser Raum in Home Assistant existiert
+                const existingArea = Object.values(this._hass.areas || {}).find(area => 
+                    area.name.toLowerCase() === room
+                );
+                if (existingArea) {
+                    return existingArea.name;
+                }
+                // Fallback: Nutze Keyword als Raumname
+                return room.charAt(0).toUpperCase() + room.slice(1);
+            }
+        }
+        
+        return 'Ohne Raum';
+    }
+
+    async getScriptConfiguration(entityId) {
+        try {
+            // Home Assistant bietet keinen direkten API-Endpunkt für Skript-Konfiguration
+            // Alternative: Nutze verfügbare Informationen aus dem State
+            const state = this._hass.states[entityId];
+            
+            // Prüfe ob es Script-spezifische Attribute gibt
+            if (state.attributes) {
+                // Manche Skripte haben 'last_triggered' oder andere hilfreiche Attribute
+                return {
+                    attributes: state.attributes,
+                    // Weitere Analyse könnte hier erfolgen
+                };
+            }
+            
+            return null;
+        } catch (error) {
+            console.warn(`Error getting script config for ${entityId}:`, error);
+            return null;
+        }
+    }
+
+    analyzeScriptTargets(scriptConfig) {
+        try {
+            // Da wir keinen direkten Zugriff auf Skript-Actions haben,
+            // nutzen wir verfügbare Informationen intelligent
+            
+            // Placeholder für erweiterte Analyse
+            // In Zukunft könnte hier eine tiefere Integration erfolgen
+            
+            return 'Ohne Raum';
+        } catch (error) {
+            console.warn('Error analyzing script targets:', error);
+            return 'Ohne Raum';
+        }
+    }
+
+    getSceneArea(entityId, state) {
+        try {
+            console.log(`🎬 Analyzing scene area for: ${entityId}`);
+            
+            // METHODE 1: Explizite Area-Zuordnung
+            if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
+                const entityRegistry = this._hass.entities[entityId];
+                if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
+                    const area = this._hass.areas[entityRegistry.area_id];
+                    console.log(`✅ Scene has explicit area: ${area.name}`);
+                    return area.name;
+                }
+            }
+            
+            // METHODE 2: Analysiere betroffene Entities in der Szene
+            const entities = state.attributes.entity_id || [];
+            const areas = new Set();
+            
+            entities.forEach(targetEntity => {
+                if (this._hass.states[targetEntity]) {
+                    const entityArea = this.getEntityArea(targetEntity, this._hass.states[targetEntity]);
+                    if (entityArea !== 'Ohne Raum') {
+                        areas.add(entityArea);
+                    }
+                }
+            });
+            
+            // Wenn alle Entities in einem Raum sind
+            if (areas.size === 1) {
+                const area = [...areas][0];
+                console.log(`✅ Scene area detected from entities: ${area}`);
+                return area;
+            }
+            
+            // METHODE 3: Area aus Namen extrahieren
+            const detectedArea = this.extractAreaFromName(state.attributes.friendly_name || entityId);
+            if (detectedArea !== 'Ohne Raum') {
+                console.log(`✅ Scene area detected from name: ${detectedArea}`);
+                return detectedArea;
+            }
+            
+            // FALLBACK: Mehrere Räume oder unbekannt
+            if (areas.size > 1) {
+                console.log(`ℹ️ Scene affects multiple areas: ${[...areas].join(', ')}`);
+                return 'Mehrere Räume';
+            }
+            
+            console.log(`❌ No area found for scene: ${entityId}`);
+            return 'Ohne Raum';
+            
+        } catch (error) {
+            console.warn(`❌ Error getting scene area for ${entityId}:`, error);
+            return 'Ohne Raum';
+        }
+    }
+    
+    // 🎯 AUTOMATIONS AREA-DISCOVERY (ähnlich wie Skripte)
+    async getAutomationArea(entityId, state) {
+        try {
+            console.log(`⚙️ Analyzing automation area for: ${entityId}`);
+            
+            // METHODE 1: Explizite Area-Zuordnung
+            if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
+                const entityRegistry = this._hass.entities[entityId];
+                if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
+                    const area = this._hass.areas[entityRegistry.area_id];
+                    console.log(`✅ Automation has explicit area: ${area.name}`);
+                    return area.name;
+                }
+            }
+            
+            // METHODE 2: Area aus Namen extrahieren
+            const detectedArea = this.extractAreaFromName(state.attributes.friendly_name || entityId);
+            if (detectedArea !== 'Ohne Raum') {
+                console.log(`✅ Automation area detected from name: ${detectedArea}`);
+                return detectedArea;
+            }
+            
+            // METHODE 3: Analyse von Automation-Attributen
+            if (state.attributes.last_triggered || state.attributes.current) {
+                // Weitere Analyse könnte hier erfolgen
+            }
+            
+            console.log(`❌ No area found for automation: ${entityId}`);
+            return 'Ohne Raum';
+            
+        } catch (error) {
+            console.warn(`❌ Error getting automation area for ${entityId}:`, error);
+            return 'Ohne Raum';
+        }
+    }
+    
     
     getEntityArea(entityId, state) {
             try {
