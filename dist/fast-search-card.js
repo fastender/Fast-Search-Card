@@ -11200,9 +11200,32 @@ class FastSearchCard extends HTMLElement {
                 // Filter results
                 const filter = chip.dataset.actionFilter;
                 console.log(`🔽 Filtering actions: ${filter}`);
+                // Re-render mit Filter
+                this.filterActionResults(item, filter, container);
             });
         });
     }
+
+    // 🎯 FILTER ACTION RESULTS
+    filterActionResults(item, filter, container) {
+        console.log(`🔍 Filtering actions for ${item.name} by: ${filter}`);
+        
+        const deviceArea = item.area;
+        const deviceId = item.id;
+        
+        // Hole die Actions neu (könnte optimiert werden mit Caching)
+        const relatedActions = {
+            scenes: this.findRelatedScenes(deviceId, deviceArea),
+            scripts: this.findRelatedScripts(deviceId, deviceArea),
+            automations: this.findRelatedAutomations(deviceId, deviceArea)
+        };
+        
+        // Render mit Filter
+        const resultsDiv = container.querySelector('.actions-results');
+        this.renderActionResults(relatedActions, resultsDiv, filter);
+        
+        console.log(`✅ Filtered to show: ${filter}`);
+    }    
     
     // 🎯 LOAD RELATED ACTIONS - Echte Discovery
     loadRelatedActions(item, container) {
