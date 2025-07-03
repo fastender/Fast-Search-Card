@@ -11406,24 +11406,56 @@ class FastSearchCard extends HTMLElement {
         
     }
 
-    // 🎯 FIND RELATED SCENES
+    // 🎯 FIND RELATED SCENES - Erweiterte Metadaten-Analyse
     findRelatedScenes(deviceId, deviceArea) {
         if (!this._hass || !this.allItems) return [];
+        
+        // Device-ID und Area-ID des Ziel-Devices ermitteln
+        const targetDeviceId = this.getDeviceId(deviceId);
+        const targetAreaId = this.getAreaId(deviceId, deviceArea);
+        
+        console.log(`🔍 Target Device ID: ${targetDeviceId}, Area ID: ${targetAreaId}`);
         
         return this.allItems.filter(item => {
             if (item.domain !== 'scene') return false;
             
-            // METHODE 1: Direkte Entity-Analyse
             const state = this._hass.states[item.id];
-            if (state && state.attributes.entity_id) {
+            if (!state) return false;
+            
+            // METHODE 1: Direkte Entity-Analyse (bestehend)
+            if (state.attributes.entity_id) {
                 const targetEntities = state.attributes.entity_id;
                 if (targetEntities.includes(deviceId)) {
                     console.log(`✅ Scene ${item.name} targets device directly`);
-                    return true; // Szene betrifft dieses Gerät direkt
+                    return true;
                 }
             }
             
-            // METHODE 2: Gleiche Area
+            // 🆕 METHODE 2: Device-ID Matching
+            if (targetDeviceId && state.attributes.entity_id) {
+                const sceneEntityIds = state.attributes.entity_id;
+                for (const entityId of sceneEntityIds) {
+                    const entityDeviceId = this.getDeviceId(entityId);
+                    if (entityDeviceId === targetDeviceId) {
+                        console.log(`✅ Scene ${item.name} targets same device via different entity`);
+                        return true;
+                    }
+                }
+            }
+            
+            // 🆕 METHODE 3: Area-ID Matching via alle Entities in der Area
+            if (targetAreaId && state.attributes.entity_id) {
+                const sceneEntityIds = state.attributes.entity_id;
+                for (const entityId of sceneEntityIds) {
+                    const entityAreaId = this.getAreaId(entityId);
+                    if (entityAreaId === targetAreaId) {
+                        console.log(`✅ Scene ${item.name} affects same area: ${targetAreaId}`);
+                        return true;
+                    }
+                }
+            }
+            
+            // METHODE 4: Gleiche Area (bestehend)
             if (item.area === deviceArea && deviceArea !== 'Ohne Raum') {
                 console.log(`✅ Scene ${item.name} in same area: ${deviceArea}`);
                 return true;
@@ -11432,6 +11464,34 @@ class FastSearchCard extends HTMLElement {
             return false;
         });
     }
+
+    // 🔧 Helper: Get Device ID for Entity
+    getDeviceId(entityId) {
+        if (!this._hass.entities || !this._hass.entities[entityId]) return null;
+        return this._hass.entities[entityId].device_id || null;
+    }
+    
+    // 🔧 Helper: Get Area ID for Entity
+    getAreaId(entityId, fallbackAreaName = null) {
+        // Direkt von Entity
+        const entityRegistry = this._hass.entities?.[entityId];
+        if (entityRegistry?.area_id) return entityRegistry.area_id;
+        
+        // Via Device
+        const deviceId = this.getDeviceId(entityId);
+        if (deviceId && this._hass.devices?.[deviceId]?.area_id) {
+            return this._hass.devices[deviceId].area_id;
+        }
+        
+        // Fallback: Area-Name zu Area-ID konvertieren
+        if (fallbackAreaName && this._hass.areas) {
+            const area = Object.values(this._hass.areas).find(a => a.name === fallbackAreaName);
+            return area?.area_id || null;
+        }
+        
+        return null;
+    }
+    
     
     // 🎯 FIND RELATED SCRIPTS  
     findRelatedScripts(deviceId, deviceArea) {
