@@ -5816,51 +5816,120 @@ class FastSearchCard extends HTMLElement {
     updateSubcategoryCounts() {
         if (!this._hass || !this.allItems) return;
         
-        // Domain-zu-Subcategory Mapping (gleich wie in renderCategoryChips)
-        const domainMap = { 
-            'lights': ['light', 'switch'], 
-            'climate': ['climate', 'fan'], 
-            'covers': ['cover'], 
-            'media': ['media_player'] 
-        };
-        
-        // Nur für verfügbare Subcategories Counts berechnen
-        for (const subcategory in domainMap) {
-            const chip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="${subcategory}"]`);
-            if (!chip) continue; // Skip wenn Chip nicht existiert (weil Domain nicht verfügbar)
+        // NUR für "devices" Kategorie die bisherige Logik anwenden
+        if (this.activeCategory === 'devices') {
+            // Domain-zu-Subcategory Mapping (gleich wie in renderCategoryChips)
+            const domainMap = { 
+                'lights': ['light', 'switch'], 
+                'climate': ['climate', 'fan'], 
+                'covers': ['cover'], 
+                'media': ['media_player'] 
+            };
             
-            const domains = domainMap[subcategory];
-            const categoryItems = this.allItems.filter(item => 
-                this.isItemInCategory(item, 'devices') && domains.includes(item.domain)
-            );
-            
-            const activeCount = categoryItems.filter(item => {
-                const state = this._hass.states[item.id];
-                return state && this.isEntityActive(state);
-            }).length;
-            
-            const statusText = this.getSubcategoryStatusText(subcategory, activeCount);
-            const statusElement = chip.querySelector('.subcategory-status');
-            if (statusElement) { 
-                statusElement.textContent = statusText; 
+            // Nur für verfügbare Subcategories Counts berechnen
+            for (const subcategory in domainMap) {
+                const chip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="${subcategory}"]`);
+                if (!chip) continue; // Skip wenn Chip nicht existiert (weil Domain nicht verfügbar)
+                
+                const domains = domainMap[subcategory];
+                const categoryItems = this.allItems.filter(item => 
+                    this.isItemInCategory(item, 'devices') && domains.includes(item.domain)
+                );
+                
+                const activeCount = categoryItems.filter(item => {
+                    const state = this._hass.states[item.id];
+                    return state && this.isEntityActive(state);
+                }).length;
+                
+                const statusText = this.getSubcategoryStatusText(subcategory, activeCount);
+                const statusElement = chip.querySelector('.subcategory-status');
+                if (statusElement) { 
+                    statusElement.textContent = statusText; 
+                }
             }
-        }
-        
-        // "Alle" Chip Count aktualisieren
-        const allChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
-        if (allChip) {
-            const allCategoryItems = this.allItems.filter(item => this.isItemInCategory(item, 'devices'));
-            const allActiveCount = allCategoryItems.filter(item => {
-                const state = this._hass.states[item.id];
-                return state && this.isEntityActive(state);
-            }).length;
             
-            const statusElement = allChip.querySelector('.subcategory-status');
-            if (statusElement) {
-                statusElement.textContent = `${allActiveCount} Aktiv`;
+            // "Alle" Chip Count aktualisieren für devices
+            const allChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
+            if (allChip) {
+                const allCategoryItems = this.allItems.filter(item => this.isItemInCategory(item, 'devices'));
+                const allActiveCount = allCategoryItems.filter(item => {
+                    const state = this._hass.states[item.id];
+                    return state && this.isEntityActive(state);
+                }).length;
+                
+                const statusElement = allChip.querySelector('.subcategory-status');
+                if (statusElement) {
+                    statusElement.textContent = `${allActiveCount} Aktiv`;
+                }
             }
+        } 
+        // NEUE LOGIK: Für Scripts, Automations, Scenes, Custom
+        else if (['scripts', 'automations', 'scenes', 'custom'].includes(this.activeCategory)) {
+            // Für diese Kategorien: Nur Anzahl anzeigen, kein "Aktiv"-Status
+            const allChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
+            if (allChip) {
+                const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+                const totalCount = categoryItems.length;
+                
+                const statusElement = allChip.querySelector('.subcategory-status');
+                if (statusElement) {
+                    // Für Custom Items: "X Items", für Scripts/etc: "X Verfügbar"
+                    const statusText = this.activeCategory === 'custom' ? `${totalCount} Items` : `${totalCount} Verfügbar`;
+                    statusElement.textContent = statusText;
+                }
+            }
+            
+            // Für Area-basierte Chips bei Scripts/Automations/Scenes/Custom
+            const areaChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"])');
+            areaChips.forEach(chip => {
+                const subcategoryValue = chip.dataset.subcategory;
+                if (subcategoryValue === 'none') return; // "Keine" überspringen
+                
+                const categoryItems = this.allItems.filter(item => 
+                    this.isItemInCategory(item, this.activeCategory) && 
+                    (subcategoryValue === 'all' || item.area === subcategoryValue)
+                );
+                
+                const statusElement = chip.querySelector('.subcategory-status');
+                if (statusElement) {
+                    const count = categoryItems.length;
+                    const statusText = this.activeCategory === 'custom' ? `${count} Items` : `${count} Verfügbar`;
+                    statusElement.textContent = statusText;
+                }
+            });
         }
     }
+    
+    // NEUE HILFSMETHODE: Erweiterte isEntityActive für verschiedene Domains
+    isEntityActiveForCategory(state, domain, category) {
+        if (!state) return false;
+        
+        // Für devices: bestehende Logik
+        if (category === 'devices') {
+            return this.isEntityActive(state);
+        }
+        
+        // Für Scripts, Automations, Scenes: Immer als "verfügbar" zählen, nicht "aktiv"
+        if (['scripts', 'automations', 'scenes'].includes(category)) {
+            return false; // Zeige keine "Aktiv"-Counts für diese
+        }
+        
+        // Für Custom: auch keine "Aktiv"-Counts
+        if (category === 'custom') {
+            return false;
+        }
+        
+        return false;
+    }
+
+
+
+
+
+
+
+
+    
 
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
