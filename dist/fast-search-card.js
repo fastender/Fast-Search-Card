@@ -10737,22 +10737,22 @@ class FastSearchCard extends HTMLElement {
         // TTS Toggle  
         if (ttsBtn) {
             ttsBtn.addEventListener('click', () => {
-                console.log('🗣️ TTS Button geklickt!'); // ← NEU
+                console.log('🗣️ TTS Button geklickt!');
                 
                 const musicContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
                 const isMusicOpen = musicContainer && musicContainer.getAttribute('data-is-open') === 'true';
                 
                 if (isMusicOpen) {
-                    // ... existing code ...
                     setTimeout(() => {
                         this.handleExpandableButton(ttsBtn, mediaContainer, '.device-control-presets.tts-presets');
                         
                         setTimeout(() => {
                             const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
-                            console.log('🔍 TTS Container nach Toggle:', ttsContainer); // ← NEU
-                            console.log('🔍 Visible class:', ttsContainer?.classList.contains('visible')); // ← NEU
+                            console.log('🔍 TTS Container nach Toggle:', ttsContainer);
+                            console.log('🔍 Data is open:', ttsContainer?.getAttribute('data-is-open'));
                             
-                            if (ttsContainer && ttsContainer.classList.contains('visible')) {
+                            // ✅ GEÄNDERT: data-is-open statt visible class
+                            if (ttsContainer && ttsContainer.getAttribute('data-is-open') === 'true') {
                                 this.setupTTSEventListeners(item, ttsContainer);
                             }
                         }, 100);
@@ -10762,10 +10762,11 @@ class FastSearchCard extends HTMLElement {
                     
                     setTimeout(() => {
                         const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
-                        console.log('🔍 TTS Container nach Toggle:', ttsContainer); // ← NEU
-                        console.log('🔍 Visible class:', ttsContainer?.classList.contains('visible')); // ← NEU
+                        console.log('🔍 TTS Container nach Toggle:', ttsContainer);
+                        console.log('🔍 Data is open:', ttsContainer?.getAttribute('data-is-open'));
                         
-                        if (ttsContainer && ttsContainer.classList.contains('visible')) {
+                        // ✅ GEÄNDERT: data-is-open statt visible class  
+                        if (ttsContainer && ttsContainer.getAttribute('data-is-open') === 'true') {
                             this.setupTTSEventListeners(item, ttsContainer);
                         }
                     }, 100);
