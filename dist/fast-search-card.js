@@ -10839,6 +10839,102 @@ class FastSearchCard extends HTMLElement {
             this.updateTTSButtonState('error');
         }
     }    
+
+    updateTTSButtonState(state) {
+        // Finde den aktuell aktiven TTS Button
+        const activeTTSContainer = this.shadowRoot?.querySelector('.device-control-presets.tts-presets.visible') ||
+                                  document.querySelector('.device-control-presets.tts-presets.visible');
+        
+        if (!activeTTSContainer) return;
+        
+        const speakBtn = activeTTSContainer.querySelector('.tts-speak-btn');
+        const btnIcon = speakBtn?.querySelector('.tts-btn-icon');
+        const btnText = speakBtn?.querySelector('.tts-btn-text');
+        
+        if (!speakBtn || !btnIcon || !btnText) return;
+        
+        switch (state) {
+            case 'speaking':
+                speakBtn.disabled = true;
+                speakBtn.style.background = '#4CAF50'; // Grün
+                btnIcon.textContent = '🔊';
+                btnText.textContent = 'Spreche...';
+                
+                // Auto-Reset nach geschätzter Zeit (150 Wörter/min)
+                const textarea = activeTTSContainer.querySelector('.tts-textarea');
+                if (textarea) {
+                    const wordCount = textarea.value.trim().split(/\s+/).length;
+                    const estimatedDuration = Math.max(3000, (wordCount / 150) * 60 * 1000); // Min 3 Sekunden
+                    
+                    setTimeout(() => {
+                        this.updateTTSButtonState('ready');
+                    }, estimatedDuration);
+                }
+                break;
+                
+            case 'error':
+                speakBtn.disabled = false;
+                speakBtn.style.background = '#f44336'; // Rot
+                btnIcon.textContent = '❌';
+                btnText.textContent = 'Fehler - Erneut versuchen';
+                
+                // Reset nach 3 Sekunden
+                setTimeout(() => {
+                    this.updateTTSButtonState('ready');
+                }, 3000);
+                break;
+                
+            case 'ready':
+            default:
+                speakBtn.disabled = false;
+                speakBtn.style.background = 'var(--accent)'; // Standard Blau
+                btnIcon.textContent = '▶️';
+                btnText.textContent = 'Sprechen';
+                break;
+        }
+    }    
+
+    setupTTSEventListeners(item, container) {
+        const textarea = container.querySelector('.tts-textarea');
+        const speakBtn = container.querySelector('.tts-speak-btn');
+        const counter = container.querySelector('.tts-counter');
+        
+        if (!textarea || !speakBtn || !counter) {
+            console.warn('⚠️ TTS elements not found in container');
+            return;
+        }
+        
+        // Verhindere doppelte Event Listener
+        if (container.dataset.ttsListenersAttached === 'true') return;
+        container.dataset.ttsListenersAttached = 'true';
+        
+        // Zeichenzähler Update
+        textarea.addEventListener('input', () => {
+            const length = textarea.value.length;
+            counter.textContent = `${length}/300`;
+            
+            // Warnung bei >250 Zeichen
+            if (length > 250) {
+                counter.classList.add('warning');
+            } else {
+                counter.classList.remove('warning');
+            }
+            
+            // Button aktivieren/deaktivieren
+            speakBtn.disabled = length === 0;
+        });
+        
+        // Sprechen Button
+        speakBtn.addEventListener('click', () => {
+            const text = textarea.value.trim();
+            if (text && !speakBtn.disabled) {
+                this.speakTTS(text, item.id);
+            }
+        });
+        
+        console.log('✅ TTS Event Listeners attached for', item.id);
+    }
+    
     
     getMediaPlayerControlsHTML(item) {
         const state = this._hass.states[item.id];
@@ -10894,7 +10990,7 @@ class FastSearchCard extends HTMLElement {
                 </div>
 
                 <div class="device-control-presets tts-presets" data-is-open="false">
-                    TTS coming soon
+                    ${this.getTTSHTML()}
                 </div>
                 </div>
                 
