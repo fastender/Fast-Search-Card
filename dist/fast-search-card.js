@@ -10737,45 +10737,38 @@ class FastSearchCard extends HTMLElement {
         // TTS Toggle  
         if (ttsBtn) {
             ttsBtn.addEventListener('click', () => {
+                console.log('🗣️ TTS Button geklickt!'); // ← NEU
+                
                 const musicContainer = mediaContainer.querySelector('.device-control-presets.music-assistant-presets');
                 const isMusicOpen = musicContainer && musicContainer.getAttribute('data-is-open') === 'true';
                 
                 if (isMusicOpen) {
-                    // Schließe Music Assistant erst
-                    this.handleExpandableButton(musicAssistantBtn, mediaContainer, '.device-control-presets.music-assistant-presets');
-                    
-                    // Warte bis Animation fertig, dann öffne TTS
+                    // ... existing code ...
                     setTimeout(() => {
-                        this.handleExpandableButton(
-                            ttsBtn,
-                            mediaContainer,
-                            '.device-control-presets.tts-presets'
-                        );
-
-                        // ✅ NEU: Setup TTS Event Listeners nach dem Öffnen
+                        this.handleExpandableButton(ttsBtn, mediaContainer, '.device-control-presets.tts-presets');
+                        
                         setTimeout(() => {
                             const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
+                            console.log('🔍 TTS Container nach Toggle:', ttsContainer); // ← NEU
+                            console.log('🔍 Visible class:', ttsContainer?.classList.contains('visible')); // ← NEU
+                            
                             if (ttsContainer && ttsContainer.classList.contains('visible')) {
                                 this.setupTTSEventListeners(item, ttsContainer);
                             }
                         }, 100);
-                        
-                    }, 400); // Warte auf Schließ-Animation
+                    }, 400);
                 } else {
-                    // Öffne TTS direkt (kein Music Assistant offen)
-                    this.handleExpandableButton(
-                        ttsBtn,
-                        mediaContainer,
-                        '.device-control-presets.tts-presets'
-                    );
-
-                    // ✅ NEU: Setup TTS Event Listeners nach dem Öffnen
+                    this.handleExpandableButton(ttsBtn, mediaContainer, '.device-control-presets.tts-presets');
+                    
                     setTimeout(() => {
                         const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
+                        console.log('🔍 TTS Container nach Toggle:', ttsContainer); // ← NEU
+                        console.log('🔍 Visible class:', ttsContainer?.classList.contains('visible')); // ← NEU
+                        
                         if (ttsContainer && ttsContainer.classList.contains('visible')) {
                             this.setupTTSEventListeners(item, ttsContainer);
                         }
-                    }, 100);                    
+                    }, 100);
                 }
             });
         }
