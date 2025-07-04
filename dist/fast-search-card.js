@@ -12910,8 +12910,9 @@ class FastSearchCard extends HTMLElement {
         return stats;
     }
 
-    getBackgroundImageForItem(item) {
+     getBackgroundImageForItem(item) {
         const baseUrl = 'https://raw.githubusercontent.com/fastender/Fast-Search-Card/refs/heads/main/docs/';
+        
         switch (item.domain) {
             case 'light':
                 return baseUrl + (item.state === 'on' ? 'light-on.png' : 'light-off.png');
@@ -12921,10 +12922,17 @@ class FastSearchCard extends HTMLElement {
                 return baseUrl + (item.state !== 'off' ? 'climate-on.png' : 'climate-off.png');
             case 'media_player':
                 return baseUrl + 'media-bg.png';
+            // NEU: Hinzugefügte Domains
+            case 'automation':
+                return baseUrl + 'automation.png';
+            case 'scene':
+                return baseUrl + 'scene.png';
+            case 'script':
+                return baseUrl + 'script.png';
             default:
                 return baseUrl + 'light-off.png';
         }
-    }
+    }   
     
     getAlbumArtUrl(item) {
         if (!this._hass || !item.id) return null;
