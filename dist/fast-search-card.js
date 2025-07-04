@@ -4462,20 +4462,20 @@ class FastSearchCard extends HTMLElement {
                 break;
             case 'categories':
                 this.subcategoryMode = 'categories';
-                this.updateSubcategoryChips();
                 this.activeSubcategory = 'all';
+                this.updateSubcategoryChips();                
                 this.showCurrentCategoryItems(); 
                 break;
             case 'areas':
                 this.subcategoryMode = 'areas';
-                this.updateSubcategoryChips();
                 this.activeSubcategory = 'all';
+                this.updateSubcategoryChips();
                 this.showCurrentCategoryItems(); 
                 break;
             case 'types':
                 this.subcategoryMode = 'types';
-                this.updateSubcategoryChips();
                 this.activeSubcategory = 'all';
+                this.updateSubcategoryChips();
                 this.showCurrentCategoryItems(); 
                 break;
         }
