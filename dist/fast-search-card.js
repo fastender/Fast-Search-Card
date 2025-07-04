@@ -6465,7 +6465,7 @@ class FastSearchCard extends HTMLElement {
 
     isItemInCategory(item, category) {
         switch (category) {
-            case 'devices': return !['script', 'automation', 'scene'].includes(item.domain);
+            case 'devices': return !['script', 'automation', 'scene', 'custom'].includes(item.domain);                
             case 'scripts': return item.domain === 'script';
             case 'automations': return item.domain === 'automation';
             case 'scenes': return item.domain === 'scene';
