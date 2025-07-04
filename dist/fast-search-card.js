@@ -4346,6 +4346,7 @@ class FastSearchCard extends HTMLElement {
         this.updatePlaceholder();
         this.updateSubcategoryToggleIcon();
         this.updateSubcategoryChips();
+        this.updateSubcategoryCounts();
         this.hideCategoryButtons();
         // Hinzufügen:
         this.updateTypeButtonVisibility();
@@ -4629,10 +4630,7 @@ class FastSearchCard extends HTMLElement {
         this.rebuildSearchIndex();      
         this.showCurrentCategoryItems();
 
-        // NACH this.showCurrentCategoryItems(); hinzufügen:
-        setTimeout(() => {
-            this.updateSubcategoryCounts();
-        }, 100);
+        this.updateSubcategoryCounts();
         
         console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered, ${this.allItems.filter(i => i.domain === 'custom').length} custom)`);
     }
@@ -6763,6 +6761,7 @@ class FastSearchCard extends HTMLElement {
         
         this.updateSubcategoryToggleIcon();
         this.updateSubcategoryChips();
+        this.updateSubcategoryCounts();
         this.activeSubcategory = 'all'; // Reset selection
         this.renderResults();
         
@@ -6811,7 +6810,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${cat}</span>
-                            <span class="subcategory-status">Lädt...</span>
+                            <span class="subcategory-status">0 Items</span>
                         </div>
                     </div>
                 `;
@@ -6836,7 +6835,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${area}</span>
-                            <span class="subcategory-status">Lädt...</span>
+                            <span class="subcategory-status">0 Items</span>
                         </div>
                     </div>
                 `;
@@ -6870,7 +6869,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${displayName}</span>
-                            <span class="subcategory-status">Lädt...</span>
+                            <span class="subcategory-status">0 Items</span>
                         </div>
                     </div>
                 `;
@@ -6895,7 +6894,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                     <div class="chip-content">
                         <span class="subcategory-name">${area}</span>
-                        <span class="subcategory-status">Lädt...</span>
+                        <span class="subcategory-status">0 Items</span>
                     </div>
                 </div>
             `;
@@ -6953,7 +6952,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategory}">
                     <div class="chip-content">
                         <span class="subcategory-name">${label}</span>
-                        <span class="subcategory-status">Lädt...</span>
+                        <span class="subcategory-status">0 Items</span>
                     </div>
                 </div>
             `;
