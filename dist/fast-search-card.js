@@ -4094,12 +4094,6 @@ class FastSearchCard extends HTMLElement {
                                         <span class="subcategory-status"></span>
                                     </div>
                                 </div>
-                                <div class="subcategory-chip" data-subcategory="none">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Keine</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
-                                </div>
                             </div>
                             <div class="results-grid">
                             </div>
@@ -5828,53 +5822,37 @@ class FastSearchCard extends HTMLElement {
             const domainMap = { 
                 'lights': ['light', 'switch'], 
                 'climate': ['climate', 'fan'], 
-                'covers': ['cover'], 
-                'media': ['media_player'] 
+                'covers': ['cover'],
+                'media': ['media_player']
             };
             
-            // Subcategory-spezifische Counts
-            for (const subcategory in domainMap) {
+            Object.entries(domainMap).forEach(([subcategory, domains]) => {
                 const chip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="${subcategory}"]`);
-                if (!chip) continue;
+                if (!chip) return;
                 
-                const domains = domainMap[subcategory];
-                const subcategoryItems = currentCategoryItems.filter(item => domains.includes(item.domain));
-                
-                const activeCount = subcategoryItems.filter(item => {
-                    const state = this._hass.states[item.id];
-                    return state && this.isEntityActive(state);
+                const activeCount = currentCategoryItems.filter(item => {
+                    if (!domains.includes(item.domain)) return false;
+                    const state = this._hass.states[item.entity_id];
+                    return state && this.isDeviceActive(state, item.domain);
                 }).length;
                 
+                const totalCount = currentCategoryItems.filter(item => domains.includes(item.domain)).length;
                 const statusText = this.getSubcategoryStatusText(subcategory, activeCount);
+                
                 const statusElement = chip.querySelector('.subcategory-status');
-                if (statusElement) { 
-                    statusElement.textContent = statusText; 
+                if (statusElement) {
+                    statusElement.textContent = activeCount > 0 ? statusText : 
+                        totalCount > 0 ? `${totalCount} Items` : `${totalCount} Verfügbar`;
                 }
-            }
+            });
             
             // "Alle" Chip für devices
-            const allChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
-            if (allChip) {
-                const allActiveCount = currentCategoryItems.filter(item => {
-                    const state = this._hass.states[item.id];
-                    return state && this.isEntityActive(state);
-                }).length;
-                
-                const statusElement = allChip.querySelector('.subcategory-status');
-                if (statusElement) {
-                    statusElement.textContent = `${allActiveCount} Aktiv`;
-                }
-            }
-        } 
-        // Für Scripts, Automations, Scenes, Custom
-        else if (['scripts', 'automations', 'scenes', 'custom'].includes(this.activeCategory)) {
-            // "Alle" Chip Count
-            const allChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
+            const allChip = this.shadowRoot.querySelector('.subcategory-chip[data-subcategory="all"]');
             if (allChip) {
                 const totalCount = currentCategoryItems.length;
                 const statusElement = allChip.querySelector('.subcategory-status');
                 if (statusElement) {
-                    const statusText = this.activeCategory === 'custom' ? `${totalCount} Items` : `${totalCount} Verfügbar`;
+                    const statusText = totalCount > 0 ? `${totalCount} Items` : `${totalCount} Verfügbar`;
                     statusElement.textContent = statusText;
                 }
             }
@@ -5882,8 +5860,8 @@ class FastSearchCard extends HTMLElement {
             // Spezielle Behandlung für Custom Items je nach subcategoryMode
             if (this.activeCategory === 'custom') {
                 if (this.subcategoryMode === 'categories') {
-                    // Category-basierte Chips für Custom
-                    const categoryChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"]):not([data-subcategory="none"])');
+                    // Category-basierte Chips für Custom - KEINE "none" Referenz mehr
+                    const categoryChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"])');
                     categoryChips.forEach(chip => {
                         const subcategoryValue = chip.dataset.subcategory;
                         const filteredItems = currentCategoryItems.filter(item => 
@@ -5896,8 +5874,8 @@ class FastSearchCard extends HTMLElement {
                         }
                     });
                 } else if (this.subcategoryMode === 'types') {
-                    // Type-basierte Chips für Custom
-                    const typeChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"]):not([data-subcategory="none"])');
+                    // Type-basierte Chips für Custom - KEINE "none" Referenz mehr
+                    const typeChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"])');
                     typeChips.forEach(chip => {
                         const subcategoryValue = chip.dataset.subcategory;
                         const filteredItems = currentCategoryItems.filter(item => 
@@ -5910,8 +5888,8 @@ class FastSearchCard extends HTMLElement {
                         }
                     });
                 } else if (this.subcategoryMode === 'areas') {
-                    // Area-basierte Chips (dein bestehender Code)
-                    const areaChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"]):not([data-subcategory="none"])');
+                    // Area-basierte Chips - KEINE "none" Referenz mehr
+                    const areaChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"])');
                     areaChips.forEach(chip => {
                         const subcategoryValue = chip.dataset.subcategory;
                         const filteredItems = currentCategoryItems.filter(item => 
@@ -5925,8 +5903,8 @@ class FastSearchCard extends HTMLElement {
                     });
                 }
             } else {
-                // Für Scripts, Automations, Scenes: nur Area-Chips
-                const areaChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"]):not([data-subcategory="none"])');
+                // Für Scripts, Automations, Scenes: nur Area-Chips - KEINE "none" Referenz mehr
+                const areaChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"])');
                 areaChips.forEach(chip => {
                     const subcategoryValue = chip.dataset.subcategory;
                     const filteredItems = currentCategoryItems.filter(item => 
@@ -5935,12 +5913,13 @@ class FastSearchCard extends HTMLElement {
                     
                     const statusElement = chip.querySelector('.subcategory-status');
                     if (statusElement) {
-                        statusElement.textContent = `${filteredItems.length} Verfügbar`;
+                        statusElement.textContent = `${filteredItems.length} Items`;
                     }
                 });
             }
         }
     }
+
     
     // NEUE HILFSMETHODE: Erweiterte isEntityActive für verschiedene Domains
     isEntityActiveForCategory(state, domain, category) {
@@ -6819,14 +6798,14 @@ class FastSearchCard extends HTMLElement {
                 if (category) categories.add(category);
             });
             
-            const chipsHTML = ['Alle', ...Array.from(categories).sort(), 'Keine'].map(cat => {
+            // KEINE "Keine" mehr hinzugefügt
+            const chipsHTML = ['Alle', ...Array.from(categories).sort()].map(cat => {
                 const isActive = (cat === 'Alle' && this.activeSubcategory === 'all') || 
                                 (cat === this.activeSubcategory);
                 
                 let count = 0; // Placeholder - wird später aktualisiert
                 
-                const subcategoryValue = cat === 'Alle' ? 'all' : 
-                                       cat === 'Keine' ? 'none' : cat;
+                const subcategoryValue = cat === 'Alle' ? 'all' : cat;
                 
                 return `
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
@@ -6844,14 +6823,14 @@ class FastSearchCard extends HTMLElement {
             // Custom Areas (nur aus Custom Items)
             const areas = new Set(customItems.map(item => item.area).filter(Boolean));
             
-            const chipsHTML = ['Alle Räume', ...Array.from(areas).sort(), 'Keine'].map(area => {
+            // KEINE "Keine" mehr hinzugefügt
+            const chipsHTML = ['Alle Räume', ...Array.from(areas).sort()].map(area => {
                 const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
                                 (area === this.activeSubcategory);
                 
                 let count = 0; // Placeholder - wird später aktualisiert
                 
-                const subcategoryValue = area === 'Alle Räume' ? 'all' : 
-                                       area === 'Keine' ? 'none' : area;
+                const subcategoryValue = area === 'Alle Räume' ? 'all' : area;
                 
                 return `
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
@@ -6876,17 +6855,16 @@ class FastSearchCard extends HTMLElement {
                 'sensor': 'Sensor'
             };
             
-            const chipsHTML = ['Alle', ...Array.from(types).sort(), 'Keine'].map(type => {
+            // KEINE "Keine" mehr hinzugefügt
+            const chipsHTML = ['Alle', ...Array.from(types).sort()].map(type => {
                 const isActive = (type === 'Alle' && this.activeSubcategory === 'all') || 
                                 (type === this.activeSubcategory);
                 
                 let count = 0; // Placeholder - wird später aktualisiert
                 
-                const displayName = type === 'Alle' || type === 'Keine' ? type : 
-                                   (typeLabels[type] || type);
+                const displayName = type === 'Alle' ? type : (typeLabels[type] || type);
                 
-                const subcategoryValue = type === 'Alle' ? 'all' : 
-                                       type === 'Keine' ? 'none' : type;
+                const subcategoryValue = type === 'Alle' ? 'all' : type;
                 
                 return `
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
@@ -6900,19 +6878,18 @@ class FastSearchCard extends HTMLElement {
             
             container.innerHTML = chipsHTML;
         }
-    }    
+    }
     
     renderAreaChips(container) {
-        // Get all unique areas from items
-        const areas = ['Alle Räume', ...new Set(this.allItems.map(item => item.area).filter(Boolean)), 'Keine'];
+        // Get all unique areas from items - KEINE "Keine" mehr
+        const areas = ['Alle Räume', ...new Set(this.allItems.map(item => item.area).filter(Boolean))];
         
         const chipsHTML = areas.map(area => {
             const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
                             (area === this.activeSubcategory);
             const deviceCount = 0; // Placeholder - wird später aktualisiert
             
-            const subcategoryValue = area === 'Alle Räume' ? 'all' : 
-                                   area === 'Keine' ? 'none' : area;
+            const subcategoryValue = area === 'Alle Räume' ? 'all' : area;
             
             return `
                 <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
