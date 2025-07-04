@@ -4094,6 +4094,12 @@ class FastSearchCard extends HTMLElement {
                                         <span class="subcategory-status"></span>
                                     </div>
                                 </div>
+                                <div class="subcategory-chip" data-subcategory="none">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Keine</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
                             </div>
                             <div class="results-grid">
                             </div>
@@ -4628,7 +4634,7 @@ class FastSearchCard extends HTMLElement {
         
         this.rebuildSearchIndex();      
         this.showCurrentCategoryItems();
-
+        this.updateSubcategoryCounts();
         
         console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered, ${this.allItems.filter(i => i.domain === 'custom').length} custom)`);
     }
@@ -5810,143 +5816,51 @@ class FastSearchCard extends HTMLElement {
     updateSubcategoryCounts() {
         if (!this._hass || !this.allItems) return;
         
-        // WICHTIG: Nur Items der aktuellen Kategorie verwenden
-        const currentCategoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+        // Domain-zu-Subcategory Mapping (gleich wie in renderCategoryChips)
+        const domainMap = { 
+            'lights': ['light', 'switch'], 
+            'climate': ['climate', 'fan'], 
+            'covers': ['cover'], 
+            'media': ['media_player'] 
+        };
         
-        // NUR für "devices" Kategorie die bisherige Logik anwenden
-        if (this.activeCategory === 'devices') {
-            const domainMap = { 
-                'lights': ['light', 'switch'], 
-                'climate': ['climate', 'fan'], 
-                'covers': ['cover'],
-                'media': ['media_player']
-            };
+        // Nur für verfügbare Subcategories Counts berechnen
+        for (const subcategory in domainMap) {
+            const chip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="${subcategory}"]`);
+            if (!chip) continue; // Skip wenn Chip nicht existiert (weil Domain nicht verfügbar)
             
-            Object.entries(domainMap).forEach(([subcategory, domains]) => {
-                const chip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="${subcategory}"]`);
-                if (!chip) return;
-                
-                const activeCount = currentCategoryItems.filter(item => {
-                    if (!domains.includes(item.domain)) return false;
-                    const state = this._hass.states[item.entity_id];
-                    return state && this.isDeviceActive(state, item.domain);
-                }).length;
-                
-                const totalCount = currentCategoryItems.filter(item => domains.includes(item.domain)).length;
-                const statusText = this.getSubcategoryStatusText(subcategory, activeCount);
-                
-                const statusElement = chip.querySelector('.subcategory-status');
-                if (statusElement) {
-                    statusElement.textContent = activeCount > 0 ? statusText : 
-                        totalCount > 0 ? `${totalCount} Items` : `${totalCount} Verfügbar`;
-                }
-            });
+            const domains = domainMap[subcategory];
+            const categoryItems = this.allItems.filter(item => 
+                this.isItemInCategory(item, 'devices') && domains.includes(item.domain)
+            );
             
-            // "Alle" Chip für devices
-            const allChip = this.shadowRoot.querySelector('.subcategory-chip[data-subcategory="all"]');
-            if (allChip) {
-                const totalCount = currentCategoryItems.length;
-                const statusElement = allChip.querySelector('.subcategory-status');
-                if (statusElement) {
-                    const statusText = totalCount > 0 ? `${totalCount} Items` : `${totalCount} Verfügbar`;
-                    statusElement.textContent = statusText;
-                }
+            const activeCount = categoryItems.filter(item => {
+                const state = this._hass.states[item.id];
+                return state && this.isEntityActive(state);
+            }).length;
+            
+            const statusText = this.getSubcategoryStatusText(subcategory, activeCount);
+            const statusElement = chip.querySelector('.subcategory-status');
+            if (statusElement) { 
+                statusElement.textContent = statusText; 
             }
+        }
+        
+        // "Alle" Chip Count aktualisieren
+        const allChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
+        if (allChip) {
+            const allCategoryItems = this.allItems.filter(item => this.isItemInCategory(item, 'devices'));
+            const allActiveCount = allCategoryItems.filter(item => {
+                const state = this._hass.states[item.id];
+                return state && this.isEntityActive(state);
+            }).length;
             
-            // Spezielle Behandlung für Custom Items je nach subcategoryMode
-            if (this.activeCategory === 'custom') {
-                if (this.subcategoryMode === 'categories') {
-                    // Category-basierte Chips für Custom - KEINE "none" Referenz mehr
-                    const categoryChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"])');
-                    categoryChips.forEach(chip => {
-                        const subcategoryValue = chip.dataset.subcategory;
-                        const filteredItems = currentCategoryItems.filter(item => 
-                            item.custom_data?.metadata?.category === subcategoryValue
-                        );
-                        
-                        const statusElement = chip.querySelector('.subcategory-status');
-                        if (statusElement) {
-                            statusElement.textContent = `${filteredItems.length} Items`;
-                        }
-                    });
-                } else if (this.subcategoryMode === 'types') {
-                    // Type-basierte Chips für Custom - KEINE "none" Referenz mehr
-                    const typeChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"])');
-                    typeChips.forEach(chip => {
-                        const subcategoryValue = chip.dataset.subcategory;
-                        const filteredItems = currentCategoryItems.filter(item => 
-                            item.custom_data?.type === subcategoryValue
-                        );
-                        
-                        const statusElement = chip.querySelector('.subcategory-status');
-                        if (statusElement) {
-                            statusElement.textContent = `${filteredItems.length} Items`;
-                        }
-                    });
-                } else if (this.subcategoryMode === 'areas') {
-                    // Area-basierte Chips - KEINE "none" Referenz mehr
-                    const areaChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"])');
-                    areaChips.forEach(chip => {
-                        const subcategoryValue = chip.dataset.subcategory;
-                        const filteredItems = currentCategoryItems.filter(item => 
-                            item.area === subcategoryValue
-                        );
-                        
-                        const statusElement = chip.querySelector('.subcategory-status');
-                        if (statusElement) {
-                            statusElement.textContent = `${filteredItems.length} Items`;
-                        }
-                    });
-                }
-            } else {
-                // Für Scripts, Automations, Scenes: nur Area-Chips - KEINE "none" Referenz mehr
-                const areaChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"])');
-                areaChips.forEach(chip => {
-                    const subcategoryValue = chip.dataset.subcategory;
-                    const filteredItems = currentCategoryItems.filter(item => 
-                        item.area === subcategoryValue
-                    );
-                    
-                    const statusElement = chip.querySelector('.subcategory-status');
-                    if (statusElement) {
-                        statusElement.textContent = `${filteredItems.length} Items`;
-                    }
-                });
+            const statusElement = allChip.querySelector('.subcategory-status');
+            if (statusElement) {
+                statusElement.textContent = `${allActiveCount} Aktiv`;
             }
         }
     }
-
-    
-    // NEUE HILFSMETHODE: Erweiterte isEntityActive für verschiedene Domains
-    isEntityActiveForCategory(state, domain, category) {
-        if (!state) return false;
-        
-        // Für devices: bestehende Logik
-        if (category === 'devices') {
-            return this.isEntityActive(state);
-        }
-        
-        // Für Scripts, Automations, Scenes: Immer als "verfügbar" zählen, nicht "aktiv"
-        if (['scripts', 'automations', 'scenes'].includes(category)) {
-            return false; // Zeige keine "Aktiv"-Counts für diese
-        }
-        
-        // Für Custom: auch keine "Aktiv"-Counts
-        if (category === 'custom') {
-            return false;
-        }
-        
-        return false;
-    }
-
-
-
-
-
-
-
-
-    
 
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
@@ -6781,9 +6695,6 @@ class FastSearchCard extends HTMLElement {
         } else {
             this.renderCategoryChips(subcategoriesContainer);
         }
-        
-        // SOFORT nach dem Rendering die Counts aktualisieren
-        this.updateSubcategoryCounts();
     }
 
     renderCustomSubcategoryChips(container) {
@@ -6797,20 +6708,27 @@ class FastSearchCard extends HTMLElement {
                 if (category) categories.add(category);
             });
             
-            // KEINE "Keine" mehr hinzugefügt
-            const chipsHTML = ['Alle', ...Array.from(categories).sort()].map(cat => {
+            const chipsHTML = ['Alle', ...Array.from(categories).sort(), 'Keine'].map(cat => {
                 const isActive = (cat === 'Alle' && this.activeSubcategory === 'all') || 
                                 (cat === this.activeSubcategory);
                 
-                let count = 0; // Placeholder - wird später aktualisiert
+                let count;
+                if (cat === 'Alle') {
+                    count = customItems.length;
+                } else if (cat === 'Keine') {
+                    count = customItems.filter(item => !item.custom_data?.metadata?.category).length;
+                } else {
+                    count = customItems.filter(item => item.custom_data?.metadata?.category === cat).length;
+                }
                 
-                const subcategoryValue = cat === 'Alle' ? 'all' : cat;
+                const subcategoryValue = cat === 'Alle' ? 'all' : 
+                                       cat === 'Keine' ? 'none' : cat;
                 
                 return `
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${cat}</span>
-                            <span class="subcategory-status">0 Items</span>
+                            <span class="subcategory-status">${count} Items</span>
                         </div>
                     </div>
                 `;
@@ -6822,20 +6740,27 @@ class FastSearchCard extends HTMLElement {
             // Custom Areas (nur aus Custom Items)
             const areas = new Set(customItems.map(item => item.area).filter(Boolean));
             
-            // KEINE "Keine" mehr hinzugefügt
-            const chipsHTML = ['Alle Räume', ...Array.from(areas).sort()].map(area => {
+            const chipsHTML = ['Alle Räume', ...Array.from(areas).sort(), 'Keine'].map(area => {
                 const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
                                 (area === this.activeSubcategory);
                 
-                let count = 0; // Placeholder - wird später aktualisiert
+                let count;
+                if (area === 'Alle Räume') {
+                    count = customItems.length;
+                } else if (area === 'Keine') {
+                    count = customItems.filter(item => !item.area).length;
+                } else {
+                    count = customItems.filter(item => item.area === area).length;
+                }
                 
-                const subcategoryValue = area === 'Alle Räume' ? 'all' : area;
+                const subcategoryValue = area === 'Alle Räume' ? 'all' : 
+                                       area === 'Keine' ? 'none' : area;
                 
                 return `
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${area}</span>
-                            <span class="subcategory-status">0 Items</span>
+                            <span class="subcategory-status">${count} Items</span>
                         </div>
                     </div>
                 `;
@@ -6854,22 +6779,30 @@ class FastSearchCard extends HTMLElement {
                 'sensor': 'Sensor'
             };
             
-            // KEINE "Keine" mehr hinzugefügt
-            const chipsHTML = ['Alle', ...Array.from(types).sort()].map(type => {
+            const chipsHTML = ['Alle', ...Array.from(types).sort(), 'Keine'].map(type => {
                 const isActive = (type === 'Alle' && this.activeSubcategory === 'all') || 
                                 (type === this.activeSubcategory);
                 
-                let count = 0; // Placeholder - wird später aktualisiert
+                let count;
+                if (type === 'Alle') {
+                    count = customItems.length;
+                } else if (type === 'Keine') {
+                    count = customItems.filter(item => !item.custom_data?.type).length;
+                } else {
+                    count = customItems.filter(item => item.custom_data?.type === type).length;
+                }
                 
-                const displayName = type === 'Alle' ? type : (typeLabels[type] || type);
+                const displayName = type === 'Alle' || type === 'Keine' ? type : 
+                                   (typeLabels[type] || type);
                 
-                const subcategoryValue = type === 'Alle' ? 'all' : type;
+                const subcategoryValue = type === 'Alle' ? 'all' : 
+                                       type === 'Keine' ? 'none' : type;
                 
                 return `
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${displayName}</span>
-                            <span class="subcategory-status">0 Items</span>
+                            <span class="subcategory-status">${count} Items</span>
                         </div>
                     </div>
                 `;
@@ -6877,24 +6810,27 @@ class FastSearchCard extends HTMLElement {
             
             container.innerHTML = chipsHTML;
         }
-    }
+    }    
     
     renderAreaChips(container) {
-        // Get all unique areas from items - KEINE "Keine" mehr
-        const areas = ['Alle Räume', ...new Set(this.allItems.map(item => item.area).filter(Boolean))];
+        // Get all unique areas from items
+        const areas = ['Alle Räume', ...new Set(this.allItems.map(item => item.area).filter(Boolean)), 'Keine'];
         
         const chipsHTML = areas.map(area => {
             const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
                             (area === this.activeSubcategory);
-            const deviceCount = 0; // Placeholder - wird später aktualisiert
+            const deviceCount = area === 'Alle Räume' ? this.allItems.length : 
+                              area === 'Keine' ? 0 :
+                              this.allItems.filter(item => item.area === area).length;
             
-            const subcategoryValue = area === 'Alle Räume' ? 'all' : area;
+            const subcategoryValue = area === 'Alle Räume' ? 'all' : 
+                                   area === 'Keine' ? 'none' : area;
             
             return `
                 <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                     <div class="chip-content">
                         <span class="subcategory-name">${area}</span>
-                        <span class="subcategory-status">0 Items</span>
+                        <span class="subcategory-status">${deviceCount} Geräte</span>
                     </div>
                 </div>
             `;
@@ -6952,7 +6888,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategory}">
                     <div class="chip-content">
                         <span class="subcategory-name">${label}</span>
-                        <span class="subcategory-status">0 Items</span>
+                        <span class="subcategory-status"></span>
                     </div>
                 </div>
             `;
@@ -6960,6 +6896,8 @@ class FastSearchCard extends HTMLElement {
         
         container.innerHTML = chipsHTML;
         
+        // Update die Counts für die verfügbaren Subcategories
+        this.updateSubcategoryCounts();
     }
 
     createDeviceListItem(item) {
