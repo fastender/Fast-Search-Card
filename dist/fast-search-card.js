@@ -10811,28 +10811,22 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    // ✅ NEU: TTS Service Call Function
     speakTTS(text, entityId) {
         console.log(`🗣️ Speaking via Amazon Polly: "${text}" on ${entityId}`);
         
         try {
             this._hass.callService('tts', 'amazon_polly_say', {
                 entity_id: entityId,
-                message: text,
-                options: {
-                    voice: 'Marlene',
-                    language: 'de-DE'
-                }
+                message: text
             });
             
-            // Button Status Update
             this.updateTTSButtonState('speaking');
             
         } catch (error) {
             console.error('❌ TTS Amazon Polly failed:', error);
             this.updateTTSButtonState('error');
         }
-    }    
+    }
 
     updateTTSButtonState(state) {
         // Finde den aktuell aktiven TTS Button
