@@ -868,6 +868,13 @@ class FastSearchCard extends HTMLElement {
                 padding-right: 20px; 
             }
 
+            @media (max-width: 500px) {
+                .results-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                    gap: 10px;
+                }
+            }            
+
             .area-header {
                 grid-column: 1 / -1;
                 font-size: 16px;
@@ -1776,19 +1783,6 @@ class FastSearchCard extends HTMLElement {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
                 gap: 16px;
-            }
-
-            /* Für sehr schmale Bildschirme */
-            @media (max-width: 500px) {
-                .ma-grid-container {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 12px;
-                }
-                
-                .ma-grid-image {
-                    width: 60px; 
-                    height: 60px;
-                }
             }
             
             .ma-grid-item {
