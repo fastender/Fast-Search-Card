@@ -4346,7 +4346,6 @@ class FastSearchCard extends HTMLElement {
         this.updatePlaceholder();
         this.updateSubcategoryToggleIcon();
         this.updateSubcategoryChips();
-        this.updateSubcategoryCounts();
         this.hideCategoryButtons();
         // Hinzufügen:
         this.updateTypeButtonVisibility();
@@ -4630,7 +4629,6 @@ class FastSearchCard extends HTMLElement {
         this.rebuildSearchIndex();      
         this.showCurrentCategoryItems();
 
-        this.updateSubcategoryCounts();
         
         console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered, ${this.allItems.filter(i => i.domain === 'custom').length} custom)`);
     }
@@ -6761,7 +6759,6 @@ class FastSearchCard extends HTMLElement {
         
         this.updateSubcategoryToggleIcon();
         this.updateSubcategoryChips();
-        this.updateSubcategoryCounts();
         this.activeSubcategory = 'all'; // Reset selection
         this.renderResults();
         
@@ -6784,6 +6781,9 @@ class FastSearchCard extends HTMLElement {
         } else {
             this.renderCategoryChips(subcategoriesContainer);
         }
+        
+        // SOFORT nach dem Rendering die Counts aktualisieren
+        this.updateSubcategoryCounts();
     }
 
     renderCustomSubcategoryChips(container) {
