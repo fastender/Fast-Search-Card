@@ -1777,6 +1777,15 @@ class FastSearchCard extends HTMLElement {
                 grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
                 gap: 16px;
             }
+
+            /* Für sehr schmale Bildschirme */
+            @media (max-width: 500px) {
+                .ma-grid-container {
+                    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                    gap: 12px;
+                }
+            }      
+            
             .ma-grid-item {
                 display: flex;
                 flex-direction: column;
