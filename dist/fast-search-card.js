@@ -10830,8 +10830,8 @@ class FastSearchCard extends HTMLElement {
 
     updateTTSButtonState(state) {
         // Finde den aktuell aktiven TTS Button
-        const activeTTSContainer = this.shadowRoot?.querySelector('.device-control-presets.tts-presets.visible') ||
-                                  document.querySelector('.device-control-presets.tts-presets.visible');
+        const activeTTSContainer = this.shadowRoot?.querySelector('.device-control-presets.tts-presets[data-is-open="true"]') ||
+                                  document.querySelector('.device-control-presets.tts-presets[data-is-open="true"]');
         
         if (!activeTTSContainer) return;
         
@@ -10856,6 +10856,15 @@ class FastSearchCard extends HTMLElement {
                     
                     setTimeout(() => {
                         this.updateTTSButtonState('ready');
+                        
+                        // ✅ NEU: Auto-Resume nach TTS
+                        const entityId = this.currentDetailItem?.id;
+                        if (entityId) {
+                            console.log('🎵 Auto-resuming music after TTS:', entityId);
+                            setTimeout(() => {
+                                this.callMusicAssistantService('media_play', entityId);
+                            }, 1000); // 1 Sekunde warten nach TTS Ende
+                        }
                     }, estimatedDuration);
                 }
                 break;
@@ -10880,7 +10889,7 @@ class FastSearchCard extends HTMLElement {
                 btnText.textContent = 'Sprechen';
                 break;
         }
-    }    
+    }
 
     setupTTSEventListeners(item, container) {
         console.log('🔍 setupTTSEventListeners called for:', item.id);
