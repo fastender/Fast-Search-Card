@@ -3875,6 +3875,78 @@ class FastSearchCard extends HTMLElement {
                 background: #1d4ed8;
             }        
             
+            .tts-content {
+                padding: 16px !important;
+            }
+            
+            .tts-input-section {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .tts-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .tts-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            
+            .tts-counter {
+                font-size: 12px;
+                color: var(--text-secondary);
+            }
+            
+            .tts-counter.warning {
+                color: #FF9800;
+            }
+            
+            .tts-textarea {
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 12px;
+                padding: 12px;
+                color: var(--text-primary);
+                font-size: 14px;
+                resize: vertical;
+                min-height: 80px;
+            }
+            
+            .tts-textarea:focus {
+                outline: none;
+                border-color: var(--accent);
+            }
+            
+            .tts-speak-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 12px 24px;
+                background: var(--accent);
+                border: none;
+                border-radius: 12px;
+                color: white;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .tts-speak-btn:disabled {
+                background: rgba(255,255,255,0.1);
+                color: var(--text-secondary);
+                cursor: not-allowed;
+            }
+            
+            .tts-speak-btn:not(:disabled):hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            }            
                                                 
             </style>
 
@@ -10679,6 +10751,15 @@ class FastSearchCard extends HTMLElement {
                             mediaContainer,
                             '.device-control-presets.tts-presets'
                         );
+
+                        // ✅ NEU: Setup TTS Event Listeners nach dem Öffnen
+                        setTimeout(() => {
+                            const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
+                            if (ttsContainer && ttsContainer.classList.contains('visible')) {
+                                this.setupTTSEventListeners(item, ttsContainer);
+                            }
+                        }, 100);
+                        
                     }, 400); // Warte auf Schließ-Animation
                 } else {
                     // Öffne TTS direkt (kein Music Assistant offen)
@@ -10687,6 +10768,14 @@ class FastSearchCard extends HTMLElement {
                         mediaContainer,
                         '.device-control-presets.tts-presets'
                     );
+
+                    // ✅ NEU: Setup TTS Event Listeners nach dem Öffnen
+                    setTimeout(() => {
+                        const ttsContainer = mediaContainer.querySelector('.device-control-presets.tts-presets');
+                        if (ttsContainer && ttsContainer.classList.contains('visible')) {
+                            this.setupTTSEventListeners(item, ttsContainer);
+                        }
+                    }, 100);                    
                 }
             });
         }
@@ -10727,6 +10816,29 @@ class FastSearchCard extends HTMLElement {
                 break;
         }
     }
+
+    // ✅ NEU: TTS Service Call Function
+    speakTTS(text, entityId) {
+        console.log(`🗣️ Speaking via Amazon Polly: "${text}" on ${entityId}`);
+        
+        try {
+            this._hass.callService('tts', 'amazon_polly_say', {
+                entity_id: entityId,
+                message: text,
+                options: {
+                    voice: 'Marlene',
+                    language: 'de-DE'
+                }
+            });
+            
+            // Button Status Update
+            this.updateTTSButtonState('speaking');
+            
+        } catch (error) {
+            console.error('❌ TTS Amazon Polly failed:', error);
+            this.updateTTSButtonState('error');
+        }
+    }    
     
     getMediaPlayerControlsHTML(item) {
         const state = this._hass.states[item.id];
@@ -12974,7 +13086,40 @@ class FastSearchCard extends HTMLElement {
             console.error("Fehler beim Abspielen via Music Assistant:", e);
         }
     }
+
+
+    getTTSHTML() {
+        return `
+            <div class="preset-content tts-content">
+                <div class="tts-input-section">
+                    <div class="tts-header">
+                        <span class="tts-title">🗣️ Text-to-Speech</span>
+                        <span class="tts-counter">0/300</span>
+                    </div>
+                    <textarea 
+                        class="tts-textarea" 
+                        placeholder="Text eingeben... (max. 300 Zeichen)"
+                        maxlength="300"
+                        rows="4"></textarea>
+                    <button class="tts-speak-btn" disabled>
+                        <span class="tts-btn-icon">▶️</span>
+                        <span class="tts-btn-text">Sprechen</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+
+
+
+
+
+    
 }
+
+
+
 
 customElements.define('fast-search-card', FastSearchCard);
 window.customCards = window.customCards || [];
