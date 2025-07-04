@@ -10895,37 +10895,48 @@ class FastSearchCard extends HTMLElement {
     }    
 
     setupTTSEventListeners(item, container) {
+        console.log('🔍 setupTTSEventListeners called for:', item.id);
+        console.log('🔍 Container:', container);
+        
         const textarea = container.querySelector('.tts-textarea');
         const speakBtn = container.querySelector('.tts-speak-btn');
         const counter = container.querySelector('.tts-counter');
         
+        console.log('🔍 Elements found:', {textarea, speakBtn, counter});
+        
         if (!textarea || !speakBtn || !counter) {
-            console.warn('⚠️ TTS elements not found in container');
+            console.error('❌ TTS elements not found in container');
             return;
         }
         
         // Verhindere doppelte Event Listener
-        if (container.dataset.ttsListenersAttached === 'true') return;
+        if (container.dataset.ttsListenersAttached === 'true') {
+            console.log('⚠️ TTS Listeners already attached');
+            return;
+        }
         container.dataset.ttsListenersAttached = 'true';
+        
+        console.log('✅ Attaching TTS event listeners...');
         
         // Zeichenzähler Update
         textarea.addEventListener('input', () => {
             const length = textarea.value.length;
+            console.log('📝 Text input:', length, 'chars');
             counter.textContent = `${length}/300`;
             
-            // Warnung bei >250 Zeichen
             if (length > 250) {
                 counter.classList.add('warning');
             } else {
                 counter.classList.remove('warning');
             }
             
-            // Button aktivieren/deaktivieren
             speakBtn.disabled = length === 0;
+            console.log('🔘 Button disabled:', speakBtn.disabled);
         });
         
         // Sprechen Button
         speakBtn.addEventListener('click', () => {
+            console.log('🗣️ Speak button clicked!');
             const text = textarea.value.trim();
             if (text && !speakBtn.disabled) {
                 this.speakTTS(text, item.id);
