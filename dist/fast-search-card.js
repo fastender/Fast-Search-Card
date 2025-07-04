@@ -5879,22 +5879,66 @@ class FastSearchCard extends HTMLElement {
                 }
             }
             
-            // Area-basierte Chips
-            const areaChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"]):not([data-subcategory="none"])');
-            areaChips.forEach(chip => {
-                const subcategoryValue = chip.dataset.subcategory;
-                
-                const filteredItems = currentCategoryItems.filter(item => 
-                    item.area === subcategoryValue
-                );
-                
-                const statusElement = chip.querySelector('.subcategory-status');
-                if (statusElement) {
-                    const count = filteredItems.length;
-                    const statusText = this.activeCategory === 'custom' ? `${count} Items` : `${count} Verfügbar`;
-                    statusElement.textContent = statusText;
+            // Spezielle Behandlung für Custom Items je nach subcategoryMode
+            if (this.activeCategory === 'custom') {
+                if (this.subcategoryMode === 'categories') {
+                    // Category-basierte Chips für Custom
+                    const categoryChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"]):not([data-subcategory="none"])');
+                    categoryChips.forEach(chip => {
+                        const subcategoryValue = chip.dataset.subcategory;
+                        const filteredItems = currentCategoryItems.filter(item => 
+                            item.custom_data?.metadata?.category === subcategoryValue
+                        );
+                        
+                        const statusElement = chip.querySelector('.subcategory-status');
+                        if (statusElement) {
+                            statusElement.textContent = `${filteredItems.length} Items`;
+                        }
+                    });
+                } else if (this.subcategoryMode === 'types') {
+                    // Type-basierte Chips für Custom
+                    const typeChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"]):not([data-subcategory="none"])');
+                    typeChips.forEach(chip => {
+                        const subcategoryValue = chip.dataset.subcategory;
+                        const filteredItems = currentCategoryItems.filter(item => 
+                            item.custom_data?.type === subcategoryValue
+                        );
+                        
+                        const statusElement = chip.querySelector('.subcategory-status');
+                        if (statusElement) {
+                            statusElement.textContent = `${filteredItems.length} Items`;
+                        }
+                    });
+                } else if (this.subcategoryMode === 'areas') {
+                    // Area-basierte Chips (dein bestehender Code)
+                    const areaChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"]):not([data-subcategory="none"])');
+                    areaChips.forEach(chip => {
+                        const subcategoryValue = chip.dataset.subcategory;
+                        const filteredItems = currentCategoryItems.filter(item => 
+                            item.area === subcategoryValue
+                        );
+                        
+                        const statusElement = chip.querySelector('.subcategory-status');
+                        if (statusElement) {
+                            statusElement.textContent = `${filteredItems.length} Items`;
+                        }
+                    });
                 }
-            });
+            } else {
+                // Für Scripts, Automations, Scenes: nur Area-Chips
+                const areaChips = this.shadowRoot.querySelectorAll('.subcategory-chip[data-subcategory]:not([data-subcategory="all"]):not([data-subcategory="none"])');
+                areaChips.forEach(chip => {
+                    const subcategoryValue = chip.dataset.subcategory;
+                    const filteredItems = currentCategoryItems.filter(item => 
+                        item.area === subcategoryValue
+                    );
+                    
+                    const statusElement = chip.querySelector('.subcategory-status');
+                    if (statusElement) {
+                        statusElement.textContent = `${filteredItems.length} Verfügbar`;
+                    }
+                });
+            }
         }
     }
     
@@ -6779,14 +6823,7 @@ class FastSearchCard extends HTMLElement {
                 const isActive = (cat === 'Alle' && this.activeSubcategory === 'all') || 
                                 (cat === this.activeSubcategory);
                 
-                let count;
-                if (cat === 'Alle') {
-                    count = customItems.length;
-                } else if (cat === 'Keine') {
-                    count = customItems.filter(item => !item.custom_data?.metadata?.category).length;
-                } else {
-                    count = customItems.filter(item => item.custom_data?.metadata?.category === cat).length;
-                }
+                let count = 0; // Placeholder - wird später aktualisiert
                 
                 const subcategoryValue = cat === 'Alle' ? 'all' : 
                                        cat === 'Keine' ? 'none' : cat;
@@ -6795,7 +6832,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${cat}</span>
-                            <span class="subcategory-status">${count} Items</span>
+                            <span class="subcategory-status">Lädt...</span>
                         </div>
                     </div>
                 `;
@@ -6811,14 +6848,7 @@ class FastSearchCard extends HTMLElement {
                 const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
                                 (area === this.activeSubcategory);
                 
-                let count;
-                if (area === 'Alle Räume') {
-                    count = customItems.length;
-                } else if (area === 'Keine') {
-                    count = customItems.filter(item => !item.area).length;
-                } else {
-                    count = customItems.filter(item => item.area === area).length;
-                }
+                let count = 0; // Placeholder - wird später aktualisiert
                 
                 const subcategoryValue = area === 'Alle Räume' ? 'all' : 
                                        area === 'Keine' ? 'none' : area;
@@ -6827,7 +6857,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${area}</span>
-                            <span class="subcategory-status">${count} Items</span>
+                            <span class="subcategory-status">Lädt...</span>
                         </div>
                     </div>
                 `;
@@ -6850,14 +6880,7 @@ class FastSearchCard extends HTMLElement {
                 const isActive = (type === 'Alle' && this.activeSubcategory === 'all') || 
                                 (type === this.activeSubcategory);
                 
-                let count;
-                if (type === 'Alle') {
-                    count = customItems.length;
-                } else if (type === 'Keine') {
-                    count = customItems.filter(item => !item.custom_data?.type).length;
-                } else {
-                    count = customItems.filter(item => item.custom_data?.type === type).length;
-                }
+                let count = 0; // Placeholder - wird später aktualisiert
                 
                 const displayName = type === 'Alle' || type === 'Keine' ? type : 
                                    (typeLabels[type] || type);
@@ -6869,7 +6892,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${displayName}</span>
-                            <span class="subcategory-status">${count} Items</span>
+                            <span class="subcategory-status">Lädt...</span>
                         </div>
                     </div>
                 `;
@@ -6886,9 +6909,7 @@ class FastSearchCard extends HTMLElement {
         const chipsHTML = areas.map(area => {
             const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
                             (area === this.activeSubcategory);
-            const deviceCount = area === 'Alle Räume' ? this.allItems.length : 
-                              area === 'Keine' ? 0 :
-                              this.allItems.filter(item => item.area === area).length;
+            const deviceCount = 0; // Placeholder - wird später aktualisiert
             
             const subcategoryValue = area === 'Alle Räume' ? 'all' : 
                                    area === 'Keine' ? 'none' : area;
@@ -6897,7 +6918,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                     <div class="chip-content">
                         <span class="subcategory-name">${area}</span>
-                        <span class="subcategory-status">${deviceCount} Geräte</span>
+                        <span class="subcategory-status">Lädt...</span>
                     </div>
                 </div>
             `;
