@@ -4206,6 +4206,24 @@ class FastSearchCard extends HTMLElement {
                 }
             }
         });
+
+        // NEU: Search-Wrapper Klick Event hinzufügen
+        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+        if (searchWrapper) {
+            searchWrapper.addEventListener('click', (e) => {
+                // 1. Prüfen, ob der Klick auf einen Button ging. Wenn ja, nichts tun.
+                if (e.target.closest('button')) {
+                    return;
+                }
+        
+                // 2. Wenn das Panel noch nicht offen ist, den Fokus auf das Input-Feld setzen.
+                if (!this.isPanelExpanded) {
+                    // Dies löst automatisch den bestehenden 'focus'-Event aus,
+                    // der dann `expandPanel()` aufruft.
+                    this.shadowRoot.querySelector('.search-input').focus();
+                }
+            });
+        }        
     
         // NEU: Resize Listener für Viewport-Wechsel
         window.addEventListener('resize', () => {
