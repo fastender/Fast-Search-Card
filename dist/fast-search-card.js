@@ -4343,34 +4343,24 @@ class FastSearchCard extends HTMLElement {
     handleCategorySelect(selectedButton) {
         const category = selectedButton.dataset.category;
         
-        // NEU: Wenn gleiche Kategorie → Menü schließen
+        // Wenn gleiche Kategorie → Menü schließen
         if (category === this.activeCategory) {
             this.hideCategoryButtons();
             return;
         }
         
-        this.shadowRoot.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
-        selectedButton.classList.add('active');
-        selectedButton.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
-        this.activeCategory = category;
+        // Animation für visuelles Feedback
+        selectedButton.animate([
+            { transform: 'scale(1)' }, 
+            { transform: 'scale(1.1)' }, 
+            { transform: 'scale(1)' }
+        ], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
         
-        // Reset subcategory mode für Custom
-        if (category === 'custom') {
-            this.subcategoryMode = 'categories'; // Start with categories for custom
-        } else {
-            this.subcategoryMode = 'categories'; // Standard mode for others
-        }        
+        // Zentrale Navigation verwenden
+        this.switchToCategory(category);
         
-        this.updateCategoryIcon();
-        this.updatePlaceholder();
-        this.updateSubcategoryToggleIcon();
-        this.updateSubcategoryChips();
+        // Menü schließen
         this.hideCategoryButtons();
-        // Hinzufügen:
-        this.updateTypeButtonVisibility();
-        this.updateFilterButtonStates();        
-        // this.expandPanel(); // ENTFERNT
-        // this.showCurrentCategoryItems(); // ENTFERNT
     }
 
     handleSubcategorySelect(selectedChip) {
@@ -4569,6 +4559,43 @@ class FastSearchCard extends HTMLElement {
         };
         searchInput.placeholder = placeholders[this.activeCategory] || placeholders.devices;
     }
+
+    switchToCategory(newCategory) {
+        console.log(`🔄 Switching to category: ${newCategory}`);
+        
+        // 1. Interne Variable setzen
+        this.activeCategory = newCategory;
+        
+        // 2. Subcategory Mode zurücksetzen
+        if (newCategory === 'custom') {
+            this.subcategoryMode = 'categories';
+        } else {
+            this.subcategoryMode = 'categories';
+        }
+        
+        // 3. Subcategory zurücksetzen
+        this.activeSubcategory = 'all';
+        
+        // 4. UI-Komponenten aktualisieren
+        this.updateCategoryIcon();
+        this.updatePlaceholder();
+        this.updateCategoryButtonStates(); // ← NEU
+        this.updateSubcategoryChips();
+        this.updateTypeButtonVisibility();
+        this.updateFilterButtonStates();
+        
+        // 5. Items laden und anzeigen
+        this.showCurrentCategoryItems();
+        
+        console.log(`✅ Category switched to: ${newCategory}`);
+    }
+    
+    updateCategoryButtonStates() {
+        this.shadowRoot.querySelectorAll('.category-button').forEach(btn => {
+            const isActive = btn.dataset.category === this.activeCategory;
+            btn.classList.toggle('active', isActive);
+        });
+    }    
 
     async updateItems() {
         if (!this._hass) return;
@@ -12000,14 +12027,12 @@ class FastSearchCard extends HTMLElement {
         // 1. Bestimme Ziel-Kategorie
         const targetCategory = this.getTargetCategoryForDomain(actionDomain);
         
-        // 2. Wechsle Kategorie und verlasse Detailansicht
-        this.activeCategory = targetCategory;
+        // Detail-View schließen
         this.isDetailView = false;
         this.currentDetailItem = null;
         
-        // 3. ❗ ENTSCHEIDENDE ÄNDERUNG: Rufe die korrekte Funktion auf,
-        // um die Items für die neue Kategorie zu filtern und zu rendern.
-        this.showCurrentCategoryItems();
+        // Zentrale Navigation verwenden
+        this.switchToCategory(targetCategory);
         
         // 4. Warte zuverlässig mit requestAnimationFrame, bis das Element da ist
         const waitForElementAndClick = (selector, targetId, retries = 30) => {
