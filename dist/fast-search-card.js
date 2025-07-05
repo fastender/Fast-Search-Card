@@ -5855,15 +5855,16 @@ class FastSearchCard extends HTMLElement {
         // "Alle" Chip Count aktualisieren
         const allChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
         if (allChip) {
-            const allCategoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
-            const allActiveCount = allCategoryItems.filter(item => {
-                const state = this._hass.states[item.id];
-                return state && this.isEntityActive(state);
-            }).length;
-            
+            // 1. Items der AKTUELLEN Kategorie holen (hier wird der Fehler behoben)
+            const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+        
+            // 2. Gesamtzahl dieser Items ermitteln
+            const totalCount = categoryItems.length;
+        
+            // 3. Gesamtzahl im Chip anzeigen
             const statusElement = allChip.querySelector('.subcategory-status');
             if (statusElement) {
-                statusElement.textContent = `${allActiveCount} Aktiv`;
+                statusElement.textContent = `${totalCount} ${this.getCategoryItemLabel(this.activeCategory, totalCount)}`;
             }
         }
     }
