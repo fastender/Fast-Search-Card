@@ -5808,6 +5808,17 @@ class FastSearchCard extends HTMLElement {
         return `${count} ${text}`;
     }
 
+    getCategoryItemLabel(category, count = 1) {
+        const labels = {
+            'devices': count === 1 ? 'Gerät' : 'Geräte',
+            'scripts': count === 1 ? 'Skript' : 'Skripte', 
+            'automations': count === 1 ? 'Automation' : 'Automationen',
+            'scenes': count === 1 ? 'Szene' : 'Szenen',
+            'custom': count === 1 ? 'Item' : 'Items'
+        };
+        return labels[category] || (count === 1 ? 'Item' : 'Items');
+    }    
+
     updateSubcategoryCounts() {
         if (!this._hass || !this.allItems) return;
         
@@ -6716,7 +6727,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${cat}</span>
-                            <span class="subcategory-status">${count} Items</span>
+                            <span class="subcategory-status">${count} ${this.getCategoryItemLabel(this.activeCategory, count)}</span>
                         </div>
                     </div>
                 `;
@@ -6748,7 +6759,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${area}</span>
-                            <span class="subcategory-status">${count} Items</span>
+                            <span class="subcategory-status">${count} ${this.getCategoryItemLabel(this.activeCategory, count)}</span>
                         </div>
                     </div>
                 `;
@@ -6790,7 +6801,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                         <div class="chip-content">
                             <span class="subcategory-name">${displayName}</span>
-                            <span class="subcategory-status">${count} Items</span>
+                            <span class="subcategory-status">${count} ${this.getCategoryItemLabel(this.activeCategory, count)}</span>
                         </div>
                     </div>
                 `;
@@ -6818,7 +6829,7 @@ class FastSearchCard extends HTMLElement {
                 <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
                     <div class="chip-content">
                         <span class="subcategory-name">${area}</span>
-                        <span class="subcategory-status">${deviceCount} Geräte</span>
+                        <span class="subcategory-status">${deviceCount} ${this.getCategoryItemLabel(this.activeCategory, deviceCount)}</span>
                     </div>
                 </div>
             `;
