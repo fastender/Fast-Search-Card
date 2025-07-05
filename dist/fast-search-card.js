@@ -5855,7 +5855,7 @@ class FastSearchCard extends HTMLElement {
         // "Alle" Chip Count aktualisieren
         const allChip = this.shadowRoot.querySelector(`.subcategory-chip[data-subcategory="all"]`);
         if (allChip) {
-            const allCategoryItems = this.allItems.filter(item => this.isItemInCategory(item, 'devices'));
+            const allCategoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
             const allActiveCount = allCategoryItems.filter(item => {
                 const state = this._hass.states[item.id];
                 return state && this.isEntityActive(state);
