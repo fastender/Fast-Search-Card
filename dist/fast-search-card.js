@@ -4094,12 +4094,7 @@ class FastSearchCard extends HTMLElement {
                                         <span class="subcategory-status"></span>
                                     </div>
                                 </div>
-                                <div class="subcategory-chip" data-subcategory="none">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Keine</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
-                                </div>
+
                             </div>
                             <div class="results-grid">
                             </div>
