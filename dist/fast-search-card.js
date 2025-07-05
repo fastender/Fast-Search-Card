@@ -6818,12 +6818,14 @@ class FastSearchCard extends HTMLElement {
         const chipsHTML = areas.map(area => {
             const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
                             (area === this.activeSubcategory);
-            const deviceCount = area === 'Alle Räume' ? this.allItems.length : 
-                              area === 'Keine' ? 0 :
-                              this.allItems.filter(item => item.area === area).length;
             
-            const subcategoryValue = area === 'Alle Räume' ? 'all' : 
-                                   area === 'Keine' ? 'none' : area;
+            // Zuerst nach der aktiven Kategorie filtern
+            const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+            // Dann innerhalb dieser gefilterten Liste zählen
+            const deviceCount = area === 'Alle Räume' ? categoryItems.length : 
+                              categoryItems.filter(item => item.area === area).length;
+            
+            const subcategoryValue = area === 'Alle Räume' ? 'all' : area;
             
             return `
                 <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
