@@ -6479,11 +6479,6 @@ class FastSearchCard extends HTMLElement {
             this.showCurrentCategoryItems(); 
             return; 
         }
-        if (this.activeSubcategory === 'none') { 
-            this.filteredItems = []; 
-            this.renderResults(); 
-            return; 
-        }
     
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
         
@@ -6708,15 +6703,13 @@ class FastSearchCard extends HTMLElement {
                 if (category) categories.add(category);
             });
             
-            const chipsHTML = ['Alle', ...Array.from(categories).sort(), 'Keine'].map(cat => {
+            const chipsHTML = ['Alle', ...Array.from(categories).sort()].map(cat => {
                 const isActive = (cat === 'Alle' && this.activeSubcategory === 'all') || 
                                 (cat === this.activeSubcategory);
                 
                 let count;
                 if (cat === 'Alle') {
                     count = customItems.length;
-                } else if (cat === 'Keine') {
-                    count = customItems.filter(item => !item.custom_data?.metadata?.category).length;
                 } else {
                     count = customItems.filter(item => item.custom_data?.metadata?.category === cat).length;
                 }
@@ -6740,7 +6733,7 @@ class FastSearchCard extends HTMLElement {
             // Custom Areas (nur aus Custom Items)
             const areas = new Set(customItems.map(item => item.area).filter(Boolean));
             
-            const chipsHTML = ['Alle Räume', ...Array.from(areas).sort(), 'Keine'].map(area => {
+            const chipsHTML = ['Alle Räume', ...Array.from(areas).sort()].map(area => {
                 const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
                                 (area === this.activeSubcategory);
                 
@@ -6779,7 +6772,7 @@ class FastSearchCard extends HTMLElement {
                 'sensor': 'Sensor'
             };
             
-            const chipsHTML = ['Alle', ...Array.from(types).sort(), 'Keine'].map(type => {
+            const chipsHTML = ['Alle', ...Array.from(types).sort()].map(type => {
                 const isActive = (type === 'Alle' && this.activeSubcategory === 'all') || 
                                 (type === this.activeSubcategory);
                 
@@ -6814,7 +6807,7 @@ class FastSearchCard extends HTMLElement {
     
     renderAreaChips(container) {
         // Get all unique areas from items
-        const areas = ['Alle Räume', ...new Set(this.allItems.map(item => item.area).filter(Boolean)), 'Keine'];
+        const areas = ['Alle Räume', ...new Set(this.allItems.map(item => item.area).filter(Boolean))];
         
         const chipsHTML = areas.map(area => {
             const isActive = (area === 'Alle Räume' && this.activeSubcategory === 'all') || 
