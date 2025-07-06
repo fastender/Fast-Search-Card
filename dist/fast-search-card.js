@@ -1994,6 +1994,7 @@ class FastSearchCard extends HTMLElement {
                 flex-shrink: 0;
                 font-size: 20px;
                 transition: all 0.2s ease;
+                color: var(--text-primary);
             }
             
             .device-list-item.active .device-list-icon {
@@ -7116,7 +7117,7 @@ class FastSearchCard extends HTMLElement {
             this.getEntityStatus(this._hass.states[item.id]);
         
         listItem.innerHTML = `
-            <div class="device-list-icon">${item.icon}</div>
+            <div class="device-list-icon">${this.getDynamicIcon(item)}</div>
             <div class="device-list-content">
                 <div class="device-list-area">${item.area}</div>
                 <div class="device-list-name">${item.name}</div>
