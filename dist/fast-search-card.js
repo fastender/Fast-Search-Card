@@ -918,10 +918,6 @@ class FastSearchCard extends HTMLElement {
 
             .device-card.active {
                 background: var(--accent-light);
-                border-color: var(--accent);
-                box-shadow: 
-                    0 4px 20px rgba(0, 122, 255, 0.2),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
 
             .device-icon {
@@ -1921,8 +1917,6 @@ class FastSearchCard extends HTMLElement {
             
             .device-list-item.active {
                 background: var(--accent-light);
-                border-color: var(--accent);
-                box-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
             }
             
             .device-list-icon {
@@ -2009,7 +2003,6 @@ class FastSearchCard extends HTMLElement {
             
             .device-list-quick-action.active {
                 background: var(--accent-light);
-                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
             }
             
             .device-list-quick-action svg {
