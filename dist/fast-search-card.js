@@ -4334,6 +4334,7 @@ class FastSearchCard extends HTMLElement {
     }    
 
     clearSearch() {
+        console.log('🧹 clearSearch wurde aufgerufen!'); // DEBUG
         const searchInput = this.shadowRoot.querySelector('.search-input');
         const clearButton = this.shadowRoot.querySelector('.clear-button');
         
