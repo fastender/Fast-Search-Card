@@ -4356,6 +4356,13 @@ class FastSearchCard extends HTMLElement {
 
     showCategoryButtons() {
         this.collapsePanel(); // <-- HINZUGEFÜGTE ZEILE
+
+        // NEU: Search-Wrapper auf Mobile verstecken
+        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+        if (searchWrapper) {
+            searchWrapper.style.display = 'none';
+        }
+        
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
@@ -4363,6 +4370,12 @@ class FastSearchCard extends HTMLElement {
     }
     
     hideCategoryButtons() {
+        // NEU: Search-Wrapper wieder anzeigen
+        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+        if (searchWrapper) {
+            searchWrapper.style.display = 'flex';
+        }   
+        
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
         const animation = categoryButtons.animate([{ opacity: 1, transform: 'translateX(0) scale(1)' }, { opacity: 0, transform: 'translateX(20px) scale(0.9)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' });
