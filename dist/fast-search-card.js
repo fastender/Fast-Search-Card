@@ -199,6 +199,29 @@ class MiniSearch {
 
 
 class FastSearchCard extends HTMLElement {
+
+
+
+
+    // Dynamische SVG Icons
+    static LIGHT_OFF_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+      <path d="M9 18H15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 21H14" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M9.00082 15C9.00098 13 8.50098 12.5 7.50082 11.5C6.50067 10.5 6.02422 9.48689 6.00082 8C5.95284 4.95029 8.00067 3 12.0008 3C16.001 3 18.0488 4.95029 18.0008 8C17.9774 9.48689 17.5007 10.5 16.5008 11.5C15.501 12.5 15.001 13 15.0008 15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+    static LIGHT_ON_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+      <path d="M21 2L20 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M3 2L4 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M21 16L20 15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M3 16L4 15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M9 18H15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 21H14" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M11.9998 3C7.9997 3 5.95186 4.95029 5.99985 8C6.02324 9.48689 6.4997 10.5 7.49985 11.5C8.5 12.5 9 13 8.99985 15H14.9998C15 13.0001 15.5 12.5 16.4997 11.5001L16.4998 11.5C17.4997 10.5 17.9765 9.48689 17.9998 8C18.0478 4.95029 16 3 11.9998 3Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+
+    
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -6713,6 +6736,16 @@ class FastSearchCard extends HTMLElement {
         }, {});
     }
 
+    getDynamicIcon(item) {
+        if (item.domain === 'light') {
+            return item.isActive ? 
+                FastSearchCard.LIGHT_ON_SVG : 
+                FastSearchCard.LIGHT_OFF_SVG;
+        }
+        
+        // Fallback für andere Domains
+        return item.icon;
+    }    
 
     createDeviceCard(item) {
         const card = document.createElement('div');
@@ -6729,7 +6762,7 @@ class FastSearchCard extends HTMLElement {
             this.getEntityStatus(this._hass.states[item.id]);
 
         
-        card.innerHTML = `<div class="device-icon">${item.icon}</div><div class="device-info"><div class="device-name">${item.name}</div><div class="device-status">${statusText}</div></div>`;
+        card.innerHTML = `<div class="device-icon">${this.getDynamicIcon(item)}</div><div class="device-info"><div class="device-name">${item.name}</div><div class="device-status">${statusText}</div></div>`;
         card.addEventListener('click', () => this.handleDeviceClick(item, card));
         return card;
     }
