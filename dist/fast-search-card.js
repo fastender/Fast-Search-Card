@@ -8691,7 +8691,14 @@ class FastSearchCard extends HTMLElement {
         
         // Cancel Button
         cancelBtn.addEventListener('click', () => {
-            this.closeMinimalTimePicker(container.closest('.shortcuts-tab-content'));
+            // FIX: Korrekte Container-Suche für Accordion
+            const accordionContent = container.closest('.accordion-content');
+            if (accordionContent) {
+                this.closeMinimalTimePicker(accordionContent);
+            } else {
+                // Fallback für Tab-System
+                this.closeMinimalTimePicker(container.closest('.shortcuts-tab-content'));
+            }
         });
         
         // Create Button
@@ -9091,29 +9098,32 @@ class FastSearchCard extends HTMLElement {
         // Reset state
         this.timePickerState = null;
         
-        // Zeige normale Timer-Controls wieder
+        // Zeige normale Controls wieder
         const timerControls = parentContainer.querySelector('.timer-control-design');
         const activeTimers = parentContainer.querySelector('.active-timers');
         const scheduleControls = parentContainer.querySelector('.schedule-control-design');
         const activeSchedules = parentContainer.querySelector('.active-schedules');
         
-        if (timerControls) timerControls.style.display = '';
-        if (activeTimers) activeTimers.style.display = '';  // ← Das war falsch!
-        if (scheduleControls) scheduleControls.style.display = '';
-        if (activeSchedules) activeSchedules.style.display = '';
+        if (timerControls) timerControls.style.display = 'block';
+        if (activeTimers) activeTimers.style.display = 'block';
+        if (scheduleControls) scheduleControls.style.display = 'block';
+        if (activeSchedules) activeSchedules.style.display = 'block';
         
         // Reset alle preset buttons
         const allPresets = parentContainer.querySelectorAll('.timer-control-preset');
         allPresets.forEach(p => p.classList.remove('active'));
         
-        // Lade aktive Timer neu
-        const entityId = parentContainer.closest('[data-entity-id]')?.dataset.entityId;
+        // Entity ID aus dem Accordion-System finden
+        const detailPanel = parentContainer.closest('.detail-panel');
+        const entityId = detailPanel?.querySelector('[data-entity]')?.dataset.entity ||
+                        this.currentDetailItem?.id;
+                        
         if (entityId) {
             this.loadActiveTimers(entityId);
         }
         
         console.log('✅ Minimal Time Picker geschlossen');
-    }      
+    }
     
 
 
