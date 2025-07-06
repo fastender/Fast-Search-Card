@@ -4417,7 +4417,7 @@ class FastSearchCard extends HTMLElement {
                 boxShadow: '0 8px 32px rgba(0, 122, 255, 0.3)'
                 /* Die Zeile für 'borderColor' wurde hier entfernt */
             }
-        ], { duration: 300, easing: 'ease-out', fill: 'forwards' });
+        ], { duration: 300, easing: 'ease-out' });
         if (!this.isPanelExpanded) { this.expandPanel(); }
     }    
 
