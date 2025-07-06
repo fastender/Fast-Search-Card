@@ -1349,6 +1349,11 @@ class FastSearchCard extends HTMLElement {
                 scrollbar-width: none;
                 max-height: 100%;
             }
+
+            #tab-content-container.shortcuts-active {
+                padding: 0px; /* Falls du das auch willst */
+            }
+            
             #tab-content-container::-webkit-scrollbar { display: none; }
 
             .detail-tab-content { display: none; }
