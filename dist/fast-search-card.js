@@ -7858,10 +7858,6 @@ class FastSearchCard extends HTMLElement {
         return `
             <div class="shortcuts-container">
 
-                <div class="shortcuts-header">
-                    <h3>Shortcuts für ${item.name}</h3>
-                </div>        
-
                 <div class="shortcuts-content">
                     <!-- ACCORDION CONTAINER -->
                     <div class="accordion-container">
