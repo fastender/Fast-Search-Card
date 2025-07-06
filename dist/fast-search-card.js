@@ -1022,7 +1022,6 @@ class FastSearchCard extends HTMLElement {
             .device-card.active .device-icon {
                 background: rgba(0, 122, 255, 0.3);
                 color: var(--text-primary);
-                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
             }
 
             .device-name {
