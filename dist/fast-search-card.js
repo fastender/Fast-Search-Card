@@ -9076,7 +9076,9 @@ class FastSearchCard extends HTMLElement {
             await this.createActionTimer(item, action, totalMinutes);
             
             // Schließe den Picker
-            const parentContainer = this.shadowRoot.querySelector('.minimal-time-picker').closest('.shortcuts-tab-content');
+            const timePickerElement = this.shadowRoot.querySelector('.minimal-time-picker');
+            const parentContainer = timePickerElement.closest('.accordion-content') || 
+                                   timePickerElement.closest('.shortcuts-tab-content');
             this.closeMinimalTimePicker(parentContainer);
             
             // Warte kurz und lade dann die Timer-Liste neu
