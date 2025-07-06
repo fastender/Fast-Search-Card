@@ -11641,10 +11641,14 @@ class FastSearchCard extends HTMLElement {
                         otherArrow.style.transform = 'rotate(0deg)';
                     });
                     
-                    // Tab-spezifische Initialisierung wenn geöffnet
+                    // Aktuelles Toggle (nur öffnen wenn es geschlossen war)
                     if (!isOpen) {
-                        // Kurz warten bis DOM ready ist
-                        setTimeout(() => {
+                        content.classList.add('open');
+                        header.classList.add('active');
+                        arrow.style.transform = 'rotate(45deg)';
+                        
+                        // NACH dem DOM-Update initialisieren
+                        requestAnimationFrame(() => {
                             switch(accordionType) {
                                 case 'timer':
                                     this.initializeTimerTab(item, content);
@@ -11656,18 +11660,26 @@ class FastSearchCard extends HTMLElement {
                                     this.initializeActionsTab(item, content);
                                     break;
                             }
-                        }, 50);
+                        });
                     }
                 });
             });
-                        
-            // Initial Timer Tab aktivieren
-            const timerContent = this.shadowRoot.querySelector('[data-shortcuts-content="timer"]');
-            if (timerContent) {
-                this.initializeTimerTab(item, timerContent);
+            
+            // Initial Timer Accordion öffnen und initialisieren
+            const firstAccordionHeader = this.shadowRoot.querySelector('.accordion-header[data-accordion="timer"]');
+            const firstAccordionContent = this.shadowRoot.querySelector('[data-content="timer"]');
+            if (firstAccordionHeader && firstAccordionContent) {
+                firstAccordionHeader.classList.add('active');
+                firstAccordionContent.classList.add('open');
+                const arrow = firstAccordionHeader.querySelector('.accordion-arrow svg');
+                if (arrow) arrow.style.transform = 'rotate(45deg)';
+                
+                requestAnimationFrame(() => {
+                    this.initializeTimerTab(item, firstAccordionContent);
+                });
             }
         }, 100);
-    }        
+    } 
 
     // ✅ Aktionen Tab Initialisierung 
     initializeActionsTab(item, container) {
