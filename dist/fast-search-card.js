@@ -4354,13 +4354,19 @@ class FastSearchCard extends HTMLElement {
         if (this.isMenuView) { this.hideCategoryButtons(); } else { this.showCategoryButtons(); }
     }
 
+    isMobile() {
+        return window.innerWidth <= 768;
+    }    
+
     showCategoryButtons() {
         this.collapsePanel(); // <-- HINZUGEFÜGTE ZEILE
 
         // NEU: Search-Wrapper auf Mobile verstecken
-        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
-        if (searchWrapper) {
-            searchWrapper.style.display = 'none';
+        if (this.isMobile()) {
+            const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+            if (searchWrapper) {
+                searchWrapper.style.display = 'none';
+            }
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
@@ -4370,11 +4376,13 @@ class FastSearchCard extends HTMLElement {
     }
     
     hideCategoryButtons() {
-        // NEU: Search-Wrapper wieder anzeigen
-        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
-        if (searchWrapper) {
-            searchWrapper.style.display = 'flex';
-        }   
+        // NEU: Search-Wrapper wieder anzeigen  
+        if (this.isMobile()) {
+            const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+            if (searchWrapper) {
+                searchWrapper.style.display = 'flex';
+            }
+        }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
