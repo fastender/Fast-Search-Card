@@ -4363,7 +4363,7 @@ class FastSearchCard extends HTMLElement {
 
         // NEU: Search-Wrapper auf Mobile verstecken
         if (this.isMobile()) {
-            const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+            const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
                 searchWrapper.style.display = 'none';
             }
@@ -4378,7 +4378,7 @@ class FastSearchCard extends HTMLElement {
     hideCategoryButtons() {
         // NEU: Search-Wrapper wieder anzeigen  
         if (this.isMobile()) {
-            const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+            const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
                 searchWrapper.style.display = 'flex';
             }
