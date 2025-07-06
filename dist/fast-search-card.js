@@ -944,16 +944,17 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-icon {
-                width: 32px;
-                height: 32px;
-                background: rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
+                width: 62px;
+                height: 62px;
+                background: rgba(0, 0, 0, 0.15);
+                border-radius: 60px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-size: 18px;
                 margin-bottom: auto;
                 transition: all 0.2s ease;
+                color: var(--text-primary);
             }
 
             .device-card.active .device-icon {
