@@ -11641,24 +11641,22 @@ class FastSearchCard extends HTMLElement {
                         otherArrow.style.transform = 'rotate(0deg)';
                     });
                     
-                    // Aktuelles Toggle (nur öffnen wenn es geschlossen war)
+                    // Tab-spezifische Initialisierung wenn geöffnet
                     if (!isOpen) {
-                        content.classList.add('open');
-                        header.classList.add('active');
-                        arrow.style.transform = 'rotate(45deg)';
-                        
-                        // Tab-spezifische Initialisierung
-                        switch(accordionType) {
-                            case 'timer':
-                                this.initializeTimerTab(item, content);
-                                break;
-                            case 'zeitplan':
-                                this.initializeScheduleTab(item, content);
-                                break;
-                            case 'actions':
-                                this.initializeActionsTab(item, content);
-                                break;
-                        }
+                        // Kurz warten bis DOM ready ist
+                        setTimeout(() => {
+                            switch(accordionType) {
+                                case 'timer':
+                                    this.initializeTimerTab(item, content);
+                                    break;
+                                case 'zeitplan':
+                                    this.initializeScheduleTab(item, content);
+                                    break;
+                                case 'actions':
+                                    this.initializeActionsTab(item, content);
+                                    break;
+                            }
+                        }, 50);
                     }
                 });
             });
