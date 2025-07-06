@@ -949,10 +949,21 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-primary);
                 margin: 0 0 0 0;
                 overflow: hidden;
-                text-overflow: ellipsis;
                 white-space: nowrap;
                 line-height: 1.1;
-            }
+                position: relative;
+            }    
+
+            .device-name::after {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 20px;
+                background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.08));
+                pointer-events: none;
+            }            
 
             .device-status {
                 font-size: 18px;
