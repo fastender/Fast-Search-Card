@@ -893,8 +893,7 @@ class FastSearchCard extends HTMLElement {
             .subcategory-chip.active {
                 background: var(--accent-light);
                 border-color: var(--accent);
-                color: var(--accent);
-                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+                color: var(--accent);                
             }
 
             .subcategory-chip:hover {
