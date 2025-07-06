@@ -951,19 +951,11 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 white-space: nowrap;
                 line-height: 1.1;
-                position: relative;
+                background: linear-gradient(to right, var(--text-primary) 80%, transparent 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
             }    
-
-            .device-name::after {
-                content: '';
-                position: absolute;
-                right: 0;
-                top: 0;
-                bottom: 0;
-                width: 20px;
-                background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.08));
-                pointer-events: none;
-            }            
 
             .device-status {
                 font-size: 18px;
