@@ -592,6 +592,9 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0;
                 flex-shrink: 0;
                 transition: all 0.2s ease;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+                user-select: none;                
             }
 
             .clear-button.visible {
@@ -4187,7 +4190,19 @@ class FastSearchCard extends HTMLElement {
         searchInput.addEventListener('keydown', (e) => this.handleSearchKeydown(e));
         searchInput.addEventListener('focus', () => this.handleSearchFocus());
         searchInput.addEventListener('blur', () => this.clearSuggestion());
-        clearButton.addEventListener('click', (e) => { e.stopPropagation(); this.clearSearch(); });
+
+        // Touch-Events für Mobile hinzufügen
+        clearButton.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            e.preventDefault(); 
+            this.clearSearch(); 
+        });
+        clearButton.addEventListener('touchend', (e) => { 
+            e.stopPropagation(); 
+            e.preventDefault(); 
+            this.clearSearch(); 
+        });
+                                                      
         categoryIcon.addEventListener('click', (e) => { e.stopPropagation(); this.toggleCategoryButtons(); });
         categoryButtons.forEach(button => {
             button.addEventListener('click', (e) => { e.stopPropagation(); this.handleCategorySelect(button); });
