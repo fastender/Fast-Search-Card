@@ -220,7 +220,43 @@ class FastSearchCard extends HTMLElement {
       <path d="M11.9998 3C7.9997 3 5.95186 4.95029 5.99985 8C6.02324 9.48689 6.4997 10.5 7.49985 11.5C8.5 12.5 9 13 8.99985 15H14.9998C15 13.0001 15.5 12.5 16.4997 11.5001L16.4998 11.5C17.4997 10.5 17.9765 9.48689 17.9998 8C18.0478 4.95029 16 3 11.9998 3Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`;
 
-
+    // Cover Icons
+    static COVER_CLOSED_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="39" height="39" viewBox="0 0 33 32" fill="none" color="currentColor">
+      <path fill="currentColor" d="M3.3 21.3h17.25v.5H3.3Zm13.75-.22h.18v.22h-.18zm-10.26 0h.2v.22h-.2zm10.26-1.41h.18v.22h-.18zm-10.26 0h.2v.22h-.2zm10.26-1.41h.18v.22h-.18zm-10.26 0h.2v.22h-.2zm10.26-1.42h.18v.22h-.18zm-10.26 0h.2v.22h-.2zm10.26-1.41h.18v.22h-.18zm-10.26 0h.2v.22h-.2zm10.26-1.41h.18v.22h-.18zm-10.26 0h.2v.22h-.2Zm10.26-1.42h.18v.22h-.18zm-10.26 0h.2v.22h-.2zm10.26-1.41h.18v.22h-.18zm-10.26 0h.2v.22h-.2Zm10.26-1.41h.18V10h-.18zm-10.26 0h.2V10h-.2Zm10.26-1.41h.18v.22h-.18zm-10.26 0h.2v.22h-.2Zm10.26-1.42h.18v.22h-.18zm-10.26 0h.2v.22h-.2Zm10.26-1.41h.18v.22h-.18zm-10.26 0h.2v.22h-.2Zm10.26-1.6h.18v.42h-.18zm-10.26 0h.2v.42h-.2ZM2.74 2.3h18.38v1.64H2.74Zm14.49 17.59h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3Zm13.93-1.41h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3Zm13.93-1.41h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3Zm13.93-1.42h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3Zm13.93-1.41h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3Zm13.93-1.41h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3Zm13.93-1.41h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3ZM17.23 10h3.32v1.19h-3.32ZM6.99 10h10.06v1.19H6.99ZM3.3 10h3.48v1.19H3.3Zm13.93-1.41h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3Zm13.93-1.41h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3Zm13.93-1.42h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3Zm13.93-1.41h3.32v1.19h-3.32Zm-10.24 0h10.06v1.19H6.99Zm-3.69 0h3.48v1.19H3.3Z"/>
+    </svg>`;
+    
+    static COVER_OPEN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="39" height="39" viewBox="0 0 33 32" fill="none" color="currentColor">
+      <path fill="currentColor" d="M2.74 2.3v1.64h4.05v.89h.2v.24h10.06v-.24h.18v.24h3.32v-.25h-3.32v-.88h3.89V2.3Zm14.49 2.77h-.18v1.16h.18zm0 1.16v.25h3.32v-.25zm0 .25h-.18v1.16h.18zm-.18 0v-.25H6.99v.25zM6.99 6.23V5.07h-.2v1.16zm0-2.29h10.06v.88H6.99Zm-3.69.88v.25h3.48v-.25zm0 1.41v.25h3.48v-.25zm3.49.26v1.16h.2V6.49Zm.2 1.16v.25h10.06v-.25zm10.06.25v1.16h.18V7.9Zm.18 0h3.32v-.25h-3.32zm0 1.16v.25h3.32v-.25zm0 .25h-.18v1.16h.18zm0 1.16v.25h3.32v-.25zm0 .25h-.18v1.16h.18zm-.18 0v-.25H6.99v.25zm-10.06 0h-.2v1.16h.2zm0-.25V9.31h-.2v1.16zm0-1.16h10.06v-.25H6.99Zm0-.25V7.9h-.2v1.16ZM3.3 7.65v.25h3.48v-.25zm0 1.41v.25h3.48v-.25zm0 1.41v.25h3.48v-.25zm0 1.42v.25h3.48v-.25zm3.69 0v.25h10.06v-.25zm10.06.25v1.16h.18v-1.16zm.18 0h3.32v-.25h-3.32zm0 1.16v.25h3.32v-.25zm0 .25h-.18v1.16h.18zm0 1.16v.25h3.32v-.25zm0 .25h-.18v1.16h.18zm0 1.16v.25h3.32v-.25zm0 .25h-.18v1.16h.18zm-.18 0v-.25H6.99v.25zm-10.06 0h-.2v1.16h.2zm0-.25v-1.16h-.2v1.16zm0-1.16h10.06v-.25H6.99Zm0-.25v-1.16h-.2v1.16zm0-1.16h10.06v-.25H6.99Zm0-.25v-1.16h-.2v1.16zm-3.69 0v.25h3.48v-.25zm0 1.41v.25h3.48v-.25zm0 1.41v.25h3.48v-.25zm0 1.42v.25h3.48v-.25zm3.69 0v.25h10.06v-.25zm10.06.25v1.16h.18v-1.16zm.18 0h3.32v-.25h-3.32zm0 1.16v.25h3.32v-.25zm0 .25h-.18v1.16h.18zm0 1.16v.25h3.32v-.25zm0 .25h-.18v.69H6.99v-.69h-.2v.69H3.3v.5h17.25v-.5h-3.32zm-10.24 0h10.06v-.25H6.99Zm0-.25V19.2h-.2v1.16zm0-1.16h10.06v-.25H6.99Zm0-.25v-1.16h-.2v1.16zm-3.69 0v.25h3.48v-.25zm0 1.41v.25h3.48v-.25z"/>
+    </svg>`;
+    
+    // Media Player Icons
+    static MEDIA_PAUSE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="39" height="39" viewBox="0 0 24 24" fill="none" color="currentColor">
+      <path fill="currentColor" d="M12.28 19.81c-.41.11-.83.19-1.28.19c-2.76 0-5-2.24-5-5s2.24-5 5-5c1.89 0 3.5 1.06 4.37 2.61c.79-.38 1.69-.61 2.63-.61V4a2 2 0 0 0-2-2H6c-1.11 0-2 .89-2 2v16c0 1.11.89 2 2 2h7.54c-.54-.63-1-1.37-1.26-2.19M11 4c1.11 0 2 .89 2 2s-.89 2-2 2a2 2 0 0 1-2-2c0-1.11.89-2 2-2m2.74 9.78A6 6 0 0 0 12 17.81c-.31.12-.64.19-1 .19c-1.66 0-3-1.34-3-3s1.34-3 3-3c1.22 0 2.27.73 2.74 1.78M19 15h2v6h-2m-4-6h2v6h-2z"/>
+    </svg>`;
+    
+    static MEDIA_PLAY_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="39" height="39" viewBox="0 0 24 24" fill="none" color="currentColor">
+      <path fill="currentColor" d="M16 15v6l5-3zm-3.72 4.81c-.41.11-.83.19-1.28.19c-2.76 0-5-2.24-5-5s2.24-5 5-5c1.89 0 3.5 1.06 4.37 2.61c.79-.38 1.69-.61 2.63-.61V4a2 2 0 0 0-2-2H6c-1.11 0-2 .89-2 2v16c0 1.11.89 2 2 2h7.54c-.54-.63-1-1.37-1.26-2.19M11 4c1.11 0 2 .89 2 2s-.89 2-2 2a2 2 0 0 1-2-2c0-1.11.89-2 2-2m2.74 9.78A6 6 0 0 0 12 17.81c-.31.12-.64.19-1 .19c-1.66 0-3-1.34-3-3s1.34-3 3-3c1.22 0 2.27.73 2.74 1.78"/>
+    </svg>`;
+    
+    static MEDIA_STOP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="39" height="39" viewBox="0 0 24 24" fill="none" color="currentColor">
+      <path fill="currentColor" d="M12.28 19.81c-.41.11-.83.19-1.28.19c-2.76 0-5-2.24-5-5s2.24-5 5-5c1.89 0 3.5 1.06 4.37 2.61c.79-.38 1.69-.61 2.63-.61V4a2 2 0 0 0-2-2H6c-1.11 0-2 .89-2 2v16c0 1.11.89 2 2 2h7.54c-.54-.63-1-1.37-1.26-2.19M11 4c1.11 0 2 .89 2 2s-.89 2-2 2a2 2 0 0 1-2-2c0-1.11.89-2 2-2m2.74 9.78A6 6 0 0 0 12 17.81c-.31.12-.64.19-1 .19c-1.66 0-3-1.34-3-3s1.34-3 3-3c1.22 0 2.27.73 2.74 1.78M21 15h-6v6h6z"/>
+    </svg>`;
+    
+    // Climate Icons
+    static CLIMATE_OFF_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="39" height="39" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M3 8m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" />
+      <path d="M7 16v-3a1 1 0 0 1 1 -1h8a1 1 0 0 1 1 1v3" />
+    </svg>`;
+    
+    static CLIMATE_ON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="39" height="39" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M8 16a3 3 0 0 1 -3 3" />
+      <path d="M16 16a3 3 0 0 0 3 3" />
+      <path d="M12 16v4" />
+      <path d="M3 5m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" />
+      <path d="M7 13v-3a1 1 0 0 1 1 -1h8a1 1 0 0 1 1 1v3" />
+    </svg>`;
     
     constructor() {
         super();
@@ -6742,6 +6778,33 @@ class FastSearchCard extends HTMLElement {
             return item.isActive ? 
                 FastSearchCard.LIGHT_ON_SVG : 
                 FastSearchCard.LIGHT_OFF_SVG;
+        }
+        
+        if (item.domain === 'cover') {
+            // Cover: isActive = offen (position > 0)
+            return item.isActive ? 
+                FastSearchCard.COVER_OPEN_SVG : 
+                FastSearchCard.COVER_CLOSED_SVG;
+        }
+        
+        if (item.domain === 'media_player') {
+            const state = this._hass.states[item.id];
+            if (state) {
+                if (state.state === 'playing') {
+                    return FastSearchCard.MEDIA_PAUSE_SVG; // Zeige Pause wenn spielt
+                } else if (state.state === 'paused') {
+                    return FastSearchCard.MEDIA_PLAY_SVG; // Zeige Play wenn pausiert
+                } else {
+                    return FastSearchCard.MEDIA_STOP_SVG; // Zeige Stop wenn gestoppt/idle
+                }
+            }
+            return FastSearchCard.MEDIA_STOP_SVG;
+        }
+        
+        if (item.domain === 'climate') {
+            return item.isActive ? 
+                FastSearchCard.CLIMATE_ON_SVG : 
+                FastSearchCard.CLIMATE_OFF_SVG;
         }
         
         // Fallback für andere Domains
