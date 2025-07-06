@@ -1130,6 +1130,15 @@ class FastSearchCard extends HTMLElement {
                 transform: translateX(20px);
             }
 
+            /* Mobile: Category-Buttons zentrieren */
+            @media (max-width: 768px) {
+                .category-buttons {
+                    justify-content: center;
+                    width: 100%;
+                    gap: 2px;
+                }
+            }            
+
             .category-buttons.visible {
                 display: flex;
             }
