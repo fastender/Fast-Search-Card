@@ -1455,14 +1455,6 @@ class FastSearchCard extends HTMLElement {
                     max-height: 100%;
                 }
 
-                #tab-content-container.shortcuts-active {
-                    padding: 0px;
-                }
-
-                #tab-content-container.history-active {
-                    padding: 0px;
-                }
-
                 /* Mobile: History Tab spezifisches Padding */
                 @media (max-width: 768px) {
                     #tab-content-container.history-active {
