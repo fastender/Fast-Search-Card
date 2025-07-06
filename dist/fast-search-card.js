@@ -595,9 +595,10 @@ class FastSearchCard extends HTMLElement {
             }
 
             .clear-button.visible {
-                display: flex;
-                opacity: 1;
-            }
+                display: flex !important;
+                opacity: 1 !important;
+                transform: scale(1) !important;
+            }            
 
             .clear-button:hover {
                 background: rgba(0, 0, 0, 0.25);
@@ -4280,13 +4281,24 @@ class FastSearchCard extends HTMLElement {
         const searchInput = this.shadowRoot.querySelector('.search-input');
         this.isSearching = query.trim().length > 0;
         if (this.searchTimeout) { clearTimeout(this.searchTimeout); }
+
         if (query.length > 0) {
-            clearButton.classList.add('visible');
-            this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
+            if (!clearButton.classList.contains('visible')) {
+                clearButton.classList.add('visible');
+                clearButton.offsetHeight; // Force reflow
+                this.animateElementIn(clearButton, { scale: [0, 1], opacity: [0, 1] });
+            }
         } else {
             this.isSearching = false; 
-            const animation = this.animateElementOut(clearButton);
-            animation.finished.then(() => { clearButton.classList.remove('visible'); });
+
+            if (clearButton.classList.contains('visible')) {
+                const animation = this.animateElementOut(clearButton);
+                animation.finished.then(() => { 
+                    clearButton.classList.remove('visible');
+                    clearButton.style.transform = '';
+                    clearButton.style.scale = '';
+                });
+            }            
         }
         searchInput.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.02)' }, { transform: 'scale(1)' }], { duration: 200, easing: 'ease-out' });
         if (!this.isPanelExpanded) { this.expandPanel(); }
@@ -12991,6 +13003,12 @@ class FastSearchCard extends HTMLElement {
 
     animateElementIn(element, keyframes, options = {}) {
         if (!element) return;
+
+        // Reset alle Transform-Properties vor Animation
+        element.style.transform = '';
+        element.style.scale = '';
+        element.style.opacity = '';        
+        
         return element.animate(keyframes, {
             duration: 400,
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
