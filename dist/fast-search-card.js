@@ -1351,8 +1351,30 @@ class FastSearchCard extends HTMLElement {
             }
 
             #tab-content-container.shortcuts-active {
-                padding: 0px; /* Falls du das auch willst */
+                padding: 0px;
             }
+
+            /* Accordion Styles nur im Shortcuts Tab */
+            #tab-content-container.shortcuts-active .accordion-content.open {
+                background: rgba(0, 0, 0, 0.3);
+                max-height: 300px;
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255,255,255,0.2) transparent;
+            }
+            
+            #tab-content-container.shortcuts-active .accordion-content.open::-webkit-scrollbar {
+                width: 4px;
+            }
+            
+            #tab-content-container.shortcuts-active .accordion-content.open::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            #tab-content-container.shortcuts-active .accordion-content.open::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.2);
+                border-radius: 2px;
+            }            
             
             #tab-content-container::-webkit-scrollbar { display: none; }
 
@@ -11587,7 +11609,7 @@ class FastSearchCard extends HTMLElement {
             const shortcutsBtns = this.shadowRoot.querySelectorAll('.shortcuts-btn');
             console.log('🎯 Found shortcuts buttons:', shortcutsBtns.length);
             
-            // NEU: Accordion Event Listeners
+            // NEU: Accordion Event Listeners (nur eines gleichzeitig)
             const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
             accordionHeaders.forEach(header => {
                 header.addEventListener('click', () => {
@@ -11595,21 +11617,25 @@ class FastSearchCard extends HTMLElement {
                     const content = this.shadowRoot.querySelector(`[data-content="${accordionType}"]`);
                     const arrow = header.querySelector('.accordion-arrow svg');
                     
-                    // Toggle
                     const isOpen = content.classList.contains('open');
                     
-                    if (isOpen) {
-                        content.classList.remove('open');
-                        header.classList.remove('active');
-                        arrow.style.transform = 'rotate(0deg)';
-                    } else {
+                    // ALLE anderen Accordions schließen
+                    accordionHeaders.forEach(otherHeader => {
+                        const otherContent = this.shadowRoot.querySelector(`[data-content="${otherHeader.dataset.accordion}"]`);
+                        const otherArrow = otherHeader.querySelector('.accordion-arrow svg');
+                        
+                        otherContent.classList.remove('open');
+                        otherHeader.classList.remove('active');
+                        otherArrow.style.transform = 'rotate(0deg)';
+                    });
+                    
+                    // Aktuelles Toggle (nur öffnen wenn es geschlossen war)
+                    if (!isOpen) {
                         content.classList.add('open');
                         header.classList.add('active');
                         arrow.style.transform = 'rotate(45deg)';
-                    }
-                    
-                    // Tab-spezifische Initialisierung wenn geöffnet
-                    if (!isOpen) {
+                        
+                        // Tab-spezifische Initialisierung
                         switch(accordionType) {
                             case 'timer':
                                 this.initializeTimerTab(item, content);
@@ -11623,8 +11649,8 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 });
-            });            
-            
+            });
+                        
             // Initial Timer Tab aktivieren
             const timerContent = this.shadowRoot.querySelector('[data-shortcuts-content="timer"]');
             if (timerContent) {
