@@ -9128,32 +9128,23 @@ class FastSearchCard extends HTMLElement {
     // KORRIGIERT: Timer-Zeit aktualisieren
     async updateTimerTime(timerId, newTotalMinutes) {
         try {
-            console.log(`🔧 Aktualisiere Timer ${timerId} auf ${newTotalMinutes} Minuten`);
+            console.log(`🔧 Timer bearbeiten: ${timerId} -> ${newTotalMinutes} min`);
             
             const currentTimer = this.lastLoadedTimers?.find(t => t.schedule_id === timerId);
-            
-            if (!currentTimer) {
-                console.error('❌ Aktueller Timer nicht gefunden für Update');
-                return;
-            }
-            
             const future = new Date(Date.now() + newTotalMinutes * 60 * 1000);
-            const timeString = future.toTimeString().slice(0, 5);
             
-            // KORRIGIERT: Verwende schedule_id statt entity_id
             await this._hass.callService('scheduler', 'edit', {
-                schedule_id: timerId,  // ← Nur die ID
+                entity_id: timerId,  // Direkt die Timer-ID ohne Prefix
                 timeslots: [{
-                    start: timeString,
+                    start: future.toTimeString().slice(0, 5),
                     actions: currentTimer.timeslots[0].actions
-                }],
-                name: currentTimer.name
+                }]
             });
             
-            console.log(`✅ Timer ${timerId} erfolgreich aktualisiert`);
+            console.log(`✅ Timer ${timerId} bearbeitet`);
             
         } catch (error) {
-            console.error('❌ Fehler beim Aktualisieren des Timers:', error);
+            console.error('❌ Edit fehlgeschlagen:', error);
             throw error;
         }
     }
@@ -9847,39 +9838,22 @@ class FastSearchCard extends HTMLElement {
         }
         return '⚙️ Aktion';
     }
-    
+
     async deleteTimer(timerId, entityId) {
         try {
             console.log(`🗑️ Timer löschen: ${timerId}`);
             
-            // KORRIGIERT: Verwende nur die schedule_id ohne Entity-Prefix
             await this._hass.callService('scheduler', 'remove', {
-                schedule_id: timerId  // ← Nur die ID, kein "schedule." oder "switch."
+                entity_id: timerId  // Direkt die Timer-ID ohne Prefix
             });
             
-            console.log(`✅ Timer ${timerId} erfolgreich gelöscht`);
-            
-            // Timer-Liste neu laden
-            setTimeout(() => {
-                this.loadActiveTimers(entityId);
-            }, 500);
+            console.log(`✅ Timer ${timerId} gelöscht`);
+            setTimeout(() => this.loadActiveTimers(entityId), 500);
             
         } catch (error) {
-            console.error('❌ Fehler beim Löschen des Timers:', error);
-            
-            // Fallback: Versuche es mit entity_id
-            try {
-                console.log('🔄 Versuche Fallback mit entity_id...');
-                await this._hass.callService('scheduler', 'remove', {
-                    entity_id: timerId
-                });
-                console.log(`✅ Timer ${timerId} mit Fallback gelöscht`);
-                setTimeout(() => this.loadActiveTimers(entityId), 500);
-            } catch (fallbackError) {
-                console.error('❌ Auch Fallback fehlgeschlagen:', fallbackError);
-            }
+            console.error('❌ Löschen fehlgeschlagen:', error);
         }
-    }
+    }    
 
     async loadAndDisplayHistory(item, period) {
         const timelineContainer = this.shadowRoot.getElementById(`history-timeline-${item.id}`);
