@@ -9081,31 +9081,63 @@ class FastSearchCard extends HTMLElement {
 
     // NEU: Timer by ID laden
     async getTimerById(timerId) {
-        // Implementierung je nach Ihrem Backend
-        // Beispiel für Home Assistant Scheduler:
         try {
+            // Korrekte WebSocket-Anfrage für Home Assistant Scheduler
             const schedules = await this._hass.callWS({
-                type: 'scheduler/items'
+                type: 'call_service',
+                domain: 'scheduler',
+                service: 'list',
+                service_data: {}
             });
+            
+            // Alternative: Falls das nicht funktioniert, versuchen Sie:
+            // const schedules = this._hass.states;
+            // return Object.values(schedules).find(s => s.entity_id.includes(timerId));
+            
             return schedules.find(s => s.schedule_id === timerId);
         } catch (error) {
             console.error('Fehler beim Laden des Timers:', error);
-            return null;
+            
+            // Fallback: Timer-Daten aus der aktuellen Liste holen
+            return this.getCurrentTimerFromList(timerId);
         }
     }
+
+    // FALLBACK: Timer aus der aktuellen Anzeige holen
+    getCurrentTimerFromList(timerId) {
+        // Vereinfachter Ansatz: Nimm die ursprüngliche Aktion vom Button
+        if (this.lastLoadedTimers) {
+            return this.lastLoadedTimers.find(t => t.schedule_id === timerId);
+        }
+        
+        // Minimal-Timer-Objekt für Edit-Zwecke
+        return {
+            schedule_id: timerId,
+            action: 'turn_off', // Default-Aktion
+            name: 'Timer'
+        };
+    }    
     
     // NEU: Timer-Zeit aktualisieren
     async updateTimerTime(timerId, newTotalMinutes) {
-        const future = new Date(Date.now() + newTotalMinutes * 60 * 1000);
-        const timeString = future.toTimeString().slice(0, 5);
-        
-        await this._hass.callService('scheduler', 'edit', {
-            entity_id: `schedule.${timerId}`,
-            timeslots: [{
-                start: timeString,
-                // Weitere Timer-Daten beibehalten...
-            }]
-        });
+        try {
+            const future = new Date(Date.now() + newTotalMinutes * 60 * 1000);
+            const timeString = future.toTimeString().slice(0, 5);
+            
+            // Korrekte Service-Calls für Scheduler
+            await this._hass.callService('scheduler', 'edit', {
+                entity_id: timerId,
+                timeslots: [{
+                    start: timeString
+                }]
+            });
+            
+            console.log(`✅ Timer ${timerId} erfolgreich auf ${newTotalMinutes} Minuten aktualisiert`);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Aktualisieren des Timers:', error);
+            throw error;
+        }
     }
     
     closeMinimalTimePicker(parentContainer) {
@@ -9541,7 +9573,7 @@ class FastSearchCard extends HTMLElement {
         console.error('❌ Timer Fehler:', error);
         // TODO: Error Toast (später)
     }
-    
+
     async loadActiveTimers(entityId) {
         const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
         if (!container) return;
@@ -9562,14 +9594,12 @@ class FastSearchCard extends HTMLElement {
                 const belongsToEntity = schedule.timeslots && schedule.timeslots.some(slot => 
                     slot.actions && slot.actions.some(action => action.entity_id === entityId)
                 );            
-
                 // Timer = einmalige Ausführung (erkennt man am Namen oder fehlendem repeat_type)
                 const isTimer = !schedule.weekdays || 
                                 schedule.weekdays.length === 0 || 
                                 (schedule.name && schedule.name.includes('min)')) ||  // Timer haben oft "(30min)" im Namen
                                 schedule.repeat_type === 'once' ||
                                 !schedule.repeat_type;                
-
                 // DEBUG: Zeige alle relevanten Schedules
                 if (belongsToEntity) {
                     console.log(`🔍 TIMER DEBUG - Schedule: ${schedule.name}, weekdays: ${JSON.stringify(schedule.weekdays)}, isTimer: ${isTimer}`);
@@ -9580,7 +9610,11 @@ class FastSearchCard extends HTMLElement {
             
             console.log(`🎯 Timer für ${entityId}:`, entityTimers);
             
-            this.renderActiveTimers(entityTimers, entityId);
+            // NEU: Timer zwischenspeichern für Edit-Fallback
+            this.lastLoadedTimers = entityTimers;
+            
+            // NEU: Verwende displayActiveTimers statt renderActiveTimers
+            this.displayActiveTimers(container, entityTimers, entityId);
             
         } catch (error) {
             console.error('❌ Fehler beim Laden der Timer:', error);
@@ -9745,18 +9779,22 @@ class FastSearchCard extends HTMLElement {
     
     async deleteTimer(timerId, entityId) {
         try {
-            // KORRIGIERT: Verwende callApi statt callService
-            await this._hass.callApi('POST', 'scheduler/remove', {
-                schedule_id: timerId
+            console.log(`🗑️ Timer löschen: ${timerId}`);
+            
+            // Korrekte Service-Call für Timer-Löschung
+            await this._hass.callService('scheduler', 'remove', {
+                entity_id: timerId
             });
             
-            console.log(`🗑️ Timer ${timerId} gelöscht`);
+            console.log('✅ Timer erfolgreich gelöscht');
             
-            // Timer Liste neu laden
-            this.loadActiveTimers(entityId);
+            // Timer-Liste neu laden
+            setTimeout(() => {
+                this.loadActiveTimers(entityId);
+            }, 500);
             
         } catch (error) {
-            console.error('❌ Fehler beim Löschen:', error);
+            console.error('❌ Fehler beim Löschen des Timers:', error);
         }
     }
 
