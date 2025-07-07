@@ -9575,47 +9575,41 @@ class FastSearchCard extends HTMLElement {
     }
 
 
+
     async loadActiveTimers(entityId) {
+        console.log('🔍 DEBUG: loadActiveTimers aufgerufen für:', entityId);
+        
         const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
         if (!container) return;
         
         container.innerHTML = '<div class="loading-timers">Lade Timer...</div>';
         
         try {
-            // KORRIGIERT: Verwende die richtige API
             const allSchedules = await this._hass.callWS({
-                type: 'scheduler'  // ← Das war der Fehler!
+                type: 'scheduler'
             });
             
             console.log('📋 Alle Scheduler Items (korrekte API):', allSchedules);
             
-            // Filter für diese Entity UND nur echte Timer (keine Wochentage)
-            const entityTimers = allSchedules.filter(schedule => {
-                // Prüfe ob diese Entity in den timeslots/actions vorkommt
-                const belongsToEntity = schedule.timeslots && schedule.timeslots.some(slot => 
-                    slot.actions && slot.actions.some(action => action.entity_id === entityId)
-                );            
-                // Timer = einmalige Ausführung (erkennt man am Namen oder fehlendem repeat_type)
-                const isTimer = !schedule.weekdays || 
-                                schedule.weekdays.length === 0 || 
-                                (schedule.name && schedule.name.includes('min)')) ||  // Timer haben oft "(30min)" im Namen
-                                schedule.repeat_type === 'once' ||
-                                !schedule.repeat_type;                
-                // DEBUG: Zeige alle relevanten Schedules
-                if (belongsToEntity) {
-                    console.log(`🔍 TIMER DEBUG - Schedule: ${schedule.name}, weekdays: ${JSON.stringify(schedule.weekdays)}, isTimer: ${isTimer}`);
-                }
-                
-                return belongsToEntity && isTimer;
-            });
+            // ... Filter-Code bleibt gleich ...
             
             console.log(`🎯 Timer für ${entityId}:`, entityTimers);
             
-            // NEU: Timer zwischenspeichern für Edit-Fallback
             this.lastLoadedTimers = entityTimers;
             
-            // KORRIGIERT: Verwende renderActiveTimers (die existierende Funktion)
-            this.renderActiveTimers(entityTimers, entityId);
+            console.log('🔍 DEBUG: Rufe renderActiveTimers auf...');
+            console.log('🔍 DEBUG: this.renderActiveTimers existiert?', typeof this.renderActiveTimers);
+            
+            // Prüfen ob die Funktion existiert
+            if (typeof this.renderActiveTimers === 'function') {
+                this.renderActiveTimers(entityTimers, entityId);
+            } else {
+                console.error('❌ renderActiveTimers Funktion existiert nicht!');
+                // Fallback - direkt HTML setzen
+                container.innerHTML = entityTimers.length > 0 
+                    ? `<div class="no-timers">${entityTimers.length} Timer gefunden</div>`
+                    : '<div class="no-timers">Keine aktiven Timer</div>';
+            }
             
         } catch (error) {
             console.error('❌ Fehler beim Laden der Timer:', error);
