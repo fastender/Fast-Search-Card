@@ -9860,12 +9860,42 @@ class FastSearchCard extends HTMLElement {
         try {
             console.log(`🗑️ Timer löschen: ${timerId}`);
             
-            // KORRIGIERT: Entity-ID Format schedule.{id}
-            const scheduleEntityId = `schedule.${timerId}`;
-            console.log(`🔍 Lösche schedule entity: ${scheduleEntityId}`);
+            // Debug: Schauen Sie, welche schedule-Entitäten existieren
+            const allEntities = Object.keys(this._hass.states);
+            const scheduleEntities = allEntities.filter(e => e.includes(timerId));
             
+            console.log(`🔍 Alle Entitäten mit ${timerId}:`, scheduleEntities);
+            
+            // Verschiedene Format-Optionen probieren
+            const possibleFormats = [
+                `schedule.${timerId}`,
+                `switch.schedule_${timerId}`,
+                timerId,
+                `scheduler_${timerId}`
+            ];
+            
+            let foundEntity = null;
+            
+            for (const format of possibleFormats) {
+                if (this._hass.states[format]) {
+                    foundEntity = format;
+                    console.log(`✅ Entität gefunden: ${format}`);
+                    break;
+                }
+            }
+            
+            if (!foundEntity) {
+                console.error(`❌ Keine passende Entität für ${timerId} gefunden`);
+                console.log('🔍 Verfügbare schedule/switch Entitäten:');
+                allEntities.filter(e => e.startsWith('schedule.') || e.startsWith('switch.')).forEach(e => {
+                    if (e.includes('schedule')) console.log(`  - ${e}`);
+                });
+                return;
+            }
+            
+            // Versuche zu löschen
             await this._hass.callService('scheduler', 'remove', {
-                entity_id: scheduleEntityId  // ← schedule.{id} Format
+                entity_id: foundEntity
             });
             
             console.log(`✅ Timer ${timerId} erfolgreich gelöscht`);
