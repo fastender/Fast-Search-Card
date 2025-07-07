@@ -2814,32 +2814,6 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(255,255,255,0.05);
                 border-radius: 12px;
             }
-
-            .timer-actions {
-                display: flex;
-                gap: 8px;
-                align-items: center;
-            }
-            
-            .timer-edit,
-            .timer-delete {
-                width: 32px;
-                height: 32px;
-                background: rgba(255,255,255,0.1);
-                border: none;
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s ease;
-                flex-shrink: 0;
-            }
-            
-            .timer-edit:hover {
-                background: rgba(0, 122, 255, 0.2);
-                transform: scale(1.1);
-            }            
             
             .quick-timer-title {
                 font-size: 14px;
@@ -9049,21 +9023,11 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
+        console.log(`🎯 Erstelle Timer: ${action} in ${totalMinutes} Minuten`);
+        
         try {
-            // NEU: Prüfen ob Edit-Modus
-            if (this.editingTimer) {
-                console.log(`🔧 Timer bearbeiten: ${this.editingTimer.id} - ${totalMinutes} Minuten`);
-                
-                // Timer bearbeiten (Sie müssen diese Funktion implementieren)
-                await this.updateTimerTime(this.editingTimer.id, totalMinutes);
-                
-                // Edit-Modus zurücksetzen
-                this.editingTimer = null;
-            } else {
-                // Normal: Neuen Timer erstellen
-                console.log(`🎯 Erstelle Timer: ${action} in ${totalMinutes} Minuten`);
-                await this.createActionTimer(item, action, totalMinutes);
-            }
+            // Verwende deine bestehende Timer-Erstellung
+            await this.createActionTimer(item, action, totalMinutes);
             
             // Schließe den Picker
             const parentContainer = this.shadowRoot.querySelector('.minimal-time-picker').closest('.shortcuts-tab-content');
@@ -9075,80 +9039,10 @@ class FastSearchCard extends HTMLElement {
             }, 500);
             
         } catch (error) {
-            console.error('❌ Fehler beim Timer:', error);
+            console.error('❌ Fehler beim Erstellen des Timers:', error);
         }
     }
 
-    // KORRIGIERT: Timer by ID laden
-    async getTimerById(timerId) {
-        try {
-            // Verwende die Timer aus der bereits geladenen Liste
-            if (this.lastLoadedTimers) {
-                const timer = this.lastLoadedTimers.find(t => t.schedule_id === timerId);
-                if (timer) {
-                    console.log('✅ Timer aus Cache gefunden:', timer);
-                    return timer;
-                }
-            }
-            
-            // Fallback: Nochmal alle Timer laden
-            const allSchedules = await this._hass.callWS({
-                type: 'scheduler'
-            });
-            
-            return allSchedules.find(s => s.schedule_id === timerId);
-            
-        } catch (error) {
-            console.error('Fehler beim Laden des Timers:', error);
-            
-            // Minimal-Timer-Objekt für Edit-Zwecke
-            return {
-                schedule_id: timerId,
-                action: 'turn_off', // Default-Aktion
-                name: 'Timer'
-            };
-        }
-    }
-
-    // FALLBACK: Timer aus der aktuellen Anzeige holen
-    getCurrentTimerFromList(timerId) {
-        // Vereinfachter Ansatz: Nimm die ursprüngliche Aktion vom Button
-        if (this.lastLoadedTimers) {
-            return this.lastLoadedTimers.find(t => t.schedule_id === timerId);
-        }
-        
-        // Minimal-Timer-Objekt für Edit-Zwecke
-        return {
-            schedule_id: timerId,
-            action: 'turn_off', // Default-Aktion
-            name: 'Timer'
-        };
-    }    
-    
-    // KORRIGIERT: Timer-Zeit aktualisieren
-    async updateTimerTime(timerId, newTotalMinutes) {
-        try {
-            console.log(`🔧 Timer bearbeiten: ${timerId} -> ${newTotalMinutes} min`);
-            
-            const currentTimer = this.lastLoadedTimers?.find(t => t.schedule_id === timerId);
-            const future = new Date(Date.now() + newTotalMinutes * 60 * 1000);
-            
-            await this._hass.callService('scheduler', 'edit', {
-                entity_id: timerId,  // Direkt die Timer-ID ohne Prefix
-                timeslots: [{
-                    start: future.toTimeString().slice(0, 5),
-                    actions: currentTimer.timeslots[0].actions
-                }]
-            });
-            
-            console.log(`✅ Timer ${timerId} bearbeitet`);
-            
-        } catch (error) {
-            console.error('❌ Edit fehlgeschlagen:', error);
-            throw error;
-        }
-    }
-    
     closeMinimalTimePicker(parentContainer) {
         const timePickerContainer = parentContainer.querySelector('.minimal-time-picker');
         if (timePickerContainer) {
@@ -9582,36 +9476,35 @@ class FastSearchCard extends HTMLElement {
         console.error('❌ Timer Fehler:', error);
         // TODO: Error Toast (später)
     }
-
-
-
+    
     async loadActiveTimers(entityId) {
-        console.log('🔍 DEBUG: loadActiveTimers aufgerufen für:', entityId);
-        
         const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
         if (!container) return;
         
         container.innerHTML = '<div class="loading-timers">Lade Timer...</div>';
         
         try {
+            // KORRIGIERT: Verwende die richtige API
             const allSchedules = await this._hass.callWS({
-                type: 'scheduler'
+                type: 'scheduler'  // ← Das war der Fehler!
             });
             
             console.log('📋 Alle Scheduler Items (korrekte API):', allSchedules);
             
-            // WICHTIG: Filter für diese Entity UND nur echte Timer (dieser Code fehlte!)
+            // Filter für diese Entity UND nur echte Timer (keine Wochentage)
             const entityTimers = allSchedules.filter(schedule => {
                 // Prüfe ob diese Entity in den timeslots/actions vorkommt
                 const belongsToEntity = schedule.timeslots && schedule.timeslots.some(slot => 
                     slot.actions && slot.actions.some(action => action.entity_id === entityId)
                 );            
+
                 // Timer = einmalige Ausführung (erkennt man am Namen oder fehlendem repeat_type)
                 const isTimer = !schedule.weekdays || 
                                 schedule.weekdays.length === 0 || 
                                 (schedule.name && schedule.name.includes('min)')) ||  // Timer haben oft "(30min)" im Namen
                                 schedule.repeat_type === 'once' ||
                                 !schedule.repeat_type;                
+
                 // DEBUG: Zeige alle relevanten Schedules
                 if (belongsToEntity) {
                     console.log(`🔍 TIMER DEBUG - Schedule: ${schedule.name}, weekdays: ${JSON.stringify(schedule.weekdays)}, isTimer: ${isTimer}`);
@@ -9622,21 +9515,7 @@ class FastSearchCard extends HTMLElement {
             
             console.log(`🎯 Timer für ${entityId}:`, entityTimers);
             
-            this.lastLoadedTimers = entityTimers;
-            
-            console.log('🔍 DEBUG: Rufe renderActiveTimers auf...');
-            console.log('🔍 DEBUG: this.renderActiveTimers existiert?', typeof this.renderActiveTimers);
-            
-            // Prüfen ob die Funktion existiert
-            if (typeof this.renderActiveTimers === 'function') {
-                this.renderActiveTimers(entityTimers, entityId);
-            } else {
-                console.error('❌ renderActiveTimers Funktion existiert nicht!');
-                // Fallback - direkt HTML setzen
-                container.innerHTML = entityTimers.length > 0 
-                    ? `<div class="no-timers">${entityTimers.length} Timer gefunden</div>`
-                    : '<div class="no-timers">Keine aktiven Timer</div>';
-            }
+            this.renderActiveTimers(entityTimers, entityId);
             
         } catch (error) {
             console.error('❌ Fehler beim Laden der Timer:', error);
@@ -9648,7 +9527,6 @@ class FastSearchCard extends HTMLElement {
 
 
     
-
 
     renderActiveTimers(timers, entityId) {
         const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
@@ -9680,24 +9558,18 @@ class FastSearchCard extends HTMLElement {
                             <span class="timer-time">${timeUntil}</span>
                         </div>
                     </div>
-                    <div class="timer-actions">
-                        <button class="timer-edit" data-timer-id="${timer.schedule_id}" title="Timer bearbeiten">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                        </button>
-                        <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                <path d="M4 7l16 0" />
-                                <path d="M10 11l0 6" />
-                                <path d="M14 11l0 6" />
-                                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
-                                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
-                            </svg>
-                        </button>
-                    </div>
+                    
+                    <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M4 7l16 0" />
+                            <path d="M10 11l0 6" />
+                            <path d="M14 11l0 6" />
+                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+                            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+                        </svg>
+                    </button>
+                    
                 </div>
             `;
         }).join('');
@@ -9707,82 +9579,13 @@ class FastSearchCard extends HTMLElement {
             <div class="active-timers-list">${timerHTML}</div>
         `;
         
-        // Event Listeners für Edit Buttons (bereits vorhanden)
-        container.querySelectorAll('.timer-edit').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const timerId = btn.dataset.timerId;
-                this.editTimer(timerId, entityId);
-            });
-        });
-    
-        // ✅ NEU: Event Listeners für Delete Buttons hinzufügen
+        // Event Listeners für Delete Buttons
         container.querySelectorAll('.timer-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const timerId = btn.dataset.timerId;
-                // Optional: Bestätigungsdialog
-                if (confirm('Timer wirklich löschen?')) {
-                    this.deleteTimer(timerId, entityId);
-                }
+                this.deleteTimer(timerId, entityId);
             });
         });
-    }
-
-    async editTimer(timerId, entityId) {
-        console.log(`🔧 Timer bearbeiten: ${timerId}`);
-        
-        try {
-            const timer = await this.getTimerById(timerId);
-            if (!timer) {
-                console.error('Timer nicht gefunden');
-                return;
-            }
-            
-            // Debug: Schauen welche Container verfügbar sind
-            console.log('🔍 DEBUG: Suche Container für entityId:', entityId);
-            
-            // Verschiedene Container-Selektoren probieren
-            let parentContainer = this.shadowRoot.querySelector(`#timer-section-${entityId}`);
-            
-            if (!parentContainer) {
-                console.log('🔍 timer-section nicht gefunden, probiere shortcuts-tab-content...');
-                parentContainer = this.shadowRoot.querySelector('.shortcuts-tab-content.active');
-            }
-            
-            if (!parentContainer) {
-                console.log('🔍 shortcuts-tab-content nicht gefunden, probiere timer-control...');
-                parentContainer = this.shadowRoot.querySelector(`#timer-control-${entityId}`);
-            }
-            
-            if (!parentContainer) {
-                console.log('🔍 Alle verfügbaren Container:');
-                const allContainers = this.shadowRoot.querySelectorAll('[id*="timer"]');
-                allContainers.forEach(c => console.log('- Container:', c.id, c));
-                
-                console.error('❌ Kein geeigneter Container gefunden!');
-                return;
-            }
-            
-            console.log('✅ Container gefunden:', parentContainer);
-            
-            // Edit-Modus setzen
-            this.editingTimer = {
-                id: timerId,
-                action: timer.action || 'turn_off',
-                entityId: entityId
-            };
-            
-            // Item-Objekt für Time Picker
-            const itemObj = {
-                id: entityId,
-                name: 'Timer Edit'
-            };
-            
-            // Time Picker anzeigen
-            this.showMinimalTimePicker(itemObj, timer.action || 'turn_off', parentContainer, false);
-            
-        } catch (error) {
-            console.error('❌ Fehler beim Bearbeiten:', error);
-        }
     }
 
     getNextExecution(timer) {
@@ -9838,22 +9641,23 @@ class FastSearchCard extends HTMLElement {
         }
         return '⚙️ Aktion';
     }
-
+    
     async deleteTimer(timerId, entityId) {
         try {
-            console.log(`🗑️ Timer löschen: ${timerId}`);
-            
-            await this._hass.callService('scheduler', 'remove', {
-                entity_id: timerId  // Direkt die Timer-ID ohne Prefix
+            // KORRIGIERT: Verwende callApi statt callService
+            await this._hass.callApi('POST', 'scheduler/remove', {
+                schedule_id: timerId
             });
             
-            console.log(`✅ Timer ${timerId} gelöscht`);
-            setTimeout(() => this.loadActiveTimers(entityId), 500);
+            console.log(`🗑️ Timer ${timerId} gelöscht`);
+            
+            // Timer Liste neu laden
+            this.loadActiveTimers(entityId);
             
         } catch (error) {
-            console.error('❌ Löschen fehlgeschlagen:', error);
+            console.error('❌ Fehler beim Löschen:', error);
         }
-    }    
+    }
 
     async loadAndDisplayHistory(item, period) {
         const timelineContainer = this.shadowRoot.getElementById(`history-timeline-${item.id}`);
