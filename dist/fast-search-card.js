@@ -3403,11 +3403,11 @@ class FastSearchCard extends HTMLElement {
             }            
 
             .timer-control-preset {
-                flex-basis: 50px;
+                flex-basis: 70px;
                 flex-grow: 0;
                 flex-shrink: 0;
-                width: 50px;
-                height: 50px;
+                width: 70px;
+                height: 70px;
                 border-radius: 50%;
                 background: rgba(255, 255, 255, 0.1);
                 border: none;
