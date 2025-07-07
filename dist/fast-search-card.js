@@ -9712,14 +9712,20 @@ class FastSearchCard extends HTMLElement {
         }
         
         try {
-            // Verwende den scheduler.remove Service
+            // KORREKTUR: Hole die Switch-Entity-ID
+            const allSchedules = await this._hass.callWS({ type: 'scheduler' });
+            const timerToDelete = allSchedules.find(s => s.schedule_id === timerId);
+            
+            if (!timerToDelete) {
+                alert("Timer nicht gefunden");
+                return;
+            }
+            
             await this._hass.callService('scheduler', 'remove', {
-                entity_id: timerId
-            });            
+                entity_id: timerToDelete.entity_id  // ← Die Switch-Entity-ID verwenden
+            });
             
             console.log(`✅ Timer ${timerId} erfolgreich gelöscht.`);
-            
-            // UI aktualisieren durch Neuladen der Timer
             setTimeout(() => this.loadActiveTimers(entityId), 300);
             
         } catch (error) {
@@ -13616,8 +13622,17 @@ class FastSearchCard extends HTMLElement {
         const { service, serviceData } = this.getActionServiceData(item, action);
     
         try {
+            // KORREKTUR: Hole die Switch-Entity-ID
+            const allSchedules = await this._hass.callWS({ type: 'scheduler' });
+            const timerToEdit = allSchedules.find(s => s.schedule_id === scheduleId);
+            
+            if (!timerToEdit) {
+                alert("Timer nicht gefunden");
+                return;
+            }
+    
             await this._hass.callService('scheduler', 'edit', {
-                entity_id: scheduleId,
+                entity_id: timerToEdit.entity_id,  // ← Die Switch-Entity-ID verwenden
                 timeslots: [{
                     start: timeString,
                     actions: [{ service, entity_id: item.id, service_data: serviceData }]
@@ -13625,9 +13640,6 @@ class FastSearchCard extends HTMLElement {
                 name: `${item.name} - ${this.getActionLabel(action)} (${durationMinutes}min)`,
                 repeat_type: 'single'
             });
-
-
-                
             console.log(`✅ Timer ${scheduleId} erfolgreich aktualisiert.`);
         } catch (error) {
             console.error(`❌ Fehler beim Aufruf von scheduler.edit:`, error);
