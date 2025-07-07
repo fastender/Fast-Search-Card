@@ -9666,6 +9666,7 @@ class FastSearchCard extends HTMLElement {
 
     
 
+
     renderActiveTimers(timers, entityId) {
         const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
         if (!container) return;
@@ -9716,7 +9717,6 @@ class FastSearchCard extends HTMLElement {
                     </div>
                 </div>
             `;
-
         }).join('');
         
         container.innerHTML = `
@@ -9724,11 +9724,22 @@ class FastSearchCard extends HTMLElement {
             <div class="active-timers-list">${timerHTML}</div>
         `;
         
-        // Event Listeners für Delete Buttons
+        // Event Listeners für Edit Buttons (bereits vorhanden)
         container.querySelectorAll('.timer-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const timerId = btn.dataset.timerId;
                 this.editTimer(timerId, entityId);
+            });
+        });
+    
+        // ✅ NEU: Event Listeners für Delete Buttons hinzufügen
+        container.querySelectorAll('.timer-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const timerId = btn.dataset.timerId;
+                // Optional: Bestätigungsdialog
+                if (confirm('Timer wirklich löschen?')) {
+                    this.deleteTimer(timerId, entityId);
+                }
             });
         });
     }
