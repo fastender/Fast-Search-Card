@@ -9641,6 +9641,14 @@ class FastSearchCard extends HTMLElement {
                 this.handleEditTimerClick(timerId, entityId);
             });
         });
+
+        // Event Listeners für Delete Buttons
+        container.querySelectorAll('.timer-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const timerId = btn.dataset.timerId;
+                this.deleteTimer(timerId, entityId);
+            });
+        });        
     }
 
     getNextExecution(timer) {
@@ -9698,19 +9706,25 @@ class FastSearchCard extends HTMLElement {
     }
     
     async deleteTimer(timerId, entityId) {
+        console.log(`🗑️ Lösche Timer ${timerId}`);
+        if (!confirm('Diesen Timer wirklich löschen?')) {
+            return;
+        }
+        
         try {
-            // KORRIGIERT: Verwende callApi statt callService
-            await this._hass.callApi('POST', 'scheduler/remove', {
+            // Verwende den scheduler.remove Service
+            await this._hass.callService('scheduler', 'remove', {
                 schedule_id: timerId
             });
             
-            console.log(`🗑️ Timer ${timerId} gelöscht`);
+            console.log(`✅ Timer ${timerId} erfolgreich gelöscht.`);
             
-            // Timer Liste neu laden
-            this.loadActiveTimers(entityId);
+            // UI aktualisieren durch Neuladen der Timer
+            setTimeout(() => this.loadActiveTimers(entityId), 300);
             
         } catch (error) {
-            console.error('❌ Fehler beim Löschen:', error);
+            console.error('❌ Fehler beim Löschen des Timers:', error);
+            alert(`Fehler beim Löschen des Timers:\n\n${error.message}`);
         }
     }
 
@@ -13537,6 +13551,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     
+
     async handleEditTimerClick(scheduleId, entityId) {
         console.log(`✏️ Bearbeitung für Timer ${scheduleId} angefordert.`);
         
@@ -13545,12 +13560,21 @@ class FastSearchCard extends HTMLElement {
             const timerToEdit = allSchedules.find(s => s.schedule_id === scheduleId);
     
             if (!timerToEdit) {
-                alert("Dieser Timer wurde bereits ausgeführt oder gelöscht und kann nicht bearbeitet werden.");
+                alert("Dieser Timer wurde bereits ausgeführt oder gelöscht.");
                 this.loadActiveTimers(entityId);
                 return;
             }
     
-            const action = this.getActionNameFromService(timerToEdit.actions[0].service, timerToEdit.actions[0].service_data);
+            // ✅ KORREKTUR: Greife auf timeslots[0] zu, um actions zu finden.
+            const timeslot = timerToEdit.timeslots?.[0];
+            const actionData = timeslot?.actions?.[0];
+    
+            if (!actionData) {
+                alert("Die Timer-Aktion konnte nicht gelesen werden. Der Timer ist möglicherweise fehlerhaft.");
+                return;
+            }
+    
+            const action = this.getActionNameFromService(actionData.service, actionData.service_data);
             const nextExecution = new Date(timerToEdit.next_trigger);
             const durationMinutes = Math.round((nextExecution - new Date()) / 60000);
     
@@ -13564,7 +13588,7 @@ class FastSearchCard extends HTMLElement {
             });
         } catch (error) {
             console.error('❌ Fehler beim Laden der Timer-Daten:', error);
-            alert('Fehler beim Laden der Timer-Daten');
+            alert('Fehler beim Laden der Timer-Daten für die Bearbeitung.');
         }
     }
     
