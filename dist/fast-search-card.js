@@ -9724,6 +9724,33 @@ class FastSearchCard extends HTMLElement {
                 return;
             }
             
+            // Debug: Schauen welche Container verfügbar sind
+            console.log('🔍 DEBUG: Suche Container für entityId:', entityId);
+            
+            // Verschiedene Container-Selektoren probieren
+            let parentContainer = this.shadowRoot.querySelector(`#timer-section-${entityId}`);
+            
+            if (!parentContainer) {
+                console.log('🔍 timer-section nicht gefunden, probiere shortcuts-tab-content...');
+                parentContainer = this.shadowRoot.querySelector('.shortcuts-tab-content.active');
+            }
+            
+            if (!parentContainer) {
+                console.log('🔍 shortcuts-tab-content nicht gefunden, probiere timer-control...');
+                parentContainer = this.shadowRoot.querySelector(`#timer-control-${entityId}`);
+            }
+            
+            if (!parentContainer) {
+                console.log('🔍 Alle verfügbaren Container:');
+                const allContainers = this.shadowRoot.querySelectorAll('[id*="timer"]');
+                allContainers.forEach(c => console.log('- Container:', c.id, c));
+                
+                console.error('❌ Kein geeigneter Container gefunden!');
+                return;
+            }
+            
+            console.log('✅ Container gefunden:', parentContainer);
+            
             // Edit-Modus setzen
             this.editingTimer = {
                 id: timerId,
@@ -9731,16 +9758,13 @@ class FastSearchCard extends HTMLElement {
                 entityId: entityId
             };
             
-            // KORRIGIERT: Container als OBJEKT übergeben, nicht als entityId
-            const parentContainer = this.shadowRoot.querySelector(`#timer-section-${entityId}`);
-            
-            // KORRIGIERT: Verwende ITEM-Objekt statt Container
+            // Item-Objekt für Time Picker
             const itemObj = {
                 id: entityId,
-                name: 'Timer Edit'  // Dummy-Objekt für Time Picker
+                name: 'Timer Edit'
             };
             
-            // Bestehenden Minimal Time Picker anzeigen
+            // Time Picker anzeigen
             this.showMinimalTimePicker(itemObj, timer.action || 'turn_off', parentContainer, false);
             
         } catch (error) {
