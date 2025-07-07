@@ -9130,7 +9130,6 @@ class FastSearchCard extends HTMLElement {
         try {
             console.log(`🔧 Aktualisiere Timer ${timerId} auf ${newTotalMinutes} Minuten`);
             
-            // Hole die aktuellen Timer-Daten
             const currentTimer = this.lastLoadedTimers?.find(t => t.schedule_id === timerId);
             
             if (!currentTimer) {
@@ -9138,19 +9137,12 @@ class FastSearchCard extends HTMLElement {
                 return;
             }
             
-            // Neue Zeit berechnen
             const future = new Date(Date.now() + newTotalMinutes * 60 * 1000);
             const timeString = future.toTimeString().slice(0, 5);
             
-            console.log(`🕐 Neue Timer-Zeit: ${timeString}`);
-            console.log(`🔍 Current Timer:`, currentTimer);
-            
-            // KORRIGIERT: Entity-ID Format schedule.{id}
-            const entityId = `schedule.${timerId}`;
-            console.log(`🔍 Using entity_id: ${entityId}`);
-            
+            // KORRIGIERT: Verwende schedule_id statt entity_id
             await this._hass.callService('scheduler', 'edit', {
-                entity_id: entityId,  // ← schedule.{id} Format
+                schedule_id: timerId,  // ← Nur die ID
                 timeslots: [{
                     start: timeString,
                     actions: currentTimer.timeslots[0].actions
@@ -9860,42 +9852,9 @@ class FastSearchCard extends HTMLElement {
         try {
             console.log(`🗑️ Timer löschen: ${timerId}`);
             
-            // Debug: Schauen Sie, welche schedule-Entitäten existieren
-            const allEntities = Object.keys(this._hass.states);
-            const scheduleEntities = allEntities.filter(e => e.includes(timerId));
-            
-            console.log(`🔍 Alle Entitäten mit ${timerId}:`, scheduleEntities);
-            
-            // Verschiedene Format-Optionen probieren
-            const possibleFormats = [
-                `schedule.${timerId}`,
-                `switch.schedule_${timerId}`,
-                timerId,
-                `scheduler_${timerId}`
-            ];
-            
-            let foundEntity = null;
-            
-            for (const format of possibleFormats) {
-                if (this._hass.states[format]) {
-                    foundEntity = format;
-                    console.log(`✅ Entität gefunden: ${format}`);
-                    break;
-                }
-            }
-            
-            if (!foundEntity) {
-                console.error(`❌ Keine passende Entität für ${timerId} gefunden`);
-                console.log('🔍 Verfügbare schedule/switch Entitäten:');
-                allEntities.filter(e => e.startsWith('schedule.') || e.startsWith('switch.')).forEach(e => {
-                    if (e.includes('schedule')) console.log(`  - ${e}`);
-                });
-                return;
-            }
-            
-            // Versuche zu löschen
+            // KORRIGIERT: Verwende nur die schedule_id ohne Entity-Prefix
             await this._hass.callService('scheduler', 'remove', {
-                entity_id: foundEntity
+                schedule_id: timerId  // ← Nur die ID, kein "schedule." oder "switch."
             });
             
             console.log(`✅ Timer ${timerId} erfolgreich gelöscht`);
@@ -9907,6 +9866,18 @@ class FastSearchCard extends HTMLElement {
             
         } catch (error) {
             console.error('❌ Fehler beim Löschen des Timers:', error);
+            
+            // Fallback: Versuche es mit entity_id
+            try {
+                console.log('🔄 Versuche Fallback mit entity_id...');
+                await this._hass.callService('scheduler', 'remove', {
+                    entity_id: timerId
+                });
+                console.log(`✅ Timer ${timerId} mit Fallback gelöscht`);
+                setTimeout(() => this.loadActiveTimers(entityId), 500);
+            } catch (fallbackError) {
+                console.error('❌ Auch Fallback fehlgeschlagen:', fallbackError);
+            }
         }
     }
 
