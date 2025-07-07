@@ -3008,6 +3008,31 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(255, 0, 0, 0.2);
                 transform: scale(1.1);
             }
+
+            .timer-controls {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .timer-edit {
+                width: 32px;
+                height: 32px;
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                color: var(--text-primary);
+            }
+            
+            .timer-edit:hover {
+                background: rgba(0, 122, 255, 0.2);
+                transform: scale(1.1);
+            }            
             
             .no-timers {
                 text-align: center;
@@ -8553,14 +8578,29 @@ class FastSearchCard extends HTMLElement {
 
 
 
-    showMinimalTimePicker(item, action, container, isScheduleMode = false) {
-        console.log(`🎯 Zeige Minimal Time Picker für ${action}, Schedule Mode: ${isScheduleMode}`);
+
+    showMinimalTimePicker(item, action, container, isScheduleMode = false, existingTimerData = null) {
+    
+        const isEditMode = !!existingTimerData;
+        console.log(`🎯 Zeige Minimal Time Picker für ${action}, Schedule Mode: ${isScheduleMode}, Edit Mode: ${isEditMode}`);
         
         // State variables
+        let initialHours = isScheduleMode ? 18 : 0;
+        let initialMinutes = isScheduleMode ? 0 : 30;
+        let scheduleId = null;
+        
+        if (isEditMode) {
+            const totalMinutes = existingTimerData.duration;
+            initialHours = Math.floor(totalMinutes / 60);
+            initialMinutes = totalMinutes % 60;
+            scheduleId = existingTimerData.schedule_id;
+        }
+        
         this.timePickerState = {
-            selectedHours: isScheduleMode ? 18 : 0,
-            selectedMinutes: isScheduleMode ? 0 : 30,
+            selectedHours: initialHours,
+            selectedMinutes: initialMinutes,
             isScheduleMode: isScheduleMode,
+            scheduleId: scheduleId,
             hoverHours: false,
             hoverMinutes: false
         };
@@ -9023,12 +9063,18 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        console.log(`🎯 Erstelle Timer: ${action} in ${totalMinutes} Minuten`);
+        // Prüfen ob Edit-Modus oder Create-Modus
+        if (this.timePickerState.scheduleId) {
+            // EDIT-MODUS
+            console.log(`💾 Aktualisiere Timer ${this.timePickerState.scheduleId} auf ${totalMinutes} Minuten.`);
+            await this.updateActionTimer(this.timePickerState.scheduleId, item, action, totalMinutes);
+        } else {
+            // CREATE-MODUS (wie bisher)
+            console.log(`🎯 Erstelle Timer: ${action} in ${totalMinutes} Minuten`);
+            await this.createActionTimer(item, action, totalMinutes);
+        }
         
         try {
-            // Verwende deine bestehende Timer-Erstellung
-            await this.createActionTimer(item, action, totalMinutes);
-            
             // Schließe den Picker
             const parentContainer = this.shadowRoot.querySelector('.minimal-time-picker').closest('.shortcuts-tab-content');
             this.closeMinimalTimePicker(parentContainer);
@@ -9559,16 +9605,25 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     </div>
                     
-                    <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M4 7l16 0" />
-                            <path d="M10 11l0 6" />
-                            <path d="M14 11l0 6" />
-                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
-                            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
-                        </svg>
-                    </button>
+                    <div class="timer-controls">
+                        <button class="timer-edit" data-timer-id="${timer.schedule_id}" title="Timer bearbeiten">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        
+                        <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M4 7l16 0" />
+                                <path d="M10 11l0 6" />
+                                <path d="M14 11l0 6" />
+                                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+                                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+                            </svg>
+                        </button>
+                    </div>
                     
                 </div>
             `;
@@ -9579,11 +9634,11 @@ class FastSearchCard extends HTMLElement {
             <div class="active-timers-list">${timerHTML}</div>
         `;
         
-        // Event Listeners für Delete Buttons
-        container.querySelectorAll('.timer-delete').forEach(btn => {
+        // Event Listeners für Edit Buttons
+        container.querySelectorAll('.timer-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const timerId = btn.dataset.timerId;
-                this.deleteTimer(timerId, entityId);
+                this.handleEditTimerClick(timerId, entityId);
             });
         });
     }
@@ -13481,7 +13536,68 @@ class FastSearchCard extends HTMLElement {
         `;
     }
 
-
+    
+    async handleEditTimerClick(scheduleId, entityId) {
+        console.log(`✏️ Bearbeitung für Timer ${scheduleId} angefordert.`);
+        
+        try {
+            const allSchedules = await this._hass.callWS({ type: 'scheduler' });
+            const timerToEdit = allSchedules.find(s => s.schedule_id === scheduleId);
+    
+            if (!timerToEdit) {
+                alert("Dieser Timer wurde bereits ausgeführt oder gelöscht und kann nicht bearbeitet werden.");
+                this.loadActiveTimers(entityId);
+                return;
+            }
+    
+            const action = this.getActionNameFromService(timerToEdit.actions[0].service, timerToEdit.actions[0].service_data);
+            const nextExecution = new Date(timerToEdit.next_trigger);
+            const durationMinutes = Math.round((nextExecution - new Date()) / 60000);
+    
+            const item = this.allItems.find(i => i.id === entityId);
+            const container = this.shadowRoot.querySelector(`[data-shortcuts-content="timer"]`);
+    
+            this.showMinimalTimePicker(item, action, container, false, {
+                schedule_id: scheduleId,
+                duration: durationMinutes > 0 ? durationMinutes : 0,
+                action: action
+            });
+        } catch (error) {
+            console.error('❌ Fehler beim Laden der Timer-Daten:', error);
+            alert('Fehler beim Laden der Timer-Daten');
+        }
+    }
+    
+    getActionNameFromService(service, service_data) {
+        const serviceAction = service.split('.')[1];
+        if (serviceAction === 'turn_on' && service_data && service_data.brightness_pct) {
+            return `dim_${service_data.brightness_pct}`;
+        }
+        return serviceAction;
+    }
+    
+    async updateActionTimer(scheduleId, item, action, durationMinutes) {
+        console.log(`📡 Aktualisiere Timer ${scheduleId} mit Dauer ${durationMinutes}min.`);
+        const future = new Date(Date.now() + durationMinutes * 60 * 1000);
+        const timeString = future.toTimeString().slice(0, 5);
+        const { service, serviceData } = this.getActionServiceData(item, action);
+    
+        try {
+            await this._hass.callService('scheduler', 'edit', {
+                schedule_id: scheduleId,
+                timeslots: [{
+                    start: timeString,
+                    actions: [{ service, entity_id: item.id, service_data: serviceData }]
+                }],
+                name: `${item.name} - ${this.getActionLabel(action)} (${durationMinutes}min)`,
+                repeat_type: 'single'
+            });
+            console.log(`✅ Timer ${scheduleId} erfolgreich aktualisiert.`);
+        } catch (error) {
+            console.error(`❌ Fehler beim Aufruf von scheduler.edit:`, error);
+            alert(`Fehler beim Aktualisieren des Timers:\n\n${error.message}`);
+        }
+    }
 
 
 
