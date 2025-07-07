@@ -1597,11 +1597,11 @@ class FastSearchCard extends HTMLElement {
             }
             .device-control-row.hidden { display: none; }
             .device-control-button {
-                flex-basis: 50px;
+                flex-basis: 70px;
                 flex-grow: 0;
                 flex-shrink: 0;
-                width: 50px;
-                height: 50px; 
+                width: 70px;
+                height: 70px; 
                 border-radius: 50%;
                 background: rgba(255, 255, 255, 0.1); 
                 border: none;
@@ -3390,7 +3390,7 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center; /* ← Mittig */
                 align-items: center;
                 gap: 16px; /* ← Abstand zwischen Buttons */
-                margin-top: 10px; /* ← Abstand nach oben */
+                margin: 10px; /* ← Abstand nach oben */
                 width: 100%;
             }
 
@@ -3419,6 +3419,7 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 padding: 0;
                 position: relative;
+                flex-direction: column;
             }
             
             .timer-control-preset:hover {
@@ -3449,9 +3450,11 @@ class FastSearchCard extends HTMLElement {
             }
             
             .timer-preset-label {
-                font-size: 9px;
-                font-weight: 600;
+                font-size: 12px;
+                font-weight: 500;
                 line-height: 1;
+                text-transform: uppercase;
+                padding-top: 10px;
             }
 
             /* ✅ Hover-Effekte für Icons und Labels */
@@ -3468,22 +3471,9 @@ class FastSearchCard extends HTMLElement {
                 .timer-control-presets-grid {
                     grid-template-columns: repeat(2, 1fr); /* Auch mobile 2 Spalten */
                     gap: 10px;
-                }
+                }          
+                
 
-                .timer-control-preset {
-                    width: 50px;        /* ← KLEINER für Mobile */
-                    height: 50px;       /* ← KLEINER für Mobile */
-                    padding: 6px;       /* ← WENIGER Padding */
-                }                
-                
-                .timer-control-preset svg {
-                    width: 18px;
-                    height: 18px;
-                }
-                
-                .timer-preset-label {
-                    font-size: 8px;
-                }
             }            
 
             /* ✅ Spezielle Behandlung für Schedule Presets */
