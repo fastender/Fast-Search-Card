@@ -9574,6 +9574,7 @@ class FastSearchCard extends HTMLElement {
         // TODO: Error Toast (später)
     }
 
+
     async loadActiveTimers(entityId) {
         const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
         if (!container) return;
@@ -9613,8 +9614,8 @@ class FastSearchCard extends HTMLElement {
             // NEU: Timer zwischenspeichern für Edit-Fallback
             this.lastLoadedTimers = entityTimers;
             
-            // NEU: Verwende displayActiveTimers statt renderActiveTimers
-            this.displayActiveTimers(container, entityTimers, entityId);
+            // KORRIGIERT: Verwende renderActiveTimers (die existierende Funktion)
+            this.renderActiveTimers(entityTimers, entityId);
             
         } catch (error) {
             console.error('❌ Fehler beim Laden der Timer:', error);
