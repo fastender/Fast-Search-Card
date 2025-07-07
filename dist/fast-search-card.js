@@ -9125,19 +9125,42 @@ class FastSearchCard extends HTMLElement {
         };
     }    
     
-    // NEU: Timer-Zeit aktualisieren
+    // KORRIGIERT: Timer-Zeit aktualisieren
     async updateTimerTime(timerId, newTotalMinutes) {
         try {
+            console.log(`🔧 Aktualisiere Timer ${timerId} auf ${newTotalMinutes} Minuten`);
+            
+            // Hole die aktuellen Timer-Daten
+            const currentTimer = this.lastLoadedTimers?.find(t => t.schedule_id === timerId);
+            
+            if (!currentTimer) {
+                console.error('❌ Aktueller Timer nicht gefunden für Update');
+                return;
+            }
+            
+            // Neue Zeit berechnen
             const future = new Date(Date.now() + newTotalMinutes * 60 * 1000);
             const timeString = future.toTimeString().slice(0, 5);
             
-            // Korrekte Service-Calls für Scheduler
-            await this._hass.callService('scheduler', 'edit', {
-                entity_id: timerId,
+            console.log(`🕐 Neue Timer-Zeit: ${timeString}`);
+            console.log(`📋 Aktuelle Timer-Daten:`, currentTimer);
+            
+            // KORRIGIERT: Vollständige Timer-Daten mit actions übernehmen
+            const updateData = {
+                entity_id: `schedule.${timerId}`,
                 timeslots: [{
-                    start: timeString
-                }]
-            });
+                    start: timeString,
+                    actions: currentTimer.timeslots[0].actions  // ← Wichtig: actions beibehalten!
+                }],
+                // Andere bestehende Eigenschaften beibehalten
+                repeat_type: currentTimer.repeat_type || 'single',
+                name: currentTimer.name
+            };
+            
+            console.log(`🔧 Update-Daten:`, updateData);
+            
+            // Timer aktualisieren
+            await this._hass.callService('scheduler', 'edit', updateData);
             
             console.log(`✅ Timer ${timerId} erfolgreich auf ${newTotalMinutes} Minuten aktualisiert`);
             
