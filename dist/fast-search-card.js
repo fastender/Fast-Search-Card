@@ -1349,33 +1349,6 @@ class FastSearchCard extends HTMLElement {
                 scrollbar-width: none;
                 max-height: 100%;
             }
-
-            #tab-content-container.shortcuts-active {
-                padding: 0px;
-            }
-
-            /* Accordion Styles nur im Shortcuts Tab */
-            #tab-content-container.shortcuts-active .accordion-content.open {
-                background: rgba(0, 0, 0, 0.3);
-                max-height: 300px;
-                overflow-y: auto;
-                scrollbar-width: thin;
-                scrollbar-color: rgba(255,255,255,0.2) transparent;
-            }
-            
-            #tab-content-container.shortcuts-active .accordion-content.open::-webkit-scrollbar {
-                width: 4px;
-            }
-            
-            #tab-content-container.shortcuts-active .accordion-content.open::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            
-            #tab-content-container.shortcuts-active .accordion-content.open::-webkit-scrollbar-thumb {
-                background: rgba(255,255,255,0.2);
-                border-radius: 2px;
-            }            
-            
             #tab-content-container::-webkit-scrollbar { display: none; }
 
             .detail-tab-content { display: none; }
@@ -7884,88 +7857,60 @@ class FastSearchCard extends HTMLElement {
     getShortcutsHTML(item) {
         return `
             <div class="shortcuts-container">
-
-                <div class="shortcuts-content">
-                    <!-- ACCORDION CONTAINER -->
-                    <div class="accordion-container">
-                        
-                        <!-- TIMER ACCORDION -->
-                        <div class="accordion-item">
-                            <div class="accordion-header active" data-accordion="timer">
-                                <span>📋 Timer</span>
-                                <span class="accordion-arrow">
-                                    <svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M6 12H12M18 12H12M12 12V6M12 12V18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
-                                    </svg>
-                                </span>
+                <div class="shortcuts-header">
+                    <h3>Shortcuts für ${item.name}</h3>
+                    <div class="shortcuts-controls">
+                        <button class="shortcuts-btn active" data-shortcuts-tab="timer">Timer</button>
+                        <button class="shortcuts-btn" data-shortcuts-tab="zeitplan">Zeitplan</button>
+                        <button class="shortcuts-btn" data-shortcuts-tab="actions">Aktionen</button>
+                    </div>                    
+                </div>
+                
+                <div class="shortcuts-content">            
+                    <!-- ✅ TIMER TAB - Nur noch Timer-spezifische Inhalte -->
+                    <div class="shortcuts-tab-content active" data-shortcuts-content="timer">
+                        <div id="timer-section-${item.id}">
+                            <!-- Aktive Timer Anzeige -->
+                            <div class="active-timers" id="active-timers-${item.id}">
+                                <div class="loading-timers">Lade Timer...</div>
                             </div>
-                            <div class="accordion-content open" data-content="timer">
-                                <div id="timer-section-${item.id}">
-                                    <!-- Aktive Timer Anzeige -->
-                                    <div class="active-timers" id="active-timers-${item.id}">
-                                        <div class="loading-timers">Lade Timer...</div>
-                                    </div>
-                                    
-                                    <!-- Timer Controls -->
-                                    <div class="timer-control-design" id="timer-control-${item.id}">
-                                        <div class="timer-control-presets timer-action-presets visible" data-is-open="true">
-                                            <div class="timer-control-presets-grid">
-                                                ${this.getTimerPresetsForDevice(item)}                                        
-                                            </div>
-                                        </div>
+                            
+                            <!-- 🚨 HIER DIREKT TIMER-PRESETS - KEIN Timer/Zeitplan Button mehr -->
+                            <div class="timer-control-design" id="timer-control-${item.id}">
+                                <!-- ✅ Direkt die Action Presets (größeres Design) -->
+                                <div class="timer-control-presets timer-action-presets visible" data-is-open="true">
+                                    <div class="timer-control-presets-grid">
+                                        ${this.getTimerPresetsForDevice(item)}                                        
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- ZEITPLAN ACCORDION -->
-                        <div class="accordion-item">
-                            <div class="accordion-header" data-accordion="zeitplan">
-                                <span>📅 Zeitplan</span>
-                                <span class="accordion-arrow">
-                                    <svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M6 12H12M18 12H12M12 12V6M12 12V18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
-                                    </svg>
-                                </span>
+                    </div>
+    
+                    <!-- ✅ NEUER ZEITPLAN TAB -->
+                    <div class="shortcuts-tab-content" data-shortcuts-content="zeitplan">
+                        <div id="schedule-section-${item.id}">
+                            <!-- Aktive Zeitpläne Anzeige -->
+                            <div class="active-schedules" id="active-schedules-${item.id}">
+                                <div class="loading-schedules">Lade Zeitpläne...</div>
                             </div>
-                            <div class="accordion-content" data-content="zeitplan">
-                                <div id="schedule-section-${item.id}">
-                                    <!-- Aktive Zeitpläne Anzeige -->
-                                    <div class="active-schedules" id="active-schedules-${item.id}">
-                                        <div class="loading-schedules">Lade Zeitpläne...</div>
+                            
+                            <!-- Zeitplan Controls -->
+                            <div class="schedule-control-design" id="schedule-control-${item.id}">
+                                <div class="timer-control-presets schedule-action-presets visible" data-is-open="true">                                
+                                    <div class="timer-control-presets-grid">
+                                        ${this.getTimerPresetsForDevice(item)}                                    
                                     </div>
-                                    
-                                    <!-- Zeitplan Controls -->
-                                    <div class="schedule-control-design" id="schedule-control-${item.id}">
-                                        <div class="timer-control-presets schedule-action-presets visible" data-is-open="true">                                
-                                            <div class="timer-control-presets-grid">
-                                                ${this.getTimerPresetsForDevice(item)}                                    
-                                            </div>
-                                       </div> 
-                                    </div>
-                                </div>
+                               </div> 
                             </div>
                         </div>
-                        
-                        <!-- AKTIONEN ACCORDION -->
-                        <div class="accordion-item">
-                            <div class="accordion-header" data-accordion="actions">
-                                <span>⚙️ Aktionen</span>
-                                <span class="accordion-arrow">
-                                    <svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M6 12H12M18 12H12M12 12V6M12 12V18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
-                                    </svg>
-                                </span>
-                            </div>
-                            <div class="accordion-content" data-content="actions">
-                                <p>Aktionen Content - wird implementiert</p>
-                            </div>
-                        </div>
-                        
+                    </div>
+    
+                    <!-- ✅ AKTIONEN TAB -->
+                    <div class="shortcuts-tab-content" data-shortcuts-content="actions">
+                        <p>Aktionen Content - wird implementiert</p>
                     </div>
                 </div>
-
-
             </div>
         `;
     }
@@ -8691,14 +8636,7 @@ class FastSearchCard extends HTMLElement {
         
         // Cancel Button
         cancelBtn.addEventListener('click', () => {
-            // FIX: Korrekte Container-Suche für Accordion
-            const accordionContent = container.closest('.accordion-content');
-            if (accordionContent) {
-                this.closeMinimalTimePicker(accordionContent);
-            } else {
-                // Fallback für Tab-System
-                this.closeMinimalTimePicker(container.closest('.shortcuts-tab-content'));
-            }
+            this.closeMinimalTimePicker(container.closest('.shortcuts-tab-content'));
         });
         
         // Create Button
@@ -9076,9 +9014,7 @@ class FastSearchCard extends HTMLElement {
             await this.createActionTimer(item, action, totalMinutes);
             
             // Schließe den Picker
-            const timePickerElement = this.shadowRoot.querySelector('.minimal-time-picker');
-            const parentContainer = timePickerElement.closest('.accordion-content') || 
-                                   timePickerElement.closest('.shortcuts-tab-content');
+            const parentContainer = this.shadowRoot.querySelector('.minimal-time-picker').closest('.shortcuts-tab-content');
             this.closeMinimalTimePicker(parentContainer);
             
             // Warte kurz und lade dann die Timer-Liste neu
@@ -9100,32 +9036,29 @@ class FastSearchCard extends HTMLElement {
         // Reset state
         this.timePickerState = null;
         
-        // Zeige normale Controls wieder
+        // Zeige normale Timer-Controls wieder
         const timerControls = parentContainer.querySelector('.timer-control-design');
         const activeTimers = parentContainer.querySelector('.active-timers');
         const scheduleControls = parentContainer.querySelector('.schedule-control-design');
         const activeSchedules = parentContainer.querySelector('.active-schedules');
         
-        if (timerControls) timerControls.style.display = 'block';
-        if (activeTimers) activeTimers.style.display = 'block';
-        if (scheduleControls) scheduleControls.style.display = 'block';
-        if (activeSchedules) activeSchedules.style.display = 'block';
+        if (timerControls) timerControls.style.display = '';
+        if (activeTimers) activeTimers.style.display = '';  // ← Das war falsch!
+        if (scheduleControls) scheduleControls.style.display = '';
+        if (activeSchedules) activeSchedules.style.display = '';
         
         // Reset alle preset buttons
         const allPresets = parentContainer.querySelectorAll('.timer-control-preset');
         allPresets.forEach(p => p.classList.remove('active'));
         
-        // Entity ID aus dem Accordion-System finden
-        const detailPanel = parentContainer.closest('.detail-panel');
-        const entityId = detailPanel?.querySelector('[data-entity]')?.dataset.entity ||
-                        this.currentDetailItem?.id;
-                        
+        // Lade aktive Timer neu
+        const entityId = parentContainer.closest('[data-entity-id]')?.dataset.entityId;
         if (entityId) {
             this.loadActiveTimers(entityId);
         }
         
         console.log('✅ Minimal Time Picker geschlossen');
-    }
+    }      
     
 
 
@@ -11621,65 +11554,50 @@ class FastSearchCard extends HTMLElement {
             const shortcutsBtns = this.shadowRoot.querySelectorAll('.shortcuts-btn');
             console.log('🎯 Found shortcuts buttons:', shortcutsBtns.length);
             
-            // NEU: Accordion Event Listeners (nur eines gleichzeitig)
-            const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
-            accordionHeaders.forEach(header => {
-                header.addEventListener('click', () => {
-                    const accordionType = header.dataset.accordion;
-                    const content = this.shadowRoot.querySelector(`[data-content="${accordionType}"]`);
-                    const arrow = header.querySelector('.accordion-arrow svg');
+            shortcutsBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     
-                    const isOpen = content.classList.contains('open');
+                    const targetTab = btn.dataset.shortcutsTab;
+                    console.log(`🎯 Switching to tab: ${targetTab}`);
                     
-                    // ALLE anderen Accordions schließen
-                    accordionHeaders.forEach(otherHeader => {
-                        const otherContent = this.shadowRoot.querySelector(`[data-content="${otherHeader.dataset.accordion}"]`);
-                        const otherArrow = otherHeader.querySelector('.accordion-arrow svg');
+                    // Alle Buttons deaktivieren
+                    shortcutsBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Alle Contents verstecken
+                    const shortcutsContents = this.shadowRoot.querySelectorAll('.shortcuts-tab-content');
+                    shortcutsContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Ziel-Content anzeigen
+                    const targetContent = this.shadowRoot.querySelector(`[data-shortcuts-content="${targetTab}"]`);
+                    if (targetContent) {
+                        targetContent.classList.add('active');
                         
-                        otherContent.classList.remove('open');
-                        otherHeader.classList.remove('active');
-                        otherArrow.style.transform = 'rotate(0deg)';
-                    });
-                    
-                    // Aktuelles Toggle (nur öffnen wenn es geschlossen war)
-                    if (!isOpen) {
-                        content.classList.add('open');
-                        header.classList.add('active');
-                        arrow.style.transform = 'rotate(45deg)';
-                        
-                        // NACH dem DOM-Update initialisieren
-                        requestAnimationFrame(() => {
-                            switch(accordionType) {
-                                case 'timer':
-                                    this.initializeTimerTab(item, content);
-                                    break;
-                                case 'zeitplan':
-                                    this.initializeScheduleTab(item, content);
-                                    break;
-                                case 'actions':
-                                    this.initializeActionsTab(item, content);
-                                    break;
-                            }
-                        });
+                        // Tab-spezifische Initialisierung
+                        switch(targetTab) {
+                            case 'timer':
+                                this.initializeTimerTab(item, targetContent);
+                                break;
+                            case 'zeitplan':
+                                this.initializeScheduleTab(item, targetContent);
+                                break;
+                            case 'actions':
+                                this.initializeActionsTab(item, targetContent);
+                                break;
+                        }
                     }
                 });
             });
             
-            // Initial Timer Accordion öffnen und initialisieren
-            const firstAccordionHeader = this.shadowRoot.querySelector('.accordion-header[data-accordion="timer"]');
-            const firstAccordionContent = this.shadowRoot.querySelector('[data-content="timer"]');
-            if (firstAccordionHeader && firstAccordionContent) {
-                firstAccordionHeader.classList.add('active');
-                firstAccordionContent.classList.add('open');
-                const arrow = firstAccordionHeader.querySelector('.accordion-arrow svg');
-                if (arrow) arrow.style.transform = 'rotate(45deg)';
-                
-                requestAnimationFrame(() => {
-                    this.initializeTimerTab(item, firstAccordionContent);
-                });
+            // Initial Timer Tab aktivieren
+            const timerContent = this.shadowRoot.querySelector('[data-shortcuts-content="timer"]');
+            if (timerContent) {
+                this.initializeTimerTab(item, timerContent);
             }
         }, 100);
-    } 
+    }        
 
     // ✅ Aktionen Tab Initialisierung 
     initializeActionsTab(item, container) {
