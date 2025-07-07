@@ -9079,7 +9079,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    // NEU: Timer by ID laden
+    // KORRIGIERT: Timer by ID laden
     async getTimerById(timerId) {
         try {
             // Verwende die Timer aus der bereits geladenen Liste
