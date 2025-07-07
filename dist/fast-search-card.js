@@ -2814,6 +2814,32 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(255,255,255,0.05);
                 border-radius: 12px;
             }
+
+            .timer-actions {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+            
+            .timer-edit,
+            .timer-delete {
+                width: 32px;
+                height: 32px;
+                background: rgba(255,255,255,0.1);
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                flex-shrink: 0;
+            }
+            
+            .timer-edit:hover {
+                background: rgba(0, 122, 255, 0.2);
+                transform: scale(1.1);
+            }            
             
             .quick-timer-title {
                 font-size: 14px;
@@ -9023,11 +9049,21 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        console.log(`🎯 Erstelle Timer: ${action} in ${totalMinutes} Minuten`);
-        
         try {
-            // Verwende deine bestehende Timer-Erstellung
-            await this.createActionTimer(item, action, totalMinutes);
+            // NEU: Prüfen ob Edit-Modus
+            if (this.editingTimer) {
+                console.log(`🔧 Timer bearbeiten: ${this.editingTimer.id} - ${totalMinutes} Minuten`);
+                
+                // Timer bearbeiten (Sie müssen diese Funktion implementieren)
+                await this.updateTimerTime(this.editingTimer.id, totalMinutes);
+                
+                // Edit-Modus zurücksetzen
+                this.editingTimer = null;
+            } else {
+                // Normal: Neuen Timer erstellen
+                console.log(`🎯 Erstelle Timer: ${action} in ${totalMinutes} Minuten`);
+                await this.createActionTimer(item, action, totalMinutes);
+            }
             
             // Schließe den Picker
             const parentContainer = this.shadowRoot.querySelector('.minimal-time-picker').closest('.shortcuts-tab-content');
@@ -9039,10 +9075,39 @@ class FastSearchCard extends HTMLElement {
             }, 500);
             
         } catch (error) {
-            console.error('❌ Fehler beim Erstellen des Timers:', error);
+            console.error('❌ Fehler beim Timer:', error);
         }
     }
 
+    // NEU: Timer by ID laden
+    async getTimerById(timerId) {
+        // Implementierung je nach Ihrem Backend
+        // Beispiel für Home Assistant Scheduler:
+        try {
+            const schedules = await this._hass.callWS({
+                type: 'scheduler/items'
+            });
+            return schedules.find(s => s.schedule_id === timerId);
+        } catch (error) {
+            console.error('Fehler beim Laden des Timers:', error);
+            return null;
+        }
+    }
+    
+    // NEU: Timer-Zeit aktualisieren
+    async updateTimerTime(timerId, newTotalMinutes) {
+        const future = new Date(Date.now() + newTotalMinutes * 60 * 1000);
+        const timeString = future.toTimeString().slice(0, 5);
+        
+        await this._hass.callService('scheduler', 'edit', {
+            entity_id: `schedule.${timerId}`,
+            timeslots: [{
+                start: timeString,
+                // Weitere Timer-Daten beibehalten...
+            }]
+        });
+    }
+    
     closeMinimalTimePicker(parentContainer) {
         const timePickerContainer = parentContainer.querySelector('.minimal-time-picker');
         if (timePickerContainer) {
@@ -9558,20 +9623,27 @@ class FastSearchCard extends HTMLElement {
                             <span class="timer-time">${timeUntil}</span>
                         </div>
                     </div>
-                    
-                    <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M4 7l16 0" />
-                            <path d="M10 11l0 6" />
-                            <path d="M14 11l0 6" />
-                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
-                            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
-                        </svg>
-                    </button>
-                    
+                    <div class="timer-actions">
+                        <button class="timer-edit" data-timer-id="${timer.schedule_id}" title="Timer bearbeiten">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                        <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M4 7l16 0" />
+                                <path d="M10 11l0 6" />
+                                <path d="M14 11l0 6" />
+                                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+                                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             `;
+
         }).join('');
         
         container.innerHTML = `
@@ -9580,13 +9652,42 @@ class FastSearchCard extends HTMLElement {
         `;
         
         // Event Listeners für Delete Buttons
-        container.querySelectorAll('.timer-delete').forEach(btn => {
+        container.querySelectorAll('.timer-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const timerId = btn.dataset.timerId;
-                this.deleteTimer(timerId, entityId);
+                this.editTimer(timerId, entityId);
             });
         });
     }
+
+    async editTimer(timerId, entityId) {
+        console.log(`🔧 Timer bearbeiten: ${timerId}`);
+        
+        try {
+            // Timer-Daten laden (Sie müssen diese Funktion ggf. implementieren)
+            const timer = await this.getTimerById(timerId);
+            if (!timer) {
+                console.error('Timer nicht gefunden');
+                return;
+            }
+            
+            // Edit-Modus setzen
+            this.editingTimer = {
+                id: timerId,
+                action: timer.action || 'turn_off',
+                entityId: entityId
+            };
+            
+            // Container finden
+            const parentContainer = this.shadowRoot.querySelector(`#timer-section-${entityId}`);
+            
+            // Bestehenden Minimal Time Picker anzeigen
+            this.showMinimalTimePicker(parentContainer, timer.action || 'turn_off', entityId, false);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Bearbeiten:', error);
+        }
+    }    
 
     getNextExecution(timer) {
         // Zuerst prüfen ob next_execution Attribut vorhanden ist
