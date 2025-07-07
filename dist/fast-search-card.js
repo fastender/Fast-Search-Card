@@ -13553,12 +13553,21 @@ class FastSearchCard extends HTMLElement {
     
 
     async handleEditTimerClick(scheduleId, entityId) {
-        console.log(`✏️ Bearbeitung für Timer ${scheduleId} angefordert.`);
+
+
+
+        console.log('✏️ Bearbeitung für Timer', scheduleId, 'angefordert.');
         
         try {
             const allSchedules = await this._hass.callWS({ type: 'scheduler' });
             const timerToEdit = allSchedules.find(s => s.schedule_id === scheduleId);
-    
+        
+            // DEBUG: Zeige die komplette Timer-Struktur
+            console.log('🔍 DEBUG Timer-Struktur:', timerToEdit);
+            console.log('🔍 DEBUG schedule_id:', timerToEdit.schedule_id);
+            console.log('🔍 DEBUG entity_id:', timerToEdit.entity_id);            
+
+            
             if (!timerToEdit) {
                 alert("Dieser Timer wurde bereits ausgeführt oder gelöscht.");
                 this.loadActiveTimers(entityId);
