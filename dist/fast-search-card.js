@@ -9143,23 +9143,16 @@ class FastSearchCard extends HTMLElement {
             const timeString = future.toTimeString().slice(0, 5);
             
             console.log(`🕐 Neue Timer-Zeit: ${timeString}`);
-            console.log(`📋 Aktuelle Timer-Daten:`, currentTimer);
             
-            // KORRIGIERT: Nur die schedule_id verwenden, nicht als Entity
-            const updateData = {
-                schedule_id: timerId,  // ← Korrigiert: Nicht entity_id
+            // KORRIGIERT: Scheduler edit erwartet nur timeslots und name
+            await this._hass.callService('scheduler', 'edit', {
+                entity_id: timerId,  // ← Nur die ID, nicht schedule.id
                 timeslots: [{
                     start: timeString,
                     actions: currentTimer.timeslots[0].actions
                 }],
-                repeat_type: currentTimer.repeat_type || 'single',
                 name: currentTimer.name
-            };
-            
-            console.log(`🔧 Update-Daten:`, updateData);
-            
-            // Timer aktualisieren
-            await this._hass.callService('scheduler', 'edit', updateData);
+            });
             
             console.log(`✅ Timer ${timerId} erfolgreich aktualisiert`);
             
@@ -9852,9 +9845,9 @@ class FastSearchCard extends HTMLElement {
         try {
             console.log(`🗑️ Timer löschen: ${timerId}`);
             
-            // KORRIGIERT: Verwende schedule_id statt entity_id
+            // KORRIGIERT: Scheduler remove erwartet nur entity_id
             await this._hass.callService('scheduler', 'remove', {
-                schedule_id: timerId  // ← Korrigiert: schedule_id statt entity_id
+                entity_id: timerId  // ← Nur die Timer-ID
             });
             
             console.log(`✅ Timer ${timerId} erfolgreich gelöscht`);
