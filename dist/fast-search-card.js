@@ -7939,7 +7939,7 @@ class FastSearchCard extends HTMLElement {
         return `
             <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" color="currentColor">
-                    <g fill="currentColor" transform="matrix(1, 0, 0, 1, 2.000688, 2.175541)">
+                    <g fill="currentColor" transform="matrix(1.08766, 0, 0, 1.08766, 1.124148, 2.126626)">
                         <path d="M4.477 5.46a.6.6 0 1 1 .854.842a6.018 6.018 0 0 0-1.731 4.24c0 3.312 2.643 5.992 5.9 5.992c3.257 0 5.9-2.68 5.9-5.992a6.02 6.02 0 0 0-1.731-4.24a.6.6 0 1 1 .854-.842a7.218 7.218 0 0 1 2.077 5.082c0 3.97-3.177 7.192-7.1 7.192c-3.923 0-7.1-3.222-7.1-7.192c0-1.93.756-3.743 2.077-5.082"/>
                         <path d="M8.878 1.25a.6.6 0 0 1 1.2 0v7.085a.6.6 0 0 1-1.2 0z"/>
                         <path d="M1.15 1.878a.514.514 0 0 1 .728-.727l16.971 16.971a.514.514 0 0 1-.727.727z"/>
@@ -7950,10 +7950,8 @@ class FastSearchCard extends HTMLElement {
             
             <button class="timer-control-preset" data-action="turn_on" title="Einschalten">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" color="currentColor">
-                    <g fill="currentColor" transform="matrix(1, 0, 0, 1, 2.499991, 2.808)">
-                        <path d="M4.477 5.46a.6.6 0 1 1 .854.842a6.018 6.018 0 0 0-1.731 4.24c0 3.312 2.643 5.992 5.9 5.992c3.257 0 5.9-2.68 5.9-5.992a6.02 6.02 0 0 0-1.731-4.24a.6.6 0 1 1 .854-.842a7.218 7.218 0 0 1 2.077 5.082c0 3.97-3.177 7.192-7.1 7.192c-3.923 0-7.1-3.222-7.1-7.192c0-1.93.756-3.743 2.077-5.082"/>
-                        <path d="M8.878 1.25a.6.6 0 0 1 1.2 0v7.085a.6.6 0 0 1-1.2 0z"/>
-                    </g>
+                    <path d="M 5.994 8.065 C 6.334 7.696 6.947 7.833 7.097 8.312 C 7.171 8.55 7.104 8.81 6.922 8.981 C 5.712 10.21 5.035 11.867 5.04 13.593 C 5.04 17.195 7.914 20.11 11.457 20.11 C 14.999 20.11 17.874 17.195 17.874 13.593 C 17.879 11.868 17.202 10.21 15.991 8.981 C 15.627 8.636 15.772 8.025 16.254 7.882 C 16.493 7.81 16.751 7.882 16.92 8.065 C 18.372 9.538 19.184 11.525 19.179 13.593 C 19.179 17.911 15.724 21.415 11.457 21.415 C 7.19 21.415 3.735 17.911 3.735 13.593 C 3.735 11.494 4.557 9.522 5.994 8.065" fill="currentColor"/>
+                    <path d="M 10.78 3.486 C 10.78 2.984 11.324 2.67 11.759 2.921 C 11.961 3.038 12.086 3.253 12.086 3.486 L 12.086 11.192 C 12.086 11.695 11.542 12.009 11.107 11.757 C 10.905 11.641 10.78 11.425 10.78 11.192 L 10.78 3.486 Z" fill="currentColor"/>
                 </svg>
                 <span class="timer-preset-label">Ein</span>
             </button>
@@ -9559,8 +9557,12 @@ class FastSearchCard extends HTMLElement {
                             <span class="timer-time">${timeUntil}</span>
                         </div>
                     </div>
+
                     <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
-                        🗑️
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" color="currentColor">
+                            <path d="M20 9L18.005 20.3463C17.8369 21.3026 17.0062 22 16.0353 22H7.96474C6.99379 22 6.1631 21.3026 5.99496 20.3463L4 9"/>
+                            <path d="M21 6H15.375M3 6H8.625M8.625 6V4C8.625 2.89543 9.52043 2 10.625 2H13.375C14.4796 2 15.375 2.89543 15.375 4V6H8.625"/>
+                        </svg>
                     </button>
                 </div>
             `;
