@@ -9714,8 +9714,8 @@ class FastSearchCard extends HTMLElement {
         try {
             // Verwende den scheduler.remove Service
             await this._hass.callService('scheduler', 'remove', {
-                schedule_id: timerId
-            });
+                entity_id: timerId
+            });            
             
             console.log(`✅ Timer ${timerId} erfolgreich gelöscht.`);
             
@@ -13608,7 +13608,7 @@ class FastSearchCard extends HTMLElement {
     
         try {
             await this._hass.callService('scheduler', 'edit', {
-                schedule_id: scheduleId,
+                entity_id: scheduleId,
                 timeslots: [{
                     start: timeString,
                     actions: [{ service, entity_id: item.id, service_data: serviceData }]
@@ -13616,6 +13616,9 @@ class FastSearchCard extends HTMLElement {
                 name: `${item.name} - ${this.getActionLabel(action)} (${durationMinutes}min)`,
                 repeat_type: 'single'
             });
+
+
+                
             console.log(`✅ Timer ${scheduleId} erfolgreich aktualisiert.`);
         } catch (error) {
             console.error(`❌ Fehler beim Aufruf von scheduler.edit:`, error);
