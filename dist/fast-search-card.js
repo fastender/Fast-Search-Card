@@ -2988,52 +2988,50 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 600;
             }
             
-            .timer-delete {
-                width: 40px;
-                height: 40px;
-                color: var(--text-primary);
-                border: none;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s ease;
-                font-size: 14px;
-                flex-shrink: 0;
-            }
-            
-            .timer-delete:hover {
-                background: rgba(255, 0, 0, 0.2);
-                transform: scale(1.1);
-            }
-
             .timer-controls {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 12px;
             }
             
-            .timer-edit {
-                width: 32px;
-                height: 32px;
+            .timer-edit, .timer-delete {
+                flex-basis: 50px;
+                flex-grow: 0;
+                flex-shrink: 0;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
                 background: rgba(255, 255, 255, 0.1);
                 border: none;
-                border-radius: 50%;
+                color: var(--text-primary);
                 cursor: pointer;
+                transition: all 0.2s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                transition: all 0.2s ease;
-                color: var(--text-primary);
+                padding: 0;
             }
-            
-            .timer-edit:hover {
-                background: rgba(0, 122, 255, 0.2);
-                transform: scale(1.1);
+
+            .timer-edit svg, .timer-delete svg {
+                width: 24px;
+                height: 24px;
+                stroke-width: 1;
             }            
             
+            .timer-edit:hover {
+                transform: scale(1.05);
+                background: rgba(0, 122, 255, 0.2);
+            }       
+
+            .timer-delete:hover {
+                transform: scale(1.05);
+                background: rgba(255, 0, 0, 0.2);
+            }            
+
+            .timer-edit.active, .timer-delete.active {
+                background: var(--accent);
+            }            
+    
             .no-timers {
                 text-align: center;
                 color: var(--text-secondary);
