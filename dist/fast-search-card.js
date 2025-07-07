@@ -9082,24 +9082,31 @@ class FastSearchCard extends HTMLElement {
     // NEU: Timer by ID laden
     async getTimerById(timerId) {
         try {
-            // Korrekte WebSocket-Anfrage für Home Assistant Scheduler
-            const schedules = await this._hass.callWS({
-                type: 'call_service',
-                domain: 'scheduler',
-                service: 'list',
-                service_data: {}
+            // Verwende die Timer aus der bereits geladenen Liste
+            if (this.lastLoadedTimers) {
+                const timer = this.lastLoadedTimers.find(t => t.schedule_id === timerId);
+                if (timer) {
+                    console.log('✅ Timer aus Cache gefunden:', timer);
+                    return timer;
+                }
+            }
+            
+            // Fallback: Nochmal alle Timer laden
+            const allSchedules = await this._hass.callWS({
+                type: 'scheduler'
             });
             
-            // Alternative: Falls das nicht funktioniert, versuchen Sie:
-            // const schedules = this._hass.states;
-            // return Object.values(schedules).find(s => s.entity_id.includes(timerId));
+            return allSchedules.find(s => s.schedule_id === timerId);
             
-            return schedules.find(s => s.schedule_id === timerId);
         } catch (error) {
             console.error('Fehler beim Laden des Timers:', error);
             
-            // Fallback: Timer-Daten aus der aktuellen Liste holen
-            return this.getCurrentTimerFromList(timerId);
+            // Minimal-Timer-Objekt für Edit-Zwecke
+            return {
+                schedule_id: timerId,
+                action: 'turn_off', // Default-Aktion
+                name: 'Timer'
+            };
         }
     }
 
@@ -9711,7 +9718,6 @@ class FastSearchCard extends HTMLElement {
         console.log(`🔧 Timer bearbeiten: ${timerId}`);
         
         try {
-            // Timer-Daten laden (Sie müssen diese Funktion ggf. implementieren)
             const timer = await this.getTimerById(timerId);
             if (!timer) {
                 console.error('Timer nicht gefunden');
@@ -9725,16 +9731,22 @@ class FastSearchCard extends HTMLElement {
                 entityId: entityId
             };
             
-            // Container finden
+            // KORRIGIERT: Container als OBJEKT übergeben, nicht als entityId
             const parentContainer = this.shadowRoot.querySelector(`#timer-section-${entityId}`);
             
+            // KORRIGIERT: Verwende ITEM-Objekt statt Container
+            const itemObj = {
+                id: entityId,
+                name: 'Timer Edit'  // Dummy-Objekt für Time Picker
+            };
+            
             // Bestehenden Minimal Time Picker anzeigen
-            this.showMinimalTimePicker(parentContainer, timer.action || 'turn_off', entityId, false);
+            this.showMinimalTimePicker(itemObj, timer.action || 'turn_off', parentContainer, false);
             
         } catch (error) {
             console.error('❌ Fehler beim Bearbeiten:', error);
         }
-    }    
+    }
 
     getNextExecution(timer) {
         // Zuerst prüfen ob next_execution Attribut vorhanden ist
