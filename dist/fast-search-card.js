@@ -2694,15 +2694,15 @@ class FastSearchCard extends HTMLElement {
             }
             
             .shortcuts-btn {
-                padding: 6px 12px;
+                padding: 10px 15px 10px 12px;
                 background: rgba(255,255,255,0.08);
-                border: 1px solid rgba(255,255,255,0.15);
+                border: 0px solid rgba(255,255,255,0.15);
                 border-radius: 12px;
                 color: var(--text-secondary);
                 cursor: pointer;
                 transition: all 0.2s ease;
-                font-size: 14px;
-                font-weight: 500;
+                font-size: 16px;
+                font-weight: 600;
             }
             
             .shortcuts-btn.active, .shortcuts-btn:hover {
@@ -2946,7 +2946,7 @@ class FastSearchCard extends HTMLElement {
                 justify-content: space-between;
                 padding: 12px;
                 background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.12);
+                border: 0px solid rgba(255, 255, 255, 0.12);
                 border-radius: 12px;
                 transition: all 0.2s ease;
             }
@@ -2961,10 +2961,10 @@ class FastSearchCard extends HTMLElement {
             }
             
             .timer-name {
-                font-size: 13px;
+                font-size: 18px;
                 font-weight: 600;
                 color: var(--text-primary);
-                margin-bottom: 4px;
+                margin-bottom: 0px;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
@@ -2977,14 +2977,14 @@ class FastSearchCard extends HTMLElement {
             }
             
             .timer-action {
-                font-size: 11px;
+                font-size: 18px;
                 color: var(--text-secondary);
                 font-weight: 500;
             }
             
             .timer-time {
-                font-size: 11px;
-                color: var(--accent);
+                font-size: 18px;
+                color: var(--text-secondary);
                 font-weight: 600;
             }
             
