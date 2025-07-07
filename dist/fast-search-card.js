@@ -9559,8 +9559,8 @@ class FastSearchCard extends HTMLElement {
                     </div>
                     
                     <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" color="currentColor">
-                            <g transform="matrix(0.570899, 0, 0, 0.570899, 1.149212, 1.149212)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" color="currentColor">
+                            <g transform="matrix(0.784084, 0, 0, 0.761915, 0.590993, 0.857021)">
                                 <path d="M20 9L18.005 20.3463C17.8369 21.3026 17.0062 22 16.0353 22H7.96474C6.99379 22 6.1631 21.3026 5.99496 20.3463L4 9"/>
                                 <path d="M21 6H15.375M3 6H8.625M8.625 6V4C8.625 2.89543 9.52043 2 10.625 2H13.375C14.4796 2 15.375 2.89543 15.375 4V6H8.625"/>
                             </g>
