@@ -9591,7 +9591,25 @@ class FastSearchCard extends HTMLElement {
             
             console.log('📋 Alle Scheduler Items (korrekte API):', allSchedules);
             
-            // ... Filter-Code bleibt gleich ...
+            // WICHTIG: Filter für diese Entity UND nur echte Timer (dieser Code fehlte!)
+            const entityTimers = allSchedules.filter(schedule => {
+                // Prüfe ob diese Entity in den timeslots/actions vorkommt
+                const belongsToEntity = schedule.timeslots && schedule.timeslots.some(slot => 
+                    slot.actions && slot.actions.some(action => action.entity_id === entityId)
+                );            
+                // Timer = einmalige Ausführung (erkennt man am Namen oder fehlendem repeat_type)
+                const isTimer = !schedule.weekdays || 
+                                schedule.weekdays.length === 0 || 
+                                (schedule.name && schedule.name.includes('min)')) ||  // Timer haben oft "(30min)" im Namen
+                                schedule.repeat_type === 'once' ||
+                                !schedule.repeat_type;                
+                // DEBUG: Zeige alle relevanten Schedules
+                if (belongsToEntity) {
+                    console.log(`🔍 TIMER DEBUG - Schedule: ${schedule.name}, weekdays: ${JSON.stringify(schedule.weekdays)}, isTimer: ${isTimer}`);
+                }
+                
+                return belongsToEntity && isTimer;
+            });
             
             console.log(`🎯 Timer für ${entityId}:`, entityTimers);
             
