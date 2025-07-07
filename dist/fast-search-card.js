@@ -1445,10 +1445,6 @@ class FastSearchCard extends HTMLElement {
                     border-radius: 0 0 24px 24px; 
                     margin: 0 10px 10px 10px;
                 }
-
-                #tab-content-container.shortcuts-active {
-                    padding: 0px 0px 0px 20px;
-                }  
                 
                 #tab-content-container { 
                     flex-grow: 1;
