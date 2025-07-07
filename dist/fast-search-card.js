@@ -3403,8 +3403,11 @@ class FastSearchCard extends HTMLElement {
             }            
 
             .timer-control-preset {
-                width: 60px;
-                height: 60px;
+                flex-basis: 50px;
+                flex-grow: 0;
+                flex-shrink: 0;
+                width: 50px;
+                height: 50px;
                 border-radius: 50%;
                 background: rgba(255, 255, 255, 0.1);
                 border: none;
@@ -3412,11 +3415,10 @@ class FastSearchCard extends HTMLElement {
                 cursor: pointer;
                 transition: all 0.2s ease;
                 display: flex;
-                flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 4px;
-                padding: 8px;
+                padding: 0;
+                position: relative;
             }
             
             .timer-control-preset:hover {
@@ -3426,12 +3428,23 @@ class FastSearchCard extends HTMLElement {
             
             .timer-control-preset.active {
                 background: var(--accent);
-                color: white;
+                border-color: white;
             }
+
+            .timer-control-preset.active::after {
+                content: '✓';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: white;
+                font-weight: bold;
+                text-shadow: 0 0 4px rgba(0,0,0,0.8);
+            }            
             
             .timer-control-preset svg {
-                width: 20px;
-                height: 20px;
+                width: 24px;
+                height: 24px;
                 stroke-width: 1;
             }
             
