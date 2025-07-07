@@ -9145,14 +9145,13 @@ class FastSearchCard extends HTMLElement {
             console.log(`🕐 Neue Timer-Zeit: ${timeString}`);
             console.log(`📋 Aktuelle Timer-Daten:`, currentTimer);
             
-            // KORRIGIERT: Vollständige Timer-Daten mit actions übernehmen
+            // KORRIGIERT: Nur die schedule_id verwenden, nicht als Entity
             const updateData = {
-                entity_id: `schedule.${timerId}`,
+                schedule_id: timerId,  // ← Korrigiert: Nicht entity_id
                 timeslots: [{
                     start: timeString,
-                    actions: currentTimer.timeslots[0].actions  // ← Wichtig: actions beibehalten!
+                    actions: currentTimer.timeslots[0].actions
                 }],
-                // Andere bestehende Eigenschaften beibehalten
                 repeat_type: currentTimer.repeat_type || 'single',
                 name: currentTimer.name
             };
@@ -9162,7 +9161,7 @@ class FastSearchCard extends HTMLElement {
             // Timer aktualisieren
             await this._hass.callService('scheduler', 'edit', updateData);
             
-            console.log(`✅ Timer ${timerId} erfolgreich auf ${newTotalMinutes} Minuten aktualisiert`);
+            console.log(`✅ Timer ${timerId} erfolgreich aktualisiert`);
             
         } catch (error) {
             console.error('❌ Fehler beim Aktualisieren des Timers:', error);
@@ -9853,12 +9852,12 @@ class FastSearchCard extends HTMLElement {
         try {
             console.log(`🗑️ Timer löschen: ${timerId}`);
             
-            // Korrekte Service-Call für Timer-Löschung
+            // KORRIGIERT: Verwende schedule_id statt entity_id
             await this._hass.callService('scheduler', 'remove', {
-                entity_id: timerId
+                schedule_id: timerId  // ← Korrigiert: schedule_id statt entity_id
             });
             
-            console.log('✅ Timer erfolgreich gelöscht');
+            console.log(`✅ Timer ${timerId} erfolgreich gelöscht`);
             
             // Timer-Liste neu laden
             setTimeout(() => {
