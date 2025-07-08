@@ -2585,18 +2585,150 @@ class FastSearchCard extends HTMLElement {
             }
             
             .timeline-event {
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 16px;
+                padding: 16px;
+                margin-bottom: 12px;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 display: flex;
                 align-items: center;
-                gap: 12px;
-                padding: 12px;
-                background: rgba(255,255,255,0.05);
-                border-radius: 12px;
-                transition: all 0.2s ease;
+                gap: 16px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .timeline-event:hover::before {
+                opacity: 1;
             }
             
+            .timeline-event:active {
+                transform: translateY(0);
+                transition-duration: 0.1s;
+            }          
+            
             .timeline-event:hover {
-                background: rgba(255,255,255,0.1);
+                background: rgba(255, 255, 255, 0.12);
+                border-color: rgba(255, 255, 255, 0.25);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             }
+
+            /* Event Icon (ganz links) */
+            .timeline-event-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-primary);
+                flex-shrink: 0;
+                transition: all 0.3s ease;
+            }
+            
+            .timeline-event-icon svg {
+                width: 24px;
+                height: 24px;
+                stroke-width: 1.5;
+            }
+            
+            .timeline-event:hover .timeline-event-icon {
+                background: rgba(0, 122, 255, 0.2);
+                color: var(--accent);
+            }
+
+            /* Event Content (Mitte) */
+            .timeline-event-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                min-width: 0;
+            }
+            
+            .timeline-event-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 0;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                line-height: 1.2;
+            }
+            
+            .timeline-event-details {
+                font-size: 14px;
+                color: var(--text-secondary);
+                margin: 0;
+                opacity: 0.8;
+                line-height: 1.2;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+
+            .timeline-event:hover .timeline-event-details {
+                opacity: 1;
+            }            
+
+            /* Action Button (ganz rechts) */
+            .timeline-event-action {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
+                color: var(--text-primary);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                flex-shrink: 0;
+                padding: 0;
+            }
+            
+            .timeline-event-action svg {
+                width: 20px;
+                height: 20px;
+                stroke-width: 1.5;
+            }
+            
+            .timeline-event-action:hover {
+                background: rgba(0, 122, 255, 0.2);
+                transform: scale(1.1);
+                color: var(--accent);
+            }
+            
+            .timeline-event-action:active {
+                transform: scale(0.95);
+            }
+            
+            /* Spezielle Varianten für verschiedene Event-Types */
+            .timeline-event.event-upcoming .timeline-event-icon {
+                background: rgba(52, 199, 89, 0.2);
+                color: #34c759;
+            }
+            
+            .timeline-event.event-active .timeline-event-icon {
+                background: rgba(255, 159, 10, 0.2);
+                color: #ff9f0a;
+            }
+            
+            .timeline-event.event-past .timeline-event-icon {
+                background: rgba(142, 142, 147, 0.2);
+                color: #8e8e93;
+                opacity: 0.7;
+            }
+            
+            .timeline-event.event-past .timeline-event-title,
+            .timeline-event.event-past .timeline-event-details {
+                opacity: 0.6;
+            }            
             
             .timeline-dot {
                 width: 8px;
@@ -9792,13 +9924,25 @@ class FastSearchCard extends HTMLElement {
             const stateClass = this.isActiveState(event.state, item.domain) ? 'active' : 'inactive';
             
             return `
-                <div class="timeline-event ${stateClass}">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <div class="timeline-time">${timeString}</div>
-                        <div class="timeline-state">${event.friendlyState}</div>
+
+                <div class="timeline-event event-upcoming">
+                    <!-- Icon ganz links -->
+                    <div class="timeline-event-icon">
+                        <svg><!-- Event-spezifisches Icon --></svg>
                     </div>
+                    
+                    <!-- Content in der Mitte -->
+                    <div class="timeline-event-content">
+                        <div class="timeline-event-title">Event Title</div>
+                        <div class="timeline-event-details">Event Details • Time</div>
+                    </div>
+                    
+                    <!-- Action Button ganz rechts -->
+                    <button class="timeline-event-action action-execute-btn">
+                        <svg><!-- Action Icon (Play, Edit, etc.) --></svg>
+                    </button>
                 </div>
+
             `;
         }).join('');
         
