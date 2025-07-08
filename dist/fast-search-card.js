@@ -2968,12 +2968,14 @@ class FastSearchCard extends HTMLElement {
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                line-height: 1.15;
             }
             
             .timer-details {
                 display: flex;
-                gap: 12px;
+                gap: 6px;
                 align-items: center;
+                line-height: 1.15;
             }
             
             .timer-action {
