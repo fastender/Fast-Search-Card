@@ -4257,6 +4257,7 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-primary);
                 font-size: 16px;
                 font-weight: 600;
+                gap: 6px; /* NEU: Fügt einen Abstand zwischen Text und Zahl hinzu */
             }
             
             .action-filter-chip.active {
@@ -4268,7 +4269,7 @@ class FastSearchCard extends HTMLElement {
             .action-filter-chip:hover {
                 background: rgba(255, 255, 255, 0.2);
             }
-            
+
             .chip-count {
                 background: rgba(255,255,255,0.2);
                 border-radius: 8px;
@@ -4277,7 +4278,9 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 600;
                 min-width: 16px;
                 text-align: center;
-                margin-left: 6px;
+                /* margin-left: 6px;  <-- ALT: Diese Zeile wird entfernt oder auskommentiert */
+                display: inline-flex; /* NEU: Stellt konsistente Box-Berechnung sicher */
+                align-items: center; /* NEU: Zentriert die Zahl im Kästchen perfekt */
             }
             
             .action-filter-chip.active .chip-count {
