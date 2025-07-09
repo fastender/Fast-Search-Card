@@ -10119,16 +10119,17 @@ class FastSearchCard extends HTMLElement {
                 const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
                 return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
             }
+
         } else if (action.includes('30%')) {
             presetHTML = this.getLightTimerPresets();
-            const match = presetHTML.match(/data-action="dim_30"[^>]*>(.*?)<span class="timer-preset-label">/s);
+            const match = presetHTML.match(/data-action="dim_30"[^>]*>\s*(.*?)\s*<span class="timer-preset-label">/s);
             if (match) {
                 const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
                 return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
             }
         } else if (action.includes('50%')) {
             presetHTML = this.getLightTimerPresets();
-            const match = presetHTML.match(/data-action="dim_50"[^>]*>(.*?)<span class="timer-preset-label">/s);
+            const match = presetHTML.match(/data-action="dim_50"[^>]*>\s*(.*?)\s*<span class="timer-preset-label">/s);
             if (match) {
                 const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
                 return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
