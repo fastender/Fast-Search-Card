@@ -4319,8 +4319,7 @@ class FastSearchCard extends HTMLElement {
                 transform: translateY(-1px);
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             }
-            
-            /* Timer Icon Container */
+
             .timer-icon-container {
                 width: 24px;
                 height: 24px;
@@ -4332,9 +4331,35 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 600;
                 flex-shrink: 0;
                 padding: 10px;
-                background: linear-gradient(135deg, #4CAF50, #388E3C);
                 color: white;
+                /* Kein Standard-Background mehr */
             }
+            
+            /* Action-spezifische Timer Icon Farben */
+            .timer-item[data-action-type="turn_on"] .timer-icon-container {
+                background: linear-gradient(135deg, #4CAF50, #388E3C); /* Grün für EIN */
+            }
+            
+            .timer-item[data-action-type="turn_off"] .timer-icon-container {
+                background: linear-gradient(135deg, #F44336, #D32F2F); /* Rot für AUS */
+            }
+            
+            .timer-item[data-action-type="dim_30"] .timer-icon-container {
+                background: linear-gradient(135deg, #FF9800, #F57C00); /* Orange für 30% */
+            }
+            
+            .timer-item[data-action-type="dim_50"] .timer-icon-container {
+                background: linear-gradient(135deg, #9C27B0, #7B1FA2); /* Lila für 50% */
+            }
+            
+            .timer-item[data-action-type="heat"] .timer-icon-container {
+                background: linear-gradient(135deg, #FF5722, #E64A19); /* Rot für Heizen */
+            }
+            
+            .timer-item[data-action-type="cool"] .timer-icon-container {
+                background: linear-gradient(135deg, #2196F3, #1976D2); /* Blau für Kühlen */
+            }
+            
             
             /* Timer Content Area */
             .timer-content-area {
@@ -9960,8 +9985,36 @@ class FastSearchCard extends HTMLElement {
                 // Timer Icon basierend auf Action
                 const timerIcon = this.getPresetIconForAction(action);
                 
+
+
+                // Bestimme Action-Type für CSS-Styling
+                let actionType = 'default';
+                if (action.includes('Einschalten') || action.includes('Ein')) {
+                    actionType = 'turn_on';
+                } else if (action.includes('Ausschalten') || action.includes('Aus')) {
+                    actionType = 'turn_off';
+                } else if (action.includes('30%')) {
+                    actionType = 'dim_30';
+                } else if (action.includes('50%')) {
+                    actionType = 'dim_50';
+                } else if (action.includes('Heizen') || action.includes('22°C')) {
+                    actionType = 'heat';
+                } else if (action.includes('Kühlen') || action.includes('18°C')) {
+                    actionType = 'cool';
+                } else if (action.includes('Play') || action.includes('Abspielen')) {
+                    actionType = 'play';
+                } else if (action.includes('Pause')) {
+                    actionType = 'pause';
+                } else if (action.includes('Öffnen')) {
+                    actionType = 'open';
+                } else if (action.includes('Schließen')) {
+                    actionType = 'close';
+                }
+                
+
+
                 return `
-                   <div class="active-timer-item timer-item" data-timer-id="${timer.schedule_id}">
+                    <div class="active-timer-item timer-item" data-timer-id="${timer.schedule_id}" data-action-type="${actionType}">
                        <div class="timer-icon-container">
                            ${timerIcon}
                        </div>
@@ -9974,6 +10027,11 @@ class FastSearchCard extends HTMLElement {
                                <span class="timer-time-badge">${timeUntil}</span>
                            </div>
                        </div>
+
+
+
+
+                       
                        <div class="timer-action-buttons">
                            <button class="timer-edit" data-timer-id="${timer.schedule_id}" title="Timer bearbeiten">
                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
