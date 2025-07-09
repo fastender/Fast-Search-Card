@@ -4230,16 +4230,7 @@ class FastSearchCard extends HTMLElement {
                 margin: 0 20px;
             }
             
-            .actions-filter-wrapper::before,
-            .actions-filter-wrapper::after {
-                content: '';
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                width: 20px;
-                pointer-events: none;
-                z-index: 1;
-            }
+
             
             .actions-filter-wrapper::before {
                 left: 0;
