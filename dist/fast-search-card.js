@@ -2890,17 +2890,19 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 opacity: 0.8;
             }
-            
+
             .active-timers {
+                padding: 0px;
                 margin-bottom: 16px;
                 min-height: 60px;
-                max-height: 240px; /* ← NEU: Maximale Höhe für ~3-4 Timer */
-                overflow-y: auto;  /* ← NEU: Scrollbar bei mehr Timern */
+                height: calc(100vh - 300px);
+                max-height: 500px;
+                overflow-y: auto;
                 scrollbar-width: thin;
                 scrollbar-color: rgba(255,255,255,0.2) transparent;
+                -ms-overflow-style: none;
             }
-
-            /* NEU: Webkit Scrollbar Styling für Active Timers */
+            
             .active-timers::-webkit-scrollbar {
                 width: 4px;
             }
@@ -2916,6 +2918,12 @@ class FastSearchCard extends HTMLElement {
             
             .active-timers::-webkit-scrollbar-thumb:hover {
                 background: rgba(255,255,255,0.3);
+            }       
+
+            .active-timers-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
             }            
             
             .loading-timers {
@@ -2937,7 +2945,7 @@ class FastSearchCard extends HTMLElement {
             .active-timers-list {
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
+                gap: 12px;
             }
             
             .active-timer-item {
@@ -2997,38 +3005,37 @@ class FastSearchCard extends HTMLElement {
             }
             
             .timer-edit, .timer-delete {
-                flex-basis: 50px;
-                flex-grow: 0;
-                flex-shrink: 0;
-                width: 50px;
-                height: 50px;
-                border-radius: 50%;
-                background: rgba(255, 255, 255, 0.1);
+                width: 32px;
+                height: 32px;
                 border: none;
-                color: var(--text-primary);
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
                 cursor: pointer;
-                transition: all 0.2s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                padding: 0;
+                transition: all 0.2s ease;
+                color: var(--text-secondary);
+                margin-left: 8px;
             }
 
-            .timer-edit svg, .timer-delete svg {
-                width: 24px;
-                height: 24px;
-                stroke-width: 1;
-            }            
-            
             .timer-edit:hover {
-                transform: scale(1.05);
-                background: rgba(0, 122, 255, 0.2);
-            }       
-
+                background: rgba(0, 122, 255, 0.8);
+                color: white;
+                transform: scale(1.1);
+            }
+            
             .timer-delete:hover {
-                transform: scale(1.05);
-                background: rgba(255, 0, 0, 0.2);
-            }            
+                background: rgba(255, 59, 48, 0.8);
+                color: white;
+                transform: scale(1.1);
+            }
+            
+            .timer-edit svg, .timer-delete svg {
+                width: 16px;
+                height: 16px;
+                stroke-width: 2;
+            }      
 
             .timer-edit.active, .timer-delete.active {
                 background: var(--accent);
@@ -3040,7 +3047,13 @@ class FastSearchCard extends HTMLElement {
                 font-style: italic;
                 padding: 20px;
                 font-size: 13px;
-            }         
+            }        
+
+            .timer-timeline-event .timeline-event-time {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }            
 
 
 
@@ -4189,6 +4202,38 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(0, 0, 0, 0.2);
                 color: var(--text-secondary);
             }
+            
+            /* Timer-spezifische Badge-Varianten */
+            .timer-type-badge {
+                background: rgba(76, 175, 80, 0.2);
+                color: #4CAF50;
+            }
+            
+            .timer-time-badge {
+                background: rgba(255, 152, 0, 0.2);
+                color: #FF9800;
+            }
+            
+            .timer-status-badge {
+                background: rgba(156, 39, 176, 0.2);
+                color: #9C27B0;
+            }
+            
+            /* Timer Timeline Events - erweitert die Action Timeline Event Styles */
+            .timer-timeline-event {
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .timer-timeline-event:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            
+            .timer-timeline-event .timeline-event-icon {
+                background: linear-gradient(135deg, #4CAF50, #388E3C);
+                color: white;
+            }            
             
             /* Favoriten-spezifische Badge-Farben */
             .action-timeline-event.favorite-action .action-type-badge {
@@ -9803,26 +9848,36 @@ class FastSearchCard extends HTMLElement {
             const nextB = this.getNextExecution(b);
             return nextA - nextB;
         });
+
+
+
         
         const timerHTML = sortedTimers.map(timer => {
             const nextExecution = this.getNextExecution(timer);
             const timeUntil = this.formatTimeUntil(nextExecution);
             const action = this.getTimerAction(timer);
             
+            // Timer Icon (🕐 für alle Timer)
+            const timerIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>`;
+            
             return `
-                <div class="active-timer-item">
-                    <div class="timer-info">
-                        <div class="timer-name">${timer.name}</div>
-                        <div class="timer-details">
-                            <span class="timer-action">${action}</span>
-                            <span class="timer-time">${timeUntil}</span>
+                <div class="timeline-event timer-timeline-event" data-timer-id="${timer.schedule_id}">
+                    <div class="timeline-event-icon">
+                        ${timerIcon}
+                    </div>
+                    <div class="timeline-event-content">
+                        <div class="timeline-event-title">
+                            ${timer.name}
+                        </div>
+                        <div class="timeline-event-details">
+                            <span class="timer-type-badge">${action}</span>
+                            <span class="timer-time-badge">${timeUntil}</span>
                         </div>
                     </div>
-                    
-                    <div class="timer-controls">
+                    <div class="timeline-event-time">
                         <button class="timer-edit" data-timer-id="${timer.schedule_id}" title="Timer bearbeiten">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2-2v-7"></path>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                             </svg>
                         </button>
@@ -9833,19 +9888,22 @@ class FastSearchCard extends HTMLElement {
                                 <path d="M4 7l16 0" />
                                 <path d="M10 11l0 6" />
                                 <path d="M14 11l0 6" />
-                                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+                                <path d="M5 7l1 12a2 2 0 0 0 2 -2l1 -12" />
                                 <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
                             </svg>
                         </button>
                     </div>
-                    
                 </div>
             `;
         }).join('');
+
+
         
+
         container.innerHTML = `
-            <div class="active-timers-header">Aktive Timer:</div>
-            <div class="active-timers-list">${timerHTML}</div>
+            <div class="active-timers-grid">
+                ${timerHTML}
+            </div>
         `;
         
         // Event Listeners für Edit Buttons
@@ -9854,7 +9912,7 @@ class FastSearchCard extends HTMLElement {
                 const timerId = btn.dataset.timerId;
                 this.handleEditTimerClick(timerId, entityId);
             });
-        });
+        });        
 
         // Event Listeners für Delete Buttons
         container.querySelectorAll('.timer-delete').forEach(btn => {
@@ -9862,7 +9920,29 @@ class FastSearchCard extends HTMLElement {
                 const timerId = btn.dataset.timerId;
                 this.deleteTimer(timerId, entityId);
             });
-        });        
+        });       
+
+        // Entrance-Animationen mit Web Animations API (wie bei Actions)
+        const timerItems = container.querySelectorAll('.timer-timeline-event');
+        timerItems.forEach((item, index) => {
+            // Initial state
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            
+            // Animate in mit gestaffeltem Delay
+            setTimeout(() => {
+                item.animate([
+                    { opacity: 0, transform: 'translateY(20px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], {
+                    duration: 300,
+                    delay: index * 50,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    fill: 'forwards'
+                });
+            }, 50);
+        });
+        
     }
 
     getNextExecution(timer) {
