@@ -4079,7 +4079,7 @@ class FastSearchCard extends HTMLElement {
 
             /* Actions Container - Scrollbar wie History */
             .actions-container {
-                padding: 20px;
+                padding: 0px;
                 height: calc(100vh - 300px);
                 max-height: 500px;
                 overflow-y: auto;
@@ -4154,6 +4154,7 @@ class FastSearchCard extends HTMLElement {
             .timeline-event-title {
                font-size: 18px;
                color: var(--text-primary);
+               font-weight: 600;
             }            
 
             /* Action Meta Badges */
@@ -4213,8 +4214,8 @@ class FastSearchCard extends HTMLElement {
             
             /* Icon-Container sollte rund sein */
             .action-timeline-event .timeline-event-icon {
-                width: 32px;
-                height: 32px;
+                width: 24px;
+                height: 24px;
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
@@ -4222,13 +4223,14 @@ class FastSearchCard extends HTMLElement {
                 font-size: 16px;
                 font-weight: 600;
                 flex-shrink: 0;
+                padding: 10px;
             }    
 
             /* Actions Filter Chips - Subcategory-Chip Design */
             .actions-filter-chips {
                 display: flex;
                 gap: 8px;
-                padding: 5px 20px 16px 20px;
+                padding: 5px 20px 16px 0px;
                 overflow-x: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
