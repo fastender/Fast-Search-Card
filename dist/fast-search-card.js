@@ -4073,6 +4073,151 @@ class FastSearchCard extends HTMLElement {
             .tts-speak-btn:not(:disabled):hover {
                 transform: translateY(-1px);
                 box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            }  
+
+
+
+            /* Actions Container - Scrollbar wie History */
+            .actions-container {
+                padding: 20px;
+                height: calc(100vh - 300px);
+                max-height: 500px;
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255,255,255,0.2) transparent;
+                -ms-overflow-style: none;
+            }
+            
+            .actions-container::-webkit-scrollbar {
+                width: 4px;
+            }
+            
+            .actions-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .actions-container::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.2);
+                border-radius: 2px;
+            }
+            
+            .actions-container::-webkit-scrollbar-thumb:hover {
+                background: rgba(255,255,255,0.3);
+            }
+
+            .actions-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }        
+
+            /* Action Timeline Events - Erweitert die bestehenden .timeline-event Styles */
+            .action-timeline-event {
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .action-timeline-event:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            
+            .action-timeline-event.favorite-action {
+                border: 1px solid rgba(255, 193, 7, 0.3);
+                background: rgba(255, 193, 7, 0.05);
+            }
+            
+            .action-execute-btn {
+                width: 32px;
+                height: 32px;
+                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                color: var(--text-secondary);
+            }
+            
+            .action-execute-btn:hover {
+                background: var(--accent);
+                color: white;
+                transform: scale(1.1);
+            }          
+
+            /* Action Meta Badges */
+            .timeline-event-details {
+                display: flex;
+                gap: 6px;
+                align-items: center;
+                flex-wrap: wrap;
+                margin-top: 4px;
+            }
+            
+            .action-type-badge,
+            .action-area-badge,
+            .action-source-badge {
+                font-size: 11px;
+                padding: 2px 6px;
+                border-radius: 6px;
+                font-weight: 500;
+            }
+            
+            .action-type-badge {
+                background: rgba(33, 150, 243, 0.2);
+                color: #2196F3;
+            }
+            
+            .action-area-badge {
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--text-secondary);
+            }
+            
+            .action-source-badge {
+                background: rgba(0, 0, 0, 0.2);
+                color: var(--text-secondary);
+            }
+            
+            /* Favoriten-spezifische Badge-Farben */
+            .action-timeline-event.favorite-action .action-type-badge {
+                background: rgba(255, 193, 7, 0.2);
+                color: #FFC107;
+            }           
+
+            /* Domain-spezifische Icon-Farben */
+            .action-timeline-event[data-action-domain="scene"] .timeline-event-icon {
+                background: linear-gradient(135deg, #2196F3, #1976D2);
+                color: white;
+            }
+            
+            .action-timeline-event[data-action-domain="script"] .timeline-event-icon {
+                background: linear-gradient(135deg, #FF9800, #F57C00);
+                color: white;
+            }
+            
+            .action-timeline-event[data-action-domain="automation"] .timeline-event-icon {
+                background: linear-gradient(135deg, #4CAF50, #388E3C);
+                color: white;
+            }
+            
+            /* Favoriten überschreiben die Domain-Farben */
+            .action-timeline-event.favorite-action .timeline-event-icon {
+                background: linear-gradient(135deg, #FFC107, #FF8F00) !important;
+                color: white !important;
+            }
+            
+            /* Icon-Container sollte rund sein */
+            .action-timeline-event .timeline-event-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+                font-weight: 600;
             }            
                                                 
             </style>
@@ -11750,12 +11895,50 @@ class FastSearchCard extends HTMLElement {
         console.log('Actions Tab HTML erstellt');
     }    
 
+
     // 🎯 ACTIONS FILTER LISTENERS
     setupActionsFilterListeners(item, container) {
         const filterChips = container.querySelectorAll('.action-filter-chip');
         
         filterChips.forEach(chip => {
+            // Hover-Animationen
+            chip.addEventListener('mouseenter', () => {
+                if (!chip.classList.contains('active')) {
+                    chip.animate([
+                        { transform: 'translateY(0)' },
+                        { transform: 'translateY(-2px)' }
+                    ], {
+                        duration: 200,
+                        easing: 'ease-out',
+                        fill: 'forwards'
+                    });
+                }
+            });
+            
+            chip.addEventListener('mouseleave', () => {
+                if (!chip.classList.contains('active')) {
+                    chip.animate([
+                        { transform: 'translateY(-2px)' },
+                        { transform: 'translateY(0)' }
+                    ], {
+                        duration: 200,
+                        easing: 'ease-out',
+                        fill: 'forwards'
+                    });
+                }
+            });
+            
             chip.addEventListener('click', () => {
+                // Klick-Animation
+                chip.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(0.95)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 150,
+                    easing: 'ease-out'
+                });
+                
                 // Update active state
                 filterChips.forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
@@ -11859,6 +12042,42 @@ class FastSearchCard extends HTMLElement {
         // Show loading
         loadingDiv.style.display = 'block';
         resultsDiv.style.display = 'none';
+
+
+        // Loading-Spinner Animation
+            const createSpinner = () => {
+                const spinner = document.createElement('div');
+                spinner.className = 'loading-spinner';
+                spinner.style.cssText = `
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid transparent;
+                    border-top: 2px solid var(--text-secondary);
+                    border-radius: 50%;
+                    margin-right: 8px;
+                `;
+                
+                // Rotate animation
+                const rotate = () => {
+                    spinner.animate([
+                        { transform: 'rotate(0deg)' },
+                        { transform: 'rotate(360deg)' }
+                    ], {
+                        duration: 1000,
+                        iterations: Infinity,
+                        easing: 'linear'
+                    });
+                };
+                
+                rotate();
+                return spinner;
+            };
+            
+            // Spinner zu loading text hinzufügen
+            loadingDiv.innerHTML = '';
+            loadingDiv.appendChild(createSpinner());
+            loadingDiv.appendChild(document.createTextNode('Lade verfügbare Aktionen...'));
+        
         
         // ✅ SAMMLE ALLE RELEVANTEN ACTIONS (Auto-Discovery + Favoriten)
         const relatedActions = {
@@ -11932,35 +12151,63 @@ class FastSearchCard extends HTMLElement {
         });
     }    
 
-    // 🌟 UPDATE ACTION COUNTS - Mit Favoriten
+    // 🎯 UPDATE ACTION COUNTS mit Animationen
     updateActionCounts(relatedActions, container) {
-        const allActions = Object.values(relatedActions).flat();
-        const totalCount = allActions.length;
-        const favoritesCount = allActions.filter(action => action.isFavorite).length;
+        const counts = {
+            all: Object.values(relatedActions).flat().length,
+            scenes: relatedActions.scenes.length,
+            scripts: relatedActions.scripts.length,
+            automations: relatedActions.automations.length,
+            favorites: Object.values(relatedActions).flat().filter(a => a.isFavorite).length
+        };
         
-        // Update chip counts
-        const allChip = container.querySelector('#actions-all-count');
-        const favoritesChip = container.querySelector('#actions-favorites-count');
-        const scenesChip = container.querySelector('#actions-scenes-count');
-        const scriptsChip = container.querySelector('#actions-scripts-count');
-        const automationsChip = container.querySelector('#actions-automations-count');
+        // Update counts mit Animation
+        Object.entries(counts).forEach(([type, count]) => {
+            const countElement = container.querySelector(`#actions-${type}-count`);
+            if (countElement) {
+                const oldCount = parseInt(countElement.textContent) || 0;
+                
+                if (oldCount !== count) {
+                    // Scale-Animation beim Count-Update
+                    countElement.animate([
+                        { transform: 'scale(1)' },
+                        { transform: 'scale(1.2)' },
+                        { transform: 'scale(1)' }
+                    ], {
+                        duration: 300,
+                        easing: 'ease-out'
+                    });
+                    
+                    // Count-Up-Animation
+                    const duration = 500;
+                    const startTime = performance.now();
+                    
+                    const updateCount = (currentTime) => {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        
+                        const currentCount = Math.floor(oldCount + (count - oldCount) * progress);
+                        countElement.textContent = currentCount;
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(updateCount);
+                        }
+                    };
+                    
+                    requestAnimationFrame(updateCount);
+                }
+            }
+        });
         
-        if (allChip) allChip.textContent = totalCount;
+        // Show/hide favorites chip based on count
+        const favoritesChip = container.querySelector('[data-action-filter="favorites"]');
         if (favoritesChip) {
-            favoritesChip.textContent = favoritesCount;
-            
-            // Zeige Favoriten-Chip nur wenn Favoriten vorhanden
-            const favoritesButton = favoritesChip.parentElement;
-            if (favoritesCount > 0) {
-                favoritesButton.style.display = 'inline-block';
+            if (counts.favorites > 0) {
+                favoritesChip.style.display = 'block';
             } else {
-                favoritesButton.style.display = 'none';
+                favoritesChip.style.display = 'none';
             }
         }
-        if (scenesChip) scenesChip.textContent = relatedActions.scenes.length;
-        if (scriptsChip) scriptsChip.textContent = relatedActions.scripts.length;
-        if (automationsChip) automationsChip.textContent = relatedActions.automations.length;
-        
     }
 
     // 🎯 FIND RELATED SCENES - Erweiterte Metadaten-Analyse
@@ -12207,6 +12454,28 @@ class FastSearchCard extends HTMLElement {
                 ${resultsHTML}
             </div>
         `;
+
+        // Entrance-Animationen mit Web Animations API
+        const actionItems = container.querySelectorAll('.action-timeline-event');
+        actionItems.forEach((item, index) => {
+            // Initial state
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            
+            // Animate in mit gestaffeltem Delay
+            setTimeout(() => {
+                item.animate([
+                    { opacity: 0, transform: 'translateY(20px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], {
+                    duration: 300,
+                    delay: index * 50,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    fill: 'forwards'
+                });
+            }, 50);
+        });
+        
         
         // Setup click handlers
         this.setupActionClickHandlers(container);
@@ -12274,18 +12543,25 @@ class FastSearchCard extends HTMLElement {
                 e.stopPropagation();
                 const actionId = area.dataset.actionId;
                 const actionDomain = area.closest('.action-timeline-event').dataset.actionDomain;
+                const actionEvent = area.closest('.action-timeline-event');
                 
                 console.log(`🎯 Navigation to detail view: ${actionId} (${actionDomain})`);
                 
-                // Visual feedback
-                area.classList.add('clicked');
-                setTimeout(() => area.classList.remove('clicked'), 200);
+                // Klick-Animation mit Web Animations API
+                actionEvent.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(0.98)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 150,
+                    easing: 'ease-out'
+                });
                 
                 // Navigate to detail view
                 this.navigateToActionDetail(actionId, actionDomain);
             });
         });
-        
+    
         // ▶️ EXECUTE BUTTONS → Direkte Ausführung
         const executeButtons = container.querySelectorAll('.action-execute-btn');
         executeButtons.forEach(btn => {
@@ -12296,9 +12572,16 @@ class FastSearchCard extends HTMLElement {
                 const actionId = btn.closest('.action-timeline-event').dataset.actionId;
                 console.log(`🚀 Execute action: ${actionId}`);
                 
-                // Visual feedback
-                btn.classList.add('clicked');
-                setTimeout(() => btn.classList.remove('clicked'), 150);
+                // Button-Animation mit Web Animations API
+                btn.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(0.9)' },
+                    { transform: 'scale(1.1)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 200,
+                    easing: 'ease-out'
+                });
                 
                 // Execute action
                 this.triggerAction(actionId);
