@@ -11919,23 +11919,25 @@ class FastSearchCard extends HTMLElement {
             <div class="actions-container">
                 <div class="actions-header">
                     <h4>Verfügbare Aktionen für ${item.name}</h4>
+
                     <div class="actions-filter-chips">
                         <button class="action-filter-chip active" data-action-filter="all">
                             Alle <span class="chip-count" id="actions-all-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="favorites" style="display: none;">
-                            ⭐ Favoriten <span class="chip-count" id="actions-favorites-count">0</span>
+                            Favoriten <span class="chip-count" id="actions-favorites-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="scenes">
-                            🎬 Szenen <span class="chip-count" id="actions-scenes-count">0</span>
+                            Szenen <span class="chip-count" id="actions-scenes-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="scripts">
-                            📜 Skripte <span class="chip-count" id="actions-scripts-count">0</span>
+                            Skripte <span class="chip-count" id="actions-scripts-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="automations">
-                            ⚙️ Automationen <span class="chip-count" id="actions-automations-count">0</span>
+                            Automationen <span class="chip-count" id="actions-automations-count">0</span>
                         </button>
                     </div>
+
                 </div>
                 
                 <div class="actions-results-container">
