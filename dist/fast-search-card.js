@@ -4215,6 +4215,7 @@ class FastSearchCard extends HTMLElement {
             .timer-timeline-event {
                 cursor: pointer;
                 transition: all 0.2s ease;
+                position: relative;
             }
             
             .timer-timeline-event:hover {
@@ -9825,129 +9826,130 @@ class FastSearchCard extends HTMLElement {
 
     
 
+
     renderActiveTimers(timers, entityId) {
-        const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
-        if (!container) return;
-        
-        if (!timers || timers.length === 0) {
-            container.innerHTML = '<div class="no-timers">Keine aktiven Timer</div>';
-            return;
-        }
-        
-        // Timer nach nächster Ausführung sortieren
-        const sortedTimers = timers.sort((a, b) => {
-            const nextA = this.getNextExecution(a);
-            const nextB = this.getNextExecution(b);
-            return nextA - nextB;
-        });
-
-
-
-        
-        const timerHTML = sortedTimers.map(timer => {
-            const nextExecution = this.getNextExecution(timer);
-            const timeUntil = this.formatTimeUntil(nextExecution);
-            const action = this.getTimerAction(timer);
+            const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
+            if (!container) return;
             
-
-            // Timer Icon basierend auf Action
-            const timerIcon = this.getTimerIconForAction(action);
-
+            if (!timers || timers.length === 0) {
+                container.innerHTML = '<div class="no-timers">Keine aktiven Timer</div>';
+                return;
+            }
             
-            return `
-                <div class="timeline-event timer-timeline-event" data-timer-id="${timer.schedule_id}">
-                    <div class="timeline-event-icon">
-                        ${timerIcon}
-                    </div>
-                    <div class="timeline-event-content">
-                        <div class="timeline-event-title">
-                            ${timer.name}
+            // Timer nach nächster Ausführung sortieren
+            const sortedTimers = timers.sort((a, b) => {
+                const nextA = this.getNextExecution(a);
+                const nextB = this.getNextExecution(b);
+                return nextA - nextB;
+            });
+            
+            const timerHTML = sortedTimers.map(timer => {
+                const nextExecution = this.getNextExecution(timer);
+                const timeUntil = this.formatTimeUntil(nextExecution);
+                const action = this.getTimerAction(timer);
+                
+                // Timer Icon basierend auf Action
+                const timerIcon = this.getTimerIconForAction(action);
+                
+                return `
+                    <div class="timeline-event timer-timeline-event" data-timer-id="${timer.schedule_id}">
+                        <div class="timeline-event-icon">
+                            ${timerIcon}
                         </div>
-                        <div class="timeline-event-details">
-                            <span class="timer-type-badge">${action}</span>
-                            <span class="timer-time-badge">${timeUntil}</span>
+                        <div class="timeline-event-content">
+                            <div class="timeline-event-title">
+                                ${timer.name}
+                            </div>
+                            <div class="timeline-event-details">
+                                <span class="timer-type-badge">${action}</span>
+                                <span class="timer-time-badge">${timeUntil}</span>
+                            </div>
+                        </div>
+                        <div class="timeline-event-time">
+                            <button class="timer-edit" data-timer-id="${timer.schedule_id}" title="Timer bearbeiten">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            
+                            <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M4 7l16 0" />
+                                    <path d="M10 11l0 6" />
+                                    <path d="M14 11l0 6" />
+                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
-                    <div class="timeline-event-time">
-                        <button class="timer-edit" data-timer-id="${timer.schedule_id}" title="Timer bearbeiten">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                        </button>
-                        
-                        <button class="timer-delete" data-timer-id="${timer.schedule_id}" title="Timer löschen">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                <path d="M4 7l16 0" />
-                                <path d="M10 11l0 6" />
-                                <path d="M14 11l0 6" />
-                                <path d="M5 7l1 12a2 2 0 0 0 2 -2l1 -12" />
-                                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
-                            </svg>
-                        </button>
-                    </div>
+                `;
+            }).join('');
+    
+            container.innerHTML = `
+                <div class="active-timers-grid">
+                    ${timerHTML}
                 </div>
             `;
-        }).join('');
-
-
-        
-
-        container.innerHTML = `
-            <div class="active-timers-grid">
-                ${timerHTML}
-            </div>
-        `;
-        
-        // Event Listeners für Edit Buttons
-        container.querySelectorAll('.timer-edit').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const timerId = btn.dataset.timerId;
-                this.handleEditTimerClick(timerId, entityId);
-            });
-        });        
-
-        // Event Listeners für Delete Buttons
-        container.querySelectorAll('.timer-delete').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const timerId = btn.dataset.timerId;
-                this.deleteTimer(timerId, entityId);
-            });
-        });       
-
-        // Entrance-Animationen mit Web Animations API (wie bei Actions)
-        const timerItems = container.querySelectorAll('.timer-timeline-event');
-        timerItems.forEach((item, index) => {
-            // Initial state
-            item.style.opacity = '0';
-            item.style.transform = 'translateY(20px)';
             
-            // Animate in mit gestaffeltem Delay
-            setTimeout(() => {
-                item.animate([
-                    { opacity: 0, transform: 'translateY(20px)' },
-                    { opacity: 1, transform: 'translateY(0)' }
-                ], {
-                    duration: 300,
-                    delay: index * 50,
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                    fill: 'forwards'
+            // Event Listeners für Edit Buttons
+            container.querySelectorAll('.timer-edit').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const timerId = btn.dataset.timerId;
+                    this.handleEditTimerClick(timerId, entityId);
                 });
-            }, 50);
-        });
-        
-    }
-
+            });        
+    
+            // Event Listeners für Delete Buttons
+            container.querySelectorAll('.timer-delete').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const timerId = btn.dataset.timerId;
+                    this.deleteTimer(timerId, entityId);
+                });
+            });       
+    
+            // Entrance-Animationen mit Web Animations API (wie bei Actions)
+            const timerItems = container.querySelectorAll('.timer-timeline-event');
+            timerItems.forEach((item, index) => {
+                // Initial state
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                
+                // Animate in mit gestaffeltem Delay
+                setTimeout(() => {
+                    item.animate([
+                        { opacity: 0, transform: 'translateY(20px)' },
+                        { opacity: 1, transform: 'translateY(0)' }
+                    ], {
+                        duration: 300,
+                        delay: index * 50,
+                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                        fill: 'forwards'
+                    });
+                }, 50);
+            });
+        }
 
     getTimerIconForAction(action) {
-        // Bestimme Icon basierend auf Action-Text
+        // Timer Icon basierend auf Action
         if (action.includes('Einschalten') || action.includes('Ein')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 12l2 2 4-4"></path><circle cx="12" cy="12" r="9"></circle></svg>`;
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"></circle><path d="M9 12l2 2 4-4"></path></svg>`;
         } else if (action.includes('Ausschalten') || action.includes('Aus')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-        } else if (action.includes('30%') || action.includes('Dimmen')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+        } else if (action.includes('Dimmen') || action.includes('%')) {
             return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>`;
+        } else if (action.includes('Heizen') || action.includes('°C')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path></svg>`;
+        } else if (action.includes('Kühlen')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12h20M12 2v20m8-8-8-8-8 8m16 0-8 8-8-8"></path></svg>`;
+        } else if (action.includes('Öffnen') || action.includes('Schließen')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 2h10l5 5v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><path d="M8 6h8v4H8V6z"></path></svg>`;
+        } else if (action.includes('Abspielen') || action.includes('Play')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5,3 19,12 5,21"></polygon></svg>`;
+        } else if (action.includes('Pausieren') || action.includes('Pause')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
         } else {
             // Fallback: generisches Timer-Icon
             return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>`;
