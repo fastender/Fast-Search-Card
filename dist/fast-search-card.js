@@ -12267,7 +12267,7 @@ class FastSearchCard extends HTMLElement {
         const favoritesChip = container.querySelector('[data-action-filter="favorites"]');
         if (favoritesChip) {
             if (counts.favorites > 0) {
-                favoritesChip.style.display = 'block';
+                favoritesChip.style.display = 'flex';
             } else {
                 favoritesChip.style.display = 'none';
             }
