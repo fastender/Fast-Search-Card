@@ -4241,7 +4241,6 @@ class FastSearchCard extends HTMLElement {
                 display: none;
             }
             
-
             .action-filter-chip {
                 padding: 10px 15px;
                 background: rgba(255, 255, 255, 0.08);
@@ -4254,18 +4253,11 @@ class FastSearchCard extends HTMLElement {
                 text-align: center;
                 height: 30px;
                 display: flex;
-                align-items: center; /* Stellt die vertikale Zentrierung sicher */
-                justify-content: center; /* Stellt die horizontale Zentrierung sicher */
+                align-items: center;
                 color: var(--text-primary);
                 font-size: 16px;
                 font-weight: 600;
-                gap: 8px; /* Definiert den Abstand zwischen Text und Zahl */
-                line-height: 1; /* Verhindert Störungen durch Zeilenhöhe */
             }
-            
-            .action-filter-chip > span {
-                line-height: 1; /* Stellt sicher, dass auch die Text-Spans keine unerwartete Höhe haben */
-            }            
             
             .action-filter-chip.active {
                 background: var(--accent-light);
@@ -4276,7 +4268,7 @@ class FastSearchCard extends HTMLElement {
             .action-filter-chip:hover {
                 background: rgba(255, 255, 255, 0.2);
             }
-
+            
             .chip-count {
                 background: rgba(255,255,255,0.2);
                 border-radius: 8px;
@@ -4285,11 +4277,7 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 600;
                 min-width: 16px;
                 text-align: center;
-                /* margin-left wird durch 'gap' im Parent ersetzt */
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                line-height: 1;
+                margin-left: 6px;
             }
             
             .action-filter-chip.active .chip-count {
@@ -11931,25 +11919,23 @@ class FastSearchCard extends HTMLElement {
             <div class="actions-container">
                 <div class="actions-header">
                     <h4>Verfügbare Aktionen für ${item.name}</h4>
-
                     <div class="actions-filter-chips">
                         <button class="action-filter-chip active" data-action-filter="all">
-                            <span>Alle</span><span class="chip-count" id="actions-all-count">0</span>
+                            Alle <span class="chip-count" id="actions-all-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="favorites" style="display: none;">
-                            <span>Favoriten</span><span class="chip-count" id="actions-favorites-count">0</span>
+                            ⭐ Favoriten <span class="chip-count" id="actions-favorites-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="scenes">
-                            <span>Szenen</span><span class="chip-count" id="actions-scenes-count">0</span>
+                            🎬 Szenen <span class="chip-count" id="actions-scenes-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="scripts">
-                            <span>Skripte</span><span class="chip-count" id="actions-scripts-count">0</span>
+                            📜 Skripte <span class="chip-count" id="actions-scripts-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="automations">
-                            <span>Automationen</span><span class="chip-count" id="actions-automations-count">0</span>
+                            ⚙️ Automationen <span class="chip-count" id="actions-automations-count">0</span>
                         </button>
                     </div>
-
                 </div>
                 
                 <div class="actions-results-container">
