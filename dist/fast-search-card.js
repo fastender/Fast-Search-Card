@@ -9995,6 +9995,8 @@ class FastSearchCard extends HTMLElement {
                        </div>
                    </div>
                 `;
+
+            }).join('');  // ← HINZUFÜGEN!                
     
             container.innerHTML = `
                 <div class="active-timers-grid">
