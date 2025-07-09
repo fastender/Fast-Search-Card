@@ -4245,12 +4245,13 @@ class FastSearchCard extends HTMLElement {
             .actions-filter-chips {
                 display: flex;
                 gap: 8px;
-                padding: 5px 20px;
+                padding: 5px 20px 5px 0px;
                 overflow-x: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
                 -webkit-overflow-scrolling: touch;
                 flex-shrink: 0;
+                box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.3);
             }
             
             .actions-filter-chips::-webkit-scrollbar {
