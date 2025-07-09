@@ -4241,6 +4241,7 @@ class FastSearchCard extends HTMLElement {
                 display: none;
             }
             
+
             .action-filter-chip {
                 padding: 10px 15px;
                 background: rgba(255, 255, 255, 0.08);
@@ -4253,12 +4254,18 @@ class FastSearchCard extends HTMLElement {
                 text-align: center;
                 height: 30px;
                 display: flex;
-                align-items: center;
+                align-items: center; /* Stellt die vertikale Zentrierung sicher */
+                justify-content: center; /* Stellt die horizontale Zentrierung sicher */
                 color: var(--text-primary);
                 font-size: 16px;
                 font-weight: 600;
-                gap: 6px; /* NEU: Fügt einen Abstand zwischen Text und Zahl hinzu */
+                gap: 8px; /* Definiert den Abstand zwischen Text und Zahl */
+                line-height: 1; /* Verhindert Störungen durch Zeilenhöhe */
             }
+            
+            .action-filter-chip > span {
+                line-height: 1; /* Stellt sicher, dass auch die Text-Spans keine unerwartete Höhe haben */
+            }            
             
             .action-filter-chip.active {
                 background: var(--accent-light);
@@ -4278,9 +4285,11 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 600;
                 min-width: 16px;
                 text-align: center;
-                /* margin-left: 6px;  <-- ALT: Diese Zeile wird entfernt oder auskommentiert */
-                display: inline-flex; /* NEU: Stellt konsistente Box-Berechnung sicher */
-                align-items: center; /* NEU: Zentriert die Zahl im Kästchen perfekt */
+                /* margin-left wird durch 'gap' im Parent ersetzt */
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                line-height: 1;
             }
             
             .action-filter-chip.active .chip-count {
