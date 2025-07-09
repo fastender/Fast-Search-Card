@@ -9849,8 +9849,10 @@ class FastSearchCard extends HTMLElement {
             const timeUntil = this.formatTimeUntil(nextExecution);
             const action = this.getTimerAction(timer);
             
-            // Timer Icon (🕐 für alle Timer)
-            const timerIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>`;
+
+            // Timer Icon basierend auf Action
+            const timerIcon = this.getTimerIconForAction(action);
+
             
             return `
                 <div class="timeline-event timer-timeline-event" data-timer-id="${timer.schedule_id}">
@@ -9937,6 +9939,21 @@ class FastSearchCard extends HTMLElement {
         
     }
 
+
+    getTimerIconForAction(action) {
+        // Bestimme Icon basierend auf Action-Text
+        if (action.includes('Einschalten') || action.includes('Ein')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 12l2 2 4-4"></path><circle cx="12" cy="12" r="9"></circle></svg>`;
+        } else if (action.includes('Ausschalten') || action.includes('Aus')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+        } else if (action.includes('30%') || action.includes('Dimmen')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>`;
+        } else {
+            // Fallback: generisches Timer-Icon
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>`;
+        }
+    }
+    
     getNextExecution(timer) {
         // Zuerst prüfen ob next_execution Attribut vorhanden ist
         if (timer.next_execution) {
