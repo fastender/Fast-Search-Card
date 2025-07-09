@@ -4235,10 +4235,33 @@ class FastSearchCard extends HTMLElement {
                 -webkit-overflow-scrolling: touch;
                 transition: all 0.3s ease;
                 flex-shrink: 0;
+                position: relative;
             }
             
             .actions-filter-chips::-webkit-scrollbar {
                 display: none;
+            }
+            
+            /* Fade-Out-Schatten an den Rändern */
+            .actions-filter-chips::before,
+            .actions-filter-chips::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                width: 20px;
+                pointer-events: none;
+                z-index: 1;
+            }
+            
+            .actions-filter-chips::before {
+                left: 0;
+                background: linear-gradient(to right, var(--card-background-color), transparent);
+            }
+            
+            .actions-filter-chips::after {
+                right: 0;
+                background: linear-gradient(to left, var(--card-background-color), transparent);
             }
             
             .action-filter-chip {
@@ -11924,16 +11947,16 @@ class FastSearchCard extends HTMLElement {
                             Alle <span class="chip-count" id="actions-all-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="favorites" style="display: none;">
-                            ⭐ Favoriten <span class="chip-count" id="actions-favorites-count">0</span>
+                            Favoriten <span class="chip-count" id="actions-favorites-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="scenes">
-                            🎬 Szenen <span class="chip-count" id="actions-scenes-count">0</span>
+                            Szenen <span class="chip-count" id="actions-scenes-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="scripts">
-                            📜 Skripte <span class="chip-count" id="actions-scripts-count">0</span>
+                            Skripte <span class="chip-count" id="actions-scripts-count">0</span>
                         </button>
                         <button class="action-filter-chip" data-action-filter="automations">
-                            ⚙️ Automationen <span class="chip-count" id="actions-automations-count">0</span>
+                            Automationen <span class="chip-count" id="actions-automations-count">0</span>
                         </button>
                     </div>
                 </div>
