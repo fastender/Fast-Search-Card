@@ -9849,7 +9849,7 @@ class FastSearchCard extends HTMLElement {
                 const action = this.getTimerAction(timer);
                 
                 // Timer Icon basierend auf Action
-                const timerIcon = this.getTimerIconForAction(action);
+                const timerIcon = this.getPresetIconForAction(action);
                 
                 return `
                     <div class="timeline-event timer-timeline-event" data-timer-id="${timer.schedule_id}">
@@ -9932,26 +9932,17 @@ class FastSearchCard extends HTMLElement {
             });
         }
 
-    getTimerIconForAction(action) {
-        // Timer Icon basierend auf Action
-        if (action.includes('Einschalten') || action.includes('Ein')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"></circle><path d="M9 12l2 2 4-4"></path></svg>`;
-        } else if (action.includes('Ausschalten') || action.includes('Aus')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
-        } else if (action.includes('Dimmen') || action.includes('%')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>`;
-        } else if (action.includes('Heizen') || action.includes('°C')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path></svg>`;
-        } else if (action.includes('Kühlen')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12h20M12 2v20m8-8-8-8-8 8m16 0-8 8-8-8"></path></svg>`;
-        } else if (action.includes('Öffnen') || action.includes('Schließen')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 2h10l5 5v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><path d="M8 6h8v4H8V6z"></path></svg>`;
-        } else if (action.includes('Abspielen') || action.includes('Play')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5,3 19,12 5,21"></polygon></svg>`;
-        } else if (action.includes('Pausieren') || action.includes('Pause')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+    getPresetIconForAction(action) {
+        // Icons die zu den Timer-Preset-Buttons passen
+        if (action.includes('Einschalten') || action.includes('💡')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4"></path><circle cx="12" cy="12" r="9"></circle></svg>`;
+        } else if (action.includes('Ausschalten') || action.includes('🔴')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+        } else if (action.includes('30%') || action.includes('🌙')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"></circle></svg>`;
+        } else if (action.includes('50%') || action.includes('🌗')) {
+            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10z"></path></svg>`;
         } else {
-            // Fallback: generisches Timer-Icon
             return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>`;
         }
     }
