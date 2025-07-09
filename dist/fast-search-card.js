@@ -12485,7 +12485,7 @@ class FastSearchCard extends HTMLElement {
     renderActionItem(action) {
         const state = this._hass.states[action.id];
         const isActive = this.isEntityActive(state);
-        const icon = this.getEntityIcon(action.domain);
+        const icon = this.getActionIcon(action.domain);
         
         // Favoriten-Kennzeichnung
         const favoriteIcon = action.isFavorite ? '⭐ ' : '';
@@ -12523,6 +12523,19 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
+
+    getActionIcon(domain) {
+        switch(domain) {
+            case 'scene':
+                return FastSearchCard.SCENE_SVG;
+            case 'script':
+                return FastSearchCard.SCRIPT_SVG;
+            case 'automation':
+                return FastSearchCard.AUTOMATION_SVG;
+            default:
+                return this.getEntityIcon(domain); // Fallback
+        }
+    }    
     
     // 🎯 HELPER METHODS
     getActionTypeLabel(domain) {
