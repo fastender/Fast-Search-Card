@@ -2895,8 +2895,7 @@ class FastSearchCard extends HTMLElement {
                 padding: 0px;
                 margin-bottom: 16px;
                 min-height: 60px;
-                height: calc(100vh - 300px);
-                max-height: 500px;
+                max-height: 200px;
                 overflow-y: auto;
                 scrollbar-width: thin;
                 scrollbar-color: rgba(255,255,255,0.2) transparent;
@@ -3050,10 +3049,14 @@ class FastSearchCard extends HTMLElement {
             }        
 
             .timer-timeline-event .timeline-event-time {
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
                 display: flex;
                 align-items: center;
                 gap: 8px;
-            }            
+            }         
 
 
 
@@ -3203,11 +3206,6 @@ class FastSearchCard extends HTMLElement {
                 overflow-y: auto;
             }
             
-            /* Active Timers (aktualisiert) */
-            .active-timers {
-                margin-top: 20px;
-                min-height: 60px;
-            }
             
             .loading-timers,
             .no-timers {
@@ -3505,13 +3503,7 @@ class FastSearchCard extends HTMLElement {
             }
 
 
-            
-            
-            /* Active Timers */
-            .active-timers {
-                margin-bottom: 16px;
-                min-height: 60px;
-            }
+        
             
             .loading-timers,
             .no-timers {
