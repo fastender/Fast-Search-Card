@@ -10043,18 +10043,42 @@ class FastSearchCard extends HTMLElement {
         }
 
     getPresetIconForAction(action) {
-        // Icons die zu den Timer-Preset-Buttons passen
-        if (action.includes('Einschalten') || action.includes('💡')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4"></path><circle cx="12" cy="12" r="9"></circle></svg>`;
-        } else if (action.includes('Ausschalten') || action.includes('🔴')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-        } else if (action.includes('30%') || action.includes('🌙')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"></circle></svg>`;
-        } else if (action.includes('50%') || action.includes('🌗')) {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10z"></path></svg>`;
-        } else {
-            return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>`;
+        // Bestimme welche Preset-Funktion und welche Action
+        let presetHTML = '';
+        
+        if (action.includes('Einschalten') || action.includes('Ein')) {
+            presetHTML = this.getLightTimerPresets(); // Hole komplettes HTML
+            // Extrahiere SVG aus turn_on Button
+            const match = presetHTML.match(/data-action="turn_on"[^>]*>(.*?)<span class="timer-preset-label">/s);
+            if (match) {
+                const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
+                return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
+            }
+        } else if (action.includes('Ausschalten') || action.includes('Aus')) {
+            presetHTML = this.getLightTimerPresets();
+            const match = presetHTML.match(/data-action="turn_off"[^>]*>(.*?)<span class="timer-preset-label">/s);
+            if (match) {
+                const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
+                return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
+            }
+        } else if (action.includes('30%')) {
+            presetHTML = this.getLightTimerPresets();
+            const match = presetHTML.match(/data-action="dim_30"[^>]*>(.*?)<span class="timer-preset-label">/s);
+            if (match) {
+                const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
+                return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
+            }
+        } else if (action.includes('50%')) {
+            presetHTML = this.getLightTimerPresets();
+            const match = presetHTML.match(/data-action="dim_50"[^>]*>(.*?)<span class="timer-preset-label">/s);
+            if (match) {
+                const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
+                return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
+            }
         }
+        
+        // Fallback
+        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>`;
     }
     
     getNextExecution(timer) {
