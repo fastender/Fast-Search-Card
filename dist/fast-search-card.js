@@ -4139,13 +4139,22 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 transition: all 0.2s ease;
                 color: var(--text-secondary);
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
             }
             
             .action-execute-btn:hover {
                 background: var(--accent);
                 color: white;
-                transform: scale(1.1);
-            }          
+                transform: translateY(-50%) scale(1.1); /* Kombination beider Transforms */
+            }    
+
+            .timeline-event-title {
+               font-size: 18px;
+               color: var(--text-primary);
+            }            
 
             /* Action Meta Badges */
             .timeline-event-details {
@@ -4202,12 +4211,6 @@ class FastSearchCard extends HTMLElement {
                 color: white;
             }
             
-            /* Favoriten überschreiben die Domain-Farben */
-            .action-timeline-event.favorite-action .timeline-event-icon {
-                background: linear-gradient(135deg, #FFC107, #FF8F00) !important;
-                color: white !important;
-            }
-            
             /* Icon-Container sollte rund sein */
             .action-timeline-event .timeline-event-icon {
                 width: 32px;
@@ -4218,6 +4221,67 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 font-size: 16px;
                 font-weight: 600;
+                flex-shrink: 0;
+            }    
+
+            /* Actions Filter Chips - Subcategory-Chip Design */
+            .actions-filter-chips {
+                display: flex;
+                gap: 8px;
+                padding: 5px 20px 16px 20px;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                -webkit-overflow-scrolling: touch;
+                transition: all 0.3s ease;
+                flex-shrink: 0;
+            }
+            
+            .actions-filter-chips::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .action-filter-chip {
+                padding: 10px 15px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 0px solid rgba(255, 255, 255, 0.15);
+                border-radius: 12px;
+                cursor: pointer;
+                white-space: nowrap;
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+                text-align: center;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                color: var(--text-primary);
+                font-size: 16px;
+                font-weight: 600;
+            }
+            
+            .action-filter-chip.active {
+                background: var(--accent-light);
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+            
+            .action-filter-chip:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+            
+            .chip-count {
+                background: rgba(255,255,255,0.2);
+                border-radius: 8px;
+                padding: 2px 6px;
+                font-size: 12px;
+                font-weight: 600;
+                min-width: 16px;
+                text-align: center;
+                margin-left: 6px;
+            }
+            
+            .action-filter-chip.active .chip-count {
+                background: rgba(255,255,255,0.3);
             }            
                                                 
             </style>
