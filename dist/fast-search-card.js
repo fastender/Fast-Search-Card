@@ -4266,28 +4266,6 @@ class FastSearchCard extends HTMLElement {
                 display: none;
             }
             
-            /* Fade-Out-Schatten an den Rändern */
-            .actions-filter-chips::before,
-            .actions-filter-chips::after {
-                content: '';
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                width: 20px;
-                pointer-events: none;
-                z-index: 1;
-            }
-            
-            .actions-filter-chips::before {
-                left: 0;
-                background: linear-gradient(to right, var(--card-background-color), transparent);
-            }
-            
-            .actions-filter-chips::after {
-                right: 0;
-                background: linear-gradient(to left, var(--card-background-color), transparent);
-            }
-            
             .action-filter-chip {
                 padding: 10px 15px;
                 background: rgba(255, 255, 255, 0.08);
