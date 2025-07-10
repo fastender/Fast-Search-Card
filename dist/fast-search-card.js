@@ -10206,17 +10206,22 @@ class FastSearchCard extends HTMLElement {
         
         // Climate Actions
         } else if (action.includes('24°C') || action.includes('Heizen')) {
-            presetHTML = this.getClimateTimerPresets();
-            match = presetHTML.match(/data-action="heat_24"[^>]*>(.*?)<\/button>/s);
+            // Direkt das SVG holen ohne über getClimateTimerPresets zu gehen
+            return this.getHvacModeSVG('heat', this.currentItem)
+                .replace(/width="[^"]*"/g, 'width="16"')
+                .replace(/height="[^"]*"/g, 'height="16"');
         } else if (action.includes('22°C') || action.includes('Kühlen')) {
-            presetHTML = this.getClimateTimerPresets();
-            match = presetHTML.match(/data-action="cool_22"[^>]*>(.*?)<\/button>/s);
+            return this.getHvacModeSVG('cool', this.currentItem)
+                .replace(/width="[^"]*"/g, 'width="16"')
+                .replace(/height="[^"]*"/g, 'height="16"');
         } else if (action.includes('Entfeuchten')) {
-            presetHTML = this.getClimateTimerPresets();
-            match = presetHTML.match(/data-action="dry_mode"[^>]*>(.*?)<\/button>/s);
+            return this.getHvacModeSVG('dry', this.currentItem)
+                .replace(/width="[^"]*"/g, 'width="16"')
+                .replace(/height="[^"]*"/g, 'height="16"');
         } else if (action.includes('Lüften')) {
-            presetHTML = this.getClimateTimerPresets();
-            match = presetHTML.match(/data-action="fan_only"[^>]*>(.*?)<\/button>/s);
+            return this.getHvacModeSVG('fan_only', this.currentItem)
+                .replace(/width="[^"]*"/g, 'width="16"')
+                .replace(/height="[^"]*"/g, 'height="16"');
         
         // Cover Actions
         } else if (action.includes('Öffnen')) {
