@@ -10203,10 +10203,22 @@ class FastSearchCard extends HTMLElement {
             match = presetHTML.match(/data-action="dim_50"[^>]*>(.*?)<\/button>/s);
             console.log('🔍 Match gefunden:', !!match);
         
+
         // Climate Actions
         } else if (action.includes('24°C') || action.includes('Heizen')) {
+            console.log('🔍 Climate 24°C erkannt');
+            console.log('🔍 currentDetailItem:', this.currentDetailItem);
+            
             presetHTML = this.getClimateTimerPresets(this.currentDetailItem);
+            console.log('🔍 Climate PresetHTML Länge:', presetHTML.length);
+            console.log('🔍 Climate PresetHTML enthält heat_24:', presetHTML.includes('data-action="heat_24"'));
+            
             match = presetHTML.match(/data-action="heat_24"[^>]*>(.*?)<\/button>/s);
+            console.log('🔍 Climate Match gefunden:', !!match);
+            if (match) {
+                console.log('🔍 Climate Match[1]:', match[1]);
+            }
+            
         } else if (action.includes('22°C') || action.includes('Kühlen')) {
             presetHTML = this.getClimateTimerPresets(this.currentDetailItem);
             match = presetHTML.match(/data-action="cool_22"[^>]*>(.*?)<\/button>/s);
