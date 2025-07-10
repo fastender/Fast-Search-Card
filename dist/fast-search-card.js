@@ -3452,21 +3452,13 @@ class FastSearchCard extends HTMLElement {
                 height: 24px;
                 stroke-width: 1;
             }
-            
-            .timer-preset-label {
-                font-size: 12px;
-                font-weight: 500;
-                line-height: 1;
-                text-transform: uppercase;
-                padding-top: 10px;
-            }
 
             /* ✅ Hover-Effekte für Icons und Labels */
             .timer-control-preset:hover svg {
                 transform: scale(1.1);
             }
             
-            .timer-control-preset:hover .timer-preset-label {
+            .timer-control-preset:hover {
                 transform: translateY(-1px);
             }          
 
@@ -8357,7 +8349,7 @@ class FastSearchCard extends HTMLElement {
                         <path d="M1.15 1.878a.514.514 0 0 1 .728-.727l16.971 16.971a.514.514 0 0 1-.727.727z"/>
                     </g>
                 </svg>
-                <span class="timer-preset-label">Aus</span>
+
             </button>
             
             <button class="timer-control-preset" data-action="turn_on" title="Einschalten">
@@ -8365,7 +8357,7 @@ class FastSearchCard extends HTMLElement {
                     <path d="M 5.994 8.065 C 6.334 7.696 6.947 7.833 7.097 8.312 C 7.171 8.55 7.104 8.81 6.922 8.981 C 5.712 10.21 5.035 11.867 5.04 13.593 C 5.04 17.195 7.914 20.11 11.457 20.11 C 14.999 20.11 17.874 17.195 17.874 13.593 C 17.879 11.868 17.202 10.21 15.991 8.981 C 15.627 8.636 15.772 8.025 16.254 7.882 C 16.493 7.81 16.751 7.882 16.92 8.065 C 18.372 9.538 19.184 11.525 19.179 13.593 C 19.179 17.911 15.724 21.415 11.457 21.415 C 7.19 21.415 3.735 17.911 3.735 13.593 C 3.735 11.494 4.557 9.522 5.994 8.065" fill="currentColor"/>
                     <path d="M 10.78 3.486 C 10.78 2.984 11.324 2.67 11.759 2.921 C 11.961 3.038 12.086 3.253 12.086 3.486 L 12.086 11.192 C 12.086 11.695 11.542 12.009 11.107 11.757 C 10.905 11.641 10.78 11.425 10.78 11.192 L 10.78 3.486 Z" fill="currentColor"/>
                 </svg>
-                <span class="timer-preset-label">Ein</span>
+
             </button>
             
             <button class="timer-control-preset" data-action="dim_30" title="30% Helligkeit">
@@ -8376,7 +8368,7 @@ class FastSearchCard extends HTMLElement {
                     <path d="M12 14.3l7.37 -7.37" />
                     <path d="M12 19.6l8.85 -8.85" />
                 </svg>
-                <span class="timer-preset-label">30%</span>
+
             </button>
             
             <button class="timer-control-preset" data-action="dim_50" title="50% Helligkeit">
@@ -8387,7 +8379,7 @@ class FastSearchCard extends HTMLElement {
                     <path d="M12 14.3l7.37 -7.37" />
                     <path d="M12 19.6l8.85 -8.85" />
                 </svg>
-                <span class="timer-preset-label">50%</span>
+
             </button>
         `;
     }
@@ -8400,7 +8392,7 @@ class FastSearchCard extends HTMLElement {
                     <path d="m15 9-6 6"/>
                     <path d="m9 9 6 6"/>
                 </svg>
-                <span class="timer-preset-label">Aus</span>
+
             </button>
             
             <button class="timer-control-preset" data-action="heat_24" title="Heizen auf 24°C">
@@ -8408,7 +8400,7 @@ class FastSearchCard extends HTMLElement {
                     <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
                     <circle cx="12" cy="17" r="2"/>
                 </svg>
-                <span class="timer-preset-label">24°C</span>
+
             </button>
             
             <button class="timer-control-preset" data-action="cool_22" title="Kühlen auf 22°C">
@@ -8416,7 +8408,7 @@ class FastSearchCard extends HTMLElement {
                     <path d="M2 6s1.5-2 5-2 5 2 5 2v14s-1.5-2-5-2-5 2-5 2V6z"/>
                     <path d="M7 4v16"/>
                 </svg>
-                <span class="timer-preset-label">22°C</span>
+
             </button>
             
             <button class="timer-control-preset" data-action="dry_mode" title="Entfeuchten">
@@ -8424,14 +8416,14 @@ class FastSearchCard extends HTMLElement {
                     <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
                     <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
                 </svg>
-                <span class="timer-preset-label">Entfeuchten</span>
+
             </button>
             
             <button class="timer-control-preset" data-action="fan_only" title="Lüften">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12.5 2c-.8 0-1.5.7-1.5 1.5v6.21l-1.09-.63c-.69-.4-1.58-.16-1.98.53-.4.69-.16 1.58.53 1.98l1.09.63-1.09.63c-.69.4-.93 1.29-.53 1.98.4.69 1.29.93 1.98.53l1.09-.63v6.21c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-6.21l1.09.63c.69.4 1.58.16 1.98-.53.4-.69.16-1.58-.53-1.98L13.5 12l1.09-.63c.69-.4.93-1.29.53-1.98-.4-.69-1.29-.93-1.98-.53L12.5 9.5V3.5c0-.8-.7-1.5-1.5-1.5z"/>
                 </svg>
-                <span class="timer-preset-label">Lüften</span>
+
             </button>
         `;
     }
@@ -8443,20 +8435,20 @@ class FastSearchCard extends HTMLElement {
                     <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z"/>
                     <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z"/>
                 </svg>
-                <span class="timer-preset-label">Aus</span>
+
             </button>
             <button class="timer-control-preset" data-action="play" title="Abspielen">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <polygon points="5,3 19,12 5,21"/>
                 </svg>
-                <span class="timer-preset-label">Play</span>
+
             </button>
             <button class="timer-control-preset" data-action="pause" title="Pausieren">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <rect x="6" y="4" width="4" height="16"/>
                     <rect x="14" y="4" width="4" height="16"/>
                 </svg>
-                <span class="timer-preset-label">Pause</span>
+
             </button>
             <button class="timer-control-preset" data-action="volume_down" title="Leiser">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
@@ -8464,7 +8456,7 @@ class FastSearchCard extends HTMLElement {
                     <line x1="23" y1="9" x2="17" y2="15"/>
                     <line x1="17" y1="9" x2="23" y2="15"/>
                 </svg>
-                <span class="timer-preset-label">Leiser</span>
+
             </button>
         `;
     }
@@ -8475,14 +8467,14 @@ class FastSearchCard extends HTMLElement {
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M18 15l-6-6-6 6"/>
                 </svg>
-                <span class="timer-preset-label">Öffnen</span>
+
             </button>
             
             <button class="timer-control-preset" data-action="close" title="Schließen">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M6 9l6 6 6-6"/>
                 </svg>
-                <span class="timer-preset-label">Schließen</span>
+
             </button>
             
             <button class="timer-control-preset" data-action="set_position_25" title="25% öffnen">
@@ -8490,7 +8482,7 @@ class FastSearchCard extends HTMLElement {
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                     <path d="M3 12h6"/>
                 </svg>
-                <span class="timer-preset-label">25%</span>
+
             </button>
             
             <button class="timer-control-preset" data-action="set_position_75" title="75% öffnen">
@@ -8498,7 +8490,7 @@ class FastSearchCard extends HTMLElement {
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                     <path d="M3 12h15"/>
                 </svg>
-                <span class="timer-preset-label">75%</span>
+
             </button>
         `;
     }
@@ -8510,14 +8502,14 @@ class FastSearchCard extends HTMLElement {
                     <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z"/>
                     <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z"/>
                 </svg>
-                <span class="timer-preset-label">Aus</span>
+
             </button>
             <button class="timer-control-preset" data-action="turn_on" title="Einschalten">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <path d="M17 13C17.5523 13 18 12.5523 18 12C18 11.4477 17.5523 11 17 11C16.4477 11 16 11.4477 16 12C16 12.5523 16.4477 13 17 13Z"/>
                     <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z"/>
                 </svg>
-                <span class="timer-preset-label">Ein</span>
+
             </button>
         `;
     }
@@ -10175,57 +10167,59 @@ class FastSearchCard extends HTMLElement {
     getPresetIconForAction(action) {
         console.log('🔍 DEBUG - Action eingegangen:', action);
         
-        // Bestimme welche Preset-Funktion und welche Action
         let presetHTML = '';
+        let match = null;
         
+        // Light Actions
         if (action.includes('Einschalten') || action.includes('Ein')) {
-            presetHTML = this.getLightTimerPresets(); // Hole komplettes HTML
-            // Extrahiere SVG aus turn_on Button
-            const match = presetHTML.match(/data-action="turn_on"[^>]*>(.*?)<span class="timer-preset-label">/s);
-            if (match) {
-                const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
-                return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
-            }
+            presetHTML = this.getLightTimerPresets();
+            match = presetHTML.match(/data-action="turn_on"[^>]*>(.*?)<\/button>/s);
         } else if (action.includes('Ausschalten') || action.includes('Aus')) {
             presetHTML = this.getLightTimerPresets();
-            const match = presetHTML.match(/data-action="turn_off"[^>]*>(.*?)<span class="timer-preset-label">/s);
-            if (match) {
-                const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
-                return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
-            }
+            match = presetHTML.match(/data-action="turn_off"[^>]*>(.*?)<\/button>/s);
         } else if (action.includes('30%')) {
-            console.log('🔍 30% gefunden!');
             presetHTML = this.getLightTimerPresets();
-            console.log('🔍 PresetHTML Länge:', presetHTML.length);
-            console.log('🔍 PresetHTML enthält dim_30:', presetHTML.includes('data-action="dim_30"'));
-            
-            const match = presetHTML.match(/data-action="dim_30"[^>]*>\s*(.*?)\s*<span class="timer-preset-label">/s);
-            console.log('🔍 Match gefunden:', !!match);
-            if (match) {
-                console.log('🔍 Match[1]:', match[1]);
-                const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
-                console.log('🔍 SVG Match:', !!svgMatch);
-                if (svgMatch) {
-                    console.log('🔍 SVG:', svgMatch[0]);
-                    return svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"');
-                }
-            }
+            match = presetHTML.match(/data-action="dim_30"[^>]*>(.*?)<\/button>/s);
         } else if (action.includes('50%')) {
-            console.log('🔍 50% gefunden!');
             presetHTML = this.getLightTimerPresets();
-            console.log('🔍 PresetHTML Länge:', presetHTML.length);
-            console.log('🔍 PresetHTML enthält dim_50:', presetHTML.includes('data-action="dim_50"'));
-            
-            const match = presetHTML.match(/data-action="dim_50"[^>]*>\s*(.*?)\s*<span class="timer-preset-label">/s);
-            console.log('🔍 Match gefunden:', !!match);
-            if (match) {
-                console.log('🔍 Match[1]:', match[1]);
-                const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
-                console.log('🔍 SVG Match:', !!svgMatch);
-                if (svgMatch) {
-                    console.log('🔍 SVG:', svgMatch[0]);
-                    return svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"');
-                }
+            match = presetHTML.match(/data-action="dim_50"[^>]*>(.*?)<\/button>/s);
+        
+        // Climate Actions
+        } else if (action.includes('24°C') || action.includes('Heizen')) {
+            presetHTML = this.getClimateTimerPresets();
+            match = presetHTML.match(/data-action="heat_24"[^>]*>(.*?)<\/button>/s);
+        } else if (action.includes('22°C') || action.includes('Kühlen')) {
+            presetHTML = this.getClimateTimerPresets();
+            match = presetHTML.match(/data-action="cool_22"[^>]*>(.*?)<\/button>/s);
+        } else if (action.includes('Entfeuchten')) {
+            presetHTML = this.getClimateTimerPresets();
+            match = presetHTML.match(/data-action="dry_mode"[^>]*>(.*?)<\/button>/s);
+        } else if (action.includes('Lüften')) {
+            presetHTML = this.getClimateTimerPresets();
+            match = presetHTML.match(/data-action="fan_only"[^>]*>(.*?)<\/button>/s);
+        
+        // Cover Actions
+        } else if (action.includes('Öffnen')) {
+            presetHTML = this.getCoverTimerPresets();
+            match = presetHTML.match(/data-action="open"[^>]*>(.*?)<\/button>/s);
+        } else if (action.includes('Schließen')) {
+            presetHTML = this.getCoverTimerPresets();
+            match = presetHTML.match(/data-action="close"[^>]*>(.*?)<\/button>/s);
+        } else if (action.includes('25%')) {
+            presetHTML = this.getCoverTimerPresets();
+            match = presetHTML.match(/data-action="set_position_25"[^>]*>(.*?)<\/button>/s);
+        } else if (action.includes('75%')) {
+            presetHTML = this.getCoverTimerPresets();
+            match = presetHTML.match(/data-action="set_position_75"[^>]*>(.*?)<\/button>/s);
+        }
+        
+        // SVG extrahieren und anpassen
+        if (match) {
+            const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
+            if (svgMatch) {
+                return svgMatch[0]
+                    .replace(/width="24"/g, 'width="16"')
+                    .replace(/height="24"/g, 'height="16"');
             }
         }
         
