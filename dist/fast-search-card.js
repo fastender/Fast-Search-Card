@@ -8349,7 +8349,6 @@ class FastSearchCard extends HTMLElement {
                         <path d="M1.15 1.878a.514.514 0 0 1 .728-.727l16.971 16.971a.514.514 0 0 1-.727.727z"/>
                     </g>
                 </svg>
-
             </button>
             
             <button class="timer-control-preset" data-action="turn_on" title="Einschalten">
@@ -8357,18 +8356,12 @@ class FastSearchCard extends HTMLElement {
                     <path d="M 5.994 8.065 C 6.334 7.696 6.947 7.833 7.097 8.312 C 7.171 8.55 7.104 8.81 6.922 8.981 C 5.712 10.21 5.035 11.867 5.04 13.593 C 5.04 17.195 7.914 20.11 11.457 20.11 C 14.999 20.11 17.874 17.195 17.874 13.593 C 17.879 11.868 17.202 10.21 15.991 8.981 C 15.627 8.636 15.772 8.025 16.254 7.882 C 16.493 7.81 16.751 7.882 16.92 8.065 C 18.372 9.538 19.184 11.525 19.179 13.593 C 19.179 17.911 15.724 21.415 11.457 21.415 C 7.19 21.415 3.735 17.911 3.735 13.593 C 3.735 11.494 4.557 9.522 5.994 8.065" fill="currentColor"/>
                     <path d="M 10.78 3.486 C 10.78 2.984 11.324 2.67 11.759 2.921 C 11.961 3.038 12.086 3.253 12.086 3.486 L 12.086 11.192 C 12.086 11.695 11.542 12.009 11.107 11.757 C 10.905 11.641 10.78 11.425 10.78 11.192 L 10.78 3.486 Z" fill="currentColor"/>
                 </svg>
-
             </button>
             
             <button class="timer-control-preset" data-action="dim_30" title="30% Helligkeit">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" color="currentColor">
-                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-                    <path d="M12 3v18" />
-                    <path d="M12 9l4.65 -4.65" />
-                    <path d="M12 14.3l7.37 -7.37" />
-                    <path d="M12 19.6l8.85 -8.85" />
+                    <path d="M3 11.5066C3 16.7497 7.25034 21 12.4934 21C16.2209 21 19.4466 18.8518 21 15.7259C12.4934 15.7259 8.27411 11.5066 8.27411 3C5.14821 4.55344 3 7.77915 3 11.5066Z"/>
                 </svg>
-
             </button>
             
             <button class="timer-control-preset" data-action="dim_50" title="50% Helligkeit">
@@ -8379,7 +8372,6 @@ class FastSearchCard extends HTMLElement {
                     <path d="M12 14.3l7.37 -7.37" />
                     <path d="M12 19.6l8.85 -8.85" />
                 </svg>
-
             </button>
         `;
     }
@@ -10164,25 +10156,35 @@ class FastSearchCard extends HTMLElement {
             });
         }
 
+
     getPresetIconForAction(action) {
         console.log('🔍 DEBUG - Action eingegangen:', action);
+        console.log('🔍 DEBUG - Action Type:', typeof action);
         
         let presetHTML = '';
         let match = null;
         
         // Light Actions
         if (action.includes('Einschalten') || action.includes('Ein')) {
+            console.log('🔍 Einschalten erkannt');
             presetHTML = this.getLightTimerPresets();
             match = presetHTML.match(/data-action="turn_on"[^>]*>(.*?)<\/button>/s);
         } else if (action.includes('Ausschalten') || action.includes('Aus')) {
+            console.log('🔍 Ausschalten erkannt');
             presetHTML = this.getLightTimerPresets();
             match = presetHTML.match(/data-action="turn_off"[^>]*>(.*?)<\/button>/s);
         } else if (action.includes('30%')) {
+            console.log('🔍 30% erkannt');
             presetHTML = this.getLightTimerPresets();
+            console.log('🔍 PresetHTML Länge:', presetHTML.length);
             match = presetHTML.match(/data-action="dim_30"[^>]*>(.*?)<\/button>/s);
+            console.log('🔍 Match gefunden:', !!match);
         } else if (action.includes('50%')) {
+            console.log('🔍 50% erkannt');
             presetHTML = this.getLightTimerPresets();
             match = presetHTML.match(/data-action="dim_50"[^>]*>(.*?)<\/button>/s);
+            console.log('🔍 Match gefunden:', !!match);
+        
         
         // Climate Actions
         } else if (action.includes('24°C') || action.includes('Heizen')) {
