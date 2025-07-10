@@ -8817,25 +8817,25 @@ class FastSearchCard extends HTMLElement {
     getActionLabel(actionString) {
         const actionLabels = {
             // Light
-            'turn_off': '🔴 Ausschalten',
-            'turn_on': '💡 Einschalten', 
-            'dim_30': '🌙 Dimmen 30%',
-            'dim_50': '🌗 Dimmen 50%',
+            'turn_off': 'Ausschalten',
+            'turn_on': 'Einschalten', 
+            'dim_30': 'Dimmen 30%',
+            'dim_50': 'Dimmen 50%',
             
             // Climate
-            'heat_24': '🔥 Heizen 24°C',
-            'cool_22': '❄️ Kühlen 22°C', 
-            'dry_mode': '💧 Entfeuchten',
-            'fan_only': '🌀 Lüften',
+            'heat_24': 'Heizen 24°C',
+            'cool_22': 'Kühlen 22°C', 
+            'dry_mode': 'Entfeuchten',
+            'fan_only': 'Lüften',
             
-            // Cover - Nur 4 Aktionen
-            'open': '⬆️ Öffnen',
-            'close': '⬇️ Schließen',
-            'set_position_25': '📏 25% öffnen',
-            'set_position_75': '📏 75% öffnen',
+            // Cover
+            'open': 'Öffnen',
+            'close': 'Schließen',
+            'set_position_25': '25% öffnen',
+            'set_position_75': '75% öffnen',
             
             // Generic
-            'toggle': '🔄 Umschalten'
+            'toggle': 'Umschalten'
         };
         
         return actionLabels[actionString] || actionString || 'Aktion';
@@ -10133,6 +10133,21 @@ class FastSearchCard extends HTMLElement {
                     this.deleteTimer(timerId, entityId);
                 });
             });       
+
+            // Event Listeners für Timer Item Click (Edit-Modus)
+            container.querySelectorAll('.timer-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    // Verhindere Edit wenn auf Edit/Delete Buttons geklickt wurde
+                    if (e.target.closest('.timer-edit') || e.target.closest('.timer-delete')) {
+                        return;
+                    }
+                    
+                    const timerId = item.dataset.timerId || item.querySelector('.timer-edit')?.dataset.timerId;
+                    if (timerId) {
+                        this.handleEditTimerClick(timerId, entityId);
+                    }
+                });
+            });       
     
             // Entrance-Animationen mit Web Animations API (wie bei Actions)
             const timerItems = container.querySelectorAll('.timer-item');
@@ -10280,17 +10295,16 @@ class FastSearchCard extends HTMLElement {
             const serviceData = firstAction.service_data;
             
             if (service.includes('turn_on')) {
-                // Prüfe auf brightness Parameter
                 if (serviceData && serviceData.brightness) {
                     const brightness = serviceData.brightness;
-                    if (brightness === 77) return '🌙 Dimmen 30%';
-                    if (brightness === 128) return '🌗 Dimmen 50%';
+                    if (brightness === 77) return 'Dimmen 30%';
+                    if (brightness === 128) return 'Dimmen 50%';
                 }
-                return '🟢 Einschalten';
+                return 'Einschalten';
             }
-            if (service.includes('turn_off')) return '🔴 Ausschalten';
+            if (service.includes('turn_off')) return 'Ausschalten';
         }
-        return '⚙️ Aktion';
+        return 'Aktion';
     }
     
     async deleteTimer(timerId, entityId) {
