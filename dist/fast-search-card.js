@@ -8328,7 +8328,7 @@ class FastSearchCard extends HTMLElement {
             case 'light':
                 return this.getLightTimerPresets();
             case 'climate':
-                return this.getClimateTimerPresets();
+                return this.getClimateTimerPresets(item);
             case 'media_player':
                 return this.getMediaTimerPresets();
             case 'cover':
@@ -8377,49 +8377,52 @@ class FastSearchCard extends HTMLElement {
         `;
     }
     
-    getClimateTimerPresets() {
+    getClimateTimerPresets(item) {  // ← item Parameter hinzufügen
         return `
             <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="m15 9-6 6"/>
-                    <path d="m9 9 6 6"/>
-                </svg>
-
+                ${this.getLightOffSVG()}
             </button>
             
             <button class="timer-control-preset" data-action="heat_24" title="Heizen auf 24°C">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
-                    <circle cx="12" cy="17" r="2"/>
-                </svg>
-
+                ${this.getHvacModeSVG('heat', item)}
             </button>
             
             <button class="timer-control-preset" data-action="cool_22" title="Kühlen auf 22°C">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M2 6s1.5-2 5-2 5 2 5 2v14s-1.5-2-5-2-5 2-5 2V6z"/>
-                    <path d="M7 4v16"/>
-                </svg>
-
+                ${this.getHvacModeSVG('cool', item)}
             </button>
             
             <button class="timer-control-preset" data-action="dry_mode" title="Entfeuchten">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-                    <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-                </svg>
-
+                ${this.getHvacModeSVG('dry', item)}
             </button>
             
             <button class="timer-control-preset" data-action="fan_only" title="Lüften">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12.5 2c-.8 0-1.5.7-1.5 1.5v6.21l-1.09-.63c-.69-.4-1.58-.16-1.98.53-.4.69-.16 1.58.53 1.98l1.09.63-1.09.63c-.69.4-.93 1.29-.53 1.98.4.69 1.29.93 1.98.53l1.09-.63v6.21c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-6.21l1.09.63c.69.4 1.58.16 1.98-.53.4-.69.16-1.58-.53-1.98L13.5 12l1.09-.63c.69-.4.93-1.29.53-1.98-.4-.69-1.29-.93-1.98-.53L12.5 9.5V3.5c0-.8-.7-1.5-1.5-1.5z"/>
-                </svg>
-
+                ${this.getHvacModeSVG('fan_only', item)}
             </button>
         `;
     }
+
+    
+    // SVG aus Light Turn-Off Button holen
+    getLightOffSVG() {
+        const lightHTML = this.();
+        const match = lightHTML.match(/data-action="turn_off"[^>]*>(.*?)<\/button>/s);
+        if (match) {
+            const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
+            return svgMatch ? svgMatch[0] : '';
+        }
+        return '';
+    }
+    
+    // SVG aus Climate HVAC Mode Buttons holen
+    getHvacModeSVG(mode, item) {
+        const climateHTML = this.getClimateControlsHTML(item);
+        const match = climateHTML.match(new RegExp(`data-hvac-mode="${mode}"[^>]*>(.*?)<\/button>`, 's'));
+        if (match) {
+            const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
+            return svgMatch ? svgMatch[0] : '';
+        }
+        return '';
+    }    
 
     getMediaTimerPresets() {
         return `
@@ -10183,11 +10186,11 @@ class FastSearchCard extends HTMLElement {
         // Light Actions
         if (action.includes('Einschalten') || action.includes('Ein')) {
             console.log('🔍 Einschalten erkannt');
-            presetHTML = this.getLightTimerPresets();
+            presetHTML = this.();
             match = presetHTML.match(/data-action="turn_on"[^>]*>(.*?)<\/button>/s);
         } else if (action.includes('Ausschalten') || action.includes('Aus')) {
             console.log('🔍 Ausschalten erkannt');
-            presetHTML = this.getLightTimerPresets();
+            presetHTML = this.();
             match = presetHTML.match(/data-action="turn_off"[^>]*>(.*?)<\/button>/s);
         } else if (action.includes('30%')) {
             console.log('🔍 30% erkannt');
