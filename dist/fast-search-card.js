@@ -10284,9 +10284,6 @@ class FastSearchCard extends HTMLElement {
     
     async deleteTimer(timerId, entityId) {
         console.log(`🗑️ Lösche Timer ${timerId}`);
-        if (!confirm('Diesen Timer wirklich löschen?')) {
-            return;
-        }
         
         try {
             // KORREKTUR: Hole die Switch-Entity-ID
@@ -13679,18 +13676,16 @@ class FastSearchCard extends HTMLElement {
                 const scheduleItem = btn.closest('.schedule-item');
                 const scheduleEntityId = scheduleItem.dataset.entityId;
                 
-                if (confirm('Zeitplan wirklich löschen?')) {
-                    try {
-                        await this._hass.callService('scheduler', 'remove', {
-                            entity_id: scheduleEntityId
-                        });
-                        
-                        // UI aktualisieren
-                        setTimeout(() => this.loadActiveSchedules(entityId), 500);
-                        
-                    } catch (error) {
-                        console.error('Fehler beim Löschen des Zeitplans:', error);
-                    }
+                try {
+                    await this._hass.callService('scheduler', 'remove', {
+                        entity_id: scheduleEntityId
+                    });
+                    
+                    // UI aktualisieren
+                    setTimeout(() => this.loadActiveSchedules(entityId), 500);
+                    
+                } catch (error) {
+                    console.error('Fehler beim Löschen des Zeitplans:', error);
                 }
             });
         });
