@@ -9531,17 +9531,22 @@ class FastSearchCard extends HTMLElement {
     }
     
     getLightActionData(action) {
-        switch (action) {
-            case 'turn_on':
-                return { service: 'light.turn_on', serviceData: {} };
-            case 'turn_off':
-                return { service: 'light.turn_off', serviceData: {} };
-            case 'dim_30':
-                return { service: 'light.turn_on', serviceData: { brightness_pct: 30 } };
-            case 'dim_50':
-                return { service: 'light.turn_on', serviceData: { brightness_pct: 50 } };
-            default:
-                return { service: 'light.turn_off', serviceData: {} };
+        // Debug: Was kommt rein?
+        console.log('🔧 getLightActionData - Action:', action);
+        
+        if (action === 'turn_on' || action.includes('Einschalten')) {
+            return { service: 'light.turn_on', serviceData: {} };
+        } else if (action === 'turn_off' || action.includes('Ausschalten')) {
+            return { service: 'light.turn_off', serviceData: {} };
+        } else if (action === 'dim_30' || action.includes('🌙') || action.includes('Dimmen 30%')) {
+            console.log('🔧 30% Helligkeit erkannt!');
+            return { service: 'light.turn_on', serviceData: { brightness_pct: 30 } };
+        } else if (action === 'dim_50' || action.includes('🌗') || action.includes('Dimmen 50%')) {
+            console.log('🔧 50% Helligkeit erkannt!');
+            return { service: 'light.turn_on', serviceData: { brightness_pct: 50 } };
+        } else {
+            console.log('🔧 Fallback: turn_off');
+            return { service: 'light.turn_off', serviceData: {} };
         }
     }
     
