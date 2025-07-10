@@ -10175,7 +10175,6 @@ class FastSearchCard extends HTMLElement {
             });
         }
 
-
     getPresetIconForAction(action) {
         console.log('🔍 DEBUG - Action eingegangen:', action);
         console.log('🔍 DEBUG - Action Type:', typeof action);
@@ -10186,11 +10185,11 @@ class FastSearchCard extends HTMLElement {
         // Light Actions
         if (action.includes('Einschalten') || action.includes('Ein')) {
             console.log('🔍 Einschalten erkannt');
-            presetHTML = this.();
+            presetHTML = this.getLightTimerPresets();  // ← Das war leer!
             match = presetHTML.match(/data-action="turn_on"[^>]*>(.*?)<\/button>/s);
         } else if (action.includes('Ausschalten') || action.includes('Aus')) {
             console.log('🔍 Ausschalten erkannt');
-            presetHTML = this.();
+            presetHTML = this.getLightTimerPresets();  // ← Das war leer!
             match = presetHTML.match(/data-action="turn_off"[^>]*>(.*?)<\/button>/s);
         } else if (action.includes('30%')) {
             console.log('🔍 30% erkannt');
@@ -10203,7 +10202,7 @@ class FastSearchCard extends HTMLElement {
             presetHTML = this.getLightTimerPresets();
             match = presetHTML.match(/data-action="dim_50"[^>]*>(.*?)<\/button>/s);
             console.log('🔍 Match gefunden:', !!match);
-        
+        }
         
         // Climate Actions
         } else if (action.includes('24°C') || action.includes('Heizen')) {
