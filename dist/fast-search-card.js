@@ -10308,7 +10308,8 @@ class FastSearchCard extends HTMLElement {
             const service = firstAction.service;
             const serviceData = firstAction.service_data;
             
-            if (service.includes('turn_on')) {
+            // Light Actions
+            if (service.includes('light.turn_on')) {
                 if (serviceData && serviceData.brightness) {
                     const brightness = serviceData.brightness;
                     if (brightness === 77) return 'Dimmen 30%';
@@ -10316,7 +10317,23 @@ class FastSearchCard extends HTMLElement {
                 }
                 return 'Einschalten';
             }
-            if (service.includes('turn_off')) return 'Ausschalten';
+            if (service.includes('light.turn_off')) return 'Ausschalten';
+            
+            // Climate Actions - NEU!
+            if (service.includes('climate.set_temperature')) {
+                if (serviceData && serviceData.hvac_mode && serviceData.temperature) {
+                    if (serviceData.hvac_mode === 'heat') return `Heizen ${serviceData.temperature}°C`;
+                    if (serviceData.hvac_mode === 'cool') return `Kühlen ${serviceData.temperature}°C`;
+                }
+                return 'Temperatur setzen';
+            }
+            if (service.includes('climate.set_hvac_mode')) {
+                if (serviceData && serviceData.hvac_mode) {
+                    if (serviceData.hvac_mode === 'dry') return 'Entfeuchten';
+                    if (serviceData.hvac_mode === 'fan_only') return 'Lüften';
+                }
+            }
+            if (service.includes('climate.turn_off')) return 'Ausschalten';
         }
         return 'Aktion';
     }
