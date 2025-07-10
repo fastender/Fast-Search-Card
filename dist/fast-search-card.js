@@ -8951,7 +8951,7 @@ class FastSearchCard extends HTMLElement {
                 actions: [{
                     service: service,
                     entity_id: item.id,
-                    ...serviceData // <-- DIE ENTSCHEIDENDE ÄNDERUNG!
+                    data: serviceData
                 }]
             }],
             repeat_type: 'single',
