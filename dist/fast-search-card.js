@@ -8471,30 +8471,34 @@ class FastSearchCard extends HTMLElement {
     
     getCoverTimerPresets() {
         return `
-            <button class="timer-control-preset" data-action="open_cover" title="Öffnen">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <button class="timer-control-preset" data-action="open" title="Öffnen">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M18 15l-6-6-6 6"/>
                 </svg>
                 <span class="timer-preset-label">Öffnen</span>
             </button>
-            <button class="timer-control-preset" data-action="close_cover" title="Schließen">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            
+            <button class="timer-control-preset" data-action="close" title="Schließen">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M6 9l6 6 6-6"/>
                 </svg>
                 <span class="timer-preset-label">Schließen</span>
             </button>
-            <button class="timer-control-preset" data-action="stop_cover" title="Stoppen">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                    <rect x="6" y="6" width="12" height="12"/>
-                </svg>
-                <span class="timer-preset-label">Stop</span>
-            </button>
-            <button class="timer-control-preset" data-action="set_position_50" title="50% Position">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            
+            <button class="timer-control-preset" data-action="set_position_25" title="25% öffnen">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <path d="M3 12h6"/>
                 </svg>
-                <span class="timer-preset-label">50%</span>
+                <span class="timer-preset-label">25%</span>
+            </button>
+            
+            <button class="timer-control-preset" data-action="set_position_75" title="75% öffnen">
+                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <path d="M3 12h15"/>
+                </svg>
+                <span class="timer-preset-label">75%</span>
             </button>
         `;
     }
@@ -8834,11 +8838,17 @@ class FastSearchCard extends HTMLElement {
             'dim_30': '🌙 Dimmen 30%',
             'dim_50': '🌗 Dimmen 50%',
             
-            // Climate - Ihre 5 gewünschten Funktionen
+            // Climate
             'heat_24': '🔥 Heizen 24°C',
             'cool_22': '❄️ Kühlen 22°C', 
             'dry_mode': '💧 Entfeuchten',
             'fan_only': '🌀 Lüften',
+            
+            // Cover - Nur 4 Aktionen
+            'open': '⬆️ Öffnen',
+            'close': '⬇️ Schließen',
+            'set_position_25': '📏 25% öffnen',
+            'set_position_75': '📏 75% öffnen',
             
             // Generic
             'toggle': '🔄 Umschalten'
@@ -9532,7 +9542,6 @@ class FastSearchCard extends HTMLElement {
 
 
     
-    
     getActionServiceData(item, action) {
         const domain = item.domain;
         
@@ -9543,6 +9552,8 @@ class FastSearchCard extends HTMLElement {
                 return this.getClimateActionData(action);
             case 'media_player':
                 return this.getMediaActionData(action);
+            case 'cover':
+                return this.getCoverActionData(action);
             default:
                 return this.getGenericActionData(domain, action);
         }
@@ -9599,6 +9610,27 @@ class FastSearchCard extends HTMLElement {
                 return { service: 'climate.turn_off', serviceData: {} };
         }
     }
+
+    getCoverActionData(action) {
+        switch (action) {
+            case 'open':
+                return { service: 'cover.open_cover', serviceData: {} };
+            case 'close':
+                return { service: 'cover.close_cover', serviceData: {} };
+            case 'set_position_25':
+                return { 
+                    service: 'cover.set_cover_position', 
+                    serviceData: { position: 25 } 
+                };
+            case 'set_position_75':
+                return { 
+                    service: 'cover.set_cover_position', 
+                    serviceData: { position: 75 } 
+                };
+            default:
+                return { service: 'cover.close_cover', serviceData: {} };
+        }
+    }    
     
     getMediaActionData(action) {
         switch (action) {
