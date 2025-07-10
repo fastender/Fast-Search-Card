@@ -4414,7 +4414,7 @@ class FastSearchCard extends HTMLElement {
                 transform: translateY(-50%);
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 0px;
             }
 
             /* Timer Edit/Delete Button Styles */
@@ -10101,6 +10101,8 @@ class FastSearchCard extends HTMLElement {
         }
 
     getPresetIconForAction(action) {
+        console.log('🔍 DEBUG - Action eingegangen:', action);
+        
         // Bestimme welche Preset-Funktion und welche Action
         let presetHTML = '';
         
@@ -10119,24 +10121,44 @@ class FastSearchCard extends HTMLElement {
                 const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
                 return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
             }
-
         } else if (action.includes('30%')) {
+            console.log('🔍 30% gefunden!');
             presetHTML = this.getLightTimerPresets();
+            console.log('🔍 PresetHTML Länge:', presetHTML.length);
+            console.log('🔍 PresetHTML enthält dim_30:', presetHTML.includes('data-action="dim_30"'));
+            
             const match = presetHTML.match(/data-action="dim_30"[^>]*>\s*(.*?)\s*<span class="timer-preset-label">/s);
+            console.log('🔍 Match gefunden:', !!match);
             if (match) {
+                console.log('🔍 Match[1]:', match[1]);
                 const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
-                return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
+                console.log('🔍 SVG Match:', !!svgMatch);
+                if (svgMatch) {
+                    console.log('🔍 SVG:', svgMatch[0]);
+                    return svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"');
+                }
             }
         } else if (action.includes('50%')) {
+            console.log('🔍 50% gefunden!');
             presetHTML = this.getLightTimerPresets();
+            console.log('🔍 PresetHTML Länge:', presetHTML.length);
+            console.log('🔍 PresetHTML enthält dim_50:', presetHTML.includes('data-action="dim_50"'));
+            
             const match = presetHTML.match(/data-action="dim_50"[^>]*>\s*(.*?)\s*<span class="timer-preset-label">/s);
+            console.log('🔍 Match gefunden:', !!match);
             if (match) {
+                console.log('🔍 Match[1]:', match[1]);
                 const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
-                return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
+                console.log('🔍 SVG Match:', !!svgMatch);
+                if (svgMatch) {
+                    console.log('🔍 SVG:', svgMatch[0]);
+                    return svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"');
+                }
             }
         }
         
         // Fallback
+        console.log('🔍 Fallback wird verwendet');
         return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>`;
     }
     
