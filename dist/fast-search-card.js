@@ -4343,15 +4343,24 @@ class FastSearchCard extends HTMLElement {
             
             .timer-item[data-action-type="dim_50"] .timer-icon-container {
                 background: linear-gradient(135deg, #9C27B0, #7B1FA2); /* Lila für 50% */
-            }
-            
+            }        
+
             .timer-item[data-action-type="heat"] .timer-icon-container {
-                background: linear-gradient(135deg, #FF5722, #E64A19); /* Rot für Heizen */
+                background: linear-gradient(135deg, #FF5722, #E64A19); /* Orange/Rot für Heizen */
             }
             
             .timer-item[data-action-type="cool"] .timer-icon-container {
                 background: linear-gradient(135deg, #2196F3, #1976D2); /* Blau für Kühlen */
             }
+            
+            .timer-item[data-action-type="dry"] .timer-icon-container {
+                background: linear-gradient(135deg, #9C27B0, #7B1FA2); /* Lila für Entfeuchten */
+            }
+            
+            .timer-item[data-action-type="fan"] .timer-icon-container {
+                background: linear-gradient(135deg, #4CAF50, #388E3C); /* Grün für Lüften */
+            }
+            
             
             
             /* Timer Content Area */
@@ -10057,10 +10066,14 @@ class FastSearchCard extends HTMLElement {
                     actionType = 'dim_30';
                 } else if (action.includes('50%')) {
                     actionType = 'dim_50';
-                } else if (action.includes('Heizen') || action.includes('22°C')) {
+                } else if (action.includes('Heizen')) {
                     actionType = 'heat';
-                } else if (action.includes('Kühlen') || action.includes('18°C')) {
+                } else if (action.includes('Kühlen')) {
                     actionType = 'cool';
+                } else if (action.includes('Entfeuchten')) {
+                    actionType = 'dry';          // ← NEU
+                } else if (action.includes('Lüften')) {
+                    actionType = 'fan';          // ← NEU
                 } else if (action.includes('Play') || action.includes('Abspielen')) {
                     actionType = 'play';
                 } else if (action.includes('Pause')) {
