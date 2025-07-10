@@ -9531,22 +9531,17 @@ class FastSearchCard extends HTMLElement {
     }
     
     getLightActionData(action) {
-        // Debug: Was kommt rein?
-        console.log('🔧 getLightActionData - Action:', action);
-        
-        if (action === 'turn_on' || action.includes('Einschalten')) {
-            return { service: 'light.turn_on', serviceData: {} };
-        } else if (action === 'turn_off' || action.includes('Ausschalten')) {
-            return { service: 'light.turn_off', serviceData: {} };
-        } else if (action === 'dim_30' || action.includes('🌙') || action.includes('Dimmen 30%')) {
-            console.log('🔧 30% Helligkeit erkannt!');
-            return { service: 'light.turn_on', serviceData: { brightness_pct: 30 } };
-        } else if (action === 'dim_50' || action.includes('🌗') || action.includes('Dimmen 50%')) {
-            console.log('🔧 50% Helligkeit erkannt!');
-            return { service: 'light.turn_on', serviceData: { brightness_pct: 50 } };
-        } else {
-            console.log('🔧 Fallback: turn_off');
-            return { service: 'light.turn_off', serviceData: {} };
+        switch (action) {
+            case 'turn_on':
+                return { service: 'light.turn_on', serviceData: {} };
+            case 'turn_off':
+                return { service: 'light.turn_off', serviceData: {} };
+            case 'dim_30':
+                return { service: 'light.turn_on', serviceData: { brightness_pct: 30 } };
+            case 'dim_50':
+                return { service: 'light.turn_on', serviceData: { brightness_pct: 50 } };
+            default:
+                return { service: 'light.turn_off', serviceData: {} };
         }
     }
     
@@ -10108,10 +10103,12 @@ class FastSearchCard extends HTMLElement {
     getPresetIconForAction(action) {
         console.log('🔍 DEBUG - Action eingegangen:', action);
         
+        // Bestimme welche Preset-Funktion und welche Action
         let presetHTML = '';
         
         if (action.includes('Einschalten') || action.includes('Ein')) {
-            presetHTML = this.getLightTimerPresets();
+            presetHTML = this.getLightTimerPresets(); // Hole komplettes HTML
+            // Extrahiere SVG aus turn_on Button
             const match = presetHTML.match(/data-action="turn_on"[^>]*>(.*?)<span class="timer-preset-label">/s);
             if (match) {
                 const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
@@ -10124,23 +10121,37 @@ class FastSearchCard extends HTMLElement {
                 const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
                 return svgMatch ? svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"') : '';
             }
-        } else if (action.includes('🌙') || action.includes('Dimmen 30%')) {  // ← GEÄNDERT!
+        } else if (action.includes('30%')) {
             console.log('🔍 30% gefunden!');
             presetHTML = this.getLightTimerPresets();
+            console.log('🔍 PresetHTML Länge:', presetHTML.length);
+            console.log('🔍 PresetHTML enthält dim_30:', presetHTML.includes('data-action="dim_30"'));
+            
             const match = presetHTML.match(/data-action="dim_30"[^>]*>\s*(.*?)\s*<span class="timer-preset-label">/s);
+            console.log('🔍 Match gefunden:', !!match);
             if (match) {
+                console.log('🔍 Match[1]:', match[1]);
                 const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
+                console.log('🔍 SVG Match:', !!svgMatch);
                 if (svgMatch) {
+                    console.log('🔍 SVG:', svgMatch[0]);
                     return svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"');
                 }
             }
-        } else if (action.includes('🌗') || action.includes('Dimmen 50%')) {  // ← GEÄNDERT!
+        } else if (action.includes('50%')) {
             console.log('🔍 50% gefunden!');
             presetHTML = this.getLightTimerPresets();
+            console.log('🔍 PresetHTML Länge:', presetHTML.length);
+            console.log('🔍 PresetHTML enthält dim_50:', presetHTML.includes('data-action="dim_50"'));
+            
             const match = presetHTML.match(/data-action="dim_50"[^>]*>\s*(.*?)\s*<span class="timer-preset-label">/s);
+            console.log('🔍 Match gefunden:', !!match);
             if (match) {
+                console.log('🔍 Match[1]:', match[1]);
                 const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
+                console.log('🔍 SVG Match:', !!svgMatch);
                 if (svgMatch) {
+                    console.log('🔍 SVG:', svgMatch[0]);
                     return svgMatch[0].replace('width="24"', 'width="16"').replace('height="24"', 'height="16"');
                 }
             }
