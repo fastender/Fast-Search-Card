@@ -9537,11 +9537,13 @@ class FastSearchCard extends HTMLElement {
             case 'turn_off':
                 return { service: 'light.turn_off', serviceData: {} };
             case 'dim_30':
-                return { service: 'light.turn_on', serviceData: { brightness_pct: 30 } };
+                // 30% mit scale_factor 2.55: 30 * 2.55 = 76.5 ≈ 77
+                return { service: 'light.turn_on', serviceData: { brightness: 77 } };
             case 'dim_50':
-                return { service: 'light.turn_on', serviceData: { brightness_pct: 50 } };
+                // 50% mit scale_factor 2.55: 50 * 2.55 = 127.5 ≈ 128  
+                return { service: 'light.turn_on', serviceData: { brightness: 128 } };
             default:
-                return { service: 'light.turn_off', serviceData: {} };
+                return { service: 'light.turn_on', serviceData: {} };
         }
     }
     
@@ -14271,9 +14273,23 @@ class FastSearchCard extends HTMLElement {
     
     getActionNameFromService(service, service_data) {
         const serviceAction = service.split('.')[1];
-        if (serviceAction === 'turn_on' && service_data && service_data.brightness_pct) {
-            return `dim_${service_data.brightness_pct}`;
+        
+        if (serviceAction === 'turn_on' && service_data && service_data.brightness) {
+            // Konvertiere brightness zurück zu Prozent
+            const brightness = service_data.brightness;
+            const percentage = Math.round(brightness / 2.55);
+            
+            // Erkenne bekannte Dimm-Level
+            if (percentage >= 28 && percentage <= 32) {
+                return 'dim_30';
+            } else if (percentage >= 48 && percentage <= 52) {
+                return 'dim_50';
+            }
+            
+            // Fallback für andere Helligkeiten
+            return `dim_${percentage}`;
         }
+        
         return serviceAction;
     }
     
