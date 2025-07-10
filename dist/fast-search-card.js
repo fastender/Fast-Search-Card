@@ -8404,7 +8404,7 @@ class FastSearchCard extends HTMLElement {
     
     // SVG aus Light Turn-Off Button holen
     getLightOffSVG() {
-        const lightHTML = this.();
+        const lightHTML = this.getLightTimerPresets();  // ← Das war leer!
         const match = lightHTML.match(/data-action="turn_off"[^>]*>(.*?)<\/button>/s);
         if (match) {
             const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
