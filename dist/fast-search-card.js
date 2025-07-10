@@ -10277,8 +10277,17 @@ class FastSearchCard extends HTMLElement {
         if (timer.timeslots && timer.timeslots.length > 0) {
             const firstAction = timer.timeslots[0].actions[0];
             const service = firstAction.service;
+            const serviceData = firstAction.service_data;
             
-            if (service.includes('turn_on')) return '🟢 Einschalten';
+            if (service.includes('turn_on')) {
+                // Prüfe auf brightness Parameter
+                if (serviceData && serviceData.brightness) {
+                    const brightness = serviceData.brightness;
+                    if (brightness === 77) return '🌙 Dimmen 30%';
+                    if (brightness === 128) return '🌗 Dimmen 50%';
+                }
+                return '🟢 Einschalten';
+            }
             if (service.includes('turn_off')) return '🔴 Ausschalten';
         }
         return '⚙️ Aktion';
