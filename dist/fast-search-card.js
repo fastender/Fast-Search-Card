@@ -10202,7 +10202,6 @@ class FastSearchCard extends HTMLElement {
             presetHTML = this.getLightTimerPresets();
             match = presetHTML.match(/data-action="dim_50"[^>]*>(.*?)<\/button>/s);
             console.log('🔍 Match gefunden:', !!match);
-        }
         
         // Climate Actions
         } else if (action.includes('24°C') || action.includes('Heizen')) {
