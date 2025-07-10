@@ -2731,7 +2731,8 @@ class FastSearchCard extends HTMLElement {
             
             .shortcuts-content {
                 flex: 1;
-                overflow-y: auto;
+                overflow: hidden auto;  /* horizontal: hidden, vertical: auto */
+                max-width: 100%;                
             }
             
             .shortcuts-tab-content {
