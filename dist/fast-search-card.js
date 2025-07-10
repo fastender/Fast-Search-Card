@@ -8395,30 +8395,43 @@ class FastSearchCard extends HTMLElement {
     getClimateTimerPresets() {
         return `
             <button class="timer-control-preset" data-action="turn_off" title="Ausschalten">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                    <path d="M7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13Z"/>
-                    <path d="M17 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H17C19.7614 7 22 9.23858 22 12C22 14.7614 19.7614 17 17 17Z"/>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="m15 9-6 6"/>
+                    <path d="m9 9 6 6"/>
                 </svg>
                 <span class="timer-preset-label">Aus</span>
             </button>
-            <button class="timer-control-preset" data-action="heat_22" title="Heizen 22°C">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            
+            <button class="timer-control-preset" data-action="heat_24" title="Heizen auf 24°C">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                    <circle cx="12" cy="17" r="2"/>
+                </svg>
+                <span class="timer-preset-label">24°C</span>
+            </button>
+            
+            <button class="timer-control-preset" data-action="cool_22" title="Kühlen auf 22°C">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M2 6s1.5-2 5-2 5 2 5 2v14s-1.5-2-5-2-5 2-5 2V6z"/>
+                    <path d="M7 4v16"/>
                 </svg>
                 <span class="timer-preset-label">22°C</span>
             </button>
-            <button class="timer-control-preset" data-action="cool_18" title="Kühlen 18°C">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                    <path d="M2 12h20M12 2v20m8-8l-8-8-8 8"/>
+            
+            <button class="timer-control-preset" data-action="dry_mode" title="Entfeuchten">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
                 </svg>
-                <span class="timer-preset-label">18°C</span>
+                <span class="timer-preset-label">Entfeuchten</span>
             </button>
-            <button class="timer-control-preset" data-action="auto_mode" title="Auto Modus">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 6v6l4 2"/>
+            
+            <button class="timer-control-preset" data-action="fan_only" title="Lüften">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12.5 2c-.8 0-1.5.7-1.5 1.5v6.21l-1.09-.63c-.69-.4-1.58-.16-1.98.53-.4.69-.16 1.58.53 1.98l1.09.63-1.09.63c-.69.4-.93 1.29-.53 1.98.4.69 1.29.93 1.98.53l1.09-.63v6.21c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-6.21l1.09.63c.69.4 1.58.16 1.98-.53.4-.69.16-1.58-.53-1.98L13.5 12l1.09-.63c.69-.4.93-1.29.53-1.98-.4-.69-1.29-.93-1.98-.53L12.5 9.5V3.5c0-.8-.7-1.5-1.5-1.5z"/>
                 </svg>
-                <span class="timer-preset-label">Auto</span>
+                <span class="timer-preset-label">Lüften</span>
             </button>
         `;
     }
@@ -8815,19 +8828,24 @@ class FastSearchCard extends HTMLElement {
 
     getActionLabel(actionString) {
         const actionLabels = {
+            // Light
             'turn_off': '🔴 Ausschalten',
             'turn_on': '💡 Einschalten', 
             'dim_30': '🌙 Dimmen 30%',
             'dim_50': '🌗 Dimmen 50%',
-            'toggle': '🔄 Umschalten',
-            'light.turn_on': '💡 Einschalten',
-            'light.turn_off': '💡 Ausschalten',
-            'switch.turn_on': '🔌 Einschalten',
-            'switch.turn_off': '🔌 Ausschalten'
+            
+            // Climate - Ihre 5 gewünschten Funktionen
+            'heat_24': '🔥 Heizen 24°C',
+            'cool_22': '❄️ Kühlen 22°C', 
+            'dry_mode': '💧 Entfeuchten',
+            'fan_only': '🌀 Lüften',
+            
+            // Generic
+            'toggle': '🔄 Umschalten'
         };
         
         return actionLabels[actionString] || actionString || 'Aktion';
-    }    
+    }
  
     closeTimeSelection(container) {        
         const activeTimersSection = container.querySelector('.active-timers');
@@ -9549,14 +9567,34 @@ class FastSearchCard extends HTMLElement {
     
     getClimateActionData(action) {
         switch (action) {
-            case 'turn_on':
-                return { service: 'climate.turn_on', serviceData: {} };
             case 'turn_off':
                 return { service: 'climate.turn_off', serviceData: {} };
-            case 'heat_22':
-                return { service: 'climate.set_temperature', serviceData: { temperature: 22 } };
-            case 'cool_18':
-                return { service: 'climate.set_temperature', serviceData: { temperature: 18 } };
+            case 'heat_24':
+                return { 
+                    service: 'climate.set_temperature', 
+                    serviceData: { 
+                        hvac_mode: 'heat',
+                        temperature: 24 
+                    } 
+                };
+            case 'cool_22':
+                return { 
+                    service: 'climate.set_temperature', 
+                    serviceData: { 
+                        hvac_mode: 'cool',
+                        temperature: 22 
+                    } 
+                };
+            case 'dry_mode':
+                return { 
+                    service: 'climate.set_hvac_mode', 
+                    serviceData: { hvac_mode: 'dry' } 
+                };
+            case 'fan_only':
+                return { 
+                    service: 'climate.set_hvac_mode', 
+                    serviceData: { hvac_mode: 'fan_only' } 
+                };
             default:
                 return { service: 'climate.turn_off', serviceData: {} };
         }
