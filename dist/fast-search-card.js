@@ -8940,27 +8940,25 @@ class FastSearchCard extends HTMLElement {
         const future = new Date(Date.now() + durationMinutes * 60 * 1000);
         const timeString = future.toTimeString().slice(0, 5);
         
-        // Dieser Teil ist und war immer korrekt
+        // Bestimme Service und Service Data basierend auf Action
         const { service, serviceData } = this.getActionServiceData(item, action);
         
-        // WICHTIG: Ersetzen Sie 'callService' durch 'callWS' und passen Sie die Struktur an
-        await this._hass.callWS({
-            type: 'scheduler/add', // <-- DER ENTSCHEIDENDE UNTERSCHIED: Direkte WebSocket-Nachricht
-            
-            // Die restlichen Daten werden als Top-Level-Attribute übergeben
+        console.log(`🔧 Service: ${service}, Data:`, serviceData);
+        
+        await this._hass.callService('scheduler', 'add', {
             timeslots: [{
                 start: timeString,
                 actions: [{
                     service: service,
                     entity_id: item.id,
-                    service_data: serviceData // <-- Jetzt wird es funktionieren!
+                    service_data: serviceData
                 }]
             }],
             repeat_type: 'single',
             name: `${item.name} - ${this.getActionLabel(action)} (${durationMinutes}min)`
         });
         
-        console.log(`✅ Timer via callWS erfolgreich erstellt!`);
+        console.log(`✅ Timer erfolgreich erstellt: ${service} in ${durationMinutes} Minuten`);
     }
 
 
