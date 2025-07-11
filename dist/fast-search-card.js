@@ -8481,11 +8481,10 @@ class FastSearchCard extends HTMLElement {
     getCoverTimerPresets() {
         return `
             <button class="timer-control-preset" data-action="open" title="Öffnen">
-                <!-- Bestehender Öffnen SVG -->
+                ${this.getCoverActionSVG('open', item)}
             </button>
-            
             <button class="timer-control-preset" data-action="close" title="Schließen">
-                <!-- Bestehender Schließen SVG -->
+                ${this.getCoverActionSVG('close', item)}
             </button>
             
             <button class="timer-control-preset" data-action="set_position_50" title="50% öffnen">
@@ -8502,6 +8501,25 @@ class FastSearchCard extends HTMLElement {
                 </svg>
             </button>
         `;
+    }
+
+    // SVG aus Cover Device Controls holen
+    getCoverActionSVG(action, item) {
+        const coverHTML = this.getCoverControlsHTML(item);
+        let pattern = '';
+        
+        if (action === 'open') {
+            pattern = /data-action="open"[^>]*>(.*?)<\/button>/s;
+        } else if (action === 'close') {
+            pattern = /data-action="close"[^>]*>(.*?)<\/button>/s;
+        }
+        
+        const match = coverHTML.match(pattern);
+        if (match) {
+            const svgMatch = match[1].match(/<svg[^>]*>.*?<\/svg>/s);
+            return svgMatch ? svgMatch[0] : '';
+        }
+        return '';
     }
     
     getSwitchTimerPresets() {
