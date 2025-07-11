@@ -4360,6 +4360,18 @@ class FastSearchCard extends HTMLElement {
             .timer-item[data-action-type="fan"] .timer-icon-container {
                 background: linear-gradient(135deg, #4CAF50, #388E3C); /* Grün für Lüften */
             }
+
+            .timer-item[data-action-type="cover_open"] .timer-icon-container {
+                background: linear-gradient(135deg, #4CAF50, #388E3C); /* Grün für Öffnen */
+            }
+            
+            .timer-item[data-action-type="cover_close"] .timer-icon-container {
+                background: linear-gradient(135deg, #F44336, #D32F2F); /* Rot für Schließen */
+            }
+            
+            .timer-item[data-action-type="cover_50"] .timer-icon-container {
+                background: linear-gradient(135deg, #FF9800, #F57C00); /* Orange für 50% */
+            }       
             
             
             
