@@ -1079,11 +1079,10 @@ class FastSearchCard extends HTMLElement {
             .detail-left-header {
                 display: flex;
                 align-items: center;
-                justify-content: center;     /* ← Zentriert alles horizontal */
+                justify-content: center;     /* ← Hinzufügen */
                 gap: 16px;
                 margin-bottom: 20px;
-                position: absolute;
-                left: 0;
+                position: relative;          /* ← Hinzufügen */
             }
             
             .back-button {
@@ -1100,6 +1099,8 @@ class FastSearchCard extends HTMLElement {
                 flex-shrink: 0;
                 color: var(--text-primary);
                 padding: 0;
+                position: absolute;
+                left: 0;
             }
 
             .back-button:hover {
@@ -1429,11 +1430,7 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 
-                .detail-left-header {
-                    gap: 12px;
-                    align-items: flex-start;
-                    margin-top: 8px;             
-                }
+
 
 
                 
