@@ -8469,33 +8469,25 @@ class FastSearchCard extends HTMLElement {
     getCoverTimerPresets() {
         return `
             <button class="timer-control-preset" data-action="open" title="Öffnen">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 15l-6-6-6 6"/>
-                </svg>
-
+                <!-- Bestehender Öffnen SVG -->
             </button>
             
             <button class="timer-control-preset" data-action="close" title="Schließen">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M6 9l6 6 6-6"/>
-                </svg>
-
+                <!-- Bestehender Schließen SVG -->
             </button>
             
-            <button class="timer-control-preset" data-action="set_position_25" title="25% öffnen">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <path d="M3 12h6"/>
+            <button class="timer-control-preset" data-action="set_position_50" title="50% öffnen">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" color="currentColor">
+                    <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z"/>
+                    <path d="M22 12L23 12"/>
+                    <path d="M12 2V1"/>
+                    <path d="M12 23V22"/>
+                    <path d="M20 20L19 19"/>
+                    <path d="M20 4L19 5"/>
+                    <path d="M4 20L5 19"/>
+                    <path d="M4 4L5 5"/>
+                    <path d="M1 12L2 12"/>
                 </svg>
-
-            </button>
-            
-            <button class="timer-control-preset" data-action="set_position_75" title="75% öffnen">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <path d="M3 12h15"/>
-                </svg>
-
             </button>
         `;
     }
@@ -8844,8 +8836,7 @@ class FastSearchCard extends HTMLElement {
             // Cover
             'open': 'Öffnen',
             'close': 'Schließen',
-            'set_position_25': '25% öffnen',
-            'set_position_75': '75% öffnen',
+            'set_position_50': '50% öffnen',
             
             // Generic
             'toggle': 'Umschalten'
@@ -9614,20 +9605,15 @@ class FastSearchCard extends HTMLElement {
                 return { service: 'cover.open_cover', serviceData: {} };
             case 'close':
                 return { service: 'cover.close_cover', serviceData: {} };
-            case 'set_position_25':
+            case 'set_position_50':
                 return { 
                     service: 'cover.set_cover_position', 
-                    serviceData: { position: 25 } 
-                };
-            case 'set_position_75':
-                return { 
-                    service: 'cover.set_cover_position', 
-                    serviceData: { position: 75 } 
+                    serviceData: { position: 50 } 
                 };
             default:
                 return { service: 'cover.close_cover', serviceData: {} };
         }
-    }    
+    }
     
     getMediaActionData(action) {
         switch (action) {
@@ -10078,10 +10064,12 @@ class FastSearchCard extends HTMLElement {
                     actionType = 'play';
                 } else if (action.includes('Pause')) {
                     actionType = 'pause';
-                } else if (action.includes('Öffnen')) {
-                    actionType = 'open';
+                } else if (action.includes('Öffnen') && !action.includes('%')) {
+                    actionType = 'cover_open';
                 } else if (action.includes('Schließen')) {
-                    actionType = 'close';
+                    actionType = 'cover_close';
+                } else if (action.includes('50%')) {
+                    actionType = 'cover_50';         // ← Nur noch 50%, nicht mehr 25% und 75%
                 }
                 
 
@@ -10349,6 +10337,17 @@ class FastSearchCard extends HTMLElement {
             if (service.includes('climate.turn_off')) return 'Ausschalten';
         }
         return 'Aktion';
+
+        // Cover Actions - anpassen
+        if (service.includes('cover.open_cover')) return 'Öffnen';
+        if (service.includes('cover.close_cover')) return 'Schließen';
+        if (service.includes('cover.set_cover_position')) {
+            if (serviceData && serviceData.position) {
+                if (serviceData.position === 50) return '50% öffnen';  // ← Spezifisch für 50%
+                return `${serviceData.position}% öffnen`;              // ← Fallback für andere Werte
+            }
+            return 'Position setzen';
+        }        
     }
     
     async deleteTimer(timerId, entityId) {
