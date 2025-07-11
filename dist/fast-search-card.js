@@ -10384,11 +10384,11 @@ class FastSearchCard extends HTMLElement {
         if (service.includes('cover.close_cover')) return 'Schließen';
         if (service.includes('cover.set_cover_position')) {
             if (serviceData && serviceData.position) {
-                if (serviceData.position === 50) return '50% öffnen';  // ← Spezifisch für 50%
-                return `${serviceData.position}% öffnen`;              // ← Fallback für andere Werte
+                if (serviceData.position === 50) return '50% öffnen';
+                return `${serviceData.position}% öffnen`;
             }
             return 'Position setzen';
-        }        
+        }
     }
     
     async deleteTimer(timerId, entityId) {
