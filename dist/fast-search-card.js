@@ -1393,17 +1393,17 @@ class FastSearchCard extends HTMLElement {
                 display: none;
             }
             
-            /* Mobile: Mobile-Tabs zeigen, Desktop-Tabs verstecken */
             @media (max-width: 768px) {
                 .desktop-tabs {
                     display: none;
                 }
                 
                 .mobile-tabs {
-                    display: block;
-                    position: absolute;
-                    right: 0;
-                    top: 0;                    
+                    display: flex;              /* ← flex statt block */
+                    justify-content: flex-end;  /* ← rechts positionieren */
+                    padding-right: 20px;        /* ← gleich wie Desktop */
+                    padding-top: 20px;
+                    padding-bottom: 10px;
                 }
                 
                 .detail-content { 
