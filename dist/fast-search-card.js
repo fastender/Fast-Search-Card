@@ -1079,8 +1079,11 @@ class FastSearchCard extends HTMLElement {
             .detail-left-header {
                 display: flex;
                 align-items: center;
+                justify-content: center;     /* ← Zentriert alles horizontal */
                 gap: 16px;
                 margin-bottom: 20px;
+                position: absolute;
+                left: 0;
             }
             
             .back-button {
@@ -1176,11 +1179,13 @@ class FastSearchCard extends HTMLElement {
             }
             
             .detail-title-area {
-                flex: 1;
                 min-width: 0;
                 text-align: left;
                 margin-top: 0;
+                flex: none;
+                text-align: center;  
             }
+            
             .detail-name {
                 font-size: 16px;
                 font-weight: 600;
