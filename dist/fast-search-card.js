@@ -10262,17 +10262,28 @@ class FastSearchCard extends HTMLElement {
         
         // Cover Actions
         } else if (action.includes('Öffnen')) {
-            presetHTML = this.getCoverTimerPresets();
+            console.log('🔍 Cover Öffnen erkannt');
+            console.log('🔍 currentDetailItem:', this.currentDetailItem);
+            
+            presetHTML = this.getCoverTimerPresets(this.currentDetailItem);
+            console.log('🔍 Cover PresetHTML Länge:', presetHTML.length);
+            console.log('🔍 Cover PresetHTML enthält open:', presetHTML.includes('data-action="open"'));
+            
             match = presetHTML.match(/data-action="open"[^>]*>(.*?)<\/button>/s);
+            console.log('🔍 Cover Match gefunden:', !!match);
+            if (match) {
+                console.log('🔍 Cover Match[1]:', match[1]);
+            }
+            
         } else if (action.includes('Schließen')) {
-            presetHTML = this.getCoverTimerPresets();
+            console.log('🔍 Cover Schließen erkannt');
+            presetHTML = this.getCoverTimerPresets(this.currentDetailItem);
             match = presetHTML.match(/data-action="close"[^>]*>(.*?)<\/button>/s);
-        } else if (action.includes('25%')) {
-            presetHTML = this.getCoverTimerPresets();
-            match = presetHTML.match(/data-action="set_position_25"[^>]*>(.*?)<\/button>/s);
-        } else if (action.includes('75%')) {
-            presetHTML = this.getCoverTimerPresets();
-            match = presetHTML.match(/data-action="set_position_75"[^>]*>(.*?)<\/button>/s);
+            
+        } else if (action.includes('50%')) {
+            console.log('🔍 Cover 50% erkannt');
+            presetHTML = this.getCoverTimerPresets(this.currentDetailItem);
+            match = presetHTML.match(/data-action="set_position_50"[^>]*>(.*?)<\/button>/s);
         }
         
         // SVG extrahieren und anpassen
