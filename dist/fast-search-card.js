@@ -8108,7 +8108,6 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
-
     getDetailLeftPaneHTML(item) {
         const newBackButtonSVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
         const state = this._hass.states[item.id];
@@ -8121,16 +8120,7 @@ class FastSearchCard extends HTMLElement {
         const backgroundStyle = albumArt 
             ? `background-image: url('${albumArt}');`
             : `background-image: url('${backgroundImage}');`;
-    
-        const mobileTabsHTML = `
-            <div class="detail-tabs-container mobile-tabs">
-                <div class="detail-tabs">
-                    <span class="tab-slider"></span>
-                     ${tabsConfig.map(tab => `<a href="#" class="detail-tab ${tab.default ? 'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}
-                </div>
-            </div>
-        `;
-    
+
         return `
             <div class="detail-left-header">
                 <button class="back-button">${newBackButtonSVG}</button>
