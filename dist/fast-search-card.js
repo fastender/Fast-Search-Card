@@ -10376,20 +10376,21 @@ class FastSearchCard extends HTMLElement {
                 }
             }
             if (service.includes('climate.turn_off')) return 'Ausschalten';
+            
+            // Cover Actions - NEU hinzufügen!
+            if (service.includes('cover.open_cover')) return 'Öffnen';
+            if (service.includes('cover.close_cover')) return 'Schließen';
+            if (service.includes('cover.set_cover_position')) {
+                if (serviceData && serviceData.position) {
+                    if (serviceData.position === 50) return '50% öffnen';
+                    return `${serviceData.position}% öffnen`;
+                }
+                return 'Position setzen';
+            }
         }
         return 'Aktion';
-
-        // Cover Actions - anpassen
-        if (service.includes('cover.open_cover')) return 'Öffnen';
-        if (service.includes('cover.close_cover')) return 'Schließen';
-        if (service.includes('cover.set_cover_position')) {
-            if (serviceData && serviceData.position) {
-                if (serviceData.position === 50) return '50% öffnen';
-                return `${serviceData.position}% öffnen`;
-            }
-            return 'Position setzen';
-        }
     }
+            
     
     async deleteTimer(timerId, entityId) {
         console.log(`🗑️ Lösche Timer ${timerId}`);
