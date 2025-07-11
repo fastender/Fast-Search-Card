@@ -8191,8 +8191,6 @@ class FastSearchCard extends HTMLElement {
         `;
     }
     
-    
-    // 2. Ändere getDetailRightPaneHTML - füge tabsHTML am Anfang hinzu
     getDetailRightPaneHTML(item) {
         const controlsHTML = this.getDeviceControlsHTML(item);
         const tabsConfig = this._config.detail_tabs || [
@@ -8209,6 +8207,15 @@ class FastSearchCard extends HTMLElement {
                 </div>
             </div>
         `;
+
+        const mobileTabsHTML = `
+                <div class="detail-tabs-container mobile-tabs">
+                    <div class="detail-tabs">
+                        <span class="tab-slider"></span>
+                         ${tabsConfig.map(tab => `<a href="#" class="detail-tab ${tab.default ? 'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}
+                    </div>
+                </div>
+            `;        
     
         return `
             ${desktopTabsHTML}
