@@ -8145,7 +8145,6 @@ class FastSearchCard extends HTMLElement {
                     <h3 class="detail-name">${item.name}</h3>
                     <p class="detail-area">${item.area}</p>
                 </div>
-                ${mobileTabsHTML}
             </div>
             <div class="icon-content">
                 <div class="icon-background-wrapper">
@@ -8213,6 +8212,7 @@ class FastSearchCard extends HTMLElement {
     
         return `
             ${desktopTabsHTML}
+            ${mobileTabsHTML}
             <div id="tab-content-container">
                  ${tabsConfig.map(tab => `
                     <div class="detail-tab-content ${tab.default ? 'active' : ''}" data-tab-content="${tab.id}">
