@@ -8353,7 +8353,7 @@ class FastSearchCard extends HTMLElement {
             case 'media_player':
                 return this.getMediaTimerPresets();
             case 'cover':
-                return this.getCoverTimerPresets();
+                return this.getCoverTimerPresets(item);
             case 'switch':
                 return this.getSwitchTimerPresets();
             default:
@@ -8478,7 +8478,7 @@ class FastSearchCard extends HTMLElement {
         `;
     }
     
-    getCoverTimerPresets() {
+    getCoverTimerPresets(item) {
         return `
             <button class="timer-control-preset" data-action="open" title="Öffnen">
                 ${this.getCoverActionSVG('open', item)}
