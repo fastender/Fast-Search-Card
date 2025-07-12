@@ -1,3 +1,8 @@
+import { getUser } from "home-assistant-js-websocket";
+
+
+
+
 // MiniSearch Local Implementation (~5KB)
 // Source: https://github.com/lucaong/minisearch (MIT License)
 class MiniSearch {
@@ -429,7 +434,28 @@ class FastSearchCard extends HTMLElement {
         } else if (!this.isDetailView && !this.isSearching) {
             this.updateStates();
         }
+
+        // NEU: Test unserer User-Context Funktionen
+        if (!oldHass) {
+            // Nur beim ersten Laden testen
+            this.testUserContext();
+        }
+        
     }
+
+    async testUserContext() {
+        console.log('🔍 Testing User Context Functions...');
+        try {
+            const userContext = await this.getUserContext();
+            const favoriteLabel = await this.getFavoriteLabel();
+            
+            console.log('✅ User Context:', userContext);
+            console.log('✅ Favorite Label:', favoriteLabel);
+            console.log('✅ User Context Test successful!');
+        } catch (error) {
+            console.error('❌ User Context Test failed:', error);
+        }
+    }    
 
     shouldUpdateItems(oldHass, newHass) {
         if (!this._config.entities) return false;
@@ -14484,6 +14510,33 @@ class FastSearchCard extends HTMLElement {
             console.error(`❌ Fehler beim Aufruf von scheduler.edit:`, error);
             alert(`Fehler beim Aktualisieren des Timers:\n\n${error.message}`);
         }
+    }
+
+    async getUserContext() {
+        try {
+            const user = await getUser(this._hass.connection);
+            console.log('✅ getUser() successful:', user);
+            return user.id || this.sanitizeUserForLabel(user.name) || 'unknown';
+        } catch (error) {
+            console.warn('❌ getUser() failed, using fallback:', error);
+            const hassUser = this._hass.user;
+            return hassUser?.name ? this.sanitizeUserForLabel(hassUser.name) : 'unknown';
+        }
+    }
+    
+    sanitizeUserForLabel(userString) {
+        return userString
+            .toLowerCase()
+            .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+            .replace(/\s+/g, '_')
+            .replace(/[^a-z0-9_-]/g, '')
+            .replace(/_+/g, '_')
+            .replace(/^_+|_+$/g, '');
+    }
+    
+    async getFavoriteLabel() {
+        const userContext = await this.getUserContext();
+        return `fas-${userContext}`;
     }
 
 
