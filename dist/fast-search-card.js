@@ -7934,11 +7934,10 @@ class FastSearchCard extends HTMLElement {
             const favoriteLabel = await this.getFavoriteLabel();
             const userName = this._hass.user?.name || 'User';
             
-            // Label erstellen falls es nicht existiert
+            // Korrekte WebSocket API für Label-Erstellung
             await this._hass.callWS({
                 type: 'config/label_registry/create',
                 name: `Favoriten ${userName}`,
-                label_id: favoriteLabel,
                 icon: 'mdi:heart',
                 color: '#ff4757'
             });
@@ -7946,15 +7945,21 @@ class FastSearchCard extends HTMLElement {
             console.log('✅ Created favorite label:', favoriteLabel);
         } catch (error) {
             // Label existiert bereits oder anderer Fehler
-            console.log('ℹ️ Label might already exist:', error.message);
+            console.log('ℹ️ Label creation result:', error.message);
         }
     }
     
     async isFavorite(item) {
         try {
             const favoriteLabel = await this.getFavoriteLabel();
-            const state = this._hass.states[item.id];
-            return state?.attributes?.labels?.includes(favoriteLabel) || false;
+            
+            // Hole aktuelle Entity-Registry Daten statt State
+            const entityRegistry = await this._hass.callWS({
+                type: 'config/entity_registry/get',
+                entity_id: item.id
+            });
+            
+            return entityRegistry?.labels?.includes(favoriteLabel) || false;
         } catch (error) {
             console.warn('❌ Could not check favorite status:', error);
             return false;
