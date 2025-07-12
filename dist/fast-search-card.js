@@ -8054,11 +8054,9 @@ class FastSearchCard extends HTMLElement {
     }
 
     
-
-
     async getFavoriteLabel() {
-        const userContext = await this.getUserContext();
-        return `fas-${userContext}`;
+        const userId = this._hass.user?.id || 'unknown';
+        return `fas-${userId}`;
     }
     
     async ensureFavoriteLabelExists() {
@@ -8120,54 +8118,11 @@ class FastSearchCard extends HTMLElement {
         try {
             console.log('🔧 Auto-creating user labels...');
             
-            // 1. Versuche verschiedene APIs um User zu finden
-            let users = [];
-            
-            try {
-                // Versuche Person Registry
-                const persons = await this._hass.callWS({ type: 'config/person/list' });
-                users = persons.filter(p => p.user_id); // Nur Personen mit User-Account
-            } catch (error) {
-                console.warn('Cannot load persons, trying fallback...');
-                
-                // Fallback: Aktueller User + bekannte User-IDs
-                users = [
-                    { 
-                        name: this._hass.user?.name || 'Current User',
-                        user_id: this._hass.user?.id || 'unknown'
-                    }
-                ];
-            }
-            
-            // 2. Für jeden User ein Label erstellen
-            for (const user of users) {
-                const userId = user.user_id || user.id;
-                const userName = user.name || 'User';
-                const labelId = `fas-${this.sanitizeUserForLabel(userName)}`;
-                
-                try {
-                    await this._hass.callWS({
-                        type: 'config/label_registry/create',
-                        name: `Favoriten ${userName}`,
-                        icon: 'mdi:heart',
-                        color: '#ff4757'
-                    });
-                    console.log(`✅ Created label for ${userName}:`, labelId);
-                } catch (error) {
-                    if (error.code !== 'key_exists') {
-                        console.warn(`⚠️ Could not create label for ${userName}:`, error.message);
-                    }
-                }
-            }
-            
-            console.log('🎉 User labels auto-setup complete!');
-        } catch (error) {
-            console.warn('⚠️ Auto-setup failed:', error.message);
-            
-            // Fallback: Erstelle zumindest Label für aktuellen User
+            // Erstelle Label für aktuellen User mit ID
             try {
                 const userName = this._hass.user?.name || 'User';
-                const labelId = `fas-${this.sanitizeUserForLabel(userName)}`;
+                const userId = this._hass.user?.id || 'unknown';
+                const labelId = `fas-${userId}`;
                 
                 await this._hass.callWS({
                     type: 'config/label_registry/create',
@@ -8175,12 +8130,20 @@ class FastSearchCard extends HTMLElement {
                     icon: 'mdi:heart',
                     color: '#ff4757'
                 });
-                console.log(`✅ Fallback: Created label for current user:`, labelId);
+                console.log(`✅ Created label for ${userName} (${userId}):`, labelId);
             } catch (fallbackError) {
-                console.error('❌ Even fallback failed:', fallbackError.message);
+                if (fallbackError.code !== 'key_exists') {
+                    console.error('❌ Label creation failed:', fallbackError.message);
+                }
             }
+            
+            console.log('🎉 User labels auto-setup complete!');
+        } catch (error) {
+            console.warn('⚠️ Auto-setup failed:', error.message);
         }
     }
+
+
 
 
     
@@ -14852,28 +14815,17 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-
     async getUserContext() {
         try {
-            // Direkte WebSocket API-Nutzung statt Import
+            // Direkte WebSocket API-Nutzung
             const user = await this._hass.callWS({ type: 'auth/current_user' });
             console.log('✅ WebSocket user call successful:', user);
-            return user.id || this.sanitizeUserForLabel(user.name) || 'unknown';
+            return user.id || 'unknown';
         } catch (error) {
             console.warn('❌ WebSocket user call failed, using fallback:', error);
             const hassUser = this._hass.user;
-            return hassUser?.name ? this.sanitizeUserForLabel(hassUser.name) : 'unknown';
+            return hassUser?.id || 'unknown';
         }
-    }
-    
-    sanitizeUserForLabel(userString) {
-        return userString
-            .toLowerCase()
-            .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
-            .replace(/\s+/g, '_')
-            .replace(/[^a-z0-9_-]/g, '')
-            .replace(/_+/g, '_')
-            .replace(/^_+|_+$/g, '');
     }
     
 
