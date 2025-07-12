@@ -8181,7 +8181,7 @@ class FastSearchCard extends HTMLElement {
             });
             
             // NEU: Initial Favorite State setzen
-            this.updateFavoriteButtonState(item);
+            this.updateFavoriteButtonStateFromCache(item);
         }        
 
         this.setupDetailTabs(item);
