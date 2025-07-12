@@ -4511,6 +4511,14 @@ class FastSearchCard extends HTMLElement {
                 width: 24px;
                 height: 24px;
                 transition: all 0.2s ease;
+            }     
+
+            .device-favorite-icon {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                font-size: 16px;
+                opacity: 0.8;
             }            
                                                 
             </style>
@@ -7167,7 +7175,7 @@ class FastSearchCard extends HTMLElement {
         this.renderResults();
     }
 
-    renderResults() {
+    async renderResults() {  // ← NEU: async hinzufügen
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
         const resultsList = this.shadowRoot.querySelector('.results-list');
         
@@ -7179,7 +7187,25 @@ class FastSearchCard extends HTMLElement {
         resultsGrid.style.display = this.currentViewMode === 'grid' ? 'grid' : 'none';
         resultsList.classList.toggle('active', this.currentViewMode === 'list');
         
-        if (this.filteredItems.length === 0) {
+        // NEU: Favoriten sammeln und zu filteredItems hinzufügen
+        const favorites = await this.getFavoriteItems();
+        let itemsToRender = [...this.filteredItems];  // Kopie erstellen
+        
+        // NEU: Favoriten ganz oben hinzufügen falls vorhanden
+        if (favorites.length > 0) {
+            const favoritesGroup = {
+                category: 'Favoriten',
+                icon: '💖',
+                items: favorites,
+                count: favorites.length,
+                area: 'Favoriten'  // Für die Gruppierung
+            };
+            
+            // Favoriten als "virtuelle Gruppe" ganz oben hinzufügen
+            itemsToRender = favorites.concat(itemsToRender);
+        }
+        
+        if (itemsToRender.length === 0) {  // ← itemsToRender statt filteredItems
             const emptyState = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
             if (this.currentViewMode === 'grid') {
                 resultsGrid.innerHTML = emptyState;
@@ -7190,15 +7216,18 @@ class FastSearchCard extends HTMLElement {
         }
         
         if (this.currentViewMode === 'grid') {
-            this.renderGridResults(resultsGrid);
+            this.renderGridResults(resultsGrid, itemsToRender);  // ← Parameter hinzufügen
         } else {
-            this.renderListResults(resultsList);
+            this.renderListResults(resultsList, itemsToRender);  // ← Parameter hinzufügen
         }
     }
     
-    renderGridResults(resultsGrid) {
+    renderGridResults(resultsGrid, itemsToRender = null) {
         resultsGrid.innerHTML = '';
-        const groupedItems = this.groupItemsByArea();
+        
+        // NEU: Verwende übergebene Items oder Fallback
+        const items = itemsToRender || this.filteredItems;
+        const groupedItems = this.groupItemsByAreaCustom(items);  // ← Neue Hilfsfunktion
         
         let cardIndex = 0;
         Object.keys(groupedItems).sort().forEach(area => {
@@ -7222,9 +7251,12 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = true;
     }
     
-    renderListResults(resultsList) {
+    renderListResults(resultsList, itemsToRender = null) {
         resultsList.innerHTML = '';
-        const groupedItems = this.groupItemsByArea();
+        
+        // NEU: Verwende übergebene Items oder Fallback  
+        const items = itemsToRender || this.filteredItems;
+        const groupedItems = this.groupItemsByAreaCustom(items);  // ← Neue Hilfsfunktion
         
         let itemIndex = 0;
         Object.keys(groupedItems).sort().forEach(area => {
@@ -7259,6 +7291,38 @@ class FastSearchCard extends HTMLElement {
             return groups;
         }, {});
     }
+
+    groupItemsByAreaCustom(items) {
+        const grouped = {};
+        
+        // Favoriten separat sammeln
+        const favorites = [];
+        const regularItems = [];
+        
+        items.forEach(item => {
+            if (item.isFavorite) {
+                favorites.push(item);
+            } else {
+                regularItems.push(item);
+            }
+        });
+        
+        // Favoriten-Gruppe hinzufügen (falls vorhanden)
+        if (favorites.length > 0) {
+            grouped['💖 Favoriten'] = favorites;
+        }
+        
+        // Normale Items nach Area gruppieren
+        regularItems.forEach(item => {
+            const area = item.area || 'Ohne Raum';
+            if (!grouped[area]) {
+                grouped[area] = [];
+            }
+            grouped[area].push(item);
+        });
+        
+        return grouped;
+    }    
 
     getDynamicIcon(item) {
         if (item.domain === 'light') {
@@ -7310,6 +7374,7 @@ class FastSearchCard extends HTMLElement {
         return item.icon;
     }    
 
+
     createDeviceCard(item) {
         const card = document.createElement('div');
         card.className = `device-card ${item.isActive ? 'active' : ''}`;
@@ -7323,9 +7388,20 @@ class FastSearchCard extends HTMLElement {
         const statusText = item.domain === 'custom' ? 
             this.getCustomStatusText(item) : 
             this.getEntityStatus(this._hass.states[item.id]);
-
         
-        card.innerHTML = `<div class="device-icon">${this.getDynamicIcon(item)}</div><div class="device-info"><div class="device-name">${item.name}</div><div class="device-status">${statusText}</div></div>`;
+        // NEU: Heart-Icon für Favoriten
+        const heartIcon = item.isFavorite ? 
+            `<div class="device-favorite-icon">💖</div>` : '';
+        
+        card.innerHTML = `
+            <div class="device-icon">${this.getDynamicIcon(item)}</div>
+            <div class="device-info">
+                <div class="device-name">${item.name}</div>
+                <div class="device-status">${statusText}</div>
+            </div>
+            ${heartIcon}
+        `;
+        
         card.addEventListener('click', () => this.handleDeviceClick(item, card));
         return card;
     }
@@ -7974,6 +8050,31 @@ class FastSearchCard extends HTMLElement {
         favoriteButton.classList.toggle('active', isFav);
     }
 
+    // NEU: Direkt hier einfügen
+    async getFavoriteItems() {
+        try {
+            const favoriteLabel = await this.getFavoriteLabel();
+            const favorites = [];
+            
+            for (const item of this.allItems) {
+                const isFav = await this.isFavorite(item);
+                if (isFav) {
+                    // Favorit mit Heart-Icon markieren
+                    favorites.push({
+                        ...item,
+                        isFavorite: true
+                    });
+                }
+            }
+            
+            console.log('💖 Found favorites:', favorites.length);
+            return favorites;
+            
+        } catch (error) {
+            console.warn('❌ Could not get favorites:', error);
+            return [];
+        }
+    }    
     
     handleBackClick() {
         this.isDetailView = false;
