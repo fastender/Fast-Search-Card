@@ -7869,10 +7869,69 @@ class FastSearchCard extends HTMLElement {
             e.stopPropagation();
             this.handleBackClick();
         });
+
+        // NEU: Heart-Button Event-Listener
+        const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
+        if (favoriteButton) {
+            favoriteButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleFavoriteClick(item);
+            });
+        }        
     
         this.setupCustomDetailTabs(item);
     }    
 
+
+    async handleFavoriteClick(item) {
+        try {
+            const favoriteLabel = await this.getFavoriteLabel();
+            const isFavorite = await this.isFavorite(item);
+            
+            if (isFavorite) {
+                // Favorit entfernen
+                await this._hass.callService('label', 'remove', {
+                    entity_id: item.id,
+                    label_id: favoriteLabel
+                });
+                console.log('💔 Removed from favorites:', item.name);
+            } else {
+                // Als Favorit hinzufügen
+                await this._hass.callService('label', 'assign', {
+                    entity_id: item.id,
+                    label_id: favoriteLabel
+                });
+                console.log('💖 Added to favorites:', item.name);
+            }
+            
+            // Button-State sofort aktualisieren
+            this.updateFavoriteButtonState(item);
+            
+        } catch (error) {
+            console.error('❌ Favorite action failed:', error);
+        }
+    }
+    
+    async isFavorite(item) {
+        try {
+            const favoriteLabel = await this.getFavoriteLabel();
+            const state = this._hass.states[item.id];
+            return state?.attributes?.labels?.includes(favoriteLabel) || false;
+        } catch (error) {
+            console.warn('❌ Could not check favorite status:', error);
+            return false;
+        }
+    }
+    
+    async updateFavoriteButtonState(item) {
+        const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
+        if (!favoriteButton) return;
+        
+        const isFav = await this.isFavorite(item);
+        favoriteButton.classList.toggle('active', isFav);
+    }
+
+    
     handleBackClick() {
         this.isDetailView = false;
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
@@ -7916,6 +7975,18 @@ class FastSearchCard extends HTMLElement {
             e.stopPropagation();
             this.handleBackClick();
         });
+
+        // Heart-Button Event-Listener
+        const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
+        if (favoriteButton) {
+            favoriteButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleFavoriteClick(item);
+            });
+            
+            // NEU: Initial Favorite State setzen
+            this.updateFavoriteButtonState(item);
+        }        
 
         this.setupDetailTabs(item);
         
