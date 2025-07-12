@@ -7228,9 +7228,14 @@ class FastSearchCard extends HTMLElement {
     renderGridResults(resultsGrid, itemsToRender = null) {
         resultsGrid.innerHTML = '';
         
-        // NEU: Verwende übergebene Items oder Fallback
+        // NEU: Items mit Favoriten-Status anreichern
         const items = itemsToRender || this.filteredItems;
-        const groupedItems = this.groupItemsByAreaCustom(items);  // ← Neue Hilfsfunktion
+        const enrichedItems = items.map(item => ({
+            ...item,
+            isFavorite: this.isFavoriteFromCache(item.id)  // ← Favoriten-Status hinzufügen
+        }));
+        
+        const groupedItems = this.groupItemsByAreaCustom(enrichedItems);  // ← enrichedItems verwenden
         
         let cardIndex = 0;
         Object.keys(groupedItems).sort().forEach(area => {
@@ -7257,9 +7262,14 @@ class FastSearchCard extends HTMLElement {
     renderListResults(resultsList, itemsToRender = null) {
         resultsList.innerHTML = '';
         
-        // NEU: Verwende übergebene Items oder Fallback  
+        // NEU: Items mit Favoriten-Status anreichern
         const items = itemsToRender || this.filteredItems;
-        const groupedItems = this.groupItemsByAreaCustom(items);  // ← Neue Hilfsfunktion
+        const enrichedItems = items.map(item => ({
+            ...item,
+            isFavorite: this.isFavoriteFromCache(item.id)  // ← Favoriten-Status hinzufügen
+        }));
+        
+        const groupedItems = this.groupItemsByAreaCustom(enrichedItems);  // ← enrichedItems verwenden
         
         let itemIndex = 0;
         Object.keys(groupedItems).sort().forEach(area => {
