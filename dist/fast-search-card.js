@@ -8086,33 +8086,43 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
-
     async handleFavoriteClickInputText(item) {
         try {
             await this.ensureFavoriteEntityExists();
             const entityId = await this.getFavoriteEntityId();
             
+            console.log('🔍 DEBUG: Using entity ID:', entityId);
+            
             // Aktuelle Favoriten laden
             const favEntity = this._hass.states[entityId];
+            console.log('🔍 DEBUG: Entity state:', favEntity?.state);
+            
             let favoritesArray = JSON.parse(favEntity?.state || '[]');
+            console.log('🔍 DEBUG: Current favorites:', favoritesArray);
+            console.log('🔍 DEBUG: Checking item:', item.id);
             
             const isFavorite = favoritesArray.includes(item.id);
+            console.log('🔍 DEBUG: Is favorite?', isFavorite);
             
             if (isFavorite) {
                 // Favorit entfernen
                 favoritesArray = favoritesArray.filter(id => id !== item.id);
                 console.log('💔 Removed from favorites:', item.name);
+                console.log('🔍 DEBUG: New array after removal:', favoritesArray);
             } else {
                 // Favorit hinzufügen
                 favoritesArray.push(item.id);
                 console.log('💖 Added to favorites:', item.name);
+                console.log('🔍 DEBUG: New array after addition:', favoritesArray);
             }
             
-            // 🔧 FIX: Richtiger Service Name
+            // Favoriten speichern
             await this._hass.callService('input_text', 'set_value', {
                 entity_id: entityId,
                 value: JSON.stringify(favoritesArray)
             });
+            
+            console.log('✅ DEBUG: Saved to entity');
             
             // Cache aktualisieren
             this.favoritesCache.set(item.id, !isFavorite);
