@@ -8052,7 +8052,6 @@ class FastSearchCard extends HTMLElement {
     isFavoriteFromCache(entityId) {
         return this.favoritesCache.get(entityId) || false;
     }
-
     
     async getFavoriteLabel() {
         const userId = this._hass.user?.id || 'unknown';
@@ -8118,28 +8117,25 @@ class FastSearchCard extends HTMLElement {
         try {
             console.log('🔧 Auto-creating user labels...');
             
-            // Erstelle Label für aktuellen User mit ID
-            try {
-                const userName = this._hass.user?.name || 'User';
-                const userId = this._hass.user?.id || 'unknown';
-                const labelId = `fas-${userId}`;
-                
-                await this._hass.callWS({
-                    type: 'config/label_registry/create',
-                    name: `Favoriten ${userName}`,
-                    icon: 'mdi:heart',
-                    color: '#ff4757'
-                });
-                console.log(`✅ Created label for ${userName} (${userId}):`, labelId);
-            } catch (fallbackError) {
-                if (fallbackError.code !== 'key_exists') {
-                    console.error('❌ Label creation failed:', fallbackError.message);
-                }
-            }
+            const userName = this._hass.user?.name || 'User';
+            const userId = this._hass.user?.id || 'unknown';
+            const labelId = `fas-${userId}`;
             
-            console.log('🎉 User labels auto-setup complete!');
+            await this._hass.callWS({
+                type: 'config/label_registry/create',
+                name: `Favoriten ${userName}`,
+                icon: 'mdi:heart',
+                color: '#ff4757'
+            });
+            
+            console.log(`✅ Created label for ${userName} (${userId}): ${labelId}`);
+            
         } catch (error) {
-            console.warn('⚠️ Auto-setup failed:', error.message);
+            if (error.code !== 'key_exists') {
+                console.error('❌ Label creation failed:', error.message);
+            } else {
+                console.log('ℹ️ Label already exists');
+            }
         }
     }
 
@@ -14820,11 +14816,11 @@ class FastSearchCard extends HTMLElement {
             // Direkte WebSocket API-Nutzung
             const user = await this._hass.callWS({ type: 'auth/current_user' });
             console.log('✅ WebSocket user call successful:', user);
-            return user.id || 'unknown';
+            return user.id || 'unknown';  // ← NUR noch ID verwenden!
         } catch (error) {
             console.warn('❌ WebSocket user call failed, using fallback:', error);
             const hassUser = this._hass.user;
-            return hassUser?.id || 'unknown';
+            return hassUser?.id || 'unknown';  // ← NUR noch ID verwenden!
         }
     }
     
