@@ -8086,6 +8086,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
+
     async handleFavoriteClickInputText(item) {
         try {
             await this.ensureFavoriteEntityExists();
@@ -8107,8 +8108,8 @@ class FastSearchCard extends HTMLElement {
                 console.log('💖 Added to favorites:', item.name);
             }
             
-            // Favoriten speichern
-            await this._hass.callService('text', 'set_value', {
+            // 🔧 FIX: Richtiger Service Name
+            await this._hass.callService('input_text', 'set_value', {
                 entity_id: entityId,
                 value: JSON.stringify(favoritesArray)
             });
@@ -8122,7 +8123,7 @@ class FastSearchCard extends HTMLElement {
         } catch (error) {
             console.error('❌ Favorite action failed:', error);
         }
-    }    
+    }
     
 
     
