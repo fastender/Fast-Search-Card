@@ -7228,17 +7228,23 @@ class FastSearchCard extends HTMLElement {
     renderGridResults(resultsGrid, itemsToRender = null) {
         resultsGrid.innerHTML = '';
         
-        // NEU: Items mit Favoriten-Status anreichern
         const items = itemsToRender || this.filteredItems;
         const enrichedItems = items.map(item => ({
             ...item,
-            isFavorite: this.isFavoriteFromCache(item.id)  // ← Favoriten-Status hinzufügen
+            isFavorite: this.isFavoriteFromCache(item.id)
         }));
         
-        const groupedItems = this.groupItemsByAreaCustom(enrichedItems);  // ← enrichedItems verwenden
+        const groupedItems = this.groupItemsByAreaCustom(enrichedItems);
+        
+        // 🎯 FIX: Custom Sortierung - Favoriten zuerst!
+        const sortedAreas = Object.keys(groupedItems).sort((a, b) => {
+            if (a === '💖 Favoriten') return -1;  // Favoriten immer zuerst
+            if (b === '💖 Favoriten') return 1;   // Favoriten immer zuerst
+            return a.localeCompare(b);            // Rest alphabetisch
+        });
         
         let cardIndex = 0;
-        Object.keys(groupedItems).sort().forEach(area => {
+        sortedAreas.forEach(area => {
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
             areaHeader.textContent = area;
@@ -7262,17 +7268,23 @@ class FastSearchCard extends HTMLElement {
     renderListResults(resultsList, itemsToRender = null) {
         resultsList.innerHTML = '';
         
-        // NEU: Items mit Favoriten-Status anreichern
         const items = itemsToRender || this.filteredItems;
         const enrichedItems = items.map(item => ({
             ...item,
-            isFavorite: this.isFavoriteFromCache(item.id)  // ← Favoriten-Status hinzufügen
+            isFavorite: this.isFavoriteFromCache(item.id)
         }));
         
-        const groupedItems = this.groupItemsByAreaCustom(enrichedItems);  // ← enrichedItems verwenden
+        const groupedItems = this.groupItemsByAreaCustom(enrichedItems);
+        
+        // 🎯 FIX: Custom Sortierung - Favoriten zuerst!
+        const sortedAreas = Object.keys(groupedItems).sort((a, b) => {
+            if (a === '💖 Favoriten') return -1;  // Favoriten immer zuerst
+            if (b === '💖 Favoriten') return 1;   // Favoriten immer zuerst
+            return a.localeCompare(b);            // Rest alphabetisch
+        });
         
         let itemIndex = 0;
-        Object.keys(groupedItems).sort().forEach(area => {
+        sortedAreas.forEach(area => {
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
             areaHeader.textContent = area;
