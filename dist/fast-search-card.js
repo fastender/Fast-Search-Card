@@ -7887,29 +7887,58 @@ class FastSearchCard extends HTMLElement {
     async handleFavoriteClick(item) {
         try {
             const favoriteLabel = await this.getFavoriteLabel();
+            
+            // 1. Sicherstellen, dass das Label existiert
+            await this.ensureFavoriteLabelExists();
+            
             const isFavorite = await this.isFavorite(item);
             
             if (isFavorite) {
-                // Favorit entfernen
-                await this._hass.callService('homeassistant', 'remove_label', {
+                // Favorit entfernen - Label von Entity entfernen
+                await this._hass.callWS({
+                    type: 'config/label_registry/update',
+                    label_id: favoriteLabel,
                     entity_id: item.id,
-                    label_id: favoriteLabel
+                    action: 'remove'
                 });
                 console.log('💔 Removed from favorites:', item.name);
             } else {
-                // Als Favorit hinzufügen
-                await this._hass.callService('homeassistant', 'add_label', {
+                // Als Favorit hinzufügen - Label zu Entity hinzufügen
+                await this._hass.callWS({
+                    type: 'config/label_registry/update',
+                    label_id: favoriteLabel,
                     entity_id: item.id,
-                    label_id: favoriteLabel
+                    action: 'add'
                 });
                 console.log('💖 Added to favorites:', item.name);
             }
             
             // Button-State sofort aktualisieren
-            this.updateFavoriteButtonState(item);
+            setTimeout(() => this.updateFavoriteButtonState(item), 100);
             
         } catch (error) {
             console.error('❌ Favorite action failed:', error);
+        }
+    }
+    
+    async ensureFavoriteLabelExists() {
+        try {
+            const favoriteLabel = await this.getFavoriteLabel();
+            const userName = this._hass.user?.name || 'User';
+            
+            // Label erstellen falls es nicht existiert
+            await this._hass.callWS({
+                type: 'config/label_registry/create',
+                name: `Favoriten ${userName}`,
+                label_id: favoriteLabel,
+                icon: 'mdi:heart',
+                color: '#ff4757'
+            });
+            
+            console.log('✅ Created favorite label:', favoriteLabel);
+        } catch (error) {
+            // Label existiert bereits oder anderer Fehler
+            console.log('ℹ️ Label might already exist:', error.message);
         }
     }
     
