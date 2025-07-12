@@ -8116,40 +8116,71 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    
     async autoCreateUserLabels() {
         try {
             console.log('🔧 Auto-creating user labels...');
             
-            // 1. Alle User laden
-            const users = await this._hass.callWS({ type: 'auth/list_users' });
+            // 1. Versuche verschiedene APIs um User zu finden
+            let users = [];
+            
+            try {
+                // Versuche Person Registry
+                const persons = await this._hass.callWS({ type: 'config/person/list' });
+                users = persons.filter(p => p.user_id); // Nur Personen mit User-Account
+            } catch (error) {
+                console.warn('Cannot load persons, trying fallback...');
+                
+                // Fallback: Aktueller User + bekannte User-IDs
+                users = [
+                    { 
+                        name: this._hass.user?.name || 'Current User',
+                        user_id: this._hass.user?.id || 'unknown'
+                    }
+                ];
+            }
             
             // 2. Für jeden User ein Label erstellen
             for (const user of users) {
-                const labelId = `fas-${this.sanitizeUserForLabel(user.name || user.id)}`;
+                const userId = user.user_id || user.id;
+                const userName = user.name || 'User';
+                const labelId = `fas-${this.sanitizeUserForLabel(userName)}`;
                 
                 try {
                     await this._hass.callWS({
                         type: 'config/label_registry/create',
-                        name: `Favoriten ${user.name || 'User'}`,
+                        name: `Favoriten ${userName}`,
                         icon: 'mdi:heart',
                         color: '#ff4757'
                     });
-                    console.log(`✅ Created label for ${user.name}:`, labelId);
+                    console.log(`✅ Created label for ${userName}:`, labelId);
                 } catch (error) {
                     if (error.code !== 'key_exists') {
-                        console.warn(`⚠️ Could not create label for ${user.name}:`, error.message);
+                        console.warn(`⚠️ Could not create label for ${userName}:`, error.message);
                     }
-                    // Label existiert bereits = OK
                 }
             }
             
             console.log('🎉 User labels auto-setup complete!');
         } catch (error) {
-            console.warn('⚠️ Auto-setup failed (need admin rights):', error.message);
+            console.warn('⚠️ Auto-setup failed:', error.message);
+            
+            // Fallback: Erstelle zumindest Label für aktuellen User
+            try {
+                const userName = this._hass.user?.name || 'User';
+                const labelId = `fas-${this.sanitizeUserForLabel(userName)}`;
+                
+                await this._hass.callWS({
+                    type: 'config/label_registry/create',
+                    name: `Favoriten ${userName}`,
+                    icon: 'mdi:heart',
+                    color: '#ff4757'
+                });
+                console.log(`✅ Fallback: Created label for current user:`, labelId);
+            } catch (fallbackError) {
+                console.error('❌ Even fallback failed:', fallbackError.message);
+            }
         }
-    }    
-        
+    }
 
 
     
