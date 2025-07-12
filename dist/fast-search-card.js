@@ -7894,32 +7894,40 @@ class FastSearchCard extends HTMLElement {
             const isFavorite = await this.isFavorite(item);
             
             if (isFavorite) {
-                // Favorit entfernen - Label von Entity entfernen
+                // Favorit entfernen
                 await this._hass.callWS({
-                    type: 'config/label_registry/update',
-                    label_id: favoriteLabel,
+                    type: 'config/entity_registry/update',
                     entity_id: item.id,
-                    action: 'remove'
+                    labels: await this.getEntityLabelsWithoutFavorite(item, favoriteLabel)
                 });
                 console.log('💔 Removed from favorites:', item.name);
             } else {
-                // Als Favorit hinzufügen - Label zu Entity hinzufügen
+                // Als Favorit hinzufügen
                 await this._hass.callWS({
-                    type: 'config/label_registry/update',
-                    label_id: favoriteLabel,
+                    type: 'config/entity_registry/update',
                     entity_id: item.id,
-                    action: 'add'
+                    labels: await this.getEntityLabelsWithFavorite(item, favoriteLabel)
                 });
                 console.log('💖 Added to favorites:', item.name);
             }
             
             // Button-State sofort aktualisieren
-            setTimeout(() => this.updateFavoriteButtonState(item), 100);
+            setTimeout(() => this.updateFavoriteButtonState(item), 200);
             
         } catch (error) {
             console.error('❌ Favorite action failed:', error);
         }
     }
+    
+    async getEntityLabelsWithFavorite(item, favoriteLabel) {
+        const currentLabels = this._hass.states[item.id]?.attributes?.labels || [];
+        return [...currentLabels, favoriteLabel];
+    }
+    
+    async getEntityLabelsWithoutFavorite(item, favoriteLabel) {
+        const currentLabels = this._hass.states[item.id]?.attributes?.labels || [];
+        return currentLabels.filter(label => label !== favoriteLabel);
+    }        
     
     async ensureFavoriteLabelExists() {
         try {
