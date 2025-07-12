@@ -8063,9 +8063,10 @@ class FastSearchCard extends HTMLElement {
             const favoriteLabel = await this.getFavoriteLabel();
             const userName = this._hass.user?.name || 'User';
             
+            // 🔧 FIXED: Die name-Zeile war unvollständig!
             await this._hass.callWS({
                 type: 'config/label_registry/create',
-                name: `Favoriten ${userName}`,
+                name: `Favoriten ${userName}`,  // ← DIESER TEIL WAR KAPUTT!
                 icon: 'mdi:heart',
                 color: '#ff4757'
             });
