@@ -7199,25 +7199,16 @@ class FastSearchCard extends HTMLElement {
         resultsGrid.style.display = this.currentViewMode === 'grid' ? 'grid' : 'none';
         resultsList.classList.toggle('active', this.currentViewMode === 'list');
         
-        // NEU: Favoriten sammeln und zu filteredItems hinzufügen
-        const favorites = this.getFavoriteItemsFromCache();
-        let itemsToRender = [...this.filteredItems];  // Kopie erstellen
+        // 🔧 FIX: Entferne diese Logik - die Gruppierung passiert in groupItemsByAreaCustom()
+        // ❌ ENTFERNEN:
+        // const favorites = this.getFavoriteItemsFromCache();
+        // let itemsToRender = [...this.filteredItems];
+        // if (favorites.length > 0) { ... }
         
-        // NEU: Favoriten ganz oben hinzufügen falls vorhanden
-        if (favorites.length > 0) {
-            const favoritesGroup = {
-                category: 'Favoriten',
-                icon: '💖',
-                items: favorites,
-                count: favorites.length,
-                area: 'Favoriten'  // Für die Gruppierung
-            };
-            
-            // Favoriten als "virtuelle Gruppe" ganz oben hinzufügen
-            itemsToRender = favorites.concat(itemsToRender);
-        }
+        // ✅ VERWENDE DIREKT:
+        let itemsToRender = [...this.filteredItems];
         
-        if (itemsToRender.length === 0) {  // ← itemsToRender statt filteredItems
+        if (itemsToRender.length === 0) {
             const emptyState = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
             if (this.currentViewMode === 'grid') {
                 resultsGrid.innerHTML = emptyState;
@@ -7228,9 +7219,9 @@ class FastSearchCard extends HTMLElement {
         }
         
         if (this.currentViewMode === 'grid') {
-            this.renderGridResults(resultsGrid, itemsToRender);  // ← Parameter hinzufügen
+            this.renderGridResults(resultsGrid, itemsToRender);
         } else {
-            this.renderListResults(resultsList, itemsToRender);  // ← Parameter hinzufügen
+            this.renderListResults(resultsList, itemsToRender);
         }
     }
     
