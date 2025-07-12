@@ -1,6 +1,3 @@
-import { getUser } from "home-assistant-js-websocket";
-
-
 
 
 // MiniSearch Local Implementation (~5KB)
@@ -14512,13 +14509,15 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+
     async getUserContext() {
         try {
-            const user = await getUser(this._hass.connection);
-            console.log('✅ getUser() successful:', user);
+            // Direkte WebSocket API-Nutzung statt Import
+            const user = await this._hass.callWS({ type: 'auth/current_user' });
+            console.log('✅ WebSocket user call successful:', user);
             return user.id || this.sanitizeUserForLabel(user.name) || 'unknown';
         } catch (error) {
-            console.warn('❌ getUser() failed, using fallback:', error);
+            console.warn('❌ WebSocket user call failed, using fallback:', error);
             const hassUser = this._hass.user;
             return hassUser?.name ? this.sanitizeUserForLabel(hassUser.name) : 'unknown';
         }
