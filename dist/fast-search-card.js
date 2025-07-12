@@ -422,9 +422,16 @@ class FastSearchCard extends HTMLElement {
         const oldHass = this._hass;
         this._hass = hass;
         
-        // NEU: Favoriten beim ersten Start laden
-        if (!oldHass && hass) {
-            this.loadAllFavoritesFromInputText().then(() => {  // ← HIER ÄNDERN
+        // NEU: Auto-Setup beim ersten Start (nur für Admins)
+        if (!oldHass && hass && hass.user?.is_admin) {
+            this.autoCreateUserLabels().then(() => {
+                this.loadAllFavorites().then(() => {
+                    this.updateItems();
+                });
+            });
+        } else if (!oldHass && hass) {
+            // Normaler User - nur Favoriten laden
+            this.loadAllFavorites().then(() => {
                 this.updateItems();
             });
         } else {
@@ -433,7 +440,6 @@ class FastSearchCard extends HTMLElement {
                 this.updateItems();
             }
         }
-    
         
         if (this.isDetailView && this.currentDetailItem) {
             const updatedItem = this.allItems.find(item => item.id === this.currentDetailItem.id);
@@ -7979,9 +7985,41 @@ class FastSearchCard extends HTMLElement {
     }    
 
     async handleFavoriteClick(item) {
-        return this.handleFavoriteClickInputText(item);
-    }
-
+        try {
+            const favoriteLabel = await this.getFavoriteLabel();
+            
+            // Sicherstellen, dass das Label existiert
+            await this.ensureFavoriteLabelExists();
+            
+            const isFavorite = this.isFavoriteFromCache(item.id);
+            
+            if (isFavorite) {
+                // Favorit entfernen
+                await this._hass.callWS({
+                    type: 'config/entity_registry/update',
+                    entity_id: item.id,
+                    labels: await this.getEntityLabelsWithoutFavorite(item, favoriteLabel)
+                });
+                console.log('💔 Removed from favorites:', item.name);
+                this.favoritesCache.set(item.id, false);
+            } else {
+                // Als Favorit hinzufügen
+                await this._hass.callWS({
+                    type: 'config/entity_registry/update',
+                    entity_id: item.id,
+                    labels: await this.getEntityLabelsWithFavorite(item, favoriteLabel)
+                });
+                console.log('💖 Added to favorites:', item.name);
+                this.favoritesCache.set(item.id, true);
+            }
+            
+            this.updateFavoriteButtonStateFromCache(item);
+            this.renderResults();
+            
+        } catch (error) {
+            console.error('❌ Favorite action failed:', error);
+        }
+    }    
 
     updateFavoriteButtonStateFromCache(item) {
         const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
@@ -8015,126 +8053,104 @@ class FastSearchCard extends HTMLElement {
         return this.favoritesCache.get(entityId) || false;
     }
 
-
-
-
     
-    
-    // 🆕 NEU: Input-Text basierte Favoriten
-    async getFavoriteEntityId() {
+
+
+    async getFavoriteLabel() {
         const userContext = await this.getUserContext();
-        return `input_text.fas_favorites_${userContext}`;
+        return `fas-${userContext}`;
     }
     
-    async ensureFavoriteEntityExists() {
+    async ensureFavoriteLabelExists() {
         try {
-            const entityId = await this.getFavoriteEntityId();
-            
-            // Prüfe ob Entity existiert
-            const exists = this._hass.states[entityId];
-            if (exists) return true;
-            
-            // Entity über Config Entry erstellen
+            const favoriteLabel = await this.getFavoriteLabel();
             const userName = this._hass.user?.name || 'User';
+            
             await this._hass.callWS({
-                type: 'config/input_text/create',
-                name: `Fast Search Favoriten - ${userName}`,
-                initial: '[]',
-                max: 1000,
-                min: 0
+                type: 'config/label_registry/create',
+                name: `Favoriten ${userName}`,
+                icon: 'mdi:heart',
+                color: '#ff4757'
             });
             
-            console.log('✅ Created favorites input_text:', entityId);
-            return true;
+            console.log('✅ Created favorite label:', favoriteLabel);
         } catch (error) {
-            if (error.code === 'not_found') {
-                console.warn('⚠️ Cannot auto-create input_text - please create manually:', entityId);
-                // Fallback: Versuche trotzdem zu verwenden
-                return true;
-            }
-            console.log('ℹ️ Entity creation result:', error.message);
-            return true; // Existiert bereits
+            // Label existiert bereits oder anderer Fehler
+            console.log('ℹ️ Label creation result:', error.message);
         }
     }
     
-    async loadAllFavoritesFromInputText() {
+    async getEntityLabelsWithFavorite(item, favoriteLabel) {
+        const currentLabels = this._hass.states[item.id]?.attributes?.labels || [];
+        return [...currentLabels, favoriteLabel];
+    }
+    
+    async getEntityLabelsWithoutFavorite(item, favoriteLabel) {
+        const currentLabels = this._hass.states[item.id]?.attributes?.labels || [];
+        return currentLabels.filter(label => label !== favoriteLabel);
+    }
+    
+    async loadAllFavorites() {
         if (this.favoritesLoaded) return;
         
         try {
-            console.log('🔄 Loading favorites from input_text...');
+            console.log('🔄 Loading all favorites (bulk)...');
+            this.favoriteLabel = await this.getFavoriteLabel();
             
-            await this.ensureFavoriteEntityExists();
-            const entityId = await this.getFavoriteEntityId();
+            const allEntities = await this._hass.callWS({
+                type: 'config/entity_registry/list'
+            });
             
-            // Favoriten aus input_text laden
-            const favEntity = this._hass.states[entityId];
-            const favoritesArray = JSON.parse(favEntity?.state || '[]');
-            
-            // Cache alle Favoriten-Status
             this.favoritesCache.clear();
-            this.allItems?.forEach(item => {
-                const isFav = favoritesArray.includes(item.id);
-                this.favoritesCache.set(item.id, isFav);
+            allEntities.forEach(entity => {
+                const isFav = entity.labels?.includes(this.favoriteLabel) || false;
+                this.favoritesCache.set(entity.entity_id, isFav);
             });
             
             this.favoritesLoaded = true;
-            console.log('✅ Favorites loaded from input_text:', favoritesArray.length, 'items');
+            console.log('✅ Favorites cache loaded:', this.favoritesCache.size, 'entities');
             
         } catch (error) {
-            console.error('❌ Failed to load favorites from input_text:', error);
+            console.error('❌ Failed to load favorites cache:', error);
             this.favoritesLoaded = false;
         }
     }
+
     
-    async handleFavoriteClickInputText(item) {
+    async autoCreateUserLabels() {
         try {
-            await this.ensureFavoriteEntityExists();
-            const entityId = await this.getFavoriteEntityId();
+            console.log('🔧 Auto-creating user labels...');
             
-            console.log('🔍 DEBUG: Using entity ID:', entityId);
+            // 1. Alle User laden
+            const users = await this._hass.callWS({ type: 'auth/list_users' });
             
-            // Aktuelle Favoriten laden
-            const favEntity = this._hass.states[entityId];
-            console.log('🔍 DEBUG: Entity state:', favEntity?.state);
-            
-            let favoritesArray = JSON.parse(favEntity?.state || '[]');
-            console.log('🔍 DEBUG: Current favorites:', favoritesArray);
-            console.log('🔍 DEBUG: Checking item:', item.id);
-            
-            const isFavorite = favoritesArray.includes(item.id);
-            console.log('🔍 DEBUG: Is favorite?', isFavorite);
-            
-            if (isFavorite) {
-                // Favorit entfernen
-                favoritesArray = favoritesArray.filter(id => id !== item.id);
-                console.log('💔 Removed from favorites:', item.name);
-                console.log('🔍 DEBUG: New array after removal:', favoritesArray);
-            } else {
-                // Favorit hinzufügen
-                favoritesArray.push(item.id);
-                console.log('💖 Added to favorites:', item.name);
-                console.log('🔍 DEBUG: New array after addition:', favoritesArray);
+            // 2. Für jeden User ein Label erstellen
+            for (const user of users) {
+                const labelId = `fas-${this.sanitizeUserForLabel(user.name || user.id)}`;
+                
+                try {
+                    await this._hass.callWS({
+                        type: 'config/label_registry/create',
+                        name: `Favoriten ${user.name || 'User'}`,
+                        icon: 'mdi:heart',
+                        color: '#ff4757'
+                    });
+                    console.log(`✅ Created label for ${user.name}:`, labelId);
+                } catch (error) {
+                    if (error.code !== 'key_exists') {
+                        console.warn(`⚠️ Could not create label for ${user.name}:`, error.message);
+                    }
+                    // Label existiert bereits = OK
+                }
             }
             
-            // Favoriten speichern
-            await this._hass.callService('input_text', 'set_value', {
-                entity_id: entityId,
-                value: JSON.stringify(favoritesArray)
-            });
-            
-            console.log('✅ DEBUG: Saved to entity');
-            
-            // Cache aktualisieren
-            this.favoritesCache.set(item.id, !isFavorite);
-            
-            this.updateFavoriteButtonStateFromCache(item);
-            this.renderResults();
-            
+            console.log('🎉 User labels auto-setup complete!');
         } catch (error) {
-            console.error('❌ Favorite action failed:', error);
+            console.warn('⚠️ Auto-setup failed (need admin rights):', error.message);
         }
-    }
-    
+    }    
+        
+
 
     
     
