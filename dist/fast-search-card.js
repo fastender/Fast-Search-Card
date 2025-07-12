@@ -8034,18 +8034,24 @@ class FastSearchCard extends HTMLElement {
             const exists = this._hass.states[entityId];
             if (exists) return true;
             
-            // Entity automatisch erstellen
+            // Entity über Config Entry erstellen
             const userName = this._hass.user?.name || 'User';
-            await this._hass.callService('text', 'create', {
-                entity_id: entityId.split('.')[1], // Nur der Name-Teil
+            await this._hass.callWS({
+                type: 'config/input_text/create',
                 name: `Fast Search Favoriten - ${userName}`,
                 initial: '[]',
-                max: 1000 // Für längere Listen
+                max: 1000,
+                min: 0
             });
             
-            console.log('✅ Created favorites entity:', entityId);
+            console.log('✅ Created favorites input_text:', entityId);
             return true;
         } catch (error) {
+            if (error.code === 'not_found') {
+                console.warn('⚠️ Cannot auto-create input_text - please create manually:', entityId);
+                // Fallback: Versuche trotzdem zu verwenden
+                return true;
+            }
             console.log('ℹ️ Entity creation result:', error.message);
             return true; // Existiert bereits
         }
