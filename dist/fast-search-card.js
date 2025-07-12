@@ -7320,25 +7320,16 @@ class FastSearchCard extends HTMLElement {
     groupItemsByAreaCustom(items) {
         const grouped = {};
         
-        // Favoriten separat sammeln
-        const favorites = [];
-        const regularItems = [];
-        
-        items.forEach(item => {
-            if (item.isFavorite) {
-                favorites.push(item);
-            } else {
-                regularItems.push(item);
-            }
-        });
+        // Favoriten separat sammeln (aber Items NICHT aus der Liste entfernen)
+        const favorites = items.filter(item => item.isFavorite);
         
         // Favoriten-Gruppe hinzufügen (falls vorhanden)
         if (favorites.length > 0) {
             grouped['💖 Favoriten'] = favorites;
         }
         
-        // Normale Items nach Area gruppieren
-        regularItems.forEach(item => {
+        // ALLE Items (inkl. Favoriten) nach Area gruppieren
+        items.forEach(item => {
             const area = item.area || 'Ohne Raum';
             if (!grouped[area]) {
                 grouped[area] = [];
@@ -7347,7 +7338,7 @@ class FastSearchCard extends HTMLElement {
         });
         
         return grouped;
-    }    
+    }
 
     getDynamicIcon(item) {
         if (item.domain === 'light') {
