@@ -4489,6 +4489,8 @@ class FastSearchCard extends HTMLElement {
                 flex-shrink: 0;
                 color: var(--text-secondary);
                 padding: 0;
+                position: absolute;
+                right: 0;
             }
             
             .favorite-button:hover {
@@ -7882,7 +7884,6 @@ class FastSearchCard extends HTMLElement {
         this.setupCustomDetailTabs(item);
     }    
 
-
     async handleFavoriteClick(item) {
         try {
             const favoriteLabel = await this.getFavoriteLabel();
@@ -7890,14 +7891,14 @@ class FastSearchCard extends HTMLElement {
             
             if (isFavorite) {
                 // Favorit entfernen
-                await this._hass.callService('label', 'remove', {
+                await this._hass.callService('homeassistant', 'remove_label', {
                     entity_id: item.id,
                     label_id: favoriteLabel
                 });
                 console.log('💔 Removed from favorites:', item.name);
             } else {
                 // Als Favorit hinzufügen
-                await this._hass.callService('label', 'assign', {
+                await this._hass.callService('homeassistant', 'add_label', {
                     entity_id: item.id,
                     label_id: favoriteLabel
                 });
