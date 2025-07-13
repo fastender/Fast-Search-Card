@@ -8055,18 +8055,16 @@ class FastSearchCard extends HTMLElement {
     
     async getFavoriteLabel() {
         const userId = this._hass.user?.id || 'unknown';
-        return `fas-${userId}`;
+        return `fav-${userId}`;
     }
     
     async ensureFavoriteLabelExists() {
         try {
             const favoriteLabel = await this.getFavoriteLabel();
-            const userName = this._hass.user?.name || 'User';
             
-            // 🔧 FIXED: Die name-Zeile war unvollständig!
             await this._hass.callWS({
                 type: 'config/label_registry/create',
-                name: `Favoriten ${userName}`,  // ← DIESER TEIL WAR KAPUTT!
+                name: favoriteLabel,  // ← NEUE ZEILE
                 icon: 'mdi:heart',
                 color: '#ff4757'
             });
@@ -8118,18 +8116,17 @@ class FastSearchCard extends HTMLElement {
         try {
             console.log('🔧 Auto-creating user labels...');
             
-            const userName = this._hass.user?.name || 'User';
             const userId = this._hass.user?.id || 'unknown';
-            const labelId = `fas-${userId}`;
+            const labelId = `fav-${userId}`;
             
             await this._hass.callWS({
                 type: 'config/label_registry/create',
-                name: `Favoriten ${userName}`,
+                name: labelId,
                 icon: 'mdi:heart',
                 color: '#ff4757'
             });
             
-            console.log(`✅ Created label for ${userName} (${userId}): ${labelId}`);
+            console.log(`✅ Created label: ${labelId}`);
             
         } catch (error) {
             if (error.code !== 'key_exists') {
