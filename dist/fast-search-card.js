@@ -11340,6 +11340,9 @@ class FastSearchCard extends HTMLElement {
 
     async ensureFavoritesHelper() {
         try {
+            // Kurz warten damit alle States geladen sind
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
             // Prüfen ob Helper bereits existiert
             const existingHelper = this._hass.states['input_text.fast_search_favorites'];
             
@@ -11348,35 +11351,9 @@ class FastSearchCard extends HTMLElement {
                 return;
             }
             
-            console.log('🔧 Erstelle input_text.fast_search_favorites Helper...');
+            console.warn('⚠️ input_text.fast_search_favorites Helper nicht gefunden');
             
-            // Helper erstellen
-            await this._hass.callService('input_text', 'reload');
-            
-            // Konfiguration für den Helper
-            const helperConfig = {
-                name: 'Fast Search Favorites',
-                initial: '{}',
-                max: 255,
-                mode: 'text'
-            };
-            
-            // Helper über die Configuration API erstellen
-            await this._hass.callWS({
-                type: 'config/config_entries/options/flow/create',
-                handler: 'input_text',
-                context: {
-                    source: 'user'
-                }
-            });
-            
-            console.log('✅ Favorites Helper erfolgreich erstellt');
-            
-        } catch (error) {
-            console.warn('⚠️ Konnte Favorites Helper nicht automatisch erstellen:', error);
-            console.warn('Bitte erstellen Sie manuell: input_text.fast_search_favorites');
-            
-            // Benutzer informieren
+            // Benutzer informieren dass Helper fehlt
             if (this.shadowRoot) {
                 const notification = document.createElement('div');
                 notification.style.cssText = `
@@ -11390,22 +11367,27 @@ class FastSearchCard extends HTMLElement {
                     z-index: 10000;
                     font-size: 14px;
                     max-width: 300px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                 `;
                 notification.innerHTML = `
                     <strong>Setup erforderlich:</strong><br>
                     Bitte erstellen Sie einen Input Text Helper:<br>
-                    <code>input_text.fast_search_favorites</code>
+                    <code>input_text.fast_search_favorites</code><br>
+                    <small>Einstellungen → Geräte & Dienste → Helfer</small>
                 `;
                 
                 document.body.appendChild(notification);
                 
-                // Nach 5 Sekunden entfernen
+                // Nach 8 Sekunden entfernen
                 setTimeout(() => {
                     if (notification.parentNode) {
                         notification.parentNode.removeChild(notification);
                     }
-                }, 5000);
+                }, 8000);
             }
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Prüfen des Favorites Helper:', error);
         }
     }
 
