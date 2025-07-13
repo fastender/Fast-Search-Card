@@ -1,5 +1,3 @@
-
-
 // MiniSearch Local Implementation (~5KB)
 // Source: https://github.com/lucaong/minisearch (MIT License)
 class MiniSearch {
@@ -349,12 +347,7 @@ class FastSearchCard extends HTMLElement {
         
         // NEU: Autocomplete State
         this.currentSuggestion = '';
-        this.autocompleteTimeout = null;       
-
-        // NEU: Favoriten-Cache hinzufügen
-        this.favoritesCache = new Map();
-        this.favoritesLoaded = false;
-        this.favoriteLabel = null;        
+        this.autocompleteTimeout = null;        
     }
 
     setConfig(config) {
@@ -422,30 +415,9 @@ class FastSearchCard extends HTMLElement {
         const oldHass = this._hass;
         this._hass = hass;
         
-        console.log('🐛 DEBUG: set hass called');
-        console.log('🐛 DEBUG: oldHass exists:', !!oldHass);
-        console.log('🐛 DEBUG: favoritesLoaded:', this.favoritesLoaded);
-        
-        // NEU: Favoriten laden wenn noch nicht geladen
-        if (!this.favoritesLoaded) {
-            console.log('🐛 DEBUG: Loading favorites (not loaded yet)');
-            if (hass.user?.is_admin) {
-                this.autoCreateUserLabels().then(() => {
-                    this.loadAllFavorites().then(() => {
-                        this.updateItems();
-                    });
-                });
-            } else {
-                this.loadAllFavorites().then(() => {
-                    this.updateItems();
-                });
-            }
-        } else {
-            // Favoriten bereits geladen, normale Updates
-            const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
-            if (shouldUpdateAll) {
-                this.updateItems();
-            }
+        const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
+        if (shouldUpdateAll) {
+            this.updateItems();
         }
         
         if (this.isDetailView && this.currentDetailItem) {
@@ -456,7 +428,7 @@ class FastSearchCard extends HTMLElement {
             }
         } else if (!this.isDetailView && !this.isSearching) {
             this.updateStates();
-        }        
+        }
     }
 
     shouldUpdateItems(oldHass, newHass) {
@@ -4500,52 +4472,7 @@ class FastSearchCard extends HTMLElement {
             .timer-item {
                 position: relative;
             }            
-
-            .favorite-button {
-                width: 39px;
-                height: 39px;
-                border: none;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s ease;
-                flex-shrink: 0;
-                color: var(--text-secondary);
-                padding: 0;
-                position: absolute;
-                right: 0;
-            }
             
-            .favorite-button:hover {
-                background: rgba(255, 255, 255, 0.2);
-                transform: scale(1.1);
-            }
-            
-            .favorite-button.active {
-                color: #ff4757;
-                background: rgba(255, 71, 87, 0.2);
-            }
-            
-            .favorite-button.active svg {
-                fill: #ff4757;
-            }
-            
-            .favorite-button svg {
-                width: 24px;
-                height: 24px;
-                transition: all 0.2s ease;
-            }     
-
-            .device-favorite-icon {
-                position: absolute;
-                top: 8px;
-                right: 8px;
-                font-size: 16px;
-                opacity: 0.8;
-            }            
                                                 
             </style>
 
@@ -7213,16 +7140,7 @@ class FastSearchCard extends HTMLElement {
         resultsGrid.style.display = this.currentViewMode === 'grid' ? 'grid' : 'none';
         resultsList.classList.toggle('active', this.currentViewMode === 'list');
         
-        // 🔧 FIX: Entferne diese Logik - die Gruppierung passiert in groupItemsByAreaCustom()
-        // ❌ ENTFERNEN:
-        // const favorites = this.getFavoriteItemsFromCache();
-        // let itemsToRender = [...this.filteredItems];
-        // if (favorites.length > 0) { ... }
-        
-        // ✅ VERWENDE DIREKT:
-        let itemsToRender = [...this.filteredItems];
-        
-        if (itemsToRender.length === 0) {
+        if (this.filteredItems.length === 0) {
             const emptyState = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
             if (this.currentViewMode === 'grid') {
                 resultsGrid.innerHTML = emptyState;
@@ -7233,32 +7151,18 @@ class FastSearchCard extends HTMLElement {
         }
         
         if (this.currentViewMode === 'grid') {
-            this.renderGridResults(resultsGrid, itemsToRender);
+            this.renderGridResults(resultsGrid);
         } else {
-            this.renderListResults(resultsList, itemsToRender);
+            this.renderListResults(resultsList);
         }
     }
     
-    renderGridResults(resultsGrid, itemsToRender = null) {
+    renderGridResults(resultsGrid) {
         resultsGrid.innerHTML = '';
-        
-        const items = itemsToRender || this.filteredItems;
-        const enrichedItems = items.map(item => ({
-            ...item,
-            isFavorite: this.isFavoriteFromCache(item.id)
-        }));
-        
-        const groupedItems = this.groupItemsByAreaCustom(enrichedItems);
-        
-        // 🎯 FIX: Custom Sortierung - Favoriten zuerst!
-        const sortedAreas = Object.keys(groupedItems).sort((a, b) => {
-            if (a === '💖 Favoriten') return -1;  // Favoriten immer zuerst
-            if (b === '💖 Favoriten') return 1;   // Favoriten immer zuerst
-            return a.localeCompare(b);            // Rest alphabetisch
-        });
+        const groupedItems = this.groupItemsByArea();
         
         let cardIndex = 0;
-        sortedAreas.forEach(area => {
+        Object.keys(groupedItems).sort().forEach(area => {
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
             areaHeader.textContent = area;
@@ -7279,26 +7183,12 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = true;
     }
     
-    renderListResults(resultsList, itemsToRender = null) {
+    renderListResults(resultsList) {
         resultsList.innerHTML = '';
-        
-        const items = itemsToRender || this.filteredItems;
-        const enrichedItems = items.map(item => ({
-            ...item,
-            isFavorite: this.isFavoriteFromCache(item.id)
-        }));
-        
-        const groupedItems = this.groupItemsByAreaCustom(enrichedItems);
-        
-        // 🎯 FIX: Custom Sortierung - Favoriten zuerst!
-        const sortedAreas = Object.keys(groupedItems).sort((a, b) => {
-            if (a === '💖 Favoriten') return -1;  // Favoriten immer zuerst
-            if (b === '💖 Favoriten') return 1;   // Favoriten immer zuerst
-            return a.localeCompare(b);            // Rest alphabetisch
-        });
+        const groupedItems = this.groupItemsByArea();
         
         let itemIndex = 0;
-        sortedAreas.forEach(area => {
+        Object.keys(groupedItems).sort().forEach(area => {
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
             areaHeader.textContent = area;
@@ -7329,29 +7219,6 @@ class FastSearchCard extends HTMLElement {
             groups[area].push(item);
             return groups;
         }, {});
-    }
-
-    groupItemsByAreaCustom(items) {
-        const grouped = {};
-        
-        // Favoriten separat sammeln (aber Items NICHT aus der Liste entfernen)
-        const favorites = items.filter(item => item.isFavorite);
-        
-        // Favoriten-Gruppe hinzufügen (falls vorhanden)
-        if (favorites.length > 0) {
-            grouped['💖 Favoriten'] = favorites;
-        }
-        
-        // ALLE Items (inkl. Favoriten) nach Area gruppieren
-        items.forEach(item => {
-            const area = item.area || 'Ohne Raum';
-            if (!grouped[area]) {
-                grouped[area] = [];
-            }
-            grouped[area].push(item);
-        });
-        
-        return grouped;
     }
 
     getDynamicIcon(item) {
@@ -7404,7 +7271,6 @@ class FastSearchCard extends HTMLElement {
         return item.icon;
     }    
 
-
     createDeviceCard(item) {
         const card = document.createElement('div');
         card.className = `device-card ${item.isActive ? 'active' : ''}`;
@@ -7418,21 +7284,9 @@ class FastSearchCard extends HTMLElement {
         const statusText = item.domain === 'custom' ? 
             this.getCustomStatusText(item) : 
             this.getEntityStatus(this._hass.states[item.id]);
+
         
-        // NEU: Heart-Icon für Favoriten aus Cache
-        const isFavorite = this.isFavoriteFromCache(item.id);
-        const heartIcon = isFavorite ? 
-            `<div class="device-favorite-icon">💖</div>` : '';
-        
-        card.innerHTML = `
-            <div class="device-icon">${this.getDynamicIcon(item)}</div>
-            <div class="device-info">
-                <div class="device-name">${item.name}</div>
-                <div class="device-status">${statusText}</div>
-            </div>
-            ${heartIcon}
-        `;
-        
+        card.innerHTML = `<div class="device-icon">${this.getDynamicIcon(item)}</div><div class="device-info"><div class="device-name">${item.name}</div><div class="device-status">${statusText}</div></div>`;
         card.addEventListener('click', () => this.handleDeviceClick(item, card));
         return card;
     }
@@ -7978,212 +7832,10 @@ class FastSearchCard extends HTMLElement {
             e.stopPropagation();
             this.handleBackClick();
         });
-
-        // NEU: Heart-Button Event-Listener
-        const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
-        if (favoriteButton) {
-            favoriteButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.handleFavoriteClick(item);
-            });
-        }        
     
         this.setupCustomDetailTabs(item);
     }    
 
-    async handleFavoriteClick(item) {
-        try {
-            console.log('🐛 DEBUG: handleFavoriteClick started for:', item.name);
-            
-            const favoriteLabel = await this.getFavoriteLabel();
-            console.log('🐛 DEBUG: favoriteLabel:', favoriteLabel);
-            
-            // Sicherstellen, dass das Label existiert
-            await this.ensureFavoriteLabelExists();
-            console.log('🐛 DEBUG: Label creation attempted');
-            
-            const isFavorite = this.isFavoriteFromCache(item.id);
-            console.log('🐛 DEBUG: isFavorite from cache:', isFavorite);
-            console.log('🐛 DEBUG: favoritesCache size:', this.favoritesCache.size);
-            console.log('🐛 DEBUG: favoritesLoaded:', this.favoritesLoaded);
-            
-            if (isFavorite) {
-                // Favorit entfernen
-                const newLabels = await this.getEntityLabelsWithoutFavorite(item, favoriteLabel);
-                console.log('🐛 DEBUG: Removing favorite, new labels:', newLabels);
-                
-                await this._hass.callWS({
-                    type: 'config/entity_registry/update',
-                    entity_id: item.id,
-                    labels: newLabels
-                });
-                console.log('💔 Removed from favorites:', item.name);
-                this.favoritesCache.set(item.id, false);
-
-            } else {
-                // Als Favorit hinzufügen
-                const newLabels = await this.getEntityLabelsWithFavorite(item, favoriteLabel);
-                console.log('🐛 DEBUG: Adding favorite, new labels:', newLabels);
-                console.log('🐛 DEBUG: entity_id:', item.id);
-                console.log('🐛 DEBUG: About to call WebSocket API...');
-                
-                const result = await this._hass.callWS({
-                    type: 'config/entity_registry/update',
-                    entity_id: item.id,
-                    labels: newLabels
-                });
-                
-                console.log('🐛 DEBUG: WebSocket API result:', result);
-                console.log('🐛 DEBUG: Full entity_entry:', JSON.stringify(result.entity_entry, null, 2));
-                
-                // Zusätzlich: Prüfe die aktuellen Labels der Entität
-                const currentEntity = this._hass.states[item.id];
-                console.log('🐛 DEBUG: Current entity from states:', currentEntity);
-                console.log('🐛 DEBUG: Current entity attributes:', currentEntity?.attributes);
-                console.log('🐛 DEBUG: Current entity labels:', currentEntity?.attributes?.labels);
-                
-                console.log('💖 Added to favorites:', item.name);
-                this.favoritesCache.set(item.id, true);
-            }
-            
-            this.updateFavoriteButtonStateFromCache(item);
-            this.renderResults();
-            
-        } catch (error) {
-            console.error('❌ Favorite action failed:', error);
-        }
-    }
-
-    updateFavoriteButtonStateFromCache(item) {
-        const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
-        if (!favoriteButton) return;
-        
-        const isFav = this.isFavoriteFromCache(item.id);
-        favoriteButton.classList.toggle('active', isFav);
-    }    
-    
-
-    
-
-
-
-    getFavoriteItemsFromCache() {
-        if (!this.favoritesLoaded || !this.allItems) return [];
-        
-        const favorites = this.allItems.filter(item => 
-            this.isFavoriteFromCache(item.id)
-        ).map(item => ({
-            ...item,
-            isFavorite: true
-        }));
-        
-        console.log('💖 Found favorites from cache:', favorites.length);
-        return favorites;
-    }
-
-    // NEU: Favoriten-Status aus Cache
-    isFavoriteFromCache(entityId) {
-        return this.favoritesCache.get(entityId) || false;
-    }
-    
-    async getFavoriteLabel() {
-        const userId = this._hass.user?.id || 'unknown';
-        return `fav-${userId}`;
-    }
-    
-    async ensureFavoriteLabelExists() {
-        try {
-            const favoriteLabel = await this.getFavoriteLabel();
-            
-            await this._hass.callWS({
-                type: 'config/label_registry/create',
-                name: favoriteLabel,  // ← NEUE ZEILE
-                icon: 'mdi:heart',
-                color: '#ff4757'
-            });
-            
-            console.log('✅ Created favorite label:', favoriteLabel);
-        } catch (error) {
-            // Label existiert bereits oder anderer Fehler
-            console.log('ℹ️ Label creation result:', error.message);
-        }
-    }
-    
-    async getEntityLabelsWithFavorite(item, favoriteLabel) {
-        const currentLabels = this._hass.states[item.id]?.attributes?.labels || [];
-        return [...currentLabels, favoriteLabel];
-    }
-    
-    async getEntityLabelsWithoutFavorite(item, favoriteLabel) {
-        const currentLabels = this._hass.states[item.id]?.attributes?.labels || [];
-        return currentLabels.filter(label => label !== favoriteLabel);
-    }
-    
-    async loadAllFavorites() {
-        if (this.favoritesLoaded) return;
-        
-        try {
-            console.log('🔄 Loading all favorites (bulk)...');
-            this.favoriteLabel = await this.getFavoriteLabel();
-            
-            const allEntities = await this._hass.callWS({
-                type: 'config/entity_registry/list'
-            });
-            
-            console.log('🐛 DEBUG: Found entities in registry:', allEntities.length);
-            console.log('🐛 DEBUG: Looking for label:', this.favoriteLabel);
-            
-            this.favoritesCache.clear();
-            allEntities.forEach(entity => {
-                const isFav = entity.labels?.includes(this.favoriteLabel) || false;
-                if (isFav) {
-                    console.log('🐛 DEBUG: Found favorite in registry:', entity.entity_id, 'labels:', entity.labels);
-                }
-                this.favoritesCache.set(entity.entity_id, isFav);
-            });
-            
-            this.favoritesLoaded = true;
-            console.log('✅ Favorites cache loaded:', this.favoritesCache.size, 'entities');
-            
-        } catch (error) {
-            console.error('❌ Failed to load favorites cache:', error);
-            this.favoritesLoaded = false;
-        }
-    }
-
-    async autoCreateUserLabels() {
-        try {
-            console.log('🔧 Auto-creating user labels...');
-            
-            const userId = this._hass.user?.id || 'unknown';
-            const labelId = `fav-${userId}`;
-            
-            console.log('🐛 DEBUG AUTO: userId:', userId);
-            console.log('🐛 DEBUG AUTO: labelId:', labelId);
-            
-            await this._hass.callWS({
-                type: 'config/label_registry/create',
-                name: labelId,
-                icon: 'mdi:heart',
-                color: '#ff4757'
-            });
-            
-            console.log(`✅ Created label: ${labelId}`);
-            
-        } catch (error) {
-            if (error.code !== 'key_exists') {
-                console.error('❌ Label creation failed:', error.message);
-            } else {
-                console.log('ℹ️ Label already exists');
-            }
-        }
-    }
-
-
-
-
-    
-    
     handleBackClick() {
         this.isDetailView = false;
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
@@ -8227,18 +7879,6 @@ class FastSearchCard extends HTMLElement {
             e.stopPropagation();
             this.handleBackClick();
         });
-
-        // Heart-Button Event-Listener
-        const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
-        if (favoriteButton) {
-            favoriteButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.handleFavoriteClick(item);
-            });
-            
-            // NEU: Initial Favorite State setzen
-            this.updateFavoriteButtonStateFromCache(item);
-        }        
 
         this.setupDetailTabs(item);
         
@@ -8490,11 +8130,6 @@ class FastSearchCard extends HTMLElement {
                     <h3 class="detail-name">${item.name}</h3>
                     <p class="detail-area">${item.area}</p>
                 </div>
-                <button class="favorite-button" data-entity-id="${item.id}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="39px" height="39px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round" color="currentColor">
-                        <path d="M22 8.86222C22 10.4087 21.4062 11.8941 20.3458 12.9929C17.9049 15.523 15.5374 18.1613 13.0053 20.5997C12.4249 21.1505 11.5042 21.1304 10.9488 20.5547L3.65376 12.9929C1.44875 10.7072 1.44875 7.01723 3.65376 4.73157C5.88044 2.42345 9.50794 2.42345 11.7346 4.73157L11.9998 5.00642L12.2648 4.73173C13.3324 3.6245 14.7864 3 16.3053 3C17.8242 3 19.2781 3.62444 20.3458 4.73157C21.4063 5.83045 22 7.31577 22 8.86222Z"/>
-                    </svg>
-                </button>
             </div>
             <div class="icon-content">
                 <div class="icon-background-wrapper">
@@ -14850,21 +14485,6 @@ class FastSearchCard extends HTMLElement {
             alert(`Fehler beim Aktualisieren des Timers:\n\n${error.message}`);
         }
     }
-
-    async getUserContext() {
-        try {
-            // Direkte WebSocket API-Nutzung
-            const user = await this._hass.callWS({ type: 'auth/current_user' });
-            console.log('✅ WebSocket user call successful:', user);
-            return user.id || 'unknown';  // ← NUR noch ID verwenden!
-        } catch (error) {
-            console.warn('❌ WebSocket user call failed, using fallback:', error);
-            const hassUser = this._hass.user;
-            return hassUser?.id || 'unknown';  // ← NUR noch ID verwenden!
-        }
-    }
-    
-
 
 
 
