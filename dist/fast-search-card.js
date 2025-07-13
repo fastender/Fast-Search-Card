@@ -8141,6 +8141,12 @@ class FastSearchCard extends HTMLElement {
                     <div class="quick-stats">
                        ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
                     </div>
+
+                    <!-- NEU: Label Button hinzufügen -->
+                    <button class="label-test-button" onclick="this.addStarLabel('${item.id}')" title="Star Label hinzufügen">
+                        ⭐
+                    </button>
+                    
                 </div>
             </div>
         `;
@@ -11074,6 +11080,42 @@ class FastSearchCard extends HTMLElement {
         
         return stats;
     }
+
+
+
+
+    async addStarLabel(entityId) {
+        console.log(`🌟 Versuche Label "star" zu ${entityId} hinzuzufügen...`);
+        
+        try {
+            // Aktuelle Labels der Entity abrufen
+            const entityRegistry = this._hass.entities[entityId];
+            const currentLabels = entityRegistry?.labels || [];
+            
+            console.log('Aktuelle Labels:', currentLabels);
+            
+            // "star" Label hinzufügen (wenn nicht schon vorhanden)
+            const updatedLabels = [...new Set([...currentLabels, 'star'])];
+            
+            console.log('Neue Labels:', updatedLabels);
+            
+            // WebSocket API Call
+            const result = await this._hass.callWS({
+                type: "config/entity_registry/update", 
+                entity_id: entityId,
+                labels: updatedLabels
+            });
+            
+            console.log('✅ Label erfolgreich hinzugefügt:', result);
+            alert('Star Label hinzugefügt!');
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Hinzufügen des Labels:', error);
+            alert('Fehler: ' + error.message);
+        }
+    }
+
+    
     
     getCustomBackgroundImage(item) {
             const customData = item.custom_data || {};
