@@ -4479,11 +4479,9 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
             }            
             
-            
             .star-button {
                 display: flex;
                 align-items: center;
-                gap: 8px;
                 background: rgba(255, 255, 255, 0.1);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 border-radius: 8px;
@@ -4491,8 +4489,7 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 cursor: pointer;
                 transition: all 0.2s ease;
-                font-size: 14px;
-                margin-left: auto; /* Rechtsbündig */
+                flex-shrink: 0; /* Button behält seine Größe */
             }
             
             .star-button:hover {
@@ -4509,7 +4506,6 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
             }
             
-            /* Starred state */
             .star-button.starred {
                 color: #ffd700;
                 background: rgba(255, 215, 0, 0.1);
@@ -4518,7 +4514,7 @@ class FastSearchCard extends HTMLElement {
             
             .star-button.starred:hover {
                 background: rgba(255, 215, 0, 0.15);
-            }        
+            }   
                                                 
             </style>
 
