@@ -7153,10 +7153,8 @@ class FastSearchCard extends HTMLElement {
         // 🌟 NEU: Stars sammeln
         const starredItems = this.getUserStarredItems();
         
-        // Items ohne Stars für Raum-Sektionen
-        const nonStarredItems = this.filteredItems.filter(item => 
-            !starredItems.some(star => star.id === item.id)
-        );
+        // Alle Items für Raum-Sektionen (inkl. Stars)
+        const nonStarredItems = this.filteredItems;
         
         if (this.currentViewMode === 'grid') {
             this.renderGridResults(resultsGrid, starredItems, nonStarredItems);
@@ -7231,7 +7229,7 @@ class FastSearchCard extends HTMLElement {
             const starHeader = document.createElement('div');
             starHeader.className = 'area-header stars-header';
             starHeader.innerHTML = `
-                <span class="area-name">⭐ Meine Stars</span>
+                <span class="area-name">Favoriten</span>
                 <span class="area-count">(${starredItems.length})</span>
             `;
             resultsList.appendChild(starHeader);
