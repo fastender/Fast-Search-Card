@@ -8012,16 +8012,21 @@ class FastSearchCard extends HTMLElement {
                 });
                 console.log('💔 Removed from favorites:', item.name);
                 this.favoritesCache.set(item.id, false);
+
             } else {
                 // Als Favorit hinzufügen
                 const newLabels = await this.getEntityLabelsWithFavorite(item, favoriteLabel);
                 console.log('🐛 DEBUG: Adding favorite, new labels:', newLabels);
+                console.log('🐛 DEBUG: entity_id:', item.id);
+                console.log('🐛 DEBUG: About to call WebSocket API...');
                 
-                await this._hass.callWS({
+                const result = await this._hass.callWS({
                     type: 'config/entity_registry/update',
                     entity_id: item.id,
                     labels: newLabels
                 });
+                
+                console.log('🐛 DEBUG: WebSocket API result:', result);
                 console.log('💖 Added to favorites:', item.name);
                 this.favoritesCache.set(item.id, true);
             }
