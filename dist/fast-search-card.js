@@ -422,19 +422,27 @@ class FastSearchCard extends HTMLElement {
         const oldHass = this._hass;
         this._hass = hass;
         
+        console.log('🐛 DEBUG: set hass called');
+        console.log('🐛 DEBUG: oldHass exists:', !!oldHass);
+        console.log('🐛 DEBUG: user is admin:', hass.user?.is_admin);
+        console.log('🐛 DEBUG: user info:', hass.user);
+        
         // NEU: Auto-Setup beim ersten Start (nur für Admins)
         if (!oldHass && hass && hass.user?.is_admin) {
+            console.log('🐛 DEBUG: Taking ADMIN path');
             this.autoCreateUserLabels().then(() => {
                 this.loadAllFavorites().then(() => {
                     this.updateItems();
                 });
             });
         } else if (!oldHass && hass) {
+            console.log('🐛 DEBUG: Taking NORMAL USER path');
             // Normaler User - nur Favoriten laden
             this.loadAllFavorites().then(() => {
                 this.updateItems();
             });
         } else {
+            console.log('🐛 DEBUG: Taking ELSE path (no favorites loading)');
             const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
             if (shouldUpdateAll) {
                 this.updateItems();
