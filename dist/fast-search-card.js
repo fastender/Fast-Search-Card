@@ -7231,8 +7231,7 @@ class FastSearchCard extends HTMLElement {
             const starHeader = document.createElement('div');
             starHeader.className = 'area-header stars-header';
             starHeader.innerHTML = `
-                <div class="area-icon">⭐</div>
-                <span class="area-name">Meine Stars</span>
+                <span class="area-name">⭐ Meine Stars</span>
                 <span class="area-count">(${starredItems.length})</span>
             `;
             resultsList.appendChild(starHeader);
@@ -7260,7 +7259,6 @@ class FastSearchCard extends HTMLElement {
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
             areaHeader.innerHTML = `
-                <div class="area-icon">${this.getAreaIcon(area)}</div>
                 <span class="area-name">${area}</span>
                 <span class="area-count">(${groupedItems[area].length})</span>
             `;
