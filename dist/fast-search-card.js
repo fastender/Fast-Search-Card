@@ -4479,6 +4479,28 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
             }            
             
+            
+            .star-button {
+                position: absolute;
+                right: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #ffd700;
+                transition: all 0.2s ease;
+                z-index: 2;
+            }
+            
+            .star-button:hover {
+                transform: translateY(-50%) scale(1.1);
+                filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+            }
+            
+            .star-button svg {
+                display: block;
+            }            
                                                 
             </style>
 
@@ -7958,17 +7980,17 @@ class FastSearchCard extends HTMLElement {
 
         this.setupDetailTabs(item);
 
-        // NEU: Label Button Event Listener
-        const labelButton = this.shadowRoot.querySelector('.label-test-button');
-        if (labelButton) {
-            labelButton.addEventListener('click', (e) => {
-                const entityId = e.target.dataset.entityId;
+        // NEU: Star Button Event Listener
+        const starButton = this.shadowRoot.querySelector('.star-button');
+        if (starButton) {
+            starButton.addEventListener('click', (e) => {
+                const entityId = e.currentTarget.dataset.entityId;
                 this.toggleStarLabel(entityId);
             });
             
             // Initial Button State setzen
             this.updateStarButtonState(item.id);
-        } 
+        }
         
         const iconBackground = detailPanel.querySelector('.icon-background');
         const titleArea = detailPanel.querySelector('.detail-title-area');
@@ -8230,9 +8252,10 @@ class FastSearchCard extends HTMLElement {
                        ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
                     </div>
 
-                    <!-- NEU: Label Button hinzufügen -->
-                    <button class="label-test-button" data-entity-id="${item.id}" title="Star Label hinzufügen">
-                        ⭐
+                    <button class="star-button" data-entity-id="${item.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8.58737 8.23597L11.1849 3.00376C11.5183 2.33208 12.4817 2.33208 12.8151 3.00376L15.4126 8.23597L21.2215 9.08017C21.9668 9.18848 22.2638 10.0994 21.7243 10.6219L17.5217 14.6918L18.5135 20.4414C18.6409 21.1798 17.8614 21.7428 17.1945 21.3941L12 18.678L6.80547 21.3941C6.1386 21.7428 5.35909 21.1798 5.48645 20.4414L6.47825 14.6918L2.27575 10.6219C1.73617 10.0994 2.03322 9.18848 2.77852 9.08017L8.58737 8.23597Z"/>
+                        </svg>
                     </button>
                     
                 </div>
@@ -11240,47 +11263,36 @@ class FastSearchCard extends HTMLElement {
     }
     
     updateStarButtonState(entityId) {
-        const labelButton = this.shadowRoot.querySelector('.label-test-button');
-        if (!labelButton) return;
+        const starButton = this.shadowRoot.querySelector('.star-button');
+        if (!starButton) return;
         
         try {
-            // User-ID ermitteln
             const userId = this._hass.user?.id || 'unknown_user';
-            
-            // Favoriten aus Helper lesen
             const favoritesHelper = this._hass.states['input_text.fast_search_favorites'];
-            let allUserFavorites = {};
+            let allUserStars = {};
             
             if (favoritesHelper && favoritesHelper.state) {
-                try {
-                    const parsed = JSON.parse(favoritesHelper.state);
-                    if (typeof parsed === 'object' && !Array.isArray(parsed)) {
-                        allUserFavorites = parsed;
-                    } else if (Array.isArray(parsed)) {
-                        // Legacy Format: Als aktueller User behandeln
-                        allUserFavorites = { [userId]: parsed };
-                    }
-                } catch (e) {
-                    console.warn('Fehler beim Parsen der Favoriten');
-                    allUserFavorites = {};
+                const parsed = JSON.parse(favoritesHelper.state);
+                if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+                    allUserStars = parsed;
+                } else if (Array.isArray(parsed)) {
+                    allUserStars = { [userId]: parsed };
                 }
             }
             
-            // User-spezifische Favoriten prüfen
-            const userFavorites = allUserFavorites[userId] || [];
-            const isFavorite = userFavorites.includes(entityId);
+            const userStars = allUserStars[userId] || [];
+            const isStarred = userStars.includes(entityId);
             
-            // Button Text und Style ändern
-            labelButton.textContent = isFavorite ? '🌟' : '⭐';
-            labelButton.title = isFavorite ? 'Favorit entfernen' : 'Als Favorit markieren';
+            // SVG Fill ändern
+            const svg = starButton.querySelector('svg');
+            if (svg) {
+                svg.setAttribute('fill', isStarred ? 'currentColor' : 'none');
+            }
             
-            console.log(`🔍 Button State für ${entityId}: ${isFavorite ? 'Favorit' : 'Nicht-Favorit'}`);
+            starButton.title = isStarred ? 'Favorit entfernen' : 'Als Favorit markieren';
             
         } catch (error) {
-            console.error('❌ Fehler beim Aktualisieren des Button-Status:', error);
-            // Fallback
-            labelButton.textContent = '⭐';
-            labelButton.title = 'Als Favorit markieren';
+            console.error('❌ Fehler beim Aktualisieren des Star-Button:', error);
         }
     }
 
