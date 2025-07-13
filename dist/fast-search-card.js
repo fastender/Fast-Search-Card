@@ -8158,6 +8158,9 @@ class FastSearchCard extends HTMLElement {
             const userId = this._hass.user?.id || 'unknown';
             const labelId = `fav-${userId}`;
             
+            console.log('🐛 DEBUG AUTO: userId:', userId);
+            console.log('🐛 DEBUG AUTO: labelId:', labelId);
+            
             await this._hass.callWS({
                 type: 'config/label_registry/create',
                 name: labelId,
