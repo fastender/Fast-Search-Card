@@ -4481,26 +4481,44 @@ class FastSearchCard extends HTMLElement {
             
             
             .star-button {
-                position: absolute;
-                right: 0;
-                top: 50%;
-                transform: translateY(-50%);
-                background: none;
-                border: none;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                padding: 8px 12px;
+                color: var(--text-secondary);
                 cursor: pointer;
-                color: #ffd700;
                 transition: all 0.2s ease;
-                z-index: 2;
+                font-size: 14px;
+                margin-left: auto; /* Rechtsbündig */
             }
             
             .star-button:hover {
-                transform: translateY(-50%) scale(1.1);
-                filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+                background: rgba(255, 255, 255, 0.15);
+                color: #ffd700;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             }
             
             .star-button svg {
-                display: block;
-            }            
+                width: 20px;
+                height: 20px;
+                stroke-width: 1.5;
+                transition: all 0.2s ease;
+            }
+            
+            /* Starred state */
+            .star-button.starred {
+                color: #ffd700;
+                background: rgba(255, 215, 0, 0.1);
+                border-color: rgba(255, 215, 0, 0.3);
+            }
+            
+            .star-button.starred:hover {
+                background: rgba(255, 215, 0, 0.15);
+            }        
                                                 
             </style>
 
@@ -8240,6 +8258,11 @@ class FastSearchCard extends HTMLElement {
                     <h3 class="detail-name">${item.name}</h3>
                     <p class="detail-area">${item.area}</p>
                 </div>
+                <button class="star-button" data-entity-id="${item.id}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8.58737 8.23597L11.1849 3.00376C11.5183 2.33208 12.4817 2.33208 12.8151 3.00376L15.4126 8.23597L21.2215 9.08017C21.9668 9.18848 22.2638 10.0994 21.7243 10.6219L17.5217 14.6918L18.5135 20.4414C18.6409 21.1798 17.8614 21.7428 17.1945 21.3941L12 18.678L6.80547 21.3941C6.1386 21.7428 5.35909 21.1798 5.48645 20.4414L6.47825 14.6918L2.27575 10.6219C1.73617 10.0994 2.03322 9.18848 2.77852 9.08017L8.58737 8.23597Z"/>
+                    </svg>
+                </button>
             </div>
             <div class="icon-content">
                 <div class="icon-background-wrapper">
@@ -8251,13 +8274,6 @@ class FastSearchCard extends HTMLElement {
                     <div class="quick-stats">
                        ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
                     </div>
-
-                    <button class="star-button" data-entity-id="${item.id}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8.58737 8.23597L11.1849 3.00376C11.5183 2.33208 12.4817 2.33208 12.8151 3.00376L15.4126 8.23597L21.2215 9.08017C21.9668 9.18848 22.2638 10.0994 21.7243 10.6219L17.5217 14.6918L18.5135 20.4414C18.6409 21.1798 17.8614 21.7428 17.1945 21.3941L12 18.678L6.80547 21.3941C6.1386 21.7428 5.35909 21.1798 5.48645 20.4414L6.47825 14.6918L2.27575 10.6219C1.73617 10.0994 2.03322 9.18848 2.77852 9.08017L8.58737 8.23597Z"/>
-                        </svg>
-                    </button>
-                    
                 </div>
             </div>
         `;
@@ -11288,6 +11304,9 @@ class FastSearchCard extends HTMLElement {
             if (svg) {
                 svg.setAttribute('fill', isStarred ? 'currentColor' : 'none');
             }
+            
+            // CSS-Klasse für visuellen Zustand
+            starButton.classList.toggle('starred', isStarred);
             
             starButton.title = isStarred ? 'Favorit entfernen' : 'Als Favorit markieren';
             
