@@ -7226,6 +7226,7 @@ class FastSearchCard extends HTMLElement {
         // 🌟 STARS-SEKTION (nur wenn Stars vorhanden)
         if (starredItems.length > 0) {
             const starHeader = document.createElement('div');
+            starHeader.className = 'area-header stars-header';
             starHeader.innerHTML = `
                 <span class="area-name">Favoriten</span>
                 <span class="area-count">(${starredItems.length})</span>
