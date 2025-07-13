@@ -4515,6 +4515,45 @@ class FastSearchCard extends HTMLElement {
             .star-button.starred:hover {
                 background: rgba(255, 215, 0, 0.15);
             }   
+
+            
+            .favorite-button {
+                width: 39px;
+                height: 39px;
+                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                flex-shrink: 0;
+                color: var(--text-secondary);
+                padding: 0;
+                position: absolute;
+                right: 0;
+            }
+            
+            .favorite-button:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.1);
+            }
+            
+            .favorite-button.active {
+                color: #ff4757;
+                background: rgba(255, 71, 87, 0.2);
+            }
+            
+            .favorite-button.active svg {
+                fill: #ff4757;
+            }
+            
+            .favorite-button svg {
+                width: 24px;
+                height: 24px;
+                transition: all 0.2s ease;
+            }
                                                 
             </style>
 
@@ -7994,10 +8033,10 @@ class FastSearchCard extends HTMLElement {
 
         this.setupDetailTabs(item);
 
-        // NEU: Star Button Event Listener
-        const starButton = this.shadowRoot.querySelector('.star-button');
-        if (starButton) {
-            starButton.addEventListener('click', (e) => {
+        // NEU: Favorite Button Event Listener
+        const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
+        if (favoriteButton) {
+            favoriteButton.addEventListener('click', (e) => {
                 const entityId = e.currentTarget.dataset.entityId;
                 this.toggleStarLabel(entityId);
             });
@@ -8254,9 +8293,9 @@ class FastSearchCard extends HTMLElement {
                     <h3 class="detail-name">${item.name}</h3>
                     <p class="detail-area">${item.area}</p>
                 </div>
-                <button class="star-button" data-entity-id="${item.id}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M8.58737 8.23597L11.1849 3.00376C11.5183 2.33208 12.4817 2.33208 12.8151 3.00376L15.4126 8.23597L21.2215 9.08017C21.9668 9.18848 22.2638 10.0994 21.7243 10.6219L17.5217 14.6918L18.5135 20.4414C18.6409 21.1798 17.8614 21.7428 17.1945 21.3941L12 18.678L6.80547 21.3941C6.1386 21.7428 5.35909 21.1798 5.48645 20.4414L6.47825 14.6918L2.27575 10.6219C1.73617 10.0994 2.03322 9.18848 2.77852 9.08017L8.58737 8.23597Z"/>
+                <button class="favorite-button" data-entity-id="${item.id}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round">
+                        <path d="M22 8.86222C22 10.4087 21.4062 11.8941 20.3458 12.9929C17.9049 15.523 15.5374 18.1613 13.0053 20.5997C12.4249 21.1505 11.5042 21.1304 10.9488 20.5547L3.65376 12.9929C1.44875 10.7072 1.44875 7.01723 3.65376 4.73157C5.88044 2.42345 9.50794 2.42345 11.7346 4.73157L11.9998 5.00642L12.2648 4.73173C13.3324 3.6245 14.7864 3 16.3053 3C17.8242 3 19.2781 3.62444 20.3458 4.73157C21.4063 5.83045 22 7.31577 22 8.86222Z"/>
                     </svg>
                 </button>
             </div>
@@ -11275,8 +11314,8 @@ class FastSearchCard extends HTMLElement {
     }
     
     updateStarButtonState(entityId) {
-        const starButton = this.shadowRoot.querySelector('.star-button');
-        if (!starButton) return;
+        const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
+        if (!favoriteButton) return;
         
         try {
             const userId = this._hass.user?.id || 'unknown_user';
@@ -11295,19 +11334,17 @@ class FastSearchCard extends HTMLElement {
             const userStars = allUserStars[userId] || [];
             const isStarred = userStars.includes(entityId);
             
-            // SVG Fill ändern
-            const svg = starButton.querySelector('svg');
+            // CSS-Klasse und SVG fill ändern
+            favoriteButton.classList.toggle('active', isStarred);
+            const svg = favoriteButton.querySelector('svg');
             if (svg) {
-                svg.setAttribute('fill', isStarred ? 'currentColor' : 'none');
+                svg.setAttribute('fill', isStarred ? '#ff4757' : 'none');
             }
             
-            // CSS-Klasse für visuellen Zustand
-            starButton.classList.toggle('starred', isStarred);
-            
-            starButton.title = isStarred ? 'Favorit entfernen' : 'Als Favorit markieren';
+            favoriteButton.title = isStarred ? 'Favorit entfernen' : 'Als Favorit markieren';
             
         } catch (error) {
-            console.error('❌ Fehler beim Aktualisieren des Star-Button:', error);
+            console.error('❌ Fehler beim Aktualisieren des Favorite-Button:', error);
         }
     }
 
