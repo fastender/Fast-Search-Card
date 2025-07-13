@@ -11093,52 +11093,54 @@ class FastSearchCard extends HTMLElement {
         return stats;
     }
 
-
     async toggleStarLabel(entityId) {
-        console.log(`🌟 Toggle Label "star" für ${entityId}...`);
+        console.log(`🌟 Toggle Favorit für ${entityId}...`);
         
         try {
-            // Aktuelle Labels der Entity abrufen
-            const entityRegistry = this._hass.entities[entityId];
-            const currentLabels = entityRegistry?.labels || [];
+            // Aktuelle Favoriten aus Helper lesen
+            const favoritesHelper = this._hass.states['input_text.fast_search_favorites'];
+            let favorites = [];
             
-            console.log('Aktuelle Labels:', currentLabels);
-            
-            // Prüfen ob "star" bereits vorhanden ist
-            const hasStarLabel = currentLabels.includes('star');
-            
-            let updatedLabels;
-            let message;
-            
-            if (hasStarLabel) {
-                // "star" Label entfernen
-                updatedLabels = currentLabels.filter(label => label !== 'star');
-                message = 'Star Label entfernt!';
-                console.log('Entferne star label');
-            } else {
-                // "star" Label hinzufügen
-                updatedLabels = [...currentLabels, 'star'];
-                message = 'Star Label hinzugefügt!';
-                console.log('Füge star label hinzu');
+            if (favoritesHelper && favoritesHelper.state) {
+                try {
+                    favorites = JSON.parse(favoritesHelper.state);
+                } catch (e) {
+                    console.warn('Favoriten-Helper enthält ungültiges JSON, reset zu leerem Array');
+                    favorites = [];
+                }
             }
             
-            console.log('Neue Labels:', updatedLabels);
+            console.log('Aktuelle Favoriten:', favorites);
             
-            // WebSocket API Call
-            const result = await this._hass.callWS({
-                type: "config/entity_registry/update", 
-                entity_id: entityId,
-                labels: updatedLabels
+            // Toggle: Hinzufügen oder entfernen
+            const isFavorite = favorites.includes(entityId);
+            let updatedFavorites;
+            let message;
+            
+            if (isFavorite) {
+                updatedFavorites = favorites.filter(id => id !== entityId);
+                message = 'Favorit entfernt!';
+            } else {
+                updatedFavorites = [...favorites, entityId];
+                message = 'Favorit hinzugefügt!';
+            }
+            
+            console.log('Neue Favoriten:', updatedFavorites);
+            
+            // Zurück in Helper speichern
+            await this._hass.callService('input_text', 'set_value', {
+                entity_id: 'input_text.fast_search_favorites',
+                value: JSON.stringify(updatedFavorites)
             });
             
-            console.log('✅ Label erfolgreich geändert:', result);
+            console.log('✅ Favoriten erfolgreich gespeichert');
             alert(message);
             
             // Button visuell aktualisieren
             this.updateStarButtonState(entityId);
             
         } catch (error) {
-            console.error('❌ Fehler beim Ändern des Labels:', error);
+            console.error('❌ Fehler beim Ändern der Favoriten:', error);
             alert('Fehler: ' + error.message);
         }
     }
@@ -11147,13 +11149,23 @@ class FastSearchCard extends HTMLElement {
         const labelButton = this.shadowRoot.querySelector('.label-test-button');
         if (!labelButton) return;
         
-        const entityRegistry = this._hass.entities[entityId];
-        const currentLabels = entityRegistry?.labels || [];
-        const hasStarLabel = currentLabels.includes('star');
+        // Favoriten aus Helper lesen
+        const favoritesHelper = this._hass.states['input_text.fast_search_favorites'];
+        let favorites = [];
+        
+        if (favoritesHelper && favoritesHelper.state) {
+            try {
+                favorites = JSON.parse(favoritesHelper.state);
+            } catch (e) {
+                favorites = [];
+            }
+        }
+        
+        const isFavorite = favorites.includes(entityId);
         
         // Button Text und Style ändern
-        labelButton.textContent = hasStarLabel ? '🌟' : '⭐';
-        labelButton.title = hasStarLabel ? 'Star Label entfernen' : 'Star Label hinzufügen';
+        labelButton.textContent = isFavorite ? '🌟' : '⭐';
+        labelButton.title = isFavorite ? 'Favorit entfernen' : 'Als Favorit markieren';
     }
 
     
