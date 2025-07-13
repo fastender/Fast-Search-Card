@@ -8017,7 +8017,6 @@ class FastSearchCard extends HTMLElement {
         
         const leftPaneHTML = this.getDetailLeftPaneHTML(item);
         const rightPaneHTML = this.getDetailRightPaneHTML(item);
-
         detailPanel.innerHTML = `
             <div class="detail-content">
                 <div class="detail-left">${leftPaneHTML}</div>
@@ -8025,17 +8024,15 @@ class FastSearchCard extends HTMLElement {
                 <div class="detail-right">${rightPaneHTML}</div>
             </div>
         `;
-
         this.shadowRoot.querySelector('.back-button').addEventListener('click', (e) => {
             e.stopPropagation();
             this.handleBackClick();
         });
-
         this.setupDetailTabs(item);
-
+        
         // NEU: Favorite Button Event Listener
         const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
-        if (favoriteButton) {
+        if (favoriteButton && item.id) {  // ← Null-Check hinzugefügt
             favoriteButton.addEventListener('click', (e) => {
                 const entityId = e.currentTarget.dataset.entityId;
                 this.toggleStarLabel(entityId);
@@ -8048,7 +8045,6 @@ class FastSearchCard extends HTMLElement {
         const iconBackground = detailPanel.querySelector('.icon-background');
         const titleArea = detailPanel.querySelector('.detail-title-area');
         const infoRow = detailPanel.querySelector('.detail-info-row');
-
         if(iconBackground) this.animateElementIn(iconBackground, { opacity: [0, 1] }, { duration: 600 });
         if(titleArea) this.animateElementIn(titleArea, { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0)'] }, { delay: 300 });
         if(infoRow) this.animateElementIn(infoRow, { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0)'] }, { delay: 500 });
@@ -11275,17 +11271,20 @@ class FastSearchCard extends HTMLElement {
             
             // Toggle: Hinzufügen oder entfernen
             const isFavorite = userFavorites.includes(entityId);
+            let newIsStarred;
             
             if (isFavorite) {
                 userFavorites = userFavorites.filter(id => id !== entityId);
+                newIsStarred = false;
                 console.log(`➖ Entferne ${entityId} von Favoriten`);
             } else {
                 userFavorites = [...userFavorites, entityId];
+                newIsStarred = true;
                 console.log(`➕ Füge ${entityId} zu Favoriten hinzu`);
             }
             
-            // ✅ SOFORT visuell aktualisieren (vor dem Speichern)
-            this.updateStarButtonState(entityId);
+            // ✅ SOFORT visuell aktualisieren mit dem NEUEN Zustand
+            this.updateStarButtonStateImmediate(entityId, newIsStarred);
             this.renderResults(); // Suchergebnisse sofort aktualisieren
             
             // User-Favoriten in Gesamt-Struktur zurückschreiben
@@ -11306,6 +11305,35 @@ class FastSearchCard extends HTMLElement {
             this.updateStarButtonState(entityId);
         }
     }
+
+    updateStarButtonStateImmediate(entityId, isStarred) {
+        const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
+        if (!favoriteButton) return;
+        
+        try {
+            // ✅ SOFORTIGE Animation für besseres Feedback
+            favoriteButton.animate([
+                { transform: 'scale(1)' },
+                { transform: 'scale(1.2)' },
+                { transform: 'scale(1)' }
+            ], {
+                duration: 200,
+                easing: 'ease-out'
+            });
+            
+            // CSS-Klasse und SVG fill mit dem übergebenen Zustand ändern
+            favoriteButton.classList.toggle('active', isStarred);
+            const svg = favoriteButton.querySelector('svg');
+            if (svg) {
+                svg.setAttribute('fill', isStarred ? '#ff4757' : 'none');
+            }
+            
+            favoriteButton.title = isStarred ? 'Favorit entfernen' : 'Als Favorit markieren';
+            
+        } catch (error) {
+            console.error('❌ Fehler beim sofortigen Update des Favorite-Button:', error);
+        }
+    }    
     
     updateStarButtonState(entityId) {
         const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
@@ -11328,17 +11356,7 @@ class FastSearchCard extends HTMLElement {
             const userStars = allUserStars[userId] || [];
             const isStarred = userStars.includes(entityId);
             
-            // ✅ SOFORTIGE Animation für besseres Feedback
-            favoriteButton.animate([
-                { transform: 'scale(1)' },
-                { transform: 'scale(1.2)' },
-                { transform: 'scale(1)' }
-            ], {
-                duration: 200,
-                easing: 'ease-out'
-            });
-            
-            // CSS-Klasse und SVG fill ändern
+            // CSS-Klasse und SVG fill ändern (OHNE Animation)
             favoriteButton.classList.toggle('active', isStarred);
             const svg = favoriteButton.querySelector('svg');
             if (svg) {
