@@ -8027,6 +8027,14 @@ class FastSearchCard extends HTMLElement {
                 });
                 
                 console.log('🐛 DEBUG: WebSocket API result:', result);
+                console.log('🐛 DEBUG: Full entity_entry:', JSON.stringify(result.entity_entry, null, 2));
+                
+                // Zusätzlich: Prüfe die aktuellen Labels der Entität
+                const currentEntity = this._hass.states[item.id];
+                console.log('🐛 DEBUG: Current entity from states:', currentEntity);
+                console.log('🐛 DEBUG: Current entity attributes:', currentEntity?.attributes);
+                console.log('🐛 DEBUG: Current entity labels:', currentEntity?.attributes?.labels);
+                
                 console.log('💖 Added to favorites:', item.name);
                 this.favoritesCache.set(item.id, true);
             }
