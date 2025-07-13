@@ -424,25 +424,24 @@ class FastSearchCard extends HTMLElement {
         
         console.log('🐛 DEBUG: set hass called');
         console.log('🐛 DEBUG: oldHass exists:', !!oldHass);
-        console.log('🐛 DEBUG: user is admin:', hass.user?.is_admin);
-        console.log('🐛 DEBUG: user info:', hass.user);
+        console.log('🐛 DEBUG: favoritesLoaded:', this.favoritesLoaded);
         
-        // NEU: Auto-Setup beim ersten Start (nur für Admins)
-        if (!oldHass && hass && hass.user?.is_admin) {
-            console.log('🐛 DEBUG: Taking ADMIN path');
-            this.autoCreateUserLabels().then(() => {
+        // NEU: Favoriten laden wenn noch nicht geladen
+        if (!this.favoritesLoaded) {
+            console.log('🐛 DEBUG: Loading favorites (not loaded yet)');
+            if (hass.user?.is_admin) {
+                this.autoCreateUserLabels().then(() => {
+                    this.loadAllFavorites().then(() => {
+                        this.updateItems();
+                    });
+                });
+            } else {
                 this.loadAllFavorites().then(() => {
                     this.updateItems();
                 });
-            });
-        } else if (!oldHass && hass) {
-            console.log('🐛 DEBUG: Taking NORMAL USER path');
-            // Normaler User - nur Favoriten laden
-            this.loadAllFavorites().then(() => {
-                this.updateItems();
-            });
+            }
         } else {
-            console.log('🐛 DEBUG: Taking ELSE path (no favorites loading)');
+            // Favoriten bereits geladen, normale Updates
             const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
             if (shouldUpdateAll) {
                 this.updateItems();
