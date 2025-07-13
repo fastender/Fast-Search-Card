@@ -7887,9 +7887,12 @@ class FastSearchCard extends HTMLElement {
         if (labelButton) {
             labelButton.addEventListener('click', (e) => {
                 const entityId = e.target.dataset.entityId;
-                this.addStarLabel(entityId);
+                this.toggleStarLabel(entityId);
             });
-        }        
+            
+            // Initial Button State setzen
+            this.updateStarButtonState(item.id);
+        } 
         
         const iconBackground = detailPanel.querySelector('.icon-background');
         const titleArea = detailPanel.querySelector('.detail-title-area');
@@ -11091,10 +11094,8 @@ class FastSearchCard extends HTMLElement {
     }
 
 
-
-
-    async addStarLabel(entityId) {
-        console.log(`🌟 Versuche Label "star" zu ${entityId} hinzuzufügen...`);
+    async toggleStarLabel(entityId) {
+        console.log(`🌟 Toggle Label "star" für ${entityId}...`);
         
         try {
             // Aktuelle Labels der Entity abrufen
@@ -11103,8 +11104,23 @@ class FastSearchCard extends HTMLElement {
             
             console.log('Aktuelle Labels:', currentLabels);
             
-            // "star" Label hinzufügen (wenn nicht schon vorhanden)
-            const updatedLabels = [...new Set([...currentLabels, 'star'])];
+            // Prüfen ob "star" bereits vorhanden ist
+            const hasStarLabel = currentLabels.includes('star');
+            
+            let updatedLabels;
+            let message;
+            
+            if (hasStarLabel) {
+                // "star" Label entfernen
+                updatedLabels = currentLabels.filter(label => label !== 'star');
+                message = 'Star Label entfernt!';
+                console.log('Entferne star label');
+            } else {
+                // "star" Label hinzufügen
+                updatedLabels = [...currentLabels, 'star'];
+                message = 'Star Label hinzugefügt!';
+                console.log('Füge star label hinzu');
+            }
             
             console.log('Neue Labels:', updatedLabels);
             
@@ -11115,13 +11131,29 @@ class FastSearchCard extends HTMLElement {
                 labels: updatedLabels
             });
             
-            console.log('✅ Label erfolgreich hinzugefügt:', result);
-            alert('Star Label hinzugefügt!');
+            console.log('✅ Label erfolgreich geändert:', result);
+            alert(message);
+            
+            // Button visuell aktualisieren
+            this.updateStarButtonState(entityId);
             
         } catch (error) {
-            console.error('❌ Fehler beim Hinzufügen des Labels:', error);
+            console.error('❌ Fehler beim Ändern des Labels:', error);
             alert('Fehler: ' + error.message);
         }
+    }
+    
+    updateStarButtonState(entityId) {
+        const labelButton = this.shadowRoot.querySelector('.label-test-button');
+        if (!labelButton) return;
+        
+        const entityRegistry = this._hass.entities[entityId];
+        const currentLabels = entityRegistry?.labels || [];
+        const hasStarLabel = currentLabels.includes('star');
+        
+        // Button Text und Style ändern
+        labelButton.textContent = hasStarLabel ? '🌟' : '⭐';
+        labelButton.title = hasStarLabel ? 'Star Label entfernen' : 'Star Label hinzufügen';
     }
 
     
