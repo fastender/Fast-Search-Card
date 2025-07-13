@@ -7150,22 +7150,61 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
+        // 🌟 NEU: Stars sammeln
+        const starredItems = this.getUserStarredItems();
+        
+        // Items ohne Stars für Raum-Sektionen
+        const nonStarredItems = this.filteredItems.filter(item => 
+            !starredItems.some(star => star.id === item.id)
+        );
+        
         if (this.currentViewMode === 'grid') {
-            this.renderGridResults(resultsGrid);
+            this.renderGridResults(resultsGrid, starredItems, nonStarredItems);
         } else {
-            this.renderListResults(resultsList);
+            this.renderListResults(resultsList, starredItems, nonStarredItems);
         }
     }
     
-    renderGridResults(resultsGrid) {
+    renderGridResults(resultsGrid, starredItems, nonStarredItems) {
         resultsGrid.innerHTML = '';
-        const groupedItems = this.groupItemsByArea();
         
         let cardIndex = 0;
+        
+        // 🌟 STARS-SEKTION (nur wenn Stars vorhanden)
+        if (starredItems.length > 0) {
+            const starHeader = document.createElement('div');
+            starHeader.className = 'area-header stars-header';
+            starHeader.innerHTML = `
+                <div class="area-icon">⭐</div>
+                <span class="area-name">Meine Stars</span>
+                <span class="area-count">(${starredItems.length})</span>
+            `;
+            resultsGrid.appendChild(starHeader);
+            
+            starredItems.forEach((item) => {
+                const card = this.createDeviceCard(item);
+                resultsGrid.appendChild(card);
+                if (!this.hasAnimated) {
+                    const timeout = setTimeout(() => {
+                        this.animateElementIn(card, { opacity: [0, 1], transform: ['translateY(20px) scale(0.9)', 'translateY(0) scale(1)'] });
+                    }, cardIndex * 50);
+                    this.animationTimeouts.push(timeout);
+                }
+                cardIndex++;
+            });
+        }
+        
+        // 🏠 RAUM-SEKTIONEN (bestehende Logik mit nonStarredItems)
+        const groupedItems = this.groupItemsByArea(nonStarredItems);
+        
         Object.keys(groupedItems).sort().forEach(area => {
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
-            areaHeader.textContent = area;
+            areaHeader.innerHTML = `
+                <div class="area-icon">${this.getAreaIcon(area)}</div>
+                <span class="area-name">${area}</span>
+                <span class="area-count">(${groupedItems[area].length})</span>
+            `;
             resultsGrid.appendChild(areaHeader);
             
             groupedItems[area].forEach((item) => {
@@ -7183,15 +7222,49 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = true;
     }
     
-    renderListResults(resultsList) {
+    renderListResults(resultsList, starredItems, nonStarredItems) {
         resultsList.innerHTML = '';
-        const groupedItems = this.groupItemsByArea();
         
         let itemIndex = 0;
+        
+        // 🌟 STARS-SEKTION (nur wenn Stars vorhanden)
+        if (starredItems.length > 0) {
+            const starHeader = document.createElement('div');
+            starHeader.className = 'area-header stars-header';
+            starHeader.innerHTML = `
+                <div class="area-icon">⭐</div>
+                <span class="area-name">Meine Stars</span>
+                <span class="area-count">(${starredItems.length})</span>
+            `;
+            resultsList.appendChild(starHeader);
+            
+            starredItems.forEach((item) => {
+                const listItem = this.createDeviceListItem(item);
+                resultsList.appendChild(listItem);
+                if (!this.hasAnimated) {
+                    const timeout = setTimeout(() => {
+                        this.animateElementIn(listItem, { 
+                            opacity: [0, 1], 
+                            transform: ['translateX(-20px)', 'translateX(0)'] 
+                        });
+                    }, itemIndex * 30);
+                    this.animationTimeouts.push(timeout);
+                }
+                itemIndex++;
+            });
+        }
+        
+        // 🏠 RAUM-SEKTIONEN (bestehende Logik mit nonStarredItems)
+        const groupedItems = this.groupItemsByArea(nonStarredItems);
+        
         Object.keys(groupedItems).sort().forEach(area => {
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
-            areaHeader.textContent = area;
+            areaHeader.innerHTML = `
+                <div class="area-icon">${this.getAreaIcon(area)}</div>
+                <span class="area-name">${area}</span>
+                <span class="area-count">(${groupedItems[area].length})</span>
+            `;
             resultsList.appendChild(areaHeader);
             
             groupedItems[area].forEach((item) => {
@@ -7212,8 +7285,11 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = true;
     }
     
-    groupItemsByArea() {
-        return this.filteredItems.reduce((groups, item) => {
+    groupItemsByArea(items = null) {
+        // Falls keine Items übergeben werden, nutze this.filteredItems (für Rückwärtskompatibilität)
+        const itemsToGroup = items || this.filteredItems;
+        
+        return itemsToGroup.reduce((groups, item) => {
             const area = item.area || 'Ohne Raum';
             if (!groups[area]) { groups[area] = []; }
             groups[area].push(item);
@@ -11231,6 +11307,47 @@ class FastSearchCard extends HTMLElement {
         }
         console.log('=== END DEBUG ===');
     }    
+
+    // 🌟 NEUE METHODE: Star-Items für Suchergebnisse sammeln
+    getUserStarredItems() {
+        try {
+            const userId = this._hass.user?.id || 'unknown_user';
+            const favoritesHelper = this._hass.states['input_text.fast_search_favorites'];
+            
+            if (!favoritesHelper || !favoritesHelper.state) {
+                return [];
+            }
+            
+            const parsed = JSON.parse(favoritesHelper.state);
+            let allUserStars = {};
+            
+            if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+                allUserStars = parsed;
+            } else if (Array.isArray(parsed)) {
+                allUserStars = { [userId]: parsed };
+            }
+            
+            const userStars = allUserStars[userId] || [];
+            
+            // Stars aus aktuell gefilterten Items sammeln
+            return this.filteredItems.filter(item => userStars.includes(item.id));
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Laden der User-Stars:', error);
+            return [];
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
 
     
     
