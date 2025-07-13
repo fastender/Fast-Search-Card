@@ -11257,14 +11257,10 @@ class FastSearchCard extends HTMLElement {
             
             if (favoritesHelper && favoritesHelper.state) {
                 try {
-                    // Versuche JSON zu parsen
                     const parsed = JSON.parse(favoritesHelper.state);
-                    // Prüfe ob es bereits Multi-User Format ist
                     if (typeof parsed === 'object' && !Array.isArray(parsed)) {
                         allUserFavorites = parsed;
                     } else if (Array.isArray(parsed)) {
-                        // Legacy: Array-Format zu User-Format migrieren
-                        console.log('🔄 Migriere Legacy-Format zu Multi-User');
                         allUserFavorites = { [userId]: parsed };
                     }
                 } catch (e) {
@@ -11279,37 +11275,35 @@ class FastSearchCard extends HTMLElement {
             
             // Toggle: Hinzufügen oder entfernen
             const isFavorite = userFavorites.includes(entityId);
-            let message;
             
             if (isFavorite) {
                 userFavorites = userFavorites.filter(id => id !== entityId);
-                message = 'Favorit entfernt!';
                 console.log(`➖ Entferne ${entityId} von Favoriten`);
             } else {
                 userFavorites = [...userFavorites, entityId];
-                message = 'Favorit hinzugefügt!';
                 console.log(`➕ Füge ${entityId} zu Favoriten hinzu`);
             }
+            
+            // ✅ SOFORT visuell aktualisieren (vor dem Speichern)
+            this.updateStarButtonState(entityId);
+            this.renderResults(); // Suchergebnisse sofort aktualisieren
             
             // User-Favoriten in Gesamt-Struktur zurückschreiben
             allUserFavorites[userId] = userFavorites;
             console.log('Neue Gesamt-Struktur:', allUserFavorites);
             
-            // Zurück in Helper speichern
+            // Zurück in Helper speichern (im Hintergrund)
             await this._hass.callService('input_text', 'set_value', {
                 entity_id: 'input_text.fast_search_favorites',
                 value: JSON.stringify(allUserFavorites)
             });
             
-            console.log('✅ Benutzerspezifische Favoriten erfolgreich gespeichert');
-            alert(message);
-            
-            // Button visuell aktualisieren
-            this.updateStarButtonState(entityId);
+            console.log('✅ Favoriten gespeichert');
             
         } catch (error) {
             console.error('❌ Fehler beim Ändern der Favoriten:', error);
-            alert('Fehler: ' + error.message);
+            // Bei Fehler: Button-State zurücksetzen
+            this.updateStarButtonState(entityId);
         }
     }
     
@@ -11334,6 +11328,16 @@ class FastSearchCard extends HTMLElement {
             const userStars = allUserStars[userId] || [];
             const isStarred = userStars.includes(entityId);
             
+            // ✅ SOFORTIGE Animation für besseres Feedback
+            favoriteButton.animate([
+                { transform: 'scale(1)' },
+                { transform: 'scale(1.2)' },
+                { transform: 'scale(1)' }
+            ], {
+                duration: 200,
+                easing: 'ease-out'
+            });
+            
             // CSS-Klasse und SVG fill ändern
             favoriteButton.classList.toggle('active', isStarred);
             const svg = favoriteButton.querySelector('svg');
@@ -11347,30 +11351,6 @@ class FastSearchCard extends HTMLElement {
             console.error('❌ Fehler beim Aktualisieren des Favorite-Button:', error);
         }
     }
-
-    debugUserFavorites() {
-        const userId = this._hass.user?.id || 'unknown_user';
-        const favoritesHelper = this._hass.states['input_text.fast_search_favorites'];
-        
-        console.log('=== FAVORITEN DEBUG ===');
-        console.log('👤 Current User ID:', userId);
-        console.log('🏠 Helper State:', favoritesHelper?.state);
-        
-        if (favoritesHelper && favoritesHelper.state) {
-            try {
-                const parsed = JSON.parse(favoritesHelper.state);
-                console.log('📊 Parsed Data:', parsed);
-                
-                if (typeof parsed === 'object' && !Array.isArray(parsed)) {
-                    console.log('👥 All Users:', Object.keys(parsed));
-                    console.log('⭐ My Favorites:', parsed[userId] || []);
-                }
-            } catch (e) {
-                console.error('❌ Parse Error:', e);
-            }
-        }
-        console.log('=== END DEBUG ===');
-    }    
 
     // 🌟 NEUE METHODE: Star-Items für Suchergebnisse sammeln
     getUserStarredItems() {
