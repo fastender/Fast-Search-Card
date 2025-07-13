@@ -7881,6 +7881,15 @@ class FastSearchCard extends HTMLElement {
         });
 
         this.setupDetailTabs(item);
+
+        // NEU: Label Button Event Listener
+        const labelButton = this.shadowRoot.querySelector('.label-test-button');
+        if (labelButton) {
+            labelButton.addEventListener('click', (e) => {
+                const entityId = e.target.dataset.entityId;
+                this.addStarLabel(entityId);
+            });
+        }        
         
         const iconBackground = detailPanel.querySelector('.icon-background');
         const titleArea = detailPanel.querySelector('.detail-title-area');
@@ -8143,7 +8152,7 @@ class FastSearchCard extends HTMLElement {
                     </div>
 
                     <!-- NEU: Label Button hinzufügen -->
-                    <button class="label-test-button" onclick="this.addStarLabel('${item.id}')" title="Star Label hinzufügen">
+                    <button class="label-test-button" data-entity-id="${item.id}" title="Star Label hinzufügen">
                         ⭐
                     </button>
                     
