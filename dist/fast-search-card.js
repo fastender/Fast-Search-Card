@@ -8141,45 +8141,7 @@ class FastSearchCard extends HTMLElement {
     }
 
 
-    async function debugFavoritesFlow() {
-        console.log('=== 🔍 FAVORITEN DEBUG START ===');
-        
-        // 1. User-Daten checken
-        console.log('1️⃣ User-Daten:');
-        console.log('   _hass.user:', this._hass.user);
-        console.log('   User ID:', this._hass.user?.id);
-        console.log('   User Name:', this._hass.user?.name);
-        
-        // 2. getUserContext() testen
-        console.log('2️⃣ getUserContext():');
-        const userContext = await this.getUserContext();
-        console.log('   Result:', userContext);
-        
-        // 3. getFavoriteLabel() testen
-        console.log('3️⃣ getFavoriteLabel():');
-        const favoriteLabel = await this.getFavoriteLabel();
-        console.log('   Result:', favoriteLabel);
-        
-        // 4. Label Creation testen
-        console.log('4️⃣ Label Creation Test:');
-        try {
-            const userName = this._hass.user?.name || 'User';
-            console.log('   userName für Label:', userName);
-            console.log('   Label Name wird:', `Favoriten ${userName}`);
-            
-            await this._hass.callWS({
-                type: 'config/label_registry/create',
-                name: `Favoriten ${userName}`,
-                icon: 'mdi:heart',
-                color: '#ff4757'
-            });
-            console.log('   ✅ Label erstellt!');
-        } catch (error) {
-            console.log('   ⚠️ Label Error:', error.code, error.message);
-        }
-        
-        console.log('=== 🔍 FAVORITEN DEBUG ENDE ===');
-    }
+
 
     
     
