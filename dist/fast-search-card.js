@@ -7986,28 +7986,41 @@ class FastSearchCard extends HTMLElement {
 
     async handleFavoriteClick(item) {
         try {
+            console.log('🐛 DEBUG: handleFavoriteClick started for:', item.name);
+            
             const favoriteLabel = await this.getFavoriteLabel();
+            console.log('🐛 DEBUG: favoriteLabel:', favoriteLabel);
             
             // Sicherstellen, dass das Label existiert
             await this.ensureFavoriteLabelExists();
+            console.log('🐛 DEBUG: Label creation attempted');
             
             const isFavorite = this.isFavoriteFromCache(item.id);
+            console.log('🐛 DEBUG: isFavorite from cache:', isFavorite);
+            console.log('🐛 DEBUG: favoritesCache size:', this.favoritesCache.size);
+            console.log('🐛 DEBUG: favoritesLoaded:', this.favoritesLoaded);
             
             if (isFavorite) {
                 // Favorit entfernen
+                const newLabels = await this.getEntityLabelsWithoutFavorite(item, favoriteLabel);
+                console.log('🐛 DEBUG: Removing favorite, new labels:', newLabels);
+                
                 await this._hass.callWS({
                     type: 'config/entity_registry/update',
                     entity_id: item.id,
-                    labels: await this.getEntityLabelsWithoutFavorite(item, favoriteLabel)
+                    labels: newLabels
                 });
                 console.log('💔 Removed from favorites:', item.name);
                 this.favoritesCache.set(item.id, false);
             } else {
                 // Als Favorit hinzufügen
+                const newLabels = await this.getEntityLabelsWithFavorite(item, favoriteLabel);
+                console.log('🐛 DEBUG: Adding favorite, new labels:', newLabels);
+                
                 await this._hass.callWS({
                     type: 'config/entity_registry/update',
                     entity_id: item.id,
-                    labels: await this.getEntityLabelsWithFavorite(item, favoriteLabel)
+                    labels: newLabels
                 });
                 console.log('💖 Added to favorites:', item.name);
                 this.favoritesCache.set(item.id, true);
@@ -8019,7 +8032,7 @@ class FastSearchCard extends HTMLElement {
         } catch (error) {
             console.error('❌ Favorite action failed:', error);
         }
-    }    
+    }
 
     updateFavoriteButtonStateFromCache(item) {
         const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
