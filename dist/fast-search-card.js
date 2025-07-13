@@ -7201,7 +7201,6 @@ class FastSearchCard extends HTMLElement {
             const areaHeader = document.createElement('div');
             areaHeader.className = 'area-header';
             areaHeader.innerHTML = `
-                <div class="area-icon">${this.getAreaIcon(area)}</div>
                 <span class="area-name">${area}</span>
                 <span class="area-count">(${groupedItems[area].length})</span>
             `;
