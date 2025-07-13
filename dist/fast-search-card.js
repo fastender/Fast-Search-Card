@@ -8123,9 +8123,15 @@ class FastSearchCard extends HTMLElement {
                 type: 'config/entity_registry/list'
             });
             
+            console.log('🐛 DEBUG: Found entities in registry:', allEntities.length);
+            console.log('🐛 DEBUG: Looking for label:', this.favoriteLabel);
+            
             this.favoritesCache.clear();
             allEntities.forEach(entity => {
                 const isFav = entity.labels?.includes(this.favoriteLabel) || false;
+                if (isFav) {
+                    console.log('🐛 DEBUG: Found favorite in registry:', entity.entity_id, 'labels:', entity.labels);
+                }
                 this.favoritesCache.set(entity.entity_id, isFav);
             });
             
