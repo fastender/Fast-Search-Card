@@ -11097,43 +11097,61 @@ class FastSearchCard extends HTMLElement {
         console.log(`🌟 Toggle Favorit für ${entityId}...`);
         
         try {
-            // Aktuelle Favoriten aus Helper lesen
+            // User-ID ermitteln
+            const userId = this._hass.user?.id || 'unknown_user';
+            console.log(`👤 User ID: ${userId}`);
+            
+            // Alle User-Favoriten aus Helper lesen
             const favoritesHelper = this._hass.states['input_text.fast_search_favorites'];
-            let favorites = [];
+            let allUserFavorites = {};
             
             if (favoritesHelper && favoritesHelper.state) {
                 try {
-                    favorites = JSON.parse(favoritesHelper.state);
+                    // Versuche JSON zu parsen
+                    const parsed = JSON.parse(favoritesHelper.state);
+                    // Prüfe ob es bereits Multi-User Format ist
+                    if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+                        allUserFavorites = parsed;
+                    } else if (Array.isArray(parsed)) {
+                        // Legacy: Array-Format zu User-Format migrieren
+                        console.log('🔄 Migriere Legacy-Format zu Multi-User');
+                        allUserFavorites = { [userId]: parsed };
+                    }
                 } catch (e) {
-                    console.warn('Favoriten-Helper enthält ungültiges JSON, reset zu leerem Array');
-                    favorites = [];
+                    console.warn('Helper enthält ungültiges JSON, reset zu leerem Objekt');
+                    allUserFavorites = {};
                 }
             }
             
-            console.log('Aktuelle Favoriten:', favorites);
+            // Aktuelle User-Favoriten holen
+            let userFavorites = allUserFavorites[userId] || [];
+            console.log(`Aktuelle Favoriten für ${userId}:`, userFavorites);
             
             // Toggle: Hinzufügen oder entfernen
-            const isFavorite = favorites.includes(entityId);
-            let updatedFavorites;
+            const isFavorite = userFavorites.includes(entityId);
             let message;
             
             if (isFavorite) {
-                updatedFavorites = favorites.filter(id => id !== entityId);
+                userFavorites = userFavorites.filter(id => id !== entityId);
                 message = 'Favorit entfernt!';
+                console.log(`➖ Entferne ${entityId} von Favoriten`);
             } else {
-                updatedFavorites = [...favorites, entityId];
+                userFavorites = [...userFavorites, entityId];
                 message = 'Favorit hinzugefügt!';
+                console.log(`➕ Füge ${entityId} zu Favoriten hinzu`);
             }
             
-            console.log('Neue Favoriten:', updatedFavorites);
+            // User-Favoriten in Gesamt-Struktur zurückschreiben
+            allUserFavorites[userId] = userFavorites;
+            console.log('Neue Gesamt-Struktur:', allUserFavorites);
             
             // Zurück in Helper speichern
             await this._hass.callService('input_text', 'set_value', {
                 entity_id: 'input_text.fast_search_favorites',
-                value: JSON.stringify(updatedFavorites)
+                value: JSON.stringify(allUserFavorites)
             });
             
-            console.log('✅ Favoriten erfolgreich gespeichert');
+            console.log('✅ Benutzerspezifische Favoriten erfolgreich gespeichert');
             alert(message);
             
             // Button visuell aktualisieren
@@ -11149,24 +11167,70 @@ class FastSearchCard extends HTMLElement {
         const labelButton = this.shadowRoot.querySelector('.label-test-button');
         if (!labelButton) return;
         
-        // Favoriten aus Helper lesen
+        try {
+            // User-ID ermitteln
+            const userId = this._hass.user?.id || 'unknown_user';
+            
+            // Favoriten aus Helper lesen
+            const favoritesHelper = this._hass.states['input_text.fast_search_favorites'];
+            let allUserFavorites = {};
+            
+            if (favoritesHelper && favoritesHelper.state) {
+                try {
+                    const parsed = JSON.parse(favoritesHelper.state);
+                    if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+                        allUserFavorites = parsed;
+                    } else if (Array.isArray(parsed)) {
+                        // Legacy Format: Als aktueller User behandeln
+                        allUserFavorites = { [userId]: parsed };
+                    }
+                } catch (e) {
+                    console.warn('Fehler beim Parsen der Favoriten');
+                    allUserFavorites = {};
+                }
+            }
+            
+            // User-spezifische Favoriten prüfen
+            const userFavorites = allUserFavorites[userId] || [];
+            const isFavorite = userFavorites.includes(entityId);
+            
+            // Button Text und Style ändern
+            labelButton.textContent = isFavorite ? '🌟' : '⭐';
+            labelButton.title = isFavorite ? 'Favorit entfernen' : 'Als Favorit markieren';
+            
+            console.log(`🔍 Button State für ${entityId}: ${isFavorite ? 'Favorit' : 'Nicht-Favorit'}`);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Aktualisieren des Button-Status:', error);
+            // Fallback
+            labelButton.textContent = '⭐';
+            labelButton.title = 'Als Favorit markieren';
+        }
+    }
+
+    debugUserFavorites() {
+        const userId = this._hass.user?.id || 'unknown_user';
         const favoritesHelper = this._hass.states['input_text.fast_search_favorites'];
-        let favorites = [];
+        
+        console.log('=== FAVORITEN DEBUG ===');
+        console.log('👤 Current User ID:', userId);
+        console.log('🏠 Helper State:', favoritesHelper?.state);
         
         if (favoritesHelper && favoritesHelper.state) {
             try {
-                favorites = JSON.parse(favoritesHelper.state);
+                const parsed = JSON.parse(favoritesHelper.state);
+                console.log('📊 Parsed Data:', parsed);
+                
+                if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+                    console.log('👥 All Users:', Object.keys(parsed));
+                    console.log('⭐ My Favorites:', parsed[userId] || []);
+                }
             } catch (e) {
-                favorites = [];
+                console.error('❌ Parse Error:', e);
             }
         }
-        
-        const isFavorite = favorites.includes(entityId);
-        
-        // Button Text und Style ändern
-        labelButton.textContent = isFavorite ? '🌟' : '⭐';
-        labelButton.title = isFavorite ? 'Favorit entfernen' : 'Als Favorit markieren';
-    }
+        console.log('=== END DEBUG ===');
+    }    
 
     
     
