@@ -12425,10 +12425,9 @@ class FastSearchCard extends HTMLElement {
                             
                             console.log(`🔍 TTS finished after ${Math.round(ttsAge/1000)}s, player state: ${currentState?.state}`);
                             
-                            // Nur fortsetzen wenn:
-                            // 1. Player nicht manuell gestartet wurde während TTS
-                            // 2. TTS nicht zu alt ist (max 60s)
-                            if (currentState?.state !== 'playing' && ttsAge < 60000) {
+                            // Nur fortsetzen wenn TTS nicht zu alt ist
+                            // (Player state ist unreliable bei kurzen TTS)
+                            if (ttsAge < 10000) {  // Max 10 Sekunden statt 60
                                 console.log('🎵 Auto-resuming music after TTS (was playing before):', entityId);
                                 setTimeout(() => {
                                     this.callMusicAssistantService('media_play', entityId);
