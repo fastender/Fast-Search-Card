@@ -12106,12 +12106,13 @@ class FastSearchCard extends HTMLElement {
         if (prevBtn) prevBtn.addEventListener('click', () => this.callMusicAssistantService('media_previous_track', item.id));
 
         if (playPauseBtn) {
-            playPauseBtn.addEventListener('click', ((e) => {
+            playPauseBtn.setAttribute('data-action', 'play-pause');  // ✅ Das fehlt noch!            
+            playPauseBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.handleQuickAction('play-pause', item);
-            }).bind(this));
-        }        
+                this.handleQuickAction(item, playPauseBtn);  // ✅ Richtige Reihenfolge!
+            });
+        }      
         
         if (nextBtn) nextBtn.addEventListener('click', () => this.callMusicAssistantService('media_next_track', item.id));
 
