@@ -7867,13 +7867,16 @@ class FastSearchCard extends HTMLElement {
                     const isOn = !['off', 'unavailable'].includes(state.state);
                     this.callClimateService(isOn ? 'turn_off' : 'turn_on', item.id);
                 }
-                break;
-                
+                break;            
+
             case 'media_player':
                 if (action === 'play-pause') {
-                    this.callMusicAssistantService('media_play_pause', item.id);
+                    const state = this.hass.states[item.id];
+                    const isPlaying = state?.state === 'playing';
+                    const service = isPlaying ? 'media_pause' : 'media_play';
+                    this.hass.callService('media_player', service, { entity_id: item.id });
                 }
-                break;
+                break;               
                 
             case 'cover':
                 switch (action) {
@@ -7903,18 +7906,20 @@ class FastSearchCard extends HTMLElement {
             case 'climate':
                 button.title = isActive ? 'Ausschalten' : 'Einschalten';
                 break;
-                
+
             case 'media_player':
                 const isPlaying = state.state === 'playing';
-                button.classList.toggle('active', isPlaying);
-                button.title = isPlaying ? 'Pause' : 'Play';
+                const isUnavailable = ['unavailable', 'unknown', 'off'].includes(state.state);
                 
-                // Update icon
+                button.classList.toggle('active', isPlaying);
+                button.disabled = isUnavailable;
+                button.title = isUnavailable ? 'Nicht verfügbar' : (isPlaying ? 'Pause' : 'Play');
+                
                 const playIcon = `<svg width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor"></path></svg>`;
                 const pauseIcon = `<svg width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor"></path><path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor"></path></svg>`;
                 
                 button.innerHTML = isPlaying ? pauseIcon : playIcon;
-                break;
+                break;                
                 
             case 'cover':
                 const position = state.attributes.current_position ?? 0;
@@ -11883,14 +11888,19 @@ class FastSearchCard extends HTMLElement {
         // Update play/pause button
         const playPauseBtn = mediaContainer.querySelector('[data-action="play-pause"]');
         if (playPauseBtn) {
-            playPauseBtn.classList.remove('active');
+            playPauseBtn.classList.toggle('active', isPlaying);
+            playPauseBtn.disabled = ['unavailable', 'unknown', 'off'].includes(state.state);
             playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
             
-            // Update icon
             const iconHTML = isPlaying ? `
-                <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor" stroke-width="1"></path><path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor" stroke-width="1"></path></svg>
+                <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                    <path d="M6 18.4V5.6C6 5.26863 6.26863 5 6.6 5H9.4C9.73137 5 10 5.26863 10 5.6V18.4C10 18.7314 9.73137 19 9.4 19H6.6C6.26863 19 6 18.7314 6 18.4Z" stroke="currentColor" stroke-width="1"></path>
+                    <path d="M14 18.4V5.6C14 5.26863 14.2686 5 14.6 5H17.4C17.7314 5 18 5.26863 18 5.6V18.4C18 18.7314 17.7314 19 17.4 19H14.6C14.2686 19 14 18.7314 14 18.4Z" stroke="currentColor" stroke-width="1"></path>
+                </svg>
             ` : `
-                <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <svg width="48px" height="48px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                    <path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
             `;
             playPauseBtn.innerHTML = iconHTML;
         }
@@ -12093,7 +12103,18 @@ class FastSearchCard extends HTMLElement {
         console.log('TTS Button:', ttsBtn);        
         
         if (prevBtn) prevBtn.addEventListener('click', () => this.callMusicAssistantService('media_previous_track', item.id));
-        if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.callMusicAssistantService('media_play_pause', item.id));
+
+        if (playPauseBtn) {
+            playPauseBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const state = this.hass.states[item.id];
+                const isPlaying = state?.state === 'playing';
+                const service = isPlaying ? 'media_pause' : 'media_play';
+                this.hass.callService('media_player', service, { entity_id: item.id });
+            });
+        }
+        
         if (nextBtn) nextBtn.addEventListener('click', () => this.callMusicAssistantService('media_next_track', item.id));
 
         // Music Assistant Toggle
