@@ -7867,16 +7867,17 @@ class FastSearchCard extends HTMLElement {
                     const isOn = !['off', 'unavailable'].includes(state.state);
                     this.callClimateService(isOn ? 'turn_off' : 'turn_on', item.id);
                 }
-                break;            
+                break;                       
 
             case 'media_player':
                 if (action === 'play-pause') {
                     const state = this.hass.states[item.id];
                     const isPlaying = state?.state === 'playing';
                     const service = isPlaying ? 'media_pause' : 'media_play';
+                    console.log(`🎵 Calling: ${service} for ${item.id}, current state: ${state?.state}`);
                     this.hass.callService('media_player', service, { entity_id: item.id });
                 }
-                break;               
+                break;
                 
             case 'cover':
                 switch (action) {
@@ -12108,10 +12109,7 @@ class FastSearchCard extends HTMLElement {
             playPauseBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const state = this.hass.states[item.id];
-                const isPlaying = state?.state === 'playing';
-                const service = isPlaying ? 'media_pause' : 'media_play';
-                this.hass.callService('media_player', service, { entity_id: item.id });
+                this.handleQuickAction('play-pause', item);  // ✅ Verwende existierende Funktion
             });
         }
         
