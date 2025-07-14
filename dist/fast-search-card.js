@@ -12393,8 +12393,11 @@ class FastSearchCard extends HTMLElement {
                     // ✅ VERBESSERT: Intelligentere TTS Duration Schätzung
                     const text = textarea.value.trim();
                     const estimatedDuration = this.calculateTTSDuration(text);
+
+                    console.log(`🕒 Setting timeout for ${estimatedDuration}ms`);                    
                                         
                     setTimeout(() => {
+                        console.log(`⏰ Timeout triggered! Starting auto-resume logic...`);
                         this.updateTTSButtonState('ready');
                         
                         // ✅ VERBESSERT: Smart Auto-Resume mit Status-Check
