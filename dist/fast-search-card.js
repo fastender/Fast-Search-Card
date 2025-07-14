@@ -12305,13 +12305,26 @@ class FastSearchCard extends HTMLElement {
         
         console.log(`🎵 Player was playing before TTS: ${wasPlaying}`);
         
-        // 🆕 NEU: Musik pausieren falls sie läuft
+        // 🆕 NEU: Musik pausieren falls sie läuft  
         if (wasPlaying) {
             console.log(`⏸️ Pausing music for TTS...`);
-            await this.callMusicAssistantService('media_pause', entityId);
             
-            // Kurz warten bis Pause durch ist
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Versuche verschiedene Pause-Methoden
+            try {
+                await this.callMusicAssistantService('media_pause', entityId);
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Double-check: Ist wirklich pausiert?
+                const checkState = this._hass.states[entityId];
+                if (checkState?.state === 'playing') {
+                    console.log(`🔄 First pause failed, trying stop...`);
+                    await this.callMusicAssistantService('media_stop', entityId);
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                
+            } catch (error) {
+                console.warn(`⚠️ Pause failed:`, error);
+            }
         }
         
         // Speichere Status für später
