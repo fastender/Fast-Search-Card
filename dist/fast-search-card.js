@@ -12192,37 +12192,34 @@ class FastSearchCard extends HTMLElement {
     // Helper: Get Music Assistant Queue State
     async getQueueState(playerId) {
         try {
-            const playerName = this.extractPlayerNameFromId(playerId);
-            if (!playerName) {
-                console.log(`❌ Could not extract player name from: ${playerId}`);
+            const playerState = this._hass.states[playerId];
+            if (!playerState) {
+                console.log(`❌ Player state not found: ${playerId}`);
                 return null;
             }
             
-            const queueEntityId = `media_player.music_assistant_queue_${playerName}`;
-            const queueState = this._hass.states[queueEntityId];
+            const activeQueue = playerState.attributes.active_queue;
+            const mediaContentId = playerState.attributes.media_content_id;
             
-            if (!queueState) {
-                console.log(`❌ Queue entity not found: ${queueEntityId}`);
+            if (!activeQueue) {
+                console.log(`❌ No active queue found for: ${playerId}`);
                 return null;
             }
             
-            const queueItems = queueState.attributes.queue_items || 0;
-            const mediaContentId = queueState.attributes.media_content_id;
-            
-            console.log(`🔍 Queue ${queueEntityId}: ${queueItems} items, current: ${mediaContentId}`);
+            console.log(`🔍 Active queue ${activeQueue}, current media: ${mediaContentId}`);
             
             return {
-                hasContent: queueItems > 0 && mediaContentId,
+                hasContent: activeQueue && mediaContentId,
                 mediaContentId: mediaContentId,
-                queueItems: queueItems,
-                queueEntityId: queueEntityId
+                queueId: activeQueue,
+                playerId: playerId
             };
             
         } catch (error) {
             console.error(`❌ Error checking queue state for ${playerId}:`, error);
             return null;
         }
-    }    
+    }
     
     // Smart Play/Pause with Queue awareness
     async smartPlayPause(item) {
