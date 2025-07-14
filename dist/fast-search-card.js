@@ -12320,13 +12320,16 @@ class FastSearchCard extends HTMLElement {
         
         try {
             // Versuche zuerst Amazon Polly
-            await this._hass.callService('tts', 'amazon_polly_say', {
+            console.log(`🎤 Calling Amazon Polly TTS...`);
+            
+            // ✅ ÄNDERUNG: Nicht auf TTS warten
+            this._hass.callService('tts', 'amazon_polly_say', {
                 entity_id: entityId,
                 message: text
             });
             
-            this.updateTTSButtonState('speaking');
             console.log('✅ Amazon Polly TTS called');
+            this.updateTTSButtonState('speaking');
             
         } catch (error) {
             console.warn('⚠️ Amazon Polly failed, trying fallback TTS:', error);
