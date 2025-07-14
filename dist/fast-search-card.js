@@ -12431,7 +12431,7 @@ class FastSearchCard extends HTMLElement {
                                 console.log('🎵 Auto-resuming music after TTS (was playing before):', entityId);
                                 setTimeout(() => {
                                     this.callMusicAssistantService('media_play', entityId);
-                                }, 1000);
+                                }, 2000);  // 2 Sekunden statt 1 Sekunde warten
                             } else {
                                 console.log('⏭️ Skipping auto-resume (player manually controlled or TTS too old)');
                             }
