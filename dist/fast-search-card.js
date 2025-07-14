@@ -12093,7 +12093,7 @@ class FastSearchCard extends HTMLElement {
         console.log('TTS Button:', ttsBtn);        
         
         if (prevBtn) prevBtn.addEventListener('click', () => this.callMusicAssistantService('media_previous_track', item.id));
-        if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.callMusicAssistantService('media_play_pause', item.id));
+        if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.smartPlayPause(item));
         if (nextBtn) nextBtn.addEventListener('click', () => this.callMusicAssistantService('media_next_track', item.id));
 
         // Music Assistant Toggle
@@ -12178,6 +12178,99 @@ class FastSearchCard extends HTMLElement {
             }, 1000); // Jede Sekunde für Position Updates
         }                
     }
+
+    // Helper: Extract player name from entity ID for Music Assistant queue lookup
+    extractPlayerNameFromId(entityId) {
+        if (!entityId || typeof entityId !== 'string') return null;
+        
+        return entityId
+            .replace('media_player.', '')           // Remove domain prefix
+            .replace('music_assistant_', '')        // Remove MA prefix  
+            .replace('ma_', '');                    // Remove shortened MA prefix
+    }
+    
+    // Helper: Get Music Assistant Queue State
+    async getQueueState(playerId) {
+        try {
+            const playerName = this.extractPlayerNameFromId(playerId);
+            if (!playerName) {
+                console.log(`❌ Could not extract player name from: ${playerId}`);
+                return null;
+            }
+            
+            const queueEntityId = `media_player.music_assistant_queue_${playerName}`;
+            const queueState = this._hass.states[queueEntityId];
+            
+            if (!queueState) {
+                console.log(`❌ Queue entity not found: ${queueEntityId}`);
+                return null;
+            }
+            
+            const queueItems = queueState.attributes.queue_items || 0;
+            const mediaContentId = queueState.attributes.media_content_id;
+            
+            console.log(`🔍 Queue ${queueEntityId}: ${queueItems} items, current: ${mediaContentId}`);
+            
+            return {
+                hasContent: queueItems > 0 && mediaContentId,
+                mediaContentId: mediaContentId,
+                queueItems: queueItems,
+                queueEntityId: queueEntityId
+            };
+            
+        } catch (error) {
+            console.error(`❌ Error checking queue state for ${playerId}:`, error);
+            return null;
+        }
+    }    
+    
+    // Smart Play/Pause with Queue awareness
+    async smartPlayPause(item) {
+        const state = this._hass.states[item.id];
+        const isPlayerOff = ['off', 'idle', 'unavailable'].includes(state.state);
+        
+        console.log(`🎵 Smart Play/Pause for ${item.id}: Player state = ${state.state}`);
+        
+        if (!isPlayerOff) {
+            // Player läuft bereits - Standard Toggle
+            console.log(`✅ Player active, using standard toggle`);
+            return this.callMusicAssistantService('media_play_pause', item.id);
+        }
+        
+        // Player ist aus - prüfe Queue
+        console.log(`🔍 Player off, checking queue...`);
+        const queueState = await this.getQueueState(item.id);
+        
+        if (queueState?.hasContent) {
+            // Queue hat Inhalt - explizit abspielen
+            console.log(`🎵 Found queue content: ${queueState.mediaContentId}`);
+            return this.playFromQueue(item.id, queueState.mediaContentId);
+        }
+        
+        // Fallback: Standard Play
+        console.log(`⚠️ No queue content, using standard play`);
+        return this.callMusicAssistantService('media_play_pause', item.id);
+    }
+    
+    // Play specific media from queue
+    async playFromQueue(playerId, mediaContentId) {
+        console.log(`🎵 Playing from queue: ${mediaContentId} on ${playerId}`);
+        
+        try {
+            await this._hass.callService('music_assistant', 'play_media', {
+                entity_id: playerId,
+                media_id: mediaContentId,
+                enqueue: 'play'
+            });
+            console.log(`✅ Queue play successful`);
+        } catch (error) {
+            console.error('❌ Queue play failed, fallback to standard play:', error);
+            // Fallback
+            this.callMusicAssistantService('media_play_pause', playerId);
+        }
+    }
+
+    
 
     callMusicAssistantService(service, entity_id, data = {}) {
         // Prüfe ob es ein Music Assistant Player ist
