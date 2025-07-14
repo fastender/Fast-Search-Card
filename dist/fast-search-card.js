@@ -12429,9 +12429,11 @@ class FastSearchCard extends HTMLElement {
                             // (Player state ist unreliable bei kurzen TTS)
                             if (ttsAge < 10000) {  // Max 10 Sekunden statt 60
                                 console.log('🎵 Auto-resuming music after TTS (was playing before):', entityId);
+                                console.log('🔍 Using service call: callMusicAssistantService(media_play_pause)');
                                 setTimeout(() => {
-                                    this.callMusicAssistantService('media_play', entityId);
-                                }, 2000);  // 2 Sekunden statt 1 Sekunde warten
+                                    console.log('🚀 Executing: callMusicAssistantService(media_play_pause, ' + entityId + ')');
+                                    this.callMusicAssistantService('media_play_pause', entityId);
+                                }, 2000);
                             } else {
                                 console.log('⏭️ Skipping auto-resume (player manually controlled or TTS too old)');
                             }
