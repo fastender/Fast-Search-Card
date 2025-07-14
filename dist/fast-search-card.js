@@ -12296,12 +12296,31 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    speakTTS(text, entityId) {
+    async speakTTS(text, entityId) {
         console.log(`🗣️ Speaking: "${text}" on ${entityId}`);
+        
+        // 🆕 NEU: Player Status vor TTS merken
+        const playerState = this._hass.states[entityId];
+        const wasPlaying = playerState?.state === 'playing';
+        
+        console.log(`🎵 Player was playing before TTS: ${wasPlaying}`);
+        
+        // 🆕 NEU: Musik pausieren falls sie läuft
+        if (wasPlaying) {
+            console.log(`⏸️ Pausing music for TTS...`);
+            await this.callMusicAssistantService('media_pause', entityId);
+            
+            // Kurz warten bis Pause durch ist
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        // Speichere Status für später
+        this.ttsPlayerWasPlaying = wasPlaying;
+        this.ttsStartedAt = Date.now(); // Zeitstempel für TTS Start
         
         try {
             // Versuche zuerst Amazon Polly
-            this._hass.callService('tts', 'amazon_polly_say', {
+            await this._hass.callService('tts', 'amazon_polly_say', {
                 entity_id: entityId,
                 message: text
             });
@@ -12312,8 +12331,8 @@ class FastSearchCard extends HTMLElement {
         } catch (error) {
             console.warn('⚠️ Amazon Polly failed, trying fallback TTS:', error);
             
-            // Fallback zu Standard TTS Services
-            this.tryFallbackTTS(text, entityId);
+            // Fallback zu deinen anderen TTS Services
+            await this.tryFallbackTTS(text, entityId);
         }
     }
     
@@ -12371,19 +12390,42 @@ class FastSearchCard extends HTMLElement {
                 // Auto-Reset nach geschätzter Zeit (150 Wörter/min)
                 const textarea = activeTTSContainer.querySelector('.tts-textarea');
                 if (textarea) {
-                    const wordCount = textarea.value.trim().split(/\s+/).length;
-                    const estimatedDuration = Math.max(3000, (wordCount / 150) * 60 * 1000); // Min 3 Sekunden
-                    
+                    // ✅ VERBESSERT: Intelligentere TTS Duration Schätzung
+                    const text = textarea.value.trim();
+                    const estimatedDuration = this.calculateTTSDuration(text);
+                                        
                     setTimeout(() => {
                         this.updateTTSButtonState('ready');
                         
-                        // ✅ NEU: Auto-Resume nach TTS
+                        // ✅ VERBESSERT: Smart Auto-Resume mit Status-Check
                         const entityId = this.currentDetailItem?.id;
-                        if (entityId) {
-                            console.log('🎵 Auto-resuming music after TTS:', entityId);
-                            setTimeout(() => {
-                                this.callMusicAssistantService('media_play', entityId);
-                            }, 1000); // 1 Sekunde warten nach TTS Ende
+                        if (entityId && this.ttsPlayerWasPlaying) {
+                            // Double-check: Ist der Player immer noch im gleichen Zustand?
+                            const currentState = this._hass.states[entityId];
+                            const ttsAge = Date.now() - (this.ttsStartedAt || 0);
+                            
+                            console.log(`🔍 TTS finished after ${Math.round(ttsAge/1000)}s, player state: ${currentState?.state}`);
+                            
+                            // Nur fortsetzen wenn:
+                            // 1. Player nicht manuell gestartet wurde während TTS
+                            // 2. TTS nicht zu alt ist (max 60s)
+                            if (currentState?.state !== 'playing' && ttsAge < 60000) {
+                                console.log('🎵 Auto-resuming music after TTS (was playing before):', entityId);
+                                setTimeout(() => {
+                                    this.callMusicAssistantService('media_play', entityId);
+                                }, 1000);
+                            } else {
+                                console.log('⏭️ Skipping auto-resume (player manually controlled or TTS too old)');
+                            }
+                            
+                            // Status zurücksetzen
+                            this.ttsPlayerWasPlaying = false;
+                            this.ttsStartedAt = null;
+                            
+                        } else if (entityId) {
+                            console.log('⏭️ Player was not playing before TTS, no auto-resume');
+                            this.ttsPlayerWasPlaying = false;
+                            this.ttsStartedAt = null;
                         }
                     }, estimatedDuration);
                 }
@@ -12411,6 +12453,35 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+    // Helper: Calculate TTS duration based on text and service
+    calculateTTSDuration(text) {
+        if (!text) return 3000;
+        
+        const charCount = text.length;
+        const wordCount = text.split(/\s+/).length;
+        
+        // Verschiedene Faktoren berücksichtigen
+        let baseDuration;
+        
+        if (charCount < 50) {
+            // Kurze Texte: 100ms pro Zeichen + 1s Buffer
+            baseDuration = (charCount * 100) + 1000;
+        } else {
+            // Längere Texte: Wort-basiert mit Punctuation
+            const punctuationCount = (text.match(/[.!?;,]/g) || []).length;
+            
+            // Basis: 2.5 Wörter/Sekunde + Pause für Satzzeichen
+            baseDuration = (wordCount / 2.5 * 1000) + (punctuationCount * 300);
+        }
+        
+        // Minimum 2 Sekunden, Maximum 30 Sekunden
+        const finalDuration = Math.max(2000, Math.min(baseDuration, 30000));
+        
+        console.log(`⏱️ TTS Duration: ${Math.round(finalDuration/1000)}s for ${wordCount} words`);
+        
+        return finalDuration;
+    }
+        
     setupTTSEventListeners(item, container) {
         console.log('🔍 setupTTSEventListeners called for:', item.id);
         console.log('🔍 Container:', container);
