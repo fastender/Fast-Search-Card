@@ -12464,8 +12464,10 @@ class FastSearchCard extends HTMLElement {
         let baseDuration;
         
         if (charCount < 50) {
-            // Kurze Texte: 100ms pro Zeichen + 1s Buffer
-            baseDuration = (charCount * 100) + 1000;
+            // Kurze Texte: 80ms pro Zeichen + 500ms Buffer
+            baseDuration = (charCount * 80) + 500;
+
+            
         } else {
             // Längere Texte: Wort-basiert mit Punctuation
             const punctuationCount = (text.match(/[.!?;,]/g) || []).length;
@@ -12474,8 +12476,8 @@ class FastSearchCard extends HTMLElement {
             baseDuration = (wordCount / 2.5 * 1000) + (punctuationCount * 300);
         }
         
-        // Minimum 2 Sekunden, Maximum 30 Sekunden
-        const finalDuration = Math.max(2000, Math.min(baseDuration, 30000));
+        // Minimum 1 Sekunde, Maximum 30 Sekunden  
+        const finalDuration = Math.max(1000, Math.min(baseDuration, 30000));
         
         console.log(`⏱️ TTS Duration: ${Math.round(finalDuration/1000)}s for ${wordCount} words`);
         
