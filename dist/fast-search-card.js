@@ -12297,20 +12297,55 @@ class FastSearchCard extends HTMLElement {
     }
 
     speakTTS(text, entityId) {
-        console.log(`🗣️ Speaking via Amazon Polly: "${text}" on ${entityId}`);
+        console.log(`🗣️ Speaking: "${text}" on ${entityId}`);
         
         try {
+            // Versuche zuerst Amazon Polly
             this._hass.callService('tts', 'amazon_polly_say', {
                 entity_id: entityId,
                 message: text
             });
             
             this.updateTTSButtonState('speaking');
+            console.log('✅ Amazon Polly TTS called');
             
         } catch (error) {
-            console.error('❌ TTS Amazon Polly failed:', error);
-            this.updateTTSButtonState('error');
+            console.warn('⚠️ Amazon Polly failed, trying fallback TTS:', error);
+            
+            // Fallback zu Standard TTS Services
+            this.tryFallbackTTS(text, entityId);
         }
+    }
+    
+    // Fallback TTS Services
+    async tryFallbackTTS(text, entityId) {
+        const fallbackServices = [
+            'tts.cloud_say',           // Nabu Casa
+            'tts.google_translate_say', // Google Translate
+            'tts.piper_say',           // Piper
+            'tts.edge_tts_say'         // Microsoft Edge
+        ];
+        
+        for (const service of fallbackServices) {
+            try {
+                await this._hass.callService('tts', service.split('.')[1], {
+                    entity_id: entityId,
+                    message: text
+                });
+                
+                this.updateTTSButtonState('speaking');
+                console.log(`✅ Fallback TTS successful: ${service}`);
+                return;
+                
+            } catch (error) {
+                console.warn(`❌ ${service} failed:`, error);
+                continue;
+            }
+        }
+        
+        // Alle Services fehlgeschlagen
+        console.error('❌ All TTS services failed');
+        this.updateTTSButtonState('error');
     }
 
     updateTTSButtonState(state) {
