@@ -12559,46 +12559,22 @@ class FastSearchCard extends HTMLElement {
         }
     }    
 
-    // 🎧 EVENT-BASIERTE TTS-ÜBERWACHUNG (überwacht Media Content)
+    // 🎧 SIMPLE TTS TIMING (für Player die State nicht ändern)
     async startTTSMonitoring(entityId) {
-        console.log('🎧 Starting TTS monitoring...');
+        console.log('🎧 Starting TTS timing...');
         
-        // 💾 TTS-Start-Zustand speichern
-        const initialState = this._hass.states[entityId];
-        const ttsContentId = initialState.attributes.media_content_id;
-        console.log('🎤 TTS Content ID:', ttsContentId);
+        // 🕒 Warte 2 Sekunden Basis + 200ms pro Zeichen
+        const textarea = this.shadowRoot?.querySelector('.tts-textarea');
+        const text = textarea?.value || '';
+        const simpleDuration = 2000 + (text.length * 200); // Sehr konservativ
         
-        let checkCount = 0;
-        const maxChecks = 60;
+        console.log(`⏰ Simple TTS duration: ${simpleDuration}ms for "${text}"`);
         
-        const monitorInterval = setInterval(async () => {
-            checkCount++;
-            
-            if (!this.isTTSActive || checkCount > maxChecks) {
-                console.log('🛑 TTS monitoring stopped (timeout or inactive)');
-                clearInterval(monitorInterval);
-                await this.finalizeTTSProcess(entityId);
-                return;
-            }
-            
-            const currentState = this._hass.states[entityId];
-            const currentContentId = currentState.attributes.media_content_id;
-            
-            console.log(`🔍 TTS Monitor check ${checkCount}: Content = ${currentContentId}`);
-            
-            // 🎯 TTS beendet: Media Content hat sich geändert oder ist leer
-            if (currentContentId !== ttsContentId || !currentContentId) {
-                console.log('🎉 TTS completed! Media content changed');
-                clearInterval(monitorInterval);
-                
-                await new Promise(resolve => setTimeout(resolve, 500));
-                await this.restorePlayerContext();
-                await this.finalizeTTSProcess(entityId);
-            }
-            
-        }, 1000);
-        
-        this.ttsMonitorInterval = monitorInterval;
+        setTimeout(async () => {
+            console.log('🎉 TTS timing completed');
+            await this.restorePlayerContext();
+            await this.finalizeTTSProcess(entityId);
+        }, simpleDuration);
     }
 
     // 🏁 TTS-PROZESS FINALISIEREN
