@@ -347,7 +347,15 @@ class FastSearchCard extends HTMLElement {
         
         // NEU: Autocomplete State
         this.currentSuggestion = '';
-        this.autocompleteTimeout = null;        
+        this.autocompleteTimeout = null;      
+
+        // --- TTS (Text-to-Speech) State ---
+        this.ttsPlayerWasPlaying = null;
+        this.ttsStartedAt = null;
+        this.isTTSActive = false;              // Verhindert überlappende TTS-Calls
+        this.ttsAbortController = null;        // Ermöglicht TTS-Abbruch
+        this.ttsResumeTimeout = null;  
+        
     }
 
     setConfig(config) {
@@ -12297,90 +12305,277 @@ class FastSearchCard extends HTMLElement {
     }
 
     async speakTTS(text, entityId) {
-        console.log(`🗣️ Speaking: "${text}" on ${entityId}`);
-        
-        // 🆕 NEU: Player Status vor TTS merken
-        const playerState = this._hass.states[entityId];
-        const wasPlaying = playerState?.state === 'playing';
-        
-        console.log(`🎵 Player was playing before TTS: ${wasPlaying}`);
-        
-        // 🆕 NEU: Musik pausieren falls sie läuft  
-        if (wasPlaying) {
-            console.log(`⏸️ Pausing music for TTS...`);
+        // 🛡️ Race Condition Protection
+        if (this.isTTSActive) {
+            console.log('⚠️ TTS bereits aktiv, ignoriere neuen Aufruf');
+            return false;
+        }
+    
+        if (!this._hass || !text || !entityId) {
+            console.error('❌ Invalid TTS parameters');
+            return false;
+        }
+    
+        this.isTTSActive = true;
+        this.ttsAbortController = new AbortController();
+    
+        try {
+            console.log(`🗣️ Speaking: "${text}" on ${entityId}`);
             
-            // Versuche verschiedene Pause-Methoden
+            // 🔍 Erweiterte Player-State-Erkennung
+            const playerState = await this.getEnhancedPlayerState(entityId);
+            const wasPlaying = playerState.isActuallyPlaying;
+            
+            console.log(`🎵 Enhanced player analysis:`, playerState);
+            
+            // 💾 Status für Auto-Resume speichern
+            this.ttsPlayerWasPlaying = wasPlaying ? entityId : null;
+            this.ttsStartedAt = Date.now();
+            
+            // ⏸️ Intelligentes Pausieren
+            if (wasPlaying) {
+                await this.smartPausePlayer(entityId);
+            }
+            
+            // 🎤 TTS mit verbessertem Fallback-System
+            this.updateTTSButtonState('speaking');
+            await this.executeSmartTTS(text, entityId);
+            
+            // ⏰ Intelligente Auto-Resume-Logik
+            await this.scheduleSmartResume(text, entityId);
+            
+            return true;
+            
+        } catch (error) {
+            console.error('❌ TTS Error:', error);
+            this.updateTTSButtonState('error');
+            await this.cleanupTTSState();
+            return false;
+        }
+    }
+
+    // ⏰ INTELLIGENTE AUTO-RESUME-LOGIK
+    async scheduleSmartResume(text, entityId) {
+        if (!this.ttsPlayerWasPlaying) return;
+    
+        // 🕒 Verbesserte Duration-Berechnung
+        const duration = this.calculateEnhancedTTSDuration(text);
+        
+        console.log(`⏰ Scheduling auto-resume in ${duration}ms`);
+    
+        // 🎯 Timer-basierte Resume-Logik
+        const resumeTimeout = setTimeout(async () => {
+            await this.attemptSmartResume(entityId);
+        }, duration);
+    
+        // 🔄 Speichere Timeout für möglichen Abbruch
+        this.ttsResumeTimeout = resumeTimeout;
+    }    
+
+    // 🔍 ERWEITERTE PLAYER-STATE-ERKENNUNG
+    async getEnhancedPlayerState(entityId) {
+        const state = this._hass.states[entityId];
+        if (!state) return { isActuallyPlaying: false, confidence: 0 };
+    
+        const isPlaying = state.state === 'playing';
+        const hasContent = !!state.attributes.media_content_id;
+        const hasPosition = state.attributes.media_position != null;
+        const hasTitle = !!state.attributes.media_title;
+        const notIdle = !['idle', 'off', 'unavailable'].includes(state.state);
+        
+        // 📊 Confidence Score für bessere Entscheidungen
+        let confidence = 0;
+        if (isPlaying) confidence += 40;
+        if (hasContent) confidence += 25;
+        if (hasPosition) confidence += 15;
+        if (hasTitle) confidence += 10;
+        if (notIdle) confidence += 10;
+    
+        const isActuallyPlaying = isPlaying && hasContent && confidence >= 65;
+    
+        return {
+            isActuallyPlaying,
+            confidence,
+            state: state.state,
+            hasContent,
+            hasPosition,
+            hasTitle,
+            attributes: state.attributes
+        };
+    }
+
+    // ⏸️ SMART PAUSE PLAYER (Hierarchie mit Fallbacks)
+    async smartPausePlayer(entityId) {
+        console.log('⏸️ Smart pausing player...');
+        
+        const pauseMethods = [
+            // Music Assistant spezifisch
+            { service: 'music_assistant', action: 'media_pause', priority: 1 },
+            // Standard Media Player
+            { service: 'media_player', action: 'media_pause', priority: 2 },
+            // Fallback: Stop
+            { service: 'media_player', action: 'media_stop', priority: 3 }
+        ];
+    
+        for (const method of pauseMethods) {
             try {
-                await this.callMusicAssistantService('media_pause', entityId);
+                console.log(`🔄 Trying ${method.service}.${method.action}...`);
+                
+                await this._hass.callService(method.service, method.action, { 
+                    entity_id: entityId 
+                });
+                
+                // ⏱️ Kurz warten und Status prüfen
                 await new Promise(resolve => setTimeout(resolve, 300));
                 
-                // Double-check: Ist wirklich pausiert?
-                const checkState = this._hass.states[entityId];
-                if (checkState?.state === 'playing') {
-                    console.log(`🔄 First pause failed, trying stop...`);
-                    await this.callMusicAssistantService('media_stop', entityId);
-                    await new Promise(resolve => setTimeout(resolve, 200));
+                const newState = this._hass.states[entityId];
+                if (newState.state !== 'playing') {
+                    console.log(`✅ Successfully paused with ${method.service}.${method.action}`);
+                    return true;
                 }
                 
             } catch (error) {
-                console.warn(`⚠️ Pause failed:`, error);
-            }
-        }
-        
-        // Speichere Status für später
-        this.ttsPlayerWasPlaying = wasPlaying;
-        this.ttsStartedAt = Date.now(); // Zeitstempel für TTS Start
-        
-        try {
-            // Versuche zuerst Amazon Polly
-            console.log(`🎤 Calling Amazon Polly TTS...`);
-            
-            // ✅ ÄNDERUNG: Nicht auf TTS warten
-            this._hass.callService('tts', 'amazon_polly_say', {
-                entity_id: entityId,
-                message: text
-            });
-            
-            console.log('✅ Amazon Polly TTS called');
-            this.updateTTSButtonState('speaking');
-            
-        } catch (error) {
-            console.warn('⚠️ Amazon Polly failed, trying fallback TTS:', error);
-            
-            // Fallback zu deinen anderen TTS Services
-            await this.tryFallbackTTS(text, entityId);
-        }
-    }
-    
-    // Fallback TTS Services
-    async tryFallbackTTS(text, entityId) {
-        const fallbackServices = [
-            'tts.cloud_say',           // Nabu Casa
-            'tts.google_translate_say', // Google Translate
-            'tts.piper_say',           // Piper
-            'tts.edge_tts_say'         // Microsoft Edge
-        ];
-        
-        for (const service of fallbackServices) {
-            try {
-                await this._hass.callService('tts', service.split('.')[1], {
-                    entity_id: entityId,
-                    message: text
-                });
-                
-                this.updateTTSButtonState('speaking');
-                console.log(`✅ Fallback TTS successful: ${service}`);
-                return;
-                
-            } catch (error) {
-                console.warn(`❌ ${service} failed:`, error);
+                console.warn(`❌ ${method.service}.${method.action} failed:`, error);
                 continue;
             }
         }
         
-        // Alle Services fehlgeschlagen
-        console.error('❌ All TTS services failed');
-        this.updateTTSButtonState('error');
+        console.warn('⚠️ All pause methods failed, proceeding anyway...');
+        return false;
+    }
+
+    // 🕒 ENHANCED DURATION CALCULATION
+    calculateEnhancedTTSDuration(text) {
+        if (!text) return 3000;
+        
+        const charCount = text.length;
+        const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+        const punctuationCount = (text.match(/[.!?;,]/g) || []).length;
+        const complexityFactor = text.match(/[A-ZÄÖÜ]/g)?.length || 0; // Großbuchstaben
+        
+        let baseDuration;
+        
+        if (charCount < 50) {
+            // Kurze Texte: 100ms pro Zeichen + Basis
+            baseDuration = (charCount * 100) + 800;
+        } else {
+            // Längere Texte: Wort-basiert (Ihr Freund's Formel)
+            baseDuration = (wordCount / 2.5 * 1000) + (punctuationCount * 400);
+            
+            // 🆕 Komplexitäts-Adjustierung
+            baseDuration += (complexityFactor * 50); // Langsamer bei vielen Großbuchstaben
+        }
+        
+        // 📏 Dynamische Grenzen basierend auf Text-Länge
+        const minDuration = Math.max(2000, charCount * 30);
+        const maxDuration = Math.min(45000, wordCount * 800);
+        
+        const finalDuration = Math.max(minDuration, Math.min(baseDuration, maxDuration));
+        
+        console.log(`⏱️ Enhanced TTS Duration: ${Math.round(finalDuration/1000)}s for ${wordCount} words`);
+        return finalDuration;
+    }    
+
+    // 🎤 SMART TTS EXECUTION (Erweiterte Service-Liste)
+    async executeSmartTTS(text, entityId) {
+        // 🎯 Priorisierte TTS-Services (beste Qualität zuerst)
+        const ttsServices = [
+            'amazon_polly_say',      // Primär: Beste Qualität
+            'music_assistant_say',   // Music Assistant Integration
+            'cloud_say',             // Nabu Casa
+            'google_translate_say',  // Google Translate
+            'edge_tts_say',          // Microsoft Edge
+            'piper_say',             // Piper Local
+            'google_say',            // Google Cloud (falls verfügbar)
+            'festival_say'           // Festival (Fallback)
+        ];
+    
+        for (const [index, service] of ttsServices.entries()) {
+            // 🚫 Abbruch-Check
+            if (this.ttsAbortController?.signal.aborted) {
+                throw new Error('TTS aborted');
+            }
+    
+            try {
+                console.log(`🎤 Attempting TTS ${index + 1}/${ttsServices.length}: ${service}...`);
+                
+                await this._hass.callService('tts', service, {
+                    entity_id: entityId,
+                    message: text
+                });
+                
+                console.log(`✅ TTS successful with: ${service}`);
+                return service; // Return successful service
+                
+            } catch (error) {
+                console.warn(`❌ TTS ${service} failed:`, error);
+                
+                // Bei letztem Service: Error werfen
+                if (index === ttsServices.length - 1) {
+                    throw new Error('All TTS services failed');
+                }
+            }
+        }
+    }
+
+    // 🔄 SMART RESUME ATTEMPT
+    async attemptSmartResume(entityId) {
+        if (!this.ttsPlayerWasPlaying || this.ttsPlayerWasPlaying !== entityId) {
+            console.log('⏭️ No auto-resume needed');
+            return;
+        }
+    
+        const ttsAge = Date.now() - (this.ttsStartedAt || 0);
+        
+        // 🚫 Sicherheits-Checks
+        if (ttsAge > 60000) { // Nicht nach 1 Minute
+            console.log('⏭️ Skipping auto-resume (too old)');
+            return;
+        }
+    
+        // 🔍 Player-Status Double-Check
+        const currentState = this._hass.states[entityId];
+        if (currentState?.state === 'playing') {
+            console.log('⏭️ Player already playing, no resume needed');
+            return;
+        }
+    
+        try {
+            console.log('🎵 Auto-resuming music...');
+            
+            // 🎯 Versuche verschiedene Resume-Methoden
+            const resumeMethods = [
+                { service: 'music_assistant', action: 'media_play' },
+                { service: 'media_player', action: 'media_play' },
+                { service: 'media_player', action: 'media_play_pause' }
+            ];
+    
+            for (const method of resumeMethods) {
+                try {
+                    await this._hass.callService(method.service, method.action, {
+                        entity_id: entityId
+                    });
+                    console.log(`✅ Resumed with ${method.service}.${method.action}`);
+                    break;
+                } catch (error) {
+                    console.warn(`❌ Resume ${method.service}.${method.action} failed:`, error);
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Auto-resume failed:', error);
+        } finally {
+            await this.cleanupTTSState();
+        }
+    }    
+
+    // 🧹 CLEANUP STATE
+    async cleanupTTSState() {
+        this.isTTSActive = false;
+        this.ttsPlayerWasPlaying = null;
+        this.ttsStartedAt = null;
+        this.ttsAbortController = null;
+        console.log('🧹 TTS state cleaned up');
     }
 
     updateTTSButtonState(state) {
@@ -12395,113 +12590,46 @@ class FastSearchCard extends HTMLElement {
         const btnText = speakBtn?.querySelector('.tts-btn-text');
         
         if (!speakBtn || !btnIcon || !btnText) return;
-        
+    
         switch (state) {
             case 'speaking':
                 speakBtn.disabled = true;
-                speakBtn.style.background = '#4CAF50'; // Grün
+                speakBtn.style.background = '#28a745'; // Grün
                 btnIcon.textContent = '🔊';
                 btnText.textContent = 'Spreche...';
                 
-                // Auto-Reset nach geschätzter Zeit (150 Wörter/min)
-                const textarea = activeTTSContainer.querySelector('.tts-textarea');
-                if (textarea) {
-                    // ✅ VERBESSERT: Intelligentere TTS Duration Schätzung
-                    const text = textarea.value.trim();
-                    const estimatedDuration = this.calculateTTSDuration(text);
-
-                    console.log(`🕒 Setting timeout for ${estimatedDuration}ms`);                    
-                                        
-                    setTimeout(() => {
-                        console.log(`⏰ Timeout triggered! Starting auto-resume logic...`);
-                        this.updateTTSButtonState('ready');
-                        
-                        // ✅ VERBESSERT: Smart Auto-Resume mit Status-Check
-                        const entityId = this.currentDetailItem?.id;
-                        if (entityId && this.ttsPlayerWasPlaying) {
-                            // Double-check: Ist der Player immer noch im gleichen Zustand?
-                            const currentState = this._hass.states[entityId];
-                            const ttsAge = Date.now() - (this.ttsStartedAt || 0);
-                            
-                            console.log(`🔍 TTS finished after ${Math.round(ttsAge/1000)}s, player state: ${currentState?.state}`);
-                            
-                            // Nur fortsetzen wenn TTS nicht zu alt ist
-                            // (Player state ist unreliable bei kurzen TTS)
-                            if (ttsAge < 10000) {  // Max 10 Sekunden statt 60
-                                console.log('🎵 Auto-resuming music after TTS (was playing before):', entityId);
-                                console.log('🔍 Using service call: callMusicAssistantService(media_play_pause)');
-                                setTimeout(() => {
-                                    console.log('🚀 Executing: callMusicAssistantService(media_play_pause, ' + entityId + ')');
-                                    this.callMusicAssistantService('media_play_pause', entityId);
-                                }, 2000);
-                            } else {
-                                console.log('⏭️ Skipping auto-resume (player manually controlled or TTS too old)');
-                            }
-                            
-                            // Status zurücksetzen
-                            this.ttsPlayerWasPlaying = false;
-                            this.ttsStartedAt = null;
-                            
-                        } else if (entityId) {
-                            console.log('⏭️ Player was not playing before TTS, no auto-resume');
-                            this.ttsPlayerWasPlaying = false;
-                            this.ttsStartedAt = null;
-                        }
-                    }, estimatedDuration);
-                }
+                // 🆕 Progress Indicator (animierte Punkte)
+                let dots = 0;
+                const progressInterval = setInterval(() => {
+                    if (!this.isTTSActive) {
+                        clearInterval(progressInterval);
+                        return;
+                    }
+                    dots = (dots + 1) % 4;
+                    btnText.textContent = 'Spreche' + '.'.repeat(dots);
+                }, 500);
                 break;
-                
+    
             case 'error':
                 speakBtn.disabled = false;
-                speakBtn.style.background = '#f44336'; // Rot
+                speakBtn.style.background = '#dc3545'; // Rot
                 btnIcon.textContent = '❌';
                 btnText.textContent = 'Fehler - Erneut versuchen';
                 
-                // Reset nach 3 Sekunden
-                setTimeout(() => {
-                    this.updateTTSButtonState('ready');
-                }, 3000);
+                // Cleanup bei Error
+                this.cleanupTTSState();
+                
+                setTimeout(() => this.updateTTSButtonState('ready'), 4000);
                 break;
                 
             case 'ready':
             default:
                 speakBtn.disabled = false;
-                speakBtn.style.background = 'var(--accent)'; // Standard Blau
+                speakBtn.style.background = 'var(--accent)';
                 btnIcon.textContent = '▶️';
                 btnText.textContent = 'Sprechen';
                 break;
         }
-    }
-
-    // Helper: Calculate TTS duration based on text and service
-    calculateTTSDuration(text) {
-        if (!text) return 3000;
-        
-        const charCount = text.length;
-        const wordCount = text.split(/\s+/).length;
-        
-        // Verschiedene Faktoren berücksichtigen
-        let baseDuration;
-        
-        if (charCount < 50) {
-            // Kurze Texte: 80ms pro Zeichen + 500ms Buffer
-            baseDuration = (charCount * 80) + 500;
-
-            
-        } else {
-            // Längere Texte: Wort-basiert mit Punctuation
-            const punctuationCount = (text.match(/[.!?;,]/g) || []).length;
-            
-            // Basis: 2.5 Wörter/Sekunde + Pause für Satzzeichen
-            baseDuration = (wordCount / 2.5 * 1000) + (punctuationCount * 300);
-        }
-        
-        // Minimum 1 Sekunde, Maximum 30 Sekunden  
-        const finalDuration = Math.max(1000, Math.min(baseDuration, 30000));
-        
-        console.log(`⏱️ TTS Duration: ${Math.round(finalDuration/1000)}s for ${wordCount} words`);
-        
-        return finalDuration;
     }
         
     setupTTSEventListeners(item, container) {
