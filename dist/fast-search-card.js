@@ -12446,25 +12446,25 @@ class FastSearchCard extends HTMLElement {
         let baseDuration;
         
         if (charCount < 50) {
-            // Kurze Texte: 100ms pro Zeichen + Basis
-            baseDuration = (charCount * 100) + 800;
+            // Kurze Texte: LÄNGER machen
+            baseDuration = (charCount * 150) + 1500;  // 🆕 War: 100 + 800
         } else {
-            // Längere Texte: Wort-basiert (Ihr Freund's Formel)
-            baseDuration = (wordCount / 2.5 * 1000) + (punctuationCount * 400);
+            // Längere Texte: auch länger
+            baseDuration = (wordCount / 2.0 * 1000) + (punctuationCount * 500);  // 🆕 War: 2.5 + 400
             
             // 🆕 Komplexitäts-Adjustierung
             baseDuration += (complexityFactor * 50); // Langsamer bei vielen Großbuchstaben
         }
         
         // 📏 Dynamische Grenzen basierend auf Text-Länge
-        const minDuration = Math.max(2000, charCount * 30);
+        const minDuration = Math.max(3000, charCount * 40);  // 🆕 War: 2000, 30
         const maxDuration = Math.min(45000, wordCount * 800);
         
         const finalDuration = Math.max(minDuration, Math.min(baseDuration, maxDuration));
         
         console.log(`⏱️ Enhanced TTS Duration: ${Math.round(finalDuration/1000)}s for ${wordCount} words`);
         return finalDuration;
-    }    
+    }
 
     // 🎤 SMART TTS EXECUTION (Erweiterte Service-Liste)
     async executeSmartTTS(text, entityId) {
@@ -12529,10 +12529,10 @@ class FastSearchCard extends HTMLElement {
         const ttsAge = Date.now() - (this.ttsStartedAt || 0);
         
         // 🚫 Sicherheits-Checks
-        if (ttsAge > 60000) { // Nicht nach 1 Minute
+        if (ttsAge > 15000) { // 🆕 War: 60000 - GEÄNDERT zu 15 Sekunden
             console.log('⏭️ Skipping auto-resume (too old)');
-            await this.cleanupTTSState();  // 🆕 HINZUGEFÜGT
-            this.updateTTSButtonState('ready');  // 🆕 HINZUGEFÜGT
+            await this.cleanupTTSState();  
+            this.updateTTSButtonState('ready');  
             return;
         }
     
