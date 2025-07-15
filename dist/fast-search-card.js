@@ -12528,53 +12528,101 @@ class FastSearchCard extends HTMLElement {
     async startTTSMonitoring(entityId) {
         console.log('🎧 Starting TTS monitoring...');
         
-        let previousState = this._hass.states[entityId]?.state;
         let ttsStarted = false;
-        let silenceCounter = 0;
+        let lastPosition = null;
+        let lastMediaId = null;
+        let positionStableCount = 0;
+        let checksWithoutChange = 0;
         
-        // Überwache den Player-Status alle 100ms
+        // Speichere initiale Werte
+        const initialState = this._hass.states[entityId];
+        const initialMediaId = initialState?.attributes?.media_content_id;
+        
         this.ttsMonitorInterval = setInterval(async () => {
             const currentState = this._hass.states[entityId];
-            
             if (!currentState) return;
             
-            // Erkenne wenn TTS startet (Player wird aktiv)
-            if (!ttsStarted && currentState.state === 'playing') {
+            const currentPosition = currentState.attributes?.media_position;
+            const currentMediaId = currentState.attributes?.media_content_id;
+            const isPlaying = currentState.state === 'playing';
+            
+            // TTS Start erkennen
+            if (!ttsStarted && isPlaying) {
                 ttsStarted = true;
-                silenceCounter = 0;
-                console.log('🎤 TTS started playing');
+                console.log('🎤 TTS started');
+                checksWithoutChange = 0;
             }
             
-            // Erkenne wenn TTS fertig ist
-            if (ttsStarted && currentState.state !== 'playing') {
-                silenceCounter++;
-                
-                // Warte 3 Checks (300ms) um sicher zu sein
-                if (silenceCounter >= 3) {
+            // TTS Ende erkennen durch verschiedene Methoden:
+            if (ttsStarted) {
+                // Methode 1: Player ist nicht mehr playing
+                if (currentState.state !== 'playing') {
                     console.log('🎉 TTS completed - player stopped');
                     clearInterval(this.ttsMonitorInterval);
                     this.ttsMonitorInterval = null;
-                    
-                    // Sofort wiederherstellen!
                     await this.restorePlayerContext();
                     await this.finalizeTTSProcess(entityId);
+                    return;
+                }
+                
+                // Methode 2: Media ID hat sich geändert (zurück zur Original-Musik)
+                if (currentMediaId && currentMediaId !== lastMediaId && currentMediaId === this.savedPlayerContext?.mediaContentId) {
+                    console.log('🎉 TTS completed - original media restored');
+                    clearInterval(this.ttsMonitorInterval);
+                    this.ttsMonitorInterval = null;
+                    await this.finalizeTTSProcess(entityId);
+                    return;
+                }
+                
+                // Methode 3: Position bewegt sich nicht mehr (TTS fertig, aber Player noch "playing")
+                if (currentPosition !== undefined && currentPosition !== null) {
+                    if (currentPosition === lastPosition) {
+                        positionStableCount++;
+                        if (positionStableCount > 10) { // 1 Sekunde keine Bewegung
+                            console.log('🎉 TTS completed - position stable');
+                            clearInterval(this.ttsMonitorInterval);
+                            this.ttsMonitorInterval = null;
+                            await this.restorePlayerContext();
+                            await this.finalizeTTSProcess(entityId);
+                            return;
+                        }
+                    } else {
+                        positionStableCount = 0;
+                    }
+                }
+                
+                // Methode 4: Keine Attribute-Änderungen für längere Zeit
+                const hasChanges = JSON.stringify(currentState.attributes) !== JSON.stringify(initialState.attributes);
+                if (!hasChanges) {
+                    checksWithoutChange++;
+                    if (checksWithoutChange > 20) { // 2 Sekunden keine Änderungen
+                        console.log('🎉 TTS completed - no attribute changes');
+                        clearInterval(this.ttsMonitorInterval);
+                        this.ttsMonitorInterval = null;
+                        await this.restorePlayerContext();
+                        await this.finalizeTTSProcess(entityId);
+                        return;
+                    }
+                } else {
+                    checksWithoutChange = 0;
                 }
             }
             
-            previousState = currentState.state;
+            lastPosition = currentPosition;
+            lastMediaId = currentMediaId;
             
         }, 100); // Alle 100ms prüfen
         
-        // Sicherheits-Timeout nach 30 Sekunden
+        // Kürzeres Sicherheits-Timeout - 10 Sekunden sollten reichen
         setTimeout(() => {
             if (this.ttsMonitorInterval) {
-                console.log('⚠️ TTS monitoring timeout');
+                console.log('⚠️ TTS monitoring timeout (10s)');
                 clearInterval(this.ttsMonitorInterval);
                 this.ttsMonitorInterval = null;
                 this.restorePlayerContext();
                 this.finalizeTTSProcess(entityId);
             }
-        }, 30000);
+        }, 10000); // Reduziert von 30 auf 10 Sekunden
     }
 
     // 🏁 TTS-PROZESS FINALISIEREN
