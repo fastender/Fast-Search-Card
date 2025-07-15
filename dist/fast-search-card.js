@@ -12406,6 +12406,10 @@ class FastSearchCard extends HTMLElement {
 
     // ⏸️ SMART PAUSE PLAYER (Hierarchie mit Fallbacks)
     async smartPausePlayer(entityId) {
+        // Temporär zum Debugging - fügen Sie das in smartPausePlayer() ganz oben hinzu:
+        console.log('🔍 Available services:', Object.keys(this._hass.services));
+        console.log('🔍 Music Assistant services:', this._hass.services.music_assistant);
+        
         console.log('⏸️ Smart pausing player...');
         
         const pauseMethods = [
