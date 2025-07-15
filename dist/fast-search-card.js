@@ -12404,48 +12404,34 @@ class FastSearchCard extends HTMLElement {
         };
     }
 
-    // ⏸️ SMART PAUSE PLAYER (Hierarchie mit Fallbacks)
+    // ⏸️ SMART PAUSE PLAYER (verwendet Ihre bewährte smartPlayPause Logik)
     async smartPausePlayer(entityId) {
-        // Temporär zum Debugging - fügen Sie das in smartPausePlayer() ganz oben hinzu:
-        console.log('🔍 Available services:', Object.keys(this._hass.services));
-        console.log('🔍 Music Assistant services:', this._hass.services.music_assistant);
-        
         console.log('⏸️ Smart pausing player...');
-
-        const pauseMethods = [
-            // Music Assistant - RICHTIGER Service-Name
-            { service: 'music_assistant', action: 'pause', priority: 1 },
-            // Standard Media Player
-            { service: 'media_player', action: 'media_pause', priority: 2 },
-            // Fallback: Stop
-            { service: 'media_player', action: 'media_stop', priority: 3 }
-        ];        
-    
-        for (const method of pauseMethods) {
-            try {
-                console.log(`🔄 Trying ${method.service}.${method.action}...`);
-                
-                await this._hass.callService(method.service, method.action, { 
+        
+        try {
+            // 🎯 Verwende die gleiche Logik wie der Play/Pause Button
+            await this.smartPlayPause({ id: entityId });
+            
+            // ⏱️ Kurz warten und Status prüfen
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            const newState = this._hass.states[entityId];
+            if (newState.state !== 'playing') {
+                console.log(`✅ Successfully paused using smartPlayPause`);
+                return true;
+            } else {
+                console.log(`⚠️ Player still playing, trying direct pause...`);
+                // Fallback zu direkter Pause
+                await this._hass.callService('media_player', 'media_pause', { 
                     entity_id: entityId 
                 });
-                
-                // ⏱️ Kurz warten und Status prüfen
-                await new Promise(resolve => setTimeout(resolve, 300));
-                
-                const newState = this._hass.states[entityId];
-                if (newState.state !== 'playing') {
-                    console.log(`✅ Successfully paused with ${method.service}.${method.action}`);
-                    return true;
-                }
-                
-            } catch (error) {
-                console.warn(`❌ ${method.service}.${method.action} failed:`, error);
-                continue;
+                return true;
             }
+            
+        } catch (error) {
+            console.warn(`❌ Pause failed:`, error);
+            return false;
         }
-        
-        console.warn('⚠️ All pause methods failed, proceeding anyway...');
-        return false;
     }
 
     // 🕒 ENHANCED DURATION CALCULATION
@@ -12556,23 +12542,13 @@ class FastSearchCard extends HTMLElement {
         try {
             console.log('🎵 Auto-resuming music...');
             
-            // 🎯 Versuche verschiedene Resume-Methoden
-            const resumeMethods = [
-                { service: 'music_assistant', action: 'play' },          // GEÄNDERT
-                { service: 'media_player', action: 'media_play' },
-                { service: 'media_player', action: 'media_play_pause' }
-            ];
-    
-            for (const method of resumeMethods) {
-                try {
-                    await this._hass.callService(method.service, method.action, {
-                        entity_id: entityId
-                    });
-                    console.log(`✅ Resumed with ${method.service}.${method.action}`);
-                    break;
-                } catch (error) {
-                    console.warn(`❌ Resume ${method.service}.${method.action} failed:`, error);
-                }
+            // 🎯 Verwende smartPlayPause für Resume
+            try {
+                console.log('🎵 Auto-resuming music...');
+                await this.smartPlayPause({ id: entityId });
+                console.log(`✅ Resumed using smartPlayPause`);
+            } catch (error) {
+                console.error('❌ Auto-resume failed:', error);
             }
             
         } catch (error) {
