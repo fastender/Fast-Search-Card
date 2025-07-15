@@ -12411,15 +12411,15 @@ class FastSearchCard extends HTMLElement {
         console.log('🔍 Music Assistant services:', this._hass.services.music_assistant);
         
         console.log('⏸️ Smart pausing player...');
-        
+
         const pauseMethods = [
-            // Music Assistant spezifisch
-            { service: 'music_assistant', action: 'media_pause', priority: 1 },
+            // Music Assistant - RICHTIGER Service-Name
+            { service: 'music_assistant', action: 'pause', priority: 1 },
             // Standard Media Player
             { service: 'media_player', action: 'media_pause', priority: 2 },
             // Fallback: Stop
             { service: 'media_player', action: 'media_stop', priority: 3 }
-        ];
+        ];        
     
         for (const method of pauseMethods) {
             try {
@@ -12558,7 +12558,7 @@ class FastSearchCard extends HTMLElement {
             
             // 🎯 Versuche verschiedene Resume-Methoden
             const resumeMethods = [
-                { service: 'music_assistant', action: 'media_play' },
+                { service: 'music_assistant', action: 'play' },          // GEÄNDERT
                 { service: 'media_player', action: 'media_play' },
                 { service: 'media_player', action: 'media_play_pause' }
             ];
