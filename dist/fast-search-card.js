@@ -12521,6 +12521,8 @@ class FastSearchCard extends HTMLElement {
     async attemptSmartResume(entityId) {
         if (!this.ttsPlayerWasPlaying || this.ttsPlayerWasPlaying !== entityId) {
             console.log('⏭️ No auto-resume needed');
+            await this.cleanupTTSState();  // 🆕 HINZUGEFÜGT
+            this.updateTTSButtonState('ready');  // 🆕 HINZUGEFÜGT
             return;
         }
     
@@ -12529,6 +12531,8 @@ class FastSearchCard extends HTMLElement {
         // 🚫 Sicherheits-Checks
         if (ttsAge > 60000) { // Nicht nach 1 Minute
             console.log('⏭️ Skipping auto-resume (too old)');
+            await this.cleanupTTSState();  // 🆕 HINZUGEFÜGT
+            this.updateTTSButtonState('ready');  // 🆕 HINZUGEFÜGT
             return;
         }
     
@@ -12536,27 +12540,23 @@ class FastSearchCard extends HTMLElement {
         const currentState = this._hass.states[entityId];
         if (currentState?.state === 'playing') {
             console.log('⏭️ Player already playing, no resume needed');
+            await this.cleanupTTSState();  // 🆕 HINZUGEFÜGT
+            this.updateTTSButtonState('ready');  // 🆕 HINZUGEFÜGT
             return;
         }
     
         try {
-            console.log('🎵 Auto-resuming music...');
-            
             // 🎯 Verwende smartPlayPause für Resume
-            try {
-                console.log('🎵 Auto-resuming music...');
-                await this.smartPlayPause({ id: entityId });
-                console.log(`✅ Resumed using smartPlayPause`);
-            } catch (error) {
-                console.error('❌ Auto-resume failed:', error);
-            }
-            
+            console.log('🎵 Auto-resuming music...');
+            await this.smartPlayPause({ id: entityId });
+            console.log(`✅ Resumed using smartPlayPause`);
         } catch (error) {
             console.error('❌ Auto-resume failed:', error);
         } finally {
             await this.cleanupTTSState();
+            this.updateTTSButtonState('ready');  // 🆕 HINZUGEFÜGT
         }
-    }    
+    }
 
     // 🧹 CLEANUP STATE
     async cleanupTTSState() {
