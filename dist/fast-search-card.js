@@ -12505,6 +12505,15 @@ class FastSearchCard extends HTMLElement {
                 });
                 
                 console.log(`✅ TTS successful with: ${service}`);
+
+                // 🆕 HINZUFÜGEN: Expliziter Play-Befehl nach TTS
+                console.log(`▶️ Starting TTS playback...`);
+                await new Promise(resolve => setTimeout(resolve, 300)); // Kurz warten
+                await this._hass.callService('media_player', 'media_play', {
+                    entity_id: entityId
+                });
+                console.log(`🎵 TTS playback started`);
+                
                 return service; // Return successful service
                 
             } catch (error) {
