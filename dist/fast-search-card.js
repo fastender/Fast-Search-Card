@@ -12449,43 +12449,52 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    // 🎤 SMART TTS EXECUTION (Erweiterte Service-Liste)
+    // in der FastSearchCard-Klasse
+    
     async executeSmartTTS(text, entityId) {
-        // 🎯 Priorisierte TTS-Services (beste Qualität zuerst)
+        // 🎯 Music Assistant als primären Service für MA-Player verwenden
+        if (entityId.includes('music_assistant') || entityId.includes('ma_')) {
+            try {
+                console.log('🎤 Attempting TTS via Music Assistant...');
+                await this._hass.callService('music_assistant', 'say', {
+                    entity_id: entityId,
+                    message: text,
+                    // Optional: Die Lautstärke während der Ansage anpassen
+                    // volume_level: 0.8 
+                });
+                console.log('✅ TTS successful with: music_assistant.say');
+                return 'music_assistant.say'; // Erfolgreich, Funktion beenden
+            } catch (error) {
+                console.warn(`❌ Music Assistant TTS failed, trying standard TTS...`, error);
+                // Wenn MA fehlschlägt, fahren wir mit den Standard-Diensten fort
+            }
+        }
+    
+        // Fallback: Die bestehende Logik für alle anderen Player
         const ttsServices = [
-            'amazon_polly_say',      // Primär: Beste Qualität
-            'music_assistant_say',   // Music Assistant Integration
-            'cloud_say',             // Nabu Casa
-            'google_translate_say',  // Google Translate
-            'edge_tts_say',          // Microsoft Edge
-            'piper_say',             // Piper Local
-            'google_say',            // Google Cloud (falls verfügbar)
-            'festival_say'           // Festival (Fallback)
+            'amazon_polly_say',
+            'cloud_say',
+            'google_translate_say',
+            'edge_tts_say',
+            'piper_say',
         ];
     
         for (const [index, service] of ttsServices.entries()) {
-            // 🚫 Abbruch-Check
             if (this.ttsAbortController?.signal.aborted) {
                 throw new Error('TTS aborted');
             }
-    
             try {
                 console.log(`🎤 Attempting TTS ${index + 1}/${ttsServices.length}: ${service}...`);
-                
                 await this._hass.callService('tts', service, {
                     entity_id: entityId,
                     message: text
                 });
-                
-                console.log(`✅ TTS successful with: ${service}`);                
-                return service; // Return successful service
-                
+                console.log(`✅ TTS successful with: ${service}`);
+                return service;
             } catch (error) {
                 console.warn(`❌ TTS ${service} failed:`, error);
-                
-                // Bei letztem Service: Error werfen
                 if (index === ttsServices.length - 1) {
-                    throw new Error('All TTS services failed');
+                    throw new Error('All standard TTS services failed');
                 }
             }
         }
