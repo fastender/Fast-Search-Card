@@ -12559,17 +12559,21 @@ class FastSearchCard extends HTMLElement {
         }
     }    
 
-    // 🎧 EVENT-BASIERTE TTS-ÜBERWACHUNG (ersetzt Timer-Logik)
+    // 🎧 EVENT-BASIERTE TTS-ÜBERWACHUNG (überwacht Media Content)
     async startTTSMonitoring(entityId) {
         console.log('🎧 Starting TTS monitoring...');
         
+        // 💾 TTS-Start-Zustand speichern
+        const initialState = this._hass.states[entityId];
+        const ttsContentId = initialState.attributes.media_content_id;
+        console.log('🎤 TTS Content ID:', ttsContentId);
+        
         let checkCount = 0;
-        const maxChecks = 60; // Max 60 Sekunden überwachen
+        const maxChecks = 60;
         
         const monitorInterval = setInterval(async () => {
             checkCount++;
             
-            // 🚫 Abbruch-Bedingungen
             if (!this.isTTSActive || checkCount > maxChecks) {
                 console.log('🛑 TTS monitoring stopped (timeout or inactive)');
                 clearInterval(monitorInterval);
@@ -12577,30 +12581,23 @@ class FastSearchCard extends HTMLElement {
                 return;
             }
             
-            // 🔍 Player-Status prüfen
             const currentState = this._hass.states[entityId];
-            const playerState = currentState?.state;
+            const currentContentId = currentState.attributes.media_content_id;
             
-            console.log(`🔍 TTS Monitor check ${checkCount}: Player state = ${playerState}`);
+            console.log(`🔍 TTS Monitor check ${checkCount}: Content = ${currentContentId}`);
             
-            // 🎯 TTS beendet erkennen: Player ist nicht mehr 'playing'
-            if (playerState !== 'playing') {
-                console.log('🎉 TTS completed! Player no longer playing');
+            // 🎯 TTS beendet: Media Content hat sich geändert oder ist leer
+            if (currentContentId !== ttsContentId || !currentContentId) {
+                console.log('🎉 TTS completed! Media content changed');
                 clearInterval(monitorInterval);
                 
-                // Kurz warten für sauberen Übergang
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Player-Kontext wiederherstellen
                 await this.restorePlayerContext();
-                
-                // Button-Status zurücksetzen
                 await this.finalizeTTSProcess(entityId);
             }
             
-        }, 1000); // Jede Sekunde prüfen
+        }, 1000);
         
-        // Store interval for potential cleanup
         this.ttsMonitorInterval = monitorInterval;
     }
 
