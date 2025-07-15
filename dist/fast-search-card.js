@@ -355,6 +355,8 @@ class FastSearchCard extends HTMLElement {
         this.isTTSActive = false;              // Verhindert überlappende TTS-Calls
         this.ttsAbortController = null;        // Ermöglicht TTS-Abbruch
         this.ttsResumeTimeout = null;  
+        this.savedPlayerContext = null;  // 🆕 Für Player-Kontext speichern
+        this.ttsMonitorInterval = null;  // 🆕 Für Event-Monitoring
         
     }
 
@@ -12331,6 +12333,21 @@ class FastSearchCard extends HTMLElement {
             // 💾 Status für Auto-Resume speichern
             this.ttsPlayerWasPlaying = wasPlaying ? entityId : null;
             this.ttsStartedAt = Date.now();
+
+            // 💾 VOLLSTÄNDIGEN Player-Zustand speichern
+            if (wasPlaying) {
+                const state = this._hass.states[entityId];
+                this.savedPlayerContext = {
+                    entityId: entityId,
+                    mediaContentId: state.attributes.media_content_id,
+                    mediaContentType: state.attributes.media_content_type || 'music',
+                    mediaPosition: state.attributes.media_position || 0,
+                    volumeLevel: state.attributes.volume_level,
+                    mediaTitle: state.attributes.media_title,
+                    mediaArtist: state.attributes.media_artist
+                };
+                console.log('💾 Saved player context:', this.savedPlayerContext);
+            }            
             
             // ⏸️ Intelligentes Pausieren
             if (wasPlaying) {
@@ -12341,8 +12358,8 @@ class FastSearchCard extends HTMLElement {
             this.updateTTSButtonState('speaking');
             await this.executeSmartTTS(text, entityId);
             
-            // ⏰ Intelligente Auto-Resume-Logik
-            await this.scheduleSmartResume(text, entityId);
+            // 🎧 Event-basierte TTS-Überwachung (ersetzt Timer)
+            await this.startTTSMonitoring(entityId);
             
             return true;
             
@@ -12353,24 +12370,6 @@ class FastSearchCard extends HTMLElement {
             return false;
         }
     }
-
-    // ⏰ INTELLIGENTE AUTO-RESUME-LOGIK
-    async scheduleSmartResume(text, entityId) {
-        if (!this.ttsPlayerWasPlaying) return;
-    
-        // 🕒 Verbesserte Duration-Berechnung
-        const duration = this.calculateEnhancedTTSDuration(text);
-        
-        console.log(`⏰ Scheduling auto-resume in ${duration}ms`);
-    
-        // 🎯 Timer-basierte Resume-Logik
-        const resumeTimeout = setTimeout(async () => {
-            await this.attemptSmartResume(entityId);
-        }, duration);
-    
-        // 🔄 Speichere Timeout für möglichen Abbruch
-        this.ttsResumeTimeout = resumeTimeout;
-    }    
 
     // 🔍 ERWEITERTE PLAYER-STATE-ERKENNUNG
     async getEnhancedPlayerState(entityId) {
@@ -12494,16 +12493,7 @@ class FastSearchCard extends HTMLElement {
                     message: text
                 });
                 
-                console.log(`✅ TTS successful with: ${service}`);
-
-                // 🆕 HINZUFÜGEN: Expliziter Play-Befehl nach TTS
-                console.log(`▶️ Starting TTS playback...`);
-                await new Promise(resolve => setTimeout(resolve, 300)); // Kurz warten
-                await this._hass.callService('media_player', 'media_play', {
-                    entity_id: entityId
-                });
-                console.log(`🎵 TTS playback started`);
-                
+                console.log(`✅ TTS successful with: ${service}`);                
                 return service; // Return successful service
                 
             } catch (error) {
@@ -12517,46 +12507,122 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    // 🔄 SMART RESUME ATTEMPT
-    async attemptSmartResume(entityId) {
-        if (!this.ttsPlayerWasPlaying || this.ttsPlayerWasPlaying !== entityId) {
-            console.log('⏭️ No auto-resume needed');
-            await this.cleanupTTSState();  // 🆕 HINZUGEFÜGT
-            this.updateTTSButtonState('ready');  // 🆕 HINZUGEFÜGT
-            return;
+    // 🔄 RESTORE PLAYER CONTEXT (Event-basierte Wiederherstellung)
+    async restorePlayerContext() {
+        if (!this.savedPlayerContext) {
+            console.log('⏭️ No saved player context to restore');
+            return false;
         }
     
-        const ttsAge = Date.now() - (this.ttsStartedAt || 0);
-        
-        // 🚫 Sicherheits-Checks
-        if (ttsAge > 15000) { // 🆕 War: 60000 - GEÄNDERT zu 15 Sekunden
-            console.log('⏭️ Skipping auto-resume (too old)');
-            await this.cleanupTTSState();  
-            this.updateTTSButtonState('ready');  
-            return;
-        }
-    
-        // 🔍 Player-Status Double-Check
-        const currentState = this._hass.states[entityId];
-        if (currentState?.state === 'playing') {
-            console.log('⏭️ Player already playing, no resume needed');
-            await this.cleanupTTSState();  // 🆕 HINZUGEFÜGT
-            this.updateTTSButtonState('ready');  // 🆕 HINZUGEFÜGT
-            return;
-        }
+        const context = this.savedPlayerContext;
+        console.log('🔄 Restoring player context:', context);
     
         try {
-            // 🎯 Verwende smartPlayPause für Resume
-            console.log('🎵 Auto-resuming music...');
-            await this.smartPlayPause({ id: entityId });
-            console.log(`✅ Resumed using smartPlayPause`);
+            // 1️⃣ Originalinhalt wiederherstellen
+            console.log('🎵 Restoring original media...');
+            await this._hass.callService('media_player', 'play_media', {
+                entity_id: context.entityId,
+                media_content_id: context.mediaContentId,
+                media_content_type: context.mediaContentType
+            });
+    
+            // 2️⃣ Kurz warten, damit Player den neuen Inhalt lädt
+            await new Promise(resolve => setTimeout(resolve, 800));
+    
+            // 3️⃣ Zur gespeicherten Position springen
+            if (context.mediaPosition && context.mediaPosition > 0) {
+                console.log(`⏭️ Seeking to position: ${context.mediaPosition}s`);
+                await this._hass.callService('media_player', 'media_seek', {
+                    entity_id: context.entityId,
+                    seek_position: context.mediaPosition
+                });
+            }
+    
+            // 4️⃣ Lautstärke wiederherstellen (falls geändert)
+            if (context.volumeLevel && context.volumeLevel > 0) {
+                await this._hass.callService('media_player', 'volume_set', {
+                    entity_id: context.entityId,
+                    volume_level: context.volumeLevel
+                });
+            }
+    
+            console.log('✅ Player context successfully restored');
+            return true;
+    
         } catch (error) {
-            console.error('❌ Auto-resume failed:', error);
+            console.error('❌ Failed to restore player context:', error);
+            return false;
         } finally {
-            await this.cleanupTTSState();
-            this.updateTTSButtonState('ready');  // 🆕 HINZUGEFÜGT
+            // 5️⃣ Aufräumen
+            this.savedPlayerContext = null;
+            console.log('🧹 Saved player context cleared');
         }
+    }    
+
+    // 🎧 EVENT-BASIERTE TTS-ÜBERWACHUNG (ersetzt Timer-Logik)
+    async startTTSMonitoring(entityId) {
+        console.log('🎧 Starting TTS monitoring...');
+        
+        let checkCount = 0;
+        const maxChecks = 60; // Max 60 Sekunden überwachen
+        
+        const monitorInterval = setInterval(async () => {
+            checkCount++;
+            
+            // 🚫 Abbruch-Bedingungen
+            if (!this.isTTSActive || checkCount > maxChecks) {
+                console.log('🛑 TTS monitoring stopped (timeout or inactive)');
+                clearInterval(monitorInterval);
+                await this.finalizeTTSProcess(entityId);
+                return;
+            }
+            
+            // 🔍 Player-Status prüfen
+            const currentState = this._hass.states[entityId];
+            const playerState = currentState?.state;
+            
+            console.log(`🔍 TTS Monitor check ${checkCount}: Player state = ${playerState}`);
+            
+            // 🎯 TTS beendet erkennen: Player ist nicht mehr 'playing'
+            if (playerState !== 'playing') {
+                console.log('🎉 TTS completed! Player no longer playing');
+                clearInterval(monitorInterval);
+                
+                // Kurz warten für sauberen Übergang
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Player-Kontext wiederherstellen
+                await this.restorePlayerContext();
+                
+                // Button-Status zurücksetzen
+                await this.finalizeTTSProcess(entityId);
+            }
+            
+        }, 1000); // Jede Sekunde prüfen
+        
+        // Store interval for potential cleanup
+        this.ttsMonitorInterval = monitorInterval;
     }
+
+    // 🏁 TTS-PROZESS FINALISIEREN
+    async finalizeTTSProcess(entityId) {
+        console.log('🏁 Finalizing TTS process...');
+        
+        // Aufräumen
+        await this.cleanupTTSState();
+        
+        // Button zurücksetzen
+        this.updateTTSButtonState('ready');
+        
+        // Monitor-Interval löschen
+        if (this.ttsMonitorInterval) {
+            clearInterval(this.ttsMonitorInterval);
+            this.ttsMonitorInterval = null;
+        }
+        
+        console.log('✅ TTS process finalized');
+    }    
+
 
     // 🧹 CLEANUP STATE
     async cleanupTTSState() {
