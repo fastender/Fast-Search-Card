@@ -8134,9 +8134,12 @@ class FastSearchCard extends HTMLElement {
                     videoElement.src = newVideoUrl;
                     videoElement.load();
                 }
-                // Loop-Attribut explizit entfernen
-                videoElement.removeAttribute('loop');
-                videoElement.loop = false;
+                
+                // Event Listener für Video-Ende hinzufügen
+                videoElement.onended = function() {
+                    this.currentTime = this.duration - 0.1; // Am letzten Frame stoppen
+                    this.pause();
+                };
             }
         }
         
@@ -14775,7 +14778,7 @@ class FastSearchCard extends HTMLElement {
         if (!videoUrl) return '';
         
         return `
-            <video class="icon-video" autoplay muted playsinline onended="this.currentTime=this.duration">
+            <video class="icon-video" autoplay muted playsinline>
                 <source src="${videoUrl}" type="video/mp4">
                 <source src="${videoUrl.replace('.mp4', '.webm')}" type="video/webm">
             </video>
