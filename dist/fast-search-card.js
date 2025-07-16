@@ -8130,28 +8130,23 @@ class FastSearchCard extends HTMLElement {
             // Video Element Update
             const videoElement = detailPanel.querySelector('.icon-video');
             if (videoElement) {
-                console.log('Video Element gefunden:', videoElement);
-                console.log('Video loop Eigenschaft:', videoElement.loop);
-                console.log('Video src:', videoElement.src);
-                
                 const newVideoUrl = this.getVideoUrl(item);
+                
+                // NUR Video neu laden wenn URL sich geändert hat
                 if (newVideoUrl && videoElement.src !== newVideoUrl) {
+                    console.log('Video URL geändert, lade neu:', newVideoUrl);
                     videoElement.src = newVideoUrl;
                     videoElement.load();
+                    
+                    // Event Listener nur bei neuem Video setzen
+                    videoElement.onended = function() {
+                        console.log('Video beendet! Pausiere jetzt...');
+                        this.pause();
+                        this.currentTime = this.duration - 0.1;
+                    };
+                } else {
+                    console.log('Video URL unverändert, kein Reload nötig');
                 }
-                
-                // Loop explizit deaktivieren
-                videoElement.loop = false;
-                videoElement.removeAttribute('loop');
-                
-                // Event Listener hinzufügen
-                videoElement.onended = function() {
-                    console.log('Video beendet! Pausiere jetzt...');
-                    this.pause();
-                    this.currentTime = this.duration - 0.1;
-                };
-                
-                console.log('Nach Setup - Video loop:', videoElement.loop);
             }
         }
         
