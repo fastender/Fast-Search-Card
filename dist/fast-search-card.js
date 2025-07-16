@@ -8149,8 +8149,21 @@ class FastSearchCard extends HTMLElement {
                 const newVideoUrl = this.getVideoUrl(item);
                 const currentSrc = videoElement.src || videoElement.getAttribute('src');
                 
-                // Nur bei echter URL-Änderung updaten
-                if (newVideoUrl && currentSrc && !currentSrc.includes(newVideoUrl.split('/').pop())) {
+                // Verbesserte Änderungs-Erkennung: 
+                // Vergleiche sowohl URL als auch aktuellen State
+                const currentVideoFile = currentSrc ? currentSrc.split('/').pop() : '';
+                const newVideoFile = newVideoUrl ? newVideoUrl.split('/').pop() : '';
+                
+                console.log('🎬 Video Check:', {
+                    current: currentVideoFile,
+                    new: newVideoFile,
+                    shouldUpdate: currentVideoFile !== newVideoFile
+                });
+                
+                // Update wenn Dateiname sich ändert (climate-on.mp4 ↔ climate-off.mp4)
+                if (newVideoUrl && currentVideoFile !== newVideoFile) {
+                    console.log('🔄 Video State geändert, lade neues Video:', newVideoFile);
+                    
                     videoElement.src = newVideoUrl;
                     videoElement.load();
                     
