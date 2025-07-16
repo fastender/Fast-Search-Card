@@ -1145,6 +1145,7 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
             }
 
+
             .icon-video {
                 position: absolute;
                 top: 0;
@@ -1153,9 +1154,9 @@ class FastSearchCard extends HTMLElement {
                 height: 100%;
                 object-fit: cover;
                 border-radius: 20px;
-                z-index: 1;
-                opacity: 0;
-                transition: opacity 0.3s ease;
+                z-index: 2;  /* Höher als background */
+                opacity: 1;  /* Direkt sichtbar */
+                background: black;  /* Schwarzer Hintergrund während Laden */
             }
             
             .icon-video[autoplay] {
@@ -14771,12 +14772,12 @@ class FastSearchCard extends HTMLElement {
         if (!videoUrl) return '';
         
         return `
-            <video class="icon-video" autoplay muted loop playsinline>
+            <video class="icon-video" autoplay muted playsinline onended="this.currentTime=this.duration">
                 <source src="${videoUrl}" type="video/mp4">
                 <source src="${videoUrl.replace('.mp4', '.webm')}" type="video/webm">
             </video>
         `;
-    }    
+    }
 
     
     
