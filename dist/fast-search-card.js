@@ -8135,17 +8135,14 @@ class FastSearchCard extends HTMLElement {
                 
                 // Nur bei echter URL-Änderung updaten
                 if (newVideoUrl && currentSrc && !currentSrc.includes(newVideoUrl.split('/').pop())) {
-                    console.log('Video URL wirklich geändert:', newVideoUrl);
                     videoElement.src = newVideoUrl;
                     videoElement.load();
                     
                     videoElement.onended = function() {
-                        console.log('Video beendet! Pausiere jetzt...');
                         this.pause();
                         this.currentTime = this.duration - 0.1;
                     };
                 }
-                // Wenn Video bereits läuft und korrekte URL hat - NICHTS machen
             }
             
         }
