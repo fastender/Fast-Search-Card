@@ -1147,6 +1147,7 @@ class FastSearchCard extends HTMLElement {
 
 
 
+
             .icon-video {
                 position: absolute;
                 top: 0;
@@ -1156,8 +1157,19 @@ class FastSearchCard extends HTMLElement {
                 object-fit: cover;
                 border-radius: 20px;
                 z-index: 2;
-                opacity: 0;  /* Startet unsichtbar */
-                transition: none;  /* Keine CSS-Transition, da wir Web Animations nutzen */
+                opacity: 0;
+                animation: videoFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+            
+            @keyframes videoFadeIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.95);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
             }
             
             .icon-video[autoplay] {
@@ -8136,44 +8148,13 @@ class FastSearchCard extends HTMLElement {
                 
                 // Nur bei echter URL-Änderung updaten
                 if (newVideoUrl && currentSrc && !currentSrc.includes(newVideoUrl.split('/').pop())) {
-                    // Fade-out → Update → Fade-in
-                    videoElement.animate([
-                        { opacity: 1 },
-                        { opacity: 0 }
-                    ], {
-                        duration: 300,
-                        easing: 'ease-out'
-                    }).onfinish = () => {
-                        videoElement.src = newVideoUrl;
-                        videoElement.load();
-                        
-                        // Fade-in nach erfolgreichem Laden
-                        videoElement.addEventListener('canplay', () => {
-                            videoElement.animate([
-                                { opacity: 0, transform: 'scale(0.95)' },
-                                { opacity: 1, transform: 'scale(1)' }
-                            ], {
-                                duration: 600,
-                                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                                fill: 'forwards'
-                            });
-                        }, { once: true });
-                        
-                        videoElement.onended = function() {
-                            this.pause();
-                            this.currentTime = this.duration - 0.1;
-                        };
+                    videoElement.src = newVideoUrl;
+                    videoElement.load();
+                    
+                    videoElement.onended = function() {
+                        this.pause();
+                        this.currentTime = this.duration - 0.1;
                     };
-                } else if (videoElement.style.opacity === '0' || !videoElement.style.opacity) {
-                    // Erstes Laden - direkte Fade-in Animation
-                    videoElement.animate([
-                        { opacity: 0, transform: 'scale(0.95)' },
-                        { opacity: 1, transform: 'scale(1)' }
-                    ], {
-                        duration: 600,
-                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                        fill: 'forwards'
-                    });
                 }
             }
             
