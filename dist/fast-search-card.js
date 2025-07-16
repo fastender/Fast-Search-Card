@@ -1145,6 +1145,23 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
             }
 
+            .icon-video {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 20px;
+                z-index: 1;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            
+            .icon-video[autoplay] {
+                opacity: 1;
+            }            
+
             .icon-content {
                 flex-grow: 1;
                 display: flex;
@@ -8108,6 +8125,15 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
             }
+            // Video Element Update
+            const videoElement = detailPanel.querySelector('.icon-video');
+            if (videoElement) {
+                const newVideoUrl = this.getVideoUrl(item);
+                if (newVideoUrl && videoElement.src !== newVideoUrl) {
+                    videoElement.src = newVideoUrl;
+                    videoElement.load();
+                }
+            }            
         }
         
         // Device-spezifische Updates (bleibt gleich)
@@ -8298,6 +8324,7 @@ class FastSearchCard extends HTMLElement {
             <div class="icon-content">
                 <div class="icon-background-wrapper">
                     <div class="icon-background" style="${backgroundStyle}">
+                        ${this.hasVideoUrl(item) ? this.renderVideoElement(item) : ''}
                     </div>
                 </div>
                 <div class="detail-info-row" style="gap: ${isActive ? '12px' : '0px'}">
@@ -14703,6 +14730,56 @@ class FastSearchCard extends HTMLElement {
         // Live-State Attribute verwenden statt item.attributes
         return state.attributes.entity_picture || state.attributes.media_image_url || null;
     }
+
+    
+
+    getVideoUrl(item) {
+        if (!item) return null;
+        
+        // Klima-Geräte: State-basierte Video-URLs (lokal gehostet)
+        if (item.domain === 'climate') {
+            const state = this._hass?.states[item.id];
+            const isActive = state && state.state !== 'off';
+            
+            const baseUrl = '/local/fast-search-card/';
+            return baseUrl + (isActive ? 'climate-on.mp4' : 'climate-off.mp4');
+        }
+        
+        // 1. Custom Data Video URL prüfen
+        if (item.custom_data?.video_url) {
+            return item.custom_data.video_url;
+        }
+        
+        // 2. Entity Attributes prüfen (falls Home Assistant Entity)
+        if (this._hass && item.id) {
+            const state = this._hass.states[item.id];
+            if (state?.attributes?.video_url) {
+                return state.attributes.video_url;
+            }
+        }
+        
+        // 3. Kein Video gefunden
+        return null;
+    }
+        
+    hasVideoUrl(item) {
+        return this.getVideoUrl(item) !== null;
+    }
+    
+    renderVideoElement(item) {
+        const videoUrl = this.getVideoUrl(item);
+        if (!videoUrl) return '';
+        
+        return `
+            <video class="icon-video" autoplay muted loop playsinline>
+                <source src="${videoUrl}" type="video/mp4">
+                <source src="${videoUrl.replace('.mp4', '.webm')}" type="video/webm">
+            </video>
+        `;
+    }    
+
+    
+    
 
     animateElementIn(element, keyframes, options = {}) {
         if (!element) return;
