@@ -14758,26 +14758,36 @@ class FastSearchCard extends HTMLElement {
         return state.attributes.entity_picture || state.attributes.media_image_url || null;
     }
 
-    
-
     getVideoUrl(item) {
         if (!item) return null;
         
         // Klima-Geräte: State-basierte Video-URLs (lokal gehostet)
         if (item.domain === 'climate') {
             const state = this._hass?.states[item.id];
-            const isActive = state && state.state !== 'off';
+            if (!state) return null;
+            
+            // Nutze die gleiche Logik wie status-indicator-large
+            const isActive = this.isEntityActive(state);
+            
+            console.log('🌡️ Klima Debug:', {
+                entityId: item.id,
+                state: state.state,
+                isActive: isActive
+            });
             
             const baseUrl = '/local/fast-search-card/';
-            return baseUrl + (isActive ? 'climate-on.mp4' : 'climate-off.mp4');
+            const videoFile = isActive ? 'climate-on.mp4' : 'climate-off.mp4';
+            
+            console.log('🎬 Video wird geladen:', videoFile);
+            
+            return baseUrl + videoFile;
         }
         
-        // 1. Custom Data Video URL prüfen
+        // Rest bleibt gleich...
         if (item.custom_data?.video_url) {
             return item.custom_data.video_url;
         }
         
-        // 2. Entity Attributes prüfen (falls Home Assistant Entity)
         if (this._hass && item.id) {
             const state = this._hass.states[item.id];
             if (state?.attributes?.video_url) {
@@ -14785,7 +14795,6 @@ class FastSearchCard extends HTMLElement {
             }
         }
         
-        // 3. Kein Video gefunden
         return null;
     }
         
