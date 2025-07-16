@@ -14797,26 +14797,15 @@ class FastSearchCard extends HTMLElement {
         const videoId = `video-${item.id.replace(/\./g, '-')}`;
         
         return `
-            <video class="icon-video" id="${videoId}" autoplay muted playsinline>
+            <video class="icon-video" id="${videoId}" autoplay muted playsinline 
+                   oncanplay="this.classList.add('loaded')">
                 <source src="${videoUrl}" type="video/mp4">
                 <source src="${videoUrl.replace('.mp4', '.webm')}" type="video/webm">
             </video>
         `;
     }
 
-    animateVideoIn(videoElement) {
-        if (!videoElement) return;
-        
-        // Fade-in Animation mit Web Animations API
-        videoElement.animate([
-            { opacity: 0, transform: 'scale(0.95)' },
-            { opacity: 1, transform: 'scale(1)' }
-        ], {
-            duration: 600,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
-    }    
+  
 
     
     
