@@ -8127,27 +8127,27 @@ class FastSearchCard extends HTMLElement {
                 }
             }
 
-            // Video Element Update
+            // Video Element Update - nur bei tatsächlichen Änderungen
             const videoElement = detailPanel.querySelector('.icon-video');
             if (videoElement) {
                 const newVideoUrl = this.getVideoUrl(item);
+                const currentSrc = videoElement.src || videoElement.getAttribute('src');
                 
-                // NUR Video neu laden wenn URL sich geändert hat
-                if (newVideoUrl && videoElement.src !== newVideoUrl) {
-                    console.log('Video URL geändert, lade neu:', newVideoUrl);
+                // Nur bei echter URL-Änderung updaten
+                if (newVideoUrl && currentSrc && !currentSrc.includes(newVideoUrl.split('/').pop())) {
+                    console.log('Video URL wirklich geändert:', newVideoUrl);
                     videoElement.src = newVideoUrl;
                     videoElement.load();
                     
-                    // Event Listener nur bei neuem Video setzen
                     videoElement.onended = function() {
                         console.log('Video beendet! Pausiere jetzt...');
                         this.pause();
                         this.currentTime = this.duration - 0.1;
                     };
-                } else {
-                    console.log('Video URL unverändert, kein Reload nötig');
                 }
+                // Wenn Video bereits läuft und korrekte URL hat - NICHTS machen
             }
+            
         }
         
         // Device-spezifische Updates (bleibt gleich)
