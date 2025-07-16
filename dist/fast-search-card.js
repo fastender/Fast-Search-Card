@@ -1158,6 +1158,11 @@ class FastSearchCard extends HTMLElement {
                 border-radius: 20px;
                 z-index: 2;
                 opacity: 0;
+                transform: scale(0.95);
+                transition: opacity 0.6s ease, transform 0.6s ease;
+            }
+            
+            .icon-video.loaded {
                 animation: videoFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             }
             
@@ -1172,9 +1177,7 @@ class FastSearchCard extends HTMLElement {
                 }
             }
             
-            .icon-video[autoplay] {
-                opacity: 1;
-            }            
+          
 
             .icon-content {
                 flex-grow: 1;
