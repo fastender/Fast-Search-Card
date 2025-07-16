@@ -8134,7 +8134,10 @@ class FastSearchCard extends HTMLElement {
                     videoElement.src = newVideoUrl;
                     videoElement.load();
                 }
-            }            
+                // Loop-Attribut explizit entfernen
+                videoElement.removeAttribute('loop');
+                videoElement.loop = false;
+            }
         }
         
         // Device-spezifische Updates (bleibt gleich)
