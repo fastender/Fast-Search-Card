@@ -8126,6 +8126,7 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
             }
+
             // Video Element Update
             const videoElement = detailPanel.querySelector('.icon-video');
             if (videoElement) {
@@ -8133,13 +8134,15 @@ class FastSearchCard extends HTMLElement {
                 if (newVideoUrl && videoElement.src !== newVideoUrl) {
                     videoElement.src = newVideoUrl;
                     videoElement.load();
+                    
+                    // Event Listener NACH dem Load setzen
+                    videoElement.addEventListener('loadeddata', function() {
+                        this.onended = function() {
+                            this.pause();
+                            this.currentTime = this.duration - 0.1;
+                        };
+                    });
                 }
-                
-                // Event Listener für Video-Ende hinzufügen
-                videoElement.onended = function() {
-                    this.currentTime = this.duration - 0.1; // Am letzten Frame stoppen
-                    this.pause();
-                };
             }
         }
         
@@ -14777,8 +14780,11 @@ class FastSearchCard extends HTMLElement {
         const videoUrl = this.getVideoUrl(item);
         if (!videoUrl) return '';
         
+        // Eindeutige ID für das Video generieren
+        const videoId = `video-${item.id.replace(/\./g, '-')}`;
+        
         return `
-            <video class="icon-video" autoplay muted playsinline>
+            <video class="icon-video" id="${videoId}" autoplay muted playsinline>
                 <source src="${videoUrl}" type="video/mp4">
                 <source src="${videoUrl.replace('.mp4', '.webm')}" type="video/webm">
             </video>
