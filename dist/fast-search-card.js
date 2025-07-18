@@ -1253,13 +1253,11 @@ class FastSearchCard extends HTMLElement {
             }
             
             .category-buttons {
-                display: none; /* Wird per JS auf 'flex' gesetzt */
-                align-items: center; /* NEU: Zentriert die Buttons vertikal */
-                position: relative; /* WICHTIG: Kontext für die absoluten Buttons */
-                height: 72px;
-                width: 72px; /* Startbreite = 1 Button */
-                will-change: width, filter;
-                /* Filter wird per JS hinzugefügt und entfernt */
+                display: none;
+                flex-direction: row;
+                gap: 12px;
+                opacity: 0;
+                transform: translateX(20px);
             }
 
             /* Mobile: Category-Buttons zentrieren */
@@ -1285,13 +1283,6 @@ class FastSearchCard extends HTMLElement {
                 cursor: pointer;
                 transition: all 0.2s ease;
                 background: var(--glass-shadow);
-                
-                /* WICHTIG für die Animation */
-                position: absolute; /* Buttons absolut im Container positionieren */
-                top: 0;
-                left: 0;
-                flex-shrink: 0;
-                will-change: transform, opacity;
             }
             
             .category-button:hover {
@@ -1313,11 +1304,6 @@ class FastSearchCard extends HTMLElement {
                 stroke-linecap: round;
                 stroke-linejoin: round;
                 transition: all 0.2s ease;
-                
-                /* NEU: Für die Animation hinzufügen */
-                opacity: 0;
-                transform: scale(0.8);
-                will-change: opacity, transform;
             }
 
             .category-button.active svg {
@@ -4602,25 +4588,8 @@ class FastSearchCard extends HTMLElement {
                 height: 24px;
                 transition: all 0.2s ease;
             }
-
-
-            
-
-
-          
                                                 
             </style>
-
-            <!-- ERSETZEN Sie den bestehenden SVG Filter mit diesem: -->
-            <svg class="gooey-filter">
-                <defs>
-                    <filter id="categoryGooey">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur" />
-                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="gooey" />
-                        <feComposite in="SourceGraphic" in2="gooey" operator="atop"/>
-                    </filter>
-                </defs>
-            </svg>
 
             <div class="main-container">
                 <div class="search-row">
@@ -4733,7 +4702,6 @@ class FastSearchCard extends HTMLElement {
 
                             
                         </div>
-               
 
                         <div class="results-container">
                              <div class="subcategories">
@@ -4781,9 +4749,6 @@ class FastSearchCard extends HTMLElement {
 
                     <div class="detail-panel glass-panel">
                         </div>
-
-
-                        
 
                     <div class="category-buttons">
                         <button class="category-button glass-panel active" data-category="devices" title="Geräte">
@@ -5021,83 +4986,24 @@ class FastSearchCard extends HTMLElement {
         return window.innerWidth <= 768;
     }    
 
-    async showCategoryButtons() {
-        this.collapsePanel();
+    showCategoryButtons() {
+        this.collapsePanel(); // <-- HINZUGEFÜGTE ZEILE
+
+        // NEU: Search-Wrapper auf Mobile verstecken
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
                 searchWrapper.style.display = 'none';
             }
         }
+        
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
-    
-        // --- NEUE SPOTLIGHT ANIMATION ---
-    
-        const categoryButtonsContainer = this.shadowRoot.querySelector('.category-buttons');
-        const buttons = Array.from(categoryButtonsContainer.querySelectorAll('.category-button'));
-        // Wichtig: Wir brauchen den Weichzeichner im SVG-Filter, um ihn zu animieren
-        const gooeyFilter = this.shadowRoot.querySelector('#categoryGooey feGaussianBlur');
-    
-        if (!categoryButtonsContainer || buttons.length === 0 || !gooeyFilter) {
-            console.error("Animations-Elemente nicht gefunden.");
-            return;
-        }
-    
-        // --- Phase 1: Morphing & Trennung (Bild 1-6) ---
-    
-        // 1. Vorbereitung
-        categoryButtonsContainer.classList.add('visible');
-        categoryButtonsContainer.style.filter = 'url(#categoryGooey)';
-        gooeyFilter.setAttribute('stdDeviation', '15'); // Weichzeichner aktivieren
-    
-        buttons.forEach(btn => {
-            btn.style.transform = 'translateX(0px) scale(1)';
-            btn.style.opacity = '1';
-            btn.querySelector('svg').style.opacity = '0'; // Icons bleiben unsichtbar
-        });
-    
-        // 2. Der "Wurm" wächst (Bild 2-3)
-        const containerWidth = buttons.length * 72 + (buttons.length - 1) * 12;
-        const containerAnimation = categoryButtonsContainer.animate(
-            { width: [`72px`, `${containerWidth}px`] },
-            { duration: 350, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }
-        );
-        await containerAnimation.finished;
-    
-        // 3. Die Trennung der "Tropfen" (Bild 4-6)
-        const separationAnimations = buttons.map((btn, index) => {
-            const finalX = index * (72 + 12);
-            return btn.animate(
-                { transform: [`translateX(0px)`, `translateX(${finalX}px)`] },
-                { duration: 500, delay: index * 50, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }
-            );
-        });
-        await Promise.all(separationAnimations.map(a => a.finished));
-    
-        // --- Phase 2: Verfestigung & Enthüllung (Bild 7-10) ---
-    
-        // 4. Verfestigung: Den Weichzeichner auf 0 animieren
-        const solidificationAnimation = gooeyFilter.animate(
-            { stdDeviation: [15, 0] },
-            { duration: 300, easing: 'ease-out', fill: 'forwards' }
-        );
-    
-        // 5. Enthüllung: Icons einblenden, während die Form fest wird
-        buttons.forEach((btn, index) => {
-            const icon = btn.querySelector('svg');
-            icon.animate(
-                { opacity: [0, 1], transform: ['scale(0.8)', 'scale(1)'] },
-                { duration: 300, delay: index * 30, easing: 'ease-out', fill: 'forwards' }
-            );
-        });
-    
-        await solidificationAnimation.finished;
-    
-        // 6. Aufräumen: Filter komplett entfernen, um die Performance zu schonen
-        categoryButtonsContainer.style.filter = 'none';
+        categoryButtons.classList.add('visible');
+        categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
     }
     
-    async hideCategoryButtons() {
+    hideCategoryButtons() {
         // NEU: Search-Wrapper wieder anzeigen  
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
@@ -5106,57 +5012,10 @@ class FastSearchCard extends HTMLElement {
             }
         }
         
-        const categoryButtonsContainer = this.shadowRoot.querySelector('.category-buttons');
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
-        
-        const buttons = Array.from(categoryButtonsContainer.querySelectorAll('.category-button'));
-        const gooeyFilter = this.shadowRoot.querySelector('#categoryGooey feGaussianBlur');
-        
-        if (!gooeyFilter) {
-            // Fallback zur einfachen Animation
-            categoryButtonsContainer.classList.remove('visible');
-            this.isMenuView = false;
-            return;
-        }
-        
-        // Reverse Spotlight Animation
-        categoryButtonsContainer.style.filter = 'url(#categoryGooey)';
-        gooeyFilter.setAttribute('stdDeviation', '15');
-        
-        // 1. Icons ausblenden
-        buttons.forEach((btn, index) => {
-            const icon = btn.querySelector('svg');
-            icon.animate(
-                { opacity: [1, 0], transform: ['scale(1)', 'scale(0.8)'] },
-                { duration: 200, delay: (buttons.length - index - 1) * 20, easing: 'ease-in', fill: 'forwards' }
-            );
-        });
-        
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // 2. Buttons zusammenziehen
-        const contractionAnimations = buttons.map((btn, index) => {
-            return btn.animate(
-                { transform: [`translateX(${index * (72 + 12)}px)`, 'translateX(0px)'] },
-                { duration: 400, delay: (buttons.length - index - 1) * 40, easing: 'ease-in', fill: 'forwards' }
-            );
-        });
-        
-        await Promise.all(contractionAnimations.map(a => a.finished));
-        
-        // 3. Container zusammenziehen
-        const containerWidth = buttons.length * 72 + (buttons.length - 1) * 12;
-        const containerAnimation = categoryButtonsContainer.animate(
-            { width: [`${containerWidth}px`, '72px'] },
-            { duration: 250, easing: 'ease-in', fill: 'forwards' }
-        );
-        
-        await containerAnimation.finished;
-        
-        // 4. Aufräumen
-        categoryButtonsContainer.classList.remove('visible');
-        categoryButtonsContainer.style.filter = 'none';
-        this.isMenuView = false;
+        const animation = categoryButtons.animate([{ opacity: 1, transform: 'translateX(0) scale(1)' }, { opacity: 0, transform: 'translateX(20px) scale(0.9)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' });
+        animation.finished.then(() => { categoryButtons.classList.remove('visible'); this.isMenuView = false; });
     }
 
     handleCategorySelect(selectedButton) {
@@ -5181,10 +5040,6 @@ class FastSearchCard extends HTMLElement {
         // Menü schließen
         this.hideCategoryButtons();
     }
-
-
-    
-
 
     handleSubcategorySelect(selectedChip) {
         let subcategory = selectedChip.dataset.subcategory;
