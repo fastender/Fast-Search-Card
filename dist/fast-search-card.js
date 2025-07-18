@@ -5030,7 +5030,7 @@ class FastSearchCard extends HTMLElement {
         return window.innerWidth <= 768;
     }    
 
-    showCategoryButtons() {
+    async showCategoryButtons() {
         this.collapsePanel();
         
         if (this.isMobile()) {
@@ -5041,12 +5041,53 @@ class FastSearchCard extends HTMLElement {
         }
         
         this.isMenuView = true;
-        
-        // 🌊 NEUE SPOTLIGHT ANIMATION statt alter Animation
-        this.startSpotlightAnimation();
+    
+        // --- NEUE, ELEGANTE SPOTLIGHT ANIMATION ---
+        const categoryButtonsContainer = this.shadowRoot.querySelector('.category-buttons');
+        const buttons = Array.from(categoryButtonsContainer.querySelectorAll('.category-button'));
+    
+        // 1. Vorbereitung: Container und Buttons für Animation vorbereiten
+        categoryButtonsContainer.classList.add('visible'); // Container sichtbar machen
+        categoryButtonsContainer.style.filter = 'url(#categoryGooey)'; // Gooey-Filter aktivieren
+    
+        // Alle Buttons am Anfang des Containers positionieren und unsichtbar machen
+        buttons.forEach(btn => {
+            btn.style.transform = 'translateX(0px) scale(0)';
+            btn.style.opacity = '0';
+        });
+    
+        // 2. Der "Wurm" wächst: Container auf volle Breite animieren
+        const containerWidth = buttons.length * 72 + (buttons.length - 1) * 12; // 72px pro Button + 12px Abstand
+        const containerAnimation = categoryButtonsContainer.animate([
+            { width: '72px' },
+            { width: `${containerWidth}px` }
+        ], {
+            duration: 400,
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            fill: 'forwards'
+        });
+        await containerAnimation.finished;
+    
+        // 3. Die "Teilung": Buttons zu ihren finalen Positionen animieren
+        const animations = buttons.map((btn, index) => {
+            const finalX = index * (72 + 12); // Finale X-Position
+            return btn.animate([
+                { transform: 'translateX(0px) scale(1)', opacity: 1 },
+                { transform: `translateX(${finalX}px) scale(1)`, opacity: 1 }
+            ], {
+                duration: 600,
+                delay: index * 60, // Gestaffelter Start für flüssigen Effekt
+                easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                fill: 'forwards'
+            });
+        });
+        await Promise.all(animations.map(a => a.finished));
+    
+        // 4. Aufräumen: Filter entfernen, damit Buttons scharf werden
+        categoryButtonsContainer.style.filter = 'none';
     }
     
-    hideCategoryButtons() {
+    async hideCategoryButtons() {
         // NEU: Search-Wrapper wieder anzeigen  
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
@@ -5055,21 +5096,39 @@ class FastSearchCard extends HTMLElement {
             }
         }
         
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const categoryButtonsContainer = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
         
-        // ZURÜCK ZUR ALTEN ANIMATION
-        const animation = categoryButtons.animate([
-            { opacity: 1, transform: 'translateX(0) scale(1)' }, 
-            { opacity: 0, transform: 'translateX(20px) scale(0.9)' }
-        ], { 
-            duration: 300, 
-            easing: 'ease-in', 
-            fill: 'forwards' 
+        const buttons = Array.from(categoryButtonsContainer.querySelectorAll('.category-button'));
+        
+        // Reverse Animation: Buttons zurück zum Startpunkt
+        categoryButtonsContainer.style.filter = 'url(#categoryGooey)'; // Filter wieder aktivieren
+        
+        const animations = buttons.map((btn, index) => {
+            return btn.animate([
+                { transform: `translateX(${index * (72 + 12)}px) scale(1)`, opacity: 1 },
+                { transform: 'translateX(0px) scale(0)', opacity: 0 }
+            ], {
+                duration: 300,
+                delay: (buttons.length - index - 1) * 50, // Rückwärts gestaffelt
+                easing: 'ease-in',
+                fill: 'forwards'
+            });
         });
         
-        animation.finished.then(() => { 
-            categoryButtons.classList.remove('visible'); 
+        await Promise.all(animations.map(a => a.finished));
+        
+        // Container zusammenziehen
+        categoryButtonsContainer.animate([
+            { width: `${buttons.length * 72 + (buttons.length - 1) * 12}px` },
+            { width: '72px' }
+        ], {
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards'
+        }).finished.then(() => {
+            categoryButtonsContainer.classList.remove('visible');
+            categoryButtonsContainer.style.filter = 'none';
             this.isMenuView = false;
         });
     }
