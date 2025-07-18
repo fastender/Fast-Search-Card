@@ -5095,7 +5095,7 @@ class FastSearchCard extends HTMLElement {
 
     showCategoryButtons() {
         this.collapsePanel(); // <-- HINZUGEFÜGTE ZEILE
-
+    
         // NEU: Search-Wrapper auf Mobile verstecken
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
@@ -5107,7 +5107,9 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
-        categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+        
+        // Spotlight Animation für Category Buttons
+        this.triggerCategorySpotlightAnimation();
     }
     
     hideCategoryButtons() {
@@ -15478,7 +15480,50 @@ class FastSearchCard extends HTMLElement {
             });
         }
 
-
+        triggerCategorySpotlightAnimation() {
+            const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+            const buttons = this.shadowRoot.querySelectorAll('.category-button');
+            
+            // Spotlight-ähnliche Animation für die 5 Buttons
+            this.animateButtonsAsSpotlight(buttons);
+        }
+        
+        animateButtonsAsSpotlight(buttons) {
+            // Phase 1: Alle Buttons unsichtbar machen
+            buttons.forEach(button => {
+                button.style.opacity = '0';
+                button.style.transform = 'scale(0.8)';
+                button.style.filter = 'blur(5px)';
+            });
+            
+            // Phase 2: Gooey Blob-Effekt simulieren durch gestaffelte Erscheinung
+            buttons.forEach((button, index) => {
+                setTimeout(() => {
+                    // Blob-ähnlicher Effekt
+                    button.animate([
+                        { 
+                            opacity: 0, 
+                            transform: 'scale(0.3) translateX(-20px)', 
+                            filter: 'blur(8px)' 
+                        },
+                        { 
+                            opacity: 0.7, 
+                            transform: 'scale(1.2) translateX(0px)', 
+                            filter: 'blur(3px)' 
+                        },
+                        { 
+                            opacity: 1, 
+                            transform: 'scale(1) translateX(0px)', 
+                            filter: 'blur(0px)' 
+                        }
+                    ], {
+                        duration: 600,
+                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                        fill: 'forwards'
+                    });
+                }, index * 150); // 150ms Verzögerung zwischen jedem Button
+            });
+        }
 
     
 }
