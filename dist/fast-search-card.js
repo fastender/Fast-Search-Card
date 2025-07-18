@@ -1253,12 +1253,19 @@ class FastSearchCard extends HTMLElement {
             }
             
             .category-buttons {
-                display: none;
+                display: none; /* Wird per JS auf 'flex' gesetzt */
                 flex-direction: row;
-                gap: 12px;
-                opacity: 0;
-                transform: translateX(20px);
-                filter: url(#categoryGooey); /* NEU: Filter anwenden */
+                gap: 0; /* WICHTIG: Kein Gap für Gooey-Effekt */
+                opacity: 1; /* Opacity wird nicht mehr animiert */
+                transform: none; /* Kein Transform mehr */
+                filter: url(#categoryGooey); /* ✅ BEHALTEN */
+                
+                /* WICHTIG für die Animation */
+                position: relative; /* Positionierungs-Kontext für die Buttons */
+                width: 72px; /* Startbreite = 1 Button */
+                height: 72px;
+                padding: 0;
+                will-change: width, filter;
             }
 
             /* Mobile: Category-Buttons zentrieren */
@@ -1284,6 +1291,13 @@ class FastSearchCard extends HTMLElement {
                 cursor: pointer;
                 transition: all 0.2s ease;
                 background: var(--glass-shadow);
+                
+                /* WICHTIG für die Animation */
+                position: absolute; /* Buttons absolut im Container positionieren */
+                top: 0;
+                left: 0;
+                flex-shrink: 0;
+                will-change: transform, opacity;
             }
             
             .category-button:hover {
@@ -4592,43 +4606,9 @@ class FastSearchCard extends HTMLElement {
 
 
             
-            /* NEU: SVG Gooey Filter für Liquid Animation */
-            .gooey-filter {
-                position: absolute;
-                width: 0;
-                height: 0;
-                pointer-events: none;
-            }        
 
-            /* NEU: Spotlight Search Morphing */
-            .search-panel.morphing {
-                filter: url(#searchMorph);
-                transition: none !important;
-            }
-            
-            .search-liquid-extension {
-                position: absolute;
-                top: 0;
-                right: 0;
-                width: 0;
-                height: 100%;
-                background: rgba(255, 255, 255, 0.15);
-                backdrop-filter: blur(var(--glass-blur-amount));
-                border-radius: 35px;
-                opacity: 0;
-                pointer-events: none;
-                will-change: transform, width, opacity;
-            }
-            
-            .liquid-droplet {
-                position: absolute;
-                background: rgba(255, 255, 255, 0.15);
-                backdrop-filter: blur(var(--glass-blur-amount));
-                border-radius: 50%;
-                opacity: 0;
-                will-change: transform, opacity;
-                pointer-events: none;
-            }              
+
+          
                                                 
             </style>
 
@@ -4762,14 +4742,7 @@ class FastSearchCard extends HTMLElement {
 
                             
                         </div>
-
-
-                        <div class="search-liquid-extension" id="liquidExtension"></div>
-                        <div class="liquid-droplet" id="mainDroplet"></div>
-                        <div class="liquid-droplet" id="droplet1"></div>
-                        <div class="liquid-droplet" id="droplet2"></div>
-                        <div class="liquid-droplet" id="droplet3"></div>
-                        <div class="liquid-droplet" id="droplet4"></div>                        
+               
 
                         <div class="results-container">
                              <div class="subcategories">
@@ -5125,168 +5098,6 @@ class FastSearchCard extends HTMLElement {
     }
 
 
-    
-    // 🌊 ECHTE SPOTLIGHT ANIMATION METHODEN
-    
-    startSpotlightAnimation() {
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        const liquidExtension = this.shadowRoot.querySelector('#liquidExtension');
-        const mainDroplet = this.shadowRoot.querySelector('#mainDroplet');
-        
-        // 1. Suchleiste für Morphing vorbereiten
-        searchPanel.classList.add('morphing');
-        
-        // 2. Animationssequenz starten
-        this.animateSearchMorphing(liquidExtension)
-            .then(() => this.animateDropletSeparation(liquidExtension, mainDroplet))
-            .then(() => this.animateDropletMigration(mainDroplet))
-            .then(() => this.animateDropletDivision())
-            .then(() => this.finalizeSpotlightAnimation());
-    }
-    
-    animateSearchMorphing(liquidExtension) {
-        return new Promise((resolve) => {
-            // Liquid Extension aus der Suchleiste "wachsen" lassen
-            liquidExtension.style.display = 'block';
-            
-            liquidExtension.animate([
-                { width: '0px', opacity: 0 },
-                { width: '100px', opacity: 1 }
-            ], {
-                duration: 400,
-                easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-                fill: 'forwards'
-            }).finished.then(() => {
-                setTimeout(resolve, 100);
-            });
-        });
-    }
-    
-    animateDropletSeparation(liquidExtension, mainDroplet) {
-        return new Promise((resolve) => {
-            // Haupttropfen vom Extension "abtrennen"
-            const rect = liquidExtension.getBoundingClientRect();
-            
-            mainDroplet.style.width = '72px';
-            mainDroplet.style.height = '72px';
-            mainDroplet.style.left = '100px';
-            mainDroplet.style.top = '0px';
-            mainDroplet.style.display = 'block';
-            
-            // Gleichzeitig: Extension schrumpft, Droplet erscheint
-            const extensionAnim = liquidExtension.animate([
-                { width: '100px', opacity: 1 },
-                { width: '0px', opacity: 0 }
-            ], {
-                duration: 300,
-                easing: 'ease-in',
-                fill: 'forwards'
-            });
-            
-            const dropletAnim = mainDroplet.animate([
-                { opacity: 0, transform: 'scale(0)' },
-                { opacity: 1, transform: 'scale(1)' }
-            ], {
-                duration: 300,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                fill: 'forwards'
-            });
-            
-            Promise.all([extensionAnim.finished, dropletAnim.finished]).then(() => {
-                setTimeout(resolve, 100);
-            });
-        });
-    }
-
-    animateDropletMigration(mainDroplet) {
-        return new Promise((resolve) => {
-            // Haupttropfen nach rechts bewegen
-            mainDroplet.animate([
-                { transform: 'scale(1) translateX(0px)' },
-                { transform: 'scale(1) translateX(150px)' }
-            ], {
-                duration: 500,
-                easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-                fill: 'forwards'
-            }).finished.then(() => {
-                setTimeout(resolve, 150);
-            });
-        });
-    }
-    
-    animateDropletDivision() {
-        return new Promise((resolve) => {
-            const droplets = [
-                this.shadowRoot.querySelector('#droplet1'),
-                this.shadowRoot.querySelector('#droplet2'), 
-                this.shadowRoot.querySelector('#droplet3'),
-                this.shadowRoot.querySelector('#droplet4')
-            ];
-            
-            // Finale Positionen für alle 5 Buttons (mainDroplet + 4 weitere)
-            const positions = [
-                { x: 150, y: 0 },  // mainDroplet (schon da)
-                { x: 234, y: 0 },  // droplet1
-                { x: 318, y: 0 },  // droplet2  
-                { x: 402, y: 0 },  // droplet3
-                { x: 486, y: 0 }   // droplet4
-            ];
-            
-            // Alle 4 zusätzliche Droplets animieren
-            const animations = droplets.map((droplet, index) => {
-                droplet.style.width = '72px';
-                droplet.style.height = '72px';
-                droplet.style.left = '150px'; // Starten alle am mainDroplet
-                droplet.style.top = '0px';
-                droplet.style.display = 'block';
-                
-                return droplet.animate([
-                    { 
-                        opacity: 0, 
-                        transform: 'scale(0) translateX(0px)' 
-                    },
-                    { 
-                        opacity: 1, 
-                        transform: `scale(1) translateX(${positions[index + 1].x - 150}px)` 
-                    }
-                ], {
-                    duration: 400,
-                    delay: index * 100,
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                    fill: 'forwards'
-                });
-            });
-            
-            Promise.all(animations.map(anim => anim.finished)).then(() => {
-                setTimeout(resolve, 200);
-            });
-        });
-    }
-    
-    finalizeSpotlightAnimation() {
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        
-        // Alle Droplets verstecken
-        const allDroplets = this.shadowRoot.querySelectorAll('.liquid-droplet');
-        allDroplets.forEach(droplet => {
-            droplet.style.display = 'none';
-        });
-        
-        // Suchleiste zurücksetzen
-        searchPanel.classList.remove('morphing');
-        
-        // Category-Buttons erscheinen lassen
-        categoryButtons.classList.add('visible');
-        categoryButtons.animate([
-            { opacity: 0, transform: 'translateX(20px) scale(0.9)' },
-            { opacity: 1, transform: 'translateX(0) scale(1)' }
-        ], {
-            duration: 300,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
-    }    
     
 
 
