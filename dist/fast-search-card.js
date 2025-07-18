@@ -15477,7 +15477,7 @@ class FastSearchCard extends HTMLElement {
                 }, index * 100);
             });
         }
-    }
+
 
 
     
