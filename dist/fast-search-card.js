@@ -1273,7 +1273,7 @@ class FastSearchCard extends HTMLElement {
                 .category-buttons {
                     justify-content: center;
                     width: 100%;
-                    gap: 2px;
+                    gap: 8px;
                 }
             }            
 
