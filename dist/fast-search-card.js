@@ -4588,88 +4588,8 @@ class FastSearchCard extends HTMLElement {
                 height: 24px;
                 transition: all 0.2s ease;
             }
-
-            /* Spotlight Morphing Animation */
-            .spotlight-container {
-                position: absolute;
-                right: -200px;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 200px;
-                height: 50px;
-                pointer-events: none;
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-            
-            .spotlight-container.active {
-                opacity: 1;
-            }
-            
-            .spotlight-svg {
-                width: 100%;
-                height: 100%;
-            }
-            
-            .spotlight-blob {
-                fill: rgba(255, 255, 255, 0.3);
-                transition: all 0.1s ease;
-            }
-            
-            /* Icon Overlay Container */
-            .spotlight-icons {
-                position: absolute;
-                right: -180px;
-                top: 50%;
-                transform: translateY(-50%);
-                display: flex;
-                gap: 8px;
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 0.5s ease 1.5s;
-            }
-            
-            .spotlight-icons.visible {
-                opacity: 1;
-                pointer-events: auto;
-            }
-            
-            .spotlight-icon {
-                width: 44px;
-                height: 44px;
-                background: rgba(255, 255, 255, 0.2);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-size: 18px;
-                filter: blur(3px);
-                transform: scale(0.8);
-                transition: all 0.3s ease;
-            }
-            
-            .spotlight-icon.sharp {
-                filter: blur(0px);
-                transform: scale(1);
-            }
-
                                                 
             </style>
-
-            <!-- Spotlight Gooey Effect SVG Filter -->
-            <svg style="position: absolute; width: 0; height: 0;">
-              <defs>
-                <filter id="spotlight-goo">
-                  <feGaussianBlur stdDeviation="6"/>
-                  <feComponentTransfer>
-                    <feFuncA type="linear" slope="120" intercept="-40"/>
-                  </feComponentTransfer>
-                </filter>
-              </defs>
-            </svg>
 
             <div class="main-container">
                 <div class="search-row">
@@ -4779,27 +4699,6 @@ class FastSearchCard extends HTMLElement {
                                     </svg>
                                 </button>
                             </div>
-
-                            <!-- Spotlight Animation Container -->
-                            <div class="spotlight-container">
-                                <svg class="spotlight-svg" viewBox="0 0 200 50">
-                                    <g filter="url(#spotlight-goo)">
-                                        <circle class="spotlight-blob blob-main" cx="40" cy="25" r="20"/>
-                                        <circle class="spotlight-blob blob-1" cx="70" cy="25" r="15"/>
-                                        <circle class="spotlight-blob blob-2" cx="95" cy="25" r="15"/>
-                                        <circle class="spotlight-blob blob-3" cx="120" cy="25" r="15"/>
-                                        <circle class="spotlight-blob blob-4" cx="145" cy="25" r="15"/>
-                                    </g>
-                                </svg>
-                            </div>
-                            
-                            <!-- Spotlight Icons Overlay -->
-                            <div class="spotlight-icons">
-                                <div class="spotlight-icon">📁</div>
-                                <div class="spotlight-icon">🏪</div>
-                                <div class="spotlight-icon">🎭</div>
-                                <div class="spotlight-icon">📄</div>
-                            </div>                            
 
                             
                         </div>
@@ -5062,9 +4961,6 @@ class FastSearchCard extends HTMLElement {
             }
         ], { duration: 300, easing: 'ease-out' });
         if (!this.isPanelExpanded) { this.expandPanel(); }
-
-        // Spotlight Animation triggern
-        this.triggerSpotlightAnimation();        
     }    
 
     clearSearch() {
@@ -5080,9 +4976,6 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = false;
         this.showCurrentCategoryItems();
         searchInput.focus();
-
-        // Spotlight Animation zurücksetzen
-        this.resetSpotlightAnimation();
     }
 
     toggleCategoryButtons() {
@@ -5095,7 +4988,7 @@ class FastSearchCard extends HTMLElement {
 
     showCategoryButtons() {
         this.collapsePanel(); // <-- HINZUGEFÜGTE ZEILE
-    
+
         // NEU: Search-Wrapper auf Mobile verstecken
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
@@ -5107,9 +5000,7 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
-        
-        // Spotlight Animation für Category Buttons
-        this.triggerCategorySpotlightAnimation();
+        categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
     }
     
     hideCategoryButtons() {
@@ -15333,197 +15224,8 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    // Spotlight Animation Methods
-        triggerSpotlightAnimation() {
-            const container = this.shadowRoot.querySelector('.spotlight-container');
-            const icons = this.shadowRoot.querySelector('.spotlight-icons');
-            
-            if (!container || !icons) return;
-            
-            // Phase 1: Container sichtbar machen
-            container.classList.add('active');
-            
-            // Phase 2: Blob Animation starten
-            this.startBlobMorphing();
-            
-            // Phase 3: Nach 1.5s Icons einblenden
-            setTimeout(() => {
-                this.showSpotlightIcons();
-            }, 1500);
-        }
-    
-        startBlobMorphing() {
-            const blobs = this.shadowRoot.querySelectorAll('.spotlight-blob');
-            
-            // Animation Keyframes für jeden Blob
-            const animations = [
-                // Blob Main - wächst und bewegt sich
-                {
-                    element: blobs[0], // blob-main
-                    keyframes: [
-                        { cx: '40', cy: '25', r: '20' },
-                        { cx: '60', cy: '25', r: '25' },
-                        { cx: '70', cy: '25', r: '18' }
-                    ]
-                },
-                // Blob 1 - erscheint und trennt sich
-                {
-                    element: blobs[1], // blob-1
-                    keyframes: [
-                        { cx: '70', cy: '25', r: '0' },
-                        { cx: '70', cy: '25', r: '15' },
-                        { cx: '85', cy: '25', r: '15' }
-                    ]
-                },
-                // Blob 2 - erscheint zeitversetzt
-                {
-                    element: blobs[2], // blob-2
-                    keyframes: [
-                        { cx: '95', cy: '25', r: '0' },
-                        { cx: '95', cy: '25', r: '0' },
-                        { cx: '110', cy: '25', r: '15' }
-                    ]
-                },
-                // Blob 3 - erscheint zeitversetzt
-                {
-                    element: blobs[3], // blob-3
-                    keyframes: [
-                        { cx: '120', cy: '25', r: '0' },
-                        { cx: '120', cy: '25', r: '0' },
-                        { cx: '135', cy: '25', r: '15' }
-                    ]
-                },
-                // Blob 4 - erscheint als letztes
-                {
-                    element: blobs[4], // blob-4
-                    keyframes: [
-                        { cx: '145', cy: '25', r: '0' },
-                        { cx: '145', cy: '25', r: '0' },
-                        { cx: '160', cy: '25', r: '15' }
-                    ]
-                }
-            ];
-            
-            // Animationen starten
-            animations.forEach((anim, index) => {
-                if (anim.element) {
-                    this.animateBlob(anim.element, anim.keyframes, index * 200);
-                }
-            });
-        }
-        
-        animateBlob(element, keyframes, delay = 0) {
-            setTimeout(() => {
-                keyframes.forEach((frame, frameIndex) => {
-                    setTimeout(() => {
-                        element.setAttribute('cx', frame.cx);
-                        element.setAttribute('cy', frame.cy);
-                        element.setAttribute('r', frame.r);
-                    }, frameIndex * 300);
-                });
-            }, delay);
-        }
 
-        resetSpotlightAnimation() {
-            const container = this.shadowRoot.querySelector('.spotlight-container');
-            const icons = this.shadowRoot.querySelector('.spotlight-icons');
-            const iconElements = this.shadowRoot.querySelectorAll('.spotlight-icon');
-            const blobs = this.shadowRoot.querySelectorAll('.spotlight-blob');
-            
-            if (container) container.classList.remove('active');
-            if (icons) icons.classList.remove('visible');
-            
-            // Icons zurücksetzen
-            iconElements.forEach(icon => {
-                icon.classList.remove('sharp');
-            });
-            
-            // Blobs in Ausgangsposition
-            if (blobs[0]) { // blob-main
-                blobs[0].setAttribute('cx', '40');
-                blobs[0].setAttribute('cy', '25');
-                blobs[0].setAttribute('r', '20');
-            }
-            if (blobs[1]) { // blob-1
-                blobs[1].setAttribute('cx', '70');
-                blobs[1].setAttribute('cy', '25');
-                blobs[1].setAttribute('r', '15');
-            }
-            if (blobs[2]) { // blob-2
-                blobs[2].setAttribute('cx', '95');
-                blobs[2].setAttribute('cy', '25');
-                blobs[2].setAttribute('r', '15');
-            }
-            if (blobs[3]) { // blob-3
-                blobs[3].setAttribute('cx', '120');
-                blobs[3].setAttribute('cy', '25');
-                blobs[3].setAttribute('r', '15');
-            }
-            if (blobs[4]) { // blob-4
-                blobs[4].setAttribute('cx', '145');
-                blobs[4].setAttribute('cy', '25');
-                blobs[4].setAttribute('r', '15');
-            }
-        }    
-    
-        showSpotlightIcons() {
-            const icons = this.shadowRoot.querySelector('.spotlight-icons');
-            const iconElements = this.shadowRoot.querySelectorAll('.spotlight-icon');
-            
-            icons.classList.add('visible');
-            
-            // Icons nacheinander scharf stellen
-            iconElements.forEach((icon, index) => {
-                setTimeout(() => {
-                    icon.classList.add('sharp');
-                }, index * 100);
-            });
-        }
 
-        triggerCategorySpotlightAnimation() {
-            const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-            const buttons = this.shadowRoot.querySelectorAll('.category-button');
-            
-            // Spotlight-ähnliche Animation für die 5 Buttons
-            this.animateButtonsAsSpotlight(buttons);
-        }
-        
-        animateButtonsAsSpotlight(buttons) {
-            // Phase 1: Alle Buttons unsichtbar machen
-            buttons.forEach(button => {
-                button.style.opacity = '0';
-                button.style.transform = 'scale(0.8)';
-                button.style.filter = 'blur(5px)';
-            });
-            
-            // Phase 2: Gooey Blob-Effekt simulieren durch gestaffelte Erscheinung
-            buttons.forEach((button, index) => {
-                setTimeout(() => {
-                    // Blob-ähnlicher Effekt
-                    button.animate([
-                        { 
-                            opacity: 0, 
-                            transform: 'scale(0.3) translateX(-20px)', 
-                            filter: 'blur(8px)' 
-                        },
-                        { 
-                            opacity: 0.7, 
-                            transform: 'scale(1.2) translateX(0px)', 
-                            filter: 'blur(3px)' 
-                        },
-                        { 
-                            opacity: 1, 
-                            transform: 'scale(1) translateX(0px)', 
-                            filter: 'blur(0px)' 
-                        }
-                    ], {
-                        duration: 600,
-                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                        fill: 'forwards'
-                    });
-                }, index * 150); // 150ms Verzögerung zwischen jedem Button
-            });
-        }
 
     
 }
