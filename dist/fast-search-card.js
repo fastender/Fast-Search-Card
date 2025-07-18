@@ -1260,14 +1260,6 @@ class FastSearchCard extends HTMLElement {
                 transform: translateX(20px);
             }
 
-            .category-buttons.gooey-start {
-                filter: blur(10px) contrast(20);
-            }
-            
-            .category-buttons.gooey-end {
-                filter: blur(0px) contrast(1);
-            }            
-
             /* Mobile: Category-Buttons zentrieren */
             @media (max-width: 768px) {
                 .category-buttons {
@@ -1281,15 +1273,6 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
             }
 
-            /* NEUE GOOEY STATES: */
-            .category-buttons.gooey-mode {
-                filter: blur(10px) contrast(20);
-            }
-            
-            .category-buttons.separated-mode {
-                filter: blur(0px) contrast(1);
-            }            
-
             .category-button {
                 width: 72px;
                 height: 72px;
@@ -1299,7 +1282,7 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                background: var(--glass-shadow);          
+                background: var(--glass-shadow);
             }
             
             .category-button:hover {
@@ -5004,8 +4987,9 @@ class FastSearchCard extends HTMLElement {
     }    
 
     showCategoryButtons() {
-        this.collapsePanel();
-    
+        this.collapsePanel(); // <-- HINZUGEFÜGTE ZEILE
+
+        // NEU: Search-Wrapper auf Mobile verstecken
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
@@ -5014,33 +4998,11 @@ class FastSearchCard extends HTMLElement {
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
-        
-        // 1. Alle Buttons übereinander in die Mitte zwingen
-        buttons.forEach((button, index) => {
-            button.style.position = 'absolute';
-            button.style.left = '50%';
-            button.style.transform = 'translateX(-50%)';
-            button.style.zIndex = index;
-        });
-        
-        // 2. Container Blur (Blob-Effekt)
-        categoryButtons.style.filter = 'blur(15px) contrast(20)';
-        
-        // 3. Buttons auseinander fahren + Blur weg
-        setTimeout(() => {
-            buttons.forEach((button, index) => {
-                const targetPosition = `${20 + (index * 15)}%`; // 20%, 35%, 50%, 65%, 80%
-                button.style.left = targetPosition;
-            });
-            categoryButtons.style.filter = 'blur(0px) contrast(1)';
-            categoryButtons.style.transition = 'filter 400ms ease-out';
-        }, 100);
+        categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
     }
-        
+    
     hideCategoryButtons() {
         // NEU: Search-Wrapper wieder anzeigen  
         if (this.isMobile()) {
@@ -5052,112 +5014,10 @@ class FastSearchCard extends HTMLElement {
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
-        
-        const animation = categoryButtons.animate([
-            { opacity: 1, transform: 'translateX(0) scale(1)', filter: 'blur(0px)' }, 
-            { opacity: 0, transform: 'translateX(20px) scale(0.9)', filter: 'blur(8px)' }
-        ], { duration: 300, easing: 'ease-in', fill: 'forwards' });
-        
-        animation.finished.then(() => { 
-            categoryButtons.classList.remove('visible'); 
-            this.isMenuView = false;
-            
-            // NEUE ZEILE - STATE ZURÜCKSETZEN:
-            categoryButtons.style.transform = '';
-            categoryButtons.style.opacity = '';
-            categoryButtons.style.filter = '';
-        });
+        const animation = categoryButtons.animate([{ opacity: 1, transform: 'translateX(0) scale(1)' }, { opacity: 0, transform: 'translateX(20px) scale(0.9)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' });
+        animation.finished.then(() => { categoryButtons.classList.remove('visible'); this.isMenuView = false; });
     }
 
-    animateGooeyExpansion(container, buttons) {
-        // Reset: Alle Buttons in der Mitte
-        buttons.forEach(button => {
-            button.style.left = '50%';
-            button.style.position = 'absolute';
-            button.style.transform = 'translate(-50%, -50%)';
-        });
-    
-        // Phase 1: Filter Animation (Gooey → Klar)
-        const filterAnimation = container.animate([
-            { filter: 'blur(10px) contrast(20)' },
-            { filter: 'blur(0px) contrast(1)' }
-        ], {
-            duration: 400,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
-    
-        // Phase 2: Buttons auseinanderfahren
-        const buttonPositions = this.calculateButtonPositions(buttons.length);
-        
-        buttons.forEach((button, index) => {
-            const targetPos = buttonPositions[index];
-            
-            button.animate([
-                { left: '50%' },
-                { left: `${targetPos}%` }
-            ], {
-                duration: 400,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                fill: 'forwards'
-            });
-        });
-    
-        // CSS-Klassen nach Animation updaten
-        filterAnimation.finished.then(() => {
-            container.classList.remove('gooey-mode');
-            container.classList.add('separated-mode');
-        });
-    }
-
-    animateGooeyCollapse(container) {
-        const buttons = container.querySelectorAll('.category-button');
-        
-        // Phase 1: Buttons zur Mitte
-        buttons.forEach(button => {
-            button.animate([
-                { left: button.style.left || '50%' },
-                { left: '50%' }
-            ], {
-                duration: 300,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                fill: 'forwards'
-            });
-        });
-    
-        // Phase 2: Filter Animation (Klar → Gooey)
-        setTimeout(() => {
-            const filterAnimation = container.animate([
-                { filter: 'blur(0px) contrast(1)' },
-                { filter: 'blur(10px) contrast(20)' }
-            ], {
-                duration: 200,
-                easing: 'ease-in',
-                fill: 'forwards'
-            });
-    
-            filterAnimation.finished.then(() => {
-                container.classList.remove('visible', 'separated-mode', 'gooey-mode');
-                this.isMenuView = false;
-            });
-        }, 100);
-    }    
-
-    calculateButtonPositions(buttonCount) {
-        const containerWidth = 100; // Prozent
-        const buttonWidth = 10; // Ca. 10% pro Button
-        const spacing = 2; // 2% Abstand
-        const totalWidth = buttonCount * buttonWidth + (buttonCount - 1) * spacing;
-        const startOffset = (containerWidth - totalWidth) / 2;
-        
-        const positions = [];
-        for (let i = 0; i < buttonCount; i++) {
-            const position = startOffset + (buttonWidth / 2) + i * (buttonWidth + spacing);
-            positions.push(position);
-        }
-        return positions;
-    }
-    
     handleCategorySelect(selectedButton) {
         const category = selectedButton.dataset.category;
         
