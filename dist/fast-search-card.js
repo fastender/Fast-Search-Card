@@ -1254,18 +1254,12 @@ class FastSearchCard extends HTMLElement {
             
             .category-buttons {
                 display: none; /* Wird per JS auf 'flex' gesetzt */
-                flex-direction: row;
-                gap: 0; /* WICHTIG: Kein Gap für Gooey-Effekt */
-                opacity: 1; /* Opacity wird nicht mehr animiert */
-                transform: none; /* Kein Transform mehr */
-                filter: url(#categoryGooey); /* ✅ BEHALTEN */
-                
-                /* WICHTIG für die Animation */
-                position: relative; /* Positionierungs-Kontext für die Buttons */
-                width: 72px; /* Startbreite = 1 Button */
+                align-items: center; /* NEU: Zentriert die Buttons vertikal */
+                position: relative; /* WICHTIG: Kontext für die absoluten Buttons */
                 height: 72px;
-                padding: 0;
+                width: 72px; /* Startbreite = 1 Button */
                 will-change: width, filter;
+                /* Filter wird per JS hinzugefügt und entfernt */
             }
 
             /* Mobile: Category-Buttons zentrieren */
@@ -1319,6 +1313,11 @@ class FastSearchCard extends HTMLElement {
                 stroke-linecap: round;
                 stroke-linejoin: round;
                 transition: all 0.2s ease;
+                
+                /* NEU: Für die Animation hinzufügen */
+                opacity: 0;
+                transform: scale(0.8);
+                will-change: opacity, transform;
             }
 
             .category-button.active svg {
@@ -4615,18 +4614,10 @@ class FastSearchCard extends HTMLElement {
             <!-- ERSETZEN Sie den bestehenden SVG Filter mit diesem: -->
             <svg class="gooey-filter">
                 <defs>
-                    <filter id="categoryGooey" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="15"/>
-                        <feComponentTransfer>
-                            <feFuncA type="discrete" tableValues="0 .5 1"/>
-                        </feComponentTransfer>
-                    </filter>
-                    <!-- NEU: Filter für Suchleiste Morphing -->
-                    <filter id="searchMorph" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="12"/>
-                        <feComponentTransfer>
-                            <feFuncA type="discrete" tableValues="0 .7 1"/>
-                        </feComponentTransfer>
+                    <filter id="categoryGooey">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur" />
+                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="gooey" />
+                        <feComposite in="SourceGraphic" in2="gooey" operator="atop"/>
                     </filter>
                 </defs>
             </svg>
@@ -5032,58 +5023,77 @@ class FastSearchCard extends HTMLElement {
 
     async showCategoryButtons() {
         this.collapsePanel();
-        
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
                 searchWrapper.style.display = 'none';
             }
         }
-        
         this.isMenuView = true;
     
-        // --- NEUE, ELEGANTE SPOTLIGHT ANIMATION ---
+        // --- NEUE SPOTLIGHT ANIMATION ---
+    
         const categoryButtonsContainer = this.shadowRoot.querySelector('.category-buttons');
         const buttons = Array.from(categoryButtonsContainer.querySelectorAll('.category-button'));
+        // Wichtig: Wir brauchen den Weichzeichner im SVG-Filter, um ihn zu animieren
+        const gooeyFilter = this.shadowRoot.querySelector('#categoryGooey feGaussianBlur');
     
-        // 1. Vorbereitung: Container und Buttons für Animation vorbereiten
-        categoryButtonsContainer.classList.add('visible'); // Container sichtbar machen
-        categoryButtonsContainer.style.filter = 'url(#categoryGooey)'; // Gooey-Filter aktivieren
+        if (!categoryButtonsContainer || buttons.length === 0 || !gooeyFilter) {
+            console.error("Animations-Elemente nicht gefunden.");
+            return;
+        }
     
-        // Alle Buttons am Anfang des Containers positionieren und unsichtbar machen
+        // --- Phase 1: Morphing & Trennung (Bild 1-6) ---
+    
+        // 1. Vorbereitung
+        categoryButtonsContainer.classList.add('visible');
+        categoryButtonsContainer.style.filter = 'url(#categoryGooey)';
+        gooeyFilter.setAttribute('stdDeviation', '15'); // Weichzeichner aktivieren
+    
         buttons.forEach(btn => {
-            btn.style.transform = 'translateX(0px) scale(0)';
-            btn.style.opacity = '0';
+            btn.style.transform = 'translateX(0px) scale(1)';
+            btn.style.opacity = '1';
+            btn.querySelector('svg').style.opacity = '0'; // Icons bleiben unsichtbar
         });
     
-        // 2. Der "Wurm" wächst: Container auf volle Breite animieren
-        const containerWidth = buttons.length * 72 + (buttons.length - 1) * 12; // 72px pro Button + 12px Abstand
-        const containerAnimation = categoryButtonsContainer.animate([
-            { width: '72px' },
-            { width: `${containerWidth}px` }
-        ], {
-            duration: 400,
-            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-            fill: 'forwards'
-        });
+        // 2. Der "Wurm" wächst (Bild 2-3)
+        const containerWidth = buttons.length * 72 + (buttons.length - 1) * 12;
+        const containerAnimation = categoryButtonsContainer.animate(
+            { width: [`72px`, `${containerWidth}px`] },
+            { duration: 350, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }
+        );
         await containerAnimation.finished;
     
-        // 3. Die "Teilung": Buttons zu ihren finalen Positionen animieren
-        const animations = buttons.map((btn, index) => {
-            const finalX = index * (72 + 12); // Finale X-Position
-            return btn.animate([
-                { transform: 'translateX(0px) scale(1)', opacity: 1 },
-                { transform: `translateX(${finalX}px) scale(1)`, opacity: 1 }
-            ], {
-                duration: 600,
-                delay: index * 60, // Gestaffelter Start für flüssigen Effekt
-                easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-                fill: 'forwards'
-            });
+        // 3. Die Trennung der "Tropfen" (Bild 4-6)
+        const separationAnimations = buttons.map((btn, index) => {
+            const finalX = index * (72 + 12);
+            return btn.animate(
+                { transform: [`translateX(0px)`, `translateX(${finalX}px)`] },
+                { duration: 500, delay: index * 50, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }
+            );
         });
-        await Promise.all(animations.map(a => a.finished));
+        await Promise.all(separationAnimations.map(a => a.finished));
     
-        // 4. Aufräumen: Filter entfernen, damit Buttons scharf werden
+        // --- Phase 2: Verfestigung & Enthüllung (Bild 7-10) ---
+    
+        // 4. Verfestigung: Den Weichzeichner auf 0 animieren
+        const solidificationAnimation = gooeyFilter.animate(
+            { stdDeviation: [15, 0] },
+            { duration: 300, easing: 'ease-out', fill: 'forwards' }
+        );
+    
+        // 5. Enthüllung: Icons einblenden, während die Form fest wird
+        buttons.forEach((btn, index) => {
+            const icon = btn.querySelector('svg');
+            icon.animate(
+                { opacity: [0, 1], transform: ['scale(0.8)', 'scale(1)'] },
+                { duration: 300, delay: index * 30, easing: 'ease-out', fill: 'forwards' }
+            );
+        });
+    
+        await solidificationAnimation.finished;
+    
+        // 6. Aufräumen: Filter komplett entfernen, um die Performance zu schonen
         categoryButtonsContainer.style.filter = 'none';
     }
     
@@ -5100,37 +5110,53 @@ class FastSearchCard extends HTMLElement {
         if (!this.isMenuView) return;
         
         const buttons = Array.from(categoryButtonsContainer.querySelectorAll('.category-button'));
+        const gooeyFilter = this.shadowRoot.querySelector('#categoryGooey feGaussianBlur');
         
-        // Reverse Animation: Buttons zurück zum Startpunkt
-        categoryButtonsContainer.style.filter = 'url(#categoryGooey)'; // Filter wieder aktivieren
-        
-        const animations = buttons.map((btn, index) => {
-            return btn.animate([
-                { transform: `translateX(${index * (72 + 12)}px) scale(1)`, opacity: 1 },
-                { transform: 'translateX(0px) scale(0)', opacity: 0 }
-            ], {
-                duration: 300,
-                delay: (buttons.length - index - 1) * 50, // Rückwärts gestaffelt
-                easing: 'ease-in',
-                fill: 'forwards'
-            });
-        });
-        
-        await Promise.all(animations.map(a => a.finished));
-        
-        // Container zusammenziehen
-        categoryButtonsContainer.animate([
-            { width: `${buttons.length * 72 + (buttons.length - 1) * 12}px` },
-            { width: '72px' }
-        ], {
-            duration: 200,
-            easing: 'ease-in',
-            fill: 'forwards'
-        }).finished.then(() => {
+        if (!gooeyFilter) {
+            // Fallback zur einfachen Animation
             categoryButtonsContainer.classList.remove('visible');
-            categoryButtonsContainer.style.filter = 'none';
             this.isMenuView = false;
+            return;
+        }
+        
+        // Reverse Spotlight Animation
+        categoryButtonsContainer.style.filter = 'url(#categoryGooey)';
+        gooeyFilter.setAttribute('stdDeviation', '15');
+        
+        // 1. Icons ausblenden
+        buttons.forEach((btn, index) => {
+            const icon = btn.querySelector('svg');
+            icon.animate(
+                { opacity: [1, 0], transform: ['scale(1)', 'scale(0.8)'] },
+                { duration: 200, delay: (buttons.length - index - 1) * 20, easing: 'ease-in', fill: 'forwards' }
+            );
         });
+        
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // 2. Buttons zusammenziehen
+        const contractionAnimations = buttons.map((btn, index) => {
+            return btn.animate(
+                { transform: [`translateX(${index * (72 + 12)}px)`, 'translateX(0px)'] },
+                { duration: 400, delay: (buttons.length - index - 1) * 40, easing: 'ease-in', fill: 'forwards' }
+            );
+        });
+        
+        await Promise.all(contractionAnimations.map(a => a.finished));
+        
+        // 3. Container zusammenziehen
+        const containerWidth = buttons.length * 72 + (buttons.length - 1) * 12;
+        const containerAnimation = categoryButtonsContainer.animate(
+            { width: [`${containerWidth}px`, '72px'] },
+            { duration: 250, easing: 'ease-in', fill: 'forwards' }
+        );
+        
+        await containerAnimation.finished;
+        
+        // 4. Aufräumen
+        categoryButtonsContainer.classList.remove('visible');
+        categoryButtonsContainer.style.filter = 'none';
+        this.isMenuView = false;
     }
 
     handleCategorySelect(selectedButton) {
