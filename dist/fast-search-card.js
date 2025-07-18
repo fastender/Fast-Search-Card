@@ -1258,7 +1258,7 @@ class FastSearchCard extends HTMLElement {
                 gap: 12px;
                 opacity: 0;
                 transform: translateX(20px);
-                filter: url(#categoryGooey);
+                filter: url(#categoryGooey); /* NEU: Filter anwenden */
             }
 
             /* Mobile: Category-Buttons zentrieren */
@@ -5075,8 +5075,27 @@ class FastSearchCard extends HTMLElement {
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
-        const animation = categoryButtons.animate([{ opacity: 1, transform: 'translateX(0) scale(1)' }, { opacity: 0, transform: 'translateX(20px) scale(0.9)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' });
-        animation.finished.then(() => { categoryButtons.classList.remove('visible'); this.isMenuView = false; });
+        
+        // 🌊 REVERSE LIQUID ANIMATION
+        const animation = categoryButtons.animate([
+            { opacity: 1, transform: 'translateX(0) scale(1)' }, 
+            { opacity: 0, transform: 'translateX(20px) scale(0.9)' }
+        ], { 
+            duration: 300, 
+            easing: 'ease-in', 
+            fill: 'forwards' 
+        });
+        
+        animation.finished.then(() => { 
+            categoryButtons.classList.remove('visible'); 
+            this.isMenuView = false;
+            
+            // Blobs auch verstecken falls sichtbar
+            const blobContainer = this.shadowRoot.querySelector('#blobContainer');
+            if (blobContainer) {
+                blobContainer.style.display = 'none';
+            }
+        });
     }
 
     handleCategorySelect(selectedButton) {
