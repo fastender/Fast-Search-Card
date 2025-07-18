@@ -1260,9 +1260,6 @@ class FastSearchCard extends HTMLElement {
                 transform: translateX(20px);
                 /* NEUE GOOEY EIGENSCHAFTEN: */
                 filter: blur(10px) contrast(20);
-                position: relative;
-                justify-content: center;
-                width: 100%;
             }
 
             /* Mobile: Category-Buttons zentrieren */
@@ -5011,15 +5008,10 @@ class FastSearchCard extends HTMLElement {
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
-        categoryButtons.classList.add('gooey-mode');
-        
-        // NEUE GOOEY ANIMATION:
-        this.animateGooeyExpansion(categoryButtons, buttons);
-    }
+        categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+    }        
         
     hideCategoryButtons() {
         // NEU: Search-Wrapper wieder anzeigen  
