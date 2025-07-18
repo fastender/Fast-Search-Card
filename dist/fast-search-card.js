@@ -5003,10 +5003,6 @@ class FastSearchCard extends HTMLElement {
         return window.innerWidth <= 768;
     }    
 
-
-
-
-
     showCategoryButtons() {
         this.collapsePanel();
     
@@ -5020,10 +5016,12 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
+        
+        // EINFACHER MORPH: Nur Filter-Animation, Flexbox bleibt intakt
         categoryButtons.animate([
-            { opacity: 0, transform: 'translateX(20px) scale(0.9)', filter: 'blur(8px)' }, 
-            { opacity: 1, transform: 'translateX(0) scale(1)', filter: 'blur(0px)' }
-        ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+            { opacity: 0, filter: 'blur(20px) contrast(30)' }, 
+            { opacity: 1, filter: 'blur(0px) contrast(1)' }
+        ], { duration: 600, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
     }
 
     hideCategoryButtons() {
