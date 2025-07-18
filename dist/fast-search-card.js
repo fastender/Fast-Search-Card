@@ -5014,16 +5014,33 @@ class FastSearchCard extends HTMLElement {
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // EINFACHER MORPH: Nur Filter-Animation, Flexbox bleibt intakt
-        categoryButtons.animate([
-            { opacity: 0, filter: 'blur(20px) contrast(30)' }, 
-            { opacity: 1, filter: 'blur(0px) contrast(1)' }
-        ], { duration: 600, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+        // 1. Alle Buttons übereinander in die Mitte zwingen
+        buttons.forEach((button, index) => {
+            button.style.position = 'absolute';
+            button.style.left = '50%';
+            button.style.transform = 'translateX(-50%)';
+            button.style.zIndex = index;
+        });
+        
+        // 2. Container Blur (Blob-Effekt)
+        categoryButtons.style.filter = 'blur(15px) contrast(20)';
+        
+        // 3. Buttons auseinander fahren + Blur weg
+        setTimeout(() => {
+            buttons.forEach((button, index) => {
+                const targetPosition = `${20 + (index * 15)}%`; // 20%, 35%, 50%, 65%, 80%
+                button.style.left = targetPosition;
+            });
+            categoryButtons.style.filter = 'blur(0px) contrast(1)';
+            categoryButtons.style.transition = 'filter 400ms ease-out';
+        }, 100);
     }
-
+        
     hideCategoryButtons() {
         // NEU: Search-Wrapper wieder anzeigen  
         if (this.isMobile()) {
