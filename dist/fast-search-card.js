@@ -1300,6 +1300,10 @@ class FastSearchCard extends HTMLElement {
                 cursor: pointer;
                 transition: all 0.2s ease;
                 background: var(--glass-shadow);
+                /* NEU FÜR MORPH: */
+                position: absolute;
+                left: 50%;
+                transform: translate(-50%, -50%);                
             }
             
             .category-button:hover {
@@ -5004,6 +5008,7 @@ class FastSearchCard extends HTMLElement {
     }    
 
 
+
     showCategoryButtons() {
         this.collapsePanel();
     
@@ -5015,14 +5020,34 @@ class FastSearchCard extends HTMLElement {
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
-
+        
+        // Alle Buttons auf Startposition (Mitte)
+        buttons.forEach(button => {
+            button.style.left = '50%';
+            button.style.position = 'absolute';
+            button.style.transform = 'translate(-50%, -50%)';
+        });
+        
+        // Phase 1: Container mit starkem Blur (Blob-Effekt)
         categoryButtons.animate([
-            { opacity: 0, transform: 'translateX(20px) scale(0.9)', filter: 'blur(8px)' }, 
-            { opacity: 1, transform: 'translateX(0) scale(1)', filter: 'blur(0px)' }
+            { opacity: 0, filter: 'blur(15px) contrast(20)' },
+            { opacity: 1, filter: 'blur(0px) contrast(1)' }
         ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
-    
+        
+        // Phase 2: Buttons auseinanderfahren (mit leichtem Delay)
+        const positions = ['20%', '35%', '50%', '65%', '80%']; // 5 Positionen
+        buttons.forEach((button, index) => {
+            setTimeout(() => {
+                button.animate([
+                    { left: '50%' },
+                    { left: positions[index] }
+                ], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+            }, 150); // Startet nach 150ms
+        });
     }
         
 
