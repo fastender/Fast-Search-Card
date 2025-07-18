@@ -4599,42 +4599,51 @@ class FastSearchCard extends HTMLElement {
                 height: 0;
                 pointer-events: none;
             }        
+
+            /* NEU: Spotlight Search Morphing */
+            .search-panel.morphing {
+                filter: url(#searchMorph);
+                transition: none !important;
+            }
             
-            /* Blob Animation Container */
-            .blob-container {
+            .search-liquid-extension {
                 position: absolute;
                 top: 0;
                 right: 0;
-                width: 400px;
-                height: 72px;
+                width: 0;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(var(--glass-blur-amount));
+                border-radius: 35px;
+                opacity: 0;
                 pointer-events: none;
-                z-index: 5;
-                display: none;
+                will-change: transform, width, opacity;
             }
             
-            .liquid-blob {
+            .liquid-droplet {
                 position: absolute;
                 background: rgba(255, 255, 255, 0.15);
                 backdrop-filter: blur(var(--glass-blur-amount));
                 border-radius: 50%;
                 opacity: 0;
                 will-change: transform, opacity;
-            }   
-
-            /* Blob-spezifische Größen */
-            .blob-1 { width: 72px; height: 72px; }
-            .blob-2 { width: 72px; height: 72px; }
-            .blob-3 { width: 72px; height: 72px; }
-            .blob-4 { width: 72px; height: 72px; }
-            .blob-5 { width: 72px; height: 72px; }            
+                pointer-events: none;
+            }              
                                                 
             </style>
 
-            <!-- NEU: SVG Filter für Gooey Effect -->
+            <!-- ERSETZEN Sie den bestehenden SVG Filter mit diesem: -->
             <svg class="gooey-filter">
                 <defs>
                     <filter id="categoryGooey" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="8"/>
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="15"/>
+                        <feComponentTransfer>
+                            <feFuncA type="discrete" tableValues="0 .5 1"/>
+                        </feComponentTransfer>
+                    </filter>
+                    <!-- NEU: Filter für Suchleiste Morphing -->
+                    <filter id="searchMorph" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="12"/>
                         <feComponentTransfer>
                             <feFuncA type="discrete" tableValues="0 .7 1"/>
                         </feComponentTransfer>
@@ -4754,6 +4763,14 @@ class FastSearchCard extends HTMLElement {
                             
                         </div>
 
+
+                        <div class="search-liquid-extension" id="liquidExtension"></div>
+                        <div class="liquid-droplet" id="mainDroplet"></div>
+                        <div class="liquid-droplet" id="droplet1"></div>
+                        <div class="liquid-droplet" id="droplet2"></div>
+                        <div class="liquid-droplet" id="droplet3"></div>
+                        <div class="liquid-droplet" id="droplet4"></div>                        
+
                         <div class="results-container">
                              <div class="subcategories">
                                 <div class="subcategory-chip active" data-subcategory="all">
@@ -4801,14 +4818,7 @@ class FastSearchCard extends HTMLElement {
                     <div class="detail-panel glass-panel">
                         </div>
 
-                    <!-- NEU: Blob Container für Liquid Animation -->
-                    <div class="blob-container" id="blobContainer">
-                        <div class="liquid-blob blob-1"></div>
-                        <div class="liquid-blob blob-2"></div>
-                        <div class="liquid-blob blob-3"></div>
-                        <div class="liquid-blob blob-4"></div>
-                        <div class="liquid-blob blob-5"></div>
-                    </div>
+
                         
 
                     <div class="category-buttons">
@@ -5049,8 +5059,7 @@ class FastSearchCard extends HTMLElement {
 
     showCategoryButtons() {
         this.collapsePanel();
-    
-        // NEU: Search-Wrapper auf Mobile verstecken
+        
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
@@ -5058,10 +5067,19 @@ class FastSearchCard extends HTMLElement {
             }
         }
         
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
+        categoryButtons.classList.add('visible');
         
-        // 🌊 NEUE LIQUID ANIMATION statt der alten Animation
-        this.startLiquidCategoryAnimation();
+        // ALTE ANIMATION TEMPORÄR
+        categoryButtons.animate([
+            { opacity: 0, transform: 'translateX(20px) scale(0.9)' }, 
+            { opacity: 1, transform: 'translateX(0) scale(1)' }
+        ], { 
+            duration: 400, 
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)', 
+            fill: 'forwards' 
+        });
     }
     
     hideCategoryButtons() {
@@ -5076,7 +5094,7 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
         
-        // 🌊 REVERSE LIQUID ANIMATION
+        // ZURÜCK ZUR ALTEN ANIMATION
         const animation = categoryButtons.animate([
             { opacity: 1, transform: 'translateX(0) scale(1)' }, 
             { opacity: 0, transform: 'translateX(20px) scale(0.9)' }
@@ -5089,12 +5107,6 @@ class FastSearchCard extends HTMLElement {
         animation.finished.then(() => { 
             categoryButtons.classList.remove('visible'); 
             this.isMenuView = false;
-            
-            // Blobs auch verstecken falls sichtbar
-            const blobContainer = this.shadowRoot.querySelector('#blobContainer');
-            if (blobContainer) {
-                blobContainer.style.display = 'none';
-            }
         });
     }
 
@@ -5123,107 +5135,9 @@ class FastSearchCard extends HTMLElement {
 
     // 🌊 LIQUID ANIMATION METHODEN
     
-    createBlobAnimation() {
-        const blobContainer = this.shadowRoot.querySelector('#blobContainer');
-        const blobs = blobContainer.querySelectorAll('.liquid-blob');
-        
-        // Alle Blobs zurücksetzen
-        blobs.forEach(blob => {
-            blob.style.opacity = '0';
-            blob.style.transform = 'scale(0) translateX(0px)';
-        });
-        
-        return { blobContainer, blobs };
-    }
     
-    animateBlobEmergence(blobs) {
-        return new Promise((resolve) => {
-            // Schritt 1: Ersten Blob erscheinen lassen
-            const firstBlob = blobs[0];
-            firstBlob.style.display = 'block';
-            firstBlob.style.left = '0px';
-            firstBlob.style.top = '0px';
-            
-            firstBlob.animate([
-                { opacity: 0, transform: 'scale(0) translateX(0px)' },
-                { opacity: 1, transform: 'scale(1) translateX(0px)' }
-            ], {
-                duration: 300,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                fill: 'forwards'
-            }).finished.then(() => {
-                setTimeout(resolve, 100);
-            });
-        });
-    }
     
-    animateBlobSegmentation(blobs) {
-        return new Promise((resolve) => {
-            // Alle 5 Blobs zu ihren finalen Positionen animieren
-            const positions = [
-                { x: 0, y: 0 },      // devices
-                { x: 84, y: 0 },     // scripts  
-                { x: 168, y: 0 },    // automations
-                { x: 252, y: 0 },    // scenes
-                { x: 336, y: 0 }     // custom
-            ];
-            
-            const animations = Array.from(blobs).map((blob, index) => {
-                const pos = positions[index];
-                
-                return blob.animate([
-                    { 
-                        opacity: index === 0 ? 1 : 0, 
-                        transform: `scale(${index === 0 ? 1 : 0}) translateX(0px)` 
-                    },
-                    { 
-                        opacity: 1, 
-                        transform: `scale(1) translateX(${pos.x}px)` 
-                    }
-                ], {
-                    duration: 400,
-                    delay: index * 80,
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                    fill: 'forwards'
-                });
-            });
-            
-            Promise.all(animations.map(anim => anim.finished)).then(() => {
-                setTimeout(resolve, 200);
-            });
-        });
-    }
 
-    startLiquidCategoryAnimation() {
-        const { blobContainer, blobs } = this.createBlobAnimation();
-        
-        // Blob-Container anzeigen
-        blobContainer.style.display = 'block';
-        
-        // Starte Animations-Kette
-        this.animateBlobEmergence(blobs)
-            .then(() => this.animateBlobSegmentation(blobs))
-            .then(() => this.materialiseCategoryButtons());
-    }
-    
-    materialiseCategoryButtons() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const blobContainer = this.shadowRoot.querySelector('#blobContainer');
-        
-        // Category-Buttons anzeigen und Blobs verstecken
-        categoryButtons.classList.add('visible');
-        blobContainer.style.display = 'none';
-        
-        // Finale Category-Button Animation
-        categoryButtons.animate([
-            { opacity: 0, transform: 'translateX(20px) scale(0.9)' }, 
-            { opacity: 1, transform: 'translateX(0) scale(1)' }
-        ], { 
-            duration: 300, 
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)', 
-            fill: 'forwards' 
-        });
-    }    
 
     handleSubcategorySelect(selectedChip) {
         let subcategory = selectedChip.dataset.subcategory;
