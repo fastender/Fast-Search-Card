@@ -5017,7 +5017,12 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
-        categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+
+        categoryButtons.animate([
+            { opacity: 0, transform: 'translateX(20px) scale(0.9)', filter: 'blur(8px)' }, 
+            { opacity: 1, transform: 'translateX(0) scale(1)', filter: 'blur(0px)' }
+        ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+    
     }
         
 
@@ -5034,8 +5039,8 @@ class FastSearchCard extends HTMLElement {
         if (!this.isMenuView) return;
         
         const animation = categoryButtons.animate([
-            { opacity: 1, transform: 'translateX(0) scale(1)' }, 
-            { opacity: 0, transform: 'translateX(20px) scale(0.9)' }
+            { opacity: 1, transform: 'translateX(0) scale(1)', filter: 'blur(0px)' }, 
+            { opacity: 0, transform: 'translateX(20px) scale(0.9)', filter: 'blur(8px)' }
         ], { duration: 300, easing: 'ease-in', fill: 'forwards' });
         
         animation.finished.then(() => { 
