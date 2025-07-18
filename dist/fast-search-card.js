@@ -5009,6 +5009,7 @@ class FastSearchCard extends HTMLElement {
 
 
 
+
     showCategoryButtons() {
         this.collapsePanel();
     
@@ -5025,28 +5026,43 @@ class FastSearchCard extends HTMLElement {
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // Alle Buttons auf Startposition (Mitte)
+        // TEMPORÄR für Animation: Absolute positioning
+        categoryButtons.style.position = 'relative';
         buttons.forEach(button => {
-            button.style.left = '50%';
             button.style.position = 'absolute';
+            button.style.left = '50%';
+            button.style.top = '50%';
             button.style.transform = 'translate(-50%, -50%)';
         });
         
-        // Phase 1: Container mit starkem Blur (Blob-Effekt)
+        // Phase 1: Blur-Effekt
         categoryButtons.animate([
             { opacity: 0, filter: 'blur(15px) contrast(20)' },
             { opacity: 1, filter: 'blur(0px) contrast(1)' }
         ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
         
-        // Phase 2: Buttons auseinanderfahren (mit leichtem Delay)
-        const positions = ['20%', '35%', '50%', '65%', '80%']; // 5 Positionen
+        // Phase 2: Buttons auseinander UND zurück zu Flexbox
+        const positions = ['10%', '30%', '50%', '70%', '90%'];
         buttons.forEach((button, index) => {
             setTimeout(() => {
-                button.animate([
+                const animation = button.animate([
                     { left: '50%' },
                     { left: positions[index] }
                 ], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
-            }, 150); // Startet nach 150ms
+                
+                // Nach Animation: Zurück zu normalem Flexbox
+                animation.finished.then(() => {
+                    if (index === buttons.length - 1) { // Nur beim letzten Button
+                        buttons.forEach(btn => {
+                            btn.style.position = '';
+                            btn.style.left = '';
+                            btn.style.top = '';
+                            btn.style.transform = '';
+                        });
+                        categoryButtons.style.position = '';
+                    }
+                });
+            }, 150);
         });
     }
         
