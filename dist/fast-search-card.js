@@ -1299,11 +1299,7 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                background: var(--glass-shadow);
-                /* NEU FÜR MORPH: */
-                position: absolute;
-                left: 50%;
-                transform: translate(-50%, -50%);                
+                background: var(--glass-shadow);          
             }
             
             .category-button:hover {
@@ -5010,6 +5006,7 @@ class FastSearchCard extends HTMLElement {
 
 
 
+
     showCategoryButtons() {
         this.collapsePanel();
     
@@ -5021,51 +5018,13 @@ class FastSearchCard extends HTMLElement {
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
-        
-        // TEMPORÄR für Animation: Absolute positioning
-        categoryButtons.style.position = 'relative';
-        buttons.forEach(button => {
-            button.style.position = 'absolute';
-            button.style.left = '50%';
-            button.style.top = '50%';
-            button.style.transform = 'translate(-50%, -50%)';
-        });
-        
-        // Phase 1: Blur-Effekt
         categoryButtons.animate([
-            { opacity: 0, filter: 'blur(15px) contrast(20)' },
-            { opacity: 1, filter: 'blur(0px) contrast(1)' }
+            { opacity: 0, transform: 'translateX(20px) scale(0.9)', filter: 'blur(8px)' }, 
+            { opacity: 1, transform: 'translateX(0) scale(1)', filter: 'blur(0px)' }
         ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
-        
-        // Phase 2: Buttons auseinander UND zurück zu Flexbox
-        const positions = ['10%', '30%', '50%', '70%', '90%'];
-        buttons.forEach((button, index) => {
-            setTimeout(() => {
-                const animation = button.animate([
-                    { left: '50%' },
-                    { left: positions[index] }
-                ], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
-                
-                // Nach Animation: Zurück zu normalem Flexbox
-                animation.finished.then(() => {
-                    if (index === buttons.length - 1) { // Nur beim letzten Button
-                        buttons.forEach(btn => {
-                            btn.style.position = '';
-                            btn.style.left = '';
-                            btn.style.top = '';
-                            btn.style.transform = '';
-                        });
-                        categoryButtons.style.position = '';
-                    }
-                });
-            }, 150);
-        });
     }
-        
 
     hideCategoryButtons() {
         // NEU: Search-Wrapper wieder anzeigen  
