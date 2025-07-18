@@ -1273,7 +1273,7 @@ class FastSearchCard extends HTMLElement {
                 .category-buttons {
                     justify-content: center;
                     width: 100%;
-                    gap: 8px;
+                    gap: 2px;
                 }
             }            
 
@@ -5026,7 +5026,11 @@ class FastSearchCard extends HTMLElement {
         categoryButtons.animate([
             { opacity: 0, transform: 'translateX(0px) scale(0.9)', filter: 'blur(10px) contrast(20)' }, 
             { opacity: 1, transform: 'translateX(0px) scale(1)', filter: 'blur(0px) contrast(1)' }
-        ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+        ], { 
+            duration: 400, 
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+            // fill: 'forwards' ENTFERNT!
+        });
     }
         
     hideCategoryButtons() {
