@@ -5003,7 +5003,6 @@ class FastSearchCard extends HTMLElement {
         return window.innerWidth <= 768;
     }    
 
-    
     showCategoryButtons() {
         this.collapsePanel();
     
@@ -5023,14 +5022,20 @@ class FastSearchCard extends HTMLElement {
         categoryButtons.style.opacity = '';
         categoryButtons.style.filter = '';
         
-        categoryButtons.animate([
+        // NUR EINE ANIMATION:
+        const animation = categoryButtons.animate([
             { opacity: 0, transform: 'translateX(0px) scale(0.9)', filter: 'blur(10px) contrast(20)' }, 
             { opacity: 1, transform: 'translateX(0px) scale(1)', filter: 'blur(0px) contrast(1)' }
         ], { 
             duration: 400, 
             easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
-            // fill: 'forwards' ENTFERNT!
         });
+        
+        animation.finished.then(() => {
+            categoryButtons.style.opacity = '1';
+            categoryButtons.style.transform = 'translateX(0px) scale(1)';
+            categoryButtons.style.filter = 'blur(0px) contrast(1)';
+        });        
     }
         
     hideCategoryButtons() {
