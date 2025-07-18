@@ -5020,6 +5020,7 @@ class FastSearchCard extends HTMLElement {
         categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
     }
         
+
     hideCategoryButtons() {
         // NEU: Search-Wrapper wieder anzeigen  
         if (this.isMobile()) {
@@ -5032,8 +5033,20 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
         
-        // NEUE GOOEY REVERSE ANIMATION:
-        this.animateGooeyCollapse(categoryButtons);
+        const animation = categoryButtons.animate([
+            { opacity: 1, transform: 'translateX(0) scale(1)' }, 
+            { opacity: 0, transform: 'translateX(20px) scale(0.9)' }
+        ], { duration: 300, easing: 'ease-in', fill: 'forwards' });
+        
+        animation.finished.then(() => { 
+            categoryButtons.classList.remove('visible'); 
+            this.isMenuView = false;
+            
+            // NEUE ZEILE - STATE ZURÜCKSETZEN:
+            categoryButtons.style.transform = '';
+            categoryButtons.style.opacity = '';
+            categoryButtons.style.filter = '';
+        });
     }
 
     animateGooeyExpansion(container, buttons) {
