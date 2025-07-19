@@ -4852,10 +4852,47 @@ class FastSearchCard extends HTMLElement {
         categoryButtons.forEach(button => {
             button.addEventListener('click', (e) => { e.stopPropagation(); this.handleCategorySelect(button); });
         });
-        this.shadowRoot.querySelector('.subcategories').addEventListener('click', (e) => {
+        
+        // Improved subcategory handling with touch support and debouncing
+        const subcategoriesContainer = this.shadowRoot.querySelector('.subcategories');
+        let isProcessing = false;
+        
+        const handleSubcategoryInteraction = (e) => {
+            if (isProcessing) return;
+            
             const chip = e.target.closest('.subcategory-chip');
-            if (chip) { e.stopPropagation(); this.handleSubcategorySelect(chip); }
+            if (!chip) return;
+            
+            e.stopPropagation();
+            e.preventDefault();
+            
+            isProcessing = true;
+            
+            // Immediate visual feedback
+            chip.style.transform = 'scale(0.95)';
+            
+            // Process selection
+            this.handleSubcategorySelect(chip);
+            
+            // Reset processing state and visual feedback
+            setTimeout(() => {
+                chip.style.transform = '';
+                isProcessing = false;
+            }, 150);
+        };
+        
+        // Add both click and touch events
+        subcategoriesContainer.addEventListener('click', handleSubcategoryInteraction);
+        subcategoriesContainer.addEventListener('touchend', handleSubcategoryInteraction);
+        
+        // Prevent scrolling issues on touch
+        subcategoriesContainer.addEventListener('touchstart', (e) => {
+            const chip = e.target.closest('.subcategory-chip');
+            if (chip) {
+                e.stopPropagation();
+            }
         });
+        
         this.shadowRoot.querySelector('.main-container').addEventListener('click', (e) => { e.stopPropagation(); });
         document.addEventListener('click', (e) => {
             if (!e.target.closest('fast-search-card')) {
