@@ -5010,12 +5010,19 @@ class FastSearchCard extends HTMLElement {
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ EINFACH: Browser zwingen, Backdrop-Filter sofort zu aktivieren
-        categoryButtons.offsetHeight; // Force reflow
+        // ✅ Browser zwingen Backdrop zu berechnen
+        categoryButtons.offsetHeight;
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        buttons.forEach(button => {
+            button.offsetHeight;
+            // Zusätzlicher Trigger
+            button.style.transform = 'translateZ(0)';
+        });
         
+        // ✅ LÄNGERE Wartezeit für Backdrop-Filter
         setTimeout(() => {
             this.animateRippleEffect(categoryButtons);
-        }, 50);
+        }, 150); // Länger warten statt 50ms!
     }
 
     showCategoryButtonsWithInstantGlass() {
