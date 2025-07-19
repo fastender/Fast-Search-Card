@@ -5010,20 +5010,39 @@ class FastSearchCard extends HTMLElement {
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ Browser zwingen Backdrop zu berechnen
-        categoryButtons.offsetHeight;
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        buttons.forEach(button => {
-            button.offsetHeight;
-            // Zusätzlicher Trigger
-            button.style.transform = 'translateZ(0)';
-        });
-        
-        // ✅ LÄNGERE Wartezeit für Backdrop-Filter
-        setTimeout(() => {
-            this.animateRippleEffect(categoryButtons);
-        }, 150); // Länger warten statt 50ms!
+        // ✅ Progressive Backdrop-Checks
+        this.progressiveBackdropCheck(categoryButtons, 0);
     }
+
+    progressiveBackdropCheck(categoryButtons, attempt) {
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        
+        // Force reflow
+        categoryButtons.offsetHeight;
+        buttons.forEach(button => button.offsetHeight);
+        
+        // Check ob Backdrop aktiv
+        if (attempt < 8) { // Max 8 Versuche = 240ms
+            // Einfacher Check: Ist das erste Button-Element bereit?
+            const firstButton = buttons[0];
+            const computedStyle = getComputedStyle(firstButton);
+            const hasBackdrop = computedStyle.backdropFilter !== 'none' || 
+                               computedStyle.webkitBackdropFilter !== 'none';
+            
+            if (hasBackdrop || attempt >= 3) { // Nach 3 Versuchen auf jeden Fall starten
+                // Animation starten!
+                this.animateRippleEffect(categoryButtons);
+            } else {
+                // Noch nicht da - nochmal versuchen
+                setTimeout(() => {
+                    this.progressiveBackdropCheck(categoryButtons, attempt + 1);
+                }, 30);
+            }
+        } else {
+            // Fallback: Animation trotzdem starten
+            this.animateRippleEffect(categoryButtons);
+        }
+    }    
 
     showCategoryButtonsWithInstantGlass() {
         this.collapsePanel();
