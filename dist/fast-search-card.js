@@ -5010,12 +5010,25 @@ class FastSearchCard extends HTMLElement {
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ CSS-Injection für sofortigen Glass-Effekt
-        this.addCategoryGlassCSS();
+        // ✅ SOFORTIGER sichtbarer Hintergrund - kein Warten auf Backdrop-Filter
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        buttons.forEach(button => {
+            // Sofortiger milchiger Hintergrund ohne Backdrop-Filter
+            button.style.background = `
+                radial-gradient(circle at 30% 30%, 
+                    rgba(255, 255, 255, 0.25) 0%, 
+                    rgba(255, 255, 255, 0.15) 40%, 
+                    rgba(255, 255, 255, 0.08) 100%
+                )
+            `;
+            button.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+            button.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
+        });
         
+        // Animation sofort starten - kein Warten mehr
         setTimeout(() => {
             this.animateRippleEffect(categoryButtons);
-        }, 100);
+        }, 30);
     }
     
     // ✅ NEUE FUNKTION: CSS für Category-Buttons Glass-Effekt
