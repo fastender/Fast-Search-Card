@@ -4996,6 +4996,10 @@ class FastSearchCard extends HTMLElement {
 
     showCategoryButtons() {
         this.collapsePanel();
+        
+        // ✅ DEBUG: Was ist der Zustand VOR der Animation?
+        console.log('🔍 BEFORE showCategoryButtons:');
+        this.debugCategoryButtons();
     
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
@@ -5005,15 +5009,62 @@ class FastSearchCard extends HTMLElement {
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        
+        // ✅ VOLLSTÄNDIGES RESET
+        this.resetAllCategoryStyles();
+        
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ SICHERHEITS-RESET vor neuer Animation
-        this.resetCategoryButtonStyles();
-        
-        // 🌊 RIPPLE EFFECT ANIMATION
-        this.animateRippleEffect(categoryButtons);
+        setTimeout(() => {
+            console.log('🔍 AFTER reset, BEFORE animation:');
+            this.debugCategoryButtons();
+            this.animateRippleEffect(categoryButtons);
+        }, 50);
     }
+
+    resetAllCategoryStyles() {
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const buttons = categoryButtons?.querySelectorAll('.category-button');
+        
+        if (categoryButtons) {
+            categoryButtons.style.opacity = '';
+            categoryButtons.style.transform = '';
+            categoryButtons.style.display = '';
+        }
+        
+        if (buttons) {
+            buttons.forEach(button => {
+                button.style.opacity = '';
+                button.style.transform = '';
+                button.style.filter = '';
+                button.style.transition = '';
+                button.style.boxShadow = '';
+                button.style.background = '';
+            });
+        }
+    }    
+    
+    debugCategoryButtons() {
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const buttons = categoryButtons?.querySelectorAll('.category-button');
+        
+        console.log('🔍 DEBUG Category Buttons:');
+        console.log('isMenuView:', this.isMenuView);
+        console.log('Container classes:', categoryButtons?.className);
+        console.log('Container opacity:', categoryButtons?.style.opacity);
+        console.log('Container display:', categoryButtons?.style.display);
+        
+        if (buttons) {
+            buttons.forEach((button, index) => {
+                console.log(`Button ${index}:`, {
+                    opacity: button.style.opacity,
+                    transform: button.style.transform,
+                    filter: button.style.filter
+                });
+            });
+        }
+    }    
 
     resetCategoryButtonStyles() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
