@@ -14959,21 +14959,254 @@ class FastSearchCard extends HTMLElement {
     
     
 
+    // 🔄 VERBESSERTE animateElementIn für allgemeine Nutzung
     animateElementIn(element, keyframes, options = {}) {
         if (!element) return;
-
-        // Reset alle Transform-Properties vor Animation
+    
+        // Reset alle Properties
         element.style.transform = '';
         element.style.scale = '';
-        element.style.opacity = '';        
+        element.style.opacity = '';
+        element.style.filter = '';
         
-        return element.animate(keyframes, {
-            duration: 400,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards',
-            ...options
+        // Apple-Style Defaults
+        const defaultOptions = {
+            duration: 500,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple's spring easing
+            fill: 'forwards'
+        };
+        
+        return element.animate(keyframes, { ...defaultOptions, ...options });
+    }
+
+
+    
+    // 🎭 STAGGERED ENTRANCE für große Listen
+    animateCardsInWaves(cards, waveSize = 4) {
+        cards.forEach((card, index) => {
+            const waveIndex = Math.floor(index / waveSize);
+            const cardInWave = index % waveSize;
+            
+            const delay = (waveIndex * 200) + (cardInWave * 50);
+            
+            setTimeout(() => {
+                this.animateCardInHomeKitStyle(card);
+            }, delay);
         });
     }
+    
+    // 🌊 SCROLL-TRIGGERED ANIMATIONS (für große Listen)
+    setupScrollAnimations() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const card = entry.target;
+                    if (!card.classList.contains('animated')) {
+                        this.animateCardInHomeKitStyle(card);
+                        card.classList.add('animated');
+                    }
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '50px'
+        });
+        
+        // Observer für alle Cards aktivieren
+        const cards = this.shadowRoot.querySelectorAll('.device-card');
+        cards.forEach(card => observer.observe(card));
+    }
+    
+    // 🎯 ENHANCED HOVER ANIMATIONS
+    enhanceHoverAnimations() {
+        const cards = this.shadowRoot.querySelectorAll('.device-card');
+        
+        cards.forEach(card => {
+            // Mouse Enter - Apple-style lift
+            card.addEventListener('mouseenter', () => {
+                card.animate([
+                    { transform: 'translateY(0) scale(1)' },
+                    { transform: 'translateY(-6px) scale(1.03)' }
+                ], {
+                    duration: 300,
+                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    fill: 'forwards'
+                });
+                
+                // Icon bounce
+                const icon = card.querySelector('.device-icon');
+                if (icon) {
+                    icon.animate([
+                        { transform: 'scale(1)' },
+                        { transform: 'scale(1.1)' },
+                        { transform: 'scale(1.05)' }
+                    ], {
+                        duration: 200,
+                        easing: 'ease-out'
+                    });
+                }
+            });
+            
+            // Mouse Leave - Smooth return
+            card.addEventListener('mouseleave', () => {
+                card.animate([
+                    { transform: 'translateY(-6px) scale(1.03)' },
+                    { transform: 'translateY(0) scale(1)' }
+                ], {
+                    duration: 250,
+                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    fill: 'forwards'
+                });
+                
+                const icon = card.querySelector('.device-icon');
+                if (icon) {
+                    icon.animate([
+                        { transform: 'scale(1.05)' },
+                        { transform: 'scale(1)' }
+                    ], {
+                        duration: 200,
+                        easing: 'ease-out'
+                    });
+                }
+            });
+            
+            // Click - Apple-style press
+            card.addEventListener('mousedown', () => {
+                card.animate([
+                    { transform: 'translateY(-6px) scale(1.03)' },
+                    { transform: 'translateY(-2px) scale(0.98)' }
+                ], {
+                    duration: 100,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+            });
+            
+            card.addEventListener('mouseup', () => {
+                card.animate([
+                    { transform: 'translateY(-2px) scale(0.98)' },
+                    { transform: 'translateY(-6px) scale(1.03)' }
+                ], {
+                    duration: 150,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+            });
+        });
+    }
+    
+    // 🎬 SCENE TRANSITION ANIMATIONS
+    animateSceneTransition(oldCards, newCards) {
+        // Fade out alte Cards
+        const fadeOutPromises = oldCards.map(card => {
+            return card.animate([
+                { opacity: 1, transform: 'scale(1)' },
+                { opacity: 0, transform: 'scale(0.9)' }
+            ], {
+                duration: 200,
+                easing: 'ease-in'
+            }).finished;
+        });
+        
+        // Nach fade out, neue Cards einblenden
+        Promise.all(fadeOutPromises).then(() => {
+            newCards.forEach((card, index) => {
+                setTimeout(() => {
+                    this.animateCardInHomeKitStyle(card);
+                }, index * 30);
+            });
+        });
+    }
+    
+    // 🌟 FAVORITEN TOGGLE ANIMATION
+    animateFavoriteToggle(card, isFavorite) {
+        const icon = card.querySelector('.device-icon');
+        
+        if (isFavorite) {
+            // Favorite hinzugefügt - Gold glow effect
+            card.animate([
+                { filter: 'brightness(1)' },
+                { filter: 'brightness(1.3) hue-rotate(45deg)' },
+                { filter: 'brightness(1)' }
+            ], {
+                duration: 600,
+                easing: 'ease-out'
+            });
+            
+            // Star burst effect
+            this.addStarSparkleEffect(card);
+            
+        } else {
+            // Favorite entfernt - subtle fade
+            card.animate([
+                { filter: 'brightness(1)' },
+                { filter: 'brightness(0.8)' },
+                { filter: 'brightness(1)' }
+            ], {
+                duration: 300,
+                easing: 'ease-out'
+            });
+        }
+    }
+    
+    // 🎯 INIT FUNCTION - Alle Animationen aktivieren
+    initHomeKitAnimations() {
+        // Setup enhanced hover animations
+        this.enhanceHoverAnimations();
+        
+        // Setup scroll animations für performance
+        if (this.filteredItems.length > 20) {
+            this.setupScrollAnimations();
+        }
+        
+        // Performance monitoring
+        this.monitorAnimationPerformance();
+    }
+    
+    // 📊 PERFORMANCE MONITORING
+    monitorAnimationPerformance() {
+        let frameCount = 0;
+        let lastTime = performance.now();
+        
+        const measureFPS = () => {
+            frameCount++;
+            const currentTime = performance.now();
+            
+            if (currentTime - lastTime >= 1000) {
+                const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                
+                // Wenn FPS zu niedrig, Animationen reduzieren
+                if (fps < 30) {
+                    this.reduceAnimationComplexity();
+                }
+                
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+            
+            requestAnimationFrame(measureFPS);
+        };
+        
+        requestAnimationFrame(measureFPS);
+    }
+    
+    // ⚡ PERFORMANCE FALLBACK
+    reduceAnimationComplexity() {
+        // Einfachere Animationen für schwächere Geräte
+        this.animateCardInHomeKitStyle = (card) => {
+            return card.animate([
+                { opacity: 0, transform: 'translateY(20px)' },
+                { opacity: 1, transform: 'translateY(0)' }
+            ], {
+                duration: 300,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+        };
+    }
+
+
+    
 
     animateElementOut(element, options = {}) {
         if (!element) return;
