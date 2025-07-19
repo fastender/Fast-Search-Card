@@ -5747,14 +5747,12 @@ class FastSearchCard extends HTMLElement {
 
     async getScriptArea(entityId, state) {
         try {
-            console.log(`🔍 Analyzing script area for: ${entityId}`);
             
             // METHODE 1: Prüfe ob Skript explizit einer Area zugeordnet ist (Entity Registry)
             if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
                 const entityRegistry = this._hass.entities[entityId];
                 if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
                     const area = this._hass.areas[entityRegistry.area_id];
-                    console.log(`✅ Script has explicit area: ${area.name}`);
                     return area.name;
                 }
             }
@@ -5763,7 +5761,6 @@ class FastSearchCard extends HTMLElement {
             const scriptName = state.attributes.friendly_name || entityId;
             const detectedArea = this.extractAreaFromName(scriptName);
             if (detectedArea !== 'Ohne Raum') {
-                console.log(`✅ Script area detected from name: ${detectedArea}`);
                 return detectedArea;
             }
             
@@ -5773,7 +5770,6 @@ class FastSearchCard extends HTMLElement {
                 if (scriptConfig) {
                     const configArea = this.analyzeScriptTargets(scriptConfig);
                     if (configArea !== 'Ohne Raum') {
-                        console.log(`✅ Script area detected from config: ${configArea}`);
                         return configArea;
                     }
                 }
@@ -5890,7 +5886,6 @@ class FastSearchCard extends HTMLElement {
                 const entityRegistry = this._hass.entities[entityId];
                 if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
                     const area = this._hass.areas[entityRegistry.area_id];
-                    console.log(`✅ Scene has explicit area: ${area.name}`);
                     return area.name;
                 }
             }
@@ -5911,14 +5906,12 @@ class FastSearchCard extends HTMLElement {
             // Wenn alle Entities in einem Raum sind
             if (areas.size === 1) {
                 const area = [...areas][0];
-                console.log(`✅ Scene area detected from entities: ${area}`);
                 return area;
             }
             
             // METHODE 3: Area aus Namen extrahieren
             const detectedArea = this.extractAreaFromName(state.attributes.friendly_name || entityId);
             if (detectedArea !== 'Ohne Raum') {
-                console.log(`✅ Scene area detected from name: ${detectedArea}`);
                 return detectedArea;
             }
             
@@ -5940,14 +5933,12 @@ class FastSearchCard extends HTMLElement {
     // 🎯 AUTOMATIONS AREA-DISCOVERY (ähnlich wie Skripte)
     async getAutomationArea(entityId, state) {
         try {
-            console.log(`⚙️ Analyzing automation area for: ${entityId}`);
             
             // METHODE 1: Explizite Area-Zuordnung
             if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
                 const entityRegistry = this._hass.entities[entityId];
                 if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
                     const area = this._hass.areas[entityRegistry.area_id];
-                    console.log(`✅ Automation has explicit area: ${area.name}`);
                     return area.name;
                 }
             }
@@ -5955,7 +5946,6 @@ class FastSearchCard extends HTMLElement {
             // METHODE 2: Area aus Namen extrahieren
             const detectedArea = this.extractAreaFromName(state.attributes.friendly_name || entityId);
             if (detectedArea !== 'Ohne Raum') {
-                console.log(`✅ Automation area detected from name: ${detectedArea}`);
                 return detectedArea;
             }
             
