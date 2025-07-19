@@ -4998,7 +4998,6 @@ class FastSearchCard extends HTMLElement {
     showCategoryButtons() {
         this.collapsePanel();
     
-        // Mobile: Search-Wrapper verstecken
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
@@ -5010,13 +5009,50 @@ class FastSearchCard extends HTMLElement {
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
+        // ✅ SICHERHEITS-RESET vor neuer Animation
+        this.resetCategoryButtonStyles();
+        
         // 🌊 RIPPLE EFFECT ANIMATION
         this.animateRippleEffect(categoryButtons);
     }
 
+    resetCategoryButtonStyles() {
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const buttons = categoryButtons?.querySelectorAll('.category-button');
+        
+        if (categoryButtons) {
+            categoryButtons.style.opacity = '';
+            categoryButtons.style.transform = '';
+        }
+        
+        if (buttons) {
+            buttons.forEach(button => {
+                button.style.opacity = '';
+                button.style.transform = '';
+                button.style.filter = '';
+                button.style.transition = '';
+                button.style.boxShadow = '';
+                button.style.background = '';
+            });
+        }
+    }    
+
     // 🌊 RIPPLE EFFECT ANIMATION
     animateRippleEffect(categoryButtons) {
         const buttons = categoryButtons.querySelectorAll('.category-button');
+        
+        // ✅ WICHTIG: Alle inline styles zurücksetzen
+        categoryButtons.style.opacity = '';
+        categoryButtons.style.transform = '';
+        
+        buttons.forEach(button => {
+            button.style.opacity = '';
+            button.style.transform = '';
+            button.style.filter = '';
+            button.style.transition = '';
+            button.style.boxShadow = '';
+            button.style.background = '';
+        });
         
         // Container sofort sichtbar machen
         categoryButtons.style.opacity = '1';
