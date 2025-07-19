@@ -5010,50 +5010,12 @@ class FastSearchCard extends HTMLElement {
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ SOFORTIGER MILCHIGER HINTERGRUND - ohne Backdrop-Filter Wartezeit
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        
-        buttons.forEach((button, index) => {
-            // ✅ VERSTÄRKTER milchiger Hintergrund - sofort sichtbar
-            button.style.background = `
-                linear-gradient(135deg, 
-                    rgba(255, 255, 255, 0.25) 0%, 
-                    rgba(255, 255, 255, 0.1) 50%, 
-                    rgba(255, 255, 255, 0.05) 100%
-                )
-            `;
-            
-            // ✅ Verstärkte Backdrop-Filter (mehrfach für Kompatibilität)
-            button.style.backdropFilter = 'blur(25px) saturate(180%)';
-            button.style.webkitBackdropFilter = 'blur(25px) saturate(180%)';
-            
-            // ✅ Verstärkte Borders und Schatten
-            button.style.border = '1px solid rgba(255, 255, 255, 0.3)';
-            button.style.boxShadow = `
-                0 8px 32px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.1)
-            `;
-            
-            // ✅ Hardware-Beschleunigung erzwingen
-            button.style.transform = 'translateZ(0) scale(1)';
-            button.style.willChange = 'transform, opacity';
-            button.style.isolation = 'isolate';
-            
-            // ✅ Sofort sichtbar
-            button.style.opacity = '1';
-        });
-        
-        // ✅ Container auch milchig machen
-        categoryButtons.style.background = 'rgba(255, 255, 255, 0.05)';
-        categoryButtons.style.backdropFilter = 'blur(15px)';
-        categoryButtons.style.webkitBackdropFilter = 'blur(15px)';
-        categoryButtons.style.borderRadius = '20px';
-        categoryButtons.style.padding = '8px';
+        // ✅ EINFACH: Browser zwingen, Backdrop-Filter sofort zu aktivieren
+        categoryButtons.offsetHeight; // Force reflow
         
         setTimeout(() => {
             this.animateRippleEffect(categoryButtons);
-        }, 20);
+        }, 50);
     }
 
     showCategoryButtonsWithInstantGlass() {
