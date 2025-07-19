@@ -5010,12 +5010,13 @@ class FastSearchCard extends HTMLElement {
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ NUR Backdrop-Aktivierung (ohne CSS-Injection)
+        // ✅ Backdrop-Filter sofort aktivieren
         this.forceBackdropFilterActivation(categoryButtons);
         
+        // ✅ Sehr kurzes Timeout für Animation
         setTimeout(() => {
             this.animateRippleEffect(categoryButtons);
-        }, 30);
+        }, 10);
     }
 
     forceBackdropFilterActivation(categoryButtons) {
