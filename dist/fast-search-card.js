@@ -5019,6 +5019,38 @@ class FastSearchCard extends HTMLElement {
         }, 10);
     }
 
+    showCategoryButtonsWithInstantGlass() {
+        this.collapsePanel();
+        
+        if (this.isMobile()) {
+            const searchWrapper = this.shadowRoot.querySelector('.search-panel');
+            if (searchWrapper) {
+                searchWrapper.style.display = 'none';
+            }
+        }
+        
+        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        
+        this.resetAllCategoryStyles();
+        this.isMenuView = true;
+        categoryButtons.classList.add('visible');
+        
+        // ✅ SOFORTIGER Glass-Effekt per Inline-Styles
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        buttons.forEach(button => {
+            // Sofortiger milchiger Hintergrund
+            button.style.background = 'rgba(255, 255, 255, 0.1)';
+            button.style.backdropFilter = 'blur(20px)';
+            button.style.webkitBackdropFilter = 'blur(20px)';
+            button.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+            button.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
+        });
+        
+        setTimeout(() => {
+            this.animateRippleEffect(categoryButtons);
+        }, 10);
+    }    
+
     forceBackdropFilterActivation(categoryButtons) {
         const buttons = categoryButtons.querySelectorAll('.category-button');
         
