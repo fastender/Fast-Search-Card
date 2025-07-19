@@ -5879,7 +5879,6 @@ class FastSearchCard extends HTMLElement {
 
     getSceneArea(entityId, state) {
         try {
-            console.log(`🎬 Analyzing scene area for: ${entityId}`);
             
             // METHODE 1: Explizite Area-Zuordnung
             if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
