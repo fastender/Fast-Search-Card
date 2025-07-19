@@ -4969,14 +4969,18 @@ class FastSearchCard extends HTMLElement {
         
         searchInput.value = '';
         this.isSearching = false; 
-        this.clearSuggestion(); // NEU HINZUFÜGEN
+        this.clearSuggestion();
         
         const animation = this.animateElementOut(clearButton);
         animation.finished.then(() => { clearButton.classList.remove('visible'); });
-        this.hasAnimated = false;
+        
+        // ✅ FIX: hasAnimated NICHT hier zurücksetzen - wird in renderResults gemacht
+        // this.hasAnimated = false; // ← ENTFERNEN
+        
         this.showCurrentCategoryItems();
         searchInput.focus();
     }
+
 
     toggleCategoryButtons() {
         if (this.isMenuView) { this.hideCategoryButtons(); } else { this.showCategoryButtons(); }
@@ -5053,15 +5057,21 @@ class FastSearchCard extends HTMLElement {
         selectedChip.classList.add('active');
         selectedChip.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
         this.activeSubcategory = subcategory;
-        this.hasAnimated = false;
+        
+        // ✅ FIX: hasAnimated NICHT hier zurücksetzen
+        // this.hasAnimated = false; // ← ENTFERNEN
+        
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (searchInput.value.trim()) {
             searchInput.value = '';
             this.isSearching = false; 
             const clearButton = this.shadowRoot.querySelector('.clear-button');
-            clearButton.classList.remove('visible');
+            if (clearButton.classList.contains('visible')) {
+                const animation = this.animateElementOut(clearButton);
+                animation.finished.then(() => { clearButton.classList.remove('visible'); });
+            }
         }
-        this.filterBySubcategory();
+        this.showCurrentCategoryItems();
     }
 
     toggleFilter() {
@@ -5353,6 +5363,14 @@ class FastSearchCard extends HTMLElement {
         this.rebuildSearchIndex();      
         this.showCurrentCategoryItems();
         this.updateSubcategoryCounts();
+        
+        // ✅ FIX: Force initial display - HIER EINFÜGEN!
+        setTimeout(() => {
+            if (this.filteredItems.length === 0) {
+                console.log('🔧 Force initial load');
+                this.showCurrentCategoryItems();
+            }
+        }, 100);
         
         console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered, ${this.allItems.filter(i => i.domain === 'custom').length} custom)`);
     }
@@ -6756,10 +6774,17 @@ class FastSearchCard extends HTMLElement {
         return 'Custom Item';
     }    
 
+    
     performSearch(query) {
         const startTime = performance.now();
         
+        // ✅ FIX: Debug-Logging hinzufügen
+        console.log('🔍 performSearch called with:', query);
+        console.log('📊 Current filteredItems before search:', this.filteredItems.length);
+        console.log('🏷️ activeCategory:', this.activeCategory);
+        
         if (!query.trim()) { 
+            console.log('🔍 Empty query, showing current category items');
             this.showCurrentCategoryItems(); 
             return; 
         }
@@ -6768,6 +6793,7 @@ class FastSearchCard extends HTMLElement {
         const preprocessedQuery = this.preprocessQuery(query);
         
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+        console.log('📊 categoryItems found:', categoryItems.length);
         
         // KORREKTUR: Parse Filter-Syntax mit preprocessedQuery (nicht original query)
         const parsedQuery = this.parseFilterSyntax(preprocessedQuery);
@@ -6837,11 +6863,27 @@ class FastSearchCard extends HTMLElement {
             }
         } else {
             // FALLBACK SEARCH
+            console.log('🔍 Using fallback search');
             this.fallbackSearch(query, categoryItems);
         }
     
+        // ✅ FIX: Debug-Logging nach der Suche
+        console.log('📊 Search results found:', this.filteredItems.length, 'items');
+        console.log('🎯 About to call renderResults...');
+    
         this.logSearchPerformance(query, startTime, 'EnhancedFuzzySearch', this.filteredItems.length);  // ← GEÄNDERT
         this.renderResults();
+        
+        // ✅ FIX: Debug nach renderResults
+        setTimeout(() => {
+            const grid = this.shadowRoot.querySelector('.results-grid');
+            const list = this.shadowRoot.querySelector('.results-list');
+            console.log('🔍 After renderResults:');
+            console.log('  - Grid innerHTML length:', grid?.innerHTML?.length || 0);
+            console.log('  - List innerHTML length:', list?.innerHTML?.length || 0);
+            console.log('  - hasAnimated:', this.hasAnimated);
+            console.log('  - Current view mode:', this.currentViewMode);
+        }, 50);
     }
 
     applyFilterSyntax(items, filters) {
@@ -7189,20 +7231,75 @@ class FastSearchCard extends HTMLElement {
     }    
 
     showCurrentCategoryItems() {
+        console.log('🔍 showCurrentCategoryItems called');
+        console.log('📊 allItems:', this.allItems.length);
+        console.log('🏷️ activeCategory:', this.activeCategory);
+        console.log('🏷️ activeSubcategory:', this.activeSubcategory);
+        
         this.filteredItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
-        if (this.activeSubcategory !== 'all') { this.filterBySubcategory(); } else { this.renderResults(); }
+        
+        console.log('📊 filteredItems after category filter:', this.filteredItems.length);
+        
+        if (this.activeSubcategory !== 'all') { 
+            this.filterBySubcategory(); 
+        } else { 
+            this.renderResults(); 
+        }
+        
+        console.log('📊 Final filteredItems:', this.filteredItems.length);
     }
 
-    isItemInCategory(item, category) {
-        switch (category) {
-            case 'devices': return !['script', 'automation', 'scene', 'custom'].includes(item.domain);                
-            case 'scripts': return item.domain === 'script';
-            case 'automations': return item.domain === 'automation';
-            case 'scenes': return item.domain === 'scene';
-            case 'custom': return item.domain === 'custom';
-            default: return true;
-        }
-    }
+    debugDisableAnimations() {
+        console.log('🚫 Disabling animations for debugging');
+        
+        // Override animation functions temporarily
+        this.animateCardInHomeKitStyle = (card) => {
+            if (card) {
+                card.style.opacity = '1';
+                card.style.transform = 'none';
+                card.style.filter = 'none';
+            }
+        };
+        
+        this.animateHeaderIn = (header) => {
+            if (header) {
+                header.style.opacity = '1';
+                header.style.transform = 'none';
+            }
+        };
+        
+        this.animateElementIn = (element) => {
+            if (element) {
+                element.style.opacity = '1';
+                element.style.transform = 'none';
+            }
+        };
+    }    
+
+    forceRenderResults() {
+        console.log('🔧 Force rendering results');
+        
+        // Force reset
+        this.hasAnimated = false;
+        this.animationTimeouts = [];
+        
+        // Force all items visible  
+        const cards = this.shadowRoot.querySelectorAll('.device-card');
+        const headers = this.shadowRoot.querySelectorAll('.area-header');
+        
+        cards.forEach(card => {
+            card.style.opacity = '1';
+            card.style.transform = 'none';
+            card.style.filter = 'none';
+        });
+        
+        headers.forEach(header => {
+            header.style.opacity = '1';
+            header.style.transform = 'none';
+        });
+        
+        console.log('✅ Force render completed');
+    }    
 
     filterBySubcategory() {
         if (this.activeSubcategory === 'all') { 
@@ -7243,6 +7340,7 @@ class FastSearchCard extends HTMLElement {
         this.renderResults();
     }
 
+
     renderResults() {
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
         const resultsList = this.shadowRoot.querySelector('.results-list');
@@ -7251,12 +7349,22 @@ class FastSearchCard extends HTMLElement {
         this.animationTimeouts.forEach(timeout => clearTimeout(timeout));
         this.animationTimeouts = [];
         
-        // Hide both containers initially
+        // ✅ FIX: hasAnimated bei jeder neuen Suche zurücksetzen
+        this.hasAnimated = false;
+        
+        // Show/Hide containers
         resultsGrid.style.display = this.currentViewMode === 'grid' ? 'grid' : 'none';
         resultsList.classList.toggle('active', this.currentViewMode === 'list');
         
+        // Check for empty results
         if (this.filteredItems.length === 0) {
-            const emptyState = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Keine Ergebnisse</div><div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div></div>`;
+            const emptyState = `
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-title">Keine Ergebnisse</div>
+                    <div class="empty-subtitle">Versuchen Sie einen anderen Suchbegriff</div>
+                </div>`;
+            
             if (this.currentViewMode === 'grid') {
                 resultsGrid.innerHTML = emptyState;
             } else {
@@ -7265,12 +7373,11 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // 🌟 NEU: Stars sammeln
+        // Get starred items
         const starredItems = this.getUserStarredItems();
-        
-        // Alle Items für Raum-Sektionen (inkl. Stars)
         const nonStarredItems = this.filteredItems;
         
+        // Render based on view mode
         if (this.currentViewMode === 'grid') {
             this.renderGridResults(resultsGrid, starredItems, nonStarredItems);
         } else {
