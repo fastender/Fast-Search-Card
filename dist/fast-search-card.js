@@ -4996,9 +4996,9 @@ class FastSearchCard extends HTMLElement {
     }    
 
     showCategoryButtons() {
-        this.collapsePanel(); // <-- HINZUGEFÜGTE ZEILE
-
-        // NEU: Search-Wrapper auf Mobile verstecken
+        this.collapsePanel();
+    
+        // Mobile: Search-Wrapper verstecken
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
@@ -5009,8 +5009,113 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
-        categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+        
+        // 🌊 RIPPLE EFFECT ANIMATION
+        this.animateRippleEffect(categoryButtons);
     }
+
+    // 🌊 RIPPLE EFFECT ANIMATION
+    animateRippleEffect(categoryButtons) {
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        
+        // Container sofort sichtbar machen
+        categoryButtons.style.opacity = '1';
+        categoryButtons.style.transform = 'translateX(0) scale(1)';
+        
+        // Alle Buttons initial unsichtbar setzen
+        buttons.forEach((button, index) => {
+            button.style.opacity = '0';
+            button.style.transform = 'translateY(25px) scale(0.4) rotate(-15deg)';
+            button.style.filter = 'blur(6px)';
+        });
+        
+        // Gestaffelte Animation
+        buttons.forEach((button, index) => {
+            setTimeout(() => {
+                this.animateButtonRipple(button, index);
+            }, index * 80);
+        });
+    }
+    
+    animateButtonRipple(button, index) {
+        button.animate([
+            { 
+                opacity: 0, 
+                transform: 'translateY(25px) scale(0.4) rotate(-15deg)',
+                filter: 'blur(6px)'
+            },
+            { 
+                opacity: 0.9, 
+                transform: 'translateY(-8px) scale(1.15) rotate(3deg)',
+                filter: 'blur(0px)',
+                offset: 0.7
+            },
+            { 
+                opacity: 1, 
+                transform: 'translateY(0) scale(1) rotate(0deg)',
+                filter: 'blur(0px)'
+            }
+        ], {
+            duration: 550,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards'
+        });
+    }
+    
+    animateRippleOut(categoryButtons) {
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        
+        buttons.forEach((button, index) => {
+            const reverseIndex = buttons.length - 1 - index;
+            
+            setTimeout(() => {
+                button.animate([
+                    { 
+                        opacity: 1, 
+                        transform: 'translateY(0) scale(1) rotate(0deg)',
+                        filter: 'blur(0px)'
+                    },
+                    { 
+                        opacity: 0.3, 
+                        transform: 'translateY(15px) scale(0.7) rotate(10deg)',
+                        filter: 'blur(3px)'
+                    }
+                ], {
+                    duration: 300,
+                    easing: 'ease-in',
+                    fill: 'forwards'
+                });
+            }, reverseIndex * 50);
+        });
+        
+        setTimeout(() => {
+            const containerAnimation = categoryButtons.animate([
+                { opacity: 1 },
+                { opacity: 0 }
+            ], {
+                duration: 200,
+                easing: 'ease-in',
+                fill: 'forwards'
+            });
+            
+            containerAnimation.finished.then(() => { 
+                categoryButtons.classList.remove('visible'); 
+                this.isMenuView = false; 
+            });
+        }, buttons.length * 50 + 100);
+    }
+    
+    animateButtonSelection(button) {
+        // Selection feedback animation
+        button.animate([
+            { transform: 'scale(1)' }, 
+            { transform: 'scale(1.2)' }, 
+            { transform: 'scale(1.1)' }
+        ], { 
+            duration: 300, 
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
+        });
+    }    
     
     hideCategoryButtons() {
         // NEU: Search-Wrapper wieder anzeigen  
@@ -5023,8 +5128,9 @@ class FastSearchCard extends HTMLElement {
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
-        const animation = categoryButtons.animate([{ opacity: 1, transform: 'translateX(0) scale(1)' }, { opacity: 0, transform: 'translateX(20px) scale(0.9)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' });
-        animation.finished.then(() => { categoryButtons.classList.remove('visible'); this.isMenuView = false; });
+        
+        // 🌊 REVERSE RIPPLE EFFECT
+        this.animateRippleOut(categoryButtons);
     }
 
     handleCategorySelect(selectedButton) {
