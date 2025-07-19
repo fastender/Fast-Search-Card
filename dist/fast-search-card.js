@@ -1261,8 +1261,6 @@ class FastSearchCard extends HTMLElement {
                 display: none;
                 flex-direction: row;
                 gap: 12px;
-                opacity: 0;
-                transform: translateX(20px);
             }
 
             /* Mobile: Category-Buttons zentrieren */
@@ -1276,6 +1274,7 @@ class FastSearchCard extends HTMLElement {
 
             .category-buttons.visible {
                 display: flex;
+                opacity: 1;
             }
 
             .category-button {
@@ -5042,7 +5041,7 @@ class FastSearchCard extends HTMLElement {
         const buttons = categoryButtons.querySelectorAll('.category-button');
         
         // ✅ WICHTIG: CSS opacity überschreiben!
-        categoryButtons.style.opacity = '1 !important';
+        categoryButtons.style.opacity = '1';
         categoryButtons.style.transform = 'translateX(0) scale(1)';
         categoryButtons.style.display = 'flex'; // Sicherheitshalber
         
