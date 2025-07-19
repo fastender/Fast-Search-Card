@@ -5010,18 +5010,30 @@ class FastSearchCard extends HTMLElement {
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ Browser mehrfach zwingen, Backdrop-Filter zu aktivieren
-        categoryButtons.offsetHeight;
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        buttons.forEach(button => {
-            button.offsetHeight;
-            button.style.willChange = 'transform';
-        });
+        // ✅ CSS-Injection für sofortigen Glass-Effekt
+        this.addCategoryGlassCSS();
         
-        // ✅ LÄNGERE Wartezeit: Erst milchig, DANN Animation
         setTimeout(() => {
             this.animateRippleEffect(categoryButtons);
-        }, 300); // Noch länger warten!
+        }, 100);
+    }
+    
+    // ✅ NEUE FUNKTION: CSS für Category-Buttons Glass-Effekt
+    addCategoryGlassCSS() {
+        // Prüfen ob bereits vorhanden
+        if (this.shadowRoot.querySelector('#category-glass-style')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'category-glass-style';
+        style.textContent = `
+            .category-buttons.visible .category-button.glass-panel::before {
+                opacity: 1 !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+            }
+        `;
+        
+        this.shadowRoot.appendChild(style);
     }
 
     progressiveBackdropCheck(categoryButtons, attempt) {
