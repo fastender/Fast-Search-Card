@@ -7278,12 +7278,14 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
+
+
     renderGridResults(resultsGrid, starredItems, nonStarredItems) {
         resultsGrid.innerHTML = '';
         
         let cardIndex = 0;
         
-        // 🌟 STARS-SEKTION mit priorisierter Animation
+        // 🌟 STARS-SEKTION
         if (starredItems.length > 0) {
             const starHeader = document.createElement('div');
             starHeader.className = 'area-header stars-header';
@@ -7291,29 +7293,40 @@ class FastSearchCard extends HTMLElement {
                 <span class="area-name">Favoriten</span>
                 <span class="area-count">(${starredItems.length})</span>
             `;
+            
+            // ✅ Header sofort unsichtbar machen
+            starHeader.style.opacity = '0';
+            starHeader.style.transform = 'translateX(-20px)';
+            
             resultsGrid.appendChild(starHeader);
             
-            // Header Animation - Apple-Style
+            // Header Animation
             if (!this.hasAnimated) {
                 this.animateHeaderIn(starHeader, cardIndex * 20);
-                cardIndex += 2; // Extra delay für Headers
+                cardIndex += 2;
             }
             
             starredItems.forEach((item) => {
                 const card = this.createDeviceCard(item);
+                
+                // ✅ WICHTIG: Karte sofort unsichtbar machen BEVOR sie ins DOM kommt
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px) scale(0.85)';
+                card.style.filter = 'blur(4px)';
+                
                 resultsGrid.appendChild(card);
                 
                 if (!this.hasAnimated) {
                     const timeout = setTimeout(() => {
                         this.animateCardInHomeKitStyle(card, 'star');
-                    }, cardIndex * 40); // 40ms delay für smooth cascade
+                    }, cardIndex * 40);
                     this.animationTimeouts.push(timeout);
                 }
                 cardIndex++;
             });
         }
         
-        // 🏠 RAUM-SEKTIONEN mit gestaffelten Animationen
+        // 🏠 RAUM-SEKTIONEN
         const groupedItems = this.groupItemsByArea(nonStarredItems);
         
         Object.keys(groupedItems).sort().forEach(area => {
@@ -7323,6 +7336,11 @@ class FastSearchCard extends HTMLElement {
                 <span class="area-name">${area}</span>
                 <span class="area-count">(${groupedItems[area].length})</span>
             `;
+            
+            // ✅ Header sofort unsichtbar
+            areaHeader.style.opacity = '0';
+            areaHeader.style.transform = 'translateX(-20px)';
+            
             resultsGrid.appendChild(areaHeader);
             
             // Header Animation
@@ -7333,6 +7351,12 @@ class FastSearchCard extends HTMLElement {
             
             groupedItems[area].forEach((item) => {
                 const card = this.createDeviceCard(item);
+                
+                // ✅ KRITISCH: Karte initial unsichtbar setzen
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px) scale(0.85)';
+                card.style.filter = 'blur(4px)';
+                
                 resultsGrid.appendChild(card);
                 
                 if (!this.hasAnimated) {
@@ -7348,43 +7372,43 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = true;
     }
     
-    // 🎨 HOMEKIT-STYLE CARD ANIMATION
+    // 2️⃣ KORRIGIERTE HomeKit Card Animation - Echtes Fade-In
     animateCardInHomeKitStyle(card, type = 'normal') {
         if (!card) return;
         
-        // Initial state - unsichtbar und leicht nach unten/skaliert
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px) scale(0.85)';
-        card.style.filter = 'blur(4px)';
+        // ✅ KEINE inline styles mehr setzen - sollten bereits gesetzt sein!
+        // card.style.opacity = '0'; // ← ENTFERNEN
+        // card.style.transform = 'translateY(30px) scale(0.85)'; // ← ENTFERNEN  
+        // card.style.filter = 'blur(4px)'; // ← ENTFERNEN
         
-        // HomeKit-inspired animation mit 3 Phasen
+        // HomeKit-inspired animation - Von current state zu final state
         const animation = card.animate([
-            // Phase 1: Unsichtbar, nach unten, klein, unscharf
+            // Phase 1: Current state (unsichtbar, nach unten, klein, unscharf)
             { 
                 opacity: 0, 
                 transform: 'translateY(30px) scale(0.85)',
                 filter: 'blur(4px)'
             },
-            // Phase 2: Teilweise sichtbar, fast an Position, leicht größer
+            // Phase 2: Overshoot (teilweise sichtbar, bounce nach oben)
             { 
                 opacity: 0.7, 
                 transform: 'translateY(-5px) scale(1.05)',
                 filter: 'blur(0px)',
                 offset: 0.7
             },
-            // Phase 3: Vollständig sichtbar, finale Position, normale Größe
+            // Phase 3: Final state (vollständig sichtbar, normale Position)
             { 
                 opacity: 1, 
                 transform: 'translateY(0) scale(1)',
                 filter: 'blur(0px)'
             }
         ], {
-            duration: type === 'star' ? 600 : 500, // Stars etwas länger
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)', // Apple's preferred easing
+            duration: type === 'star' ? 600 : 500,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
             fill: 'forwards'
         });
         
-        // 🌟 Zusätzliche Effekte für Favoriten
+        // 🌟 Sparkle-Effekt für Favoriten
         if (type === 'star') {
             setTimeout(() => {
                 this.addStarSparkleEffect(card);
@@ -7393,6 +7417,9 @@ class FastSearchCard extends HTMLElement {
         
         return animation;
     }
+
+
+    
     
     // ✨ SPARKLE EFFEKT für Favoriten
     addStarSparkleEffect(card) {
@@ -7427,26 +7454,29 @@ class FastSearchCard extends HTMLElement {
         });
     }
     
-    // 🎯 HEADER ANIMATION - Apple-Style
+    // 3️⃣ KORRIGIERTE Header Animation
     animateHeaderIn(header, delay = 0) {
         if (!header) return;
         
-        header.style.opacity = '0';
-        header.style.transform = 'translateX(-20px)';
+        // ✅ KEINE inline styles mehr setzen - sollten bereits gesetzt sein!
+        // header.style.opacity = '0'; // ← ENTFERNEN
+        // header.style.transform = 'translateX(-20px)'; // ← ENTFERNEN
         
         setTimeout(() => {
             const animation = header.animate([
+                // Von current state (unsichtbar, links)
                 { 
                     opacity: 0, 
                     transform: 'translateX(-20px)' 
                 },
+                // Zu final state (sichtbar, normale Position)
                 { 
                     opacity: 1, 
                     transform: 'translateX(0)' 
                 }
             ], {
                 duration: 400,
-                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', // Apple's easing
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                 fill: 'forwards'
             });
             
@@ -7456,13 +7486,12 @@ class FastSearchCard extends HTMLElement {
 
 
         
-    
     renderListResults(resultsList, starredItems, nonStarredItems) {
         resultsList.innerHTML = '';
         
         let itemIndex = 0;
         
-        // 🌟 STARS-SEKTION (nur wenn Stars vorhanden)
+        // 🌟 STARS-SEKTION
         if (starredItems.length > 0) {
             const starHeader = document.createElement('div');
             starHeader.className = 'area-header stars-header';
@@ -7470,11 +7499,27 @@ class FastSearchCard extends HTMLElement {
                 <span class="area-name">Favoriten</span>
                 <span class="area-count">(${starredItems.length})</span>
             `;
+            
+            // ✅ Header initial unsichtbar
+            starHeader.style.opacity = '0';
+            starHeader.style.transform = 'translateX(-20px)';
+            
             resultsList.appendChild(starHeader);
+            
+            if (!this.hasAnimated) {
+                this.animateHeaderIn(starHeader, itemIndex * 15);
+                itemIndex += 2;
+            }
             
             starredItems.forEach((item) => {
                 const listItem = this.createDeviceListItem(item);
+                
+                // ✅ List Item initial unsichtbar
+                listItem.style.opacity = '0';
+                listItem.style.transform = 'translateX(-20px)';
+                
                 resultsList.appendChild(listItem);
+                
                 if (!this.hasAnimated) {
                     const timeout = setTimeout(() => {
                         this.animateElementIn(listItem, { 
@@ -7488,7 +7533,7 @@ class FastSearchCard extends HTMLElement {
             });
         }
         
-        // 🏠 RAUM-SEKTIONEN (bestehende Logik mit nonStarredItems)
+        // 🏠 RAUM-SEKTIONEN für List View
         const groupedItems = this.groupItemsByArea(nonStarredItems);
         
         Object.keys(groupedItems).sort().forEach(area => {
@@ -7498,11 +7543,27 @@ class FastSearchCard extends HTMLElement {
                 <span class="area-name">${area}</span>
                 <span class="area-count">(${groupedItems[area].length})</span>
             `;
+            
+            // ✅ Header initial unsichtbar
+            areaHeader.style.opacity = '0';
+            areaHeader.style.transform = 'translateX(-20px)';
+            
             resultsList.appendChild(areaHeader);
+            
+            if (!this.hasAnimated) {
+                this.animateHeaderIn(areaHeader, itemIndex * 15);
+                itemIndex += 2;
+            }
             
             groupedItems[area].forEach((item) => {
                 const listItem = this.createDeviceListItem(item);
+                
+                // ✅ List Item initial unsichtbar
+                listItem.style.opacity = '0';
+                listItem.style.transform = 'translateX(-20px)';
+                
                 resultsList.appendChild(listItem);
+                
                 if (!this.hasAnimated) {
                     const timeout = setTimeout(() => {
                         this.animateElementIn(listItem, { 
@@ -7515,8 +7576,22 @@ class FastSearchCard extends HTMLElement {
                 itemIndex++;
             });
         });
+        
         this.hasAnimated = true;
     }
+
+    // 5️⃣ DEBUGGING: Testen Sie die Sichtbarkeit
+    debugCardVisibility() {
+        const cards = this.shadowRoot.querySelectorAll('.device-card');
+        console.log('🔍 Card visibility check:');
+        cards.forEach((card, index) => {
+            console.log(`Card ${index}:`, {
+                opacity: card.style.opacity,
+                transform: card.style.transform,
+                visible: getComputedStyle(card).opacity
+            });
+        });
+    }    
     
     groupItemsByArea(items = null) {
         // Falls keine Items übergeben werden, nutze this.filteredItems (für Rückwärtskompatibilität)
