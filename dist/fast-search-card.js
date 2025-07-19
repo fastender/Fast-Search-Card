@@ -1261,6 +1261,8 @@ class FastSearchCard extends HTMLElement {
                 display: none;
                 flex-direction: row;
                 gap: 12px;
+                opacity: 0;
+                transform: translateX(20px);
             }
 
             /* Mobile: Category-Buttons zentrieren */
@@ -1274,7 +1276,6 @@ class FastSearchCard extends HTMLElement {
 
             .category-buttons.visible {
                 display: flex;
-                opacity: 1;
             }
 
             .category-button {
@@ -4995,8 +4996,9 @@ class FastSearchCard extends HTMLElement {
     }    
 
     showCategoryButtons() {
-        this.collapsePanel();
-        
+        this.collapsePanel(); // <-- HINZUGEFÜGTE ZEILE
+
+        // NEU: Search-Wrapper auf Mobile verstecken
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
@@ -5005,334 +5007,13 @@ class FastSearchCard extends HTMLElement {
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        
-        this.resetAllCategoryStyles();
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
-        
-        // ✅ SOFORTIGER sichtbarer Hintergrund - kein Warten auf Backdrop-Filter
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        buttons.forEach(button => {
-            // Sofortiger milchiger Hintergrund ohne Backdrop-Filter
-            button.style.background = `
-                radial-gradient(circle at 30% 30%, 
-                    rgba(255, 255, 255, 0.25) 0%, 
-                    rgba(255, 255, 255, 0.15) 40%, 
-                    rgba(255, 255, 255, 0.08) 100%
-                )
-            `;
-            button.style.border = '1px solid rgba(255, 255, 255, 0.3)';
-            button.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
-        });
-        
-        // Animation sofort starten - kein Warten mehr
-        setTimeout(() => {
-            this.animateRippleEffect(categoryButtons);
-        }, 30);
+        categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
     }
-    
-    // ✅ NEUE FUNKTION: CSS für Category-Buttons Glass-Effekt
-    addCategoryGlassCSS() {
-        // Prüfen ob bereits vorhanden
-        if (this.shadowRoot.querySelector('#category-glass-style')) return;
-        
-        const style = document.createElement('style');
-        style.id = 'category-glass-style';
-        style.textContent = `
-            .category-buttons.visible .category-button.glass-panel::before {
-                opacity: 1 !important;
-                backdrop-filter: blur(20px) !important;
-                -webkit-backdrop-filter: blur(20px) !important;
-            }
-        `;
-        
-        this.shadowRoot.appendChild(style);
-    }
-
-    progressiveBackdropCheck(categoryButtons, attempt) {
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        
-        // Force reflow
-        categoryButtons.offsetHeight;
-        buttons.forEach(button => button.offsetHeight);
-        
-        // Check ob Backdrop aktiv
-        if (attempt < 8) { // Max 8 Versuche = 240ms
-            // Einfacher Check: Ist das erste Button-Element bereit?
-            const firstButton = buttons[0];
-            const computedStyle = getComputedStyle(firstButton);
-            const hasBackdrop = computedStyle.backdropFilter !== 'none' || 
-                               computedStyle.webkitBackdropFilter !== 'none';
-            
-            if (hasBackdrop || attempt >= 6) { // Nach 6 Versuchen = 180ms starten
-                // Animation starten!
-                this.animateRippleEffect(categoryButtons);
-            } else {
-                // Noch nicht da - nochmal versuchen
-                setTimeout(() => {
-                    this.progressiveBackdropCheck(categoryButtons, attempt + 1);
-                }, 30);
-            }
-        } else {
-            // Fallback: Animation trotzdem starten
-            this.animateRippleEffect(categoryButtons);
-        }
-    }
-
-    showCategoryButtonsWithInstantGlass() {
-        this.collapsePanel();
-        
-        if (this.isMobile()) {
-            const searchWrapper = this.shadowRoot.querySelector('.search-panel');
-            if (searchWrapper) {
-                searchWrapper.style.display = 'none';
-            }
-        }
-        
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        
-        this.resetAllCategoryStyles();
-        this.isMenuView = true;
-        categoryButtons.classList.add('visible');
-        
-        // ✅ SOFORTIGER Glass-Effekt per Inline-Styles
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        buttons.forEach(button => {
-            // Sofortiger milchiger Hintergrund
-            button.style.background = 'rgba(255, 255, 255, 0.1)';
-            button.style.backdropFilter = 'blur(20px)';
-            button.style.webkitBackdropFilter = 'blur(20px)';
-            button.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-            button.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
-        });
-        
-        setTimeout(() => {
-            this.animateRippleEffect(categoryButtons);
-        }, 10);
-    }    
-
-    forceBackdropFilterActivation(categoryButtons) {
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        
-        buttons.forEach((button, index) => {
-            // ✅ Mehrfache Browser-Tricks kombinieren
-            button.style.transform = 'translateZ(0) scale(1.001)';
-            button.style.willChange = 'transform, opacity, backdrop-filter';
-            button.style.backfaceVisibility = 'hidden';
-            
-            // ✅ Gestaffelter Opacity-Flicker für jeden Button
-            setTimeout(() => {
-                button.style.opacity = '0.98';
-                setTimeout(() => {
-                    button.style.opacity = '1';
-                    // Force repaint
-                    button.offsetHeight;
-                }, 5);
-            }, index * 2);
-        });
-        
-        // ✅ Container auch aktivieren
-        categoryButtons.style.transform = 'translateZ(0)';
-        categoryButtons.offsetHeight; // Force reflow
-    }
-    
-    resetAllCategoryStyles() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const buttons = categoryButtons?.querySelectorAll('.category-button');
-        
-        if (categoryButtons) {
-            // ✅ Stoppe alle laufenden Animationen am Container
-            categoryButtons.getAnimations().forEach(anim => anim.cancel());
-            
-            // ✅ Vollständiges Style-Reset
-            categoryButtons.style.cssText = '';
-            categoryButtons.style.opacity = '1';
-            categoryButtons.style.transform = 'none';
-            categoryButtons.style.display = 'flex';
-        }
-        
-        if (buttons) {
-            buttons.forEach(button => {
-                // ✅ Stoppe alle laufenden Animationen an jedem Button
-                button.getAnimations().forEach(anim => anim.cancel());
-                
-                // ✅ Vollständiges Style-Reset
-                button.style.cssText = '';
-                button.style.opacity = '1';
-                button.style.transform = 'none';
-                button.style.filter = 'none';
-            });
-        }
-    } 
-    
-    debugCategoryButtons() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const buttons = categoryButtons?.querySelectorAll('.category-button');
-        
-        console.log('🔍 DEBUG Category Buttons:');
-        console.log('isMenuView:', this.isMenuView);
-        console.log('Container classes:', categoryButtons?.className);
-        console.log('Container opacity:', categoryButtons?.style.opacity);
-        console.log('Container display:', categoryButtons?.style.display);
-        
-        if (buttons) {
-            buttons.forEach((button, index) => {
-                console.log(`Button ${index}:`, {
-                    opacity: button.style.opacity,
-                    transform: button.style.transform,
-                    filter: button.style.filter
-                });
-            });
-        }
-    }    
-
-    resetCategoryButtonStyles() {
-        const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const buttons = categoryButtons?.querySelectorAll('.category-button');
-        
-        if (categoryButtons) {
-            categoryButtons.style.opacity = '';
-            categoryButtons.style.transform = '';
-        }
-        
-        if (buttons) {
-            buttons.forEach(button => {
-                button.style.opacity = '';
-                button.style.transform = '';
-                button.style.filter = '';
-                button.style.transition = '';
-                button.style.boxShadow = '';
-                button.style.background = '';
-            });
-        }
-    }    
-
-    // 🌊 RIPPLE EFFECT ANIMATION
-    animateRippleEffect(categoryButtons) {
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        
-        // ✅ Container sichtbar
-        categoryButtons.style.opacity = '1';
-        categoryButtons.style.display = 'flex';
-        
-        // ✅ Buttons sofort sichtbar mit aktivem Backdrop-Filter
-        buttons.forEach(button => {
-            button.style.opacity = '1';
-            button.style.transform = 'none';
-            button.style.filter = 'none';
-        });
-        
-        // ✅ Schnelle Animation
-        setTimeout(() => {
-            buttons.forEach((button, index) => {
-                button.animate([
-                    { 
-                        opacity: 1,
-                        transform: 'translateY(0) scale(1)',
-                        filter: 'blur(0px)'
-                    },
-                    { 
-                        opacity: 0.9, 
-                        transform: 'translateY(-3px) scale(1.05)',
-                        filter: 'blur(0px)',
-                        offset: 0.5
-                    },
-                    { 
-                        opacity: 1, 
-                        transform: 'translateY(0) scale(1)',
-                        filter: 'blur(0px)'
-                    }
-                ], {
-                    duration: 250,
-                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                    delay: index * 30,
-                    fill: 'none'
-                });
-            });
-        }, 10);
-    }
-    
-    animateButtonRipple(button, index) {
-        button.animate([
-            { 
-                opacity: 0, 
-                transform: 'translateY(25px) scale(0.4) rotate(-15deg)',
-                filter: 'blur(6px)'
-            },
-            { 
-                opacity: 0.9, 
-                transform: 'translateY(-8px) scale(1.15) rotate(3deg)',
-                filter: 'blur(0px)',
-                offset: 0.7
-            },
-            { 
-                opacity: 1, 
-                transform: 'translateY(0) scale(1) rotate(0deg)',
-                filter: 'blur(0px)'
-            }
-        ], {
-            duration: 550,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'forwards'
-        });
-    }
-    
-    animateRippleOut(categoryButtons) {
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        
-        buttons.forEach((button, index) => {
-            const reverseIndex = buttons.length - 1 - index;
-            
-            setTimeout(() => {
-                button.animate([
-                    { 
-                        opacity: 1, 
-                        transform: 'translateY(0) scale(1) rotate(0deg)',
-                        filter: 'blur(0px)'
-                    },
-                    { 
-                        opacity: 0.3, 
-                        transform: 'translateY(15px) scale(0.7) rotate(10deg)',
-                        filter: 'blur(3px)'
-                    }
-                ], {
-                    duration: 300,
-                    easing: 'ease-in',
-                    fill: 'forwards'
-                });
-            }, reverseIndex * 50);
-        });
-        
-        setTimeout(() => {
-            const containerAnimation = categoryButtons.animate([
-                { opacity: 1 },
-                { opacity: 0 }
-            ], {
-                duration: 200,
-                easing: 'ease-in',
-                fill: 'forwards'
-            });
-            
-            containerAnimation.finished.then(() => { 
-                categoryButtons.classList.remove('visible'); 
-                this.isMenuView = false; 
-            });
-        }, buttons.length * 50 + 100);
-    }
-    
-    animateButtonSelection(button) {
-        // Selection feedback animation
-        button.animate([
-            { transform: 'scale(1)' }, 
-            { transform: 'scale(1.2)' }, 
-            { transform: 'scale(1.1)' }
-        ], { 
-            duration: 300, 
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
-        });
-    }    
     
     hideCategoryButtons() {
+        // NEU: Search-Wrapper wieder anzeigen  
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
@@ -5342,77 +5023,9 @@ class FastSearchCard extends HTMLElement {
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
-        
-        // ✅ Animation starten
-        this.animateReverseRipple(categoryButtons);
-        
-        // ✅ Nach Animation: Panel kollabieren
-        setTimeout(() => {
-            this.collapsePanel();
-        }, 500); // Nach Button-Animation
+        const animation = categoryButtons.animate([{ opacity: 1, transform: 'translateX(0) scale(1)' }, { opacity: 0, transform: 'translateX(20px) scale(0.9)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' });
+        animation.finished.then(() => { categoryButtons.classList.remove('visible'); this.isMenuView = false; });
     }
-
-    animateReverseRipple(categoryButtons) {
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        
-        // Reverse-Reihenfolge: Letzter Button zuerst
-        buttons.forEach((button, index) => {
-            const reverseIndex = buttons.length - 1 - index;
-            
-            setTimeout(() => {
-                button.animate([
-                    { 
-                        opacity: 1, 
-                        transform: 'translateY(0) scale(1) rotate(0deg)',
-                        filter: 'blur(0px)'
-                    },
-                    { 
-                        opacity: 0.3, 
-                        transform: 'translateY(20px) scale(0.6) rotate(12deg)',
-                        filter: 'blur(4px)'
-                    }
-                ], {
-                    duration: 350,
-                    easing: 'ease-in',
-                    fill: 'forwards'
-                });
-            }, reverseIndex * 60);
-        });
-        
-        // Nach allen Button-Animationen: Container ausblenden
-        setTimeout(() => {
-            categoryButtons.animate([
-                { opacity: 1 },
-                { opacity: 0 }
-            ], {
-                duration: 200,
-                easing: 'ease-in',
-                fill: 'forwards'
-            }).finished.then(() => {
-                this.cleanupCategoryButtons(categoryButtons);
-            });
-        }, buttons.length * 60 + 350);
-    }
-    
-    cleanupCategoryButtons(categoryButtons) {
-        categoryButtons.classList.remove('visible');
-        this.isMenuView = false;
-        
-        // Alle Styles zurücksetzen
-        const buttons = categoryButtons.querySelectorAll('.category-button');
-        categoryButtons.style.opacity = '';
-        categoryButtons.style.transform = '';
-        categoryButtons.style.display = '';
-        
-        buttons.forEach(button => {
-            button.style.opacity = '';
-            button.style.transform = '';
-            button.style.filter = '';
-        });
-        
-        // Panel wieder erweitern
-        this.expandPanel();
-    }    
 
     handleCategorySelect(selectedButton) {
         const category = selectedButton.dataset.category;
