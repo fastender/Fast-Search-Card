@@ -5010,8 +5010,18 @@ class FastSearchCard extends HTMLElement {
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ Progressive Backdrop-Checks
-        this.progressiveBackdropCheck(categoryButtons, 0);
+        // ✅ Browser mehrfach zwingen, Backdrop-Filter zu aktivieren
+        categoryButtons.offsetHeight;
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        buttons.forEach(button => {
+            button.offsetHeight;
+            button.style.willChange = 'transform';
+        });
+        
+        // ✅ LÄNGERE Wartezeit: Erst milchig, DANN Animation
+        setTimeout(() => {
+            this.animateRippleEffect(categoryButtons);
+        }, 300); // Noch länger warten!
     }
 
     progressiveBackdropCheck(categoryButtons, attempt) {
