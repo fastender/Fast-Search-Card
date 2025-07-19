@@ -348,7 +348,12 @@ class FastSearchCard extends HTMLElement {
         // NEU: Autocomplete State
         this.currentSuggestion = '';
         this.autocompleteTimeout = null;        
-    }
+
+        // ✅ SAFETY: Ensure critical methods exist
+        setTimeout(() => {
+            this.ensureCriticalMethods();
+        }, 100);        
+    }    
 
     setConfig(config) {
         if (!config) {
@@ -6562,6 +6567,12 @@ class FastSearchCard extends HTMLElement {
 
     updateSubcategoryCounts() {
         if (!this._hass || !this.allItems) return;
+
+        // ✅ SAFETY CHECK
+        if (typeof this.isItemInCategory !== 'function') {
+            console.error('❌ isItemInCategory missing in updateSubcategoryCounts');
+            this.defineIsItemInCategoryFunction();
+        }          
         
         // Domain-zu-Subcategory Mapping (gleich wie in renderCategoryChips)
         const domainMap = { 
@@ -7230,7 +7241,32 @@ class FastSearchCard extends HTMLElement {
         this.currentSuggestion = '';
     }    
 
+    isItemInCategory(item, category) {
+        if (!item || !item.domain) return false;
+        
+        switch (category) {
+            case 'devices': 
+                return !['script', 'automation', 'scene', 'custom'].includes(item.domain);                
+            case 'scripts': 
+                return item.domain === 'script';
+            case 'automations': 
+                return item.domain === 'automation';
+            case 'scenes': 
+                return item.domain === 'scene';
+            case 'custom': 
+                return item.domain === 'custom';
+            default: 
+                return true;
+        }
+    }    
+
     showCurrentCategoryItems() {
+        // ✅ SAFETY CHECK: Prüfe ob Funktion existiert
+        if (typeof this.isItemInCategory !== 'function') {
+            console.error('❌ isItemInCategory function missing! Defining it now...');
+            this.defineIsItemInCategoryFunction();
+        }
+        
         console.log('🔍 showCurrentCategoryItems called');
         console.log('📊 allItems:', this.allItems.length);
         console.log('🏷️ activeCategory:', this.activeCategory);
@@ -7249,6 +7285,52 @@ class FastSearchCard extends HTMLElement {
         console.log('📊 Final filteredItems:', this.filteredItems.length);
     }
 
+    ensureCriticalMethods() {
+        if (typeof this.isItemInCategory !== 'function') {
+            console.warn('🔧 Adding missing isItemInCategory function');
+            this.defineIsItemInCategoryFunction();
+        }
+        console.log('✅ Critical methods check completed');
+    }    
+
+    defineIsItemInCategoryFunction() {
+        console.log('🔧 Defining backup isItemInCategory function');
+        
+        this.isItemInCategory = (item, category) => {
+            if (!item || !item.domain) {
+                console.warn('❌ Invalid item:', item);
+                return false;
+            }
+            
+            switch (category) {
+                case 'devices': 
+                    return !['script', 'automation', 'scene', 'custom'].includes(item.domain);                
+                case 'scripts': 
+                    return item.domain === 'script';
+                case 'automations': 
+                    return item.domain === 'automation';
+                case 'scenes': 
+                    return item.domain === 'scene';
+                case 'custom': 
+                    return item.domain === 'custom';
+                default: 
+                    return true;
+            }
+        };
+    }    
+
+    debugAvailableMethods() {
+        console.log('🔍 Available methods on this object:');
+        const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+            .filter(name => typeof this[name] === 'function');
+        console.log('Methods:', methods);
+        
+        console.log('🔍 Checking specific functions:');
+        console.log('isItemInCategory:', typeof this.isItemInCategory);
+        console.log('showCurrentCategoryItems:', typeof this.showCurrentCategoryItems);
+        console.log('updateSubcategoryCounts:', typeof this.updateSubcategoryCounts);
+    }
+    
     debugDisableAnimations() {
         console.log('🚫 Disabling animations for debugging');
         
