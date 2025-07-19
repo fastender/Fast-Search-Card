@@ -4835,7 +4835,7 @@ class FastSearchCard extends HTMLElement {
         searchInput.addEventListener('keydown', (e) => this.handleSearchKeydown(e));
         searchInput.addEventListener('focus', () => this.handleSearchFocus());
         searchInput.addEventListener('blur', () => this.clearSuggestion());
-
+    
         // Touch-Events für Mobile hinzufügen
         clearButton.addEventListener('click', (e) => { 
             e.stopPropagation(); 
@@ -4853,15 +4853,38 @@ class FastSearchCard extends HTMLElement {
             button.addEventListener('click', (e) => { e.stopPropagation(); this.handleCategorySelect(button); });
         });
         
-        // Improved subcategory handling with touch support and debouncing
+        // Improved subcategory handling with scroll detection
         const subcategoriesContainer = this.shadowRoot.querySelector('.subcategories');
         let isProcessing = false;
-        
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+    
+        const handleTouchStart = (e) => {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchStartTime = Date.now();
+        };
+    
         const handleSubcategoryInteraction = (e) => {
             if (isProcessing) return;
             
             const chip = e.target.closest('.subcategory-chip');
             if (!chip) return;
+            
+            // Bei touchend: Prüfen ob es ein echtes Tap war
+            if (e.type === 'touchend') {
+                const touch = e.changedTouches[0];
+                const deltaX = Math.abs(touch.clientX - touchStartX);
+                const deltaY = Math.abs(touch.clientY - touchStartY);
+                const deltaTime = Date.now() - touchStartTime;
+                
+                // Ignore wenn es ein Scroll war (zu viel Bewegung oder zu lange Berührung)
+                if (deltaX > 10 || deltaY > 10 || deltaTime > 500) {
+                    return;
+                }
+            }
             
             e.stopPropagation();
             e.preventDefault();
@@ -4880,18 +4903,11 @@ class FastSearchCard extends HTMLElement {
                 isProcessing = false;
             }, 150);
         };
-        
-        // Add both click and touch events
+    
+        // Add events
+        subcategoriesContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
         subcategoriesContainer.addEventListener('click', handleSubcategoryInteraction);
         subcategoriesContainer.addEventListener('touchend', handleSubcategoryInteraction);
-        
-        // Prevent scrolling issues on touch
-        subcategoriesContainer.addEventListener('touchstart', (e) => {
-            const chip = e.target.closest('.subcategory-chip');
-            if (chip) {
-                e.stopPropagation();
-            }
-        });
         
         this.shadowRoot.querySelector('.main-container').addEventListener('click', (e) => { e.stopPropagation(); });
         document.addEventListener('click', (e) => {
@@ -4904,7 +4920,7 @@ class FastSearchCard extends HTMLElement {
                 }
             }
         });
-
+    
         // NEU: Search-Wrapper Klick Event hinzufügen
         const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
         if (searchWrapper) {
@@ -4968,6 +4984,7 @@ class FastSearchCard extends HTMLElement {
             });
         }
     }
+
 
 
 
