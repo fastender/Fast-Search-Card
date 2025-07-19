@@ -5148,7 +5148,7 @@ class FastSearchCard extends HTMLElement {
     }    
     
     hideCategoryButtons() {
-        // NEU: Search-Wrapper wieder anzeigen  
+        // Mobile: Search-Wrapper wieder anzeigen  
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
@@ -5159,8 +5159,27 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
         
-        // 🌊 REVERSE RIPPLE EFFECT
-        this.animateRippleOut(categoryButtons);
+        // ✅ SOFORT AUSBLENDEN ohne Animation
+        categoryButtons.classList.remove('visible');
+        this.isMenuView = false;
+        
+        // ✅ ALLE STYLES ZURÜCKSETZEN
+        const buttons = categoryButtons?.querySelectorAll('.category-button');
+        if (categoryButtons) {
+            categoryButtons.style.opacity = '';
+            categoryButtons.style.transform = '';
+            categoryButtons.style.display = '';
+        }
+        if (buttons) {
+            buttons.forEach(button => {
+                button.style.opacity = '';
+                button.style.transform = '';
+                button.style.filter = '';
+            });
+        }
+        
+        // ✅ PANEL WIEDER ERWEITERN
+        this.expandPanel();
     }
 
     handleCategorySelect(selectedButton) {
