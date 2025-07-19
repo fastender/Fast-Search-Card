@@ -4995,6 +4995,8 @@ class FastSearchCard extends HTMLElement {
     }    
 
     showCategoryButtons() {
+        this.collapsePanel();
+        
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
@@ -5003,30 +5005,43 @@ class FastSearchCard extends HTMLElement {
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
         
-        // ✅ Reset + Vorbereitung
+        // ✅ Reset
         this.resetAllCategoryStyles();
+        
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ SYNCHRONISIERT: Panel UND Buttons gleichzeitig animieren
+        // ✅ KRITISCHER FIX: Backdrop-Filter sofort aktivieren
+        this.forceBackdropFilterActivation(categoryButtons);
         
-        // 1️⃣ Panel sofort kollabieren (ohne Animation)
-        this.isPanelExpanded = false;
-        searchPanel.classList.remove('expanded');
-        
-        // 2️⃣ Kurze Pause, dann Panel UND Buttons gleichzeitig expandieren/animieren
+        // Animation danach
         setTimeout(() => {
-            // Panel expandieren (für milchigen Background)
-            this.isPanelExpanded = true;
-            searchPanel.classList.add('expanded');
-            
-            // Buttons animieren - GLEICHZEITIG!
             this.animateRippleEffect(categoryButtons);
         }, 50);
     }
 
+    forceBackdropFilterActivation(categoryButtons) {
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        
+        buttons.forEach(button => {
+            // ✅ Browser zum Neubau des Backdrop-Filters zwingen
+            button.style.transform = 'translateZ(0)';
+            button.style.willChange = 'transform';
+            
+            // ✅ Kurzer "Flicker" um Backdrop-Filter zu aktivieren
+            button.style.opacity = '0.99';
+            
+            // Sofort wieder normal
+            setTimeout(() => {
+                button.style.opacity = '1';
+            }, 1);
+        });
+        
+        // ✅ Browser zur Neuberechnung zwingen
+        categoryButtons.offsetHeight; // Force reflow
+    }
+    
     resetAllCategoryStyles() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         const buttons = categoryButtons?.querySelectorAll('.category-button');
@@ -5102,41 +5117,41 @@ class FastSearchCard extends HTMLElement {
     animateRippleEffect(categoryButtons) {
         const buttons = categoryButtons.querySelectorAll('.category-button');
         
-        // ✅ Container und Buttons sofort sichtbar
+        // ✅ Container sichtbar
         categoryButtons.style.opacity = '1';
-        categoryButtons.style.transform = 'translateX(0) scale(1)';
         categoryButtons.style.display = 'flex';
         
+        // ✅ Buttons sofort sichtbar mit aktivem Backdrop-Filter
         buttons.forEach(button => {
             button.style.opacity = '1';
             button.style.transform = 'none';
             button.style.filter = 'none';
         });
         
-        // ✅ Schnellere, elegantere Animation
+        // ✅ Schnelle Animation
         setTimeout(() => {
             buttons.forEach((button, index) => {
                 button.animate([
                     { 
                         opacity: 1,
-                        transform: 'translateY(0) scale(1) rotate(0deg)',
+                        transform: 'translateY(0) scale(1)',
                         filter: 'blur(0px)'
                     },
                     { 
-                        opacity: 0.8, 
-                        transform: 'translateY(-5px) scale(1.1) rotate(2deg)',
+                        opacity: 0.9, 
+                        transform: 'translateY(-3px) scale(1.05)',
                         filter: 'blur(0px)',
-                        offset: 0.4
+                        offset: 0.5
                     },
                     { 
                         opacity: 1, 
-                        transform: 'translateY(0) scale(1) rotate(0deg)',
+                        transform: 'translateY(0) scale(1)',
                         filter: 'blur(0px)'
                     }
                 ], {
-                    duration: 300, // ← Schneller!
+                    duration: 250,
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                    delay: index * 40, // ← Weniger Delay
+                    delay: index * 30,
                     fill: 'none'
                 });
             });
