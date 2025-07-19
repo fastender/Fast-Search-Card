@@ -5041,22 +5041,17 @@ class FastSearchCard extends HTMLElement {
     animateRippleEffect(categoryButtons) {
         const buttons = categoryButtons.querySelectorAll('.category-button');
         
-        // ✅ WICHTIG: Alle inline styles zurücksetzen
-        categoryButtons.style.opacity = '';
-        categoryButtons.style.transform = '';
+        // ✅ WICHTIG: CSS opacity überschreiben!
+        categoryButtons.style.opacity = '1 !important';
+        categoryButtons.style.transform = 'translateX(0) scale(1)';
+        categoryButtons.style.display = 'flex'; // Sicherheitshalber
         
+        // Rest der Funktion bleibt gleich...
         buttons.forEach(button => {
             button.style.opacity = '';
             button.style.transform = '';
             button.style.filter = '';
-            button.style.transition = '';
-            button.style.boxShadow = '';
-            button.style.background = '';
         });
-        
-        // Container sofort sichtbar machen
-        categoryButtons.style.opacity = '1';
-        categoryButtons.style.transform = 'translateX(0) scale(1)';
         
         // Alle Buttons initial unsichtbar setzen
         buttons.forEach((button, index) => {
