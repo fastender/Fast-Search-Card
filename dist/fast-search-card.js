@@ -5159,28 +5159,71 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
         
-        // ✅ SOFORT AUSBLENDEN ohne Animation
+        // 🌊 REVERSE RIPPLE ANIMATION
+        this.animateReverseRipple(categoryButtons);
+    }
+
+    animateReverseRipple(categoryButtons) {
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        
+        // Reverse-Reihenfolge: Letzter Button zuerst
+        buttons.forEach((button, index) => {
+            const reverseIndex = buttons.length - 1 - index;
+            
+            setTimeout(() => {
+                button.animate([
+                    { 
+                        opacity: 1, 
+                        transform: 'translateY(0) scale(1) rotate(0deg)',
+                        filter: 'blur(0px)'
+                    },
+                    { 
+                        opacity: 0.3, 
+                        transform: 'translateY(20px) scale(0.6) rotate(12deg)',
+                        filter: 'blur(4px)'
+                    }
+                ], {
+                    duration: 350,
+                    easing: 'ease-in',
+                    fill: 'forwards'
+                });
+            }, reverseIndex * 60);
+        });
+        
+        // Nach allen Button-Animationen: Container ausblenden
+        setTimeout(() => {
+            categoryButtons.animate([
+                { opacity: 1 },
+                { opacity: 0 }
+            ], {
+                duration: 200,
+                easing: 'ease-in',
+                fill: 'forwards'
+            }).finished.then(() => {
+                this.cleanupCategoryButtons(categoryButtons);
+            });
+        }, buttons.length * 60 + 350);
+    }
+    
+    cleanupCategoryButtons(categoryButtons) {
         categoryButtons.classList.remove('visible');
         this.isMenuView = false;
         
-        // ✅ ALLE STYLES ZURÜCKSETZEN
-        const buttons = categoryButtons?.querySelectorAll('.category-button');
-        if (categoryButtons) {
-            categoryButtons.style.opacity = '';
-            categoryButtons.style.transform = '';
-            categoryButtons.style.display = '';
-        }
-        if (buttons) {
-            buttons.forEach(button => {
-                button.style.opacity = '';
-                button.style.transform = '';
-                button.style.filter = '';
-            });
-        }
+        // Alle Styles zurücksetzen
+        const buttons = categoryButtons.querySelectorAll('.category-button');
+        categoryButtons.style.opacity = '';
+        categoryButtons.style.transform = '';
+        categoryButtons.style.display = '';
         
-        // ✅ PANEL WIEDER ERWEITERN
+        buttons.forEach(button => {
+            button.style.opacity = '';
+            button.style.transform = '';
+            button.style.filter = '';
+        });
+        
+        // Panel wieder erweitern
         this.expandPanel();
-    }
+    }    
 
     handleCategorySelect(selectedButton) {
         const category = selectedButton.dataset.category;
