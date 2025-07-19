@@ -5029,7 +5029,7 @@ class FastSearchCard extends HTMLElement {
             const hasBackdrop = computedStyle.backdropFilter !== 'none' || 
                                computedStyle.webkitBackdropFilter !== 'none';
             
-            if (hasBackdrop || attempt >= 3) { // Nach 3 Versuchen auf jeden Fall starten
+            if (hasBackdrop || attempt >= 6) { // Nach 6 Versuchen = 180ms starten
                 // Animation starten!
                 this.animateRippleEffect(categoryButtons);
             } else {
@@ -5042,7 +5042,7 @@ class FastSearchCard extends HTMLElement {
             // Fallback: Animation trotzdem starten
             this.animateRippleEffect(categoryButtons);
         }
-    }    
+    }
 
     showCategoryButtonsWithInstantGlass() {
         this.collapsePanel();
