@@ -4997,7 +4997,6 @@ class FastSearchCard extends HTMLElement {
     showCategoryButtons() {
         this.collapsePanel();
         
-        // ✅ DEBUG: Was ist der Zustand VOR der Animation?
         console.log('🔍 BEFORE showCategoryButtons:');
         this.debugCategoryButtons();
     
@@ -5010,17 +5009,18 @@ class FastSearchCard extends HTMLElement {
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         
-        // ✅ VOLLSTÄNDIGES RESET
+        // ✅ ERWEITERTE RESET-FUNKTION verwenden
         this.resetAllCategoryStyles();
         
+        // ✅ State setzen
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        setTimeout(() => {
-            console.log('🔍 AFTER reset, BEFORE animation:');
-            this.debugCategoryButtons();
-            this.animateRippleEffect(categoryButtons);
-        }, 50);
+        // ✅ Animation sofort starten (kein setTimeout mehr nötig)
+        console.log('🔍 AFTER reset, BEFORE animation:');
+        this.debugCategoryButtons();
+        
+        this.animateRippleEffect(categoryButtons);
     }
 
     resetAllCategoryStyles() {
@@ -5028,22 +5028,29 @@ class FastSearchCard extends HTMLElement {
         const buttons = categoryButtons?.querySelectorAll('.category-button');
         
         if (categoryButtons) {
-            categoryButtons.style.opacity = '';
-            categoryButtons.style.transform = '';
-            categoryButtons.style.display = '';
+            // ✅ Stoppe alle laufenden Animationen am Container
+            categoryButtons.getAnimations().forEach(anim => anim.cancel());
+            
+            // ✅ Vollständiges Style-Reset
+            categoryButtons.style.cssText = '';
+            categoryButtons.style.opacity = '1';
+            categoryButtons.style.transform = 'none';
+            categoryButtons.style.display = 'flex';
         }
         
         if (buttons) {
             buttons.forEach(button => {
-                button.style.opacity = '';
-                button.style.transform = '';
-                button.style.filter = '';
-                button.style.transition = '';
-                button.style.boxShadow = '';
-                button.style.background = '';
+                // ✅ Stoppe alle laufenden Animationen an jedem Button
+                button.getAnimations().forEach(anim => anim.cancel());
+                
+                // ✅ Vollständiges Style-Reset
+                button.style.cssText = '';
+                button.style.opacity = '1';
+                button.style.transform = 'none';
+                button.style.filter = 'none';
             });
         }
-    }    
+    } 
     
     debugCategoryButtons() {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
@@ -5091,31 +5098,48 @@ class FastSearchCard extends HTMLElement {
     animateRippleEffect(categoryButtons) {
         const buttons = categoryButtons.querySelectorAll('.category-button');
         
-        // ✅ WICHTIG: CSS opacity überschreiben!
+        // ✅ KRITISCH: Container und Buttons sichtbar machen BEVOR Animation startet
         categoryButtons.style.opacity = '1';
         categoryButtons.style.transform = 'translateX(0) scale(1)';
-        categoryButtons.style.display = 'flex'; // Sicherheitshalber
+        categoryButtons.style.display = 'flex';
         
-        // Rest der Funktion bleibt gleich...
+        // ✅ Alle Buttons sofort sichtbar machen
         buttons.forEach(button => {
-            button.style.opacity = '';
-            button.style.transform = '';
-            button.style.filter = '';
+            button.style.opacity = '1';
+            button.style.transform = 'none';
+            button.style.filter = 'none';
         });
         
-        // Alle Buttons initial unsichtbar setzen
-        buttons.forEach((button, index) => {
-            button.style.opacity = '0';
-            button.style.transform = 'translateY(25px) scale(0.4) rotate(-15deg)';
-            button.style.filter = 'blur(6px)';
-        });
-        
-        // Gestaffelte Animation
-        buttons.forEach((button, index) => {
-            setTimeout(() => {
-                this.animateButtonRipple(button, index);
-            }, index * 80);
-        });
+        // ✅ Kurze Pause, dann Animation starten
+        setTimeout(() => {
+            // Jetzt können wir die Animation starten
+            buttons.forEach((button, index) => {
+                // Animation von sichtbar zu animiert zu final
+                button.animate([
+                    { 
+                        opacity: 1,
+                        transform: 'translateY(0) scale(1) rotate(0deg)',
+                        filter: 'blur(0px)'
+                    },
+                    { 
+                        opacity: 0.7, 
+                        transform: 'translateY(-8px) scale(1.15) rotate(3deg)',
+                        filter: 'blur(0px)',
+                        offset: 0.3
+                    },
+                    { 
+                        opacity: 1, 
+                        transform: 'translateY(0) scale(1) rotate(0deg)',
+                        filter: 'blur(0px)'
+                    }
+                ], {
+                    duration: 450,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    delay: index * 60,
+                    fill: 'none' // ← WICHTIG: keine permanenten Styles!
+                });
+            });
+        }, 10);
     }
     
     animateButtonRipple(button, index) {
