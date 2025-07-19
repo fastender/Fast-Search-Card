@@ -5012,33 +5012,40 @@ class FastSearchCard extends HTMLElement {
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ KRITISCHER FIX: Backdrop-Filter sofort aktivieren
+        // ✅ SOFORT: Backdrop-Filter per CSS erzwingen
+        this.addInstantBackdropCSS();
+        
+        // ✅ Backdrop aktivieren
         this.forceBackdropFilterActivation(categoryButtons);
         
         // Animation danach
         setTimeout(() => {
             this.animateRippleEffect(categoryButtons);
-        }, 50);
+        }, 20); // Kürzer!
     }
 
     forceBackdropFilterActivation(categoryButtons) {
         const buttons = categoryButtons.querySelectorAll('.category-button');
         
-        buttons.forEach(button => {
-            // ✅ Browser zum Neubau des Backdrop-Filters zwingen
-            button.style.transform = 'translateZ(0)';
-            button.style.willChange = 'transform';
+        buttons.forEach((button, index) => {
+            // ✅ Mehrfache Browser-Tricks kombinieren
+            button.style.transform = 'translateZ(0) scale(1.001)';
+            button.style.willChange = 'transform, opacity, backdrop-filter';
+            button.style.backfaceVisibility = 'hidden';
             
-            // ✅ Kurzer "Flicker" um Backdrop-Filter zu aktivieren
-            button.style.opacity = '0.99';
-            
-            // Sofort wieder normal
+            // ✅ Gestaffelter Opacity-Flicker für jeden Button
             setTimeout(() => {
-                button.style.opacity = '1';
-            }, 1);
+                button.style.opacity = '0.98';
+                setTimeout(() => {
+                    button.style.opacity = '1';
+                    // Force repaint
+                    button.offsetHeight;
+                }, 5);
+            }, index * 2);
         });
         
-        // ✅ Browser zur Neuberechnung zwingen
+        // ✅ Container auch aktivieren
+        categoryButtons.style.transform = 'translateZ(0)';
         categoryButtons.offsetHeight; // Force reflow
     }
     
