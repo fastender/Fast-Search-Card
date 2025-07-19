@@ -4995,11 +4995,6 @@ class FastSearchCard extends HTMLElement {
     }    
 
     showCategoryButtons() {
-        this.collapsePanel();
-        
-        console.log('🔍 BEFORE showCategoryButtons:');
-        this.debugCategoryButtons();
-    
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
@@ -5008,19 +5003,28 @@ class FastSearchCard extends HTMLElement {
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
         
-        // ✅ ERWEITERTE RESET-FUNKTION verwenden
+        // ✅ Reset + Vorbereitung
         this.resetAllCategoryStyles();
-        
-        // ✅ State setzen
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
         
-        // ✅ Animation sofort starten (kein setTimeout mehr nötig)
-        console.log('🔍 AFTER reset, BEFORE animation:');
-        this.debugCategoryButtons();
+        // ✅ SYNCHRONISIERT: Panel UND Buttons gleichzeitig animieren
         
-        this.animateRippleEffect(categoryButtons);
+        // 1️⃣ Panel sofort kollabieren (ohne Animation)
+        this.isPanelExpanded = false;
+        searchPanel.classList.remove('expanded');
+        
+        // 2️⃣ Kurze Pause, dann Panel UND Buttons gleichzeitig expandieren/animieren
+        setTimeout(() => {
+            // Panel expandieren (für milchigen Background)
+            this.isPanelExpanded = true;
+            searchPanel.classList.add('expanded');
+            
+            // Buttons animieren - GLEICHZEITIG!
+            this.animateRippleEffect(categoryButtons);
+        }, 50);
     }
 
     resetAllCategoryStyles() {
@@ -5098,23 +5102,20 @@ class FastSearchCard extends HTMLElement {
     animateRippleEffect(categoryButtons) {
         const buttons = categoryButtons.querySelectorAll('.category-button');
         
-        // ✅ KRITISCH: Container und Buttons sichtbar machen BEVOR Animation startet
+        // ✅ Container und Buttons sofort sichtbar
         categoryButtons.style.opacity = '1';
         categoryButtons.style.transform = 'translateX(0) scale(1)';
         categoryButtons.style.display = 'flex';
         
-        // ✅ Alle Buttons sofort sichtbar machen
         buttons.forEach(button => {
             button.style.opacity = '1';
             button.style.transform = 'none';
             button.style.filter = 'none';
         });
         
-        // ✅ Kurze Pause, dann Animation starten
+        // ✅ Schnellere, elegantere Animation
         setTimeout(() => {
-            // Jetzt können wir die Animation starten
             buttons.forEach((button, index) => {
-                // Animation von sichtbar zu animiert zu final
                 button.animate([
                     { 
                         opacity: 1,
@@ -5122,10 +5123,10 @@ class FastSearchCard extends HTMLElement {
                         filter: 'blur(0px)'
                     },
                     { 
-                        opacity: 0.7, 
-                        transform: 'translateY(-8px) scale(1.15) rotate(3deg)',
+                        opacity: 0.8, 
+                        transform: 'translateY(-5px) scale(1.1) rotate(2deg)',
                         filter: 'blur(0px)',
-                        offset: 0.3
+                        offset: 0.4
                     },
                     { 
                         opacity: 1, 
@@ -5133,10 +5134,10 @@ class FastSearchCard extends HTMLElement {
                         filter: 'blur(0px)'
                     }
                 ], {
-                    duration: 450,
+                    duration: 300, // ← Schneller!
                     easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                    delay: index * 60,
-                    fill: 'none' // ← WICHTIG: keine permanenten Styles!
+                    delay: index * 40, // ← Weniger Delay
+                    fill: 'none'
                 });
             });
         }, 10);
@@ -5223,7 +5224,6 @@ class FastSearchCard extends HTMLElement {
     }    
     
     hideCategoryButtons() {
-        // Mobile: Search-Wrapper wieder anzeigen  
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
@@ -5234,8 +5234,13 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
         
-        // 🌊 REVERSE RIPPLE ANIMATION
+        // ✅ Animation starten
         this.animateReverseRipple(categoryButtons);
+        
+        // ✅ Nach Animation: Panel kollabieren
+        setTimeout(() => {
+            this.collapsePanel();
+        }, 500); // Nach Button-Animation
     }
 
     animateReverseRipple(categoryButtons) {
