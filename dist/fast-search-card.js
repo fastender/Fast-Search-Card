@@ -1347,11 +1347,22 @@ class FastSearchCard extends HTMLElement {
             /* Detail Tabs */
             .detail-tabs-container {
                 display: flex;
-                justify-content: flex-end;
-                padding-right: 20px;
-                padding-top: 20px;
-                padding-bottom: 10px;                
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px;
             }
+
+            .detail-header {
+                flex: 1;
+            }
+            
+            .detail-header-title {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-primary);
+                opacity: 0.9;
+            }            
                 
             .detail-tabs {
                 position: relative;
@@ -1450,11 +1461,10 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .mobile-tabs {
-                    display: flex;              /* ← flex statt block */
-                    justify-content: flex-end;  /* ← rechts positionieren */
-                    padding-right: 20px;        /* ← gleich wie Desktop */
-                    padding-top: 20px;
-                    padding-bottom: 10px;
+                    display: flex;              
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 20px;
                 }
                 
                 .detail-content { 
@@ -8744,21 +8754,28 @@ class FastSearchCard extends HTMLElement {
     
         const desktopTabsHTML = `
             <div class="detail-tabs-container desktop-tabs">
+                <div class="detail-header">
+                    <h3 class="detail-header-title">Steuerung</h3>
+                </div>
                 <div class="detail-tabs">
                     <span class="tab-slider"></span>
-                     ${tabsConfig.map(tab => `<a href="#" class="detail-tab ${tab.default ? 'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}
+                     ${tabsConfig.map(tab => `<a href="#" class="detail-tab ${tab.default ?
+        'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}
                 </div>
             </div>
         `;
 
         const mobileTabsHTML = `
-                <div class="detail-tabs-container mobile-tabs">
-                    <div class="detail-tabs">
-                        <span class="tab-slider"></span>
-                         ${tabsConfig.map(tab => `<a href="#" class="detail-tab ${tab.default ? 'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}
-                    </div>
+            <div class="detail-tabs-container mobile-tabs">
+                <div class="detail-header">
+                    <h3 class="detail-header-title">Steuerung</h3>
                 </div>
-            `;        
+                <div class="detail-tabs">
+                    <span class="tab-slider"></span>
+                     ${tabsConfig.map(tab => `<a href="#" class="detail-tab ${tab.default ? 'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}
+                </div>
+            </div>
+        `;   
     
         return `
             ${desktopTabsHTML}
@@ -13281,7 +13298,16 @@ class FastSearchCard extends HTMLElement {
                         tabContainer.classList.add('history-active');
                     } else if (targetId === 'shortcuts') {
                         tabContainer.classList.add('shortcuts-active');
-                    }                    
+                    }      
+
+                    // Header-Text aktualisieren
+                    const headerTitles = this.shadowRoot.querySelectorAll('.detail-header-title');
+                    const tabTitle = tab.getAttribute('title');
+                    headerTitles.forEach(title => {
+                        if (title) {
+                            title.textContent = tabTitle;
+                        }
+                    });                    
                     
                     // Sync beide Tab-Container
                     [desktopTabsContainer, mobileTabsContainer].forEach(container => {
@@ -13296,13 +13322,25 @@ class FastSearchCard extends HTMLElement {
                                 containerSlider.style.left = `${correspondingTab.offsetLeft}px`;
                             }
                         }
-                    });
+                    });               
                     
                     contents.forEach(c => c.classList.remove('active'));
                     this.shadowRoot.querySelector(`[data-tab-content="${targetId}"]`).classList.add('active');
                 });
             });
         });
+
+        // Initial Header-Text setzen basierend auf aktivem Tab
+        const initialActiveTab = this.shadowRoot.querySelector('.detail-tab.active');
+        if (initialActiveTab) {
+            const initialTitle = initialActiveTab.getAttribute('title');
+            const headerTitles = this.shadowRoot.querySelectorAll('.detail-header-title');
+            headerTitles.forEach(title => {
+                if (title) {
+                    title.textContent = initialTitle;
+                }
+            });
+        }             
     
         // Rest der Device-Setup Logik bleibt gleich
         if (item.domain === 'light') {
