@@ -5254,7 +5254,6 @@ class FastSearchCard extends HTMLElement {
     }
 
     switchToCategory(newCategory) {
-        console.log(`🔄 Switching to category: ${newCategory}`);
         
         // 1. Interne Variable setzen
         this.activeCategory = newCategory;
@@ -5279,8 +5278,7 @@ class FastSearchCard extends HTMLElement {
         
         // 5. Items laden und anzeigen
         this.showCurrentCategoryItems();
-        
-        console.log(`✅ Category switched to: ${newCategory}`);
+
     }
     
     updateCategoryButtonStates() {
@@ -5299,18 +5297,14 @@ class FastSearchCard extends HTMLElement {
         if (this._config.auto_discover) {
             const discoveredEntities = await this.discoverEntities(); // ← AWAIT hinzugefügt!
             allEntityConfigs = [...discoveredEntities];
-            console.log(`Auto-discovered: ${discoveredEntities.length} entities`);
         }
     
         // 1.5. Custom Data Sources (NEU: IMMER prüfen, nicht nur bei activeCategory)
         if (this._config.custom_mode.enabled) {
-            console.log(`🔄 Loading custom items...`);
             const customItems = await this.parseCustomDataSources();
             if (customItems && Array.isArray(customItems)) { // ← Sicherheitscheck hinzufügen
                 allEntityConfigs = [...allEntityConfigs, ...customItems];
-                console.log(`🍳 Custom items: ${customItems.length} items`);
             } else {
-                console.log(`🍳 No custom items found`);
             }
         }
         
@@ -5323,10 +5317,7 @@ class FastSearchCard extends HTMLElement {
             
             // Füge manuelle Entities hinzu
             allEntityConfigs = [...allEntityConfigs, ...this._config.entities];
-            console.log(`Added ${this._config.entities.length} manual entities`);
         }
-        
-        console.log(`Total entities to process: ${allEntityConfigs.length}`);
         
         // 3. Entity-Objekte erstellen
         this.allItems = allEntityConfigs.map(entityConfig => {
@@ -5372,12 +5363,10 @@ class FastSearchCard extends HTMLElement {
         // ✅ FIX: Force initial display - HIER EINFÜGEN!
         setTimeout(() => {
             if (this.filteredItems.length === 0) {
-                console.log('🔧 Force initial load');
                 this.showCurrentCategoryItems();
             }
         }, 100);
         
-        console.log(`Final items: ${this.allItems.length} (${this.allItems.filter(i => i.auto_discovered).length} auto-discovered, ${this.allItems.filter(i => i.domain === 'custom').length} custom)`);
     }
 
 
@@ -5388,7 +5377,6 @@ class FastSearchCard extends HTMLElement {
         
         // NEU: Multiple data_sources unterstützen
         if (customMode.data_sources && customMode.data_sources.length > 0) {
-            console.log(`🔗 Processing ${customMode.data_sources.length} data sources...`);
             
             for (let i = 0; i < customMode.data_sources.length; i++) {
                 const dataSource = customMode.data_sources[i];
@@ -6789,13 +6777,7 @@ class FastSearchCard extends HTMLElement {
     performSearch(query) {
         const startTime = performance.now();
         
-        // ✅ FIX: Debug-Logging hinzufügen
-        console.log('🔍 performSearch called with:', query);
-        console.log('📊 Current filteredItems before search:', this.filteredItems.length);
-        console.log('🏷️ activeCategory:', this.activeCategory);
-        
         if (!query.trim()) { 
-            console.log('🔍 Empty query, showing current category items');
             this.showCurrentCategoryItems(); 
             return; 
         }
@@ -6804,7 +6786,6 @@ class FastSearchCard extends HTMLElement {
         const preprocessedQuery = this.preprocessQuery(query);
         
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
-        console.log('📊 categoryItems found:', categoryItems.length);
         
         // KORREKTUR: Parse Filter-Syntax mit preprocessedQuery (nicht original query)
         const parsedQuery = this.parseFilterSyntax(preprocessedQuery);
@@ -6847,7 +6828,6 @@ class FastSearchCard extends HTMLElement {
                 filteredResults = this.applyFilterSyntax(filteredResults, parsedQuery.filters);
                 
                 this.filteredItems = filteredResults;
-                console.log(`Enhanced Custom search: ${this.filteredItems.length} results (${parsedQuery.filters.length} filters applied)`);  // ← GEÄNDERT
                 
             } catch (error) {
                 console.error('Custom search error, falling back:', error);
@@ -6865,8 +6845,6 @@ class FastSearchCard extends HTMLElement {
                         return originalItem ? { ...originalItem, searchScore: result.score } : null;
                     })
                     .filter(Boolean);
-                    
-                console.log(`Enhanced Standard search: ${this.filteredItems.length} results`);  // ← GEÄNDERT
                 
             } catch (error) {
                 console.error('Standard search error, falling back:', error);
@@ -6874,27 +6852,12 @@ class FastSearchCard extends HTMLElement {
             }
         } else {
             // FALLBACK SEARCH
-            console.log('🔍 Using fallback search');
             this.fallbackSearch(query, categoryItems);
         }
-    
-        // ✅ FIX: Debug-Logging nach der Suche
-        console.log('📊 Search results found:', this.filteredItems.length, 'items');
-        console.log('🎯 About to call renderResults...');
     
         this.logSearchPerformance(query, startTime, 'EnhancedFuzzySearch', this.filteredItems.length);  // ← GEÄNDERT
         this.renderResults();
         
-        // ✅ FIX: Debug nach renderResults
-        setTimeout(() => {
-            const grid = this.shadowRoot.querySelector('.results-grid');
-            const list = this.shadowRoot.querySelector('.results-list');
-            console.log('🔍 After renderResults:');
-            console.log('  - Grid innerHTML length:', grid?.innerHTML?.length || 0);
-            console.log('  - List innerHTML length:', list?.innerHTML?.length || 0);
-            console.log('  - hasAnimated:', this.hasAnimated);
-            console.log('  - Current view mode:', this.currentViewMode);
-        }, 50);
     }
 
     applyFilterSyntax(items, filters) {
@@ -6954,8 +6917,6 @@ class FastSearchCard extends HTMLElement {
                    item.id.toLowerCase().includes(searchTerm) || 
                    item.area.toLowerCase().includes(searchTerm);
         });
-        
-        console.log(`Fallback search found ${this.filteredItems.length} results for "${query}"`);
     }
 
     logSearchPerformance(query, startTime, method, resultCount) {
@@ -7263,18 +7224,10 @@ class FastSearchCard extends HTMLElement {
     showCurrentCategoryItems() {
         // ✅ SAFETY CHECK: Prüfe ob Funktion existiert
         if (typeof this.isItemInCategory !== 'function') {
-            console.error('❌ isItemInCategory function missing! Defining it now...');
             this.defineIsItemInCategoryFunction();
         }
         
-        console.log('🔍 showCurrentCategoryItems called');
-        console.log('📊 allItems:', this.allItems.length);
-        console.log('🏷️ activeCategory:', this.activeCategory);
-        console.log('🏷️ activeSubcategory:', this.activeSubcategory);
-        
         this.filteredItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
-        
-        console.log('📊 filteredItems after category filter:', this.filteredItems.length);
         
         if (this.activeSubcategory !== 'all') { 
             this.filterBySubcategory(); 
@@ -7282,15 +7235,12 @@ class FastSearchCard extends HTMLElement {
             this.renderResults(); 
         }
         
-        console.log('📊 Final filteredItems:', this.filteredItems.length);
     }
 
     ensureCriticalMethods() {
         if (typeof this.isItemInCategory !== 'function') {
-            console.warn('🔧 Adding missing isItemInCategory function');
             this.defineIsItemInCategoryFunction();
         }
-        console.log('✅ Critical methods check completed');
     }    
 
     defineIsItemInCategoryFunction() {
@@ -14194,7 +14144,6 @@ class FastSearchCard extends HTMLElement {
 
     // 🎯 NAVIGATE TO ACTION DETAIL - Finale, funktionierende Version
     navigateToActionDetail(actionId, actionDomain) {
-        console.log(`🎯 Simulating click on ${actionDomain}: ${actionId}`);
         
         // 1. Bestimme Ziel-Kategorie
         const targetCategory = this.getTargetCategoryForDomain(actionDomain);
@@ -14212,7 +14161,6 @@ class FastSearchCard extends HTMLElement {
             
             // Wenn Element gefunden, klicken und aufhören
             if (element) {
-                console.log(`✅ Element ${targetId} gefunden! Klick wird ausgeführt.`);
                 element.click();
                 return;
             }
@@ -14250,23 +14198,17 @@ class FastSearchCard extends HTMLElement {
     triggerAction(actionId) {
         const domain = actionId.split('.')[0];
         
-        console.log(`🚀 Triggering ${domain}: ${actionId}`);
-        
         switch(domain) {
             case 'scene':
                 this._hass.callService('scene', 'turn_on', { entity_id: actionId });
-                console.log(`✅ Scene activated: ${actionId}`);
                 break;
             case 'script':
                 this._hass.callService('script', 'turn_on', { entity_id: actionId });
-                console.log(`✅ Script executed: ${actionId}`);
                 break;
             case 'automation':
                 this._hass.callService('automation', 'trigger', { entity_id: actionId });
-                console.log(`✅ Automation triggered: ${actionId}`);
                 break;
             default:
-                console.warn(`❌ Unknown action domain: ${domain}`);
         }
     }
 
