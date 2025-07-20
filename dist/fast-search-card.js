@@ -8742,10 +8742,6 @@ class FastSearchCard extends HTMLElement {
         return `
             <div class="detail-left-header">
                 <button class="back-button">${newBackButtonSVG}</button>
-                <div class="detail-title-area">
-                    <h3 class="detail-name">${item.name}</h3>
-                    <p class="detail-area">${item.area}</p>
-                </div>
                 <button class="favorite-button" data-entity-id="${item.id}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round">
                         <path d="M22 8.86222C22 10.4087 21.4062 11.8941 20.3458 12.9929C17.9049 15.523 15.5374 18.1613 13.0053 20.5997C12.4249 21.1505 11.5042 21.1304 10.9488 20.5547L3.65376 12.9929C1.44875 10.7072 1.44875 7.01723 3.65376 4.73157C5.88044 2.42345 9.50794 2.42345 11.7346 4.73157L11.9998 5.00642L12.2648 4.73173C13.3324 3.6245 14.7864 3 16.3053 3C17.8242 3 19.2781 3.62444 20.3458 4.73157C21.4063 5.83045 22 7.31577 22 8.86222Z"/>
@@ -8809,12 +8805,15 @@ class FastSearchCard extends HTMLElement {
         const desktopTabsHTML = `
             <div class="detail-tabs-container desktop-tabs">
                 <div class="detail-header">
-                    <h3 class="detail-header-title">Steuerung</h3>
+                    <div class="detail-header-info">
+                        <h3 class="detail-header-name">${item.name}</h3>
+                        <p class="detail-header-area">${item.area || item.custom_data?.metadata?.category || 'Custom'}</p>
+                    </div>
                 </div>
                 <div class="detail-tabs">
                     <span class="tab-slider"></span>
                      ${tabsConfig.map(tab => `<a href="#" class="detail-tab ${tab.default ?
-        'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}
+                'active' : ''}" data-tab="${tab.id}" title="${tab.title}">${tab.svg}</a>`).join('')}
                 </div>
             </div>
         `;
@@ -8822,7 +8821,10 @@ class FastSearchCard extends HTMLElement {
         const mobileTabsHTML = `
             <div class="detail-tabs-container mobile-tabs">
                 <div class="detail-header">
-                    <h3 class="detail-header-title">Steuerung</h3>
+                    <div class="detail-header-info">
+                        <h3 class="detail-header-name">${item.name}</h3>
+                        <p class="detail-header-area">${item.area || item.custom_data?.metadata?.category || 'Custom'}</p>
+                    </div>
                 </div>
                 <div class="detail-tabs">
                     <span class="tab-slider"></span>
