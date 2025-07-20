@@ -10725,10 +10725,14 @@ class FastSearchCard extends HTMLElement {
     }
     
     async loadActiveTimers(entityId) {
-        const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
-        if (!container) return;
+        // Finde ALLE active-timers Container (Shortcuts UND Scheduler)
+        const containers = this.shadowRoot.querySelectorAll(`#active-timers-${entityId}`);
+        if (containers.length === 0) return;
         
-        container.innerHTML = '<div class="loading-timers">Lade Timer...</div>';
+        // Update alle Container mit Loading-Status
+        containers.forEach(container => {
+            container.innerHTML = '<div class="loading-timers">Lade Timer...</div>';
+        });
         
         try {
             // KORRIGIERT: Verwende die richtige API
@@ -10744,14 +10748,12 @@ class FastSearchCard extends HTMLElement {
                 const belongsToEntity = schedule.timeslots && schedule.timeslots.some(slot => 
                     slot.actions && slot.actions.some(action => action.entity_id === entityId)
                 );            
-
                 // Timer = einmalige Ausführung (erkennt man am Namen oder fehlendem repeat_type)
                 const isTimer = !schedule.weekdays || 
                                 schedule.weekdays.length === 0 || 
                                 (schedule.name && schedule.name.includes('min)')) ||  // Timer haben oft "(30min)" im Namen
                                 schedule.repeat_type === 'once' ||
                                 !schedule.repeat_type;                
-
                 // DEBUG: Zeige alle relevanten Schedules
                 if (belongsToEntity) {
                     console.log(`🔍 TIMER DEBUG - Schedule: ${schedule.name}, weekdays: ${JSON.stringify(schedule.weekdays)}, isTimer: ${isTimer}`);
@@ -10762,23 +10764,29 @@ class FastSearchCard extends HTMLElement {
             
             console.log(`🎯 Timer für ${entityId}:`, entityTimers);
             
-            this.renderActiveTimers(entityTimers, entityId);
+            // Update alle Container mit Timer-Daten
+            containers.forEach(container => {
+                this.renderActiveTimers(entityTimers, entityId, container);
+            });
             
         } catch (error) {
             console.error('❌ Fehler beim Laden der Timer:', error);
-            container.innerHTML = '<div class="loading-timers">Fehler beim Laden der Timer</div>';
+            containers.forEach(container => {
+                container.innerHTML = '<div class="loading-timers">Fehler beim Laden der Timer</div>';
+            });
         }
     }
-
 
 
 
     
 
 
-    renderActiveTimers(timers, entityId) {
-            const container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
-            if (!container) return;
+
+    renderActiveTimers(timers, entityId, container = null) {
+        if (!container) {
+            container = this.shadowRoot.getElementById(`active-timers-${entityId}`);
+        }        
             
             if (!timers || timers.length === 0) {
                 container.innerHTML = '<div class="no-timers">Keine aktiven Timer</div>';
@@ -13576,6 +13584,7 @@ class FastSearchCard extends HTMLElement {
             const schedulerTimerContent = schedulerContainer.querySelector('[data-shortcuts-content="timer"]');
             if (schedulerTimerContent) {
                 this.initializeTimerTab(item, schedulerTimerContent);
+                this.loadActiveTimers(item.id);
             }
         }, 100);
     }    
