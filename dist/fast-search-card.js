@@ -13482,6 +13482,158 @@ class FastSearchCard extends HTMLElement {
         this.initializeShortcutsEvents(item);     
     }
 
+
+    
+    showScheduleTimePicker(item, action, preset) {
+        console.log(`🕒 Zeige Schedule Time Picker für ${action}`);
+        
+        // Finde den Schedule-Container
+        const container = preset.closest('.shortcuts-tab-content');
+        
+        // Verstecke normale Schedule-Controls
+        const scheduleControls = container.querySelector('.schedule-control-design');
+        const activeSchedules = container.querySelector('.active-schedules');
+        if (scheduleControls) scheduleControls.style.display = 'none';
+        if (activeSchedules) activeSchedules.style.display = 'none';
+        
+        // Zeige Minimal Time Picker für Schedule (Schedule Mode = true)
+        this.showMinimalTimePicker(item, action, container, true);  // true = Schedule Mode
+    }
+    
+    async loadActiveSchedules(entityId) {
+        console.log(`📅 Lade aktive Schedules für ${entityId}`);
+        
+        try {
+            const schedulesContainer = this.shadowRoot.getElementById(`active-schedules-${entityId}`);
+            if (!schedulesContainer) return;
+            
+            // Lade alle Scheduler-Einträge
+            const allSchedules = await this._hass.callWS({ type: 'scheduler' });
+            
+            // Filtere nur Schedules (nicht Timer) für diese Entity
+            const entitySchedules = allSchedules.filter(schedule => {
+                const isForThisEntity = schedule.entity_id === entityId;
+                const isSchedule = this.isScheduleType(schedule);  // Unterscheidung Schedule vs Timer
+                return isForThisEntity && isSchedule;
+            });
+            
+            console.log(`📅 Gefundene Schedules für ${entityId}:`, entitySchedules);
+            
+            if (entitySchedules.length === 0) {
+                schedulesContainer.innerHTML = '<div class="no-schedules">Keine aktiven Zeitpläne</div>';
+                return;
+            }
+            
+            // Erstelle HTML für aktive Schedules
+            const schedulesHTML = entitySchedules.map(schedule => {
+                const nextTrigger = new Date(schedule.next_trigger);
+                const actionData = schedule.timeslots?.[0]?.actions?.[0];
+                const action = this.getActionNameFromService(actionData?.service, actionData?.service_data);
+                
+                return `
+                    <div class="active-schedule-item" data-schedule-id="${schedule.schedule_id}">
+                        <div class="schedule-info">
+                            <div class="schedule-action">${this.getActionLabel(action)}</div>
+                            <div class="schedule-time">${this.formatScheduleTime(schedule)}</div>
+                            <div class="schedule-days">${this.formatScheduleDays(schedule)}</div>
+                        </div>
+                        <div class="schedule-action-buttons">
+                            <button class="schedule-edit" data-schedule-id="${schedule.schedule_id}" title="Zeitplan bearbeiten">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="schedule-delete" data-schedule-id="${schedule.schedule_id}" title="Zeitplan löschen">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M4 7l16 0" />
+                                    <path d="M10 11l0 6" />
+                                    <path d="M14 11l0 6" />
+                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            schedulesContainer.innerHTML = schedulesHTML;
+            
+            // Event Listeners für Edit/Delete Buttons
+            this.setupScheduleActionButtons(entityId);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Laden der Schedules:', error);
+            const schedulesContainer = this.shadowRoot.getElementById(`active-schedules-${entityId}`);
+            if (schedulesContainer) {
+                schedulesContainer.innerHTML = '<div class="error-schedules">Fehler beim Laden der Zeitpläne</div>';
+            }
+        }
+    }
+    
+    // Helper-Funktionen
+    isScheduleType(schedule) {
+        // Unterscheidet zwischen Timer (einmalig) und Schedule (wiederkehrend)
+        // Schedules haben normalerweise weekdays oder repeat patterns
+        return schedule.weekdays && schedule.weekdays.length > 0;
+    }
+    
+    formatScheduleTime(schedule) {
+        const timeslot = schedule.timeslots?.[0];
+        if (!timeslot) return 'Unbekannt';
+        
+        const time = timeslot.start || timeslot.time;
+        return time || 'Unbekannt';
+    }
+    
+    formatScheduleDays(schedule) {
+        if (!schedule.weekdays || schedule.weekdays.length === 0) return 'Einmalig';
+        
+        const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+        return schedule.weekdays.map(day => dayNames[day]).join(', ');
+    }
+    
+    setupScheduleActionButtons(entityId) {
+        // Edit Buttons
+        const editButtons = this.shadowRoot.querySelectorAll('.schedule-edit');
+        editButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const scheduleId = btn.dataset.scheduleId;
+                this.handleEditScheduleClick(scheduleId, entityId);
+            });
+        });
+        
+        // Delete Buttons
+        const deleteButtons = this.shadowRoot.querySelectorAll('.schedule-delete');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const scheduleId = btn.dataset.scheduleId;
+                this.handleDeleteScheduleClick(scheduleId, entityId);
+            });
+        });
+    }
+    
+    async handleEditScheduleClick(scheduleId, entityId) {
+        console.log('✏️ Bearbeitung für Schedule', scheduleId, 'angefordert.');
+        // Implementierung analog zu handleEditTimerClick aber für Schedules
+    }
+    
+    async handleDeleteScheduleClick(scheduleId, entityId) {
+        console.log('🗑️ Löschung für Schedule', scheduleId, 'angefordert.');
+        // Implementierung analog zu Timer-Löschung
+    }
+
+
+
+
+
+
+
+    
     initializeShortcutsEvents(item) {
         // ✅ WARTE bis DOM bereit ist
         setTimeout(() => {
