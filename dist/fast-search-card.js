@@ -1367,7 +1367,7 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 600;
                 color: var(--text-primary);
                 line-height: 1.05em;
-                max-width: 250px;
+                max-width: 300px;
                 overflow: hidden;           /* ← Hinzufügen */
                 text-overflow: ellipsis;    /* ← Hinzufügen */
                 white-space: nowrap;        /* ← Hinzufügen */                
@@ -1388,7 +1388,7 @@ class FastSearchCard extends HTMLElement {
                     font-weight: 600;
                     color: var(--text-primary);
                     line-height: 1.05em;
-                    max-width: 150px;
+                    max-width: 200px;
                     overflow: hidden;           /* ← Hinzufügen */
                     text-overflow: ellipsis;    /* ← Hinzufügen */
                     white-space: nowrap;        /* ← Hinzufügen */                    
@@ -8850,12 +8850,10 @@ class FastSearchCard extends HTMLElement {
     
     getDetailRightPaneHTML(item) {
         const controlsHTML = this.getDeviceControlsHTML(item);
-
         const tabsConfig = this._config.detail_tabs || [
             { id: 'controls', title: 'Steuerung', default: true, svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>` },
-            { id: 'schedule', title: 'Zeitplan', svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>` },
             { id: 'shortcuts', title: 'Shortcuts', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M9.8525 14.6334L3.65151 10.6873C2.41651 9.90141 2.41651 8.09858 3.65151 7.31268L9.8525 3.36659C11.1628 2.53279 12.8372 2.53279 14.1475 3.36659L20.3485 7.31268C21.5835 8.09859 21.5835 9.90142 20.3485 10.6873L14.1475 14.6334C12.8372 15.4672 11.1628 15.4672 9.8525 14.6334Z" stroke="currentColor"></path><path d="M18.2857 12L20.3485 13.3127C21.5835 14.0986 21.5835 15.9014 20.3485 16.6873L14.1475 20.6334C12.8372 21.4672 11.1628 21.4672 9.8525 20.6334L3.65151 16.6873C2.41651 15.9014 2.41651 14.0986 3.65151 13.3127L5.71429 12" stroke="currentColor"></path></svg>` },
-            { id: 'history', title: 'Verlauf', svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V7C12 5.89543 12.8954 5 14 5H21.4C21.7314 5 22 5.26863 22 5.6V18.7143"/><path d="M12 21V7C12 5.89543 11.1046 5 10 5H2.6C2.26863 5 2 5.26863 2 5.6V18.7143"/><path d="M14 19L22 19"/><path d="M10 19L2 19"/><path d="M12 21C12 19.8954 12.8954 19 14 19"/><path d="M12 21C12 19.8954 11.1046 19 10 19"/></svg>` }
+            { id: 'history', title: 'Verlauf', svg: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143" stroke="currentColor" stroke-linecap="round"></path><path d="M6 17L20 17" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21L20 21" stroke="currentColor" stroke-linecap="round"></path><path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 7L15 7" stroke="currentColor" stroke-linecap="round"></path></svg>` }
         ];
     
         const desktopTabsHTML = `
@@ -8951,10 +8949,8 @@ class FastSearchCard extends HTMLElement {
         switch(tabId) {
             case 'controls':
                 return controlsHTML;
-            case 'schedule':
-                return this.getShortcutsHTML(item);  // Kopiert Shortcuts Inhalt
             case 'shortcuts':
-                return this.getShortcutsHTML(item);  
+                return this.getShortcutsHTML(item);  // NEU
             case 'history':
                 return this.getHistoryHTML(item);
             default:
@@ -13405,16 +13401,14 @@ class FastSearchCard extends HTMLElement {
                     const tabContainer = this.shadowRoot.querySelector('#tab-content-container');
                     
                     // Alle history-spezifischen Klassen entfernen
-                    tabContainer.classList.remove('history-active', 'shortcuts-active', 'schedule-active');  // ← Geändert von 'timer-active'
-                    
+                    tabContainer.classList.remove('history-active', 'shortcuts-active');  
+
                     // Entsprechende Klasse hinzufügen
                     if (targetId === 'history') {
                         tabContainer.classList.add('history-active');
                     } else if (targetId === 'shortcuts') {
                         tabContainer.classList.add('shortcuts-active');
-                    } else if (targetId === 'schedule') {  // ← Geändert von 'timer'
-                        tabContainer.classList.add('schedule-active');  // ← Geändert von 'timer-active'
-                    }
+                    }      
 
                     // Header-Text aktualisieren
                     const headerTitles = this.shadowRoot.querySelectorAll('.detail-header-title');
@@ -13472,9 +13466,6 @@ class FastSearchCard extends HTMLElement {
         // History Event Listeners hinzufügen  ← HIER EINFÜGEN
         this.setupHistoryEventListeners(item);
 
-        // NEU HINZUFÜGEN: Schedule Event Listeners
-        this.setupScheduleEventListeners(item);         
-
         // NEU HINZUFÜGEN: Timer Event Listeners
         this.setupTimerEventListeners(item);        
 
@@ -13482,158 +13473,6 @@ class FastSearchCard extends HTMLElement {
         this.initializeShortcutsEvents(item);     
     }
 
-
-    
-    showScheduleTimePicker(item, action, preset) {
-        console.log(`🕒 Zeige Schedule Time Picker für ${action}`);
-        
-        // Finde den Schedule-Container
-        const container = preset.closest('.shortcuts-tab-content');
-        
-        // Verstecke normale Schedule-Controls
-        const scheduleControls = container.querySelector('.schedule-control-design');
-        const activeSchedules = container.querySelector('.active-schedules');
-        if (scheduleControls) scheduleControls.style.display = 'none';
-        if (activeSchedules) activeSchedules.style.display = 'none';
-        
-        // Zeige Minimal Time Picker für Schedule (Schedule Mode = true)
-        this.showMinimalTimePicker(item, action, container, true);  // true = Schedule Mode
-    }
-    
-    async loadActiveSchedules(entityId) {
-        console.log(`📅 Lade aktive Schedules für ${entityId}`);
-        
-        try {
-            const schedulesContainer = this.shadowRoot.getElementById(`active-schedules-${entityId}`);
-            if (!schedulesContainer) return;
-            
-            // Lade alle Scheduler-Einträge
-            const allSchedules = await this._hass.callWS({ type: 'scheduler' });
-            
-            // Filtere nur Schedules (nicht Timer) für diese Entity
-            const entitySchedules = allSchedules.filter(schedule => {
-                const isForThisEntity = schedule.entity_id === entityId;
-                const isSchedule = this.isScheduleType(schedule);  // Unterscheidung Schedule vs Timer
-                return isForThisEntity && isSchedule;
-            });
-            
-            console.log(`📅 Gefundene Schedules für ${entityId}:`, entitySchedules);
-            
-            if (entitySchedules.length === 0) {
-                schedulesContainer.innerHTML = '<div class="no-schedules">Keine aktiven Zeitpläne</div>';
-                return;
-            }
-            
-            // Erstelle HTML für aktive Schedules
-            const schedulesHTML = entitySchedules.map(schedule => {
-                const nextTrigger = new Date(schedule.next_trigger);
-                const actionData = schedule.timeslots?.[0]?.actions?.[0];
-                const action = this.getActionNameFromService(actionData?.service, actionData?.service_data);
-                
-                return `
-                    <div class="active-schedule-item" data-schedule-id="${schedule.schedule_id}">
-                        <div class="schedule-info">
-                            <div class="schedule-action">${this.getActionLabel(action)}</div>
-                            <div class="schedule-time">${this.formatScheduleTime(schedule)}</div>
-                            <div class="schedule-days">${this.formatScheduleDays(schedule)}</div>
-                        </div>
-                        <div class="schedule-action-buttons">
-                            <button class="schedule-edit" data-schedule-id="${schedule.schedule_id}" title="Zeitplan bearbeiten">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                </svg>
-                            </button>
-                            <button class="schedule-delete" data-schedule-id="${schedule.schedule_id}" title="Zeitplan löschen">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                    <path d="M4 7l16 0" />
-                                    <path d="M10 11l0 6" />
-                                    <path d="M14 11l0 6" />
-                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
-                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            schedulesContainer.innerHTML = schedulesHTML;
-            
-            // Event Listeners für Edit/Delete Buttons
-            this.setupScheduleActionButtons(entityId);
-            
-        } catch (error) {
-            console.error('❌ Fehler beim Laden der Schedules:', error);
-            const schedulesContainer = this.shadowRoot.getElementById(`active-schedules-${entityId}`);
-            if (schedulesContainer) {
-                schedulesContainer.innerHTML = '<div class="error-schedules">Fehler beim Laden der Zeitpläne</div>';
-            }
-        }
-    }
-    
-    // Helper-Funktionen
-    isScheduleType(schedule) {
-        // Unterscheidet zwischen Timer (einmalig) und Schedule (wiederkehrend)
-        // Schedules haben normalerweise weekdays oder repeat patterns
-        return schedule.weekdays && schedule.weekdays.length > 0;
-    }
-    
-    formatScheduleTime(schedule) {
-        const timeslot = schedule.timeslots?.[0];
-        if (!timeslot) return 'Unbekannt';
-        
-        const time = timeslot.start || timeslot.time;
-        return time || 'Unbekannt';
-    }
-    
-    formatScheduleDays(schedule) {
-        if (!schedule.weekdays || schedule.weekdays.length === 0) return 'Einmalig';
-        
-        const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-        return schedule.weekdays.map(day => dayNames[day]).join(', ');
-    }
-    
-    setupScheduleActionButtons(entityId) {
-        // Edit Buttons
-        const editButtons = this.shadowRoot.querySelectorAll('.schedule-edit');
-        editButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const scheduleId = btn.dataset.scheduleId;
-                this.handleEditScheduleClick(scheduleId, entityId);
-            });
-        });
-        
-        // Delete Buttons
-        const deleteButtons = this.shadowRoot.querySelectorAll('.schedule-delete');
-        deleteButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const scheduleId = btn.dataset.scheduleId;
-                this.handleDeleteScheduleClick(scheduleId, entityId);
-            });
-        });
-    }
-    
-    async handleEditScheduleClick(scheduleId, entityId) {
-        console.log('✏️ Bearbeitung für Schedule', scheduleId, 'angefordert.');
-        // Implementierung analog zu handleEditTimerClick aber für Schedules
-    }
-    
-    async handleDeleteScheduleClick(scheduleId, entityId) {
-        console.log('🗑️ Löschung für Schedule', scheduleId, 'angefordert.');
-        // Implementierung analog zu Timer-Löschung
-    }
-
-
-
-
-
-
-
-    
     initializeShortcutsEvents(item) {
         // ✅ WARTE bis DOM bereit ist
         setTimeout(() => {
