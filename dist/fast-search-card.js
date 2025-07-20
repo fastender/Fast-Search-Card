@@ -1765,7 +1765,7 @@ class FastSearchCard extends HTMLElement {
             .climate-setting-row { 
                 display: flex; 
                 gap: 8px; 
-                margin-bottom: 12px; 
+                margin-bottom: 8px; 
                 overflow-x: auto; 
                 scrollbar-width: none; 
                 -ms-overflow-style: none; 
@@ -1774,18 +1774,20 @@ class FastSearchCard extends HTMLElement {
             }
             .climate-setting-row::-webkit-scrollbar { display: none; }
             .climate-setting-option { 
-                padding: 8px 16px; 
-                background: rgba(255, 255, 255, 0.08); 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 20px;     
-                cursor: pointer; 
-                white-space: nowrap; 
-                transition: all 0.2s ease; 
-            } 
+                padding: 2px 16px;
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 60px;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: all 0.2s ease;
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-secondary);
+            }                
+            
             .climate-setting-option.active { 
-                background: var(--accent-light); 
-                border-color: var(--accent); 
-                color: var(--accent); 
+                background: var(--accent-light);
+                color: var(--text-primary-color);                
             } 
             .climate-setting-option:hover { 
                 background: rgba(255, 255, 255,0.2); 
