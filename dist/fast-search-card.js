@@ -1474,7 +1474,7 @@ class FastSearchCard extends HTMLElement {
 
             @media (max-width: 768px) {
                 .device-control-presets.cover-presets.visible {
-                    max-height: 120px;  /* Weniger Höhe auf Mobile */
+                    max-height: 100px;  /* Weniger Höhe auf Mobile */
                 }
             }            
 
