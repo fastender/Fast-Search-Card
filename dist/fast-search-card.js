@@ -10727,7 +10727,13 @@ class FastSearchCard extends HTMLElement {
             
             // Update alle Container mit Timer-Daten
             containers.forEach(container => {
-                this.renderActiveTimers(entityTimers, entityId, container);
+
+                // Update alle Container einzeln
+                const containers = this.shadowRoot.querySelectorAll(`[id="active-timers-${entityId}"]`);
+                containers.forEach(container => {
+                    this.renderActiveTimers(entityTimers, entityId, container);
+                });
+                
             });
             
         } catch (error) {
@@ -14784,10 +14790,14 @@ class FastSearchCard extends HTMLElement {
     }
     
     async loadActiveSchedules(entityId) {
-        const container = this.shadowRoot.getElementById(`active-schedules-${entityId}`);
-        if (!container) return;
+        // Finde ALLE active-timers Container (Shortcuts UND Scheduler)
+        const containers = this.shadowRoot.querySelectorAll(`[id="active-timers-${entityId}"]`);
+        if (containers.length === 0) return;
         
-        container.innerHTML = '<div class="loading-schedules">Lade Zeitpläne...</div>';
+        // Update alle Container mit Loading-Status
+        containers.forEach(container => {
+            container.innerHTML = '<div class="loading-timers">Lade Timer...</div>';
+        });
         
         try {
             const allEntities = this._hass.states;
