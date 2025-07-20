@@ -8976,7 +8976,7 @@ class FastSearchCard extends HTMLElement {
                     <!-- TIMER TAB -->
                     <div class="shortcuts-tab-content active" data-shortcuts-content="timer">
                         <div id="timer-section-${item.id}">
-                            <div class="active-timers" id="active-timers-${item.id}">
+                            <div class="active-timers" id="scheduler-active-timers-${item.id}">
                                 <div class="loading-timers">Lade Timer...</div>
                             </div>
                             
@@ -8993,7 +8993,7 @@ class FastSearchCard extends HTMLElement {
                     <!-- ZEITPLAN TAB -->
                     <div class="shortcuts-tab-content" data-shortcuts-content="zeitplan">
                         <div id="schedule-section-${item.id}">
-                            <div class="active-schedules" id="active-schedules-${item.id}">
+                            <div class="active-schedules" id="scheduler-active-schedules-${item.id}">
                                 <div class="loading-schedules">Lade Zeitpläne...</div>
                             </div>
                             
