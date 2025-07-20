@@ -4603,6 +4603,26 @@ class FastSearchCard extends HTMLElement {
                 height: 24px;
                 transition: all 0.2s ease;
             }
+
+            .detail-header-info {
+                text-align: left;
+            }
+            
+            .detail-header-name {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--text-primary);
+                line-height: 1.05em;
+            }
+            
+            .detail-header-area {
+                margin: 0;
+                font-size: 15px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                line-height: 1.05em;
+            }            
                                                 
             </style>
 
