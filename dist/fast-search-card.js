@@ -13523,8 +13523,62 @@ class FastSearchCard extends HTMLElement {
         this.setupTimerEventListeners(item);        
 
         // Shortcuts-Buttons Event Listeners (NEU HINZUFÜGEN)
-        this.initializeShortcutsEvents(item);     
+        this.initializeShortcutsEvents(item);  
+
+        // Scheduler-Buttons Event Listeners (NEU HINZUFÜGEN)
+        this.initializeSchedulerEvents(item);        
     }
+
+    initializeSchedulerEvents(item) {
+        setTimeout(() => {
+            // Nur Scheduler Tab Buttons auswählen
+            const schedulerContainer = this.shadowRoot.querySelector('[data-tab-content="scheduler"]');
+            if (!schedulerContainer) return;
+            
+            const schedulerBtns = schedulerContainer.querySelectorAll('.shortcuts-btn');
+            console.log('🎯 Found scheduler buttons:', schedulerBtns.length);
+            
+            schedulerBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const targetTab = btn.dataset.shortcutsTab;
+                    console.log(`🎯 Switching to scheduler tab: ${targetTab}`);
+                    
+                    // Alle Buttons im Scheduler deaktivieren
+                    schedulerBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Alle Contents im Scheduler verstecken
+                    const schedulerContents = schedulerContainer.querySelectorAll('.shortcuts-tab-content');
+                    schedulerContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Ziel-Content anzeigen
+                    const targetContent = schedulerContainer.querySelector(`[data-shortcuts-content="${targetTab}"]`);
+                    if (targetContent) {
+                        targetContent.classList.add('active');
+                        
+                        // Tab-spezifische Initialisierung
+                        switch(targetTab) {
+                            case 'timer':
+                                this.initializeTimerTab(item, targetContent);
+                                break;
+                            case 'zeitplan':
+                                this.initializeScheduleTab(item, targetContent);
+                                break;
+                        }
+                    }
+                });
+            });
+            
+            // Initial Timer Tab im Scheduler aktivieren
+            const schedulerTimerContent = schedulerContainer.querySelector('[data-shortcuts-content="timer"]');
+            if (schedulerTimerContent) {
+                this.initializeTimerTab(item, schedulerTimerContent);
+            }
+        }, 100);
+    }    
 
     initializeShortcutsEvents(item) {
         // ✅ WARTE bis DOM bereit ist
