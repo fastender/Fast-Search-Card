@@ -9017,57 +9017,18 @@ class FastSearchCard extends HTMLElement {
                 <div class="shortcuts-header">
                     <h3>Shortcuts für ${item.name}</h3>
                     <div class="shortcuts-controls">
-                        <button class="shortcuts-btn active" data-shortcuts-tab="timer">Timer</button>
-                        <button class="shortcuts-btn" data-shortcuts-tab="zeitplan">Zeitplan</button>
-                        <button class="shortcuts-btn" data-shortcuts-tab="actions">Aktionen</button>
-                    </div>                    
+                        <button class="shortcuts-btn active" data-shortcuts-tab="actions">Aktionen</button>
+                    </div>            
                 </div>
                 
                 <div class="shortcuts-content">            
-                    <!-- ✅ TIMER TAB - Nur noch Timer-spezifische Inhalte -->
-                    <div class="shortcuts-tab-content active" data-shortcuts-content="timer">
-                        <div id="timer-section-${item.id}">
-                            <!-- Aktive Timer Anzeige -->
-                            <div class="active-timers" id="active-timers-${item.id}">
-                                <div class="loading-timers">Lade Timer...</div>
-                            </div>
-                            
-                            <!-- 🚨 HIER DIREKT TIMER-PRESETS - KEIN Timer/Zeitplan Button mehr -->
-                            <div class="timer-control-design" id="timer-control-${item.id}">
-                                <!-- ✅ Direkt die Action Presets (größeres Design) -->
-                                <div class="timer-control-presets timer-action-presets visible" data-is-open="true">
-                                    <div class="timer-control-presets-grid">
-                                        ${this.getTimerPresetsForDevice(item)}                                        
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-    
-                    <!-- ✅ NEUER ZEITPLAN TAB -->
-                    <div class="shortcuts-tab-content" data-shortcuts-content="zeitplan">
-                        <div id="schedule-section-${item.id}">
-                            <!-- Aktive Zeitpläne Anzeige -->
-                            <div class="active-schedules" id="active-schedules-${item.id}">
-                                <div class="loading-schedules">Lade Zeitpläne...</div>
-                            </div>
-                            
-                            <!-- Zeitplan Controls -->
-                            <div class="schedule-control-design" id="schedule-control-${item.id}">
-                                <div class="timer-control-presets schedule-action-presets visible" data-is-open="true">                                
-                                    <div class="timer-control-presets-grid">
-                                        ${this.getTimerPresetsForDevice(item)}                                    
-                                    </div>
-                               </div> 
-                            </div>
-                        </div>
-                    </div>
-    
-                    <!-- ✅ AKTIONEN TAB -->
-                    <div class="shortcuts-tab-content" data-shortcuts-content="actions">
+                    <!-- ✅ NUR NOCH AKTIONEN TAB -->
+                    <div class="shortcuts-tab-content active" data-shortcuts-content="actions">
                         <p>Aktionen Content - wird implementiert</p>
                     </div>
                 </div>
+
+                
             </div>
         `;
     }
