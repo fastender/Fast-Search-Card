@@ -1468,7 +1468,7 @@ class FastSearchCard extends HTMLElement {
             }            
 
             .device-control-presets.cover-presets.visible {
-                max-height: 150px;
+                max-height: 120px;
                 opacity: 1;
             }     
 
