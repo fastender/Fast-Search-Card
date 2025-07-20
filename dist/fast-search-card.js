@@ -1363,7 +1363,7 @@ class FastSearchCard extends HTMLElement {
             
             .detail-header-name {
                 margin: 0;
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: 600;
                 color: var(--text-primary);
                 line-height: 1.05em;
@@ -1371,11 +1371,30 @@ class FastSearchCard extends HTMLElement {
             
             .detail-header-area {
                 margin: 0;
-                font-size: 15px;
+                font-size: 18px;
                 font-weight: 600;
                 color: var(--text-secondary);
                 line-height: 1.05em;
-            }         
+            }     
+
+            @media (max-width: 768px) {
+                .detail-header-name {
+                    margin: 0;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: var(--text-primary);
+                    line-height: 1.05em;
+                }
+                
+                .detail-header-area {
+                    margin: 0;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: var(--text-secondary);
+                    line-height: 1.05em;
+                }     
+            }
+            
                 
             .detail-tabs {
                 position: relative;
@@ -1514,7 +1533,7 @@ class FastSearchCard extends HTMLElement {
                 #tab-content-container { 
                     flex-grow: 1;
                     overflow-y: hidden;
-                    padding: 30px 10px;
+                    padding: 0px 10px;
                     box-sizing: border-box;
                     scrollbar-width: none;
                     max-height: 100%;
@@ -1681,14 +1700,13 @@ class FastSearchCard extends HTMLElement {
 
             @media (max-width: 768px) {
                 .device-control-button {
-                    flex-basis: 55px
+                    flex-basis: 55px;
                     flex-grow: 0;
                     flex-shrink: 0;
-                    width: 55px
-                    height: 55px
+                    width: 55px;
+                    height: 55px;
                 }
             }
-
             
             .device-control-button svg {
                 width: 24px; height: 24px; stroke-width: 1;
