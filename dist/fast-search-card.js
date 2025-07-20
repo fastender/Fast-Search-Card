@@ -10685,16 +10685,9 @@ class FastSearchCard extends HTMLElement {
         // TODO: Error Toast (später)
     }
     
-    async loadActiveTimers(entityId) {
-        console.log('🔍 DEBUG: Suche Container für entityId:', entityId);
-        
+    async loadActiveTimers(entityId) { 
         // Finde ALLE active-timers Container (Shortcuts UND Scheduler)
-        const containers = this.shadowRoot.querySelectorAll(`[id="active-timers-${entityId}"]`);
-        
-        console.log('🔍 DEBUG: Gefundene Container:', containers.length);
-        containers.forEach((container, index) => {
-            console.log(`🔍 DEBUG Container ${index}:`, container);
-        });
+        const containers = this.shadowRoot.querySelectorAll(`[id="scheduler-active-timers-${entityId}"]`);
         
         if (containers.length === 0) {
             console.log('❌ DEBUG: Keine Container gefunden!');
