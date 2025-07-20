@@ -10686,9 +10686,26 @@ class FastSearchCard extends HTMLElement {
     }
     
     async loadActiveTimers(entityId) {
+        console.log('🔍 DEBUG: Suche Container für entityId:', entityId);
+        
         // Finde ALLE active-timers Container (Shortcuts UND Scheduler)
-        const containers = this.shadowRoot.querySelectorAll(`#active-timers-${entityId}`);
-        if (containers.length === 0) return;
+        const containers = this.shadowRoot.querySelectorAll(`[id="active-timers-${entityId}"]`);
+        
+        console.log('🔍 DEBUG: Gefundene Container:', containers.length);
+        containers.forEach((container, index) => {
+            console.log(`🔍 DEBUG Container ${index}:`, container);
+        });
+        
+        if (containers.length === 0) {
+            console.log('❌ DEBUG: Keine Container gefunden!');
+            // Schauen Sie, welche IDs es gibt:
+            const allActiveTimers = this.shadowRoot.querySelectorAll('[id*="active-timers"]');
+            console.log('🔍 DEBUG: Alle active-timers Elemente:', allActiveTimers);
+            allActiveTimers.forEach((el, i) => {
+                console.log(`🔍 DEBUG Element ${i} ID:`, el.id);
+            });
+            return;
+        }
         
         // Update alle Container mit Loading-Status
         containers.forEach(container => {
@@ -10698,7 +10715,7 @@ class FastSearchCard extends HTMLElement {
         try {
             // KORRIGIERT: Verwende die richtige API
             const allSchedules = await this._hass.callWS({
-                type: 'scheduler'  // ← Das war der Fehler!
+                type: 'scheduler'
             });
             
             console.log('📋 Alle Scheduler Items (korrekte API):', allSchedules);
@@ -10712,7 +10729,7 @@ class FastSearchCard extends HTMLElement {
                 // Timer = einmalige Ausführung (erkennt man am Namen oder fehlendem repeat_type)
                 const isTimer = !schedule.weekdays || 
                                 schedule.weekdays.length === 0 || 
-                                (schedule.name && schedule.name.includes('min)')) ||  // Timer haben oft "(30min)" im Namen
+                                (schedule.name && schedule.name.includes('min)')) ||
                                 schedule.repeat_type === 'once' ||
                                 !schedule.repeat_type;                
                 // DEBUG: Zeige alle relevanten Schedules
@@ -10727,13 +10744,7 @@ class FastSearchCard extends HTMLElement {
             
             // Update alle Container mit Timer-Daten
             containers.forEach(container => {
-
-                // Update alle Container einzeln
-                const containers = this.shadowRoot.querySelectorAll(`[id="active-timers-${entityId}"]`);
-                containers.forEach(container => {
-                    this.renderActiveTimers(entityTimers, entityId, container);
-                });
-                
+                this.renderActiveTimers(entityTimers, entityId, container);
             });
             
         } catch (error) {
