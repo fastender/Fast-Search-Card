@@ -1090,15 +1090,16 @@ class FastSearchCard extends HTMLElement {
             .detail-left-header {
                 display: flex;
                 align-items: center;
-                justify-content: center;     /* ← Hinzufügen */
+                justify-content: space-between;
                 gap: 16px;
                 margin-bottom: 20px;
-                position: relative;          /* ← Hinzufügen */
+                position: relative;
+                padding-top: 20px;
             }
             
             .back-button {
-                width: 39px;
-                height: 39px;
+                width: 40px;
+                height: 40px;
                 border: none;
                 background: rgba(255, 255, 255, 0.1);
                 border-radius: 50%;
@@ -1492,7 +1493,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 .detail-left { 
-                    padding: 16px; 
+                    padding: 20px; 
                     flex: none; 
                 }
 
@@ -1509,11 +1510,6 @@ class FastSearchCard extends HTMLElement {
                 }
 
                 
-                .detail-right { 
-                    padding: 0; 
-                    border-radius: 0 0 24px 24px; 
-                    margin: 0 10px 10px 10px;
-                }
                 
                 #tab-content-container { 
                     flex-grow: 1;
@@ -1682,6 +1678,18 @@ class FastSearchCard extends HTMLElement {
                 justify-content: center;
                 padding: 0;
             }
+
+            @media (max-width: 768px) {
+                .device-control-button {
+                    flex-basis: 55px
+                    flex-grow: 0;
+                    flex-shrink: 0;
+                    width: 55px
+                    height: 55px
+                }
+            }
+
+            
             .device-control-button svg {
                 width: 24px; height: 24px; stroke-width: 1;
             }
@@ -1774,8 +1782,7 @@ class FastSearchCard extends HTMLElement {
 
             @media (max-width: 768px) {
                 .detail-content { flex-direction: column; }                
-                .detail-left { padding: 16px; flex: none; }
-                .detail-right { padding: 0; border-radius: 0 0 24px 24px; margin: 0 10px 10px 10px;}
+                /*.detail-right { padding: 0; border-radius: 0 0 24px 24px; margin: 0 10px 10px 10px;}*/
                 .icon-content { justify-content: flex-start; }
             }
 
@@ -4579,8 +4586,8 @@ class FastSearchCard extends HTMLElement {
 
             
             .favorite-button {
-                width: 39px;
-                height: 39px;
+                width: 40px;
+                height: 40px;
                 border: none;
                 background: rgba(255, 255, 255, 0.1);
                 border-radius: 50%;
