@@ -1468,15 +1468,10 @@ class FastSearchCard extends HTMLElement {
             }            
 
             .device-control-presets.cover-presets.visible {
-                max-height: 120px;
+                max-height: 150px;
                 opacity: 1;
             }     
-
-            @media (max-width: 768px) {
-                .device-control-presets.cover-presets.visible {
-                    max-height: 200px;  /* Weniger Höhe auf Mobile */
-                }
-            }            
+        
 
 
             /* Desktop: Desktop-Tabs zeigen, Mobile-Tabs verstecken */
@@ -8634,17 +8629,21 @@ class FastSearchCard extends HTMLElement {
 
 
 
-        
-        // Bestimme Bewegung basierend auf Gerätetyp
+        // Bestimme Bewegung basierend auf Gerätetyp UND Bildschirmgröße
         let moveDistance = '-270px'; // Standard für Media Player
+        const isMobile = window.innerWidth <= 768;
+        
         if (container.querySelector('.climate')) {
-            moveDistance = '-210px'; // Weniger für Climate
+            moveDistance = isMobile ? '-180px' : '-210px';
         } else if (container.querySelector('.circular-slider-container.brightness')) {
-            moveDistance = '-220px'; // Für Light (Farb-Presets)
+            moveDistance = isMobile ? '-180px' : '-220px'; // ← Light: Mobile weniger
         } else if (container.querySelector('.circular-slider-container.cover')) {
-            moveDistance = '-220px'; // Für Cover (Positions-Presets)
+            moveDistance = isMobile ? '-180px' : '-220px'; // ← Cover: Mobile weniger  
         } else if (container.querySelector('.device-control-presets.tts-presets.visible')) {
-            moveDistance = '-200px'; // Spezifisch für TTS (weniger als Music Assistant)
+            moveDistance = isMobile ? '-160px' : '-200px';
+        } else {
+            // Media Player
+            moveDistance = isMobile ? '-220px' : '-270px';
         }
         
         if (isEntering) {
