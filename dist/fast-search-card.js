@@ -1356,13 +1356,25 @@ class FastSearchCard extends HTMLElement {
                 flex: 1;
             }
             
-            .detail-header-title {
+            .detail-header-info {
+                text-align: left;
+            }
+            
+            .detail-header-name {
                 margin: 0;
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: 600;
                 color: var(--text-primary);
-                opacity: 0.9;
-            }            
+                line-height: 1.05em;
+            }
+            
+            .detail-header-area {
+                margin: 0;
+                font-size: 15px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                line-height: 1.05em;
+            }         
                 
             .detail-tabs {
                 position: relative;
@@ -4604,25 +4616,7 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
             }
 
-            .detail-header-info {
-                text-align: left;
-            }
-            
-            .detail-header-name {
-                margin: 0;
-                font-size: 16px;
-                font-weight: 600;
-                color: var(--text-primary);
-                line-height: 1.05em;
-            }
-            
-            .detail-header-area {
-                margin: 0;
-                font-size: 15px;
-                font-weight: 600;
-                color: var(--text-secondary);
-                line-height: 1.05em;
-            }            
+    
                                                 
             </style>
 
