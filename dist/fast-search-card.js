@@ -1017,8 +1017,8 @@ class FastSearchCard extends HTMLElement {
             }
 
             .device-icon {
-                width: 62px;
-                height: 62px;
+                width: 52px;
+                height: 52px;
                 background: rgba(0, 0, 0, 0.15);
                 border-radius: 60px;
                 display: flex;
@@ -1367,6 +1367,10 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 600;
                 color: var(--text-primary);
                 line-height: 1.05em;
+                max-width: 300px;
+                overflow: hidden;           /* ← Hinzufügen */
+                text-overflow: ellipsis;    /* ← Hinzufügen */
+                white-space: nowrap;        /* ← Hinzufügen */                
             }
             
             .detail-header-area {
@@ -1384,6 +1388,10 @@ class FastSearchCard extends HTMLElement {
                     font-weight: 600;
                     color: var(--text-primary);
                     line-height: 1.05em;
+                    max-width: 200px;
+                    overflow: hidden;           /* ← Hinzufügen */
+                    text-overflow: ellipsis;    /* ← Hinzufügen */
+                    white-space: nowrap;        /* ← Hinzufügen */                    
                 }
                 
                 .detail-header-area {
