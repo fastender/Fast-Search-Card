@@ -1367,7 +1367,7 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 600;
                 color: var(--text-primary);
                 line-height: 1.05em;
-                max-width: 300px;
+                max-width: 250px;
                 overflow: hidden;           /* ← Hinzufügen */
                 text-overflow: ellipsis;    /* ← Hinzufügen */
                 white-space: nowrap;        /* ← Hinzufügen */                
@@ -1388,7 +1388,7 @@ class FastSearchCard extends HTMLElement {
                     font-weight: 600;
                     color: var(--text-primary);
                     line-height: 1.05em;
-                    max-width: 200px;
+                    max-width: 150px;
                     overflow: hidden;           /* ← Hinzufügen */
                     text-overflow: ellipsis;    /* ← Hinzufügen */
                     white-space: nowrap;        /* ← Hinzufügen */                    
