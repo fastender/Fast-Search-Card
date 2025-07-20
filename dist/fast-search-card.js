@@ -1793,12 +1793,12 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(255, 255, 255,0.2); 
             }
             .climate-category-header {
-                font-size: 14px; 
+                font-size: 12px; 
                 font-weight: 600; 
                 color: var(--text-secondary);
                 padding: 0px;
                 border-bottom: 0px solid rgba(255,255,255,0.1);
-                margin-bottom: 8px;
+                margin-bottom: 6px;
             }            
 
             @media (max-width: 768px) {
