@@ -1848,7 +1848,7 @@ class FastSearchCard extends HTMLElement {
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                margin: 16px 0;
+                margin: 8px 0;
                 width: 100%;
                 max-width: 280px;
             }
@@ -8634,11 +8634,11 @@ class FastSearchCard extends HTMLElement {
         const isMobile = window.innerWidth <= 768;
         
         if (container.querySelector('.climate')) {
-            moveDistance = isMobile ? '-180px' : '-210px';
+            moveDistance = isMobile ? '-190px' : '-210px';
         } else if (container.querySelector('.circular-slider-container.brightness')) {
-            moveDistance = isMobile ? '-180px' : '-220px'; // ← Light: Mobile weniger
+            moveDistance = isMobile ? '-190px' : '-220px'; // ← Light: Mobile weniger
         } else if (container.querySelector('.circular-slider-container.cover')) {
-            moveDistance = isMobile ? '-180px' : '-220px'; // ← Cover: Mobile weniger  
+            moveDistance = isMobile ? '-190px' : '-220px'; // ← Cover: Mobile weniger  
         } else if (container.querySelector('.device-control-presets.tts-presets.visible')) {
             moveDistance = isMobile ? '-160px' : '-200px';
         } else {
