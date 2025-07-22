@@ -578,7 +578,7 @@ class FastSearchCard extends HTMLElement {
                 align-items: center;
                 gap: 12px;
                 padding: 16px 20px;
-                min-height: 40px;
+                max-height: 40px;
                 position: sticky;
                 top: 0; 
                 z-index: 2;
