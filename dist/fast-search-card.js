@@ -5323,15 +5323,53 @@ class FastSearchCard extends HTMLElement {
     }    
 
     expandPanel() {
-        if (this.isPanelExpanded) return;
-        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const panel = this.shadowRoot.querySelector('.results-panel');
+        const items = panel.querySelectorAll('.result-item, .content-item');
+        
+        // Panel mit Curtain Reveal Animation öffnen
+        panel.animate([
+            { 
+                height: '0px',
+                clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)',
+                opacity: 0.8
+            },
+            { 
+                height: '120px',
+                clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
+                opacity: 0.9
+            },
+            { 
+                height: '240px', // Oder deine gewünschte Höhe
+                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
+                opacity: 1
+            }
+        ], {
+            duration: 700,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+    
+        // Content Items gestaffelt einblenden
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.animate([
+                    { 
+                        opacity: 0, 
+                        transform: 'translateY(10px)' 
+                    },
+                    { 
+                        opacity: 1, 
+                        transform: 'translateY(0)' 
+                    }
+                ], {
+                    duration: 300,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+            }, 350 + index * 120); // Startet nach der Panel-Animation
+        });
+        
         this.isPanelExpanded = true;
-        searchPanel.classList.add('expanded');
-        const searchInput = this.shadowRoot.querySelector('.search-input');
-        if (!searchInput.value.trim()) { this.showCurrentCategoryItems(); }
-
-        // Update filter button states when panel expands
-        this.updateFilterButtonStates();        
     }
 
     collapsePanel() {
