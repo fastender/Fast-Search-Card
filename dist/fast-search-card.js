@@ -606,6 +606,9 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(255, 255, 255, 0); 
                 flex-shrink: 0;
                 transition: all 0.2s ease;
+                position: relative;
+                top: 9px;
+                align-self: flex-start;
             }
 
             .category-icon:hover {
@@ -629,6 +632,7 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 flex: 1;
                 min-width: 0;
+                align-self: stretch;
             }
             
             .search-input {
@@ -643,6 +647,9 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 z-index: 2;
                 background: transparent;
+                height: 40px;
+                line-height: 40px;
+                vertical-align: top;                
             }
             
             .search-input::placeholder {
