@@ -544,8 +544,7 @@ class FastSearchCard extends HTMLElement {
                 max-height: 72px;
                 opacity: 1;
                 transform: translateX(0) scale(1);
-                overflow: hidden; /* Wichtig für clip-path */
-                clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); /* Initial geschlossen */
+                overflow: hidden;
             }
             
             .search-panel.hidden {
@@ -571,6 +570,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .search-panel.expanded {
+                max-height: 700px;
                 clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); /* Vollständig geöffnet */
             }
 
@@ -5330,34 +5330,29 @@ class FastSearchCard extends HTMLElement {
         
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         this.isPanelExpanded = true;
+        
+        // 🎭 CURTAIN REVEAL Animation mit Web Animations API
+        searchPanel.animate([
+            { 
+                maxHeight: '72px',
+                clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)'
+            },
+            { 
+                maxHeight: '400px',
+                clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)'
+            },
+            { 
+                maxHeight: '700px',
+                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+            }
+        ], {
+            duration: 700,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        // Gleichzeitig die CSS-Klasse für die restlichen Styles
         searchPanel.classList.add('expanded');
-        
-        // 🎭 CURTAIN REVEAL nur für den expandierbaren Inhalt
-        const expandableContent = this.shadowRoot.querySelector('.results-grid, .results-list');
-        
-        if (expandableContent) {
-            expandableContent.animate([
-                { 
-                    height: '0px',
-                    clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)',
-                    opacity: 0.8
-                },
-                { 
-                    height: '300px',
-                    clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
-                    opacity: 0.9
-                },
-                { 
-                    height: '600px',
-                    clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
-                    opacity: 1
-                }
-            ], {
-                duration: 700,
-                easing: 'ease-out',
-                fill: 'forwards'
-            });
-        }
         
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (!searchInput.value.trim()) { 
@@ -5373,22 +5368,19 @@ class FastSearchCard extends HTMLElement {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         this.isPanelExpanded = false;
         
-        // Reverse Curtain Animation
+        // 🎭 Reverse Curtain Animation
         searchPanel.animate([
             { 
                 maxHeight: '700px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
-                opacity: 1
+                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
             },
             { 
-                maxHeight: '350px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
-                opacity: 0.9
+                maxHeight: '400px',
+                clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)'
             },
             { 
                 maxHeight: '72px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)',
-                opacity: 0.8
+                clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)'
             }
         ], {
             duration: 500,
