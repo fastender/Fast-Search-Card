@@ -5328,30 +5328,35 @@ class FastSearchCard extends HTMLElement {
         if (this.isPanelExpanded) return;
         
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        
         this.isPanelExpanded = true;
+        searchPanel.classList.add('expanded'); // Sofort für max-height
         
-        // 🎭 CURTAIN REVEAL - inset() statt polygon()
-        const animation = searchPanel.animate([
-            { 
-                maxHeight: '72px',
-                clipPath: 'inset(0 0 100% 0)' // Nur Suchbereich sichtbar
-            },
-            { 
-                maxHeight: '400px',
-                clipPath: 'inset(0 0 50% 0)' // Zur Hälfte geöffnet
-            },
-            { 
-                maxHeight: '700px',
-                clipPath: 'inset(0 0 0 0)' // Komplett sichtbar
-            }
-        ], {
-            duration: 350,
-            easing: 'ease-out'
-        });
-        
-        animation.finished.then(() => {
-            searchPanel.classList.add('expanded');
-        });
+        // 🎭 CURTAIN REVEAL nur für results-container
+        if (resultsContainer) {
+            resultsContainer.animate([
+                { 
+                    height: '0px',
+                    clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)',
+                    opacity: 0
+                },
+                { 
+                    height: '300px',
+                    clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
+                    opacity: 0.7
+                },
+                { 
+                    height: '600px',
+                    clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
+                    opacity: 1
+                }
+            ], {
+                duration: 350,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+        }
         
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (!searchInput.value.trim()) { 
@@ -5365,25 +5370,31 @@ class FastSearchCard extends HTMLElement {
         if (!this.isPanelExpanded) return;
         
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        
         this.isPanelExpanded = false;
         
-        // 🎭 Nur max-height animieren, clip-path weglassen
-        const animation = searchPanel.animate([
-            { 
-                maxHeight: '700px'
-            },
-            { 
-                maxHeight: '72px'
-            }
-        ], {
-            duration: 250,
-            easing: 'ease-in'
-        });
+        // 🎭 Reverse Animation nur für results-container
+        if (resultsContainer) {
+            resultsContainer.animate([
+                { 
+                    height: '600px',
+                    clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
+                    opacity: 1
+                },
+                { 
+                    height: '0px',
+                    clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)',
+                    opacity: 0
+                }
+            ], {
+                duration: 250,
+                easing: 'ease-in',
+                fill: 'forwards'
+            });
+        }
         
         searchPanel.classList.remove('expanded');
-        
-        // Clip-path sofort zurücksetzen
-        searchPanel.style.clipPath = '';
     }
 
 
