@@ -544,7 +544,10 @@ class FastSearchCard extends HTMLElement {
                 max-height: 72px;
                 opacity: 1;
                 transform: translateX(0) scale(1);
+                overflow: hidden; /* Wichtig für clip-path */
+                clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); /* Initial geschlossen */
             }
+            
             .search-panel.hidden {
                 opacity: 0;
                 pointer-events: none;
@@ -568,7 +571,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             .search-panel.expanded {
-                max-height: 700px; 
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); /* Vollständig geöffnet */
             }
 
             .search-wrapper {
@@ -5323,23 +5326,29 @@ class FastSearchCard extends HTMLElement {
     }    
 
     expandPanel() {
-        const panel = this.shadowRoot.querySelector('.results-panel');
-        const items = panel.querySelectorAll('.result-item, .content-item');
+        if (this.isPanelExpanded) return;
         
-        // Panel mit Curtain Reveal Animation öffnen
-        panel.animate([
+        const searchPanel = this.shadowRoot.querySelector('.search-panel');
+        const resultsGrid = this.shadowRoot.querySelector('.results-grid');
+        const resultsList = this.shadowRoot.querySelector('.results-list');
+        
+        this.isPanelExpanded = true;
+        searchPanel.classList.add('expanded');
+        
+        // 🎭 CURTAIN REVEAL ANIMATION
+        searchPanel.animate([
             { 
-                height: '0px',
+                maxHeight: '72px',
                 clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)',
                 opacity: 0.8
             },
             { 
-                height: '120px',
+                maxHeight: '350px',
                 clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
                 opacity: 0.9
             },
             { 
-                height: '240px', // Oder deine gewünschte Höhe
+                maxHeight: '700px',
                 clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
                 opacity: 1
             }
@@ -5348,35 +5357,45 @@ class FastSearchCard extends HTMLElement {
             easing: 'ease-out',
             fill: 'forwards'
         });
-    
-        // Content Items gestaffelt einblenden
-        items.forEach((item, index) => {
-            setTimeout(() => {
-                item.animate([
-                    { 
-                        opacity: 0, 
-                        transform: 'translateY(10px)' 
-                    },
-                    { 
-                        opacity: 1, 
-                        transform: 'translateY(0)' 
-                    }
-                ], {
-                    duration: 300,
-                    easing: 'ease-out',
-                    fill: 'forwards'
-                });
-            }, 350 + index * 120); // Startet nach der Panel-Animation
-        });
         
-        this.isPanelExpanded = true;
+        const searchInput = this.shadowRoot.querySelector('.search-input');
+        if (!searchInput.value.trim()) { 
+            this.showCurrentCategoryItems(); 
+        }
+        
+        this.updateFilterButtonStates();
     }
 
     collapsePanel() {
         if (!this.isPanelExpanded) return;
+        
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         this.isPanelExpanded = false;
-        searchPanel.classList.remove('expanded');
+        
+        // Reverse Curtain Animation
+        searchPanel.animate([
+            { 
+                maxHeight: '700px',
+                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
+                opacity: 1
+            },
+            { 
+                maxHeight: '350px',
+                clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
+                opacity: 0.9
+            },
+            { 
+                maxHeight: '72px',
+                clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)',
+                opacity: 0.8
+            }
+        ], {
+            duration: 500,
+            easing: 'ease-in',
+            fill: 'forwards'
+        }).finished.then(() => {
+            searchPanel.classList.remove('expanded');
+        });
     }
 
 
