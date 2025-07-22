@@ -4961,7 +4961,7 @@ class FastSearchCard extends HTMLElement {
         subcategoriesContainer.addEventListener('click', handleSubcategoryInteraction);
         subcategoriesContainer.addEventListener('touchend', handleSubcategoryInteraction);
         
-        this.shadowRoot.querySelector('.main-container').addEventListener('click', (e) => { e.stopPropagation(); });
+        // this.shadowRoot.querySelector('.main-container').addEventListener('click', (e) => { e.stopPropagation(); });
         document.addEventListener('click', (e) => {
             if (!e.target.closest('fast-search-card')) {
                 this.hideCategoryButtons();
