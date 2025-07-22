@@ -5331,8 +5331,8 @@ class FastSearchCard extends HTMLElement {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         this.isPanelExpanded = true;
         
-        // 🎭 CURTAIN REVEAL Animation mit Web Animations API
-        searchPanel.animate([
+        // 🎭 CURTAIN REVEAL Animation
+        const animation = searchPanel.animate([
             { 
                 maxHeight: '72px',
                 clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)'
@@ -5347,12 +5347,13 @@ class FastSearchCard extends HTMLElement {
             }
         ], {
             duration: 700,
-            easing: 'ease-out',
-            fill: 'forwards'
+            easing: 'ease-out'
         });
         
-        // Gleichzeitig die CSS-Klasse für die restlichen Styles
-        searchPanel.classList.add('expanded');
+        // Nach der Animation die CSS-Klasse setzen für Fallback
+        animation.finished.then(() => {
+            searchPanel.classList.add('expanded');
+        });
         
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (!searchInput.value.trim()) { 
