@@ -5330,26 +5330,25 @@ class FastSearchCard extends HTMLElement {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         this.isPanelExpanded = true;
         
-        // 🎭 CURTAIN REVEAL Animation (50% schneller)
+        // 🎭 CURTAIN REVEAL - inset() statt polygon()
         const animation = searchPanel.animate([
             { 
                 maxHeight: '72px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)'
+                clipPath: 'inset(0 0 100% 0)' // Nur Suchbereich sichtbar
             },
             { 
                 maxHeight: '400px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)'
+                clipPath: 'inset(0 0 50% 0)' // Zur Hälfte geöffnet
             },
             { 
                 maxHeight: '700px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+                clipPath: 'inset(0 0 0 0)' // Komplett sichtbar
             }
         ], {
-            duration: 350, // 50% schneller
+            duration: 350,
             easing: 'ease-out'
         });
         
-        // Nach der Animation die CSS-Klasse setzen für Fallback
         animation.finished.then(() => {
             searchPanel.classList.add('expanded');
         });
