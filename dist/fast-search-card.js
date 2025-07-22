@@ -583,6 +583,9 @@ class FastSearchCard extends HTMLElement {
                 top: 0; 
                 z-index: 2;
                 background-color: rgba(255, 255, 255, 0.01);
+                height: 72px; /* Feste Höhe statt min-height */
+                flex-shrink: 0; /* Verhindert Größenänderung */
+                box-sizing: border-box; /* Padding included in height */                
             }
 
             .search-wrapper::after {
