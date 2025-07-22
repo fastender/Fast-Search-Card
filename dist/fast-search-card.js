@@ -5329,34 +5329,35 @@ class FastSearchCard extends HTMLElement {
         if (this.isPanelExpanded) return;
         
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
-        const resultsGrid = this.shadowRoot.querySelector('.results-grid');
-        const resultsList = this.shadowRoot.querySelector('.results-list');
-        
         this.isPanelExpanded = true;
         searchPanel.classList.add('expanded');
         
-        // 🎭 CURTAIN REVEAL ANIMATION
-        searchPanel.animate([
-            { 
-                maxHeight: '72px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)',
-                opacity: 0.8
-            },
-            { 
-                maxHeight: '350px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
-                opacity: 0.9
-            },
-            { 
-                maxHeight: '700px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
-                opacity: 1
-            }
-        ], {
-            duration: 700,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
+        // 🎭 CURTAIN REVEAL nur für den expandierbaren Inhalt
+        const expandableContent = this.shadowRoot.querySelector('.results-grid, .results-list');
+        
+        if (expandableContent) {
+            expandableContent.animate([
+                { 
+                    height: '0px',
+                    clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)',
+                    opacity: 0.8
+                },
+                { 
+                    height: '300px',
+                    clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
+                    opacity: 0.9
+                },
+                { 
+                    height: '600px',
+                    clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
+                    opacity: 1
+                }
+            ], {
+                duration: 700,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+        }
         
         const searchInput = this.shadowRoot.querySelector('.search-input');
         if (!searchInput.value.trim()) { 
