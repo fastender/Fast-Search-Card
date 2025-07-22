@@ -571,7 +571,6 @@ class FastSearchCard extends HTMLElement {
 
             .search-panel.expanded {
                 max-height: 700px;
-                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); /* Vollständig geöffnet */
             }
 
             .search-wrapper {
@@ -5331,7 +5330,7 @@ class FastSearchCard extends HTMLElement {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         this.isPanelExpanded = true;
         
-        // 🎭 CURTAIN REVEAL Animation
+        // 🎭 CURTAIN REVEAL Animation (50% schneller)
         const animation = searchPanel.animate([
             { 
                 maxHeight: '72px',
@@ -5346,7 +5345,7 @@ class FastSearchCard extends HTMLElement {
                 clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
             }
         ], {
-            duration: 700,
+            duration: 350, // 50% schneller
             easing: 'ease-out'
         });
         
@@ -5369,27 +5368,23 @@ class FastSearchCard extends HTMLElement {
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         this.isPanelExpanded = false;
         
-        // 🎭 Reverse Curtain Animation
-        searchPanel.animate([
+        // 🎭 Nur max-height animieren, clip-path weglassen
+        const animation = searchPanel.animate([
             { 
-                maxHeight: '700px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+                maxHeight: '700px'
             },
             { 
-                maxHeight: '400px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)'
-            },
-            { 
-                maxHeight: '72px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)'
+                maxHeight: '72px'
             }
         ], {
-            duration: 500,
-            easing: 'ease-in',
-            fill: 'forwards'
-        }).finished.then(() => {
-            searchPanel.classList.remove('expanded');
+            duration: 250,
+            easing: 'ease-in'
         });
+        
+        searchPanel.classList.remove('expanded');
+        
+        // Clip-path sofort zurücksetzen
+        searchPanel.style.clipPath = '';
     }
 
 
