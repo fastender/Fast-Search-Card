@@ -5384,13 +5384,18 @@ class FastSearchCard extends HTMLElement {
         
         this.isPanelExpanded = false;
         
-        // 🎭 Reverse Animation nur für results-container
+        // 🎭 Reverse Animation für results-container
         if (resultsContainer) {
-            resultsContainer.animate([
+            const animation = resultsContainer.animate([
                 { 
                     height: '600px',
                     clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
                     opacity: 1
+                },
+                { 
+                    height: '300px',
+                    clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
+                    opacity: 0.5
                 },
                 { 
                     height: '0px',
@@ -5398,13 +5403,19 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0
                 }
             ], {
-                duration: 250,
+                duration: 350, // Gleiche Duration wie expand
                 easing: 'ease-in',
                 fill: 'forwards'
             });
+            
+            // Warte bis Animation fertig ist, dann Klasse entfernen
+            animation.finished.then(() => {
+                searchPanel.classList.remove('expanded');
+            });
+        } else {
+            // Fallback falls resultsContainer nicht gefunden wird
+            searchPanel.classList.remove('expanded');
         }
-        
-        searchPanel.classList.remove('expanded');
     }
 
 
