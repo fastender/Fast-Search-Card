@@ -583,9 +583,6 @@ class FastSearchCard extends HTMLElement {
                 top: 0; 
                 z-index: 2;
                 background-color: rgba(255, 255, 255, 0.01);
-                height: 72px; /* Feste Höhe statt min-height */
-                flex-shrink: 0; /* Verhindert Größenänderung */
-                box-sizing: border-box; /* Padding included in height */                
             }
 
             .search-wrapper::after {
@@ -609,9 +606,6 @@ class FastSearchCard extends HTMLElement {
                 background: rgba(255, 255, 255, 0); 
                 flex-shrink: 0;
                 transition: all 0.2s ease;
-                position: relative;
-                top: 9px;
-                align-self: flex-start;
             }
 
             .category-icon:hover {
@@ -635,7 +629,6 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 flex: 1;
                 min-width: 0;
-                align-self: stretch;
             }
             
             .search-input {
@@ -650,10 +643,6 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 z-index: 2;
                 background: transparent;
-                height: 40px;
-                line-height: 40px;
-                vertical-align: top;   
-                top: 0px;
             }
             
             .search-input::placeholder {
@@ -5385,18 +5374,13 @@ class FastSearchCard extends HTMLElement {
         
         this.isPanelExpanded = false;
         
-        // 🎭 Reverse Animation für results-container
+        // 🎭 Reverse Animation nur für results-container
         if (resultsContainer) {
-            const animation = resultsContainer.animate([
+            resultsContainer.animate([
                 { 
                     height: '600px',
                     clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
                     opacity: 1
-                },
-                { 
-                    height: '300px',
-                    clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
-                    opacity: 0.5
                 },
                 { 
                     height: '0px',
@@ -5404,19 +5388,13 @@ class FastSearchCard extends HTMLElement {
                     opacity: 0
                 }
             ], {
-                duration: 350, // Gleiche Duration wie expand
+                duration: 250,
                 easing: 'ease-in',
                 fill: 'forwards'
             });
-            
-            // Warte bis Animation fertig ist, dann Klasse entfernen
-            animation.finished.then(() => {
-                searchPanel.classList.remove('expanded');
-            });
-        } else {
-            // Fallback falls resultsContainer nicht gefunden wird
-            searchPanel.classList.remove('expanded');
         }
+        
+        searchPanel.classList.remove('expanded');
     }
 
 
