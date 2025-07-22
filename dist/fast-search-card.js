@@ -652,7 +652,8 @@ class FastSearchCard extends HTMLElement {
                 background: transparent;
                 height: 40px;
                 line-height: 40px;
-                vertical-align: top;                
+                vertical-align: top;   
+                top: 0px;
             }
             
             .search-input::placeholder {
