@@ -5111,11 +5111,15 @@ class FastSearchCard extends HTMLElement {
         return window.innerWidth <= 768;
     }    
 
+    // In showCategoryButtons() - Desktop Suchleisten-Animation hinzufügen
     showCategoryButtons() {
-        this.collapsePanel(); // <-- HINZUGEFÜGTE ZEILE
-
-        // NEU: Search-Wrapper auf Mobile verstecken
-        if (this.isMobile()) {
+        this.collapsePanel(); 
+    
+        if (!this.isMobile()) {
+            // NEU: Suchleiste Curtain Animation
+            this.animateSearchWrapperCurtain();
+        } else {
+            // Mobile: Komplettes Panel verstecken
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
                 searchWrapper.style.display = 'none';
@@ -5125,22 +5129,82 @@ class FastSearchCard extends HTMLElement {
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         this.isMenuView = true;
         categoryButtons.classList.add('visible');
-        categoryButtons.animate([{ opacity: 0, transform: 'translateX(20px) scale(0.9)' }, { opacity: 1, transform: 'translateX(0) scale(1)' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+        
+        // Button-Animation folgt später...
+    }
+    
+    // NEU: Suchleiste Curtain Animation
+    animateSearchWrapperCurtain() {
+        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+        
+        if (!searchWrapper) return;
+        
+        // Suchleiste schrumpft von flex: 1 zu flex: 0.6
+        searchWrapper.animate([
+            { 
+                flex: '1',
+                marginRight: '0px'
+            },
+            { 
+                flex: '0.6',
+                marginRight: '5px'
+            }
+        ], {
+            duration: 350,
+            easing: 'ease-in',
+            fill: 'forwards'
+        });
+    }
+    
+    // Reverse Animation für hideCategoryButtons()
+    animateSearchWrapperExpand() {
+        const searchWrapper = this.shadowRoot.querySelector('.search-wrapper');
+        
+        if (!searchWrapper) return;
+        
+        searchWrapper.animate([
+            { 
+                flex: '0.6',
+                marginRight: '5px'
+            },
+            { 
+                flex: '1',
+                marginRight: '0px'
+            }
+        ], {
+            duration: 350,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
     }
     
     hideCategoryButtons() {
-        // NEU: Search-Wrapper wieder anzeigen  
         if (this.isMobile()) {
             const searchWrapper = this.shadowRoot.querySelector('.search-panel');
             if (searchWrapper) {
                 searchWrapper.style.display = 'flex';
             }
+        } else {
+            // NEU: Suchleiste wieder expandieren
+            this.animateSearchWrapperExpand();
         }
         
         const categoryButtons = this.shadowRoot.querySelector('.category-buttons');
         if (!this.isMenuView) return;
-        const animation = categoryButtons.animate([{ opacity: 1, transform: 'translateX(0) scale(1)' }, { opacity: 0, transform: 'translateX(20px) scale(0.9)' }], { duration: 300, easing: 'ease-in', fill: 'forwards' });
-        animation.finished.then(() => { categoryButtons.classList.remove('visible'); this.isMenuView = false; });
+        
+        const animation = categoryButtons.animate([
+            { opacity: 1, transform: 'translateX(0) scale(1)' }, 
+            { opacity: 0, transform: 'translateX(20px) scale(0.9)' }
+        ], { 
+            duration: 300, 
+            easing: 'ease-in', 
+            fill: 'forwards' 
+        });
+        
+        animation.finished.then(() => { 
+            categoryButtons.classList.remove('visible'); 
+            this.isMenuView = false; 
+        });
     }
 
     handleCategorySelect(selectedButton) {
