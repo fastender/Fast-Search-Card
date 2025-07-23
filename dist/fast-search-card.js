@@ -15329,8 +15329,21 @@ class FastSearchCard extends HTMLElement {
         switch (item.domain) {
             case 'light': 
                 return { status: state.state === 'on' ? 'Ein' : 'Aus' };
+            
             case 'climate': 
-                return { status: state.attributes.hvac_action || state.state };
+                const climateState = state.attributes.hvac_action || state.state;
+                const climateMapping = {
+                    'cooling': 'Kühlt',
+                    'heating': 'Heizt',
+                    'cool': 'Kühlt',
+                    'heat': 'Heizt',
+                    'off': 'Aus',
+                    'auto': 'Automatik',
+                    'dry': 'Entfeuchtet',
+                    'fan_only': 'Lüftet'
+                };
+                return { status: climateMapping[climateState] || climateState };          
+                
             case 'cover': 
                 return { status: state.state === 'open' ? 'Offen' : 'Geschlossen' };
             case 'media_player': 
