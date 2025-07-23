@@ -8888,8 +8888,8 @@ class FastSearchCard extends HTMLElement {
             <div class="detail-left-header">
                 <button class="back-button">${newBackButtonSVG}</button>
                 <div class="detail-left-title-info">
-                    <h3 class="detail-left-title-name">${this.truncateText(item.name, 25)}</h3>
-                    <p class="detail-left-title-area">${item.area || 'Kein Raum'}</p>
+                    <h3 class="detail-left-title-name">${this.truncateText(item.name, 20)}</h3>
+                    <p class="detail-left-title-area">${this.truncateText(item.area || 'Kein Raum', 20)}</p>
                 </div>
                 <button class="favorite-button" data-entity-id="${item.id}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round">
