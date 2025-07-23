@@ -8956,8 +8956,8 @@ class FastSearchCard extends HTMLElement {
             <div class="detail-tabs-container desktop-tabs">
                 <div class="detail-header">
                     <div class="detail-header-info">
-                        <h3 class="detail-header-name">${item.name}</h3>
-                        <p class="detail-header-area">${item.area || item.custom_data?.metadata?.category || 'Custom'}</p>
+                        <h3 class="detail-header-name">${stateInfo.status}</h3>
+                        <p class="detail-header-area">${this.getStateDuration(item)}</p>
                     </div>
                 </div>
                 <div class="detail-tabs">
@@ -8972,8 +8972,8 @@ class FastSearchCard extends HTMLElement {
             <div class="detail-tabs-container mobile-tabs">
                 <div class="detail-header">
                     <div class="detail-header-info">
-                        <h3 class="detail-header-name">${item.name}</h3>
-                        <p class="detail-header-area">${item.area || item.custom_data?.metadata?.category || 'Custom'}</p>
+                        <h3 class="detail-header-name">${stateInfo.status}</h3>
+                        <p class="detail-header-area">${this.getStateDuration(item)}</p>
                     </div>
                 </div>
                 <div class="detail-tabs">
@@ -9045,6 +9045,23 @@ class FastSearchCard extends HTMLElement {
         if (!text) return '';
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
+    }    
+
+    getStateDuration(item) {
+        if (!item.last_changed) return 'Unbekannt';
+        
+        const now = new Date();
+        const lastChanged = new Date(item.last_changed);
+        const diffMs = now - lastChanged;
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        
+        if (diffMinutes < 60) {
+            return `Seit ${diffMinutes} Minuten`;
+        } else {
+            const hours = Math.floor(diffMinutes / 60);
+            const minutes = diffMinutes % 60;
+            return `Seit ${hours} Stunde${hours > 1 ? 'n' : ''} ${minutes} Minuten`;
+        }
     }    
 
     getTabContent(tabId, item, controlsHTML) {
