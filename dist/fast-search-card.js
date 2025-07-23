@@ -8628,7 +8628,19 @@ class FastSearchCard extends HTMLElement {
                 statusIndicator.textContent = this.getDetailedStateText(item).status;
                 statusIndicator.classList.toggle('active', isActive);
             }
-    
+
+            // NEU: Detail-Header aktualisieren (rechts)
+            const headerNames = detailPanel.querySelectorAll('.detail-header-name');
+            const headerAreas = detailPanel.querySelectorAll('.detail-header-area');
+            
+            headerNames.forEach(nameEl => {
+                nameEl.textContent = this.getDetailedStateText(item).status;
+            });
+            
+            headerAreas.forEach(areaEl => {
+                areaEl.textContent = this.getStateDuration(item);
+            });
+                
             const quickStats = detailPanel.querySelector('.quick-stats');
             if (quickStats) {
                 quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
