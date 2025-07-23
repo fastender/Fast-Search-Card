@@ -1192,21 +1192,6 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 justify-content: flex-start;
             }
-
-            .status-indicator-large {
-                background: rgba(255, 255, 255, 0.2);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                color: var(--text-primary);
-                padding: 6px 12px;
-                border-radius: 20px;
-                font-size: 11px;
-                font-weight: 500;
-            }
-
-            .status-indicator-large.active {
-                 background: var(--accent);
-                 border-color: var(--accent);
-            }
             
             .quick-stats {
                 display: flex;
@@ -8622,14 +8607,7 @@ class FastSearchCard extends HTMLElement {
     
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
         if (detailPanel) {
-            const isActive = this.isEntityActive(state);
-            const statusIndicator = detailPanel.querySelector('.status-indicator-large');
-            if (statusIndicator) {
-                statusIndicator.textContent = this.getDetailedStateText(item).status;
-                statusIndicator.classList.toggle('active', isActive);
-            }
-
-            // NEU: Detail-Header aktualisieren (rechts)
+            // Detail-Header aktualisieren (rechts)
             const headerNames = detailPanel.querySelectorAll('.detail-header-name');
             const headerAreas = detailPanel.querySelectorAll('.detail-header-area');
             
@@ -8640,7 +8618,8 @@ class FastSearchCard extends HTMLElement {
             headerAreas.forEach(areaEl => {
                 areaEl.textContent = this.getStateDuration(item);
             });
-                
+    
+            // Quick Stats aktualisieren
             const quickStats = detailPanel.querySelector('.quick-stats');
             if (quickStats) {
                 quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
@@ -8880,13 +8859,10 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
-
     getDetailLeftPaneHTML(item) {
         const newBackButtonSVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
         
         const backgroundImage = this.getBackgroundImageForItem(item);
-        const isActive = item.state !== 'off' && item.state !== 'unavailable' && item.state !== 'unknown';
-        const stateInfo = this.getDetailedStateText(item);
         const quickStats = this.getQuickStats(item);
         
         const albumArt = item.domain === 'media_player' ? 
@@ -8900,7 +8876,7 @@ class FastSearchCard extends HTMLElement {
             <div class="detail-left-header">
                 <button class="back-button">${newBackButtonSVG}</button>
                 <div class="detail-left-title-info">
-                    <h3 class="detail-left-title-name">${this.truncateText(item.name, 20)}</h3>
+                    <h3 class="detail-left-title-name">${this.truncateText(item.name, 25)}</h3>
                     <p class="detail-left-title-area">${this.truncateText(item.area || 'Kein Raum', 20)}</p>
                 </div>
                 <button class="favorite-button" data-entity-id="${item.id}">
@@ -8915,8 +8891,7 @@ class FastSearchCard extends HTMLElement {
                         ${this.hasVideoUrl(item) ? this.renderVideoElement(item) : ''}
                     </div>
                 </div>
-                <div class="detail-info-row" style="gap: ${isActive ? '12px' : '0px'}">
-                    <div class="status-indicator-large ${isActive ? 'active' : ''}">${stateInfo.status}</div>
+                <div class="detail-info-row">
                     <div class="quick-stats">
                        ${quickStats.map(stat => `<div class="stat-item">${stat}</div>`).join('')}
                     </div>
