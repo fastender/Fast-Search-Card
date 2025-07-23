@@ -4654,6 +4654,32 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
             }
 
+
+            /* Die detail-left-title-info für den linken Bereich */
+            .detail-left-title-info {
+                text-align: center;  /* Zentriert den Text */
+                flex: 1;            /* Nimmt den verfügbaren Platz zwischen den Buttons */
+            }
+            
+            .detail-left-title-name {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-primary);
+                line-height: 1.05em;
+                max-width: 300px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .detail-left-title-area {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                line-height: 1.05em;
+            }
     
                                                 
             </style>
@@ -8846,21 +8872,31 @@ class FastSearchCard extends HTMLElement {
     
     getDetailLeftPaneHTML(item) {
         const newBackButtonSVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
-        const state = this._hass.states[item.id];
-        const isActive = this.isEntityActive(state);
-        const stateInfo = this.getDetailedStateText(item);
+        
+        const isFavorite = this.checkIfFavorite(item.id);
+        const backgroundImage = this.getBackgroundImage(item);
+        const isActive = item.state !== 'off' && item.state !== 'unavailable' && item.state !== 'unknown';
+        const stateInfo = this.getStateInfo(item);
         const quickStats = this.getQuickStats(item);
-        const backgroundImage = this.getBackgroundImageForItem(item);
-        const albumArt = (item.domain === 'media_player') ? this.getAlbumArtUrl(item) : null;
+        
+        const albumArt = item.domain === 'media_player' ? 
+            this.getAlbumArtUrl(item) : null;
         
         const backgroundStyle = albumArt 
             ? `background-image: url('${albumArt}');`
             : `background-image: url('${backgroundImage}');`;
-
+    
         return `
             <div class="detail-left-header">
                 <button class="back-button">${newBackButtonSVG}</button>
-                <button class="favorite-button" data-entity-id="${item.id}">
+                
+                <!-- NEU: Mittige Name/Raum Info -->
+                <div class="detail-left-title-info">
+                    <h3 class="detail-left-title-name">${item.name}</h3>
+                    <p class="detail-left-title-area">${item.area || 'Kein Raum'}</p>
+                </div>
+                
+                <button class="favorite-button ${isFavorite ? 'active' : ''}" data-entity-id="${item.id}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round">
                         <path d="M22 8.86222C22 10.4087 21.4062 11.8941 20.3458 12.9929C17.9049 15.523 15.5374 18.1613 13.0053 20.5997C12.4249 21.1505 11.5042 21.1304 10.9488 20.5547L3.65376 12.9929C1.44875 10.7072 1.44875 7.01723 3.65376 4.73157C5.88044 2.42345 9.50794 2.42345 11.7346 4.73157L11.9998 5.00642L12.2648 4.73173C13.3324 3.6245 14.7864 3 16.3053 3C17.8242 3 19.2781 3.62444 20.3458 4.73157C21.4063 5.83045 22 7.31577 22 8.86222Z"/>
                     </svg>
