@@ -9049,10 +9049,11 @@ class FastSearchCard extends HTMLElement {
     }    
 
     getStateDuration(item) {
-        if (!item.last_changed) return 'Unbekannt';
+        const state = this._hass.states[item.id];
+        if (!state || !state.last_changed) return 'Unbekannt';
         
         const now = new Date();
-        const lastChanged = new Date(item.last_changed);
+        const lastChanged = new Date(state.last_changed);
         const diffMs = now - lastChanged;
         const diffMinutes = Math.floor(diffMs / (1000 * 60));
         
@@ -9063,7 +9064,7 @@ class FastSearchCard extends HTMLElement {
             const minutes = diffMinutes % 60;
             return `Seit ${hours} Stunde${hours > 1 ? 'n' : ''} ${minutes} Minuten`;
         }
-    }    
+    }
 
     getTabContent(tabId, item, controlsHTML) {
         switch(tabId) {
