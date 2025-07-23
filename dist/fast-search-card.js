@@ -1096,7 +1096,6 @@ class FastSearchCard extends HTMLElement {
                 gap: 16px;
                 margin-bottom: 20px;
                 position: relative;
-                padding-top: 20px;
             }
             
             .back-button {
@@ -4667,7 +4666,6 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 600;
                 color: var(--text-primary);
                 line-height: 1.05em;
-                max-width: 300px;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
@@ -8890,7 +8888,7 @@ class FastSearchCard extends HTMLElement {
             <div class="detail-left-header">
                 <button class="back-button">${newBackButtonSVG}</button>
                 <div class="detail-left-title-info">
-                    <h3 class="detail-left-title-name">${item.name}</h3>
+                    <h3 class="detail-left-title-name">${this.truncateText(item.name, 25)}</h3>
                     <p class="detail-left-title-area">${item.area || 'Kein Raum'}</p>
                 </div>
                 <button class="favorite-button" data-entity-id="${item.id}">
@@ -9042,6 +9040,12 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
+
+    truncateText(text, maxLength) {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    }    
 
     getTabContent(tabId, item, controlsHTML) {
         switch(tabId) {
