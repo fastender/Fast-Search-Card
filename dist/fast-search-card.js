@@ -8625,16 +8625,14 @@ class FastSearchCard extends HTMLElement {
                 quickStats.innerHTML = this.getQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('');
             }
             
-            const detailInfoRow = detailPanel.querySelector('.detail-info-row');
-            if(detailInfoRow) {
-                 detailInfoRow.style.gap = isActive ? '12px' : '0px';
-            }
+            // ENTFERNT: const detailInfoRow = detailPanel.querySelector('.detail-info-row');
+            // ENTFERNT: if(detailInfoRow) { detailInfoRow.style.gap = isActive ? '12px' : '0px'; }
             
-            const detailName = detailPanel.querySelector('.detail-name');
-            if (detailName) detailName.textContent = item.name;
+            // ENTFERNT: const detailName = detailPanel.querySelector('.detail-name');
+            // ENTFERNT: if (detailName) detailName.textContent = item.name;
             
-            const detailArea = detailPanel.querySelector('.detail-area');
-            if (detailArea) detailArea.textContent = item.area;
+            // ENTFERNT: const detailArea = detailPanel.querySelector('.detail-area');
+            // ENTFERNT: if (detailArea) detailArea.textContent = item.area;
     
             // Icon Background Update - BEIDE Fälle abdecken
             const iconBackground = detailPanel.querySelector('.icon-background');
@@ -8662,7 +8660,7 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
             }
-
+    
             // Video Element Update - nur bei tatsächlichen Änderungen
             const videoElement = detailPanel.querySelector('.icon-video');
             if (videoElement) {
@@ -8706,7 +8704,7 @@ class FastSearchCard extends HTMLElement {
         } else if (item.domain === 'media_player') {
             this.updateMediaPlayerControlsUI(item);
         }
-    }        
+    } 
 
     toggleFocusMode(container, isEntering) {
         const slider = container.querySelector('.circular-slider-container');
