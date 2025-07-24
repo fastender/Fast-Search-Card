@@ -1370,7 +1370,7 @@ class FastSearchCard extends HTMLElement {
             @media (max-width: 768px) {
                 .detail-header-name {
                     margin: 0;
-                    font-size: 14px;
+                    font-size: 16px;
                     font-weight: 600;
                     color: var(--text-primary);
                     line-height: 1.05em;
@@ -1382,7 +1382,7 @@ class FastSearchCard extends HTMLElement {
                 
                 .detail-header-area {
                     margin: 0;
-                    font-size: 14px;
+                    font-size: 16px;
                     font-weight: 600;
                     color: var(--text-secondary);
                     line-height: 1.05em;
@@ -4233,9 +4233,16 @@ class FastSearchCard extends HTMLElement {
 
             .timeline-event-title {
                font-size: 18px;
+               line-height: 1.1em;
                color: var(--text-primary);
                font-weight: 600;
-            }            
+            }
+
+            @media (max-width: 768px) {
+                .timeline-event-title {
+                   font-size: 14px;
+                }
+            }                            
 
             /* Action Meta Badges */
             .timeline-event-details {
