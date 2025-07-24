@@ -1695,11 +1695,11 @@ class FastSearchCard extends HTMLElement {
 
             @media (max-width: 768px) {
                 .device-control-button {
-                    flex-basis: 55px;
+                    flex-basis: 50px;
                     flex-grow: 0;
                     flex-shrink: 0;
-                    width: 55px;
-                    height: 55px;
+                    width: 50px;
+                    height: 50px;
                 }
             }
             
@@ -3520,11 +3520,11 @@ class FastSearchCard extends HTMLElement {
 
             @media (max-width: 768px) {
                 .timer-control-preset {
-                    flex-basis: 55px;
+                    flex-basis: 50px;
                     flex-grow: 0;
                     flex-shrink: 0;
-                    width: 55px;
-                    height: 55px;
+                    width: 50px;
+                    height: 50px;
                 }                
             }                        
             
