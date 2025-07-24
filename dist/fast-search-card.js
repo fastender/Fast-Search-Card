@@ -3519,7 +3519,7 @@ class FastSearchCard extends HTMLElement {
             }
 
             @media (max-width: 768px) {
-                .timer-control-preset
+                .timer-control-preset {
                     flex-basis: 55px;
                     flex-grow: 0;
                     flex-shrink: 0;
