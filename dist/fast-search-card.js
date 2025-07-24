@@ -3495,7 +3495,7 @@ class FastSearchCard extends HTMLElement {
                 .timer-control-presets-grid {
                     gap: 12px; /* ← Etwas weniger Abstand auf Mobile */
                     margin-top: 20px; /* ← Weniger Abstand nach oben */
-                }
+                }              
             }            
 
             .timer-control-preset {
@@ -3517,6 +3517,16 @@ class FastSearchCard extends HTMLElement {
                 position: relative;
                 flex-direction: column;
             }
+
+            @media (max-width: 768px) {
+                .timer-control-preset
+                    flex-basis: 55px;
+                    flex-grow: 0;
+                    flex-shrink: 0;
+                    width: 55px;
+                    height: 55px;
+                }                
+            }                        
             
             .timer-control-preset:hover {
                 transform: scale(1.05);
