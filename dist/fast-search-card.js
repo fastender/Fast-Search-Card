@@ -2876,7 +2876,7 @@ class FastSearchCard extends HTMLElement {
                 .shortcuts-container {
                     height: calc(100vh - 400px);
                     max-height: 400px;
-                    padding: 20px;
+                    padding: 10px;
                 }            
                 
                 .shortcuts-header {
