@@ -10506,11 +10506,11 @@ class FastSearchCard extends HTMLElement {
         }
         
         try {
-            // Schließe den Picker
-            this.closeSchedulerPicker();
-            
             // Lade Timer-Liste sofort neu
             this.loadActiveTimers(this.schedulerPickerState.item.id);
+
+            // Schließe den Picker
+            this.closeSchedulerPicker();                        
             
         } catch (error) {
             console.error('❌ Fehler beim Erstellen des Timers:', error);
@@ -10555,13 +10555,13 @@ class FastSearchCard extends HTMLElement {
                 repeat_type: 'repeat'
             });
     
-            console.log('✅ Zeitplan erfolgreich erstellt');
+            console.log('✅ Zeitplan erfolgreich erstellt');            
+            // Lade Zeitpläne neu
+            this.loadActiveSchedules(this.schedulerPickerState.item.id);  
             
             // Schließe den Picker
             this.closeSchedulerPicker();
-            
-            // Lade Zeitpläne neu
-            this.loadActiveSchedules(this.schedulerPickerState.item.id);            
+          
         } catch (error) {
             console.error('❌ Fehler beim Erstellen des Zeitplans:', error);
             alert('Fehler beim Erstellen des Zeitplans');
