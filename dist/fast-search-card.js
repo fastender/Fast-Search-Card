@@ -4680,8 +4680,336 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 line-height: 1.05em;
             }
-    
-                                                
+
+
+            /* ===== SCHEDULER UNIFIED PICKER CSS - TEIL 1 ===== */
+            
+            /* Main Container */
+            .scheduler-picker-container {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                border-radius: 20px;
+                padding: 20px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+                max-width: 380px;
+                width: 100%;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                margin: 0 auto;
+            }
+            
+            .scheduler-picker-header {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            
+            .scheduler-picker-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1f2937;
+                margin: 0;
+            }
+            
+            /* Main Controls Layout */
+            .scheduler-main-controls {
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                margin-bottom: 20px;
+                padding: 12px;
+                background: #f8fafc;
+                border-radius: 14px;
+            }
+            
+            /* Time Display - 50% width */
+            .scheduler-time-display {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                flex: 1;
+                width: 50%;
+            }
+            
+            .scheduler-time-unit {
+                position: relative;
+                cursor: pointer;
+                user-select: none;
+            }
+            
+            .scheduler-time-value {
+                font-size: 28px;
+                font-family: 'Monaco', 'Menlo', monospace;
+                font-weight: bold;
+                color: #1f2937;
+                padding: 22px 12px;
+                border-radius: 8px;
+                transition: all 0.2s ease;
+                min-width: 58px;
+                text-align: center;
+                background: white;
+                border: 2px solid transparent;
+            }
+            
+            .scheduler-time-unit:hover .scheduler-time-value {
+                border-color: #2563eb;
+                color: #2563eb;
+            }
+            
+            .scheduler-time-separator {
+                font-size: 28px;
+                font-family: 'Monaco', 'Menlo', monospace;
+                font-weight: bold;
+                color: #6b7280;
+                margin: 0 2px;
+            }
+            
+            .scheduler-time-label {
+                position: absolute;
+                bottom: -20px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 10px;
+                color: #6b7280;
+                font-weight: 500;
+                white-space: nowrap;
+            }
+
+            /* ===== SCHEDULER UNIFIED PICKER CSS - TEIL 2 ===== */
+            
+            /* Chevrons */
+            .scheduler-chevron {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 28px;
+                height: 28px;
+                background: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                opacity: 0;
+                transition: all 0.2s ease;
+                z-index: 10;
+                color: #6b7280;
+            }
+            
+            .scheduler-time-unit:hover .scheduler-chevron {
+                opacity: 1;
+            }
+            
+            .scheduler-chevron:hover {
+                border-color: #2563eb;
+                color: #2563eb;
+            }
+            
+            .scheduler-chevron-up {
+                top: -36px;
+            }
+            
+            .scheduler-chevron-down {
+                bottom: -36px;
+            }
+            
+            .scheduler-chevron svg {
+                width: 16px;
+                height: 16px;
+            }
+            
+            /* Right Side: Mode + Weekdays Container - 50% width */
+            .scheduler-mode-and-weekdays {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                flex: 1;
+                width: 50%;
+            }
+            
+            /* Top Row: Format + Mode Toggle */
+            .scheduler-top-controls {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+            
+            /* Cycling Format Button */
+            .scheduler-format-cycle-btn {
+                padding: 8px 10px;
+                border: none;
+                border-radius: 7px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                background: white;
+                color: #2563eb;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                min-width: 40px;
+                border: 2px solid #e5e7eb;
+            }
+            
+            .scheduler-format-cycle-btn:hover {
+                border-color: #2563eb;
+                background: #f8fafc;
+            }
+            
+            .scheduler-format-cycle-btn.am-pm {
+                background: #2563eb;
+                color: white;
+                border-color: #2563eb;
+            }
+            
+            /* Mode Toggle - Compact */
+            .scheduler-mode-toggle {
+                display: flex;
+                background: white;
+                border-radius: 10px;
+                padding: 3px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            }
+            
+            .scheduler-mode-btn {
+                padding: 12px;
+                border: none;
+                border-radius: 7px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                background: transparent;
+                color: #6b7280;
+                min-width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .scheduler-mode-btn.active {
+                background: #2563eb;
+                color: white;
+                box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+            }
+            
+            .scheduler-mode-btn:hover:not(.active) {
+                color: #374151;
+                background: #f3f4f6;
+            }
+            
+            .scheduler-mode-btn svg {
+                width: 16px;
+                height: 16px;
+            }            
+
+            /* ===== SCHEDULER UNIFIED PICKER CSS - TEIL 3 ===== */
+            
+            /* Inline Weekdays (second row) */
+            .scheduler-inline-weekdays {
+                opacity: 0;
+                transform: translateY(-5px);
+                transition: all 0.3s ease;
+                max-height: 0;
+                overflow: hidden;
+            }
+            
+            .scheduler-inline-weekdays.show {
+                opacity: 1;
+                transform: translateY(0);
+                max-height: 40px;
+            }
+            
+            .scheduler-inline-weekdays-grid {
+                display: flex;
+                gap: 3px;
+            }
+            
+            .scheduler-inline-weekday-btn {
+                width: 28px;
+                height: 28px;
+                border: 1px solid #e5e7eb;
+                border-radius: 6px;
+                font-size: 9px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                background: white;
+                color: #6b7280;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .scheduler-inline-weekday-btn:hover {
+                border-color: #2563eb;
+                color: #2563eb;
+            }
+            
+            .scheduler-inline-weekday-btn.active {
+                background: #2563eb;
+                border-color: #2563eb;
+                color: white;
+            }
+            
+            /* Action Buttons */
+            .scheduler-action-buttons {
+                display: flex;
+                gap: 12px;
+            }
+            
+            .scheduler-action-btn {
+                flex: 1;
+                padding: 14px;
+                border: none;
+                border-radius: 12px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .scheduler-cancel-btn {
+                background: #f3f4f6;
+                color: #6b7280;
+            }
+            
+            .scheduler-cancel-btn:hover {
+                background: #e5e7eb;
+                color: #374151;
+            }
+            
+            .scheduler-create-btn {
+                background: #2563eb;
+                color: white;
+            }
+            
+            .scheduler-create-btn:hover {
+                background: #1d4ed8;
+            }
+            
+            .scheduler-create-btn:disabled {
+                background: #9ca3af;
+                cursor: not-allowed;
+            }
+            
+            /* Responsive */
+            @media (max-width: 480px) {
+                .scheduler-main-controls {
+                    flex-direction: column;
+                    gap: 12px;
+                    align-items: center;
+                }
+                
+                .scheduler-time-display {
+                    justify-content: center;
+                }
+                
+                .scheduler-mode-and-weekdays {
+                    align-items: center;
+                }
+            }                
+                                                            
             </style>
 
             <div class="main-container">
@@ -9822,14 +10150,12 @@ class FastSearchCard extends HTMLElement {
 
 
 
-
-
-    showMinimalTimePicker(item, action, container, isScheduleMode = false, existingTimerData = null) {
     
+    showMinimalTimePicker(item, action, container, isScheduleMode = false, existingTimerData = null) {
         const isEditMode = !!existingTimerData;
-        console.log(`🎯 Zeige Minimal Time Picker für ${action}, Schedule Mode: ${isScheduleMode}, Edit Mode: ${isEditMode}`);
+        console.log(`🎯 Zeige Unified Scheduler Picker für ${action}, Schedule Mode: ${isScheduleMode}, Edit Mode: ${isEditMode}`);
         
-        // State variables
+        // Initialize state
         let initialHours = isScheduleMode ? 18 : 0;
         let initialMinutes = isScheduleMode ? 0 : 30;
         let scheduleId = null;
@@ -9841,72 +10167,508 @@ class FastSearchCard extends HTMLElement {
             scheduleId = existingTimerData.schedule_id;
         }
         
-        this.timePickerState = {
+        // Global state for this picker
+        this.schedulerPickerState = {
             selectedHours: initialHours,
             selectedMinutes: initialMinutes,
-            isScheduleMode: isScheduleMode,
+            currentMode: isScheduleMode ? 'schedule' : 'timer',
+            timeFormat: '24h', // '24h', 'am', 'pm'
+            selectedDays: [],
             scheduleId: scheduleId,
-            hoverHours: false,
-            hoverMinutes: false
+            item: item,
+            action: action,
+            container: container
         };
         
-        // Container erstellen oder finden
-        let timePickerContainer = container.querySelector('.minimal-time-picker');
-        if (!timePickerContainer) {
-            timePickerContainer = document.createElement('div');
-            timePickerContainer.className = 'minimal-time-picker';
-            container.insertBefore(timePickerContainer, container.firstChild);
+        // Create container
+        let pickerContainer = container.querySelector('.scheduler-picker-container');
+        if (!pickerContainer) {
+            pickerContainer = document.createElement('div');
+            pickerContainer.className = 'scheduler-picker-container';
+            container.insertBefore(pickerContainer, container.firstChild);
         }
         
-        // HTML erstellen
-        timePickerContainer.innerHTML = `
-            <div class="mtp-display-container">
-                <div class="mtp-controls">
-                    <!-- Stunden -->
-                    <div class="mtp-unit" data-unit="hours">
-                        <div class="mtp-value">${this.timePickerState.selectedHours.toString().padStart(2, '0')}</div>
-                    </div>
-                    
-                    <!-- Separator -->
-                    <div class="mtp-separator">:</div>
-                    
-                    <!-- Minuten -->
-                    <div class="mtp-unit" data-unit="minutes">
-                        <div class="mtp-value">${this.timePickerState.selectedMinutes.toString().padStart(2, '0')}</div>
-                    </div>
-                    
-                    <!-- Kalender Button (nur bei Schedule Mode) -->
-                    ${isScheduleMode ? `
-                        <button class="mtp-calendar-btn">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
+        // Create HTML structure
+        pickerContainer.innerHTML = `
+            <div class="scheduler-picker-header">
+                <h3 class="scheduler-picker-title">${item.name} - ${this.getActionLabel(action)}</h3>
+            </div>
+    
+            <!-- Main Controls: Time + Mode/Weekdays Combo -->
+            <div class="scheduler-main-controls">
+                <!-- Time Display (links, 50%) -->
+                <div class="scheduler-time-display">
+                    <div class="scheduler-time-unit" data-unit="hours">
+                        <div class="scheduler-chevron scheduler-chevron-up">
+                            <svg width="16px" height="16px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor" stroke="currentColor">
+                                <path d="M6 15L12 9L18 15" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                        </button>
-                    ` : ''}
+                        </div>
+                        <div class="scheduler-time-value" id="scheduler-hours-value">00</div>
+                        <div class="scheduler-chevron scheduler-chevron-down">
+                            <svg width="16px" height="16px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor" stroke="currentColor">
+                                <path d="M6 9L12 15L18 9" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="scheduler-time-label" id="scheduler-hours-label">Stunden</div>
+                    </div>
+                    
+                    <div class="scheduler-time-separator">:</div>
+                    
+                    <div class="scheduler-time-unit" data-unit="minutes">
+                        <div class="scheduler-chevron scheduler-chevron-up">
+                            <svg width="16px" height="16px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor" stroke="currentColor">
+                                <path d="M6 15L12 9L18 15" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="scheduler-time-value" id="scheduler-minutes-value">30</div>
+                        <div class="scheduler-chevron scheduler-chevron-down">
+                            <svg width="16px" height="16px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor" stroke="currentColor">
+                                <path d="M6 9L12 15L18 9" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="scheduler-time-label" id="scheduler-minutes-label">Minuten</div>
+                    </div>
+                </div>
+    
+                <!-- Format + Mode + Weekdays (rechts, 50%) -->
+                <div class="scheduler-mode-and-weekdays">
+                    <!-- Top Row: Format + Timer/Plan Toggle -->
+                    <div class="scheduler-top-controls">
+                        <!-- Cycling Format Button -->
+                        <button class="scheduler-format-cycle-btn" id="scheduler-format-cycle-btn">24h</button>
+                        
+                        <!-- Timer/Plan Toggle -->
+                        <div class="scheduler-mode-toggle">
+                            <button class="scheduler-mode-btn ${this.schedulerPickerState.currentMode === 'timer' ? 'active' : ''}" data-mode="timer">
+                                <svg width="16px" height="16px" viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor" stroke="currentColor">
+                                    <path d="M12 6L12 12L18 12" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M21.8883 10.5C21.1645 5.68874 17.013 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C16.1006 22 19.6248 19.5318 21.1679 16" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M17 16H21.4C21.7314 16 22 16.2686 22 16.6V21" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <button class="scheduler-mode-btn ${this.schedulerPickerState.currentMode === 'schedule' ? 'active' : ''}" data-mode="schedule">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" color="currentColor">
+                                    <path d="M15 4V2M15 4V6M15 4H10.5M3 10V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V10H3Z"/>
+                                    <path d="M3 10V6C3 4.89543 3.89543 4 5 4H7"/>
+                                    <path d="M7 2V6"/>
+                                    <path d="M21 10V6C21 4.89543 20.1046 4 19 4H18.5"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Row: Wochentage (nur bei Plan) -->
+                    <div class="scheduler-inline-weekdays" id="scheduler-inline-weekdays">
+                        <div class="scheduler-inline-weekdays-grid">
+                            <button class="scheduler-inline-weekday-btn" data-day="mon">Mo</button>
+                            <button class="scheduler-inline-weekday-btn" data-day="tue">Di</button>
+                            <button class="scheduler-inline-weekday-btn" data-day="wed">Mi</button>
+                            <button class="scheduler-inline-weekday-btn" data-day="thu">Do</button>
+                            <button class="scheduler-inline-weekday-btn" data-day="fri">Fr</button>
+                            <button class="scheduler-inline-weekday-btn" data-day="sat">Sa</button>
+                            <button class="scheduler-inline-weekday-btn" data-day="sun">So</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="mtp-actions">
-                <button class="mtp-action-btn mtp-cancel">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-                <button class="mtp-action-btn mtp-create">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20,6 9,17 4,12"></polyline>
-                    </svg>
-                </button>
+    
+            <!-- Action Buttons -->
+            <div class="scheduler-action-buttons">
+                <button class="scheduler-action-btn scheduler-cancel-btn">Abbrechen</button>
+                <button class="scheduler-action-btn scheduler-create-btn" id="scheduler-create-btn">Timer erstellen</button>
             </div>
         `;
         
-        // Event Listeners einrichten
-        this.setupMinimalTimePickerEvents(item, action, timePickerContainer);
+        // Setup event listeners
+        this.setupSchedulerPickerEvents();
+        
+        // Initialize display
+        this.updateSchedulerForMode();
+        this.updateSchedulerTimeDisplay();
     }
+
+
+    
+    // ===== SCHEDULER PICKER EVENT HANDLERS =====
+    
+    setupSchedulerPickerEvents() {
+        console.log('🎯 Setup Scheduler Picker Events');
+        
+        // Mode Toggle Events
+        const modeBtns = this.shadowRoot.querySelectorAll('.scheduler-mode-btn');
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                this.schedulerPickerState.currentMode = btn.dataset.mode;
+                this.updateSchedulerForMode();
+            });
+        });
+    
+        // Cycling Format Button
+        const formatBtn = this.shadowRoot.getElementById('scheduler-format-cycle-btn');
+        if (formatBtn) {
+            formatBtn.addEventListener('click', () => {
+                // Cycle through: 24h → AM → PM → 24h
+                if (this.schedulerPickerState.timeFormat === '24h') {
+                    this.schedulerPickerState.timeFormat = 'am';
+                } else if (this.schedulerPickerState.timeFormat === 'am') {
+                    this.schedulerPickerState.timeFormat = 'pm';
+                } else {
+                    this.schedulerPickerState.timeFormat = '24h';
+                }
+                
+                this.updateSchedulerFormatButton();
+                this.updateSchedulerTimeDisplay();
+            });
+        }
+    
+        // Time Control Events (Chevrons)
+        const chevrons = this.shadowRoot.querySelectorAll('.scheduler-chevron');
+        chevrons.forEach(chevron => {
+            chevron.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isUp = chevron.classList.contains('scheduler-chevron-up');
+                const unit = chevron.closest('.scheduler-time-unit').dataset.unit;
+                
+                if (unit === 'hours') {
+                    if (this.schedulerPickerState.currentMode === 'timer') {
+                        this.schedulerPickerState.selectedHours = Math.max(0, Math.min(23, this.schedulerPickerState.selectedHours + (isUp ? 1 : -1)));
+                    } else {
+                        // Schedule mode - wrap around 24h
+                        this.schedulerPickerState.selectedHours = (this.schedulerPickerState.selectedHours + (isUp ? 1 : -1) + 24) % 24;
+                    }
+                } else {
+                    this.schedulerPickerState.selectedMinutes = (this.schedulerPickerState.selectedMinutes + (isUp ? 5 : -5) + 60) % 60;
+                }
+                
+                this.updateSchedulerTimeDisplay();
+            });
+        });
+    
+        // Weekday Buttons
+        const weekdayBtns = this.shadowRoot.querySelectorAll('.scheduler-inline-weekday-btn');
+        weekdayBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('active');
+                const day = btn.dataset.day;
+                
+                if (this.schedulerPickerState.selectedDays.includes(day)) {
+                    this.schedulerPickerState.selectedDays = this.schedulerPickerState.selectedDays.filter(d => d !== day);
+                } else {
+                    this.schedulerPickerState.selectedDays.push(day);
+                }
+                
+                this.updateSchedulerCreateButton();
+            });
+        });
+    
+        // Action Buttons
+        const cancelBtn = this.shadowRoot.querySelector('.scheduler-cancel-btn');
+        const createBtn = this.shadowRoot.querySelector('.scheduler-create-btn');
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.closeSchedulerPicker();
+            });
+        }
+        
+        if (createBtn) {
+            createBtn.addEventListener('click', () => {
+                if (this.schedulerPickerState.currentMode === 'schedule') {
+                    this.createScheduleFromSchedulerPicker();
+                } else {
+                    this.createTimerFromSchedulerPicker();
+                }
+            });
+        }
+    }
+    
+    updateSchedulerFormatButton() {
+        const btn = this.shadowRoot.getElementById('scheduler-format-cycle-btn');
+        if (!btn) return;
+        
+        if (this.schedulerPickerState.timeFormat === '24h') {
+            btn.textContent = '24h';
+            btn.classList.remove('am-pm');
+        } else if (this.schedulerPickerState.timeFormat === 'am') {
+            btn.textContent = 'AM';
+            btn.classList.add('am-pm');
+        } else {
+            btn.textContent = 'PM';
+            btn.classList.add('am-pm');
+        }
+    }
+    
+    updateSchedulerForMode() {
+        const inlineWeekdays = this.shadowRoot.getElementById('scheduler-inline-weekdays');
+        const createBtn = this.shadowRoot.getElementById('scheduler-create-btn');
+        const hoursLabel = this.shadowRoot.getElementById('scheduler-hours-label');
+        const minutesLabel = this.shadowRoot.getElementById('scheduler-minutes-label');
+        
+        if (this.schedulerPickerState.currentMode === 'schedule') {
+            // Schedule Mode
+            if (inlineWeekdays) inlineWeekdays.classList.add('show');
+            if (createBtn) createBtn.textContent = 'Zeitplan erstellen';
+            if (hoursLabel) hoursLabel.textContent = 'Uhrzeit';
+            if (minutesLabel) minutesLabel.textContent = '';
+            
+            // Standard Zeitplan-Zeit: 18:00
+            this.schedulerPickerState.selectedHours = 18;
+            this.schedulerPickerState.selectedMinutes = 0;
+            this.updateSchedulerTimeDisplay();
+            
+            this.updateSchedulerCreateButton();
+        } else {
+            // Timer Mode
+            if (inlineWeekdays) inlineWeekdays.classList.remove('show');
+            if (createBtn) createBtn.textContent = 'Timer erstellen';
+            if (hoursLabel) hoursLabel.textContent = 'Stunden';
+            if (minutesLabel) minutesLabel.textContent = 'Minuten';
+            
+            // Standard Timer-Zeit: 0:30
+            this.schedulerPickerState.selectedHours = 0;
+            this.schedulerPickerState.selectedMinutes = 30;
+            this.updateSchedulerTimeDisplay();
+            
+            if (createBtn) createBtn.disabled = false;
+        }
+    }
+        
+
+    // ===== SCHEDULER PICKER UPDATE & ACTION FUNCTIONS =====
+    
+    updateSchedulerTimeDisplay() {
+        let displayHours = this.schedulerPickerState.selectedHours;
+        
+        if (this.schedulerPickerState.currentMode === 'schedule' && 
+            (this.schedulerPickerState.timeFormat === 'am' || this.schedulerPickerState.timeFormat === 'pm')) {
+            // Convert to 12h format only for schedule mode (without suffix in display)
+            if (this.schedulerPickerState.timeFormat === 'am') {
+                // Show AM times (00-11 -> 12AM, 1AM-11AM)
+                if (this.schedulerPickerState.selectedHours === 0) {
+                    displayHours = 12;
+                } else if (this.schedulerPickerState.selectedHours <= 11) {
+                    displayHours = this.schedulerPickerState.selectedHours;
+                } else {
+                    // PM hours shown as AM equivalent
+                    displayHours = this.schedulerPickerState.selectedHours === 12 ? 12 : this.schedulerPickerState.selectedHours - 12;
+                }
+            } else { // timeFormat === 'pm'
+                // Show PM times (12-23 -> 12PM, 1PM-11PM)
+                if (this.schedulerPickerState.selectedHours === 0) {
+                    displayHours = 12;
+                } else if (this.schedulerPickerState.selectedHours < 12) {
+                    displayHours = this.schedulerPickerState.selectedHours;
+                } else if (this.schedulerPickerState.selectedHours === 12) {
+                    displayHours = 12;
+                } else {
+                    displayHours = this.schedulerPickerState.selectedHours - 12;
+                }
+            }
+        }
+        
+        // Clean display without AM/PM suffix
+        const hoursElement = this.shadowRoot.getElementById('scheduler-hours-value');
+        const minutesElement = this.shadowRoot.getElementById('scheduler-minutes-value');
+        
+        if (hoursElement) hoursElement.textContent = displayHours.toString().padStart(2, '0');
+        if (minutesElement) minutesElement.textContent = this.schedulerPickerState.selectedMinutes.toString().padStart(2, '0');
+    }
+    
+    updateSchedulerCreateButton() {
+        const createBtn = this.shadowRoot.getElementById('scheduler-create-btn');
+        if (!createBtn) return;
+        
+        if (this.schedulerPickerState.currentMode === 'schedule') {
+            createBtn.disabled = this.schedulerPickerState.selectedDays.length === 0;
+        } else {
+            createBtn.disabled = false;
+        }
+    }
+    
+    async createTimerFromSchedulerPicker() {
+        console.log('🎯 Erstelle Timer vom Scheduler Picker');
+        
+        const totalMinutes = this.schedulerPickerState.selectedHours * 60 + this.schedulerPickerState.selectedMinutes;
+        
+        if (this.schedulerPickerState.scheduleId) {
+            // EDIT-MODUS
+            console.log(`💾 Aktualisiere Timer ${this.schedulerPickerState.scheduleId} auf ${totalMinutes} Minuten.`);
+            await this.updateActionTimer(this.schedulerPickerState.scheduleId, this.schedulerPickerState.item, this.schedulerPickerState.action, totalMinutes);
+        } else {
+            // CREATE-MODUS
+            console.log(`🎯 Erstelle Timer: ${this.schedulerPickerState.action} in ${totalMinutes} Minuten`);
+            await this.createActionTimer(this.schedulerPickerState.item, this.schedulerPickerState.action, totalMinutes);
+        }
+        
+        try {
+            // Schließe den Picker
+            this.closeSchedulerPicker();
+            
+            // Warte kurz und lade dann die Timer-Liste neu
+            setTimeout(() => {
+                this.loadActiveTimers(this.schedulerPickerState.item.id);
+            }, 500);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Erstellen des Timers:', error);
+        }
+    }
+    
+    async createScheduleFromSchedulerPicker() {
+        console.log('📅 Erstelle Zeitplan vom Scheduler Picker');
+        
+        // Prüfe ob Wochentage ausgewählt wurden
+        if (this.schedulerPickerState.selectedDays.length === 0) {
+            console.warn('⚠️ Keine Wochentage ausgewählt');
+            alert('Bitte wähle zuerst Wochentage aus');
+            return;
+        }
+        
+        const hours = this.schedulerPickerState.selectedHours;
+        const minutes = this.schedulerPickerState.selectedMinutes;
+        const weekdays = this.schedulerPickerState.selectedDays;
+        
+        console.log(`🎯 Erstelle Zeitplan: ${this.schedulerPickerState.action} um ${hours}:${minutes.toString().padStart(2, '0')} an [${weekdays.join(', ')}]`);
+        
+        try {
+            // Service und Service Data basierend auf Action bestimmen
+            const serviceCall = this.getServiceCallForAction(this.schedulerPickerState.action);
+            
+            // Zeit formatieren
+            const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            
+            // Scheduler Service Call
+            await this._hass.callService('scheduler', 'add', {
+                weekdays: weekdays,
+                timeslots: [{
+                    start: timeString,
+                    actions: [{
+                        entity_id: this.schedulerPickerState.item.id,
+                        service: serviceCall.service,
+                        service_data: serviceCall.service_data || {}
+                    }]
+                }],
+                name: `${this.schedulerPickerState.item.name} ${this.getActionLabel(this.schedulerPickerState.action)} ${weekdays.join('+')} ${timeString}`,
+                repeat_type: 'repeat'
+            });
+    
+            console.log('✅ Zeitplan erfolgreich erstellt');
+            
+            // Schließe den Picker
+            this.closeSchedulerPicker();
+            
+            // Lade Zeitpläne neu
+            setTimeout(() => {
+                this.loadActiveSchedules(this.schedulerPickerState.item.id);
+            }, 500);
+            
+        } catch (error) {
+            console.error('❌ Fehler beim Erstellen des Zeitplans:', error);
+            alert('Fehler beim Erstellen des Zeitplans');
+        }
+    }
+    
+    closeSchedulerPicker() {
+        const container = this.schedulerPickerState?.container;
+        const pickerContainer = container?.querySelector('.scheduler-picker-container');
+        if (pickerContainer) {
+            pickerContainer.remove();
+        }
+        
+        // Zeige normale Timer-Controls wieder
+        const timerControls = container?.querySelector('.timer-control-design');
+        const activeTimers = container?.querySelector('.active-timers');
+        const scheduleControls = container?.querySelector('.schedule-control-design');
+        const activeSchedules = container?.querySelector('.active-schedules');
+        
+        if (timerControls) timerControls.style.display = '';
+        if (activeTimers) activeTimers.style.display = '';
+        if (scheduleControls) scheduleControls.style.display = '';
+        if (activeSchedules) activeSchedules.style.display = '';
+        
+        // Reset state
+        this.schedulerPickerState = null;
+    }
+    
+    // ===== SCHEDULER HELPER FUNCTION =====
+    
+    getServiceCallForAction(action) {
+        // Diese Funktion konvertiert Aktionen zu Service-Calls für den Scheduler
+        switch (action) {
+            case 'turn_on':
+                return { service: 'homeassistant.turn_on', service_data: {} };
+            case 'turn_off':
+                return { service: 'homeassistant.turn_off', service_data: {} };
+            case 'toggle':
+                return { service: 'homeassistant.toggle', service_data: {} };
+                
+            // Licht-spezifische Aktionen
+            case 'dim_30':
+                return { service: 'light.turn_on', service_data: { brightness_pct: 30 } };
+            case 'dim_50':
+                return { service: 'light.turn_on', service_data: { brightness_pct: 50 } };
+            case 'dim_70':
+                return { service: 'light.turn_on', service_data: { brightness_pct: 70 } };
+            case 'warm_white':
+                return { service: 'light.turn_on', service_data: { color_temp: 400 } };
+            case 'cool_white':
+                return { service: 'light.turn_on', service_data: { color_temp: 200 } };
+                
+            // Klima-spezifische Aktionen
+            case 'heat_18':
+                return { service: 'climate.set_temperature', service_data: { temperature: 18, hvac_mode: 'heat' } };
+            case 'heat_20':
+                return { service: 'climate.set_temperature', service_data: { temperature: 20, hvac_mode: 'heat' } };
+            case 'heat_22':
+                return { service: 'climate.set_temperature', service_data: { temperature: 22, hvac_mode: 'heat' } };
+            case 'cool_18':
+                return { service: 'climate.set_temperature', service_data: { temperature: 18, hvac_mode: 'cool' } };
+            case 'cool_20':
+                return { service: 'climate.set_temperature', service_data: { temperature: 20, hvac_mode: 'cool' } };
+            case 'cool_22':
+                return { service: 'climate.set_temperature', service_data: { temperature: 22, hvac_mode: 'cool' } };
+                
+            // Cover-spezifische Aktionen
+            case 'open':
+                return { service: 'cover.open_cover', service_data: {} };
+            case 'close':
+                return { service: 'cover.close_cover', service_data: {} };
+            case 'stop':
+                return { service: 'cover.stop_cover', service_data: {} };
+            case 'set_position_25':
+                return { service: 'cover.set_cover_position', service_data: { position: 25 } };
+            case 'set_position_50':
+                return { service: 'cover.set_cover_position', service_data: { position: 50 } };
+            case 'set_position_75':
+                return { service: 'cover.set_cover_position', service_data: { position: 75 } };
+                
+            // Media Player-spezifische Aktionen
+            case 'play':
+                return { service: 'media_player.media_play', service_data: {} };
+            case 'pause':
+                return { service: 'media_player.media_pause', service_data: {} };
+            case 'stop_media':
+                return { service: 'media_player.media_stop', service_data: {} };
+            case 'volume_up':
+                return { service: 'media_player.volume_up', service_data: {} };
+            case 'volume_down':
+                return { service: 'media_player.volume_down', service_data: {} };
+            case 'mute':
+                return { service: 'media_player.volume_mute', service_data: { is_volume_muted: true } };
+                
+            // Standard-Fallback
+            default:
+                console.warn(`⚠️ Unbekannte Aktion: ${action}, verwende turn_on als Fallback`);
+                return { service: 'homeassistant.turn_on', service_data: {} };
+        }
+    }    
+    
+        
 
     setupMinimalTimePickerEvents(item, action, container) {
         console.log('🎯 Setup Minimal Time Picker Events');
