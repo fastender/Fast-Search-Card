@@ -10512,7 +10512,6 @@ class FastSearchCard extends HTMLElement {
             // Warte kurz und lade dann die Timer-Liste neu
             setTimeout(() => {
                 this.loadActiveTimers(this.schedulerPickerState.item.id);
-            }, 500);
             
         } catch (error) {
             console.error('❌ Fehler beim Erstellen des Timers:', error);
@@ -10564,9 +10563,7 @@ class FastSearchCard extends HTMLElement {
             
             // Lade Zeitpläne neu
             setTimeout(() => {
-                this.loadActiveSchedules(this.schedulerPickerState.item.id);
-            }, 500);
-            
+                this.loadActiveSchedules(this.schedulerPickerState.item.id);            
         } catch (error) {
             console.error('❌ Fehler beim Erstellen des Zeitplans:', error);
             alert('Fehler beim Erstellen des Zeitplans');
