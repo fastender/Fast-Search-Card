@@ -7311,14 +7311,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    getCustomStatusText(item) {
-        const metadata = item.custom_data?.metadata || {};
-        
-        // Zeige relevante Info als Status
-        if (metadata.category) return metadata.category;
-        if (metadata.type) return metadata.type;
-        return 'Custom Item';
-    }    
+
 
     
     performSearch(query) {
