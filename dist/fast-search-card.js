@@ -5682,7 +5682,7 @@ class FastSearchCard extends HTMLElement {
             typeButton.style.display = shouldShow ? 'flex' : 'none';
         }
     }
-    
+
     updateFilterButtonStates() {
         const filterGroups = this.shadowRoot.querySelector('.filter-groups');
         if (!filterGroups) return;
@@ -5704,10 +5704,35 @@ class FastSearchCard extends HTMLElement {
         if (categoriesBtn) categoriesBtn.classList.toggle('active', this.subcategoryMode === 'categories');
         if (areasBtn) areasBtn.classList.toggle('active', this.subcategoryMode === 'areas');
         if (typesBtn) typesBtn.classList.toggle('active', this.subcategoryMode === 'types');
-
+    
+        // ✅ FIX: Recent Button State aktualisieren
         const recentBtn = filterGroups.querySelector('[data-action="recent"]');
-        if (recentBtn) recentBtn.classList.toggle('active', this.isRecentSorted);        
-    }    
+        if (recentBtn) {
+            recentBtn.classList.toggle('active', this.isRecentSorted);
+            
+            // Optional: Visuelles Feedback für aktiven Zustand
+            const svg = recentBtn.querySelector('svg');
+            if (svg) {
+                // Aktiv: Gefüllte Uhr, Inaktiv: Outline-Uhr
+                if (this.isRecentSorted) {
+                    svg.innerHTML = `
+                        <circle cx="12" cy="12" r="10" fill="#007AFF" stroke="#ffffff" stroke-width="1"/>
+                        <polyline points="12,6 12,12 16,14" stroke="#ffffff" stroke-width="2"/>
+                    `;
+                } else {
+                    svg.innerHTML = `
+                        <circle cx="12" cy="12" r="10" stroke="#ffffff" stroke-width="1" fill="none"/>
+                        <polyline points="12,6 12,12 16,14" stroke="#ffffff" stroke-width="1"/>
+                    `;
+                }
+            }
+            
+            // Tooltip aktualisieren
+            recentBtn.title = this.isRecentSorted 
+                ? 'Nach Räumen sortieren' 
+                : 'Nach Aktualität sortieren';
+        }
+    }
 
     expandPanel() {
         if (this.isPanelExpanded) return;
@@ -7808,6 +7833,36 @@ class FastSearchCard extends HTMLElement {
         
     }
 
+    getSortedItemsByRecency(items) {
+        if (!this.isRecentSorted) return items;
+        
+        console.log('🔄 Sortiere Items nach Aktualität...');
+        
+        return [...items].sort((a, b) => {
+            const getLastUpdated = (item) => {
+                if (item.domain === 'custom') {
+                    // Für Custom Items: metadata oder aktuelles Datum
+                    return item.custom_data?.metadata?.updated_at || 
+                           item.custom_data?.metadata?.last_updated || 
+                           new Date().toISOString();
+                } else {
+                    // Für HA Entities: state.last_updated oder last_changed
+                    const state = this._hass.states[item.id];
+                    if (state) {
+                        return state.last_updated || state.last_changed || '1970-01-01T00:00:00Z';
+                    }
+                    return '1970-01-01T00:00:00Z';
+                }
+            };
+            
+            const aTime = new Date(getLastUpdated(a));
+            const bTime = new Date(getLastUpdated(b));
+            
+            return bTime - aTime; // Neueste zuerst
+        });
+    }
+    
+
     ensureCriticalMethods() {
         if (typeof this.isItemInCategory !== 'function') {
             this.defineIsItemInCategoryFunction();
@@ -7983,44 +8038,7 @@ class FastSearchCard extends HTMLElement {
         let nonStarredItems = this.filteredItems;
 
         // ✅ NEU: Recent-Sort anwenden wenn aktiv
-        if (this.isRecentSorted) {
-            console.log('🔄 Recent-Sort ist aktiv! Items vorher:', nonStarredItems.length);
-            
-            nonStarredItems = [...nonStarredItems].sort((a, b) => {
-                const getLastUpdated = (item) => {
-                    console.log('🔍 Processing item:', item.name, 'domain:', item.domain, 'id:', item.id);
-                    
-                    if (item.domain === 'custom') {
-                        // Für Custom Items: metadata oder aktuelles Datum
-                        const customTime = item.custom_data?.metadata?.updated_at || 
-                                         item.custom_data?.metadata?.last_updated || 
-                                         new Date().toISOString();
-                        console.log('📅 Custom item time:', customTime);
-                        return customTime;
-                    } else {
-                        // Für HA Entities: state.last_updated oder last_changed
-                        const state = this._hass.states[item.id];
-                        if (state) {
-                            const haTime = state.last_updated || state.last_changed || '1970-01-01T00:00:00Z';
-                            console.log('📅 HA Entity time:', item.name, '→', haTime);
-                            return haTime;
-                        } else {
-                            console.warn('❌ Kein State gefunden für:', item.id);
-                            return '1970-01-01T00:00:00Z';
-                        }
-                    }
-                };
-                
-                const aTime = new Date(getLastUpdated(a));
-                const bTime = new Date(getLastUpdated(b));
-                
-                console.log('🔄 Sortiere:', a.name, '(', aTime.toLocaleTimeString(), ') vs', b.name, '(', bTime.toLocaleTimeString(), ')');
-                
-                return bTime - aTime; // Neueste zuerst
-            });
-            
-            console.log('✅ Sortierung abgeschlossen! Items:', nonStarredItems.length);
-        }    
+        nonStarredItems = this.getSortedItemsByRecency(nonStarredItems);
         
         // Render based on view mode
         if (this.currentViewMode === 'grid') {
