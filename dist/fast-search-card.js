@@ -8078,30 +8078,12 @@ class FastSearchCard extends HTMLElement {
             });
         }
         
-        // 🏠 RAUM-SEKTIONEN
-        const groupedItems = this.groupItemsByArea(nonStarredItems);
-        
-        Object.keys(groupedItems).sort().forEach(area => {
-            const areaHeader = document.createElement('div');
-            areaHeader.className = 'area-header';
-            areaHeader.innerHTML = `
-                <span class="area-name">${area}</span>
-                <span class="area-count">(${groupedItems[area].length})</span>
-            `;
+        // 🏠 RAUM-SEKTIONEN (oder chronologisch bei Recent-Sort)
+        if (this.isRecentSorted) {
+            // ✅ Recent-Sort: Keine Gruppierung, zeige chronologisch
+            console.log('🕐 Recent-Sort aktiv: Zeige Items chronologisch ohne Gruppierung');
             
-            // ✅ Header sofort unsichtbar
-            areaHeader.style.opacity = '0';
-            areaHeader.style.transform = 'translateX(-20px)';
-            
-            resultsGrid.appendChild(areaHeader);
-            
-            // Header Animation
-            if (!this.hasAnimated) {
-                this.animateHeaderIn(areaHeader, cardIndex * 20);
-                cardIndex += 2;
-            }
-            
-            groupedItems[area].forEach((item) => {
+            nonStarredItems.forEach((item) => {
                 const card = this.createDeviceCard(item);
                 
                 // ✅ KRITISCH: Karte initial unsichtbar setzen
@@ -8119,7 +8101,50 @@ class FastSearchCard extends HTMLElement {
                 }
                 cardIndex++;
             });
-        });
+        } else {
+            // ✅ Normal: Gruppierung nach Areas
+            const groupedItems = this.groupItemsByArea(nonStarredItems);
+            
+            Object.keys(groupedItems).sort().forEach(area => {
+                const areaHeader = document.createElement('div');
+                areaHeader.className = 'area-header';
+                areaHeader.innerHTML = `
+                    <span class="area-name">${area}</span>
+                    <span class="area-count">(${groupedItems[area].length})</span>
+                `;
+                
+                // ✅ Header sofort unsichtbar
+                areaHeader.style.opacity = '0';
+                areaHeader.style.transform = 'translateX(-20px)';
+                
+                resultsGrid.appendChild(areaHeader);
+                
+                // Header Animation
+                if (!this.hasAnimated) {
+                    this.animateHeaderIn(areaHeader, cardIndex * 20);
+                    cardIndex += 2;
+                }
+                
+                groupedItems[area].forEach((item) => {
+                    const card = this.createDeviceCard(item);
+                    
+                    // ✅ KRITISCH: Karte initial unsichtbar setzen
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(30px) scale(0.85)';
+                    card.style.filter = 'blur(4px)';
+                    
+                    resultsGrid.appendChild(card);
+                    
+                    if (!this.hasAnimated) {
+                        const timeout = setTimeout(() => {
+                            this.animateCardInHomeKitStyle(card, 'normal');
+                        }, cardIndex * 40);
+                        this.animationTimeouts.push(timeout);
+                    }
+                    cardIndex++;
+                });
+            });
+        }
         
         this.hasAnimated = true;
     }
