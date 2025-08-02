@@ -7981,7 +7981,7 @@ class FastSearchCard extends HTMLElement {
         // Get starred items
         const starredItems = this.getUserStarredItems();
         let nonStarredItems = this.filteredItems;
-        
+
         // ✅ NEU: Recent-Sort anwenden wenn aktiv
         if (this.isRecentSorted) {
             console.log('🔄 Recent-Sort ist aktiv! Items vorher:', nonStarredItems.length);
@@ -8019,10 +8019,8 @@ class FastSearchCard extends HTMLElement {
                 return bTime - aTime; // Neueste zuerst
             });
             
-            console.log('✅ Items nach Sort:', nonStarredItems.map(item => 
-                `${item.name} (${new Date(getLastUpdated({...item})).toLocaleTimeString()})`
-            ));
-        }                 
+            console.log('✅ Sortierung abgeschlossen! Items:', nonStarredItems.length);
+        }    
         
         // Render based on view mode
         if (this.currentViewMode === 'grid') {
