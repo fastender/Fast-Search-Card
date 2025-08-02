@@ -8366,12 +8366,28 @@ class FastSearchCard extends HTMLElement {
     getCustomStatusText(item) {
         const metadata = item.custom_data?.metadata || {};
         
-        if (metadata.category) return metadata.category;
-        if (metadata.type) return metadata.type;
+        // ✅ FIX: Prioritäten-Reihenfolge geändert
+        
+        // 1. Priorität: User-definierte category aus YAML
+        if (metadata.category) return metadata.category;     // "Haushalt"
+        
+        // 2. Priorität: Schöne Labels für interne Typen
+        const customType = item.custom_data?.type;
+        if (customType) {
+            const typeLabels = {
+                'sensor_single': 'Sensor',              // ← Statt "sensor_single"
+                'sensor_array': 'Sensor Daten',         // ← Statt "sensor_array"
+                'template_sensor': 'Template',          // ← Statt "template_sensor"
+                'mqtt': 'MQTT',                         // ← Bleibt gleich
+                'static': 'Notiz'                       // ← Statt "static"
+            };
+            
+            return typeLabels[customType] || customType;
+        }
+        
+        // 3. Fallback
         return 'Custom Item';
     }
-
-
     
 
 
