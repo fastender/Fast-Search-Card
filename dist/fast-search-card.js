@@ -5010,17 +5010,7 @@ class FastSearchCard extends HTMLElement {
                     align-items: center;
                 }
             }       
-
-
-            .time-header {
-                background: linear-gradient(135deg, rgba(0,122,255,0.1), rgba(175,82,222,0.1));
-                border: 1px solid rgba(0,122,255,0.2);
-            }
-            
-            .time-icon {
-                margin-right: 8px;
-                font-size: 16px;
-            }            
+         
                                                             
             </style>
 
@@ -8134,21 +8124,7 @@ class FastSearchCard extends HTMLElement {
         return timeGroups;
     }
     
-    // ✅ 2. ZEIT-ICONS für die Header
-    getTimeGroupIcon(groupName) {
-        const icons = {
-            'Gerade eben': '🟢',         // Grüner Punkt für "live"
-            'Letzte 5 Minuten': '🔵',    // Blauer Punkt 
-            'Letzte 30 Minuten': '🟡',   // Gelber Punkt
-            'Letzte Stunde': '🟠',       // Orange
-            'Letzte 3 Stunden': '🔴',    // Rot
-            'Heute': '📅',               // Kalender
-            'Gestern': '📆',             // Kalender gestern
-            'Diese Woche': '📋',         // Liste
-            'Älter': '🗂️'                // Archiv
-        };
-        return icons[groupName] || '⏰';
-    }
+    
     
 
     
@@ -8221,7 +8197,6 @@ class FastSearchCard extends HTMLElement {
                 const timeHeader = document.createElement('div');
                 timeHeader.className = 'area-header time-header';
                 timeHeader.innerHTML = `
-                    <span class="time-icon">${this.getTimeGroupIcon(timeCategory)}</span>
                     <span class="area-name">${timeCategory}</span>
                     <span class="area-count">(${groupItems.length})</span>
                 `;
