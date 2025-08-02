@@ -7984,25 +7984,45 @@ class FastSearchCard extends HTMLElement {
         
         // ✅ NEU: Recent-Sort anwenden wenn aktiv
         if (this.isRecentSorted) {
+            console.log('🔄 Recent-Sort ist aktiv! Items vorher:', nonStarredItems.length);
+            
             nonStarredItems = [...nonStarredItems].sort((a, b) => {
                 const getLastUpdated = (item) => {
+                    console.log('🔍 Processing item:', item.name, 'domain:', item.domain, 'id:', item.id);
+                    
                     if (item.domain === 'custom') {
                         // Für Custom Items: metadata oder aktuelles Datum
-                        return item.custom_data?.metadata?.updated_at || 
-                               item.custom_data?.metadata?.last_updated || 
-                               new Date().toISOString();
+                        const customTime = item.custom_data?.metadata?.updated_at || 
+                                         item.custom_data?.metadata?.last_updated || 
+                                         new Date().toISOString();
+                        console.log('📅 Custom item time:', customTime);
+                        return customTime;
                     } else {
-                        // Für HA Entities: state.last_updated
+                        // Für HA Entities: state.last_updated oder last_changed
                         const state = this._hass.states[item.id];
-                        return state?.last_updated || '1970-01-01T00:00:00Z';
+                        if (state) {
+                            const haTime = state.last_updated || state.last_changed || '1970-01-01T00:00:00Z';
+                            console.log('📅 HA Entity time:', item.name, '→', haTime);
+                            return haTime;
+                        } else {
+                            console.warn('❌ Kein State gefunden für:', item.id);
+                            return '1970-01-01T00:00:00Z';
+                        }
                     }
                 };
                 
                 const aTime = new Date(getLastUpdated(a));
                 const bTime = new Date(getLastUpdated(b));
+                
+                console.log('🔄 Sortiere:', a.name, '(', aTime.toLocaleTimeString(), ') vs', b.name, '(', bTime.toLocaleTimeString(), ')');
+                
                 return bTime - aTime; // Neueste zuerst
             });
-        }        
+            
+            console.log('✅ Items nach Sort:', nonStarredItems.map(item => 
+                `${item.name} (${new Date(getLastUpdated({...item})).toLocaleTimeString()})`
+            ));
+        }                 
         
         // Render based on view mode
         if (this.currentViewMode === 'grid') {
