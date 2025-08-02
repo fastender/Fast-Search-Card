@@ -309,6 +309,7 @@ class FastSearchCard extends HTMLElement {
         this.previousSearchState = null;
         this.currentViewMode = 'grid';
         this.subcategoryMode = 'categories';
+        this.isRecentSorted = false;  // NEU: Recent-Sort Toggle
 
         // Filter UI State
         this.isFilterOpen = false;
@@ -5094,6 +5095,15 @@ class FastSearchCard extends HTMLElement {
                                             </svg>
                                             <span class="filter-button-label">Räume</span>
                                         </button>
+
+                                        <button class="filter-button" data-action="recent" title="Nach Aktualität sortieren">
+                                            <svg viewBox="0 0 24 24" fill="none">
+                                                <circle cx="12" cy="12" r="10" stroke="#ffffff" stroke-width="1"/>
+                                                <polyline points="12,6 12,12 16,14" stroke="#ffffff" stroke-width="1"/>
+                                            </svg>
+                                            <span class="filter-button-label">Recent</span>
+                                        </button>
+                                        
                                         <button class="filter-button" data-action="types" title="Typen" style="display: none;" id="typeButton">
                                             <svg viewBox="0 0 24 24" fill="none">
                                                 <path d="M5.21173 15.1113L2.52473 12.4243C2.29041 12.1899 2.29041 11.8101 2.52473 11.5757L5.21173 8.88873C5.44605 8.65442 5.82595 8.65442 6.06026 8.88873L8.74727 11.5757C8.98158 11.8101 8.98158 12.1899 8.74727 12.4243L6.06026 15.1113C5.82595 15.3456 5.44605 15.3456 5.21173 15.1113Z" stroke="#ffffff" stroke-width="1"></path>
@@ -5644,6 +5654,10 @@ class FastSearchCard extends HTMLElement {
                 this.updateSubcategoryChips();
                 this.showCurrentCategoryItems(); 
                 break;
+            case 'recent':
+                this.isRecentSorted = !this.isRecentSorted;  // Toggle!
+                this.renderResults(); // Re-render mit neuer Sortierung
+                break;       
         }
     }
     
@@ -5676,6 +5690,9 @@ class FastSearchCard extends HTMLElement {
         if (categoriesBtn) categoriesBtn.classList.toggle('active', this.subcategoryMode === 'categories');
         if (areasBtn) areasBtn.classList.toggle('active', this.subcategoryMode === 'areas');
         if (typesBtn) typesBtn.classList.toggle('active', this.subcategoryMode === 'types');
+
+        const recentBtn = filterGroups.querySelector('[data-action="recent"]');
+        if (recentBtn) recentBtn.classList.toggle('active', this.isRecentSorted);        
     }    
 
     expandPanel() {
@@ -7945,9 +7962,33 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
+
+
         // Get starred items
         const starredItems = this.getUserStarredItems();
-        const nonStarredItems = this.filteredItems;
+        let nonStarredItems = this.filteredItems;
+        
+        // ✅ NEU: Recent-Sort anwenden wenn aktiv
+        if (this.isRecentSorted) {
+            nonStarredItems = [...nonStarredItems].sort((a, b) => {
+                const getLastUpdated = (item) => {
+                    if (item.domain === 'custom') {
+                        // Für Custom Items: metadata oder aktuelles Datum
+                        return item.custom_data?.metadata?.updated_at || 
+                               item.custom_data?.metadata?.last_updated || 
+                               new Date().toISOString();
+                    } else {
+                        // Für HA Entities: state.last_updated
+                        const state = this._hass.states[item.id];
+                        return state?.last_updated || '1970-01-01T00:00:00Z';
+                    }
+                };
+                
+                const aTime = new Date(getLastUpdated(a));
+                const bTime = new Date(getLastUpdated(b));
+                return bTime - aTime; // Neueste zuerst
+            });
+        }        
         
         // Render based on view mode
         if (this.currentViewMode === 'grid') {
