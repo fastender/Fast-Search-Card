@@ -6683,6 +6683,16 @@ class FastSearchCard extends HTMLElement {
             }
         }
         
+        // ✅ FIX: Area Logic wie bei anderen Types
+        let itemArea;
+        if (dataSource.area && dataSource.area.trim() !== '') {
+            itemArea = dataSource.area.trim();
+        } else if (this._config.custom_mode?.area && this._config.custom_mode.area.trim() !== '') {
+            itemArea = this._config.custom_mode.area.trim();
+        } else {
+            itemArea = 'Sensors';
+        }
+        
         // If no array found, create single item from sensor itself
         if (!Array.isArray(items)) {
             return [{
@@ -6690,19 +6700,27 @@ class FastSearchCard extends HTMLElement {
                 name: state.attributes.friendly_name || state.entity_id,
                 domain: 'custom',
                 category: 'custom',
-                area: this._config.custom_mode.area || 'Sensors',
+                area: itemArea,                                          // ✅ FIX: Korrekte Area
                 state: state.state,
                 attributes: {
                     friendly_name: state.attributes.friendly_name,
                     custom_type: 'sensor_single',
                     source_entity: dataSource.entity
                 },
-                icon: this._config.custom_mode.icon || '📊',
+                icon: dataSource.icon || this._config.custom_mode.icon || '📊',  // ✅ FIX: dataSource.icon
                 isActive: false,
                 custom_data: {
                     type: 'sensor_single',
                     content: this.generateSensorContent(state),
-                    metadata: { sensor_state: state.state, ...state.attributes }
+                    metadata: { 
+                        sensor_state: state.state, 
+                        ...state.attributes,
+                        // ✅ FIX: DataSource Properties hinzufügen
+                        category: dataSource.category,                   // ← NEU: Deine YAML category!
+                        prefix: dataSource.prefix,                       // ← NEU: Prefix
+                        area: itemArea,                                  // ← NEU: Area
+                        data_source: dataSource.entity                  // ← NEU: Source Info
+                    }
                 }
             }];
         }
@@ -6714,28 +6732,36 @@ class FastSearchCard extends HTMLElement {
             icon: 'icon'
         };
     
+        // ✅ FIX: Auch für Array-Items korrigieren
         return items.map((item, index) => ({
             id: `sensor_${dataSource.entity}_${item.id || index}`,
             name: item[fields.name] || `Item ${index + 1}`,
             domain: 'custom',
             category: 'custom',
-            area: this._config.custom_mode.area || 'Sensors',
+            area: itemArea,                                              // ✅ FIX: Korrekte Area
             state: 'available',
             attributes: {
                 friendly_name: item[fields.name],
                 custom_type: 'sensor_array',
                 source_entity: dataSource.entity
             },
-            icon: item[fields.icon] || this._config.custom_mode.icon || '📊',
+            icon: item[fields.icon] || dataSource.icon || this._config.custom_mode.icon || '📊',  // ✅ FIX
             isActive: false,
             custom_data: {
                 type: 'sensor_array',
                 content: item[fields.content] || this.generateFallbackContent(item),
-                metadata: item
+                metadata: {
+                    ...item,
+                    // ✅ FIX: DataSource Properties hinzufügen
+                    category: dataSource.category,                       // ← NEU: Deine YAML category!
+                    prefix: dataSource.prefix,                           // ← NEU: Prefix
+                    area: itemArea,                                      // ← NEU: Area
+                    data_source: dataSource.entity                      // ← NEU: Source Info
+                }
             }
         }));
     }
-    
+        
     generateSensorContent(state) {
         // Auto-generate markdown from sensor attributes
         let content = `# ${state.attributes.friendly_name || state.entity_id}\n\n`;
