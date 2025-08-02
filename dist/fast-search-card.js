@@ -5621,10 +5621,16 @@ class FastSearchCard extends HTMLElement {
             { transform: 'scale(1)' }
         ], { duration: 150, easing: 'ease-out' });
         
-        // Remove active from siblings
-        const siblings = group.querySelectorAll('.filter-button');
-        siblings.forEach(sibling => sibling.classList.remove('active'));
-        button.classList.add('active');
+        // Recent-Button ist ein Toggle, andere sind normale Buttons
+        if (action === 'recent') {
+            // Recent: Toggle-Logic - kein Sibling-Reset!
+            // Button-State wird später in updateFilterButtonStates() gesetzt
+        } else {
+            // Normale Buttons: Remove active from siblings
+            const siblings = group.querySelectorAll('.filter-button');
+            siblings.forEach(sibling => sibling.classList.remove('active'));
+            button.classList.add('active');
+        }
         
         // Handle actions
         switch (action) {
@@ -5654,11 +5660,19 @@ class FastSearchCard extends HTMLElement {
                 this.updateSubcategoryChips();
                 this.showCurrentCategoryItems(); 
                 break;
+
             case 'recent':
+                console.log('🕐 Recent clicked! War:', this.isRecentSorted);
                 this.isRecentSorted = !this.isRecentSorted;  // Toggle!
+                console.log('🕐 Recent jetzt:', this.isRecentSorted);
                 this.renderResults(); // Re-render mit neuer Sortierung
-                break;       
+                break;
+                
         }
+
+        // Update all button states
+        this.updateFilterButtonStates();        
+        
     }
     
     updateTypeButtonVisibility() {
