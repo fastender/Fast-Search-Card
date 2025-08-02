@@ -5009,7 +5009,18 @@ class FastSearchCard extends HTMLElement {
                 .scheduler-mode-and-weekdays {
                     align-items: center;
                 }
-            }                
+            }       
+
+
+            .time-header {
+                background: linear-gradient(135deg, rgba(0,122,255,0.1), rgba(175,82,222,0.1));
+                border: 1px solid rgba(0,122,255,0.2);
+            }
+            
+            .time-icon {
+                margin-right: 8px;
+                font-size: 16px;
+            }            
                                                             
             </style>
 
@@ -8050,6 +8061,98 @@ class FastSearchCard extends HTMLElement {
     
 
 
+    // ✅ 1. NEUE FUNKTION: Items nach Zeit-Kategorien gruppieren
+    groupItemsByTimeCategories(items) {
+        const now = new Date();
+        const timeGroups = {
+            'Gerade eben': [],           // Letzte 2 Minuten
+            'Letzte 5 Minuten': [],     // 2-5 Minuten
+            'Letzte 30 Minuten': [],    // 5-30 Minuten  
+            'Letzte Stunde': [],        // 30 Min - 1 Stunde
+            'Letzte 3 Stunden': [],     // 1-3 Stunden
+            'Heute': [],                // 3-24 Stunden
+            'Gestern': [],              // 1-2 Tage
+            'Diese Woche': [],          // 2-7 Tage
+            'Älter': []                 // > 7 Tage
+        };
+    
+        items.forEach(item => {
+            const getLastUpdated = (item) => {
+                if (item.domain === 'custom') {
+                    return item.custom_data?.metadata?.updated_at || 
+                           item.custom_data?.metadata?.last_updated || 
+                           new Date().toISOString();
+                } else {
+                    const state = this._hass.states[item.id];
+                    return state ? (state.last_updated || state.last_changed) : '1970-01-01T00:00:00Z';
+                }
+            };
+    
+            const itemTime = new Date(getLastUpdated(item));
+            const minutesAgo = (now - itemTime) / (1000 * 60);
+            const hoursAgo = minutesAgo / 60;
+            const daysAgo = hoursAgo / 24;
+    
+            if (minutesAgo <= 2) {
+                timeGroups['Gerade eben'].push(item);
+            } else if (minutesAgo <= 5) {
+                timeGroups['Letzte 5 Minuten'].push(item);
+            } else if (minutesAgo <= 30) {
+                timeGroups['Letzte 30 Minuten'].push(item);
+            } else if (hoursAgo <= 1) {
+                timeGroups['Letzte Stunde'].push(item);
+            } else if (hoursAgo <= 3) {
+                timeGroups['Letzte 3 Stunden'].push(item);
+            } else if (hoursAgo <= 24) {
+                timeGroups['Heute'].push(item);
+            } else if (daysAgo <= 2) {
+                timeGroups['Gestern'].push(item);
+            } else if (daysAgo <= 7) {
+                timeGroups['Diese Woche'].push(item);
+            } else {
+                timeGroups['Älter'].push(item);
+            }
+        });
+    
+        // Sortiere Items innerhalb jeder Gruppe nach Zeit (neueste zuerst)
+        Object.keys(timeGroups).forEach(category => {
+            timeGroups[category].sort((a, b) => {
+                const getTime = (item) => {
+                    if (item.domain === 'custom') {
+                        return new Date(item.custom_data?.metadata?.updated_at || 
+                                      item.custom_data?.metadata?.last_updated || 
+                                      new Date().toISOString());
+                    } else {
+                        const state = this._hass.states[item.id];
+                        return new Date(state ? (state.last_updated || state.last_changed) : '1970-01-01T00:00:00Z');
+                    }
+                };
+                return getTime(b) - getTime(a);
+            });
+        });
+    
+        return timeGroups;
+    }
+    
+    // ✅ 2. ZEIT-ICONS für die Header
+    getTimeGroupIcon(groupName) {
+        const icons = {
+            'Gerade eben': '🟢',         // Grüner Punkt für "live"
+            'Letzte 5 Minuten': '🔵',    // Blauer Punkt 
+            'Letzte 30 Minuten': '🟡',   // Gelber Punkt
+            'Letzte Stunde': '🟠',       // Orange
+            'Letzte 3 Stunden': '🔴',    // Rot
+            'Heute': '📅',               // Kalender
+            'Gestern': '📆',             // Kalender gestern
+            'Diese Woche': '📋',         // Liste
+            'Älter': '🗂️'                // Archiv
+        };
+        return icons[groupName] || '⏰';
+    }
+    
+
+    
+
     renderGridResults(resultsGrid, starredItems, nonStarredItems) {
         resultsGrid.innerHTML = '';
         
@@ -8095,31 +8198,68 @@ class FastSearchCard extends HTMLElement {
                 cardIndex++;
             });
         }
-        
-        // 🏠 RAUM-SEKTIONEN (oder chronologisch bei Recent-Sort)
+
+        // 🏠 ZEIT-GRUPPIERUNG (oder normale Raum-Gruppierung)
         if (this.isRecentSorted) {
-            // ✅ Recent-Sort: Keine Gruppierung, zeige chronologisch
-            console.log('🕐 Recent-Sort aktiv: Zeige Items chronologisch ohne Gruppierung');
+            // ✅ Recent-Sort: Gruppierung nach Zeit-Kategorien
+            console.log('🕐 Recent-Sort aktiv: Zeige Items nach Zeit-Kategorien');
             
-            nonStarredItems.forEach((item) => {
-                const card = this.createDeviceCard(item);
+            const timeGroupedItems = this.groupItemsByTimeCategories(nonStarredItems);
+            
+            // Durchlaufe alle Zeit-Kategorien in der richtigen Reihenfolge
+            const timeOrder = [
+                'Gerade eben', 'Letzte 5 Minuten', 'Letzte 30 Minuten', 
+                'Letzte Stunde', 'Letzte 3 Stunden', 'Heute', 
+                'Gestern', 'Diese Woche', 'Älter'
+            ];
+            
+            timeOrder.forEach(timeCategory => {
+                const groupItems = timeGroupedItems[timeCategory];
+                if (groupItems.length === 0) return; // Skip leere Kategorien
                 
-                // ✅ KRITISCH: Karte initial unsichtbar setzen
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(30px) scale(0.85)';
-                card.style.filter = 'blur(4px)';
+                // Zeit-Kategorie Header
+                const timeHeader = document.createElement('div');
+                timeHeader.className = 'area-header time-header';
+                timeHeader.innerHTML = `
+                    <span class="time-icon">${this.getTimeGroupIcon(timeCategory)}</span>
+                    <span class="area-name">${timeCategory}</span>
+                    <span class="area-count">(${groupItems.length})</span>
+                `;
                 
-                resultsGrid.appendChild(card);
+                // ✅ Header initial unsichtbar
+                timeHeader.style.opacity = '0';
+                timeHeader.style.transform = 'translateX(-20px)';
+                
+                resultsGrid.appendChild(timeHeader);
                 
                 if (!this.hasAnimated) {
-                    const timeout = setTimeout(() => {
-                        this.animateCardInHomeKitStyle(card, 'normal');
-                    }, cardIndex * 40);
-                    this.animationTimeouts.push(timeout);
+                    this.animateHeaderIn(timeHeader, cardIndex * 20);
+                    cardIndex += 2;
                 }
-                cardIndex++;
+                
+                // Items der Zeit-Kategorie
+                groupItems.forEach((item) => {
+                    const card = this.createDeviceCard(item);
+                    
+                    // ✅ KRITISCH: Karte initial unsichtbar setzen
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(30px) scale(0.85)';
+                    card.style.filter = 'blur(4px)';
+                    
+                    resultsGrid.appendChild(card);
+                    
+                    if (!this.hasAnimated) {
+                        const timeout = setTimeout(() => {
+                            this.animateCardInHomeKitStyle(card, 'normal');
+                        }, cardIndex * 40);
+                        this.animationTimeouts.push(timeout);
+                    }
+                    cardIndex++;
+                });
             });
         } else {
+
+            
             // ✅ Normal: Gruppierung nach Areas
             const groupedItems = this.groupItemsByArea(nonStarredItems);
             
