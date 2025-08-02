@@ -8359,26 +8359,9 @@ class FastSearchCard extends HTMLElement {
     getCustomStatusText(item) {
         const metadata = item.custom_data?.metadata || {};
         
-        // ✅ FIX: Prioritäten-Reihenfolge geändert
-        
-        // 1. Priorität: User-definierte category aus YAML
-        if (metadata.category) return metadata.category;     // "Haushalt"
-        
-        // 2. Priorität: Schöne Labels für interne Typen
-        const customType = item.custom_data?.type;
-        if (customType) {
-            const typeLabels = {
-                'sensor_single': 'Sensor',              // ← Statt "sensor_single"
-                'sensor_array': 'Sensor Daten',         // ← Statt "sensor_array"
-                'template_sensor': 'Template',          // ← Statt "template_sensor"
-                'mqtt': 'MQTT',                         // ← Bleibt gleich
-                'static': 'Notiz'                       // ← Statt "static"
-            };
-            
-            return typeLabels[customType] || customType;
-        }
-        
-        // 3. Fallback
+        // Zeige relevante Info als Status
+        if (metadata.category) return metadata.category;     // ← Erste Priorität 
+        if (metadata.type) return metadata.type;            // ← "sensor_single" kommt hier!
         return 'Custom Item';
     }
     
@@ -8512,7 +8495,9 @@ class FastSearchCard extends HTMLElement {
                 'template_sensor': 'Template Sensor',
                 'mqtt': 'MQTT',
                 'static': 'Static',
-                'sensor': 'Sensor'
+                'sensor': 'Sensor',
+                'sensor_single': 'Sensoren',           // ← NEU hinzufügen!
+                'sensor_array': 'Sensor Daten'        // ← NEU hinzufügen!                
             };
             
             const chipsHTML = ['Alle', ...Array.from(types).sort()].map(type => {
