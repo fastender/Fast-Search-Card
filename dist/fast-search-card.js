@@ -8835,31 +8835,73 @@ class FastSearchCard extends HTMLElement {
     // ========================================
     
     // 1. Haupt-Funktion: Sammelt alle Werte für einen Sensor
+
+
     
     // ========================================
-    // REPARIERTE getSensorValues Funktion
+    // DEBUG: Konfiguration-Ladung prüfen
+    // ========================================
+    
+    // Füge diese Debug-Funktion in deine fast-search-card.js ein:
+    debugItemStructure() {
+        console.log('🔧 DEBUG: Item Structure Analysis');
+        
+        if (!this.allItems) {
+            console.log('❌ No allItems found');
+            return;
+        }
+        
+        // Finde das Test Multi Lux Item
+        const testItem = this.allItems.find(item => 
+            item.name.includes('Multi Lux') || 
+            item.attributes?.source_prefix === 'test_multi_lux'
+        );
+        
+        if (testItem) {
+            console.log('✅ Test Multi Lux Item gefunden:');
+            console.log('📋 Item Structure:');
+            console.log('  - ID:', testItem.id);
+            console.log('  - Name:', testItem.name);
+            console.log('  - Entity:', testItem.entity);
+            console.log('  - Custom Data:', testItem.custom_data);
+            console.log('  - Attributes:', testItem.attributes);
+            console.log('  - Additional Values in custom_data:', testItem.custom_data?.additional_values);
+            console.log('  - Additional Values in attributes:', testItem.attributes?.additional_values);
+            console.log('  - Additional Values direct:', testItem.additional_values);
+            
+            // Test getSensorValues für dieses Item
+            const values = this.getSensorValues(testItem);
+            console.log('🎯 Sensor Values Result:', values);
+        } else {
+            console.log('❌ Test Multi Lux Item nicht gefunden');
+            console.log('📋 Verfügbare Custom Items:');
+            
+            const customItems = this.allItems.filter(item => item.domain === 'custom');
+            customItems.forEach((item, index) => {
+                console.log(`  ${index + 1}. ${item.name} (prefix: ${item.attributes?.source_prefix})`);
+            });
+        }
+    }
+    
+    // ========================================
+    // ERWEITERTE getSensorValues für besseres Debugging
     // ========================================
     
     getSensorValues(item) {
         const values = [];
         
-        // Debugging
         console.log('🔍 getSensorValues für:', item.name);
+        console.log('🔍 Item full structure:', item);
         
-        // ERWEITERTE Entity-Suche für verschiedene Item-Strukturen
+        // Entity-Suche
         let entityId = null;
         let mainEntity = null;
         
-        // Methode 1: Aus custom_data.entity (neue Struktur)
         if (item.custom_data?.entity) {
             entityId = item.custom_data.entity;
-        }
-        // Methode 2: Direkt aus item.entity (deine aktuelle Struktur)
-        else if (item.entity) {
+        } else if (item.entity) {
             entityId = item.entity;
-        }
-        // Methode 3: Aus attributes.source_entity (fallback)
-        else if (item.attributes?.source_entity) {
+        } else if (item.attributes?.source_entity) {
             entityId = item.attributes.source_entity;
         }
         
@@ -8868,7 +8910,6 @@ class FastSearchCard extends HTMLElement {
             return values;
         }
         
-        // Entity aus Home Assistant holen
         mainEntity = this._hass.states[entityId];
         
         if (!mainEntity) {
@@ -8878,11 +8919,9 @@ class FastSearchCard extends HTMLElement {
         
         console.log('✅ Entity gefunden:', entityId, 'State:', mainEntity.state);
         
-        // 1. Hauptwert formatieren
+        // Hauptwert
         const unit = mainEntity.attributes.unit_of_measurement || '';
         const formattedValue = this.formatSensorValue(mainEntity.state, unit);
-        
-        // Icon aus Item-Konfiguration oder Standard
         const itemIcon = item.attributes?.icon || item.icon || '📊';
         
         values.push({
@@ -8894,42 +8933,57 @@ class FastSearchCard extends HTMLElement {
             type: 'current'
         });
         
-        // 2. Zusätzliche Werte suchen (verschiedene Orte)
+        // ERWEITERTE Suche nach additional_values
         let additionalValues = null;
         
-        // Suche in verschiedenen Strukturen
+        console.log('🔍 Suche additional_values in:');
+        console.log('  - item.custom_data?.additional_values:', item.custom_data?.additional_values);
+        console.log('  - item.additional_values:', item.additional_values);
+        console.log('  - item.attributes?.additional_values:', item.attributes?.additional_values);
+        
+        // Prioritäts-Reihenfolge der Suche
         if (item.custom_data?.additional_values) {
             additionalValues = item.custom_data.additional_values;
+            console.log('📊 Additional values aus custom_data gefunden');
         } else if (item.additional_values) {
             additionalValues = item.additional_values;
+            console.log('📊 Additional values direkt gefunden');
         } else if (item.attributes?.additional_values) {
             additionalValues = item.attributes.additional_values;
+            console.log('📊 Additional values aus attributes gefunden');
+        } else {
+            console.log('ℹ️ Keine additional_values konfiguriert für:', item.name);
         }
         
         if (additionalValues && Array.isArray(additionalValues)) {
             console.log('📊 Additional values config gefunden:', additionalValues);
             
             additionalValues.forEach((config, index) => {
+                console.log(`🔍 Processing additional value ${index + 1}:`, config);
+                
                 const additionalValue = this.getAdditionalValue(mainEntity, config);
                 
                 if (additionalValue !== null) {
-                    values.push({
+                    const newValue = {
                         value: additionalValue.value,
                         label: config.label || this.getDefaultLabel(index),
                         icon: config.icon || this.getDefaultIcon(index),
                         color: config.color || this.getDefaultColor(index),
                         priority: index + 2,
                         type: config.type || 'additional'
-                    });
+                    };
+                    
+                    console.log('✅ Additional value hinzugefügt:', newValue);
+                    values.push(newValue);
+                } else {
+                    console.log('❌ Additional value konnte nicht geladen werden');
                 }
             });
-        } else {
-            console.log('ℹ️ Keine additional_values konfiguriert für:', item.name);
         }
         
         console.log('🎯 Final values für', item.name, ':', values);
         return values.slice(0, 4);
-    }
+    }        
     
     // 2. Zusätzlichen Wert aus Entity oder Attribut holen
     getAdditionalValue(mainEntity, config) {
