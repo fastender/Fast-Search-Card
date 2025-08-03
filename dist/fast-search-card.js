@@ -6823,26 +6823,29 @@ class FastSearchCard extends HTMLElement {
                 name: state.attributes.friendly_name || state.entity_id,
                 domain: 'custom',
                 category: 'custom',
-                area: itemArea,                                          // ✅ FIX: Korrekte Area
+                area: itemArea,
                 state: state.state,
                 attributes: {
                     friendly_name: state.attributes.friendly_name,
                     custom_type: 'sensor_single',
                     source_entity: dataSource.entity
                 },
-                icon: dataSource.icon || this._config.custom_mode.icon || '📊',  // ✅ FIX: dataSource.icon
+                icon: dataSource.icon || this._config.custom_mode.icon || '📊',
                 isActive: false,
                 custom_data: {
                     type: 'sensor_single',
                     content: this.generateSensorContent(state),
+                    // 🆕 NEU: Ring-Config Support hinzufügen
+                    ring_config: this.processRingConfig(dataSource.ring_config, state),
                     metadata: { 
-                        sensor_state: state.state, 
+                        sensor_state: parseFloat(state.state) || 0, // 🆕 GEÄNDERT: Numerischer Wert
+                        sensor_unit: state.attributes.unit_of_measurement, // 🆕 NEU: Einheit hinzufügen
                         ...state.attributes,
                         // ✅ FIX: DataSource Properties hinzufügen
-                        category: dataSource.category,                   // ← NEU: Deine YAML category!
-                        prefix: dataSource.prefix,                       // ← NEU: Prefix
-                        area: itemArea,                                  // ← NEU: Area
-                        data_source: dataSource.entity                  // ← NEU: Source Info
+                        category: dataSource.category,
+                        prefix: dataSource.prefix,
+                        area: itemArea,
+                        data_source: dataSource.entity
                     }
                 }
             }];
@@ -6861,25 +6864,30 @@ class FastSearchCard extends HTMLElement {
             name: item[fields.name] || `Item ${index + 1}`,
             domain: 'custom',
             category: 'custom',
-            area: itemArea,                                              // ✅ FIX: Korrekte Area
+            area: itemArea,
             state: 'available',
             attributes: {
                 friendly_name: item[fields.name],
                 custom_type: 'sensor_array',
                 source_entity: dataSource.entity
             },
-            icon: item[fields.icon] || dataSource.icon || this._config.custom_mode.icon || '📊',  // ✅ FIX
+            icon: item[fields.icon] || dataSource.icon || this._config.custom_mode.icon || '📊',
             isActive: false,
             custom_data: {
                 type: 'sensor_array',
                 content: item[fields.content] || this.generateFallbackContent(item),
+                // 🆕 NEU: Ring-Config auch für Array Items
+                ring_config: this.processRingConfig(dataSource.ring_config, null, item),
                 metadata: {
                     ...item,
+                    // 🆕 NEU: Sensor-Wert für Array Items (falls vorhanden)
+                    sensor_state: parseFloat(item.value || item.state || 0),
+                    sensor_unit: item.unit || state.attributes.unit_of_measurement,
                     // ✅ FIX: DataSource Properties hinzufügen
-                    category: dataSource.category,                       // ← NEU: Deine YAML category!
-                    prefix: dataSource.prefix,                           // ← NEU: Prefix
-                    area: itemArea,                                      // ← NEU: Area
-                    data_source: dataSource.entity                      // ← NEU: Source Info
+                    category: dataSource.category,
+                    prefix: dataSource.prefix,
+                    area: itemArea,
+                    data_source: dataSource.entity
                 }
             }
         }));
@@ -8575,8 +8583,19 @@ class FastSearchCard extends HTMLElement {
             return groups;
         }, {});
     }
-
+    
     getDynamicIcon(item) {
+        // 🆕 NEU: Prüfe zuerst auf Ring-Tile Konfiguration
+        if (item.custom_data?.ring_config) {
+            const ringIcon = this.createRingTileIcon(item);
+            if (ringIcon) {
+                console.log(`🔧 Using Ring-Tile for: ${item.name}`);
+                return ringIcon;
+            }
+        }
+        
+        // ✅ BESTEHENDE LOGIC: Normale Icons für verschiedene Domains
+        
         if (item.domain === 'light') {
             return item.isActive ? 
                 FastSearchCard.LIGHT_ON_SVG : 
@@ -8605,11 +8624,11 @@ class FastSearchCard extends HTMLElement {
         }
         
         if (item.domain === 'climate') {
-            return item.isActive ? 
+            return item.isActive ?
                 FastSearchCard.CLIMATE_ON_SVG : 
                 FastSearchCard.CLIMATE_OFF_SVG;
         }
-
+    
         if (item.domain === 'script') {
             return FastSearchCard.SCRIPT_SVG;
         }
@@ -8624,7 +8643,7 @@ class FastSearchCard extends HTMLElement {
         
         // Fallback für andere Domains
         return item.icon;
-    }    
+    }
 
     createDeviceCard(item) {
         const card = document.createElement('div');
@@ -16799,7 +16818,315 @@ class FastSearchCard extends HTMLElement {
     }
 
 
+    
+    // ===== VOLLSTÄNDIGE RING-TILE METHODEN - Kopierfertig für fast-search-card.js =====
+    
+    // 1️⃣ Ring-Tile Icon erstellen
+    createRingTileIcon(item) {
+        const ringConfig = item.custom_data?.ring_config;
+        if (!ringConfig) return null;
+        
+        const sensorValue = item.custom_data?.metadata?.sensor_state || 0;
+        const min = ringConfig.min || 0;
+        const max = ringConfig.max || 100;
+        const size = ringConfig.size || 36; // Default 36px für Grid
+        
+        // Berechne Prozentsatz für Ring-Füllung
+        const percentage = Math.max(0, Math.min(100, ((sensorValue - min) / (max - min)) * 100));
+        
+        // Bestimme Farbe basierend auf Wert
+        const color = this.getRingColor(sensorValue, ringConfig.colour, min, max);
+        
+        // Debug-Log (kann später entfernt werden)
+        console.log(`🔧 Ring-Tile: ${item.name} - Value: ${sensorValue}, Percentage: ${percentage}%, Color: ${color}`);
+        
+        return `
+            <div class="ring-tile-icon" style="width: ${size}px; height: ${size}px;" data-value="${sensorValue}" data-percentage="${percentage}">
+                <svg viewBox="0 0 50 50" style="width: 100%; height: 100%;">
+                    <!-- Hintergrund Ring -->
+                    <circle 
+                        cx="25" cy="25" r="20" 
+                        stroke="rgba(255,255,255,0.2)" 
+                        stroke-width="3" 
+                        fill="none"
+                    />
+                    <!-- Wert Ring -->
+                    <circle 
+                        cx="25" cy="25" r="20" 
+                        stroke="${color}" 
+                        stroke-width="3" 
+                        fill="none"
+                        stroke-linecap="round"
+                        stroke-dasharray="${2 * Math.PI * 20}"
+                        stroke-dashoffset="${2 * Math.PI * 20 * (1 - percentage / 100)}"
+                        transform="rotate(-90 25 25)"
+                        style="transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;"
+                    />
+                    <!-- Optional: Wert in der Mitte -->
+                    ${ringConfig.showValue ? `
+                        <text 
+                            x="25" y="28" 
+                            text-anchor="middle" 
+                            font-size="8" 
+                            fill="currentColor"
+                            font-weight="600"
+                        >${Math.round(sensorValue)}</text>
+                    ` : ''}
+                </svg>
+            </div>
+        `;
+    }
+    
+    // 2️⃣ Ring-Farbe berechnen
+    getRingColor(value, colorConfig, min, max) {
+        // Fallback für fehlende oder falsche Konfiguration
+        if (!colorConfig) {
+            return '#27ae60'; // Standard Grün
+        }
+        
+        // Einfache String-Farbe (z.B. "#ff0000" oder "red")
+        if (typeof colorConfig === 'string') {
+            return colorConfig;
+        }
+        
+        // Object mit Farb-Stops (z.B. {"0": "#ff0000", "50": "#ffff00", "100": "#00ff00"})
+        if (typeof colorConfig === 'object') {
+            // Konvertiere zu Array und sortiere nach Werten
+            const colorStops = Object.entries(colorConfig)
+                .map(([key, color]) => ({
+                    value: parseFloat(key),
+                    color: color
+                }))
+                .sort((a, b) => a.value - b.value);
+            
+            if (colorStops.length === 0) {
+                return '#27ae60'; // Standard Grün wenn keine Stops
+            }
+            
+            // Wert ist kleiner als der erste Stop
+            if (value <= colorStops[0].value) {
+                return colorStops[0].color;
+            }
+            
+            // Wert ist größer als der letzte Stop
+            if (value >= colorStops[colorStops.length - 1].value) {
+                return colorStops[colorStops.length - 1].color;
+            }
+            
+            // Finde den passenden Farbbereich
+            for (let i = 0; i < colorStops.length - 1; i++) {
+                if (value >= colorStops[i].value && value <= colorStops[i + 1].value) {
+                    // Für jetzt: Verwende die Farbe des nächst höheren Stops
+                    // TODO: Später können wir hier Farbinterpolation implementieren
+                    return colorStops[i + 1].color;
+                }
+            }
+            
+            // Fallback zur ersten Farbe
+            return colorStops[0].color;
+        }
+        
+        // Fallback
+        return '#27ae60';
+    }
+    
+    // 3️⃣ Ring-Config verarbeiten
+    processRingConfig(ringConfig, sensorState = null, arrayItem = null) {
+        if (!ringConfig) return null;
+        
+        // Basis-Konfiguration mit Defaults
+        const processedConfig = {
+            min: ringConfig.min !== undefined ? ringConfig.min : 0,
+            max: ringConfig.max !== undefined ? ringConfig.max : 100,
+            size: ringConfig.size || 36,
+            showValue: ringConfig.showValue !== undefined ? ringConfig.showValue : false,
+            colour: ringConfig.colour || ringConfig.color || '#27ae60' // Support both spellings
+        };
+        
+        // Auto-Konfiguration basierend auf Sensor-Typ
+        if (sensorState && sensorState.attributes) {
+            const deviceClass = sensorState.attributes.device_class;
+            const unit = sensorState.attributes.unit_of_measurement;
+            
+            console.log(`🔍 Auto-detect: device_class="${deviceClass}", unit="${unit}"`);
+            
+            // Nur automatische Bereiche setzen, wenn nicht explizit konfiguriert
+            if (ringConfig.min === undefined || ringConfig.max === undefined || !ringConfig.colour) {
+                const autoRanges = this.getAutoRangesForSensor(deviceClass, unit);
+                if (autoRanges) {
+                    console.log(`✅ Auto-ranges found:`, autoRanges);
+                    
+                    // Nur setzen wenn nicht explizit konfiguriert
+                    if (ringConfig.min === undefined) processedConfig.min = autoRanges.min;
+                    if (ringConfig.max === undefined) processedConfig.max = autoRanges.max;
+                    if (!ringConfig.colour && !ringConfig.color) processedConfig.colour = autoRanges.colour;
+                }
+            }
+        }
+        
+        console.log(`📊 Processed ring config:`, processedConfig);
+        return processedConfig;
+    }
+    
+    // 4️⃣ Auto-Bereiche für verschiedene Sensor-Typen
+    getAutoRangesForSensor(deviceClass, unit) {
+        const ranges = {
+            // Temperatur Sensoren
+            temperature: {
+                '°C': { 
+                    min: 15, 
+                    max: 30, 
+                    colour: { 
+                        '15': '#3498db',    // Kalt = Blau
+                        '18': '#2ecc71',    // Kühl = Grün
+                        '22': '#f1c40f',    // Warm = Gelb
+                        '26': '#e67e22',    // Heiß = Orange
+                        '30': '#e74c3c'     // Sehr heiß = Rot
+                    }
+                },
+                '°F': { 
+                    min: 59, 
+                    max: 86, 
+                    colour: { 
+                        '59': '#3498db',    // 15°C
+                        '64': '#2ecc71',    // 18°C
+                        '72': '#f1c40f',    // 22°C
+                        '79': '#e67e22',    // 26°C
+                        '86': '#e74c3c'     // 30°C
+                    }
+                }
+            },
+            
+            // Luftfeuchtigkeit
+            humidity: {
+                '%': { 
+                    min: 30, 
+                    max: 80, 
+                    colour: { 
+                        '30': '#e74c3c',    // Zu trocken = Rot
+                        '40': '#f39c12',    // Trocken = Orange
+                        '50': '#2ecc71',    // Optimal = Grün
+                        '65': '#3498db',    // Feucht = Blau
+                        '80': '#9b59b6'     // Zu feucht = Lila
+                    }
+                }
+            },
+            
+            // Helligkeit/Beleuchtung
+            illuminance: {
+                'lx': { 
+                    min: 0, 
+                    max: 1000, 
+                    colour: { 
+                        '0': '#1a1a2e',     // Dunkel = Dunkelblau
+                        '50': '#16537e',    // Sehr dim = Blau
+                        '200': '#f39c12',   // Dämmrig = Orange
+                        '500': '#f1c40f',   // Hell = Gelb
+                        '800': '#ffffff'    // Sehr hell = Weiß
+                    }
+                }
+            },
+            
+            // Batterie
+            battery: {
+                '%': { 
+                    min: 0, 
+                    max: 100, 
+                    colour: { 
+                        '0': '#e74c3c',     // Leer = Rot
+                        '15': '#e67e22',    // Kritisch = Orange
+                        '30': '#f39c12',    // Niedrig = Gelb
+                        '60': '#2ecc71',    // Gut = Grün
+                        '90': '#27ae60'     // Voll = Hellgrün
+                    }
+                }
+            },
+            
+            // Luftdruck
+            pressure: {
+                'hPa': { 
+                    min: 980, 
+                    max: 1040, 
+                    colour: { 
+                        '980': '#e74c3c',   // Tief = Rot
+                        '1000': '#f39c12',  // Niedrig = Orange
+                        '1013': '#2ecc71',  // Normal = Grün
+                        '1030': '#3498db',  // Hoch = Blau
+                        '1040': '#9b59b6'   // Sehr hoch = Lila
+                    }
+                },
+                'mbar': { 
+                    min: 980, 
+                    max: 1040, 
+                    colour: { 
+                        '980': '#e74c3c',
+                        '1000': '#f39c12',
+                        '1013': '#2ecc71',
+                        '1030': '#3498db',
+                        '1040': '#9b59b6'
+                    }
+                }
+            },
+            
+            // CO2
+            'carbon_dioxide': {
+                'ppm': { 
+                    min: 400, 
+                    max: 2000, 
+                    colour: { 
+                        '400': '#2ecc71',   // Sehr gut = Grün
+                        '800': '#f1c40f',   // Okay = Gelb
+                        '1200': '#e67e22',  // Schlecht = Orange
+                        '1600': '#e74c3c',  // Kritisch = Rot
+                        '2000': '#8e44ad'   // Sehr kritisch = Lila
+                    }
+                }
+            },
+            
+            // Energie/Power
+            power: {
+                'W': { 
+                    min: 0, 
+                    max: 3000, 
+                    colour: { 
+                        '0': '#2ecc71',     // Kein Verbrauch = Grün
+                        '500': '#f1c40f',   // Niedrig = Gelb
+                        '1500': '#e67e22',  # Mittel = Orange
+                        '2500': '#e74c3c'   // Hoch = Rot
+                    }
+                },
+                'kW': { 
+                    min: 0, 
+                    max: 3, 
+                    colour: { 
+                        '0': '#2ecc71',
+                        '0.5': '#f1c40f',
+                        '1.5': '#e67e22',
+                        '2.5': '#e74c3c'
+                    }
+                }
+            }
+        };
+        
+        // Direkte Suche nach device_class und unit
+        if (deviceClass && ranges[deviceClass] && unit && ranges[deviceClass][unit]) {
+            console.log(`🎯 Found exact match: ${deviceClass} + ${unit}`);
+            return ranges[deviceClass][unit];
+        }
+        
+        // Fallback: Suche nur nach device_class (erste verfügbare unit)
+        if (deviceClass && ranges[deviceClass]) {
+            const firstUnit = Object.keys(ranges[deviceClass])[0];
+            console.log(`⚠️  Using fallback: ${deviceClass} + ${firstUnit} (requested: ${unit})`);
+            return ranges[deviceClass][firstUnit];
+        }
+        
+        // Kein Match gefunden
+        console.log(`❌ No auto-range found for device_class="${deviceClass}", unit="${unit}"`);
+        return null;
+    }
 
+    
 
     
 }
