@@ -8974,16 +8974,12 @@ class FastSearchCard extends HTMLElement {
     // ERWEITERTE getSensorValues für besseres Debugging
     // ========================================
     
-    getSensorValues(item) {
+
+    getSensorValuesSimple(item) {
         const values = [];
         
-        console.log('🔍 getSensorValues für:', item.name);
-        console.log('🔍 Item full structure:', item);
-        
-        // Entity-Suche
+        // Entity ID finden
         let entityId = null;
-        let mainEntity = null;
-        
         if (item.custom_data?.entity) {
             entityId = item.custom_data.entity;
         } else if (item.entity) {
@@ -8992,21 +8988,13 @@ class FastSearchCard extends HTMLElement {
             entityId = item.attributes.source_entity;
         }
         
-        if (!entityId) {
-            console.log('❌ Keine Entity ID gefunden für:', item.name);
-            return values;
-        }
+        if (!entityId) return values;
         
-        mainEntity = this._hass.states[entityId];
+        // Entity aus HA holen
+        const mainEntity = this._hass.states[entityId];
+        if (!mainEntity) return values;
         
-        if (!mainEntity) {
-            console.log('❌ Entity nicht gefunden in HA:', entityId);
-            return values;
-        }
-        
-        console.log('✅ Entity gefunden:', entityId, 'State:', mainEntity.state);
-        
-        // Hauptwert
+        // Hauptwert formatieren
         const unit = mainEntity.attributes.unit_of_measurement || '';
         const formattedValue = this.formatSensorValue(mainEntity.state, unit);
         const itemIcon = item.attributes?.icon || item.icon || '📊';
@@ -9015,62 +9003,11 @@ class FastSearchCard extends HTMLElement {
             value: formattedValue,
             label: 'Jetzt',
             icon: itemIcon,
-            color: '#00D4AA',
-            priority: 1,
-            type: 'current'
+            color: '#00D4AA'
         });
         
-        // ERWEITERTE Suche nach additional_values
-        let additionalValues = null;
-        
-        console.log('🔍 Suche additional_values in:');
-        console.log('  - item.custom_data?.additional_values:', item.custom_data?.additional_values);
-        console.log('  - item.additional_values:', item.additional_values);
-        console.log('  - item.attributes?.additional_values:', item.attributes?.additional_values);
-        
-        // Prioritäts-Reihenfolge der Suche
-        if (item.custom_data?.additional_values) {
-            additionalValues = item.custom_data.additional_values;
-            console.log('📊 Additional values aus custom_data gefunden');
-        } else if (item.additional_values) {
-            additionalValues = item.additional_values;
-            console.log('📊 Additional values direkt gefunden');
-        } else if (item.attributes?.additional_values) {
-            additionalValues = item.attributes.additional_values;
-            console.log('📊 Additional values aus attributes gefunden');
-        } else {
-            console.log('ℹ️ Keine additional_values konfiguriert für:', item.name);
-        }
-        
-        if (additionalValues && Array.isArray(additionalValues)) {
-            console.log('📊 Additional values config gefunden:', additionalValues);
-            
-            additionalValues.forEach((config, index) => {
-                console.log(`🔍 Processing additional value ${index + 1}:`, config);
-                
-                const additionalValue = this.getAdditionalValue(mainEntity, config);
-                
-                if (additionalValue !== null) {
-                    const newValue = {
-                        value: additionalValue.value,
-                        label: config.label || this.getDefaultLabel(index),
-                        icon: config.icon || this.getDefaultIcon(index),
-                        color: config.color || this.getDefaultColor(index),
-                        priority: index + 2,
-                        type: config.type || 'additional'
-                    };
-                    
-                    console.log('✅ Additional value hinzugefügt:', newValue);
-                    values.push(newValue);
-                } else {
-                    console.log('❌ Additional value konnte nicht geladen werden');
-                }
-            });
-        }
-        
-        console.log('🎯 Final values für', item.name, ':', values);
-        return values.slice(0, 4);
-    }        
+        return values;
+    }     
     
     // 2. Zusätzlichen Wert aus Entity oder Attribut holen
     getAdditionalValue(mainEntity, config) {
@@ -9182,15 +9119,60 @@ class FastSearchCard extends HTMLElement {
     }
     
     // 7. HTML für Sensor-Werte generieren
+
     createSensorValuesHTML(item) {
-        const values = this.getSensorValues(item);
+        // HARDCODED: Nur für spezifische Items Multi-Werte anzeigen
+        const multiValueItems = {
+            'sensor.essbereich_prasenzmelder_illuminance_lux': {
+                mainValue: {
+                    entity: 'sensor.essbereich_prasenzmelder_illuminance_lux',
+                    label: 'Essbereich',
+                    icon: '🏠',
+                    color: '#00D4AA'
+                },
+                additionalValues: [
+                    {
+                        entity: 'sensor.kuche_prasenzmelder_illuminance_lux',
+                        label: 'Küche', 
+                        icon: '🍳',
+                        color: '#FF9F0A'
+                    },
+                    {
+                        entity: 'sensor.anziehraum_prasensmelder_illuminance_lux',
+                        label: 'Anzieh',
+                        icon: '👔',
+                        color: '#007AFF'
+                    }
+                ]
+            },
+            'sensor.solarnet_pv_leistung': {
+                mainValue: {
+                    entity: 'sensor.solarnet_pv_leistung',
+                    label: 'PV Aktuell',
+                    icon: '☀️',
+                    color: '#00D4AA'
+                },
+                additionalValues: [
+                    // Hier könntest du andere PV-related Sensoren hinzufügen
+                    // {
+                    //     entity: 'sensor.solarnet_daily_energy',
+                    //     label: 'Heute',
+                    //     icon: '∑',
+                    //     color: '#AF52DE'
+                    // }
+                ]
+            }
+        };
         
-        if (values.length === 0) {
-            return ''; // Keine Werte verfügbar
-        }
+        // Prüfe ob dieses Item Multi-Werte haben soll
+        const entityId = item.entity || item.custom_data?.entity;
+        const multiConfig = multiValueItems[entityId];
         
-        if (values.length === 1) {
-            // Nur Hauptwert - einfaches Badge ohne Autoplay
+        if (!multiConfig) {
+            // Standard: Nur Hauptwert
+            const values = this.getSensorValuesSimple(item);
+            if (values.length === 0) return '';
+            
             const mainValue = values[0];
             return `
                 <div class="sensor-value-container">
@@ -9201,8 +9183,55 @@ class FastSearchCard extends HTMLElement {
             `;
         }
         
+        // Multi-Wert: Sammle alle Werte
+        const allValues = [];
+        
+        // Hauptwert
+        const mainEntity = this._hass.states[multiConfig.mainValue.entity];
+        if (mainEntity) {
+            const unit = mainEntity.attributes.unit_of_measurement || '';
+            const formattedValue = this.formatSensorValue(mainEntity.state, unit);
+            
+            allValues.push({
+                value: formattedValue,
+                label: multiConfig.mainValue.label,
+                icon: multiConfig.mainValue.icon,
+                color: multiConfig.mainValue.color
+            });
+        }
+        
+        // Zusätzliche Werte
+        multiConfig.additionalValues.forEach(config => {
+            const entity = this._hass.states[config.entity];
+            if (entity) {
+                const unit = entity.attributes.unit_of_measurement || '';
+                const formattedValue = this.formatSensorValue(entity.state, unit);
+                
+                allValues.push({
+                    value: formattedValue,
+                    label: config.label,
+                    icon: config.icon,
+                    color: config.color
+                });
+            }
+        });
+        
+        if (allValues.length === 0) return '';
+        
+        if (allValues.length === 1) {
+            // Nur Hauptwert
+            const mainValue = allValues[0];
+            return `
+                <div class="sensor-value-container">
+                    <div class="sensor-value-main" style="color: ${mainValue.color}; border-color: ${mainValue.color}40; background: ${mainValue.color}20;">
+                        ${mainValue.value}
+                    </div>
+                </div>
+            `;
+        }
+        
         // Multi-Wert mit Autoplay
-        const mainValue = values[0];
+        const mainValue = allValues[0];
         
         return `
             <div class="sensor-value-container" data-autoplay="true">
@@ -9215,17 +9244,17 @@ class FastSearchCard extends HTMLElement {
                 </div>
                 
                 <div class="sensor-values-expand">
-                    ${values.map(val => `
+                    ${allValues.map(val => `
                         <div class="sensor-value-row">
                             <span class="value-label">${val.icon} ${val.label}:</span>
-                            <span class="value-number ${val.type}" style="color: ${val.color};">${val.value}</span>
+                            <span class="value-number" style="color: ${val.color};">${val.value}</span>
                         </div>
                     `).join('')}
                 </div>
             </div>
         `;
     }
-    
+        
     // 8. Sensor-Werte in createDeviceCard integrieren
     createDeviceCard(item) {
         const card = document.createElement('div');
