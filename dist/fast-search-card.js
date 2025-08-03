@@ -5060,7 +5060,23 @@ class FastSearchCard extends HTMLElement {
                 flex-direction: column;
                 gap: 1px;  /* Weniger Abstand zwischen den Zeilen */
             }            
-         
+
+            .device-area {
+                font-size: 18px;              /* Gleich wie device-status */
+                color: var(--text-secondary); /* Gleich wie device-status */
+                margin: 0;                    /* Gleich wie device-status */
+                opacity: 0.8;                 /* Gleich wie device-status */
+                line-height: 1.1;             /* Gleich wie device-status */
+                overflow: hidden;             /* Text abschneiden bei Überlauf */
+                white-space: nowrap;          /* Keine Zeilenumbrüche */
+                text-overflow: ellipsis;      /* ... bei zu langem Text */
+            }
+            
+            /* Active State für device-area - gleich wie device-status */
+            .device-card.active .device-area {
+                color: var(--text-secondary);
+                opacity: 1;
+            }         
                                                             
             </style>
 
