@@ -8936,25 +8936,47 @@ class FastSearchCard extends HTMLElement {
         let rawValue = null;
         let unit = '';
         
+        console.log('🔍 getAdditionalValue config:', config);
+        
         if (config.entity) {
-            // Von separater Entity
+            // METHODE 1: Von separater Entity (DEIN USE CASE)
+            console.log('📡 Hole Wert von separater Entity:', config.entity);
+            
             const entity = this._hass.states[config.entity];
+            console.log('🔍 Separate Entity State:', entity);
+            
             if (entity) {
                 rawValue = entity.state;
                 unit = config.unit || entity.attributes.unit_of_measurement || '';
+                console.log('✅ Wert gefunden:', rawValue, unit);
+            } else {
+                console.log('❌ Separate Entity nicht gefunden:', config.entity);
+                return null;
             }
+            
         } else if (config.attribute && mainEntity) {
-            // Aus Attribut der Haupt-Entity
+            // METHODE 2: Aus Attribut der Haupt-Entity
+            console.log('📋 Hole Wert aus Attribut:', config.attribute);
+            
             rawValue = mainEntity.attributes[config.attribute];
             unit = config.unit || mainEntity.attributes.unit_of_measurement || '';
-        }
-        
-        if (rawValue === null || rawValue === undefined || rawValue === 'unavailable') {
+            console.log('📋 Attribut-Wert:', rawValue);
+            
+        } else {
+            console.log('❌ Weder entity noch attribute in config gefunden');
             return null;
         }
         
+        if (rawValue === null || rawValue === undefined || rawValue === 'unavailable') {
+            console.log('❌ Ungültiger Wert:', rawValue);
+            return null;
+        }
+        
+        const formattedValue = this.formatSensorValue(rawValue, unit);
+        console.log('✅ Formatierter Wert:', formattedValue);
+        
         return {
-            value: this.formatSensorValue(rawValue, unit)
+            value: formattedValue
         };
     }
     
