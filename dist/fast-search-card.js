@@ -5009,7 +5009,57 @@ class FastSearchCard extends HTMLElement {
                 .scheduler-mode-and-weekdays {
                     align-items: center;
                 }
-            }       
+            }     
+
+            
+            // Zusätzliches CSS für die neue device-area Zeile
+            /*
+            .device-area {
+                font-size: 14px;
+                color: var(--text-secondary);
+                opacity: 0.7;
+                margin: 0 0 2px 0;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                line-height: 1.1;
+                font-weight: 500;
+            }
+            
+            .device-name {
+                font-size: 16px;  /* Etwas kleiner als vorher */
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 0 0 2px 0;
+                overflow: hidden;
+                white-space: nowrap;
+                line-height: 1.1;
+                text-overflow: ellipsis;
+            }    
+            
+            .device-status {
+                font-size: 14px;  /* Etwas kleiner als vorher */
+                color: var(--text-secondary);
+                margin: 0;
+                opacity: 0.8;
+                line-height: 1.1;
+            }
+            
+            .device-card.active .device-status {
+                color: var(--text-secondary);
+                opacity: 1;
+            }
+            
+            /* Anpassung für drei Zeilen - mehr Platz unten */
+            .device-card {
+                padding: 16px 16px 20px 16px;  /* Mehr padding unten */
+            }
+            
+            .device-info {
+                display: flex;
+                flex-direction: column;
+                gap: 1px;  /* Weniger Abstand zwischen den Zeilen */
+            }            
          
                                                             
             </style>
@@ -8156,7 +8206,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             starredItems.forEach((item) => {
-                const card = this.createDeviceCard(item);
+                const card = this.(item);
                 
                 // ✅ WICHTIG: Karte sofort unsichtbar machen BEVOR sie ins DOM kommt
                 card.style.opacity = '0';
@@ -8214,7 +8264,7 @@ class FastSearchCard extends HTMLElement {
                 
                 // Items der Zeit-Kategorie
                 groupItems.forEach((item) => {
-                    const card = this.createDeviceCard(item);
+                    const card = this.(item);
                     
                     // ✅ KRITISCH: Karte initial unsichtbar setzen
                     card.style.opacity = '0';
@@ -8259,7 +8309,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 groupedItems[area].forEach((item) => {
-                    const card = this.createDeviceCard(item);
+                    const card = this.(item);
                     
                     // ✅ KRITISCH: Karte initial unsichtbar setzen
                     card.style.opacity = '0';
@@ -8578,9 +8628,17 @@ class FastSearchCard extends HTMLElement {
         const statusText = item.domain === 'custom' ? 
             this.getCustomStatusText(item) : 
             this.getEntityStatus(this._hass.states[item.id]);
-
+    
+        // NEU: Drei Zeilen - Area, Name, Status
+        card.innerHTML = `
+            <div class="device-icon">${this.getDynamicIcon(item)}</div>
+            <div class="device-info">
+                <div class="device-area">${item.area || 'Kein Raum'}</div>
+                <div class="device-name">${item.name}</div>
+                <div class="device-status">${statusText}</div>
+            </div>
+        `;
         
-        card.innerHTML = `<div class="device-icon">${this.getDynamicIcon(item)}</div><div class="device-info"><div class="device-name">${item.name}</div><div class="device-status">${statusText}</div></div>`;
         card.addEventListener('click', () => this.handleDeviceClick(item, card));
         return card;
     }
