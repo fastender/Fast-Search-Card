@@ -5077,6 +5077,203 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 opacity: 1;
             }         
+
+
+            
+            /* ========================================
+               SENSOR VALUES - Multi-Wert Anzeige
+               ======================================== */
+            
+            /* Container für Sensor-Werte (rechts oben positioniert) */
+            .sensor-value-container {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                z-index: 10;
+            }
+            
+            /* Progress Ring für Autoplay Timer */
+            .autoplay-progress-ring {
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                width: 24px;
+                height: 24px;
+                transform: rotate(-90deg);
+                opacity: 0.7;
+            }
+            
+            .autoplay-progress-ring circle {
+                fill: none;
+                stroke: rgba(0, 212, 170, 0.4);
+                stroke-width: 2;
+                r: 10;
+                cx: 12;
+                cy: 12;
+                stroke-dasharray: 62.83; /* 2 * PI * 10 */
+                stroke-dashoffset: 62.83;
+                transition: stroke-dashoffset 0.1s ease;
+            }
+            
+            /* Hauptwert Badge (Standard-Zustand) */
+            .sensor-value-main {
+                background: rgba(0, 212, 170, 0.2);
+                border: 1px solid rgba(0, 212, 170, 0.4);
+                border-radius: 12px;
+                padding: 6px 10px;
+                font-size: 12px;
+                font-weight: 600;
+                color: #00D4AA;
+                backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
+                white-space: nowrap;
+            }
+            
+            /* Pulse Animation vor Auto-Expand */
+            .sensor-value-main.pulse {
+                animation: sensor-value-pulse 1s ease-in-out;
+            }
+            
+            @keyframes sensor-value-pulse {
+                0%, 100% { 
+                    box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4);
+                    transform: scale(1);
+                }
+                50% { 
+                    box-shadow: 0 0 0 8px rgba(0, 212, 170, 0);
+                    transform: scale(1.05);
+                }
+            }
+            
+            /* Erweiterte Details Panel */
+            .sensor-values-expand {
+                background: rgba(0, 0, 0, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 16px;
+                padding: 12px;
+                backdrop-filter: blur(15px);
+                min-width: 120px;
+                opacity: 0;
+                transform: translateX(30px) scale(0.9);
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                pointer-events: none;
+            }
+            
+            /* Expanded State */
+            .sensor-values-expand.active {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+                pointer-events: auto;
+            }
+            
+            /* Einzelne Wert-Zeile */
+            .sensor-value-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+                font-size: 11px;
+                font-weight: 500;
+            }
+            
+            .sensor-value-row:last-child {
+                margin-bottom: 0;
+            }
+            
+            /* Label (links) */
+            .value-label {
+                color: rgba(255, 255, 255, 0.7);
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 10px;
+            }
+            
+            /* Wert (rechts) */
+            .value-number {
+                color: #00D4AA;
+                font-weight: 700;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+            
+            /* Spezifische Farben für verschiedene Wert-Typen */
+            .value-number.current { color: #00D4AA; }
+            .value-number.max { color: #FF9F0A; }
+            .value-number.min { color: #007AFF; }
+            .value-number.total { color: #AF52DE; }
+            .value-number.average { color: #FFD60A; }
+            
+            /* Device Card Hover-Verhalten für Sensor Values */
+            .device-card:hover .sensor-value-main {
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+            
+            .device-card:hover .sensor-values-expand {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+                pointer-events: auto;
+                transition-delay: 0.1s;
+            }
+            
+            /* Für Custom Items - spezielle Behandlung */
+            .custom-item-card .sensor-value-main {
+                border-color: rgba(255, 159, 10, 0.4);
+                background: rgba(255, 159, 10, 0.2);
+                color: #FF9F0A;
+            }
+            
+            .custom-item-card .autoplay-progress-ring circle {
+                stroke: rgba(255, 159, 10, 0.4);
+            }
+            
+            /* Mobile Optimierungen */
+            @media (max-width: 768px) {
+                .sensor-value-container {
+                    top: 8px;
+                    right: 8px;
+                }
+                
+                .sensor-value-main {
+                    padding: 4px 8px;
+                    font-size: 11px;
+                }
+                
+                .sensor-values-expand {
+                    min-width: 100px;
+                    padding: 10px;
+                }
+                
+                .value-label {
+                    font-size: 9px;
+                }
+                
+                .value-number {
+                    font-size: 10px;
+                }
+            }
+            
+            /* Reduced Motion Support */
+            @media (prefers-reduced-motion: reduce) {
+                .sensor-value-main,
+                .sensor-values-expand {
+                    transition: none;
+                }
+                
+                .sensor-value-main.pulse {
+                    animation: none;
+                }
+                
+                .autoplay-progress-ring circle {
+                    transition: none;
+                }
+            }
+
+
+
+            
                                                             
             </style>
 
@@ -8626,6 +8823,197 @@ class FastSearchCard extends HTMLElement {
         return item.icon;
     }    
 
+
+
+
+
+    
+    
+    
+    // ========================================
+    // SENSOR VALUES - JavaScript Funktionen
+    // ========================================
+    
+    // 1. Haupt-Funktion: Sammelt alle Werte für einen Sensor
+    getSensorValues(item) {
+        const values = [];
+        
+        // Prüfe ob es ein Custom Item mit Entity ist
+        if (!item.custom_data || !item.custom_data.entity) {
+            return values;
+        }
+        
+        // 1. Hauptwert (immer vorhanden)
+        const mainEntity = this._hass.states[item.custom_data.entity];
+        if (mainEntity) {
+            const unit = mainEntity.attributes.unit_of_measurement || '';
+            const formattedValue = this.formatSensorValue(mainEntity.state, unit);
+            
+            values.push({
+                value: formattedValue,
+                label: 'Jetzt',
+                icon: '⚡',
+                color: '#00D4AA',
+                priority: 1,
+                type: 'current'
+            });
+        }
+        
+        // 2. Zusätzliche Werte sammeln (falls konfiguriert)
+        if (item.custom_data.additional_values && Array.isArray(item.custom_data.additional_values)) {
+            item.custom_data.additional_values.forEach((config, index) => {
+                const additionalValue = this.getAdditionalValue(mainEntity, config);
+                
+                if (additionalValue !== null) {
+                    values.push({
+                        value: additionalValue.value,
+                        label: config.label || this.getDefaultLabel(index),
+                        icon: config.icon || this.getDefaultIcon(index),
+                        color: config.color || this.getDefaultColor(index),
+                        priority: index + 2,
+                        type: config.type || 'additional'
+                    });
+                }
+            });
+        }
+        
+        // Maximal 4 Werte zurückgeben
+        return values.slice(0, 4);
+    }
+    
+    // 2. Zusätzlichen Wert aus Entity oder Attribut holen
+    getAdditionalValue(mainEntity, config) {
+        let rawValue = null;
+        let unit = '';
+        
+        if (config.entity) {
+            // Von separater Entity
+            const entity = this._hass.states[config.entity];
+            if (entity) {
+                rawValue = entity.state;
+                unit = config.unit || entity.attributes.unit_of_measurement || '';
+            }
+        } else if (config.attribute && mainEntity) {
+            // Aus Attribut der Haupt-Entity
+            rawValue = mainEntity.attributes[config.attribute];
+            unit = config.unit || mainEntity.attributes.unit_of_measurement || '';
+        }
+        
+        if (rawValue === null || rawValue === undefined || rawValue === 'unavailable') {
+            return null;
+        }
+        
+        return {
+            value: this.formatSensorValue(rawValue, unit)
+        };
+    }
+    
+    // 3. Wert formatieren (mit intelligenter Einheiten-Konvertierung)
+    formatSensorValue(value, unit) {
+        const numValue = parseFloat(value);
+        
+        if (isNaN(numValue)) {
+            return value; // Nicht-numerische Werte unverändert zurückgeben
+        }
+        
+        // Intelligente Einheiten-Konvertierung
+        switch(unit) {
+            case 'W':
+                if (numValue >= 1000) {
+                    return (numValue / 1000).toFixed(1) + 'kW';
+                }
+                break;
+            case 'Wh':
+                if (numValue >= 1000) {
+                    return (numValue / 1000).toFixed(1) + 'kWh';
+                }
+                break;
+            case 'lx':
+                if (numValue >= 1000) {
+                    return (numValue / 1000).toFixed(1) + 'klx';
+                }
+                break;
+            case '°C':
+            case '°F':
+                return numValue.toFixed(1) + unit;
+            case '%':
+                return Math.round(numValue) + unit;
+        }
+        
+        // Standardformatierung
+        if (numValue >= 1000) {
+            return numValue.toLocaleString() + unit;
+        } else if (numValue % 1 === 0) {
+            return numValue.toString() + unit;
+        } else {
+            return numValue.toFixed(1) + unit;
+        }
+    }
+    
+    // 4. Standard-Labels für zusätzliche Werte
+    getDefaultLabel(index) {
+        const labels = ['Max', 'Min', 'Ø', 'Total'];
+        return labels[index] || `Wert ${index + 1}`;
+    }
+    
+    // 5. Standard-Icons für zusätzliche Werte
+    getDefaultIcon(index) {
+        const icons = ['↑', '↓', '≈', '∑'];
+        return icons[index] || '📊';
+    }
+    
+    // 6. Standard-Farben für zusätzliche Werte
+    getDefaultColor(index) {
+        const colors = ['#FF9F0A', '#007AFF', '#FFD60A', '#AF52DE'];
+        return colors[index] || '#FFFFFF';
+    }
+    
+    // 7. HTML für Sensor-Werte generieren
+    createSensorValuesHTML(item) {
+        const values = this.getSensorValues(item);
+        
+        if (values.length === 0) {
+            return ''; // Keine Werte verfügbar
+        }
+        
+        if (values.length === 1) {
+            // Nur Hauptwert - einfaches Badge ohne Autoplay
+            const mainValue = values[0];
+            return `
+                <div class="sensor-value-container">
+                    <div class="sensor-value-main" style="color: ${mainValue.color}; border-color: ${mainValue.color}40; background: ${mainValue.color}20;">
+                        ${mainValue.value}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Multi-Wert mit Autoplay
+        const mainValue = values[0];
+        
+        return `
+            <div class="sensor-value-container" data-autoplay="true">
+                <svg class="autoplay-progress-ring">
+                    <circle class="progress-circle"></circle>
+                </svg>
+                
+                <div class="sensor-value-main" style="color: ${mainValue.color}; border-color: ${mainValue.color}40; background: ${mainValue.color}20;">
+                    ${mainValue.value}
+                </div>
+                
+                <div class="sensor-values-expand">
+                    ${values.map(val => `
+                        <div class="sensor-value-row">
+                            <span class="value-label">${val.icon} ${val.label}:</span>
+                            <span class="value-number ${val.type}" style="color: ${val.color};">${val.value}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    // 8. Sensor-Werte in createDeviceCard integrieren
     createDeviceCard(item) {
         const card = document.createElement('div');
         card.className = `device-card ${item.isActive ? 'active' : ''}`;
@@ -8640,7 +9028,10 @@ class FastSearchCard extends HTMLElement {
             this.getCustomStatusText(item) : 
             this.getEntityStatus(this._hass.states[item.id]);
     
-        // NEU: Drei Zeilen - Area, Name, Status
+        // NEU: Sensor-Werte HTML generieren
+        const sensorValuesHTML = item.domain === 'custom' ? 
+            this.createSensorValuesHTML(item) : '';
+    
         card.innerHTML = `
             <div class="device-icon">${this.getDynamicIcon(item)}</div>
             <div class="device-info">
@@ -8648,12 +9039,71 @@ class FastSearchCard extends HTMLElement {
                 <div class="device-name">${item.name}</div>
                 <div class="device-status">${statusText}</div>
             </div>
+            ${sensorValuesHTML}
         `;
         
         card.addEventListener('click', () => this.handleDeviceClick(item, card));
+        
+        // NEU: Hover-Handler für Sensor-Werte hinzufügen
+        if (sensorValuesHTML) {
+            this.setupSensorValueHover(card);
+        }
+        
         return card;
     }
+    
+    // 9. Hover-Verhalten für Sensor-Werte einrichten
+    setupSensorValueHover(card) {
+        const mainBadge = card.querySelector('.sensor-value-main');
+        const expandPanel = card.querySelector('.sensor-values-expand');
+        
+        if (!mainBadge || !expandPanel) return;
+        
+        let hoverTimeout;
+        
+        card.addEventListener('mouseenter', () => {
+            clearTimeout(hoverTimeout);
+            mainBadge.style.opacity = '0';
+            expandPanel.classList.add('active');
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            expandPanel.classList.remove('active');
+            hoverTimeout = setTimeout(() => {
+                mainBadge.style.opacity = '1';
+            }, 300); // Warten bis Slide-Out Animation fertig ist
+        });
+    }
+    
+    // 10. Debug-Funktion: Sensor-Werte in Konsole ausgeben
+    debugSensorValues(item) {
+        console.log('🔍 Sensor Values Debug für:', item.name);
+        console.log('Entity:', item.custom_data?.entity);
+        console.log('Additional Values Config:', item.custom_data?.additional_values);
+        
+        const values = this.getSensorValues(item);
+        console.log('Gesammelte Werte:', values);
+        
+        return values;
+    }
+    
+    
+    
+    
 
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
 
     getCustomStatusText(item) {
