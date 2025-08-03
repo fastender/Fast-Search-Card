@@ -8828,7 +8828,94 @@ class FastSearchCard extends HTMLElement {
 
 
     
+        
+    // Füge diese Debug-Funktion hinzu:
+    debugDataSources() {
+        console.log('🔧 DEBUG: Data Sources Analysis');
+        console.log('🔍 Config:', this._config);
+        console.log('🔍 Custom Mode Config:', this._config?.custom_mode);
+        console.log('🔍 Data Sources:', this._config?.custom_mode?.data_sources);
+        
+        if (this._config?.custom_mode?.data_sources) {
+            this._config.custom_mode.data_sources.forEach((source, index) => {
+                console.log(`📊 Data Source ${index + 1}:`, source);
+                console.log(`  - Type: ${source.type}`);
+                console.log(`  - Entity: ${source.entity}`);
+                console.log(`  - Prefix: ${source.prefix}`);
+                console.log(`  - Additional Values: ${JSON.stringify(source.additional_values)}`);
+            });
+        } else {
+            console.log('❌ Keine data_sources in config gefunden!');
+        }
+    }
     
+    // ========================================
+    // MANUAL FIX: additional_values direkt injizieren
+    // ========================================
+    
+    // Temporärer Fix - füge additional_values manuell hinzu:
+    injectAdditionalValues() {
+        console.log('🔧 MANUAL INJECT: Adding additional_values to existing items');
+        
+        if (!this.allItems) {
+            console.log('❌ No allItems found');
+            return;
+        }
+        
+        // Finde das TestRaum Item
+        const testItem = this.allItems.find(item => 
+            item.area === 'TestRaum' && 
+            item.entity === 'sensor.essbereich_prasenzmelder_illuminance_lux'
+        );
+        
+        if (testItem) {
+            console.log('✅ TestRaum Item gefunden:', testItem);
+            
+            // Injiziere additional_values direkt
+            const additionalValues = [
+                {
+                    entity: "sensor.kuche_prasenzmelder_illuminance_lux",
+                    label: "Küche",
+                    icon: "🍳",
+                    color: "#FF9F0A"
+                },
+                {
+                    entity: "sensor.anziehraum_prasensmelder_illuminance_lux", 
+                    label: "Anzieh",
+                    icon: "👔",
+                    color: "#007AFF"
+                }
+            ];
+            
+            // Verschiedene Orte probieren:
+            if (!testItem.custom_data) testItem.custom_data = {};
+            testItem.custom_data.additional_values = additionalValues;
+            testItem.additional_values = additionalValues;
+            if (!testItem.attributes) testItem.attributes = {};
+            testItem.attributes.additional_values = additionalValues;
+            
+            console.log('✅ Additional values injiziert:', additionalValues);
+            console.log('🔍 Updated item:', testItem);
+            
+            // Test getSensorValues
+            const values = this.getSensorValues(testItem);
+            console.log('🎯 Sensor Values nach Injection:', values);
+            
+            // Re-render das Grid
+            this.renderResults();
+            
+        } else {
+            console.log('❌ TestRaum Item nicht gefunden');
+            
+            // Zeige alle Custom Items
+            const customItems = this.allItems.filter(item => item.domain === 'custom');
+            console.log('📋 Verfügbare Custom Items:');
+            customItems.forEach((item, index) => {
+                console.log(`  ${index + 1}. "${item.name}" (Area: ${item.area}, Entity: ${item.entity})`);
+            });
+        }
+    }
+
     
     // ========================================
     // SENSOR VALUES - JavaScript Funktionen
