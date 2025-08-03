@@ -8835,33 +8835,81 @@ class FastSearchCard extends HTMLElement {
     // ========================================
     
     // 1. Haupt-Funktion: Sammelt alle Werte für einen Sensor
+    
+    // ========================================
+    // REPARIERTE getSensorValues Funktion
+    // ========================================
+    
     getSensorValues(item) {
         const values = [];
         
-        // Prüfe ob es ein Custom Item mit Entity ist
-        if (!item.custom_data || !item.custom_data.entity) {
+        // Debugging
+        console.log('🔍 getSensorValues für:', item.name);
+        
+        // ERWEITERTE Entity-Suche für verschiedene Item-Strukturen
+        let entityId = null;
+        let mainEntity = null;
+        
+        // Methode 1: Aus custom_data.entity (neue Struktur)
+        if (item.custom_data?.entity) {
+            entityId = item.custom_data.entity;
+        }
+        // Methode 2: Direkt aus item.entity (deine aktuelle Struktur)
+        else if (item.entity) {
+            entityId = item.entity;
+        }
+        // Methode 3: Aus attributes.source_entity (fallback)
+        else if (item.attributes?.source_entity) {
+            entityId = item.attributes.source_entity;
+        }
+        
+        if (!entityId) {
+            console.log('❌ Keine Entity ID gefunden für:', item.name);
             return values;
         }
         
-        // 1. Hauptwert (immer vorhanden)
-        const mainEntity = this._hass.states[item.custom_data.entity];
-        if (mainEntity) {
-            const unit = mainEntity.attributes.unit_of_measurement || '';
-            const formattedValue = this.formatSensorValue(mainEntity.state, unit);
-            
-            values.push({
-                value: formattedValue,
-                label: 'Jetzt',
-                icon: '⚡',
-                color: '#00D4AA',
-                priority: 1,
-                type: 'current'
-            });
+        // Entity aus Home Assistant holen
+        mainEntity = this._hass.states[entityId];
+        
+        if (!mainEntity) {
+            console.log('❌ Entity nicht gefunden in HA:', entityId);
+            return values;
         }
         
-        // 2. Zusätzliche Werte sammeln (falls konfiguriert)
-        if (item.custom_data.additional_values && Array.isArray(item.custom_data.additional_values)) {
-            item.custom_data.additional_values.forEach((config, index) => {
+        console.log('✅ Entity gefunden:', entityId, 'State:', mainEntity.state);
+        
+        // 1. Hauptwert formatieren
+        const unit = mainEntity.attributes.unit_of_measurement || '';
+        const formattedValue = this.formatSensorValue(mainEntity.state, unit);
+        
+        // Icon aus Item-Konfiguration oder Standard
+        const itemIcon = item.attributes?.icon || item.icon || '📊';
+        
+        values.push({
+            value: formattedValue,
+            label: 'Jetzt',
+            icon: itemIcon,
+            color: '#00D4AA',
+            priority: 1,
+            type: 'current'
+        });
+        
+        // 2. Zusätzliche Werte suchen (verschiedene Orte)
+        let additionalValues = null;
+        
+        // Suche in verschiedenen Strukturen
+        if (item.custom_data?.additional_values) {
+            additionalValues = item.custom_data.additional_values;
+        } else if (item.additional_values) {
+            additionalValues = item.additional_values;
+        } else if (item.attributes?.additional_values) {
+            additionalValues = item.attributes.additional_values;
+        }
+        
+        if (additionalValues && Array.isArray(additionalValues)) {
+            console.log('📊 Additional values config gefunden:', additionalValues);
+            
+            additionalValues.forEach((config, index) => {
                 const additionalValue = this.getAdditionalValue(mainEntity, config);
                 
                 if (additionalValue !== null) {
@@ -8875,9 +8923,11 @@ class FastSearchCard extends HTMLElement {
                     });
                 }
             });
+        } else {
+            console.log('ℹ️ Keine additional_values konfiguriert für:', item.name);
         }
         
-        // Maximal 4 Werte zurückgeben
+        console.log('🎯 Final values für', item.name, ':', values);
         return values.slice(0, 4);
     }
     
