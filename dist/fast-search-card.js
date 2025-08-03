@@ -9109,7 +9109,7 @@ class FastSearchCard extends HTMLElement {
     renderCustomDetailView() {
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
         if (!this.currentDetailItem) return;
-        
+    
         const item = this.currentDetailItem;
         
         const leftPaneHTML = this.getCustomDetailLeftPaneHTML(item);
@@ -9123,11 +9123,30 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     
+        // Back Button Event Listener
         this.shadowRoot.querySelector('.back-button').addEventListener('click', (e) => {
             e.stopPropagation();
             this.handleBackClick();
         });
     
+        // ✅ DAS FEHLTE: Favorite Button Event Listener für Custom Items!
+        const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
+        if (favoriteButton) {
+            favoriteButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const entityId = e.currentTarget.dataset.entityId;
+                console.log('🌟 Custom Item Favorite clicked:', entityId);
+                this.toggleStarLabel(entityId);
+            });
+            
+            // Initial Button State setzen
+            const entityId = item.id || item.custom_id;
+            if (entityId) {
+                this.updateStarButtonState(entityId);
+            }
+        }
+    
+        // Custom Detail Tabs Setup
         this.setupCustomDetailTabs(item);
     }    
 
@@ -9526,7 +9545,7 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
-    
+        
     getDetailRightPaneHTML(item) {
         const controlsHTML = this.getDeviceControlsHTML(item);
         const stateInfo = this.getDetailedStateText(item);
