@@ -5076,7 +5076,40 @@ class FastSearchCard extends HTMLElement {
             .device-card.active .device-area {
                 color: var(--text-secondary);
                 opacity: 1;
-            }         
+            } 
+
+            
+            .ring-tile-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            }
+            
+            .ring-tile-icon:hover {
+                transform: scale(1.05);
+            }
+            
+            .device-card:hover .ring-tile-icon {
+                transform: scale(1.1);
+            }
+            
+            .device-list-item .ring-tile-icon {
+                width: 42px !important;
+                height: 42px !important;
+            }
+            
+            .ring-tile-icon svg text {
+                font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                font-weight: 600;
+                letter-spacing: -0.2px;
+                opacity: 0.9;
+            }
+            
+            .device-card.active .ring-tile-icon {
+                box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            }            
                                                             
             </style>
 
