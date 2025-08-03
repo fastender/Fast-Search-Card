@@ -8175,9 +8175,6 @@ class FastSearchCard extends HTMLElement {
     }
     
     
-    
-
-    
 
     renderGridResults(resultsGrid, starredItems, nonStarredItems) {
         resultsGrid.innerHTML = '';
@@ -8206,7 +8203,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             starredItems.forEach((item) => {
-                const card = this.(item);
+                const card = this.createDeviceCard(item); // ✅ FIXED: Funktionsname hinzugefügt
                 
                 // ✅ WICHTIG: Karte sofort unsichtbar machen BEVOR sie ins DOM kommt
                 card.style.opacity = '0';
@@ -8224,7 +8221,7 @@ class FastSearchCard extends HTMLElement {
                 cardIndex++;
             });
         }
-
+    
         // 🏠 ZEIT-GRUPPIERUNG (oder normale Raum-Gruppierung)
         if (this.isRecentSorted) {
             // ✅ Recent-Sort: Gruppierung nach Zeit-Kategorien
@@ -8264,7 +8261,7 @@ class FastSearchCard extends HTMLElement {
                 
                 // Items der Zeit-Kategorie
                 groupItems.forEach((item) => {
-                    const card = this.(item);
+                    const card = this.createDeviceCard(item); // ✅ FIXED: Funktionsname hinzugefügt
                     
                     // ✅ KRITISCH: Karte initial unsichtbar setzen
                     card.style.opacity = '0';
@@ -8283,8 +8280,6 @@ class FastSearchCard extends HTMLElement {
                 });
             });
         } else {
-
-            
             // ✅ Normal: Gruppierung nach Areas
             const groupedItems = this.groupItemsByArea(nonStarredItems);
             
@@ -8309,7 +8304,7 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 groupedItems[area].forEach((item) => {
-                    const card = this.(item);
+                    const card = this.createDeviceCard(item); // ✅ FIXED: Funktionsname hinzugefügt
                     
                     // ✅ KRITISCH: Karte initial unsichtbar setzen
                     card.style.opacity = '0';
@@ -8330,7 +8325,7 @@ class FastSearchCard extends HTMLElement {
         }
         
         this.hasAnimated = true;
-    }
+    }        
     
     // 2️⃣ KORRIGIERTE HomeKit Card Animation - Echtes Fade-In
     animateCardInHomeKitStyle(card, type = 'normal') {
