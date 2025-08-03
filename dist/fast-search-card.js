@@ -9503,18 +9503,21 @@ class FastSearchCard extends HTMLElement {
         return `
             <div class="detail-left-header">
                 <button class="back-button">${newBackButtonSVG}</button>
-                <div class="detail-title-area">
-                    <h3 class="detail-name">${item.name}</h3>
-                    <p class="detail-area">${item.custom_data.metadata?.category || 'Custom'}</p>
+                <div class="detail-left-title-info">
+                    <h3 class="detail-left-title-name">${this.truncateText(item.name, 25)}</h3>
+                    <p class="detail-left-title-area">${this.truncateText(item.custom_data.metadata?.category || 'Custom', 20)}</p>
                 </div>
+                <button class="favorite-button" data-entity-id="${item.id || item.custom_id}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round">
+                        <path d="M22 8.86222C22 10.4087 21.4062 11.8941 20.3458 12.9929C17.9049 15.523 15.5374 18.1613 13.0053 20.5997C12.4249 21.1505 11.5042 21.1304 10.9488 20.5547L3.65376 12.9929C1.44875 10.7072 1.44875 7.01723 3.65376 4.73157C5.88044 2.42345 9.50794 2.42345 11.7346 4.73157L11.9998 5.00642L12.2648 4.73173C13.3324 3.6245 14.7864 3 16.3053 3C17.8242 3 19.2781 3.62444 20.3458 4.73157C21.4063 5.83045 22 7.31577 22 8.86222Z"/>
+                    </svg>
+                </button>
             </div>
             <div class="icon-content">
                 <div class="icon-background-wrapper">
                     <div class="icon-background custom-item" style="background-image: url('${backgroundImage}');">
                     </div>
                 </div>
-
-             
                 <div class="detail-info-row">                    
                     <div class="quick-stats">
                         ${this.getCustomQuickStats(item).map(stat => `<div class="stat-item">${stat}</div>`).join('')}
