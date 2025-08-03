@@ -8003,11 +8003,6 @@ class FastSearchCard extends HTMLElement {
     renderResults() {
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
         const resultsList = this.shadowRoot.querySelector('.results-list');
-
-        // ✅ NEU: Scroll-Position SPEICHERN vor dem Leeren
-        const currentScrollTop = this.currentViewMode === 'grid' ? 
-            resultsGrid.scrollTop : 
-            resultsList.scrollTop;
         
         // Clear timeouts
         this.animationTimeouts.forEach(timeout => clearTimeout(timeout));
@@ -8052,18 +8047,6 @@ class FastSearchCard extends HTMLElement {
         } else {
             this.renderListResults(resultsList, starredItems, nonStarredItems);
         }
-
-        // ✅ NEU: Scroll-Position WIEDERHERSTELLEN nach dem Rendering
-        setTimeout(() => {
-            if (currentScrollTop > 0) {
-                if (this.currentViewMode === 'grid') {
-                    resultsGrid.scrollTop = currentScrollTop;
-                } else {
-                    resultsList.scrollTop = currentScrollTop;
-                }
-            }
-        }, 50);        
-        
     }
     
 
