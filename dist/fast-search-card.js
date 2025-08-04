@@ -17124,7 +17124,7 @@ class FastSearchCard extends HTMLElement {
                     colour: { 
                         '0': '#2ecc71',     // Kein Verbrauch = Grün
                         '500': '#f1c40f',   // Niedrig = Gelb
-                        '1500': '#e67e22',  # Mittel = Orange
+                        '1500': '#e67e22',  // Mittel = Orange
                         '2500': '#e74c3c'   // Hoch = Rot
                     }
                 },
