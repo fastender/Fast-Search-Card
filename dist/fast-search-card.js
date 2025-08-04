@@ -5109,6 +5109,61 @@ class FastSearchCard extends HTMLElement {
             
             .device-card.active .ring-tile-icon {
                 box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            }           
+
+
+            
+            
+            /* Ring-Tile als vollständiger Icon-Ersatz */
+            .ring-tile-full {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 52px !important;
+                height: 52px !important;
+                background: rgba(30, 30, 30, 0.9) !important;
+                border-radius: 60px !important;
+                z-index: 2 !important;
+            }
+            
+            /* Verstecke den ursprünglichen device-icon wenn ring-tile vorhanden */
+            .device-icon:has(.ring-tile-full) {
+                background: transparent !important;
+            }
+            
+            /* Für Browser die :has() nicht unterstützen */
+            .device-card[data-has-ring="true"] .device-icon {
+                background: transparent !important;
+            }
+            
+            /* Ring-Tile spezifische Hover-Effekte */
+            .ring-tile-full:hover {
+                transform: scale(1.05);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+            
+            .device-card:hover .ring-tile-full {
+                transform: scale(1.1);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            }
+            
+            /* Active State */
+            .device-card.active .ring-tile-full {
+                box-shadow: 0 0 20px var(--accent);
+            }
+            
+            /* List View Anpassungen */
+            .device-list-item .ring-tile-full {
+                width: 68px !important;
+                height: 68px !important;
+            }
+            
+            .device-list-icon:has(.ring-tile-full) {
+                background: transparent !important;
+            }
+            
+            .device-list-item[data-has-ring="true"] .device-list-icon {
+                background: transparent !important;
             }            
                                                             
             </style>
@@ -8687,6 +8742,9 @@ class FastSearchCard extends HTMLElement {
         }
         
         card.dataset.entity = item.id;
+
+        // NEU: data-has-ring Attribut hinzufügen
+        card.dataset.hasRing = item.custom_data?.ring_config ? 'true' : 'false';        
         
         const statusText = item.domain === 'custom' ? 
             this.getCustomStatusText(item) : 
@@ -8979,6 +9037,9 @@ class FastSearchCard extends HTMLElement {
         const listItem = document.createElement('div');
         listItem.className = `device-list-item ${item.isActive ? 'active' : ''}`;
         listItem.dataset.entity = item.id;
+
+        // NEU: data-has-ring Attribut hinzufügen
+        listItem.dataset.hasRing = item.custom_data?.ring_config ? 'true' : 'false';        
         
         const quickActionHTML = this.getQuickActionHTML(item);
         
@@ -16862,7 +16923,7 @@ class FastSearchCard extends HTMLElement {
         const sensorValue = item.custom_data?.metadata?.sensor_state || 0;
         const min = ringConfig.min || 0;
         const max = ringConfig.max || 100;
-        const size = ringConfig.size || 36; // Default 36px für Grid
+        const size = 52; // GEÄNDERT: Fixe Größe 52px wie device-icon
         
         // Berechne Prozentsatz für Ring-Füllung
         const percentage = Math.max(0, Math.min(100, ((sensorValue - min) / (max - min)) * 100));
@@ -16874,8 +16935,13 @@ class FastSearchCard extends HTMLElement {
         console.log(`🔧 Ring-Tile: ${item.name} - Value: ${sensorValue}, Percentage: ${percentage}%, Color: ${color}`);
         
         return `
-            <div class="ring-tile-icon" style="width: ${size}px; height: ${size}px;" data-value="${sensorValue}" data-percentage="${percentage}">
+            <div class="ring-tile-icon ring-tile-full" style="width: ${size}px; height: ${size}px;" data-value="${sensorValue}" data-percentage="${percentage}">
                 <svg viewBox="0 0 50 50" style="width: 100%; height: 100%;">
+                    <!-- Transparenter Hintergrund zum Überlagern -->
+                    <circle 
+                        cx="25" cy="25" r="24" 
+                        fill="rgba(30, 30, 30, 0.95)"
+                    />
                     <!-- Hintergrund Ring -->
                     <circle 
                         cx="25" cy="25" r="20" 
@@ -16900,14 +16966,16 @@ class FastSearchCard extends HTMLElement {
                         <text 
                             x="25" y="28" 
                             text-anchor="middle" 
-                            font-size="8" 
-                            fill="currentColor"
+                            font-size="10" 
+                            fill="${color}"
                             font-weight="600"
+                            style="filter: drop-shadow(0 0 2px rgba(0,0,0,0.8));"
                         >${Math.round(sensorValue)}</text>
                     ` : ''}
                 </svg>
             </div>
         `;
+    }
     }
     
     // 2️⃣ Ring-Farbe berechnen
@@ -16971,7 +17039,7 @@ class FastSearchCard extends HTMLElement {
         const processedConfig = {
             min: ringConfig.min !== undefined ? ringConfig.min : 0,
             max: ringConfig.max !== undefined ? ringConfig.max : 100,
-            size: ringConfig.size || 36,
+            size: 52, // GEÄNDERT: Fixe Größe für device-icon
             showValue: ringConfig.showValue !== undefined ? ringConfig.showValue : false,
             colour: ringConfig.colour || ringConfig.color || '#27ae60' // Support both spellings
         };
