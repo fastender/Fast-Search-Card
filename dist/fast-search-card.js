@@ -5102,7 +5102,6 @@ class FastSearchCard extends HTMLElement {
             }
             
             .ring-tile-icon svg text {
-                font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                 font-weight: 600;
                 letter-spacing: -0.2px;
                 opacity: 0.9;
