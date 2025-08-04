@@ -16976,7 +16976,6 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
     }
-    }
     
     // 2️⃣ Ring-Farbe berechnen
     getRingColor(value, colorConfig, min, max) {
