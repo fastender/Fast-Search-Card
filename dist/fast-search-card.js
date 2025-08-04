@@ -16862,7 +16862,7 @@ class FastSearchCard extends HTMLElement {
         const sensorValue = item.custom_data?.metadata?.sensor_state || 0;
         const min = ringConfig.min || 0;
         const max = ringConfig.max || 100;
-        const size = ringConfig.size || 52;
+        const size = 52;
         
         // Berechne Prozentsatz für Ring-Füllung
         const percentage = Math.max(0, Math.min(100, ((sensorValue - min) / (max - min)) * 100));
@@ -16898,7 +16898,7 @@ class FastSearchCard extends HTMLElement {
                     <!-- Optional: Wert in der Mitte -->
                     ${ringConfig.showValue ? `
                         <text 
-                            x="25" y="28" 
+                            x="25" y="30" 
                             text-anchor="middle" 
                             font-size="14" 
                             fill="currentColor"
