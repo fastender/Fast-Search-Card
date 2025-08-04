@@ -5078,12 +5078,10 @@ class FastSearchCard extends HTMLElement {
                 opacity: 1;
             } 
 
-            
             .ring-tile-icon {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                border-radius: 50%;
                 transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             }
             
@@ -5116,14 +5114,10 @@ class FastSearchCard extends HTMLElement {
             
             /* Ring-Tile als vollständiger Icon-Ersatz */
             .ring-tile-full {
-                position: absolute !important;
-                top: 0 !important;
-                left: 0 !important;
                 width: 52px !important;
                 height: 52px !important;
-                background: rgba(30, 30, 30, 0.9) !important;
                 border-radius: 60px !important;
-                z-index: 2 !important;
+                overflow: hidden !important;
             }
             
             /* Verstecke den ursprünglichen device-icon wenn ring-tile vorhanden */
@@ -5131,9 +5125,10 @@ class FastSearchCard extends HTMLElement {
                 background: transparent !important;
             }
             
-            /* Für Browser die :has() nicht unterstützen */
+            /* Kein zusätzlicher Hintergrund für device-icon wenn Ring vorhanden */
             .device-card[data-has-ring="true"] .device-icon {
                 background: transparent !important;
+                padding: 0 !important;
             }
             
             /* Ring-Tile spezifische Hover-Effekte */
@@ -16923,7 +16918,7 @@ class FastSearchCard extends HTMLElement {
         const sensorValue = item.custom_data?.metadata?.sensor_state || 0;
         const min = ringConfig.min || 0;
         const max = ringConfig.max || 100;
-        const size = 52; // GEÄNDERT: Fixe Größe 52px wie device-icon
+        const size = 52; // Fixe Größe 52px wie device-icon
         
         // Berechne Prozentsatz für Ring-Füllung
         const percentage = Math.max(0, Math.min(100, ((sensorValue - min) / (max - min)) * 100));
@@ -16931,42 +16926,36 @@ class FastSearchCard extends HTMLElement {
         // Bestimme Farbe basierend auf Wert
         const color = this.getRingColor(sensorValue, ringConfig.colour, min, max);
         
-        // Debug-Log (kann später entfernt werden)
         console.log(`🔧 Ring-Tile: ${item.name} - Value: ${sensorValue}, Percentage: ${percentage}%, Color: ${color}`);
         
         return `
             <div class="ring-tile-icon ring-tile-full" style="width: ${size}px; height: ${size}px;" data-value="${sensorValue}" data-percentage="${percentage}">
-                <svg viewBox="0 0 50 50" style="width: 100%; height: 100%;">
-                    <!-- Transparenter Hintergrund zum Überlagern -->
+                <svg viewBox="0 0 60 60" style="width: 100%; height: 100%;">
+                    <!-- Hintergrund Ring (größer) -->
                     <circle 
-                        cx="25" cy="25" r="24" 
-                        fill="rgba(30, 30, 30, 0.95)"
+                        cx="30" cy="30" r="26" 
+                        stroke="rgba(255,255,255,0.15)" 
+                        stroke-width="4" 
+                        fill="rgba(255, 255, 255, 0.15)"
                     />
-                    <!-- Hintergrund Ring -->
+                    <!-- Wert Ring (größer) -->
                     <circle 
-                        cx="25" cy="25" r="20" 
-                        stroke="rgba(255,255,255,0.2)" 
-                        stroke-width="3" 
-                        fill="none"
-                    />
-                    <!-- Wert Ring -->
-                    <circle 
-                        cx="25" cy="25" r="20" 
+                        cx="30" cy="30" r="26" 
                         stroke="${color}" 
-                        stroke-width="3" 
+                        stroke-width="4" 
                         fill="none"
                         stroke-linecap="round"
-                        stroke-dasharray="${2 * Math.PI * 20}"
-                        stroke-dashoffset="${2 * Math.PI * 20 * (1 - percentage / 100)}"
-                        transform="rotate(-90 25 25)"
+                        stroke-dasharray="${2 * Math.PI * 26}"
+                        stroke-dashoffset="${2 * Math.PI * 26 * (1 - percentage / 100)}"
+                        transform="rotate(-90 30 30)"
                         style="transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;"
                     />
                     <!-- Optional: Wert in der Mitte -->
                     ${ringConfig.showValue ? `
                         <text 
-                            x="25" y="28" 
+                            x="30" y="34" 
                             text-anchor="middle" 
-                            font-size="10" 
+                            font-size="14" 
                             fill="${color}"
                             font-weight="600"
                             style="filter: drop-shadow(0 0 2px rgba(0,0,0,0.8));"
