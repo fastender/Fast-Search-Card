@@ -17185,7 +17185,7 @@ class FastSearchCard extends HTMLElement {
                         '400': '#c0392b'    // Sehr gefährlich
                     }
                 }
-            }
+            },
             
                     
             // Gas-Verbrauch
@@ -17231,7 +17231,7 @@ class FastSearchCard extends HTMLElement {
                         '10': '#ffaa00'     // Peak
                     }
                 }
-            }
+            },
             
             // Lautstärke/Lärm
             sound_pressure: {
@@ -17246,7 +17246,7 @@ class FastSearchCard extends HTMLElement {
                         '100': '#e74c3c'    // Gehörschäden möglich
                     }
                 }
-            }
+            },
             
             // WiFi Signal
             signal_strength: {
@@ -17291,7 +17291,7 @@ class FastSearchCard extends HTMLElement {
                         '90': '#e74c3c'     // Kritisch
                     }
                 }
-            }
+            },
                     
             // Wind
             wind_speed: {
@@ -17338,7 +17338,7 @@ class FastSearchCard extends HTMLElement {
                         '50': '#27ae60'     // Wolkenbruch
                     }
                 }
-            }
+            },
             
             // Entfernung/Distanz (z.B. für Ultraschall-Sensoren)
             distance: {
