@@ -6585,58 +6585,251 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    // 🎯 HILFSMETHODE: Extrahiere Area aus Namen (verbesserte Version)
+    // 2️⃣ ERWEITERTE extractAreaFromName() Funktion (ersetze deine bestehende)
     extractAreaFromName(name) {
         if (!name) return 'Ohne Raum';
         
-        const normalizedName = name.toLowerCase();
+        const normalizedName = name.toLowerCase().trim();
         
-        // Liste der echten Areas aus Home Assistant für Matching
+        // Cache für Performance
+        if (!this._areaKeywordCache) {
+            this._areaKeywordCache = this.buildAreaKeywordCache();
+        }
+        
+        // 1. PRIORITÄT: Exakte Übereinstimmung mit echten HA-Areas
         const realAreas = this._hass.areas ? 
-            Object.values(this._hass.areas).map(area => area.name.toLowerCase()) : [];
+            Object.values(this._hass.areas).map(area => ({
+                name: area.name,
+                normalized: area.name.toLowerCase().trim()
+            })) : [];
         
-        // Suche nach echten Area-Namen im Namen (case-insensitive)
-        for (const areaName of realAreas) {
-            if (normalizedName.includes(areaName)) {
-                // Finde die echte Area mit richtigem Case
-                const matchedArea = Object.values(this._hass.areas).find(area => 
-                    area.name.toLowerCase() === areaName
-                );
-                if (matchedArea) {
-                    return matchedArea.name;
+        for (const area of realAreas) {
+            if (normalizedName.includes(area.normalized)) {
+                return area.name;
+            }
+        }
+        
+        // 2. PRIORITÄT: Erweiterte Keyword-Erkennung
+        for (const [areaName, keywords] of Object.entries(this._areaKeywordCache)) {
+            for (const keyword of keywords) {
+                if (normalizedName.includes(keyword.toLowerCase())) {
+                    // Prüfe ob dieser Raum in Home Assistant existiert
+                    const existingArea = realAreas.find(area => 
+                        area.normalized === areaName.toLowerCase()
+                    );
+                    if (existingArea) {
+                        return existingArea.name;
+                    }
+                    // Fallback: Verwende Standard-Raumnamen
+                    return areaName;
                 }
             }
         }
         
-        // Zusätzliche Keywords für häufige Raum-Begriffe
-        const roomKeywords = {
-            'wohnzimmer': ['wohnzimmer', 'living', 'salon'],
-            'küche': ['küche', 'kitchen', 'kueche'],
-            'schlafzimmer': ['schlafzimmer', 'bedroom', 'schlafen'],
-            'bad': ['bad', 'bathroom', 'badezimmer'],
-            'arbeitszimmer': ['arbeitszimmer', 'office', 'büro', 'buero', 'arbeiten'],
-            'kinderzimmer': ['kinderzimmer', 'children', 'kids'],
-            'garten': ['garten', 'garden', 'outdoor'],
-            'garage': ['garage', 'carport'],
-            'keller': ['keller', 'basement', 'cellar']
-        };
-        
-        for (const [room, keywords] of Object.entries(roomKeywords)) {
-            if (keywords.some(keyword => normalizedName.includes(keyword))) {
-                // Prüfe ob dieser Raum in Home Assistant existiert
-                const existingArea = Object.values(this._hass.areas || {}).find(area => 
-                    area.name.toLowerCase() === room
-                );
-                if (existingArea) {
-                    return existingArea.name;
-                }
-                // Fallback: Nutze Keyword als Raumname
-                return room.charAt(0).toUpperCase() + room.slice(1);
+        // 3. PRIORITÄT: Partieller Match mit Wort-Grenzen
+        for (const area of realAreas) {
+            const areaWords = area.normalized.split(/[\s_-]+/);
+            const nameWords = normalizedName.split(/[\s_.-]+/);
+            
+            // Prüfe ob alle Wörter der Area im Namen vorkommen
+            const allWordsMatch = areaWords.every(areaWord => 
+                nameWords.some(nameWord => 
+                    nameWord.includes(areaWord) && areaWord.length > 2
+                )
+            );
+            
+            if (allWordsMatch) {
+                return area.name;
             }
         }
         
         return 'Ohne Raum';
     }
+    
+    // 3️⃣ NEUE FUNKTION: Area-Keyword-Cache erstellen
+    buildAreaKeywordCache() {
+        // Basis-Keywords für häufige Räume
+        const baseKeywords = {
+            'Wohnzimmer': ['wohnzimmer', 'living', 'salon', 'wohn', 'livingroom'],
+            'Küche': ['küche', 'kitchen', 'kueche', 'cook'],
+            'Schlafzimmer': ['schlafzimmer', 'bedroom', 'schlafen', 'sleep', 'master'],
+            'Badezimmer': ['badezimmer', 'bathroom', 'bad', 'bath', 'wc', 'toilette', 'toilet'],
+            'Arbeitszimmer': ['arbeitszimmer', 'office', 'büro', 'buero', 'arbeiten', 'work', 'study'],
+            'Kinderzimmer': ['kinderzimmer', 'children', 'kids', 'child', 'kinder'],
+            'Garten': ['garten', 'garden', 'outdoor', 'außen', 'outside', 'yard'],
+            'Garage': ['garage', 'carport', 'car'],
+            'Keller': ['keller', 'basement', 'cellar', 'unter'],
+            'Dachboden': ['dachboden', 'attic', 'dach', 'roof'],
+            'Flur': ['flur', 'hallway', 'gang', 'corridor', 'entrance', 'eingang'],
+            'Esszimmer': ['esszimmer', 'dining', 'ess', 'diningroom'],
+            'Gästezimmer': ['gästezimmer', 'guest', 'gaeste', 'gast'],
+            'Waschküche': ['waschküche', 'laundry', 'wasch', 'utility'],
+            'Terrasse': ['terrasse', 'terrace', 'balkon', 'balcony', 'patio'],
+            'Hauswirtschaft': ['hauswirtschaft', 'utility', 'technik', 'technical']
+        };
+        
+        // Erweitere um echte HA-Areas
+        const cache = { ...baseKeywords };
+        
+        if (this._hass.areas) {
+            Object.values(this._hass.areas).forEach(area => {
+                const areaName = area.name;
+                if (!cache[areaName]) {
+                    cache[areaName] = [];
+                }
+                
+                // Füge Variationen des Area-Namens hinzu
+                cache[areaName].push(
+                    areaName.toLowerCase(),
+                    areaName.toLowerCase().replace(/[\s_-]/g, ''),
+                    ...areaName.toLowerCase().split(/[\s_-]+/)
+                );
+            });
+        }
+        
+        return cache;
+    }
+    
+    // 4️⃣ NEUE FUNKTION: Area von ähnlichen Entities ableiten
+    findAreaFromSimilarEntities(entityId) {
+        if (!this.allItems) return 'Ohne Raum';
+        
+        // Basis-Name des Entity extrahieren (ohne Suffixe wie _2, _temperature, etc.)
+        const baseName = entityId.split('.')[1]
+            .replace(/_\d+$/, '')          // Entferne _1, _2, etc.
+            .replace(/_(temperature|humidity|battery|state|status)$/, '') // Entferne Sensor-Suffixe
+            .replace(/_(switch|light|sensor|binary_sensor)$/, ''); // Entferne Domain-Suffixe
+        
+        // Finde ähnliche Entities
+        const similarEntities = this.allItems.filter(item => {
+            if (item.id === entityId) return false; // Sich selbst ausschließen
+            
+            const itemBaseName = item.id.split('.')[1]
+                .replace(/_\d+$/, '')
+                .replace(/_(temperature|humidity|battery|state|status)$/, '')
+                .replace(/_(switch|light|sensor|binary_sensor)$/, '');
+                
+            return itemBaseName === baseName && item.area && item.area !== 'Ohne Raum';
+        });
+        
+        // Wenn ähnliche Entities eine gemeinsame Area haben, verwende diese
+        if (similarEntities.length > 0) {
+            const areas = [...new Set(similarEntities.map(item => item.area))];
+            if (areas.length === 1) {
+                return areas[0]; // Alle haben die gleiche Area
+            }
+        }
+        
+        return 'Ohne Raum';
+    }
+    
+    // 5️⃣ NEUE FUNKTION: Integration-basierte Area-Erkennung
+    detectAreaFromIntegration(entityId, state) {
+        // Verschiedene Integrationen haben eigene Namenskonventionen
+        
+        // ESPHome: meist format "room_device_sensor"
+        if (state.attributes.attribution?.includes('ESPHome') || 
+            entityId.includes('esphome')) {
+            const parts = entityId.split('.')[1].split('_');
+            if (parts.length >= 2) {
+                const potentialRoom = parts[0];
+                const detectedArea = this.extractAreaFromName(potentialRoom);
+                if (detectedArea !== 'Ohne Raum') {
+                    return detectedArea;
+                }
+            }
+        }
+        
+        // Zigbee2MQTT: Device-Namen enthalten oft Raum-Info
+        if (state.attributes.via_device?.includes('zigbee2mqtt') ||
+            entityId.includes('zigbee')) {
+            if (state.attributes.friendly_name) {
+                // Zigbee-Geräte haben oft beschreibende Namen
+                return this.extractAreaFromName(state.attributes.friendly_name);
+            }
+        }
+        
+        // Shelly: Meist format "shellydevice-room" oder ähnlich
+        if (entityId.includes('shelly') && state.attributes.friendly_name) {
+            return this.extractAreaFromName(state.attributes.friendly_name);
+        }
+        
+        // Tasmota: Ähnlich wie ESPHome
+        if (state.attributes.attribution?.includes('Tasmota') || 
+            entityId.includes('tasmota')) {
+            const parts = entityId.split('.')[1].split('_');
+            if (parts.length >= 2) {
+                const potentialRoom = parts[0];
+                return this.extractAreaFromName(potentialRoom);
+            }
+        }
+        
+        return 'Ohne Raum';
+    }
+
+
+    // 6️⃣ NEUE FUNKTION: Area-Caching für Performance
+    getEntityAreaWithCache(entityId, state, domain) {
+        // Cache-Key erstellen
+        const cacheKey = `${entityId}_${state.last_updated}`;
+        
+        // Cache initialisieren falls nicht vorhanden
+        if (!this._areaCache) {
+            this._areaCache = new Map();
+        }
+        
+        // Cache-Check
+        if (this._areaCache.has(cacheKey)) {
+            return this._areaCache.get(cacheKey);
+        }
+        
+        // Area ermitteln
+        let areaName;
+        if (domain === 'script') {
+            areaName = this.getScriptArea ? this.getScriptArea(entityId, state) : this.getEntityArea(entityId, state);
+        } else if (domain === 'scene') {
+            areaName = this.getSceneArea ? this.getSceneArea(entityId, state) : this.getEntityArea(entityId, state);
+        } else if (domain === 'automation') {
+            areaName = this.getAutomationArea ? this.getAutomationArea(entityId, state) : this.getEntityArea(entityId, state);
+        } else {
+            areaName = this.getEntityArea(entityId, state);
+        }
+        
+        // In Cache speichern (mit Größenbegrenzung)
+        if (this._areaCache.size > 1000) {
+            // Älteste Einträge löschen
+            const firstKey = this._areaCache.keys().next().value;
+            this._areaCache.delete(firstKey);
+        }
+        
+        this._areaCache.set(cacheKey, areaName);
+        return areaName;
+    }
+    
+    // 7️⃣ ERWEITERTE extractAreaFromName() mit Performance-Cache (optional)
+    extractAreaFromNameCached(name) {
+        if (!name) return 'Ohne Raum';
+        
+        // Cache für häufige Anfragen
+        if (!this._nameAreaCache) {
+            this._nameAreaCache = new Map();
+        }
+        
+        if (this._nameAreaCache.has(name)) {
+            return this._nameAreaCache.get(name);
+        }
+        
+        const result = this.extractAreaFromName(name);
+        
+        // Cache begrenzen
+        if (this._nameAreaCache.size > 500) {
+            this._nameAreaCache.clear();
+        }
+        
+        this._nameAreaCache.set(name, result);
+        return result;
+    }    
+
 
     async getScriptConfiguration(entityId) {
         try {
@@ -6759,63 +6952,71 @@ class FastSearchCard extends HTMLElement {
             return 'Ohne Raum';
         }
     }
-    
-    
+
+    // 1️⃣ ERWEITERTE getEntityArea() Funktion (ersetze deine bestehende)
     getEntityArea(entityId, state) {
-            try {
-                // 1. PRIORITÄT: Echte Home Assistant Area (Entity Registry)
-                if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
-                    const entityRegistry = this._hass.entities[entityId];
-                    if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
-                        const area = this._hass.areas[entityRegistry.area_id];
+        try {
+            // 1. PRIORITÄT: Echte Home Assistant Area (Entity Registry)
+            if (this._hass.areas && this._hass.entities && this._hass.entities[entityId]) {
+                const entityRegistry = this._hass.entities[entityId];
+                if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
+                    const area = this._hass.areas[entityRegistry.area_id];
+                    console.log(`🏠 Entity area found (registry): ${entityId} → ${area.name}`);
+                    return area.name;
+                }
+            }
+    
+            // 2. PRIORITÄT: Device-based Area (Device Registry)
+            if (this._hass.devices && this._hass.entities && this._hass.entities[entityId]) {
+                const entityRegistry = this._hass.entities[entityId];
+                if (entityRegistry.device_id && this._hass.devices[entityRegistry.device_id]) {
+                    const device = this._hass.devices[entityRegistry.device_id];
+                    
+                    if (device.area_id && this._hass.areas && this._hass.areas[device.area_id]) {
+                        const area = this._hass.areas[device.area_id];
+                        console.log(`🏠 Device area found: ${entityId} → ${area.name}`);
                         return area.name;
                     }
                 }
-    
-                // 2. PRIORITÄT: Device-based Area (Device Registry)
-                if (this._hass.devices && this._hass.entities && this._hass.entities[entityId]) {
-                    const entityRegistry = this._hass.entities[entityId];
-                    if (entityRegistry.device_id && this._hass.devices[entityRegistry.device_id]) {
-                        const device = this._hass.devices[entityRegistry.device_id];
-                        
-                        if (device.area_id && this._hass.areas && this._hass.areas[device.area_id]) {
-                            const area = this._hass.areas[device.area_id];
-                            return area.name;
-                        }
-                    }
-                }
-    
-                // 3. PRIORITÄT: Intelligente friendly_name Analyse
-                if (state.attributes.friendly_name) {
-                    const friendlyName = state.attributes.friendly_name;
-                    
-                    // Liste der echten Areas aus Home Assistant für Matching
-                    const realAreas = this._hass.areas ? Object.values(this._hass.areas).map(area => area.name.toLowerCase()) : [];
-                    
-                    // Suche nach echten Area-Namen im friendly_name (case-insensitive)
-                    for (const areaName of realAreas) {
-                        if (friendlyName.toLowerCase().includes(areaName)) {
-                            // Finde die echte Area mit richtigem Case
-                            const matchedArea = Object.values(this._hass.areas).find(area => 
-                                area.name.toLowerCase() === areaName
-                            );
-                            if (matchedArea) {
-                                return matchedArea.name;
-                            }
-                        }
-                    }
-                }
-                
-                // PURISTISCHER ANSATZ: Kein "Erstes-Wort-Fallback" mehr
-                // Wenn nichts Eindeutiges gefunden wird, ist es "Ohne Raum"
-                // Dies verhindert das Raten und fördert saubere Daten in Home Assistant
-                return 'Ohne Raum';
-                
-            } catch (error) {
-                console.warn(`❌ Error getting area for ${entityId}:`, error);
-                return 'Ohne Raum';
             }
+    
+            // 3. PRIORITÄT: Intelligente friendly_name Analyse (erweitert)
+            if (state.attributes.friendly_name) {
+                const detectedArea = this.extractAreaFromName(state.attributes.friendly_name);
+                if (detectedArea !== 'Ohne Raum') {
+                    console.log(`🏠 Area detected from name: ${entityId} → ${detectedArea}`);
+                    return detectedArea;
+                }
+            }
+            
+            // 🆕 4. PRIORITÄT: Entity-ID basierte Erkennung
+            const entityIdArea = this.extractAreaFromName(entityId);
+            if (entityIdArea !== 'Ohne Raum') {
+                console.log(`🏠 Area detected from entity_id: ${entityId} → ${entityIdArea}`);
+                return entityIdArea;
+            }
+            
+            // 🆕 5. PRIORITÄT: Ähnliche Entities in der gleichen Area (Gruppierung)
+            const similarArea = this.findAreaFromSimilarEntities(entityId);
+            if (similarArea !== 'Ohne Raum') {
+                console.log(`🏠 Area inferred from similar entities: ${entityId} → ${similarArea}`);
+                return similarArea;
+            }
+            
+            // 🆕 6. PRIORITÄT: Integration-basierte Area-Erkennung
+            const integrationArea = this.detectAreaFromIntegration(entityId, state);
+            if (integrationArea !== 'Ohne Raum') {
+                console.log(`🏠 Area detected from integration: ${entityId} → ${integrationArea}`);
+                return integrationArea;
+            }
+            
+            return 'Ohne Raum';
+            
+        } catch (error) {
+            console.warn(`❌ Error getting area for ${entityId}:`, error);
+            return 'Ohne Raum';
         }
+    }
  
     parseTemplateSensor(dataSource, sourceIndex = 0) {           
         const state = this._hass.states[dataSource.entity];
