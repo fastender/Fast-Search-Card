@@ -17004,7 +17004,7 @@ class FastSearchCard extends HTMLElement {
     // 4️⃣ Auto-Bereiche für verschiedene Sensor-Typen
     getAutoRangesForSensor(deviceClass, unit) {
         const ranges = {
-            // Temperatur Sensoren
+            // ✅ ALLE DEINE BESTEHENDEN RANGES (unverändert beibehalten)
             temperature: {
                 '°C': { 
                     min: 15, 
@@ -17030,7 +17030,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Luftfeuchtigkeit
             humidity: {
                 '%': { 
                     min: 30, 
@@ -17045,7 +17044,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Helligkeit/Beleuchtung
             illuminance: {
                 'lx': { 
                     min: 0, 
@@ -17060,7 +17058,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Batterie
             battery: {
                 '%': { 
                     min: 0, 
@@ -17075,7 +17072,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Luftdruck
             pressure: {
                 'hPa': { 
                     min: 980, 
@@ -17101,7 +17097,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // CO2
             'carbon_dioxide': {
                 'ppm': { 
                     min: 400, 
@@ -17116,7 +17111,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Energie/Power
             power: {
                 'W': { 
                     min: 0, 
@@ -17139,9 +17133,7 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
             },
-
     
-            // PM2.5 Feinstaub
             pm25: {
                 'µg/m³': {
                     min: 0,
@@ -17157,7 +17149,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // VOC (Flüchtige organische Verbindungen)
             volatile_organic_compounds: {
                 'ppb': {
                     min: 0,
@@ -17172,7 +17163,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Radon
             radon: {
                 'Bq/m³': {
                     min: 0,
@@ -17186,9 +17176,7 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
             },
-            
                     
-            // Gas-Verbrauch
             gas: {
                 'm³/h': {
                     min: 0,
@@ -17203,7 +17191,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Wasser-Verbrauch
             water: {
                 'L/min': {
                     min: 0,
@@ -17218,7 +17205,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Solar-Produktion
             solar_power: {
                 'kW': {
                     min: 0,
@@ -17233,7 +17219,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Lautstärke/Lärm
             sound_pressure: {
                 'dB': {
                     min: 30,
@@ -17248,7 +17233,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // WiFi Signal
             signal_strength: {
                 'dBm': {
                     min: -90,
@@ -17263,7 +17247,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Internet-Geschwindigkeit
             data_rate: {
                 'Mbit/s': {
                     min: 0,
@@ -17278,7 +17261,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // CPU Auslastung
             cpu_percent: {
                 '%': {
                     min: 0,
@@ -17293,7 +17275,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
                     
-            // Wind
             wind_speed: {
                 'km/h': {
                     min: 0,
@@ -17306,10 +17287,22 @@ class FastSearchCard extends HTMLElement {
                         '75': '#e67e22',    // Sturm
                         '100': '#e74c3c'    // Orkan
                     }
+                },
+                // 🆕 ZUSÄTZLICHE EINHEIT
+                'm/s': {
+                    min: 0,
+                    max: 30,
+                    colour: {
+                        '0': '#ecf0f1',     // Windstill
+                        '3': '#3498db',     // Leichte Brise
+                        '8': '#2ecc71',     // Frische Brise
+                        '14': '#f1c40f',    // Starker Wind
+                        '21': '#e67e22',    // Sturm
+                        '30': '#e74c3c'     // Orkan
+                    }
                 }
             },
             
-            // UV-Index
             uv_index: {
                 '': {  // Keine Einheit
                     min: 0,
@@ -17324,7 +17317,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Regen
             precipitation: {
                 'mm/h': {
                     min: 0,
@@ -17340,7 +17332,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Entfernung/Distanz (z.B. für Ultraschall-Sensoren)
             distance: {
                 'cm': {
                     min: 0,
@@ -17355,7 +17346,6 @@ class FastSearchCard extends HTMLElement {
                 }
             },
             
-            // Bodenfeuchte (für Pflanzen)
             moisture: {
                 '%': {
                     min: 0,
@@ -17369,31 +17359,197 @@ class FastSearchCard extends HTMLElement {
                         '100': '#1e3a8a'    // Nass
                     }
                 }
-            }      
+            },
             
+            // 🆕 ZUSÄTZLICHE SENSOR-TYPEN, die in deiner Version fehlen:
+            
+            // CO2 auch als "co2" alias (für verschiedene Integrationen)
+            co2: {
+                'ppm': { 
+                    min: 400, 
+                    max: 2000, 
+                    colour: { 
+                        '400': '#2ecc71',   // Sehr gut = Grün
+                        '800': '#f1c40f',   // Okay = Gelb
+                        '1200': '#e67e22',  // Schlecht = Orange
+                        '1600': '#e74c3c',  // Kritisch = Rot
+                        '2000': '#8e44ad'   // Sehr kritisch = Lila
+                    }
+                }
+            },
+            
+            // Energie-Verbrauch
+            energy: {
+                'kWh': {
+                    min: 0,
+                    max: 100,
+                    colour: {
+                        '0': '#2ecc71',     // Kein Verbrauch
+                        '20': '#f1c40f',    // Niedrig
+                        '40': '#e67e22',    // Moderat
+                        '60': '#e74c3c',    // Hoch
+                        '80': '#8b4513',    // Sehr hoch
+                        '100': '#800080'    // Extrem
+                    }
+                }
+            },
+            
+            // Spannung
+            voltage: {
+                'V': {
+                    min: 0,
+                    max: 230,
+                    colour: {
+                        '0': '#95a5a6',     // Aus
+                        '50': '#3498db',    // Niedrig
+                        '120': '#2ecc71',   // Normal
+                        '180': '#f1c40f',   // Erhöht
+                        '220': '#e67e22',   // Hoch
+                        '230': '#e74c3c'    // Kritisch
+                    }
+                }
+            },
+            
+            // Stromstärke
+            current: {
+                'A': {
+                    min: 0,
+                    max: 16,
+                    colour: {
+                        '0': '#95a5a6',     // Aus
+                        '2': '#2ecc71',     // Niedrig
+                        '6': '#f1c40f',     // Mäßig
+                        '10': '#e67e22',    // Hoch
+                        '13': '#e74c3c',    // Sehr hoch
+                        '16': '#8b4513'     // Kritisch
+                    }
+                }
+            },
+            
+            // AQI (Air Quality Index)
+            aqi: {
+                'AQI': {
+                    min: 0,
+                    max: 300,
+                    colour: {
+                        '0': '#2ecc71',     // Gut (0-50)
+                        '50': '#f1c40f',    // Mäßig (51-100)
+                        '100': '#e67e22',   // Ungesund für sensible Gruppen
+                        '150': '#e74c3c',   // Ungesund
+                        '200': '#8b4513',   // Sehr ungesund
+                        '300': '#800080'    // Gefährlich
+                    }
+                }
+            }
         };
         
-  
-                        
+        // ✅ DEINE BESTEHENDE LOGIK (beibehalten)
         // Direkte Suche nach device_class und unit
         if (deviceClass && ranges[deviceClass] && unit && ranges[deviceClass][unit]) {
             console.log(`🎯 Found exact match: ${deviceClass} + ${unit}`);
             return ranges[deviceClass][unit];
         }
         
+        // 🆕 ERWEITERTE INTELLIGENTE FALLBACK-LOGIK:
+        
+        // Fallback 1: Spezielle Umrechnungen
+        if (deviceClass === 'temperature' && unit === 'K' && ranges.temperature['°C']) {
+            const celsiusRange = ranges.temperature['°C'];
+            console.log(`🌡️ Converting Kelvin to Celsius ranges`);
+            return {
+                min: celsiusRange.min + 273.15,
+                max: celsiusRange.max + 273.15,
+                colour: Object.fromEntries(
+                    Object.entries(celsiusRange.colour).map(([temp, color]) => 
+                        [String(parseFloat(temp) + 273.15), color]
+                    )
+                )
+            };
+        }
+        
+        // Fallback 2: CO2 Aliases (verschiedene Integrationen nutzen verschiedene Namen)
+        if ((deviceClass === 'co2' || deviceClass === 'carbon_dioxide') && unit === 'ppm') {
+            if (ranges.carbon_dioxide?.['ppm']) {
+                console.log(`🌱 Using CO2 ranges for ${deviceClass}`);
+                return ranges.carbon_dioxide['ppm'];
+            }
+            if (ranges.co2?.['ppm']) {
+                console.log(`🌱 Using CO2 ranges for ${deviceClass}`);
+                return ranges.co2['ppm'];
+            }
+        }
+        
+        // Fallback 3: Unit-basierte intelligente Fallbacks
+        const smartUnitFallbacks = {
+            '%': (deviceClass) => {
+                // Für verschiedene %-Sensoren die passenden Ranges wählen
+                if (deviceClass?.includes('battery')) return ranges.battery?.['%'];
+                if (deviceClass?.includes('cpu')) return ranges.cpu_percent?.['%'];
+                if (deviceClass?.includes('moisture') || deviceClass?.includes('humidity')) {
+                    return ranges.moisture?.['%'] || ranges.humidity?.['%'];
+                }
+                // Generic % fallback
+                return { 
+                    min: 0, max: 100, 
+                    colour: { 
+                        '0': '#e74c3c', '25': '#f39c12', '50': '#f1c40f', 
+                        '75': '#2ecc71', '100': '#27ae60' 
+                    }
+                };
+            },
+            'W': () => ranges.power?.['W'],
+            'kW': () => ranges.power?.['kW'] || ranges.solar_power?.['kW'],
+            'V': () => ranges.voltage?.['V'],
+            'A': () => ranges.current?.['A'],
+            'lx': () => ranges.illuminance?.['lx'],
+            'ppm': (deviceClass) => {
+                if (deviceClass?.includes('co2') || deviceClass?.includes('carbon')) {
+                    return ranges.carbon_dioxide?.['ppm'] || ranges.co2?.['ppm'];
+                }
+                return ranges.volatile_organic_compounds?.['ppb']; // VOC als Fallback
+            },
+            'dB': () => ranges.sound_pressure?.['dB'],
+            'dBm': () => ranges.signal_strength?.['dBm'],
+            'hPa': () => ranges.pressure?.['hPa'],
+            'mbar': () => ranges.pressure?.['mbar'],
+            'µg/m³': () => ranges.pm25?.['µg/m³'],
+            'Bq/m³': () => ranges.radon?.['Bq/m³']
+        };
+        
+        if (unit && smartUnitFallbacks[unit]) {
+            const fallbackRange = smartUnitFallbacks[unit](deviceClass);
+            if (fallbackRange) {
+                console.log(`🔄 Using smart unit-based fallback for: ${unit} (device_class: ${deviceClass})`);
+                return fallbackRange;
+            }
+        }
+        
+        // ✅ DEINE BESTEHENDE FALLBACK-LOGIK (beibehalten)
         // Fallback: Suche nur nach device_class (erste verfügbare unit)
         if (deviceClass && ranges[deviceClass]) {
             const firstUnit = Object.keys(ranges[deviceClass])[0];
-            console.log(`⚠️  Using fallback: ${deviceClass} + ${firstUnit} (requested: ${unit})`);
+            console.log(`⚠️ Using fallback: ${deviceClass} + ${firstUnit} (requested: ${unit})`);
             return ranges[deviceClass][firstUnit];
+        }
+        
+        // 🆕 FINAL FALLBACK: Versuche ähnliche device_classes zu finden
+        if (deviceClass) {
+            const similarClasses = Object.keys(ranges).filter(key => 
+                key.includes(deviceClass) || deviceClass.includes(key)
+            );
+            
+            if (similarClasses.length > 0) {
+                const similarClass = similarClasses[0];
+                const firstUnit = Object.keys(ranges[similarClass])[0];
+                console.log(`🔍 Using similar device_class: ${similarClass} + ${firstUnit} (requested: ${deviceClass} + ${unit})`);
+                return ranges[similarClass][firstUnit];
+            }
         }
         
         // Kein Match gefunden
         console.log(`❌ No auto-range found for device_class="${deviceClass}", unit="${unit}"`);
         return null;
     }
-
-    
 
     
 }
