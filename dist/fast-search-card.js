@@ -6531,11 +6531,6 @@ class FastSearchCard extends HTMLElement {
     
     // 5️⃣ HELPER-FUNKTION für Kategorisierung (FÜGE HINZU):
     getCategoryForDomain(domain) {
-
-        // Alle Sensoren zu Custom
-        if (domain === 'sensor' || domain === 'binary_sensor') {
-            return 'custom';
-        }
         
         // Deine bestehende Domain-zu-Category-Logik
         if (['script', 'automation', 'scene', 'custom'].includes(domain)) {
