@@ -6360,6 +6360,38 @@ class FastSearchCard extends HTMLElement {
             .trim();
     }
 
+
+    // 3️⃣ FÜGE DIESE NEUE FUNKTION HINZU:
+    calculateDiscoveryQuality(entityId, state, areaName) {
+        let quality = 0.5; // Basis-Qualität
+        
+        // Area erkannt (+20%)
+        if (areaName && areaName !== 'Ohne Raum') quality += 0.2;
+        
+        // Device Class vorhanden (+10%)
+        if (state.attributes.device_class) quality += 0.1;
+        
+        // Friendly Name vorhanden (+10%)
+        if (state.attributes.friendly_name) quality += 0.1;
+        
+        // Icon vorhanden (+5%)
+        if (state.attributes.icon) quality += 0.05;
+        
+        // Kürzlich aktualisiert (+10%)
+        const hoursOld = (Date.now() - new Date(state.last_updated).getTime()) / (1000 * 60 * 60);
+        if (hoursOld < 1) quality += 0.1;
+        else if (hoursOld < 24) quality += 0.05;
+        
+        // Aktiver State (+5%)
+        if (!['unknown', 'unavailable'].includes(state.state)) quality += 0.05;
+        
+        // Unit of Measurement (+5% - für Sensoren)
+        if (state.attributes.unit_of_measurement) quality += 0.05;
+        
+        return Math.min(quality, 1.0);
+    }
+    
+    // 4️⃣ ERSETZE deine bestehende discoverEntities() Funktion (um Zeile ~2600):
     async discoverEntities() {
         if (!this._hass) {
             console.warn('HASS not available for auto-discovery');
@@ -6367,8 +6399,23 @@ class FastSearchCard extends HTMLElement {
         }
         
         try {
+            console.log('🔍 Starting enhanced auto-discovery...');
+            const startTime = performance.now();
+            
+            // 🆕 DISCOVERY-STATISTIKEN
+            const stats = {
+                total: 0,
+                filtered_by_domain: 0,
+                filtered_by_area: 0,
+                filtered_by_quality: 0,
+                filtered_by_system: 0,
+                manual_entities: 0,
+                areas_assigned: 0
+            };
+            
             const discoveredEntities = [];
             const manualEntityIds = new Set((this._config.entities || []).map(e => e.entity));
+            stats.manual_entities = manualEntityIds.size;
             
             // Durch alle Entitäten in Home Assistant gehen
             for (const entityId in this._hass.states) {
@@ -6376,17 +6423,41 @@ class FastSearchCard extends HTMLElement {
                     const state = this._hass.states[entityId];
                     if (!state) continue;
                     
+                    stats.total++;
+                    
                     // Skip wenn bereits manuell definiert
                     if (manualEntityIds.has(entityId)) continue;
                     
                     const domain = entityId.split('.')[0];
                     
                     // Domain-Filter anwenden
-                    if (this._config.include_domains.length > 0 && !this._config.include_domains.includes(domain)) continue;
-                    if (this._config.exclude_domains.includes(domain)) continue;
+                    if (this._config.include_domains.length > 0 && 
+                        !this._config.include_domains.includes(domain)) {
+                        stats.filtered_by_domain++;
+                        continue;
+                    }
+                    if (this._config.exclude_domains.includes(domain)) {
+                        stats.filtered_by_domain++;
+                        continue;
+                    }
                     
                     // Entity-Filter anwenden
-                    if (this._config.exclude_entities.includes(entityId)) continue;
+                    if (this._config.exclude_entities.includes(entityId)) {
+                        stats.filtered_by_domain++;
+                        continue;
+                    }
+                    
+                    // 🆕 SYSTEM-ENTITY-FILTER mit Statistik
+                    if (this.isSystemEntity(entityId, state)) {
+                        stats.filtered_by_system++;
+                        continue;
+                    }
+                    
+                    // 🆕 QUALITÄTS-FILTER mit Statistik
+                    if (!this.meetsQualityThreshold(entityId, state)) {
+                        stats.filtered_by_quality++;
+                        continue;
+                    }
                     
                     // INTELLIGENTE AREA-ERMITTLUNG basierend auf Domain
                     let areaName;
@@ -6402,11 +6473,19 @@ class FastSearchCard extends HTMLElement {
                     }
                     
                     // Area-Filter anwenden
-                    if (this._config.include_areas.length > 0 && !this._config.include_areas.includes(areaName)) continue;
-                    if (this._config.exclude_areas.includes(areaName)) continue;
+                    if (this._config.include_areas.length > 0 && 
+                        !this._config.include_areas.includes(areaName)) {
+                        stats.filtered_by_area++;
+                        continue;
+                    }
+                    if (this._config.exclude_areas.includes(areaName)) {
+                        stats.filtered_by_area++;
+                        continue;
+                    }
                     
-                    // Versteckte/System-Entitäten überspringen
-                    if (this.isSystemEntity(entityId, state)) continue;
+                    if (areaName && areaName !== 'Ohne Raum') {
+                        stats.areas_assigned++;
+                    }
                     
                     // Auto-discovered Entity erstellen
                     discoveredEntities.push({
@@ -6415,23 +6494,54 @@ class FastSearchCard extends HTMLElement {
                         area: areaName,
                         auto_discovered: true,
                         domain: domain,
-                        category: this.categorizeEntity(domain)
+                        category: this.getCategoryForDomain(domain), // ← VERWENDE DEINE LOGIK
+                        // 🆕 QUALITÄTS-SCORE hinzufügen
+                        discovery_quality: this.calculateDiscoveryQuality(entityId, state, areaName)
                     });
                     
                 } catch (entityError) {
                     console.warn(`Error processing entity ${entityId}:`, entityError);
-                    continue; // Skip problematic entity
+                    continue;
                 }
             }
             
-            console.log(`Auto-discovered ${discoveredEntities.length} entities`);
+            // 🆕 DISCOVERY-STATISTIKEN AUSGEBEN
+            const discoveryTime = performance.now() - startTime;
+            const efficiency = Math.round((discoveredEntities.length / stats.total) * 100);
+            
+            console.log('📊 Enhanced Discovery Statistics:', {
+                ...stats,
+                discovered: discoveredEntities.length,
+                discovery_time_ms: Math.round(discoveryTime),
+                efficiency_percent: efficiency,
+                area_coverage: Math.round((stats.areas_assigned / discoveredEntities.length) * 100)
+            });
+            
+            // 🆕 QUALITÄTSSORTIERUNG
+            discoveredEntities.sort((a, b) => (b.discovery_quality || 0) - (a.discovery_quality || 0));
+            
+            console.log(`✅ Auto-discovered ${discoveredEntities.length} high-quality entities from ${stats.total} total`);
             return discoveredEntities;
             
         } catch (error) {
-            console.error('Error in auto-discovery:', error);
-            return []; // Fallback to empty array
+            console.error('Error in enhanced auto-discovery:', error);
+            return [];
         }
     }
+    
+    // 5️⃣ HELPER-FUNKTION für Kategorisierung (FÜGE HINZU):
+    getCategoryForDomain(domain) {
+        // Deine bestehende Domain-zu-Category-Logik
+        if (['script', 'automation', 'scene', 'custom'].includes(domain)) {
+            if (domain === 'script') return 'scripts';
+            if (domain === 'automation') return 'automations';
+            if (domain === 'scene') return 'scenes';
+            if (domain === 'custom') return 'custom';
+        }
+        return 'devices'; // Default für alle anderen
+    }
+
+    
 
     async getScriptArea(entityId, state) {
         try {
@@ -7232,20 +7342,133 @@ class FastSearchCard extends HTMLElement {
         
         return keyMappings[key] || null;
     }    
-    
+
+    // 1️⃣ ERSETZE deine bestehende isSystemEntity() Funktion (finde sie und ersetze komplett):
     isSystemEntity(entityId, state) {
-        // System-Entitäten überspringen
+        // ✅ DEINE BESTEHENDEN CHECKS (beibehalten)
         const systemPrefixes = ['sun.', 'zone.', 'persistent_notification.', 'updater.'];
         if (systemPrefixes.some(prefix => entityId.startsWith(prefix))) return true;
         
-        // Versteckte Entitäten
         if (state.attributes.hidden === true) return true;
         
-        // Entitäten ohne friendly_name (meist system)
         if (!state.attributes.friendly_name && !entityId.includes('_')) return true;
         
+        // 🆕 ERWEITERTE SYSTEM-ENTITY-PATTERNS
+        const advancedSystemPatterns = [
+            // Home Assistant System
+            /^(homeassistant|hass|config|configurator)\./,
+            /^(hassio|supervisor|addon_)/,
+            /^(system_log|recorder|logbook|history)\./,
+            
+            // ESPHome System-Entities
+            /^(sensor\..*_(wifi_signal|uptime|free_heap|heap_used|status))/i,
+            /^(binary_sensor\..*_(status|api_connected|ota_update))/i,
+            
+            // Zigbee2MQTT System
+            /^(sensor\..*_(linkquality|last_seen|coordinator_version))/i,
+            /^(switch\..*_(permit_join|restart))/i,
+            
+            // Tasmota System
+            /^(sensor\..*_(heap|wifi|rssi|uptime|restart_reason))/i,
+            
+            // Integration Updates/Status
+            /^(binary_sensor\..*_update_available)/,
+            /^(sensor\..*_(version|status|state)$)/i,
+            /^(update\.)/,
+            
+            // HACS
+            /^(sensor\.hacs)/,
+            
+            // Versteckte/Technische Attribute
+            /\.(last_changed|last_updated|context)$/,
+            
+            // Template-Helper mit technischen Namen
+            /^(input_.*_helper_)/,
+            /^(timer\.|counter\.|var\.)/
+        ];
+        
+        if (advancedSystemPatterns.some(pattern => pattern.test(entityId))) {
+            console.log(`🚫 System entity filtered: ${entityId}`);
+            return true;
+        }
+        
+        // 🆕 ERWEITERTE ATTRIBUTE-PRÜFUNGEN
+        if (state.attributes) {
+            // System Device Classes
+            const systemDeviceClasses = [
+                'update', 'timestamp', 'enum', 'running', 'connectivity',
+                'update_available', 'problem', 'diagnostic'
+            ];
+            if (systemDeviceClasses.includes(state.attributes.device_class)) {
+                console.log(`🚫 System device_class filtered: ${entityId} (${state.attributes.device_class})`);
+                return true;
+            }
+            
+            // Entity Category = diagnostic (Home Assistant System)
+            if (state.attributes.entity_category === 'diagnostic') {
+                console.log(`🚫 Diagnostic entity filtered: ${entityId}`);
+                return true;
+            }
+            
+            // Entities ohne Icon und mit technischen Namen
+            if (!state.attributes.icon && 
+                !state.attributes.friendly_name && 
+                entityId.match(/.*_[0-9a-f]{8,}/)) {
+                console.log(`🚫 Technical entity filtered: ${entityId}`);
+                return true;
+            }
+            
+            // Restore-State Entities (nach HA Neustart)
+            if (state.attributes.restored === true && 
+                ['unknown', 'unavailable'].includes(state.state)) {
+                console.log(`🚫 Restored unavailable entity filtered: ${entityId}`);
+                return true;
+            }
+        }
+        
         return false;
-    }    
+    }
+    
+    // 2️⃣ FÜGE DIESE NEUE FUNKTION HINZU (z.B. nach isSystemEntity):
+    meetsQualityThreshold(entityId, state) {
+        // Keine "unknown" oder "unavailable" States für längere Zeit
+        if (['unknown', 'unavailable', 'None', 'null'].includes(state.state)) {
+            const lastUpdated = new Date(state.last_updated);
+            const hoursSinceUpdate = (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60);
+            
+            if (hoursSinceUpdate > 24) {
+                console.log(`🚫 Quality: Entity unavailable >24h: ${entityId}`);
+                return false;
+            }
+        }
+        
+        // Entities ohne friendly_name und mit technischen IDs ausschließen
+        if (!state.attributes.friendly_name && entityId.match(/.*_[0-9a-f]{8,}/)) {
+            console.log(`🚫 Quality: Technical ID without friendly_name: ${entityId}`);
+            return false;
+        }
+        
+        // Entities die sehr lange nicht aktualisiert wurden
+        const lastUpdated = new Date(state.last_updated);
+        const daysSinceUpdate = (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
+        
+        if (daysSinceUpdate > 30) {
+            console.log(`🚫 Quality: Not updated for >30 days: ${entityId}`);
+            return false;
+        }
+        
+        // Zu kurze/kryptische Namen
+        if (state.attributes.friendly_name) {
+            const name = state.attributes.friendly_name.toLowerCase();
+            if (name.length < 3 || name.match(/^[a-f0-9]{8,}$/)) {
+                console.log(`🚫 Quality: Cryptic name: ${entityId} (${name})`);
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
 
     getSubcategoryStatusText(subcategory, count) {
         const textMap = { 'lights': 'An', 'climate': 'Aktiv', 'covers': 'Offen', 'media': 'Aktiv' };
