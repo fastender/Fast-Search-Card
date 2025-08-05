@@ -17139,237 +17139,241 @@ class FastSearchCard extends HTMLElement {
                     }
                 }
             }
+
+    
+            // PM2.5 Feinstaub
+            pm25: {
+                'µg/m³': {
+                    min: 0,
+                    max: 100,
+                    colour: {
+                        '0': '#00e400',     // Exzellent = Grün
+                        '12': '#ffff00',    // Gut = Gelb
+                        '35': '#ff7e00',    // Moderat = Orange
+                        '55': '#ff0000',    // Ungesund = Rot
+                        '150': '#8f3f97',   // Sehr ungesund = Lila
+                        '250': '#7e0023'    // Gefährlich = Dunkelrot
+                    }
+                }
+            },
+            
+            // VOC (Flüchtige organische Verbindungen)
+            volatile_organic_compounds: {
+                'ppb': {
+                    min: 0,
+                    max: 2000,
+                    colour: {
+                        '0': '#2ecc71',     // Exzellent
+                        '220': '#f1c40f',   // Gut
+                        '660': '#e67e22',   // Moderat
+                        '1430': '#e74c3c',  // Schlecht
+                        '2000': '#8e44ad'   // Sehr schlecht
+                    }
+                }
+            },
+            
+            // Radon
+            radon: {
+                'Bq/m³': {
+                    min: 0,
+                    max: 400,
+                    colour: {
+                        '0': '#2ecc71',     // Sicher
+                        '100': '#f1c40f',   // Erhöht
+                        '200': '#e67e22',   // Warnung
+                        '300': '#e74c3c',   // Gefährlich
+                        '400': '#c0392b'    // Sehr gefährlich
+                    }
+                }
+            }
+            
+                    
+            // Gas-Verbrauch
+            gas: {
+                'm³/h': {
+                    min: 0,
+                    max: 5,
+                    colour: {
+                        '0': '#2ecc71',     // Kein Verbrauch
+                        '0.5': '#3498db',   // Minimal
+                        '1': '#f1c40f',     // Normal
+                        '2': '#e67e22',     // Hoch
+                        '5': '#e74c3c'      // Sehr hoch
+                    }
+                }
+            },
+            
+            // Wasser-Verbrauch
+            water: {
+                'L/min': {
+                    min: 0,
+                    max: 20,
+                    colour: {
+                        '0': '#ecf0f1',     // Kein Fluss
+                        '2': '#3498db',     // Tropfen
+                        '5': '#2980b9',     // Normal
+                        '10': '#f39c12',    // Hoch
+                        '20': '#e74c3c'     // Verschwendung
+                    }
+                }
+            },
+            
+            // Solar-Produktion
+            solar_power: {
+                'kW': {
+                    min: 0,
+                    max: 10,
+                    colour: {
+                        '0': '#34495e',     // Nacht
+                        '1': '#f39c12',     // Morgen
+                        '3': '#f1c40f',     // Bewölkt
+                        '5': '#ffd700',     // Sonnig
+                        '10': '#ffaa00'     // Peak
+                    }
+                }
+            }
+            
+            // Lautstärke/Lärm
+            sound_pressure: {
+                'dB': {
+                    min: 30,
+                    max: 100,
+                    colour: {
+                        '30': '#2ecc71',    // Flüstern
+                        '50': '#3498db',    // Ruhiges Büro
+                        '70': '#f1c40f',    // Normale Unterhaltung
+                        '85': '#e67e22',    // Stadtverkehr
+                        '100': '#e74c3c'    // Gehörschäden möglich
+                    }
+                }
+            }
+            
+            // WiFi Signal
+            signal_strength: {
+                'dBm': {
+                    min: -90,
+                    max: -30,
+                    colour: {
+                        '-90': '#e74c3c',   // Sehr schwach
+                        '-80': '#e67e22',   // Schwach
+                        '-70': '#f1c40f',   // Fair
+                        '-60': '#2ecc71',   // Gut
+                        '-30': '#27ae60'    // Exzellent
+                    }
+                }
+            },
+            
+            // Internet-Geschwindigkeit
+            data_rate: {
+                'Mbit/s': {
+                    min: 0,
+                    max: 1000,
+                    colour: {
+                        '0': '#e74c3c',     // Offline
+                        '10': '#e67e22',    // Langsam
+                        '50': '#f1c40f',    // Okay
+                        '100': '#2ecc71',   // Schnell
+                        '1000': '#3498db'   // Gigabit
+                    }
+                }
+            },
+            
+            // CPU Auslastung
+            cpu_percent: {
+                '%': {
+                    min: 0,
+                    max: 100,
+                    colour: {
+                        '0': '#2ecc71',     // Idle
+                        '25': '#3498db',    // Leicht
+                        '50': '#f1c40f',    // Moderat
+                        '75': '#e67e22',    // Hoch
+                        '90': '#e74c3c'     // Kritisch
+                    }
+                }
+            }
+                    
+            // Wind
+            wind_speed: {
+                'km/h': {
+                    min: 0,
+                    max: 100,
+                    colour: {
+                        '0': '#ecf0f1',     // Windstill
+                        '10': '#3498db',    // Leichte Brise
+                        '30': '#2ecc71',    // Frische Brise
+                        '50': '#f1c40f',    // Starker Wind
+                        '75': '#e67e22',    // Sturm
+                        '100': '#e74c3c'    // Orkan
+                    }
+                }
+            },
+            
+            // UV-Index
+            uv_index: {
+                '': {  // Keine Einheit
+                    min: 0,
+                    max: 11,
+                    colour: {
+                        '0': '#2ecc71',     // Niedrig
+                        '3': '#f1c40f',     // Moderat
+                        '6': '#e67e22',     // Hoch
+                        '8': '#e74c3c',     // Sehr hoch
+                        '11': '#8e44ad'     // Extrem
+                    }
+                }
+            },
+            
+            // Regen
+            precipitation: {
+                'mm/h': {
+                    min: 0,
+                    max: 50,
+                    colour: {
+                        '0': '#ecf0f1',     // Trocken
+                        '1': '#3498db',     // Nieselregen
+                        '5': '#2980b9',     // Leichter Regen
+                        '15': '#1abc9c',    // Mäßiger Regen
+                        '30': '#16a085',    // Starker Regen
+                        '50': '#27ae60'     // Wolkenbruch
+                    }
+                }
+            }
+            
+            // Entfernung/Distanz (z.B. für Ultraschall-Sensoren)
+            distance: {
+                'cm': {
+                    min: 0,
+                    max: 400,
+                    colour: {
+                        '0': '#e74c3c',     // Zu nah
+                        '50': '#e67e22',    // Nah
+                        '150': '#f1c40f',   // Mittel
+                        '300': '#2ecc71',   // Entfernt
+                        '400': '#3498db'    // Weit weg
+                    }
+                }
+            },
+            
+            // Bodenfeuchte (für Pflanzen)
+            moisture: {
+                '%': {
+                    min: 0,
+                    max: 100,
+                    colour: {
+                        '0': '#8b4513',     // Knochentrocken
+                        '20': '#e74c3c',    // Zu trocken
+                        '40': '#f39c12',    // Trocken
+                        '60': '#2ecc71',    // Optimal
+                        '80': '#3498db',    // Feucht
+                        '100': '#1e3a8a'    // Nass
+                    }
+                }
+            }      
+            
         };
         
-        // PM2.5 Feinstaub
-        pm25: {
-            'µg/m³': {
-                min: 0,
-                max: 100,
-                colour: {
-                    '0': '#00e400',     // Exzellent = Grün
-                    '12': '#ffff00',    // Gut = Gelb
-                    '35': '#ff7e00',    // Moderat = Orange
-                    '55': '#ff0000',    // Ungesund = Rot
-                    '150': '#8f3f97',   // Sehr ungesund = Lila
-                    '250': '#7e0023'    // Gefährlich = Dunkelrot
-                }
-            }
-        },
-        
-        // VOC (Flüchtige organische Verbindungen)
-        volatile_organic_compounds: {
-            'ppb': {
-                min: 0,
-                max: 2000,
-                colour: {
-                    '0': '#2ecc71',     // Exzellent
-                    '220': '#f1c40f',   // Gut
-                    '660': '#e67e22',   // Moderat
-                    '1430': '#e74c3c',  // Schlecht
-                    '2000': '#8e44ad'   // Sehr schlecht
-                }
-            }
-        },
-        
-        // Radon
-        radon: {
-            'Bq/m³': {
-                min: 0,
-                max: 400,
-                colour: {
-                    '0': '#2ecc71',     // Sicher
-                    '100': '#f1c40f',   // Erhöht
-                    '200': '#e67e22',   // Warnung
-                    '300': '#e74c3c',   // Gefährlich
-                    '400': '#c0392b'    // Sehr gefährlich
-                }
-            }
-        }
-        
-                
-        // Gas-Verbrauch
-        gas: {
-            'm³/h': {
-                min: 0,
-                max: 5,
-                colour: {
-                    '0': '#2ecc71',     // Kein Verbrauch
-                    '0.5': '#3498db',   // Minimal
-                    '1': '#f1c40f',     // Normal
-                    '2': '#e67e22',     // Hoch
-                    '5': '#e74c3c'      // Sehr hoch
-                }
-            }
-        },
-        
-        // Wasser-Verbrauch
-        water: {
-            'L/min': {
-                min: 0,
-                max: 20,
-                colour: {
-                    '0': '#ecf0f1',     // Kein Fluss
-                    '2': '#3498db',     // Tropfen
-                    '5': '#2980b9',     // Normal
-                    '10': '#f39c12',    // Hoch
-                    '20': '#e74c3c'     // Verschwendung
-                }
-            }
-        },
-        
-        // Solar-Produktion
-        solar_power: {
-            'kW': {
-                min: 0,
-                max: 10,
-                colour: {
-                    '0': '#34495e',     // Nacht
-                    '1': '#f39c12',     // Morgen
-                    '3': '#f1c40f',     // Bewölkt
-                    '5': '#ffd700',     // Sonnig
-                    '10': '#ffaa00'     // Peak
-                }
-            }
-        }
-        
-        // Lautstärke/Lärm
-        sound_pressure: {
-            'dB': {
-                min: 30,
-                max: 100,
-                colour: {
-                    '30': '#2ecc71',    // Flüstern
-                    '50': '#3498db',    // Ruhiges Büro
-                    '70': '#f1c40f',    // Normale Unterhaltung
-                    '85': '#e67e22',    // Stadtverkehr
-                    '100': '#e74c3c'    // Gehörschäden möglich
-                }
-            }
-        }
-        
-        // WiFi Signal
-        signal_strength: {
-            'dBm': {
-                min: -90,
-                max: -30,
-                colour: {
-                    '-90': '#e74c3c',   // Sehr schwach
-                    '-80': '#e67e22',   // Schwach
-                    '-70': '#f1c40f',   // Fair
-                    '-60': '#2ecc71',   // Gut
-                    '-30': '#27ae60'    // Exzellent
-                }
-            }
-        },
-        
-        // Internet-Geschwindigkeit
-        data_rate: {
-            'Mbit/s': {
-                min: 0,
-                max: 1000,
-                colour: {
-                    '0': '#e74c3c',     // Offline
-                    '10': '#e67e22',    // Langsam
-                    '50': '#f1c40f',    // Okay
-                    '100': '#2ecc71',   // Schnell
-                    '1000': '#3498db'   // Gigabit
-                }
-            }
-        },
-        
-        // CPU Auslastung
-        cpu_percent: {
-            '%': {
-                min: 0,
-                max: 100,
-                colour: {
-                    '0': '#2ecc71',     // Idle
-                    '25': '#3498db',    // Leicht
-                    '50': '#f1c40f',    // Moderat
-                    '75': '#e67e22',    // Hoch
-                    '90': '#e74c3c'     // Kritisch
-                }
-            }
-        }
-                
-        // Wind
-        wind_speed: {
-            'km/h': {
-                min: 0,
-                max: 100,
-                colour: {
-                    '0': '#ecf0f1',     // Windstill
-                    '10': '#3498db',    // Leichte Brise
-                    '30': '#2ecc71',    // Frische Brise
-                    '50': '#f1c40f',    // Starker Wind
-                    '75': '#e67e22',    // Sturm
-                    '100': '#e74c3c'    // Orkan
-                }
-            }
-        },
-        
-        // UV-Index
-        uv_index: {
-            '': {  // Keine Einheit
-                min: 0,
-                max: 11,
-                colour: {
-                    '0': '#2ecc71',     // Niedrig
-                    '3': '#f1c40f',     // Moderat
-                    '6': '#e67e22',     // Hoch
-                    '8': '#e74c3c',     // Sehr hoch
-                    '11': '#8e44ad'     // Extrem
-                }
-            }
-        },
-        
-        // Regen
-        precipitation: {
-            'mm/h': {
-                min: 0,
-                max: 50,
-                colour: {
-                    '0': '#ecf0f1',     // Trocken
-                    '1': '#3498db',     // Nieselregen
-                    '5': '#2980b9',     // Leichter Regen
-                    '15': '#1abc9c',    // Mäßiger Regen
-                    '30': '#16a085',    // Starker Regen
-                    '50': '#27ae60'     // Wolkenbruch
-                }
-            }
-        }
-        
-        // Entfernung/Distanz (z.B. für Ultraschall-Sensoren)
-        distance: {
-            'cm': {
-                min: 0,
-                max: 400,
-                colour: {
-                    '0': '#e74c3c',     // Zu nah
-                    '50': '#e67e22',    // Nah
-                    '150': '#f1c40f',   // Mittel
-                    '300': '#2ecc71',   // Entfernt
-                    '400': '#3498db'    // Weit weg
-                }
-            }
-        },
-        
-        // Bodenfeuchte (für Pflanzen)
-        moisture: {
-            '%': {
-                min: 0,
-                max: 100,
-                colour: {
-                    '0': '#8b4513',     // Knochentrocken
-                    '20': '#e74c3c',    // Zu trocken
-                    '40': '#f39c12',    // Trocken
-                    '60': '#2ecc71',    // Optimal
-                    '80': '#3498db',    // Feucht
-                    '100': '#1e3a8a'    // Nass
-                }
-            }
-        }        
+  
                         
         // Direkte Suche nach device_class und unit
         if (deviceClass && ranges[deviceClass] && unit && ranges[deviceClass][unit]) {
