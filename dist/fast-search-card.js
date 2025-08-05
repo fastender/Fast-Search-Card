@@ -17138,7 +17138,7 @@ class FastSearchCard extends HTMLElement {
                         '2.5': '#e74c3c'
                     }
                 }
-            }
+            },
 
     
             // PM2.5 Feinstaub
