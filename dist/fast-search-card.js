@@ -374,9 +374,13 @@ class FastSearchCard extends HTMLElement {
             include_areas: [], // Leer = alle Areas
             exclude_areas: [],
             
+            // 🆕 NEUE CUSTOM AUTO-DISCOVERY OPTIONS
+            custom_auto_discover: false,  // Default: aus - User muss explizit aktivieren
+            custom_auto_discover_sensor_types: [], // Leer = alle interessanten, Array = nur spezifische
+            
             // Bestehend: Manual entities (optional)
             entities: config.entities || [],
-
+            
             custom_mode: {
                 enabled: false,
                 data_sources: [],
@@ -386,7 +390,7 @@ class FastSearchCard extends HTMLElement {
                 area: 'Custom',
                 ...config.custom_mode
             },
-
+            
             // Fügen Sie DANACH diese Zeile hinzu:
             action_favorites: config.action_favorites || {},            
                                 
@@ -398,17 +402,36 @@ class FastSearchCard extends HTMLElement {
         const hasEntities = this._config.entities && this._config.entities.length > 0;
         const hasCustomMode = this._config.custom_mode && this._config.custom_mode.enabled;
         
-        // NEU: Custom Mode Validierung
+        // NEU: Custom Mode Validierung (erweitert um Auto-Discovery)
         let hasValidCustomData = false;
         if (hasCustomMode) {
             const hasMultipleSources = this._config.custom_mode.data_sources && 
                                       this._config.custom_mode.data_sources.length > 0;
             const hasLegacySource = this._config.custom_mode.data_source;
-            hasValidCustomData = hasMultipleSources || hasLegacySource;
+            const hasCustomAutoDiscover = this._config.custom_auto_discover; // 🆕 NEU
+            
+            hasValidCustomData = hasMultipleSources || hasLegacySource || hasCustomAutoDiscover;
         }
         
         if (!hasAutoDiscover && !hasEntities && !hasValidCustomData) {
             throw new Error('Either auto_discover must be true, entities must be provided, or custom_mode must be enabled with valid data sources');
+        }
+        
+        // 🆕 ZUSÄTZLICHE VALIDIERUNG für Custom Auto-Discovery
+        if (this._config.custom_auto_discover && !this._config.custom_mode.enabled) {
+            console.warn('⚠️ custom_auto_discover is enabled but custom_mode is disabled. Sensors will be ignored.');
+        }
+        
+        // 🆕 DEBUG INFO für User
+        if (this._config.custom_auto_discover) {
+            const sensorTypes = this._config.custom_auto_discover_sensor_types;
+            if (sensorTypes.length > 0) {
+                console.log(`📊 Custom Auto-Discovery enabled for sensor types:`, sensorTypes);
+            } else {
+                console.log(`📊 Custom Auto-Discovery enabled for all interesting sensors`);
+            }
+        } else {
+            console.log(`📊 Custom Auto-Discovery disabled - only manual custom data sources`);
         }
         
         this.currentViewMode = this._config.default_view || 'grid';
@@ -6402,13 +6425,15 @@ class FastSearchCard extends HTMLElement {
             console.log('🔍 Starting enhanced auto-discovery...');
             const startTime = performance.now();
             
-            // 🆕 DISCOVERY-STATISTIKEN
+            // 🆕 DISCOVERY-STATISTIKEN (erweitert)
             const stats = {
                 total: 0,
                 filtered_by_domain: 0,
                 filtered_by_area: 0,
                 filtered_by_quality: 0,
                 filtered_by_system: 0,
+                sensors_excluded: 0,      // 🆕 NEU
+                sensors_to_custom: 0,     // 🆕 NEU
                 manual_entities: 0,
                 areas_assigned: 0
             };
@@ -6429,6 +6454,68 @@ class FastSearchCard extends HTMLElement {
                     if (manualEntityIds.has(entityId)) continue;
                     
                     const domain = entityId.split('.')[0];
+                    
+                    // 🎛️ SENSOR HANDLING basierend auf User-Einstellungen
+                    if (domain === 'sensor' || domain === 'binary_sensor') {
+                        // Option 1: Custom Auto-Discovery ist aktiviert
+                        if (this._config.custom_auto_discover && this._config.custom_mode.enabled) {
+                            
+                            // System-Entity-Filter auch für Sensoren
+                            if (this.isSystemEntity(entityId, state)) {
+                                stats.filtered_by_system++;
+                                continue;
+                            }
+                            
+                            // Qualitäts-Filter auch für Sensoren
+                            if (!this.meetsQualityThreshold(entityId, state)) {
+                                stats.filtered_by_quality++;
+                                continue;
+                            }
+                            
+                            // Prüfe ob Sensor interessant ist
+                            if (this.shouldAutoDiscoverSensorToCustom(entityId, state)) {
+                                stats.sensors_to_custom++;
+                                console.log(`📊 Auto-discovered sensor to custom: ${entityId}`);
+                                
+                                // Area-Ermittlung für Sensor
+                                const areaName = this.getEntityArea(entityId, state);
+                                
+                                // Area-Filter auch für Sensoren anwenden
+                                if (this._config.include_areas.length > 0 && 
+                                    !this._config.include_areas.includes(areaName)) {
+                                    stats.filtered_by_area++;
+                                    continue;
+                                }
+                                if (this._config.exclude_areas.includes(areaName)) {
+                                    stats.filtered_by_area++;
+                                    continue;
+                                }
+                                
+                                if (areaName && areaName !== 'Ohne Raum') {
+                                    stats.areas_assigned++;
+                                }
+                                
+                                // Sensor zu Custom-Kategorie hinzufügen
+                                discoveredEntities.push({
+                                    entity: entityId,
+                                    title: state.attributes.friendly_name || entityId,
+                                    area: areaName,
+                                    auto_discovered: true,
+                                    domain: 'custom', // Als Custom behandeln
+                                    category: 'custom',
+                                    discovery_quality: this.calculateDiscoveryQuality(entityId, state, areaName)
+                                });
+                                
+                                continue; // Weiter mit nächster Entity
+                            }
+                        }
+                        
+                        // Option 2: Sensoren werden komplett ausgeschlossen
+                        stats.sensors_excluded++;
+                        continue; // Sensor wird nicht hinzugefügt
+                    }
+                    
+                    // 🔄 REST DER DISCOVERY-LOGIK für normale Entities (unverändert)
                     
                     // Domain-Filter anwenden
                     if (this._config.include_domains.length > 0 && 
@@ -6487,6 +6574,10 @@ class FastSearchCard extends HTMLElement {
                         stats.areas_assigned++;
                     }
                     
+                    // Kategorie ermitteln (Sensoren sind bereits behandelt)
+                    const category = this.getCategoryForDomain(domain);
+                    if (!category) continue; // Skip wenn keine Kategorie
+                    
                     // Auto-discovered Entity erstellen
                     discoveredEntities.push({
                         entity: entityId,
@@ -6494,7 +6585,7 @@ class FastSearchCard extends HTMLElement {
                         area: areaName,
                         auto_discovered: true,
                         domain: domain,
-                        category: this.getCategoryForDomain(domain), // ← VERWENDE DEINE LOGIK
+                        category: category,
                         // 🆕 QUALITÄTS-SCORE hinzufügen
                         discovery_quality: this.calculateDiscoveryQuality(entityId, state, areaName)
                     });
@@ -6505,7 +6596,7 @@ class FastSearchCard extends HTMLElement {
                 }
             }
             
-            // 🆕 DISCOVERY-STATISTIKEN AUSGEBEN
+            // 🆕 DISCOVERY-STATISTIKEN AUSGEBEN (erweitert)
             const discoveryTime = performance.now() - startTime;
             const efficiency = Math.round((discoveredEntities.length / stats.total) * 100);
             
@@ -6520,7 +6611,7 @@ class FastSearchCard extends HTMLElement {
             // 🆕 QUALITÄTSSORTIERUNG
             discoveredEntities.sort((a, b) => (b.discovery_quality || 0) - (a.discovery_quality || 0));
             
-            console.log(`✅ Auto-discovered ${discoveredEntities.length} high-quality entities from ${stats.total} total`);
+            console.log(`✅ Auto-discovered ${discoveredEntities.length} entities (${stats.sensors_excluded} sensors excluded, ${stats.sensors_to_custom} sensors to custom)`);
             return discoveredEntities;
             
         } catch (error) {
@@ -6528,6 +6619,56 @@ class FastSearchCard extends HTMLElement {
             return [];
         }
     }
+    
+    // Füge diese Funktion irgendwo nach discoverEntities() hinzu:
+    shouldAutoDiscoverSensorToCustom(entityId, state) {
+        // 1. Spezifische Sensor-Typen (falls konfiguriert)
+        if (this._config.custom_auto_discover_sensor_types.length > 0) {
+            const allowedTypes = this._config.custom_auto_discover_sensor_types;
+            
+            if (state.attributes.device_class) {
+                return allowedTypes.includes(state.attributes.device_class);
+            }
+            
+            // Unit-based matching
+            const unitTypeMap = {
+                '°C': 'temperature', '°F': 'temperature', 
+                '%': 'humidity', 'ppm': 'co2', 'W': 'power', 'kW': 'power',
+                'kWh': 'energy', 'hPa': 'pressure', 'lx': 'illuminance'
+            };
+            
+            const unit = state.attributes.unit_of_measurement;
+            if (unit && unitTypeMap[unit]) {
+                return allowedTypes.includes(unitTypeMap[unit]);
+            }
+            
+            return false;
+        }
+        
+        // 2. Default: Alle "interessanten" Sensoren
+        const interestingDeviceClasses = [
+            'temperature', 'humidity', 'pressure', 'illuminance',
+            'co2', 'battery', 'power', 'energy', 'signal_strength'
+        ];
+        
+        if (state.attributes.device_class && 
+            interestingDeviceClasses.includes(state.attributes.device_class)) {
+            return true;
+        }
+        
+        const interestingUnits = ['°C', '°F', '%', 'ppm', 'W', 'kW', 'kWh', 'lx', 'hPa'];
+        if (state.attributes.unit_of_measurement && 
+            interestingUnits.includes(state.attributes.unit_of_measurement)) {
+            return true;
+        }
+        
+        return false;
+    }
+
+
+
+
+    
     
     // 5️⃣ HELPER-FUNKTION für Kategorisierung (FÜGE HINZU):
     getCategoryForDomain(domain) {
