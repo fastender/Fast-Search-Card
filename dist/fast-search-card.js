@@ -8779,28 +8779,34 @@ class FastSearchCard extends HTMLElement {
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
         
         if (this.activeCategory === 'custom') {
-            // Custom Category Filtering
             if (this.subcategoryMode === 'categories') {
-                // Filter by metadata.category
+                // ▼▼▼ START DER NEUEN LOGIK ▼▼▼
+                // Wende die gleiche Logik wie bei der Chip-Erstellung an, um zu filtern
                 this.filteredItems = categoryItems.filter(item => {
-                    const category = item.custom_data?.metadata?.category;
-                    return category === this.activeSubcategory;
+                    let itemCategory;
+                    const metadata = item.custom_data?.metadata || {};
+                    if (metadata.auto_discovered && metadata.source_entity) {
+                        const state = this._hass.states[metadata.source_entity];
+                        if (state) {
+                            itemCategory = this.getCategoryForSensor(state);
+                        }
+                    } else {
+                        itemCategory = metadata.category;
+                    }
+                    return itemCategory === this.activeSubcategory;
                 });
+                // ▲▲▲ ENDE DER NEUEN LOGIK ▲▲▲
             } else if (this.subcategoryMode === 'areas') {
-                // Filter by area
                 this.filteredItems = categoryItems.filter(item => item.area === this.activeSubcategory);
             } else if (this.subcategoryMode === 'types') {
-                // Filter by custom_data.type
                 this.filteredItems = categoryItems.filter(item => {
                     const type = item.custom_data?.type;
                     return type === this.activeSubcategory;
                 });
             }
         } else if (this.subcategoryMode === 'areas') {
-            // Standard area filtering
             this.filteredItems = categoryItems.filter(item => item.area === this.activeSubcategory);
         } else {
-            // Standard device category filtering
             const domainMap = { 'lights': ['light', 'switch'], 'climate': ['climate', 'fan'], 'covers': ['cover'], 'media': ['media_player'] };
             const domains = domainMap[this.activeSubcategory] || [];
             this.filteredItems = categoryItems.filter(item => domains.includes(item.domain));
@@ -9556,26 +9562,57 @@ class FastSearchCard extends HTMLElement {
         const customItems = this.allItems.filter(item => item.domain === 'custom');
         
         if (this.subcategoryMode === 'categories') {
-            // Categories aus metadata sammeln
+            // ▼▼▼ START DER NEUEN LOGIK ▼▼▼
             const categories = new Set();
             customItems.forEach(item => {
-                const category = item.custom_data?.metadata?.category;
-                if (category) categories.add(category);
+                let itemCategory;
+                const metadata = item.custom_data?.metadata || {};
+
+                // Prüfen, ob es ein automatisch entdeckter Sensor ist
+                if (metadata.auto_discovered && metadata.source_entity) {
+                    const state = this._hass.states[metadata.source_entity];
+                    if (state) {
+                        // Kategorie dynamisch mit unserer neuen Funktion ermitteln
+                        itemCategory = this.getCategoryForSensor(state);
+                    }
+                } else {
+                    // Ansonsten die Kategorie aus der manuellen YAML-Konfiguration nehmen
+                    itemCategory = metadata.category;
+                }
+
+                if (itemCategory) {
+                    categories.add(itemCategory);
+                }
             });
+            // ▲▲▲ ENDE DER NEUEN LOGIK ▲▲▲
             
             const chipsHTML = ['Alle', ...Array.from(categories).sort()].map(cat => {
                 const isActive = (cat === 'Alle' && this.activeSubcategory === 'all') || 
-                                (cat === this.activeSubcategory);
+                               (cat === this.activeSubcategory);
                 
                 let count;
                 if (cat === 'Alle') {
                     count = customItems.length;
                 } else {
-                    count = customItems.filter(item => item.custom_data?.metadata?.category === cat).length;
+                    // ▼▼▼ KORREKTUR DER ZÄHL-LOGIK ▼▼▼
+                    // Zähle Items, indem die gleiche Logik wie oben angewendet wird
+                    count = customItems.filter(item => {
+                        let itemCategory;
+                        const metadata = item.custom_data?.metadata || {};
+                        if (metadata.auto_discovered && metadata.source_entity) {
+                            const state = this._hass.states[metadata.source_entity];
+                            if (state) {
+                                itemCategory = this.getCategoryForSensor(state);
+                            }
+                        } else {
+                            itemCategory = metadata.category;
+                        }
+                        return itemCategory === cat;
+                    }).length;
+                    // ▲▲▲ ENDE DER KORREKTUR ▲▲▲
                 }
                 
-                const subcategoryValue = cat === 'Alle' ? 'all' : 
-                                       cat === 'Keine' ? 'none' : cat;
+                const subcategoryValue = cat === 'Alle' ? 'all' : cat;
                 
                 return `
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
@@ -9590,7 +9627,7 @@ class FastSearchCard extends HTMLElement {
             container.innerHTML = chipsHTML;
             
         } else if (this.subcategoryMode === 'areas') {
-            // Custom Areas (nur aus Custom Items)
+            // ... (der Rest der Funktion für 'areas' und 'types' bleibt unverändert) ...
             const areas = new Set(customItems.map(item => item.area).filter(Boolean));
             
             const chipsHTML = ['Alle Räume', ...Array.from(areas).sort()].map(area => {
@@ -9606,8 +9643,7 @@ class FastSearchCard extends HTMLElement {
                     count = customItems.filter(item => item.area === area).length;
                 }
                 
-                const subcategoryValue = area === 'Alle Räume' ? 'all' : 
-                                       area === 'Keine' ? 'none' : area;
+                const subcategoryValue = area === 'Alle Räume' ? 'all' : area;
                 
                 return `
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
@@ -9622,7 +9658,6 @@ class FastSearchCard extends HTMLElement {
             container.innerHTML = chipsHTML;
             
         } else if (this.subcategoryMode === 'types') {
-            // Custom Types
             const types = new Set(customItems.map(item => item.custom_data?.type).filter(Boolean));
             
             const typeLabels = {
@@ -9630,8 +9665,9 @@ class FastSearchCard extends HTMLElement {
                 'mqtt': 'MQTT',
                 'static': 'Static',
                 'sensor': 'Sensor',
-                'sensor_single': 'Sensoren',           // ← NEU hinzufügen!
-                'sensor_array': 'Sensor Daten'        // ← NEU hinzufügen!                
+                'sensor_single': 'Sensoren',           
+                'sensor_array': 'Sensor Daten',
+                'auto_sensor': 'Auto-Sensor'
             };
             
             const chipsHTML = ['Alle', ...Array.from(types).sort()].map(type => {
@@ -9650,8 +9686,7 @@ class FastSearchCard extends HTMLElement {
                 const displayName = type === 'Alle' || type === 'Keine' ? type : 
                                    (typeLabels[type] || type);
                 
-                const subcategoryValue = type === 'Alle' ? 'all' : 
-                                       type === 'Keine' ? 'none' : type;
+                const subcategoryValue = type === 'Alle' ? 'all' : type;
                 
                 return `
                     <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategoryValue}">
@@ -9665,7 +9700,7 @@ class FastSearchCard extends HTMLElement {
             
             container.innerHTML = chipsHTML;
         }
-    }    
+    }
     
     renderAreaChips(container) {
         // Get all unique areas from items
