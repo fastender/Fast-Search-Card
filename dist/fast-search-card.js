@@ -6495,16 +6495,9 @@ class FastSearchCard extends HTMLElement {
                                     stats.areas_assigned++;
                                 }
                                 
-                                // Sensor zu Custom-Kategorie hinzufügen
-                                discoveredEntities.push({
-                                    entity: entityId,
-                                    title: state.attributes.friendly_name || entityId,
-                                    area: areaName,
-                                    auto_discovered: true,
-                                    domain: 'custom', // Als Custom behandeln
-                                    category: 'custom',
-                                    discovery_quality: this.calculateDiscoveryQuality(entityId, state, areaName)
-                                });
+                                // ✅ RICHTIGE LÖSUNG: Vollständige Custom-Entity-Struktur erstellen
+                                const customSensorEntity = this.createCustomSensorEntity(entityId, state, areaName);
+                                discoveredEntities.push(customSensorEntity);
                                 
                                 continue; // Weiter mit nächster Entity
                             }
@@ -6619,8 +6612,111 @@ class FastSearchCard extends HTMLElement {
             return [];
         }
     }
+
+    createCustomSensorEntity(entityId, state, areaName) {
+        const deviceClass = state.attributes.device_class;
+        const unit = state.attributes.unit_of_measurement;
+        
+        // Ring-Config aus deinen erweiterten Auto-Ranges generieren
+        let autoRingConfig = this.getAutoRangesForSensor(deviceClass, unit);
+        
+        // ✅ Immer showValue: true für Auto-Discovery Sensoren
+        if (autoRingConfig) {
+            autoRingConfig = {
+                ...autoRingConfig,
+                showValue: true,        // ← AUTOMATISCH AKTIVIERT!
+                size: 36               // ← Standard Ring-Größe
+            };
+        } else {
+            // Fallback wenn keine Auto-Ranges gefunden
+            autoRingConfig = {
+                min: 0,
+                max: 100,
+                showValue: true,        // ← AUCH IM FALLBACK!
+                size: 36,
+                colour: '#27ae60'
+            };
+        }
+        
+        // Icon basierend auf Sensor-Typ
+        const sensorIcon = this.getSensorIconForDeviceClass(deviceClass, unit);
+        
+        // Automatischen Content generieren
+        const content = this.generateAutoSensorContent(entityId, state);
+        
+        // Custom-Entity-Struktur im gleichen Format wie deine bestehenden Custom-Items
+        return {
+            id: entityId,
+            name: state.attributes.friendly_name || entityId,
+            domain: 'custom',
+            category: 'custom',
+            area: areaName,
+            state: 'available',
+            attributes: {
+                friendly_name: state.attributes.friendly_name || entityId,
+                custom_type: 'auto_sensor',
+                source_entity: entityId,
+                device_class: deviceClass,
+                unit_of_measurement: unit
+            },
+            icon: sensorIcon,
+            isActive: !['unknown', 'unavailable'].includes(state.state),
+            auto_discovered: true,
+            discovery_quality: this.calculateDiscoveryQuality(entityId, state, areaName),
+            
+            // 🎯 WICHTIG: Custom-Data-Struktur für Ring-Tiles
+            custom_data: {
+                type: 'auto_sensor',
+                content: content,
+                ring_config: autoRingConfig,    // ← MIT showValue: true!
+                metadata: {
+                    sensor_state: parseFloat(state.state) || 0,
+                    sensor_unit: unit,
+                    device_class: deviceClass,
+                    source_entity: entityId,
+                    last_updated: state.last_updated,
+                    area: areaName,
+                    auto_discovered: true
+                }
+            }
+        };
+    }
+
+
+    // Füge diese Funktion hinzu:
+    getSensorIconForDeviceClass(deviceClass, unit) {
+        const deviceClassIcons = {
+            'temperature': '🌡️',
+            'humidity': '💧',
+            'pressure': '🔽',
+            'illuminance': '💡',
+            'co2': '🌱',
+            'battery': '🔋',
+            'power': '⚡',
+            'energy': '📊',
+            'signal_strength': '📶',
+            'pm25': '🌫️',
+            'volatile_organic_compounds': '☁️',
+            'aqi': '🏭'
+        };
+        
+        if (deviceClass && deviceClassIcons[deviceClass]) {
+            return deviceClassIcons[deviceClass];
+        }
+        
+        const unitIcons = {
+            '°C': '🌡️', '°F': '🌡️', '%': '📊', 'ppm': '🌱',
+            'W': '⚡', 'kW': '⚡', 'kWh': '📊', 'lx': '💡',
+            'hPa': '🔽', 'mbar': '🔽'
+        };
+        
+        if (unit && unitIcons[unit]) {
+            return unitIcons[unit];
+        }
+        
+        return '📊';
+    }
     
-    // Füge diese Funktion irgendwo nach discoverEntities() hinzu:
     shouldAutoDiscoverSensorToCustom(entityId, state) {
         // 1. Spezifische Sensor-Typen (falls konfiguriert)
         if (this._config.custom_auto_discover_sensor_types.length > 0) {
@@ -6630,7 +6726,6 @@ class FastSearchCard extends HTMLElement {
                 return allowedTypes.includes(state.attributes.device_class);
             }
             
-            // Unit-based matching
             const unitTypeMap = {
                 '°C': 'temperature', '°F': 'temperature', 
                 '%': 'humidity', 'ppm': 'co2', 'W': 'power', 'kW': 'power',
@@ -6665,8 +6760,28 @@ class FastSearchCard extends HTMLElement {
         return false;
     }
 
-
-
+    
+    generateAutoSensorContent(entityId, state) {
+        const friendlyName = state.attributes.friendly_name || entityId;
+        const currentValue = state.state;
+        const unit = state.attributes.unit_of_measurement || '';
+        const deviceClass = state.attributes.device_class || 'Sensor';
+        
+        let content = `# ${friendlyName}\n\n`;
+        content += `## Aktueller Wert\n**${currentValue} ${unit}**\n\n`;
+        content += `## Details\n`;
+        content += `- **Typ:** ${deviceClass}\n`;
+        content += `- **Entity ID:** \`${entityId}\`\n`;
+        content += `- **Letzte Aktualisierung:** ${new Date(state.last_updated).toLocaleString()}\n\n`;
+        
+        if (state.attributes.device_class) {
+            content += `- **Device Class:** ${state.attributes.device_class}\n`;
+        }
+        
+        content += `\n*Automatisch erkannt durch Fast Search Card*`;
+        
+        return content;
+    }
 
     
     
@@ -9273,13 +9388,22 @@ class FastSearchCard extends HTMLElement {
     }
 
 
-
     getCustomStatusText(item) {
         const metadata = item.custom_data?.metadata || {};
         
-        // Zeige relevante Info als Status
-        if (metadata.category) return metadata.category;     // ← Erste Priorität 
-        if (metadata.type) return metadata.type;            // ← "sensor_single" kommt hier!
+        // Für Auto-Discovery Sensoren: Zeige aktuellen Wert
+        if (metadata.auto_discovered && metadata.source_entity) {
+            const state = this._hass.states[metadata.source_entity];
+            if (state) {
+                const value = state.state;
+                const unit = metadata.sensor_unit || '';
+                return `${value} ${unit}`.trim();
+            }
+        }
+        
+        // Für normale Custom-Items: Bestehende Logik
+        if (metadata.category) return metadata.category;
+        if (metadata.type) return metadata.type;
         return 'Custom Item';
     }
     
