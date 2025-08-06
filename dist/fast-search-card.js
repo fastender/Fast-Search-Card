@@ -6660,7 +6660,7 @@ class FastSearchCard extends HTMLElement {
                 unit_of_measurement: unit
             },
             icon: sensorIcon,
-            isActive: !['unknown', 'unavailable'].includes(state.state),
+            isActive: false,
             auto_discovered: true,
             discovery_quality: this.calculateDiscoveryQuality(entityId, state, areaName),
             
