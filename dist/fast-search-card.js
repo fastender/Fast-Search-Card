@@ -585,6 +585,10 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0;
                 pointer-events: none;
                 transform: translateX(5%) scale(0.95);
+                /* ▼▼▼ HIER DIE LÖSUNG EINFÜGEN ▼▼▼ */
+                will-change: opacity, transform, backdrop-filter;
+                /* ▲▲▲ ENDE DER LÖSUNG ▲▲▲ */
+                
             }
 
             .detail-panel.visible {
@@ -8057,6 +8061,16 @@ class FastSearchCard extends HTMLElement {
         if (!state) return false;
         const domain = state.entity_id.split('.')[0];
         switch (domain) {
+
+            // ▼▼▼ HIER DIE LÖSUNG EINFÜGEN ▼▼▼
+            case 'sensor':
+                // Ein Sensor ist aktiv, solange er einen gültigen Zustand hat.
+                return !['unknown', 'unavailable'].includes(state.state);
+            case 'binary_sensor':
+                // Ein Binärsensor ist nur bei 'on' aktiv.
+                return state.state === 'on';
+            // ▲▲▲ ENDE DER LÖSUNG ▲▲▲
+                
             case 'climate':
                 return !['off', 'unavailable'].includes(state.state);
 
