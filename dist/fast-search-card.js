@@ -6697,7 +6697,11 @@ class FastSearchCard extends HTMLElement {
             'signal_strength': '📶',
             'pm25': '🌫️',
             'volatile_organic_compounds': '☁️',
-            'aqi': '🏭'
+            'aqi': '🏭',
+            // ▼▼▼ HIER ERWEITERN ▼▼▼
+            'occupancy': '🚶', // Icon für Belegung
+            'presence': '👤'   // Icon für Anwesenheit
+            // ▲▲▲ ENDE DER ERWEITERUNG ▲▲▲
         };
         
         if (deviceClass && deviceClassIcons[deviceClass]) {
@@ -6741,9 +6745,11 @@ class FastSearchCard extends HTMLElement {
         }
         
         // 2. Default: Alle "interessanten" Sensoren
+        // ▼▼▼ HIER ERWEITERT ▼▼▼
         const interestingDeviceClasses = [
             'temperature', 'humidity', 'pressure', 'illuminance',
-            'co2', 'battery', 'power', 'energy', 'signal_strength'
+            'co2', 'battery', 'power', 'energy', 'signal_strength',
+            'occupancy', 'presence' // NEU: Anwesenheitssensoren hinzugefügt
         ];
         
         if (state.attributes.device_class && 
@@ -6756,10 +6762,21 @@ class FastSearchCard extends HTMLElement {
             interestingUnits.includes(state.attributes.unit_of_measurement)) {
             return true;
         }
+
+        // ▼▼▼ NEU: Fallback-Logik für Anwesenheitssensoren ohne korrekte device_class ▼▼▼
+        // Prüft, ob der Zustand einem der bekannten Texte für Anwesenheit entspricht.
+        const presenceStates = ['anwesend', 'abwesend', 'belegung', 'frei', 'occupied', 'unoccupied', 'on', 'off'];
+        if (presenceStates.includes(state.state.toLowerCase())) {
+            // Zusätzlicher Check, um nicht jeden "on/off" Switch zu erwischen:
+            // Nur wenn die Entity-ID auf Anwesenheit hindeutet.
+            if (entityId.includes('presence') || entityId.includes('occupancy') || entityId.includes('bewegung')) {
+                 return true;
+            }
+        }
+        // ▲▲▲ ENDE DER NEUEN LOGIK ▲▲▲
         
         return false;
     }
-
     
     generateAutoSensorContent(entityId, state) {
         const friendlyName = state.attributes.friendly_name || entityId;
@@ -9472,7 +9489,11 @@ class FastSearchCard extends HTMLElement {
             moisture: 'Bodenfeuchtigkeit',
             voltage: 'Spannung',
             current: 'Stromstärke',
-            aqi: 'Luftqualität'
+            aqi: 'Luftqualität',
+            // ▼▼▼ HIER ERWEITERN ▼▼▼
+            occupancy: 'Anwesenheit',
+            presence: 'Anwesenheit'
+            // ▲▲▲ ENDE DER ERWEITERUNG ▲▲▲            
         };
 
         if (deviceClass && deviceClassToCategory[deviceClass]) {
