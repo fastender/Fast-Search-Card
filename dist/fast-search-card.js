@@ -585,10 +585,6 @@ class FastSearchCard extends HTMLElement {
                 opacity: 0;
                 pointer-events: none;
                 transform: translateX(5%) scale(0.95);
-                /* ▼▼▼ HIER DIE LÖSUNG EINFÜGEN ▼▼▼ */
-                will-change: opacity, transform, backdrop-filter;
-                /* ▲▲▲ ENDE DER LÖSUNG ▲▲▲ */
-                
             }
 
             .detail-panel.visible {
@@ -6006,31 +6002,31 @@ class FastSearchCard extends HTMLElement {
     async updateItems() {
         if (!this._hass) return;
         
-        // ✅ LOADING STATE setzen um Animation zu verhindern
-        this._isLoadingCustomItems = true;
-        
         let allEntityConfigs = [];
         
-        // 1. Auto-Discovery wenn aktiviert
+        // 1. Auto-Discovery wenn aktiviert (AWAIT HINZUGEFÜGT!)
         if (this._config.auto_discover) {
-            const discoveredEntities = await this.discoverEntities();
+            const discoveredEntities = await this.discoverEntities(); // ← AWAIT hinzugefügt!
             allEntityConfigs = [...discoveredEntities];
         }
     
-        // 1.5. Custom Data Sources - WARTEN bis komplett geladen
+        // 1.5. Custom Data Sources (NEU: IMMER prüfen, nicht nur bei activeCategory)
         if (this._config.custom_mode.enabled) {
-            console.log('🔄 Loading custom data sources...');
             const customItems = await this.parseCustomDataSources();
-            if (customItems && Array.isArray(customItems)) {
+            if (customItems && Array.isArray(customItems)) { // ← Sicherheitscheck hinzufügen
                 allEntityConfigs = [...allEntityConfigs, ...customItems];
-                console.log(`✅ Custom items loaded: ${customItems.length}`);
+            } else {
             }
         }
         
-        // 2. Manuelle Entities hinzufügen
+        // 2. Manuelle Entities hinzufügen (überschreiben Auto-Discovery)
         if (this._config.entities && this._config.entities.length > 0) {
             const manualEntityIds = new Set(this._config.entities.map(e => e.entity));
+            
+            // Entferne Auto-Discovery Duplikate
             allEntityConfigs = allEntityConfigs.filter(entity => !manualEntityIds.has(entity.entity));
+            
+            // Füge manuelle Entities hinzu
             allEntityConfigs = [...allEntityConfigs, ...this._config.entities];
         }
         
@@ -6075,10 +6071,13 @@ class FastSearchCard extends HTMLElement {
         this.showCurrentCategoryItems();
         this.updateSubcategoryCounts();
         
-        // ✅ LOADING STATE entfernen - JETZT kann Animation laufen
-        this._isLoadingCustomItems = false;
+        // ✅ FIX: Force initial display - HIER EINFÜGEN!
+        setTimeout(() => {
+            if (this.filteredItems.length === 0) {
+                this.showCurrentCategoryItems();
+            }
+        }, 100);
         
-        console.log('✅ All items loaded and ready for animation');
     }
 
 
@@ -8061,16 +8060,6 @@ class FastSearchCard extends HTMLElement {
         if (!state) return false;
         const domain = state.entity_id.split('.')[0];
         switch (domain) {
-
-            // ▼▼▼ HIER DIE LÖSUNG EINFÜGEN ▼▼▼
-            case 'sensor':
-                // Ein Sensor ist aktiv, solange er einen gültigen Zustand hat.
-                return !['unknown', 'unavailable'].includes(state.state);
-            case 'binary_sensor':
-                // Ein Binärsensor ist nur bei 'on' aktiv.
-                return state.state === 'on';
-            // ▲▲▲ ENDE DER LÖSUNG ▲▲▲
-                
             case 'climate':
                 return !['off', 'unavailable'].includes(state.state);
 
@@ -8802,12 +8791,6 @@ class FastSearchCard extends HTMLElement {
     renderResults() {
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
         const resultsList = this.shadowRoot.querySelector('.results-list');
-
-        // ✅ KEIN RENDERING wenn noch Custom Items geladen werden
-        if (this._isLoadingCustomItems) {
-            console.log('⏳ Skipping renderResults - custom items still loading');
-            return;
-        }        
         
         // Clear timeouts
         this.animationTimeouts.forEach(timeout => clearTimeout(timeout));
