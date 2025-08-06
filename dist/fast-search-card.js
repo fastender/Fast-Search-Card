@@ -8013,8 +8013,21 @@ class FastSearchCard extends HTMLElement {
                 const wasActive = card.classList.contains('active');
                 card.classList.toggle('active', isActive);
                 if (isActive !== wasActive) { this.animateStateChange(card, isActive); }
+                
+                // ▼▼▼ KORREKTUR STARTET HIER (für Grid-Ansicht) ▼▼▼
                 const statusElement = card.querySelector('.device-status');
-                if (statusElement) { statusElement.textContent = this.getEntityStatus(state); }
+                if (statusElement) {
+                    // Finde das zugehörige Item-Objekt, um den Typ zu prüfen
+                    const item = this.allItems.find(i => i.id === entityId);
+                    if (item && item.domain === 'custom') {
+                        // Für Custom-Items (Sensoren etc.), nutze die korrekte Funktion
+                        statusElement.textContent = this.getCustomStatusText(item);
+                    } else {
+                        // Für normale Geräte, nutze die alte Funktion
+                        statusElement.textContent = this.getEntityStatus(state);
+                    }
+                }
+                // ▲▲▲ KORREKTUR ENDET HIER (für Grid-Ansicht) ▲▲▲
             }
         });
 
@@ -8031,11 +8044,20 @@ class FastSearchCard extends HTMLElement {
                     this.animateStateChange(listItem, isActive);
                 }
                 
-                // Update status text
+                // ▼▼▼ KORREKTUR STARTET HIER (für Listen-Ansicht) ▼▼▼
                 const statusElement = listItem.querySelector('.device-list-status');
                 if (statusElement) {
-                    statusElement.textContent = this.getEntityStatus(state);
+                    // Finde das zugehörige Item-Objekt, um den Typ zu prüfen
+                    const item = this.allItems.find(i => i.id === entityId);
+                    if (item && item.domain === 'custom') {
+                        // Für Custom-Items (Sensoren etc.), nutze die korrekte Funktion
+                        statusElement.textContent = this.getCustomStatusText(item);
+                    } else {
+                        // Für normale Geräte, nutze die alte Funktion
+                        statusElement.textContent = this.getEntityStatus(state);
+                    }
                 }
+                // ▲▲▲ KORREKTUR ENDET HIER (für Listen-Ansicht) ▲▲▲
                 
                 // Update quick action button
                 const quickActionBtn = listItem.querySelector('.device-list-quick-action');
