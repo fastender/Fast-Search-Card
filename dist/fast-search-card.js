@@ -9395,9 +9395,8 @@ class FastSearchCard extends HTMLElement {
         if (metadata.auto_discovered && metadata.source_entity) {
             const state = this._hass.states[metadata.source_entity];
             if (state) {
-                const value = state.state;
-                const unit = metadata.sensor_unit || '';
-                return `${value} ${unit}`.trim();
+                // ▼▼▼ HIER IST DIE ÄNDERUNG ▼▼▼
+                return this.getCategoryForSensor(state);
             }
         }
         
@@ -9408,6 +9407,77 @@ class FastSearchCard extends HTMLElement {
     }
     
 
+    getCategoryForSensor(state) {
+        if (!state || !state.attributes) return 'Sensor';
+
+        const deviceClass = state.attributes.device_class;
+        const unit = state.attributes.unit_of_measurement;
+        const entityId = state.entity_id;
+
+        // 1. Priorität: Zuordnung über device_class
+        // Dieses "Wörterbuch" übersetzt die in getAutoRangesForSensor definierten
+        // device_class-Typen in deutsche Kategorienamen.
+        const deviceClassToCategory = {
+            temperature: 'Temperatur',
+            humidity: 'Luftfeuchtigkeit',
+            illuminance: 'Helligkeit',
+            battery: 'Batterie',
+            pressure: 'Luftdruck',
+            carbon_dioxide: 'CO₂-Gehalt',
+            co2: 'CO₂-Gehalt',
+            power: 'Leistung',
+            energy: 'Energieverbrauch',
+            pm25: 'Feinstaub',
+            volatile_organic_compounds: 'Luftqualität (VOC)',
+            radon: 'Radon',
+            gas: 'Gas',
+            water: 'Wasser',
+            solar_power: 'Solarleistung',
+            sound_pressure: 'Schalldruck',
+            signal_strength: 'Signalstärke',
+            data_rate: 'Datenrate',
+            cpu_percent: 'CPU-Auslastung',
+            wind_speed: 'Windgeschwindigkeit',
+            uv_index: 'UV-Index',
+            precipitation: 'Niederschlag',
+            distance: 'Entfernung',
+            moisture: 'Bodenfeuchtigkeit',
+            voltage: 'Spannung',
+            current: 'Stromstärke',
+            aqi: 'Luftqualität'
+        };
+
+        if (deviceClass && deviceClassToCategory[deviceClass]) {
+            return deviceClassToCategory[deviceClass];
+        }
+
+        // 2. Fallback: Zuordnung über die Einheit (bleibt als Sicherheitsnetz)
+        const unitMap = {
+            '°C': 'Temperatur', '°F': 'Temperatur',
+            'W': 'Leistung', 'kW': 'Leistung',
+            'kWh': 'Energieverbrauch',
+            'lx': 'Helligkeit',
+            'hPa': 'Luftdruck', 'mbar': 'Luftdruck',
+            'ppm': 'CO₂-Gehalt',
+            'V': 'Spannung',
+            'A': 'Stromstärke'
+        };
+
+        if (unit && unitMap[unit]) {
+            return unitMap[unit];
+        }
+        
+        // Sonderfall für '%'
+        if (unit === '%') {
+            if (entityId.includes('humidity')) return 'Luftfeuchtigkeit';
+            if (entityId.includes('battery')) return 'Batterie';
+            return 'Prozentwert';
+        }
+
+        // 3. Finaler Fallback
+        return 'Sensor';
+    }
+    
 
     toggleViewMode() {
         this.currentViewMode = this.currentViewMode === 'grid' ? 'list' : 'grid';
