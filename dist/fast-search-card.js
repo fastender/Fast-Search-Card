@@ -6002,31 +6002,31 @@ class FastSearchCard extends HTMLElement {
     async updateItems() {
         if (!this._hass) return;
         
+        // ✅ LOADING STATE setzen um Animation zu verhindern
+        this._isLoadingCustomItems = true;
+        
         let allEntityConfigs = [];
         
-        // 1. Auto-Discovery wenn aktiviert (AWAIT HINZUGEFÜGT!)
+        // 1. Auto-Discovery wenn aktiviert
         if (this._config.auto_discover) {
-            const discoveredEntities = await this.discoverEntities(); // ← AWAIT hinzugefügt!
+            const discoveredEntities = await this.discoverEntities();
             allEntityConfigs = [...discoveredEntities];
         }
     
-        // 1.5. Custom Data Sources (NEU: IMMER prüfen, nicht nur bei activeCategory)
+        // 1.5. Custom Data Sources - WARTEN bis komplett geladen
         if (this._config.custom_mode.enabled) {
+            console.log('🔄 Loading custom data sources...');
             const customItems = await this.parseCustomDataSources();
-            if (customItems && Array.isArray(customItems)) { // ← Sicherheitscheck hinzufügen
+            if (customItems && Array.isArray(customItems)) {
                 allEntityConfigs = [...allEntityConfigs, ...customItems];
-            } else {
+                console.log(`✅ Custom items loaded: ${customItems.length}`);
             }
         }
         
-        // 2. Manuelle Entities hinzufügen (überschreiben Auto-Discovery)
+        // 2. Manuelle Entities hinzufügen
         if (this._config.entities && this._config.entities.length > 0) {
             const manualEntityIds = new Set(this._config.entities.map(e => e.entity));
-            
-            // Entferne Auto-Discovery Duplikate
             allEntityConfigs = allEntityConfigs.filter(entity => !manualEntityIds.has(entity.entity));
-            
-            // Füge manuelle Entities hinzu
             allEntityConfigs = [...allEntityConfigs, ...this._config.entities];
         }
         
@@ -6071,13 +6071,10 @@ class FastSearchCard extends HTMLElement {
         this.showCurrentCategoryItems();
         this.updateSubcategoryCounts();
         
-        // ✅ FIX: Force initial display - HIER EINFÜGEN!
-        setTimeout(() => {
-            if (this.filteredItems.length === 0) {
-                this.showCurrentCategoryItems();
-            }
-        }, 100);
+        // ✅ LOADING STATE entfernen - JETZT kann Animation laufen
+        this._isLoadingCustomItems = false;
         
+        console.log('✅ All items loaded and ready for animation');
     }
 
 
@@ -8791,6 +8788,12 @@ class FastSearchCard extends HTMLElement {
     renderResults() {
         const resultsGrid = this.shadowRoot.querySelector('.results-grid');
         const resultsList = this.shadowRoot.querySelector('.results-list');
+
+        // ✅ KEIN RENDERING wenn noch Custom Items geladen werden
+        if (this._isLoadingCustomItems) {
+            console.log('⏳ Skipping renderResults - custom items still loading');
+            return;
+        }        
         
         // Clear timeouts
         this.animationTimeouts.forEach(timeout => clearTimeout(timeout));
