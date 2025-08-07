@@ -473,19 +473,6 @@ class FastSearchCard extends HTMLElement {
         } else if (!this.isDetailView && !this.isSearching) {
             this.updateStates();
         }
-
-
-        // Update Alert Slideshow
-        if (this.slideshowAlerts && this.slideshowAlerts.length > 0) {
-            this.updateAlertSlides();
-            
-            // Re-initialize slider if slides changed
-            if (this.alertSlider && this.alertSlides.length !== this.alertSlider.totalSlides) {
-                this.alertSlider.destroy();
-                this.alertSlider = null;
-                this.initAlertSlideshow();
-            }
-        }
         
     }
 
@@ -5594,7 +5581,7 @@ class FastSearchCard extends HTMLElement {
                 </div>
 
                 <!-- Alert Slideshow Container -->
-                <div class="alert-slideshow-container ${this.alertSlides?.length ? '' : 'hidden'}">
+                <div class="alert-slideshow-container">
                     <div class="alert-slider">
                         <div class="alert-slider__holder">
                             ${this.alertSlides?.map((slide, index) => `
