@@ -393,7 +393,10 @@ class FastSearchCard extends HTMLElement {
             
             // Fügen Sie DANACH diese Zeile hinzu:
             action_favorites: config.action_favorites || {},            
-                                
+
+            // Alert Slideshow Konfiguration
+            slideshow_alerts: config.slideshow_alerts || [],
+            
             ...config
         };
         
@@ -436,6 +439,11 @@ class FastSearchCard extends HTMLElement {
         
         this.currentViewMode = this._config.default_view || 'grid';
         this.render();
+
+        // Alert Slideshow Initialisierung
+        this.alertSlides = [];
+        this.alertSlider = null;        
+        
     }
 
     set hass(hass) {
@@ -464,6 +472,20 @@ class FastSearchCard extends HTMLElement {
         } else if (!this.isDetailView && !this.isSearching) {
             this.updateStates();
         }
+
+
+        // Update Alert Slideshow
+        if (this.slideshowAlerts && this.slideshowAlerts.length > 0) {
+            this.updateAlertSlides();
+            
+            // Re-initialize slider if slides changed
+            if (this.alertSlider && this.alertSlides.length !== this.alertSlider.totalSlides) {
+                this.alertSlider.destroy();
+                this.alertSlider = null;
+                this.initAlertSlideshow();
+            }
+        }
+        
     }
 
     shouldUpdateItems(oldHass, newHass) {
@@ -5132,6 +5154,222 @@ class FastSearchCard extends HTMLElement {
             
             .device-card.active .ring-tile-icon {
                 box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            }      
+
+
+            /* ===== ALERT SLIDESHOW STYLES ===== */
+            
+            .alert-slideshow-container {
+                margin-top: 20px;
+                width: 100%;
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+                position: relative;
+            }
+            
+            .alert-slider {
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+            
+            .alert-slider__holder {
+                position: relative;
+                width: 100%;
+                text-align: left;
+                height: 480px;
+            }
+            
+            @media (max-width: 900px) {
+                .alert-slider__holder {
+                    max-width: 540px;
+                    margin: 0 auto;
+                }
+            }
+            
+            @media (max-width: 768px) {
+                .alert-slider__holder {
+                    height: 384px;
+                    max-width: 90%;
+                    margin: 0 auto;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .alert-slider__holder {
+                    height: 336px;
+                    max-width: 85%;
+                    margin: 0 auto;
+                }
+            }
+            
+            .alert-slider__item {
+                position: absolute;
+                top: 0;
+                left: 0;
+                display: block;
+                overflow: hidden;
+                width: 100%;
+                opacity: 1;
+                cursor: pointer;
+                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 
+                    0 8px 32px 0 rgba(0, 0, 0, 0.3),
+                    0 2px 16px 0 rgba(0, 0, 0, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+                transition: all 0.3s ease;
+                height: 480px;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+            
+            .alert-slider__item:hover {
+                background-color: rgba(255, 255, 255, 0.15);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 
+                    0 12px 40px 0 rgba(0, 0, 0, 0.4),
+                    0 4px 20px 0 rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+                transform: translateY(-2px);
+            }
+            
+            /* Glasmorphism reflection effect */
+            .alert-slider__item::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 50%;
+                background: linear-gradient(
+                    180deg,
+                    rgba(255, 255, 255, 0.2) 0%,
+                    rgba(255, 255, 255, 0.05) 50%,
+                    transparent 100%
+                );
+                border-radius: 20px 20px 0 0;
+                pointer-events: none;
+            }
+            
+            @media (max-width: 768px) {
+                .alert-slider__item {
+                    height: 384px;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .alert-slider__item {
+                    height: 336px;
+                }
+            }
+            
+            .alert-slider__item-content {
+                padding: 40px;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                position: relative;
+                z-index: 2;
+            }
+            
+            .alert-slider__item-header {
+                /* Top section with subheader and header */
+            }
+            
+            .alert-slider__item-text {
+                /* Bottom section with text content */
+            }
+            
+            @media (max-width: 768px) {
+                .alert-slider__item-content {
+                    padding: 30px 24px;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .alert-slider__item-content {
+                    padding: 24px 20px;
+                }
+            }
+            
+            @media (max-width: 375px) {
+                .alert-slider__item-content {
+                    padding: 20px 16px;
+                }
+            }
+            
+            /* Typography für Alert Cards */
+            .alert-heading-main {
+                font-size: 54px;
+                font-weight: 600;
+                line-height: 60px;
+                color: rgba(255, 255, 255, 0.9);
+                letter-spacing: 0.3px;
+                margin-top: 5px;
+            }
+            
+            .alert-heading-sub {
+                color: rgba(255, 255, 255, 0.6);
+                text-transform: uppercase;
+                font-size: 18px;
+                line-height: 25px;
+                font-weight: 600;
+            }
+            
+            .alert-content-text {
+                font-family: Georgia, serif;
+                font-size: 24px;
+                font-weight: 100;
+                line-height: 38px;
+                color: rgba(255, 255, 255, 0.8);
+            }
+            
+            /* Mobile Typography */
+            @media (max-width: 768px) {
+                .alert-heading-main {
+                    font-size: 42px;
+                    line-height: 48px;
+                }
+            
+                .alert-heading-sub {
+                    font-size: 16px;
+                    line-height: 22px;
+                }
+            
+                .alert-content-text {
+                    font-size: 20px;
+                    line-height: 32px;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .alert-heading-main {
+                    font-size: 36px;
+                    line-height: 42px;
+                }
+            
+                .alert-heading-sub {
+                    font-size: 14px;
+                    line-height: 20px;
+                }
+            
+                .alert-content-text {
+                    font-size: 18px;
+                    line-height: 28px;
+                }
+            }
+            
+            /* Hidden state for no alerts */
+            .alert-slideshow-container.hidden {
+                display: none;
             }            
                                                             
             </style>
@@ -5353,6 +5591,27 @@ class FastSearchCard extends HTMLElement {
                         </button>                                            
                     </div>
                 </div>
+
+                <!-- Alert Slideshow Container -->
+                <div class="alert-slideshow-container ${this.alertSlides?.length ? '' : 'hidden'}">
+                    <div class="alert-slider">
+                        <div class="alert-slider__holder">
+                            ${this.alertSlides?.map((slide, index) => `
+                                <div class="alert-slider__item" data-slide="${index + 1}" style="background-image: ${slide.background_image ? `url('${slide.background_image}')` : 'none'};">
+                                    <div class="alert-slider__item-content">
+                                        <div class="alert-slider__item-header">
+                                            <p class="alert-heading-sub">${slide.subheader || ''}</p>
+                                            <p class="alert-heading-main">${slide.header || ''}</p>
+                                        </div>
+                                        <p class="alert-slider__item-text alert-content-text">${slide.content || ''}</p>
+                                    </div>
+                                </div>
+                            `).join('') || ''}
+                        </div>
+                    </div>
+                </div>
+
+                
             </div>
         `;
 
@@ -5857,6 +6116,166 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+
+    // ===== ALERT SLIDESHOW METHODS ===== 
+    // (Nach updateFilterButtonStates() Methode einfügen)
+    
+    processTemplate(template) {
+        if (!template || !this._hass) return template;
+        
+        // Home Assistant Template-Processing
+        return template.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, expression) => {
+            try {
+                // Einfache states() Funktion
+                if (expression.includes('states(')) {
+                    const entityMatch = expression.match(/states\(['"]([^'"]+)['"]\)/);
+                    if (entityMatch) {
+                        const entityId = entityMatch[1];
+                        const state = this._hass.states[entityId];
+                        return state ? state.state : 'unknown';
+                    }
+                }
+                
+                // Einfache Filter-Unterstützung (|int, |float)
+                if (expression.includes('|int')) {
+                    const baseExpression = expression.replace(/\s*\|\s*int.*$/, '');
+                    const result = this.processTemplate(`{{ ${baseExpression} }}`);
+                    return parseInt(result) || 0;
+                }
+                
+                if (expression.includes('|float')) {
+                    const baseExpression = expression.replace(/\s*\|\s*float.*$/, '');
+                    const result = this.processTemplate(`{{ ${baseExpression} }}`);
+                    return parseFloat(result) || 0;
+                }
+                
+                // relative_time() Funktion
+                if (expression.includes('relative_time(')) {
+                    const entityMatch = expression.match(/relative_time\(states\.([^.]+\.[^.]+)\.last_changed\)/);
+                    if (entityMatch) {
+                        const entityId = entityMatch[1];
+                        const state = this._hass.states[entityId];
+                        if (state && state.last_changed) {
+                            const lastChanged = new Date(state.last_changed);
+                            const now = new Date();
+                            const diffMs = now - lastChanged;
+                            const diffMins = Math.floor(diffMs / 60000);
+                            const diffHours = Math.floor(diffMins / 60);
+                            
+                            if (diffMins < 60) {
+                                return `${diffMins} Min.`;
+                            } else if (diffHours < 24) {
+                                return `${diffHours} Std.`;
+                            } else {
+                                const diffDays = Math.floor(diffHours / 24);
+                                return `${diffDays} Tag(e)`;
+                            }
+                        }
+                    }
+                    return 'unbekannt';
+                }
+                
+                return match; // Fallback: unverändert zurückgeben
+            } catch (error) {
+                console.warn('Template processing error:', error);
+                return match;
+            }
+        });
+    }
+    
+    evaluateCondition(condition) {
+        if (!condition || !this._hass) return true;
+        
+        try {
+            // Verarbeite Template
+            const result = this.processTemplate(condition);
+            
+            // Wenn es ein Vergleich ist (>, <, ==, etc.)
+            if (result.includes('>') || result.includes('<') || result.includes('==')) {
+                return eval(result);
+            }
+            
+            // Boolean-Konvertierung
+            if (result === 'true' || result === 'on' || result === 'home') return true;
+            if (result === 'false' || result === 'off' || result === 'away') return false;
+            
+            // Numerische Werte > 0
+            const numResult = parseFloat(result);
+            if (!isNaN(numResult)) return numResult > 0;
+            
+            return Boolean(result && result !== 'unknown' && result !== 'unavailable');
+        } catch (error) {
+            console.warn('Condition evaluation error:', error);
+            return false;
+        }
+    }
+    
+    updateAlertSlides() {
+        if (!this.slideshowAlerts || !this._hass) return;
+        
+        this.alertSlides = this.slideshowAlerts.filter(alert => {
+            // Prüfe Bedingung falls vorhanden
+            if (alert.condition) {
+                return this.evaluateCondition(alert.condition);
+            }
+            return true; // Zeige Alert wenn keine Bedingung definiert
+        }).map(alert => ({
+            header: this.processTemplate(alert.header || ''),
+            subheader: this.processTemplate(alert.subheader || ''),
+            content: this.processTemplate(alert.content || ''),
+            background_image: alert.background_image || null,
+            click_entity: alert.click_entity || null
+        }));
+        
+        // Re-render wenn sich Alerts geändert haben
+        this.requestUpdate();
+    }
+    
+    initAlertSlideshow() {
+        this.updateAlertSlides();
+        
+        // Initialisiere Slider nach dem nächsten Update
+        this.updateComplete.then(() => {
+            const sliderHolder = this.shadowRoot.querySelector('.alert-slider__holder');
+            if (sliderHolder && this.alertSlides.length > 0) {
+                this.alertSlider = new InfiniteCardSlider(sliderHolder, this.alertSlides.length);
+                this.setupAlertClickHandlers();
+            }
+        });
+    }
+
+
+    
+    setupAlertClickHandlers() {
+        const slides = this.shadowRoot.querySelectorAll('.alert-slider__item');
+        
+        slides.forEach((slide, index) => {
+            slide.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleAlertClick(index);
+            });
+        });
+    }
+    
+    handleAlertClick(slideIndex) {
+        const alertSlide = this.alertSlides[slideIndex];
+        if (!alertSlide || !alertSlide.click_entity) return;
+        
+        console.log(`🚨 Alert clicked: ${alertSlide.click_entity}`);
+        
+        // Find the entity in allItems
+        const targetItem = this.allItems.find(item => item.id === alertSlide.click_entity);
+        
+        if (targetItem) {
+            // Use existing detail view logic
+            this.handleDeviceClick(targetItem);
+        } else {
+            console.warn(`Entity ${alertSlide.click_entity} not found in allItems`);
+        }
+    }    
+
+    
+
     expandPanel() {
         if (this.isPanelExpanded) return;
         
@@ -6077,6 +6496,9 @@ class FastSearchCard extends HTMLElement {
                 this.showCurrentCategoryItems();
             }
         }, 100);
+
+        // Initialize Alert Slideshow after items are loaded
+        this.initAlertSlideshow();        
         
     }
 
@@ -18398,6 +18820,303 @@ class FastSearchCard extends HTMLElement {
     
 }
 
+
+
+// ===== INFINITE CARD SLIDER CLASS =====
+class InfiniteCardSlider {
+    constructor(sliderHolder, totalSlides, clickHandler = null) {
+        this.currentSlide = Math.ceil(totalSlides / 2); // Start in middle
+        this.totalSlides = totalSlides;
+        this.isAnimating = false;
+        this.animationDuration = 600;
+        this.easing = 'cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+        this.sliderHolder = sliderHolder;
+        this.clickHandler = clickHandler;
+        
+        // Auto-play settings
+        this.autoPlayDelay = 5000;
+        this.autoPlayInterval = 3000;
+        this.autoPlayTimer = null;
+        this.autoPlayActive = false;
+        this.inactivityTimer = null;
+        
+        this.init();
+    }
+
+    init() {
+        this.slides = this.sliderHolder.querySelectorAll('.alert-slider__item');
+        
+        if (this.slides.length === 0) return;
+        
+        // Set initial positions
+        this.updatePositions(false);
+        
+        // Add event listeners
+        this.addEventListeners();
+        
+        // Start inactivity timer
+        this.startInactivityTimer();
+    }
+
+    addEventListeners() {
+        // Click events for each slide
+        this.slides.forEach((slide, index) => {
+            slide.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleUserInteraction();
+                this.handleSlideClick(index + 1);
+            });
+        });
+
+        // Horizontal mouse wheel navigation
+        this.addMouseWheelListener();
+        
+        // Global activity detection
+        this.addActivityListeners();
+    }
+
+    addActivityListeners() {
+        const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'wheel'];
+        
+        activityEvents.forEach(event => {
+            document.addEventListener(event, () => {
+                this.handleUserInteraction();
+            }, { passive: true });
+        });
+    }
+
+    handleUserInteraction() {
+        this.stopAutoPlay();
+        this.startInactivityTimer();
+    }
+
+    startInactivityTimer() {
+        if (this.inactivityTimer) {
+            clearTimeout(this.inactivityTimer);
+        }
+        
+        this.inactivityTimer = setTimeout(() => {
+            this.startAutoPlay();
+        }, this.autoPlayDelay);
+    }
+
+    startAutoPlay() {
+        if (this.autoPlayActive) return;
+        
+        this.autoPlayActive = true;
+        this.autoPlayTimer = setInterval(() => {
+            if (!this.isAnimating) {
+                this.nextSlide();
+            }
+        }, this.autoPlayInterval);
+    }
+
+    stopAutoPlay() {
+        if (!this.autoPlayActive) return;
+        
+        this.autoPlayActive = false;
+        
+        if (this.autoPlayTimer) {
+            clearInterval(this.autoPlayTimer);
+            this.autoPlayTimer = null;
+        }
+        
+        if (this.inactivityTimer) {
+            clearTimeout(this.inactivityTimer);
+            this.inactivityTimer = null;
+        }
+    }
+
+    addMouseWheelListener() {
+        let lastWheelTime = 0;
+        const wheelDelay = 300;
+        
+        this.sliderHolder.addEventListener('wheel', (e) => {
+            const deltaX = e.deltaX;
+            const currentTime = Date.now();
+            
+            if (Math.abs(deltaX) > 20 && (currentTime - lastWheelTime) >= wheelDelay) {
+                e.preventDefault();
+                lastWheelTime = currentTime;
+                
+                this.handleUserInteraction();
+                
+                if (deltaX > 0) {
+                    this.nextSlide();
+                } else {
+                    this.prevSlide();
+                }
+            } else if (Math.abs(deltaX) > 0) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    }
+
+    handleSlideClick(slideNumber) {
+        if (this.isAnimating) return;
+        
+        if (slideNumber === this.currentSlide) {
+            // If clicking current slide, trigger click handler
+            if (this.clickHandler) {
+                this.clickHandler(slideNumber - 1); // Convert to 0-based index
+            }
+        } else if (slideNumber === this.getNextSlideNumber() || 
+                  (this.currentSlide === this.totalSlides && slideNumber === 1)) {
+            this.nextSlide();
+        } else if (slideNumber === this.getPrevSlideNumber() || 
+                  (this.currentSlide === 1 && slideNumber === this.totalSlides)) {
+            this.prevSlide();
+        } else {
+            this.goToSlide(slideNumber);
+        }
+    }
+
+    nextSlide() {
+        if (this.isAnimating) return;
+        const nextSlideNumber = this.currentSlide === this.totalSlides ? 1 : this.currentSlide + 1;
+        this.goToSlide(nextSlideNumber);
+    }
+
+    prevSlide() {
+        if (this.isAnimating) return;
+        const prevSlideNumber = this.currentSlide === 1 ? this.totalSlides : this.currentSlide - 1;
+        this.goToSlide(prevSlideNumber);
+    }
+
+    goToSlide(slideNumber) {
+        if (this.isAnimating || slideNumber === this.currentSlide) return;
+        
+        this.isAnimating = true;
+        this.currentSlide = slideNumber;
+        this.updatePositions(true);
+        
+        setTimeout(() => {
+            this.isAnimating = false;
+        }, this.animationDuration);
+    }
+
+    updatePositions(animate = true) {
+        this.slides.forEach((slide, index) => {
+            const slideNumber = index + 1;
+            const position = this.calculatePosition(slideNumber);
+            
+            if (animate) {
+                this.animateSlide(slide, position);
+            } else {
+                this.setSlidePosition(slide, position);
+            }
+        });
+    }
+
+    calculatePosition(slideNumber) {
+        const current = this.currentSlide;
+        let position = {
+            transform: 'translate(0) scale(1)',
+            zIndex: 2,
+            opacity: 1
+        };
+
+        if (slideNumber === current) {
+            // Current slide - center, full scale
+            position = {
+                transform: 'translate(0) scale(1)',
+                zIndex: 2,
+                opacity: 1
+            };
+        } else if (slideNumber === this.getNextSlideNumber() || 
+                  (current === this.totalSlides && slideNumber === 1)) {
+            // Next slide (right side)
+            position = {
+                transform: 'translateX(100px) scale(0.85)',
+                zIndex: 1,
+                opacity: window.innerWidth <= 768 ? 0.6 : 1
+            };
+        } else if (slideNumber === this.getPrevSlideNumber() || 
+                  (current === 1 && slideNumber === this.totalSlides)) {
+            // Previous slide (left side)
+            position = {
+                transform: 'translateX(-100px) scale(0.85)',
+                zIndex: 1,
+                opacity: window.innerWidth <= 768 ? 0.6 : 1
+            };
+        } else if (slideNumber === this.getSlideNumberAtOffset(2) || 
+                  (current === this.totalSlides - 1 && slideNumber === 1) ||
+                  (current === this.totalSlides && slideNumber === 2)) {
+            // Far right slide
+            const translateX = window.innerWidth <= 900 ? 170 : 210;
+            position = {
+                transform: `translateX(${translateX}px) scale(0.65)`,
+                zIndex: 0,
+                opacity: window.innerWidth <= 768 ? 0 : 1
+            };
+        } else if (slideNumber === this.getSlideNumberAtOffset(-2) || 
+                  (current === 2 && slideNumber === this.totalSlides) ||
+                  (current === 1 && slideNumber === this.totalSlides - 1)) {
+            // Far left slide
+            const translateX = window.innerWidth <= 900 ? -170 : -210;
+            position = {
+                transform: `translateX(${translateX}px) scale(0.65)`,
+                zIndex: 0,
+                opacity: window.innerWidth <= 768 ? 0 : 1
+            };
+        } else {
+            // Hidden slides
+            position = {
+                transform: 'translateX(0) scale(0.5)',
+                zIndex: -1,
+                opacity: 0
+            };
+        }
+
+        return position;
+    }
+
+    animateSlide(slide, position) {
+        slide.animate([
+            {},
+            {
+                transform: position.transform,
+                opacity: position.opacity
+            }
+        ], {
+            duration: this.animationDuration,
+            easing: this.easing,
+            fill: 'forwards'
+        });
+
+        slide.style.zIndex = position.zIndex;
+    }
+
+    setSlidePosition(slide, position) {
+        slide.style.transform = position.transform;
+        slide.style.zIndex = position.zIndex;
+        slide.style.opacity = position.opacity;
+    }
+
+    getNextSlideNumber() {
+        return this.currentSlide === this.totalSlides ? 1 : this.currentSlide + 1;
+    }
+
+    getPrevSlideNumber() {
+        return this.currentSlide === 1 ? this.totalSlides : this.currentSlide - 1;
+    }
+
+    getSlideNumberAtOffset(offset) {
+        let result = this.currentSlide + offset;
+        while (result > this.totalSlides) {
+            result -= this.totalSlides;
+        }
+        while (result < 1) {
+            result += this.totalSlides;
+        }
+        return result;
+    }
+
+    destroy() {
+        this.stopAutoPlay();
+        // Remove event listeners would go here if needed
+    }
+}
 
 
 
