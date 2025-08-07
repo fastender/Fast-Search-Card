@@ -6211,7 +6211,14 @@ class FastSearchCard extends HTMLElement {
     }
     
     updateAlertSlides() {
-        if (!this.slideshowAlerts || !this._hass) return;
+        console.log('🔄 updateAlertSlides called');
+        console.log('🔄 this.slideshowAlerts:', this.slideshowAlerts);
+        console.log('🔄 this._hass:', !!this._hass);
+        
+        if (!this.slideshowAlerts || !this._hass) {
+            console.log('❌ Early return: missing slideshowAlerts or _hass');
+            return;
+        }              
         
         this.alertSlides = this.slideshowAlerts.filter(alert => {
             // Prüfe Bedingung falls vorhanden
@@ -6232,7 +6239,15 @@ class FastSearchCard extends HTMLElement {
     }
     
     initAlertSlideshow() {
+        console.log('🚨 === ALERT SLIDESHOW DEBUG ===');
+        console.log('🚨 this.slideshowAlerts:', this.slideshowAlerts);
+        console.log('🚨 this._config:', this._config);
+        console.log('🚨 this._hass exists:', !!this._hass);
+        
         this.updateAlertSlides();
+        
+        console.log('🚨 this.alertSlides after update:', this.alertSlides);
+        console.log('🚨 alertSlides.length:', this.alertSlides?.length);          
         
         // Initialisiere Slider nach dem nächsten Update
         setTimeout(() => {
