@@ -8507,58 +8507,88 @@ class FastSearchCard extends HTMLElement {
 
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
-        
+
         this.updateSubcategoryCounts();
-        
+
+        // --- GRID VIEW KARTEN AKTUALISIEREN ---
         const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
         deviceCards.forEach(card => {
             const entityId = card.dataset.entity;
+            if (!entityId) return;
+
+            const item = this.allItems.find(i => i.id === entityId);
             const state = this._hass.states[entityId];
-            if (state) {
-                const isActive = this.isEntityActive(state);
-                const wasActive = card.classList.contains('active');
-                card.classList.toggle('active', isActive);
-                if (isActive !== wasActive) { this.animateStateChange(card, isActive); }
-                
+
+            if (item && state) {
+                // Schritt 1: Internen Status des Items aktualisieren
+                item.isActive = this.isEntityActive(state);
+
+                // Schritt 2: CSS-Klasse für die Farbe aktualisieren
+                card.classList.toggle('active', item.isActive);
+
+                // Schritt 3 (NEU): Icon basierend auf dem neuen Status neu zeichnen
+                const iconElement = card.querySelector('.device-icon');
+                if (iconElement) {
+                    iconElement.innerHTML = this.getDynamicIcon(item);
+                }
+
+                // Schritt 4: Status-Text aktualisieren
                 const statusElement = card.querySelector('.device-status');
                 if (statusElement) {
-                    const item = this.allItems.find(i => i.id === entityId);
-                    if (item && item.domain === 'custom') {
-                        statusElement.textContent = this.getCustomStatusText(item);
-                    } else {
-                        statusElement.textContent = this.getEntityStatus(state);
-                    }
+                    statusElement.textContent = item.domain === 'custom' 
+                        ? this.getCustomStatusText(item) 
+                        : this.getEntityStatus(state);
                 }
+
+                // Schritt 5 (NEU): State-Änderungs-Animation aufrufen
+                if (card.classList.contains('active') !== (item.isActive_old ?? item.isActive)) {
+                    this.animateStateChange(card, item.isActive);
+                }
+                item.isActive_old = item.isActive;
             }
         });
 
+        // --- LIST VIEW KARTEN AKTUALISIEREN (gleiche Logik) ---
         const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
         deviceListItems.forEach(listItem => {
             const entityId = listItem.dataset.entity;
+            if (!entityId) return;
+
+            const item = this.allItems.find(i => i.id === entityId);
             const state = this._hass.states[entityId];
-            if (state) {
-                const isActive = this.isEntityActive(state);
-                const wasActive = listItem.classList.contains('active');
-                listItem.classList.toggle('active', isActive);
-                
-                if (isActive !== wasActive) {
-                    this.animateStateChange(listItem, isActive);
+
+            if (item && state) {
+                // Schritt 1: Internen Status aktualisieren
+                item.isActive = this.isEntityActive(state);
+
+                // Schritt 2: CSS-Klasse aktualisieren
+                listItem.classList.toggle('active', item.isActive);
+
+                // Schritt 3 (NEU): Icon neu zeichnen
+                const iconElement = listItem.querySelector('.device-list-icon');
+                if (iconElement) {
+                    iconElement.innerHTML = this.getDynamicIcon(item);
                 }
-                
+
+                // Schritt 4: Status-Text aktualisieren
                 const statusElement = listItem.querySelector('.device-list-status');
                 if (statusElement) {
-                    const item = this.allItems.find(i => i.id === entityId);
-                    if (item && item.domain === 'custom') {
-                        statusElement.textContent = this.getCustomStatusText(item);
-                    } else {
-                        statusElement.textContent = this.getEntityStatus(state);
-                    }
+                    statusElement.textContent = item.domain === 'custom' 
+                        ? this.getCustomStatusText(item) 
+                        : this.getEntityStatus(state);
                 }
                 
+                // Schritt 5: Quick-Action-Button aktualisieren
                 const quickActionBtn = listItem.querySelector('.device-list-quick-action');
                 if (quickActionBtn) {
                     this.updateQuickActionButton(quickActionBtn, entityId, state);
                 }
+
+                // Schritt 6 (NEU): State-Änderungs-Animation aufrufen
+                if (listItem.classList.contains('active') !== (item.isActive_old ?? item.isActive)) {
+                    this.animateStateChange(listItem, item.isActive);
+                }
+                item.isActive_old = item.isActive_old;
             }
         });
     }
