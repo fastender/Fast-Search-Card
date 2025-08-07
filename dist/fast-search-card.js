@@ -6450,13 +6450,40 @@ class FastSearchCard extends HTMLElement {
                     // Skip wenn bereits manuell definiert
                     if (manualEntityIds.has(entityId)) continue;
                     
-                    // ▼▼▼ HIER IST DIE KORREKTUR ▼▼▼
-                    // Entity-Filter an den Anfang verschoben, damit er für ALLE Entitäten greift.
-                    if (this._config.exclude_entities.includes(entityId)) {
+                    // Erweiterter Entity-Filter, der verschiedene Wildcard-Typen versteht
+                    const isExcluded = this._config.exclude_entities.some(pattern => {
+                        // Fall 1: Kein Wildcard -> Exakter Abgleich
+                        if (!pattern.includes('*')) {
+                            return pattern === entityId;
+                        }
+
+                        // Fall 2: "Enthält"-Abgleich (z.B. "*_battery_low*")
+                        if (pattern.startsWith('*') && pattern.endsWith('*')) {
+                            const substring = pattern.substring(1, pattern.length - 1);
+                            return entityId.includes(substring);
+                        }
+
+                        // Fall 3: "Endet mit"-Abgleich (z.B. "*_battery_low")
+                        if (pattern.startsWith('*')) {
+                            const substring = pattern.substring(1);
+                            return entityId.endsWith(substring);
+                        }
+
+                        // Fall 4: "Beginnt mit"-Abgleich (z.B. "sensor.samsung_*")
+                        if (pattern.endsWith('*')) {
+                            const substring = pattern.substring(0, pattern.length - 1);
+                            return entityId.startsWith(substring);
+                        }
+
+                        // Fall 5: Wildcard in der Mitte (z.B. "sensor.*.status")
+                        const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+                        return regex.test(entityId);
+                    });
+
+                    if (isExcluded) {
                         stats.filtered_by_domain++; // Zählt als gefiltert
                         continue; // Die Entität sofort überspringen
-                    }
-                    // ▲▲▲ BIS HIERHIN VERSCHOBEN ▲▲▲
+                    }                        
 
                     const domain = entityId.split('.')[0];
                     
