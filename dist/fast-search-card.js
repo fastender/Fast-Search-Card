@@ -8505,65 +8505,20 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
+        this.updateSubcategoryCounts(); // Diese Zeile ist jetzt wieder aktiv
 
-        // --- DEBUGGING TEST 2: NUR ZÄHLER DEAKTIVIERT ---
-        // this.updateSubcategoryCounts(); 
-        
-        const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
-        deviceCards.forEach(card => {
-            // ... der Rest der Funktion bleibt aktiv ...
-            const entityId = card.dataset.entity;
-            const state = this._hass.states[entityId];
-            if (state) {
-                const isActive = this.isEntityActive(state);
-                const wasActive = card.classList.contains('active');
-                card.classList.toggle('active', isActive);
-                if (isActive !== wasActive) { this.animateStateChange(card, isActive); }
-                
-                const statusElement = card.querySelector('.device-status');
-                if (statusElement) {
-                    const item = this.allItems.find(i => i.id === entityId);
-                    if (item && item.domain === 'custom') {
-                        statusElement.textContent = this.getCustomStatusText(item);
-                    } else {
-                        statusElement.textContent = this.getEntityStatus(state);
-                    }
-                }
-            }
-        });
-
-        const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
-        deviceListItems.forEach(listItem => {
-            // ... der Rest der Funktion bleibt aktiv ...
-            const entityId = listItem.dataset.entity;
-            const state = this._hass.states[entityId];
-            if (state) {
-                const isActive = this.isEntityActive(state);
-                const wasActive = listItem.classList.contains('active');
-                listItem.classList.toggle('active', isActive);
-                
-                if (isActive !== wasActive) {
-                    this.animateStateChange(listItem, isActive);
-                }
-                
-                const statusElement = listItem.querySelector('.device-list-status');
-                if (statusElement) {
-                    const item = this.allItems.find(i => i.id === entityId);
-                    if (item && item.domain === 'custom') {
-                        statusElement.textContent = this.getCustomStatusText(item);
-                    } else {
-                        statusElement.textContent = this.getEntityStatus(state);
-                    }
-                }
-                
-                const quickActionBtn = listItem.querySelector('.device-list-quick-action');
-                if (quickActionBtn) {
-                    this.updateQuickActionButton(quickActionBtn, entityId, state);
-                }
-            }
-        });
+        // --- DEBUGGING TEST 3: NUR KARTEN-UPDATES DEAKTIVIERT ---
+        // const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
+        // deviceCards.forEach(card => {
+        //    ... (ganzer Block auskommentiert) ...
+        // });
+        // const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
+        // deviceListItems.forEach(listItem => {
+        //    ... (ganzer Block auskommentiert) ...
+        // });
     }
 
     categorizeEntity(domain) {
