@@ -17875,8 +17875,6 @@ class FastSearchCard extends HTMLElement {
         const icon = card.querySelector('.device-icon') || card.querySelector('.device-list-icon');
         if (!icon) return;
         
-        // Die rechenintensive box-shadow Animation wurde entfernt.
-        // Wir behalten nur die schnelle und flüssige Animation des Icons.
         icon.animate([
             { transform: 'scale(1)' }, 
             { transform: 'scale(1.2)' }, 
