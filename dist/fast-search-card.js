@@ -394,12 +394,13 @@ class FastSearchCard extends HTMLElement {
             // Fügen Sie DANACH diese Zeile hinzu:
             action_favorites: config.action_favorites || {},            
 
-            // Alert Slideshow Konfiguration
-            slideshow_alerts: config.slideshow_alerts || [],
-            
             ...config
-        };
-        
+        };            
+
+        // Alert Slideshow - NACH dem config spread verarbeiten
+        this.slideshowAlerts = this._config.slideshow_alerts || [];
+        console.log('🔧 setConfig: slideshow_alerts loaded:', this.slideshowAlerts);          
+              
         // Erweiterte Validierung
         const hasAutoDiscover = this._config.auto_discover;
         const hasEntities = this._config.entities && this._config.entities.length > 0;
