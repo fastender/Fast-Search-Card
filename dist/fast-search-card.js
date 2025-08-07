@@ -6221,8 +6221,41 @@ class FastSearchCard extends HTMLElement {
             background_image: alert.background_image || null,
             click_entity: alert.click_entity || null
         }));
+
+        // HINZUFÜGEN: Force re-render nach Alert-Update
+        console.log('🔄 Forcing re-render, alertSlides.length:', this.alertSlides.length);
+        this.updateAlertContainer();        
         
     }
+
+
+    updateAlertContainer() {
+        const container = this.shadowRoot.querySelector('.alert-slider__holder');
+        if (!container) return;
+        
+        // Re-generate slide HTML
+        container.innerHTML = this.alertSlides.map((slide, index) => `
+            <div class="alert-slider__item" data-slide="${index + 1}" style="background-image: ${slide.background_image ? `url('${slide.background_image}')` : 'none'};">
+                <div class="alert-slider__item-content">
+                    <div class="alert-slider__item-header">
+                        <p class="alert-heading-sub">${slide.subheader || ''}</p>
+                        <p class="alert-heading-main">${slide.header || ''}</p>
+                    </div>
+                    <p class="alert-slider__item-text alert-content-text">${slide.content || ''}</p>
+                </div>
+            </div>
+        `).join('');
+        
+        // Re-initialize slider
+        if (this.alertSlider) {
+            this.alertSlider.destroy();
+        }
+        
+        if (this.alertSlides.length > 0) {
+            this.alertSlider = new InfiniteCardSlider(container.parentElement, this.alertSlides.length);
+            this.setupAlertClickHandlers();
+        }
+    }    
     
     initAlertSlideshow() {
         console.log('🚨 === ALERT SLIDESHOW DEBUG ===');
