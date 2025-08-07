@@ -8506,70 +8506,17 @@ class FastSearchCard extends HTMLElement {
     }
 
     updateStates() {
-        if (!this._hass || this.isDetailView || this.isSearching) { return; }
-        this.updateSubcategoryCounts();
-        const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
-        deviceCards.forEach(card => {
-            const entityId = card.dataset.entity;
-            const state = this._hass.states[entityId];
-            if (state) {
-                const isActive = this.isEntityActive(state);
-                const wasActive = card.classList.contains('active');
-                card.classList.toggle('active', isActive);
-                if (isActive !== wasActive) { this.animateStateChange(card, isActive); }
-                
-                // ▼▼▼ KORREKTUR STARTET HIER (für Grid-Ansicht) ▼▼▼
-                const statusElement = card.querySelector('.device-status');
-                if (statusElement) {
-                    // Finde das zugehörige Item-Objekt, um den Typ zu prüfen
-                    const item = this.allItems.find(i => i.id === entityId);
-                    if (item && item.domain === 'custom') {
-                        // Für Custom-Items (Sensoren etc.), nutze die korrekte Funktion
-                        statusElement.textContent = this.getCustomStatusText(item);
-                    } else {
-                        // Für normale Geräte, nutze die alte Funktion
-                        statusElement.textContent = this.getEntityStatus(state);
-                    }
-                }
-                // ▲▲▲ KORREKTUR ENDET HIER (für Grid-Ansicht) ▲▲▲
-            }
-        });
-
-        const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
-        deviceListItems.forEach(listItem => {
-            const entityId = listItem.dataset.entity;
-            const state = this._hass.states[entityId];
-            if (state) {
-                const isActive = this.isEntityActive(state);
-                const wasActive = listItem.classList.contains('active');
-                listItem.classList.toggle('active', isActive);
-                
-                if (isActive !== wasActive) {
-                    this.animateStateChange(listItem, isActive);
-                }
-                
-                // ▼▼▼ KORREKTUR STARTET HIER (für Listen-Ansicht) ▼▼▼
-                const statusElement = listItem.querySelector('.device-list-status');
-                if (statusElement) {
-                    // Finde das zugehörige Item-Objekt, um den Typ zu prüfen
-                    const item = this.allItems.find(i => i.id === entityId);
-                    if (item && item.domain === 'custom') {
-                        // Für Custom-Items (Sensoren etc.), nutze die korrekte Funktion
-                        statusElement.textContent = this.getCustomStatusText(item);
-                    } else {
-                        // Für normale Geräte, nutze die alte Funktion
-                        statusElement.textContent = this.getEntityStatus(state);
-                    }
-                }
-                // ▲▲▲ KORREKTUR ENDET HIER (für Listen-Ansicht) ▲▲▲
-                
-                // Update quick action button
-                const quickActionBtn = listItem.querySelector('.device-list-quick-action');
-                if (quickActionBtn) {
-                    this.updateQuickActionButton(quickActionBtn, entityId, state);
-                }
-            }
-        });
+        // --- DEBUGGING: ALLES TEMPORÄR DEAKTIVIERT ---
+        // if (!this._hass || this.isDetailView || this.isSearching) { return; }
+        // this.updateSubcategoryCounts();
+        // const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
+        // deviceCards.forEach(card => {
+        //     // ... viel Code hier ...
+        // });
+        // const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
+        // deviceListItems.forEach(listItem => {
+        //     // ... viel Code hier ...
+        // });
     }
 
     categorizeEntity(domain) {
