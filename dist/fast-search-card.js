@@ -6414,7 +6414,6 @@ class FastSearchCard extends HTMLElement {
         return Math.min(quality, 1.0);
     }
     
-    // 4️⃣ ERSETZE deine bestehende discoverEntities() Funktion (um Zeile ~2600):
     async discoverEntities() {
         if (!this._hass) {
             console.warn('HASS not available for auto-discovery');
@@ -6425,15 +6424,14 @@ class FastSearchCard extends HTMLElement {
             console.log('🔍 Starting enhanced auto-discovery...');
             const startTime = performance.now();
             
-            // 🆕 DISCOVERY-STATISTIKEN (erweitert)
             const stats = {
                 total: 0,
                 filtered_by_domain: 0,
                 filtered_by_area: 0,
                 filtered_by_quality: 0,
                 filtered_by_system: 0,
-                sensors_excluded: 0,      // 🆕 NEU
-                sensors_to_custom: 0,     // 🆕 NEU
+                sensors_excluded: 0,
+                sensors_to_custom: 0,
                 manual_entities: 0,
                 areas_assigned: 0
             };
@@ -6442,7 +6440,6 @@ class FastSearchCard extends HTMLElement {
             const manualEntityIds = new Set((this._config.entities || []).map(e => e.entity));
             stats.manual_entities = manualEntityIds.size;
             
-            // Durch alle Entitäten in Home Assistant gehen
             for (const entityId in this._hass.states) {
                 try {
                     const state = this._hass.states[entityId];
@@ -6453,34 +6450,35 @@ class FastSearchCard extends HTMLElement {
                     // Skip wenn bereits manuell definiert
                     if (manualEntityIds.has(entityId)) continue;
                     
+                    // ▼▼▼ HIER IST DIE KORREKTUR ▼▼▼
+                    // Entity-Filter an den Anfang verschoben, damit er für ALLE Entitäten greift.
+                    if (this._config.exclude_entities.includes(entityId)) {
+                        stats.filtered_by_domain++; // Zählt als gefiltert
+                        continue; // Die Entität sofort überspringen
+                    }
+                    // ▲▲▲ BIS HIERHIN VERSCHOBEN ▲▲▲
+
                     const domain = entityId.split('.')[0];
                     
-                    // 🎛️ SENSOR HANDLING basierend auf User-Einstellungen
                     if (domain === 'sensor' || domain === 'binary_sensor') {
-                        // Option 1: Custom Auto-Discovery ist aktiviert
                         if (this._config.custom_auto_discover && this._config.custom_mode.enabled) {
                             
-                            // System-Entity-Filter auch für Sensoren
                             if (this.isSystemEntity(entityId, state)) {
                                 stats.filtered_by_system++;
                                 continue;
                             }
                             
-                            // Qualitäts-Filter auch für Sensoren
                             if (!this.meetsQualityThreshold(entityId, state)) {
                                 stats.filtered_by_quality++;
                                 continue;
                             }
                             
-                            // Prüfe ob Sensor interessant ist
                             if (this.shouldAutoDiscoverSensorToCustom(entityId, state)) {
                                 stats.sensors_to_custom++;
                                 console.log(`📊 Auto-discovered sensor to custom: ${entityId}`);
                                 
-                                // Area-Ermittlung für Sensor
                                 const areaName = this.getEntityArea(entityId, state);
                                 
-                                // Area-Filter auch für Sensoren anwenden
                                 if (this._config.include_areas.length > 0 && 
                                     !this._config.include_areas.includes(areaName)) {
                                     stats.filtered_by_area++;
@@ -6495,22 +6493,17 @@ class FastSearchCard extends HTMLElement {
                                     stats.areas_assigned++;
                                 }
                                 
-                                // ✅ RICHTIGE LÖSUNG: Vollständige Custom-Entity-Struktur erstellen
                                 const customSensorEntity = this.createCustomSensorEntity(entityId, state, areaName);
                                 discoveredEntities.push(customSensorEntity);
                                 
-                                continue; // Weiter mit nächster Entity
+                                continue;
                             }
                         }
                         
-                        // Option 2: Sensoren werden komplett ausgeschlossen
                         stats.sensors_excluded++;
-                        continue; // Sensor wird nicht hinzugefügt
+                        continue;
                     }
                     
-                    // 🔄 REST DER DISCOVERY-LOGIK für normale Entities (unverändert)
-                    
-                    // Domain-Filter anwenden
                     if (this._config.include_domains.length > 0 && 
                         !this._config.include_domains.includes(domain)) {
                         stats.filtered_by_domain++;
@@ -6521,25 +6514,18 @@ class FastSearchCard extends HTMLElement {
                         continue;
                     }
                     
-                    // Entity-Filter anwenden
-                    if (this._config.exclude_entities.includes(entityId)) {
-                        stats.filtered_by_domain++;
-                        continue;
-                    }
+                    // Der alte Entity-Filter Block wurde von hier entfernt.
                     
-                    // 🆕 SYSTEM-ENTITY-FILTER mit Statistik
                     if (this.isSystemEntity(entityId, state)) {
                         stats.filtered_by_system++;
                         continue;
                     }
                     
-                    // 🆕 QUALITÄTS-FILTER mit Statistik
                     if (!this.meetsQualityThreshold(entityId, state)) {
                         stats.filtered_by_quality++;
                         continue;
                     }
                     
-                    // INTELLIGENTE AREA-ERMITTLUNG basierend auf Domain
                     let areaName;
                     if (domain === 'script') {
                         areaName = await this.getScriptArea(entityId, state);
@@ -6548,11 +6534,9 @@ class FastSearchCard extends HTMLElement {
                     } else if (domain === 'automation') {
                         areaName = await this.getAutomationArea(entityId, state);
                     } else {
-                        // Standard Area-Ermittlung für Geräte
                         areaName = this.getEntityArea(entityId, state);
                     }
                     
-                    // Area-Filter anwenden
                     if (this._config.include_areas.length > 0 && 
                         !this._config.include_areas.includes(areaName)) {
                         stats.filtered_by_area++;
@@ -6567,11 +6551,9 @@ class FastSearchCard extends HTMLElement {
                         stats.areas_assigned++;
                     }
                     
-                    // Kategorie ermitteln (Sensoren sind bereits behandelt)
                     const category = this.getCategoryForDomain(domain);
-                    if (!category) continue; // Skip wenn keine Kategorie
+                    if (!category) continue;
                     
-                    // Auto-discovered Entity erstellen
                     discoveredEntities.push({
                         entity: entityId,
                         title: state.attributes.friendly_name || entityId,
@@ -6579,7 +6561,6 @@ class FastSearchCard extends HTMLElement {
                         auto_discovered: true,
                         domain: domain,
                         category: category,
-                        // 🆕 QUALITÄTS-SCORE hinzufügen
                         discovery_quality: this.calculateDiscoveryQuality(entityId, state, areaName)
                     });
                     
@@ -6589,7 +6570,6 @@ class FastSearchCard extends HTMLElement {
                 }
             }
             
-            // 🆕 DISCOVERY-STATISTIKEN AUSGEBEN (erweitert)
             const discoveryTime = performance.now() - startTime;
             const efficiency = Math.round((discoveredEntities.length / stats.total) * 100);
             
@@ -6601,7 +6581,6 @@ class FastSearchCard extends HTMLElement {
                 area_coverage: Math.round((stats.areas_assigned / discoveredEntities.length) * 100)
             });
             
-            // 🆕 QUALITÄTSSORTIERUNG
             discoveredEntities.sort((a, b) => (b.discovery_quality || 0) - (a.discovery_quality || 0));
             
             console.log(`✅ Auto-discovered ${discoveredEntities.length} entities (${stats.sensors_excluded} sensors excluded, ${stats.sensors_to_custom} sensors to custom)`);
@@ -6611,7 +6590,7 @@ class FastSearchCard extends HTMLElement {
             console.error('Error in enhanced auto-discovery:', error);
             return [];
         }
-    }
+    }        
 
     createCustomSensorEntity(entityId, state, areaName) {
         const deviceClass = state.attributes.device_class;
