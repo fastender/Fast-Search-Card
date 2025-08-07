@@ -965,6 +965,7 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 opacity: 0.9;
                 min-height: 13px;
+                min-width: 65px; /* ✅ DIESE ZEILE IST DIE LÖSUNG */
             }
 
             .subcategory-chip.active .subcategory-status {
