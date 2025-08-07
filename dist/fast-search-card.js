@@ -302,6 +302,9 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = false;
         this.searchTimeout = null;
         this.isSearching = false;
+
+        this.scrollTimeout = null; // ✅ HINZUFÜGEN
+        this.isScrolling = false;    // ✅ HINZUFÜGEN        
         
         // Neue State-Variablen
         this.isDetailView = false;
@@ -5787,6 +5790,21 @@ class FastSearchCard extends HTMLElement {
                 }
             });
         }
+
+        // ✅ NEUEN CODEBLOCK HIER AM ENDE DER FUNKTION EINFÜGEN
+        const resultsContainer = this.shadowRoot.querySelector('.results-container');
+        if (resultsContainer) {
+            resultsContainer.addEventListener('scroll', () => {
+                this.isScrolling = true;
+                clearTimeout(this.scrollTimeout);
+                this.scrollTimeout = setTimeout(() => {
+                    this.isScrolling = false;
+                    // Führe eine verzögerte Aktualisierung aus, nachdem das Scrollen beendet ist
+                    if (this._hass) this.updateStates();
+                }, 250); // Nach 250ms ohne Scrollen wird aktualisiert
+            }, { passive: true });
+        }
+        
     }
 
 
@@ -8506,11 +8524,14 @@ class FastSearchCard extends HTMLElement {
     }
 
     updateStates() {
+        // Wenn der User gerade scrollt, brechen wir die Funktion sofort ab,
+        // um ein Ruckeln zu verhindern. Das Update wird nachgeholt, wenn das Scrollen stoppt.
+        if (this.isScrolling) return;
+
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
 
         this.updateSubcategoryCounts();
 
-        // --- GRID VIEW KARTEN AKTUALISIEREN ---
         const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
         deviceCards.forEach(card => {
             const entityId = card.dataset.entity;
@@ -8520,35 +8541,30 @@ class FastSearchCard extends HTMLElement {
             const state = this._hass.states[entityId];
 
             if (item && state) {
-                // Schritt 1: Internen Status des Items aktualisieren
-                item.isActive = this.isEntityActive(state);
+                const isActive = this.isEntityActive(state);
+                const wasActive = card.classList.contains('active');
+                card.classList.toggle('active', isActive);
 
-                // Schritt 2: CSS-Klasse für die Farbe aktualisieren
-                card.classList.toggle('active', item.isActive);
-
-                // Schritt 3 (NEU): Icon basierend auf dem neuen Status neu zeichnen
                 const iconElement = card.querySelector('.device-icon');
                 if (iconElement) {
-                    iconElement.innerHTML = this.getDynamicIcon(item);
+                    // Update icon only if state changed to prevent unnecessary redraws
+                    if (isActive !== wasActive) {
+                        item.isActive = isActive; // Update internal state before getting icon
+                        iconElement.innerHTML = this.getDynamicIcon(item);
+                    }
                 }
 
-                // Schritt 4: Status-Text aktualisieren
                 const statusElement = card.querySelector('.device-status');
                 if (statusElement) {
-                    statusElement.textContent = item.domain === 'custom' 
-                        ? this.getCustomStatusText(item) 
-                        : this.getEntityStatus(state);
+                    statusElement.textContent = this.getEntityStatus(state);
                 }
 
-                // Schritt 5 (NEU): State-Änderungs-Animation aufrufen
-                if (card.classList.contains('active') !== (item.isActive_old ?? item.isActive)) {
-                    this.animateStateChange(card, item.isActive);
+                if (isActive !== wasActive) {
+                    this.animateStateChange(card, isActive);
                 }
-                item.isActive_old = item.isActive;
             }
         });
 
-        // --- LIST VIEW KARTEN AKTUALISIEREN (gleiche Logik) ---
         const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
         deviceListItems.forEach(listItem => {
             const entityId = listItem.dataset.entity;
@@ -8558,37 +8574,29 @@ class FastSearchCard extends HTMLElement {
             const state = this._hass.states[entityId];
 
             if (item && state) {
-                // Schritt 1: Internen Status aktualisieren
-                item.isActive = this.isEntityActive(state);
+                const isActive = this.isEntityActive(state);
+                const wasActive = listItem.classList.contains('active');
+                listItem.classList.toggle('active', isActive);
 
-                // Schritt 2: CSS-Klasse aktualisieren
-                listItem.classList.toggle('active', item.isActive);
-
-                // Schritt 3 (NEU): Icon neu zeichnen
                 const iconElement = listItem.querySelector('.device-list-icon');
-                if (iconElement) {
+                if (iconElement && isActive !== wasActive) {
+                    item.isActive = isActive;
                     iconElement.innerHTML = this.getDynamicIcon(item);
                 }
 
-                // Schritt 4: Status-Text aktualisieren
                 const statusElement = listItem.querySelector('.device-list-status');
                 if (statusElement) {
-                    statusElement.textContent = item.domain === 'custom' 
-                        ? this.getCustomStatusText(item) 
-                        : this.getEntityStatus(state);
+                    statusElement.textContent = this.getEntityStatus(state);
                 }
                 
-                // Schritt 5: Quick-Action-Button aktualisieren
                 const quickActionBtn = listItem.querySelector('.device-list-quick-action');
                 if (quickActionBtn) {
                     this.updateQuickActionButton(quickActionBtn, entityId, state);
                 }
 
-                // Schritt 6 (NEU): State-Änderungs-Animation aufrufen
-                if (listItem.classList.contains('active') !== (item.isActive_old ?? item.isActive)) {
-                    this.animateStateChange(listItem, item.isActive);
+                if (isActive !== wasActive) {
+                    this.animateStateChange(listItem, isActive);
                 }
-                item.isActive_old = item.isActive_old;
             }
         });
     }
