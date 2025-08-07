@@ -8481,6 +8481,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     
+
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
         
@@ -8561,8 +8562,8 @@ class FastSearchCard extends HTMLElement {
                         // State-Change Update
                         update.card.classList.toggle('active', update.isActive);
                         
-                        // Animation nur für sichtbare Cards
-                        if (this.isCardVisible(update.card)) {
+                        // Animation nur für sichtbare Cards und mit Performance-Check
+                        if (this.shouldAnimate() && this.isCardVisible(update.card)) {
                             this.animateStateChange(update.card, update.isActive);
                         }
                     }
@@ -8572,8 +8573,8 @@ class FastSearchCard extends HTMLElement {
                 listUpdates.forEach(update => {
                     update.listItem.classList.toggle('active', update.isActive);
                     
-                    // Animation für List Items (falls gewünscht)
-                    if (this.isCardVisible(update.listItem)) {
+                    // Animation für List Items (falls gewünscht) - mit Performance-Check
+                    if (this.shouldAnimate() && this.isCardVisible(update.listItem)) {
                         this.animateStateChange(update.listItem, update.isActive);
                     }
                 });
@@ -8600,7 +8601,27 @@ class FastSearchCard extends HTMLElement {
             rect.left <= containerRect.right
         );
     }
+    
+    // NEUE Performance-Kontrolle für viele Geräte
+    shouldAnimate() {
+        // Performance-basierte Animation-Entscheidung
+        const totalItems = this.filteredItems?.length || 0;
+        const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
+        const totalCards = deviceCards.length;
         
+        // Wenn mehr als 50 Cards: Animationen reduzieren
+        if (totalCards > 50) {
+            return Math.random() < 0.1; // Nur 10% der Animationen
+        }
+        
+        // Wenn mehr als 20 Cards: Nur sichtbare animieren
+        if (totalCards > 20) {
+            return true; // Wird durch isCardVisible weiter gefiltert
+        }
+        
+        return true; // Unter 20 Cards: Alle animieren
+    }
+            
 
 
 
@@ -17885,38 +17906,54 @@ class FastSearchCard extends HTMLElement {
         const isChrome = navigator.userAgent.includes('Chrome');
         
         if (isChrome) {
-            // Leichtere Animation für Chrome
-            card.animate([
-                { transform: 'scale(1)', filter: 'brightness(1)' },
-                { transform: 'scale(1.01)', filter: 'brightness(1.05)' },
-                { transform: 'scale(1)', filter: 'brightness(1)' }
-            ], { 
-                duration: 300, 
-                easing: 'ease-out',
-                fill: 'forwards'
-            });
+            // Ultra-leichte Animation für Chrome bei vielen Geräten
+            const totalCards = this.shadowRoot.querySelectorAll('.device-card').length;
             
-            icon.animate([
-                { transform: 'scale(1)' },
-                { transform: 'scale(1.1)' },
-                { transform: 'scale(1)' }
-            ], { 
-                duration: 200, 
-                easing: 'ease-out'
-            });
+            if (totalCards > 30) {
+                // Minimale Animation bei vielen Geräten
+                card.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.005)' },
+                    { transform: 'scale(1)' }
+                ], { 
+                    duration: 150, 
+                    easing: 'ease-out'
+                });
+            } else {
+                // Standard leichte Animation
+                card.animate([
+                    { transform: 'scale(1)', filter: 'brightness(1)' },
+                    { transform: 'scale(1.01)', filter: 'brightness(1.05)' },
+                    { transform: 'scale(1)', filter: 'brightness(1)' }
+                ], { 
+                    duration: 300, 
+                    easing: 'ease-out'
+                });
+                
+                icon.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.1)' },
+                    { transform: 'scale(1)' }
+                ], { 
+                    duration: 200, 
+                    easing: 'ease-out'
+                });
+            }
         } else {
-            // Original Animation für Safari/andere Browser
+            // Original Animation für Safari/andere Browser - verkürzt
+            const duration = this.shadowRoot.querySelectorAll('.device-card').length > 30 ? 300 : 600;
+            
             card.animate([
                 { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, 
                 { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, 
                 { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }
-            ], { duration: 600, easing: 'ease-out' });
+            ], { duration: duration, easing: 'ease-out' });
             
             icon.animate([
                 { transform: 'scale(1)' }, 
                 { transform: 'scale(1.2)' }, 
                 { transform: 'scale(1)' }
-            ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+            ], { duration: duration * 0.7, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
         }
     }
 
