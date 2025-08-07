@@ -5325,8 +5325,9 @@ class FastSearchCard extends HTMLElement {
             /* Mobile Typography */
             @media (max-width: 768px) {
                 .alert-heading-main {
-                    font-size: 42px;
+                    font-size: 32px;
                     line-height: 48px;
+                    margin: 0px;
                 }
             
                 .alert-heading-sub {
@@ -5337,13 +5338,15 @@ class FastSearchCard extends HTMLElement {
                 .alert-content-text {
                     font-size: 20px;
                     line-height: 32px;
+                    margin-bottom: 30px;
                 }
             }
             
             @media (max-width: 480px) {
                 .alert-heading-main {
-                    font-size: 36px;
+                    font-size: 32px;
                     line-height: 42px;
+                    margin: 0px;
                 }
             
                 .alert-heading-sub {
@@ -5354,6 +5357,7 @@ class FastSearchCard extends HTMLElement {
                 .alert-content-text {
                     font-size: 18px;
                     line-height: 28px;
+                    margin-bottom: 30px;
                 }
             }
             
