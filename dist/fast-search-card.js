@@ -6235,8 +6235,6 @@ class FastSearchCard extends HTMLElement {
             click_entity: alert.click_entity || null
         }));
         
-        // Re-render wenn sich Alerts geändert haben
-        this.requestUpdate();
     }
     
     initAlertSlideshow() {
