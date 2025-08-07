@@ -302,9 +302,6 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = false;
         this.searchTimeout = null;
         this.isSearching = false;
-
-        this.scrollTimeout = null; // ✅ HINZUFÜGEN
-        this.isScrolling = false;    // ✅ HINZUFÜGEN        
         
         // Neue State-Variablen
         this.isDetailView = false;
@@ -5367,18 +5364,6 @@ class FastSearchCard extends HTMLElement {
             /* Hidden state for no alerts */
             .alert-slideshow-container.hidden {
                 display: none;
-            }           
-
-
-            .chip-count-number {
-                display: inline-block;
-                min-width: 22px; /* Genug Platz für 3 Ziffern */
-                text-align: right;
-                font-weight: 600;
-            }
-
-            .chip-count-text {
-                opacity: 0.8;
             }            
                                                             
             </style>
@@ -5790,21 +5775,6 @@ class FastSearchCard extends HTMLElement {
                 }
             });
         }
-
-        // ✅ NEUEN CODEBLOCK HIER AM ENDE DER FUNKTION EINFÜGEN
-        const resultsContainer = this.shadowRoot.querySelector('.results-container');
-        if (resultsContainer) {
-            resultsContainer.addEventListener('scroll', () => {
-                this.isScrolling = true;
-                clearTimeout(this.scrollTimeout);
-                this.scrollTimeout = setTimeout(() => {
-                    this.isScrolling = false;
-                    // Führe eine verzögerte Aktualisierung aus, nachdem das Scrollen beendet ist
-                    if (this._hass) this.updateStates();
-                }, 250); // Nach 250ms ohne Scrollen wird aktualisiert
-            }, { passive: true });
-        }
-        
     }
 
 
@@ -8435,17 +8405,13 @@ class FastSearchCard extends HTMLElement {
         
         return true;
     }
+    
 
-    getSubcategoryStatusText(subcategory, count, returnParts = false) {
+    getSubcategoryStatusText(subcategory, count) {
         const textMap = { 'lights': 'An', 'climate': 'Aktiv', 'covers': 'Offen', 'media': 'Aktiv' };
-        const text = textMap[subcategory] || 'Aktiv';
-        
-        if (returnParts) {
-            return { count: count, text: text };
-        }
-        
+        const text = textMap[subcategory] || 'Aktiv'; 
         return `${count} ${text}`;
-    }    
+    }
 
     getCategoryItemLabel(category, count = 1) {
         const labels = {
@@ -8490,20 +8456,11 @@ class FastSearchCard extends HTMLElement {
                 return state && this.isEntityActive(state);
             }).length;
             
-            const statusTextParts = this.getSubcategoryStatusText(subcategory, activeCount, true); // true für geteilte Rückgabe
+            const statusText = this.getSubcategoryStatusText(subcategory, activeCount);
             const statusElement = chip.querySelector('.subcategory-status');
-            if (statusElement) {
-                // Nur die Zahl aktualisieren, der Text bleibt
-                const numberElement = statusElement.querySelector('.chip-count-number');
-                if (numberElement) {
-                    numberElement.textContent = statusTextParts.count;
-                }
-                // Initial den Text setzen
-                if (!statusElement.querySelector('.chip-count-text')) {
-                     statusElement.innerHTML = `<span class="chip-count-number">${statusTextParts.count}</span><span class="chip-count-text"> ${statusTextParts.text}</span>`;
-                }
+            if (statusElement) { 
+                statusElement.textContent = statusText; 
             }
-            
         }
         
         // "Alle" Chip Count aktualisieren
@@ -8524,78 +8481,67 @@ class FastSearchCard extends HTMLElement {
     }
 
     updateStates() {
-        // Wenn der User gerade scrollt, brechen wir die Funktion sofort ab,
-        // um ein Ruckeln zu verhindern. Das Update wird nachgeholt, wenn das Scrollen stoppt.
-        if (this.isScrolling) return;
-
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
-
         this.updateSubcategoryCounts();
-
         const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
         deviceCards.forEach(card => {
             const entityId = card.dataset.entity;
-            if (!entityId) return;
-
-            const item = this.allItems.find(i => i.id === entityId);
             const state = this._hass.states[entityId];
-
-            if (item && state) {
+            if (state) {
                 const isActive = this.isEntityActive(state);
                 const wasActive = card.classList.contains('active');
                 card.classList.toggle('active', isActive);
-
-                const iconElement = card.querySelector('.device-icon');
-                if (iconElement) {
-                    // Update icon only if state changed to prevent unnecessary redraws
-                    if (isActive !== wasActive) {
-                        item.isActive = isActive; // Update internal state before getting icon
-                        iconElement.innerHTML = this.getDynamicIcon(item);
-                    }
-                }
-
+                if (isActive !== wasActive) { this.animateStateChange(card, isActive); }
+                
+                // ▼▼▼ KORREKTUR STARTET HIER (für Grid-Ansicht) ▼▼▼
                 const statusElement = card.querySelector('.device-status');
                 if (statusElement) {
-                    statusElement.textContent = this.getEntityStatus(state);
+                    // Finde das zugehörige Item-Objekt, um den Typ zu prüfen
+                    const item = this.allItems.find(i => i.id === entityId);
+                    if (item && item.domain === 'custom') {
+                        // Für Custom-Items (Sensoren etc.), nutze die korrekte Funktion
+                        statusElement.textContent = this.getCustomStatusText(item);
+                    } else {
+                        // Für normale Geräte, nutze die alte Funktion
+                        statusElement.textContent = this.getEntityStatus(state);
+                    }
                 }
-
-                if (isActive !== wasActive) {
-                    this.animateStateChange(card, isActive);
-                }
+                // ▲▲▲ KORREKTUR ENDET HIER (für Grid-Ansicht) ▲▲▲
             }
         });
 
         const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
         deviceListItems.forEach(listItem => {
             const entityId = listItem.dataset.entity;
-            if (!entityId) return;
-
-            const item = this.allItems.find(i => i.id === entityId);
             const state = this._hass.states[entityId];
-
-            if (item && state) {
+            if (state) {
                 const isActive = this.isEntityActive(state);
                 const wasActive = listItem.classList.contains('active');
                 listItem.classList.toggle('active', isActive);
-
-                const iconElement = listItem.querySelector('.device-list-icon');
-                if (iconElement && isActive !== wasActive) {
-                    item.isActive = isActive;
-                    iconElement.innerHTML = this.getDynamicIcon(item);
-                }
-
-                const statusElement = listItem.querySelector('.device-list-status');
-                if (statusElement) {
-                    statusElement.textContent = this.getEntityStatus(state);
+                
+                if (isActive !== wasActive) {
+                    this.animateStateChange(listItem, isActive);
                 }
                 
+                // ▼▼▼ KORREKTUR STARTET HIER (für Listen-Ansicht) ▼▼▼
+                const statusElement = listItem.querySelector('.device-list-status');
+                if (statusElement) {
+                    // Finde das zugehörige Item-Objekt, um den Typ zu prüfen
+                    const item = this.allItems.find(i => i.id === entityId);
+                    if (item && item.domain === 'custom') {
+                        // Für Custom-Items (Sensoren etc.), nutze die korrekte Funktion
+                        statusElement.textContent = this.getCustomStatusText(item);
+                    } else {
+                        // Für normale Geräte, nutze die alte Funktion
+                        statusElement.textContent = this.getEntityStatus(state);
+                    }
+                }
+                // ▲▲▲ KORREKTUR ENDET HIER (für Listen-Ansicht) ▲▲▲
+                
+                // Update quick action button
                 const quickActionBtn = listItem.querySelector('.device-list-quick-action');
                 if (quickActionBtn) {
                     this.updateQuickActionButton(quickActionBtn, entityId, state);
-                }
-
-                if (isActive !== wasActive) {
-                    this.animateStateChange(listItem, isActive);
                 }
             }
         });
@@ -17870,17 +17816,23 @@ class FastSearchCard extends HTMLElement {
     }
 
     animateStateChange(card, isActive) {
-        if (!card) return;
+        if (!card) return; // ← NEU HINZUFÜGEN
         
-        const icon = card.querySelector('.device-icon') || card.querySelector('.device-list-icon');
-        if (!icon) return;
+        const icon = card.querySelector('.device-icon') || card.querySelector('.device-list-icon'); // ← ANPASSEN für beide Typen
+        if (!icon) return; // ← NEU HINZUFÜGEN
+        
+        card.animate([
+            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, 
+            { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, 
+            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }
+        ], { duration: 600, easing: 'ease-out' });
         
         icon.animate([
             { transform: 'scale(1)' }, 
             { transform: 'scale(1.2)' }, 
             { transform: 'scale(1)' }
         ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
-    }
+    }    
 
     getCardSize() { return 4; }
     static getConfigElement() { return document.createElement('fast-search-card-editor'); }
