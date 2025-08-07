@@ -6198,11 +6198,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
-    updateAlertSlides() {
-        console.log('🔄 updateAlertSlides called');
-        console.log('🔄 this.slideshowAlerts:', this.slideshowAlerts);
-        console.log('🔄 this._hass:', !!this._hass);
-        
+    updateAlertSlides() {        
         if (!this.slideshowAlerts || !this._hass) {
             console.log('❌ Early return: missing slideshowAlerts or _hass');
             return;
@@ -6223,7 +6219,6 @@ class FastSearchCard extends HTMLElement {
         }));
 
         // HINZUFÜGEN: Force re-render nach Alert-Update
-        console.log('🔄 Forcing re-render, alertSlides.length:', this.alertSlides.length);
         this.updateAlertContainer();        
         
     }
@@ -6257,16 +6252,8 @@ class FastSearchCard extends HTMLElement {
         }
     }    
     
-    initAlertSlideshow() {
-        console.log('🚨 === ALERT SLIDESHOW DEBUG ===');
-        console.log('🚨 this.slideshowAlerts:', this.slideshowAlerts);
-        console.log('🚨 this._config:', this._config);
-        console.log('🚨 this._hass exists:', !!this._hass);
-        
-        this.updateAlertSlides();
-        
-        console.log('🚨 this.alertSlides after update:', this.alertSlides);
-        console.log('🚨 alertSlides.length:', this.alertSlides?.length);          
+    initAlertSlideshow() {        
+        this.updateAlertSlides();                
         
         // Initialisiere Slider nach dem nächsten Update
         setTimeout(() => {
@@ -6281,10 +6268,6 @@ class FastSearchCard extends HTMLElement {
         setTimeout(() => {
             const container = this.shadowRoot.querySelector('.alert-slideshow-container');
             const items = this.shadowRoot.querySelectorAll('.alert-slider__item');
-            console.log('🔍 Container found:', !!container);
-            console.log('🔍 Container classes:', container?.className);
-            console.log('🔍 Items found:', items.length);
-            console.log('🔍 First item HTML:', items[0]?.outerHTML);
         }, 200);
         
     }
