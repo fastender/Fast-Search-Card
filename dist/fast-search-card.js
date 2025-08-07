@@ -8480,6 +8480,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+    
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
         
@@ -8513,7 +8514,7 @@ class FastSearchCard extends HTMLElement {
                 if (statusElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item && item.domain === 'custom') {
-                        const newStatusText = this.getCustomItemStatusText(item);
+                        const newStatusText = this.getCustomStatusText(item);
                         if (statusElement.textContent !== newStatusText) {
                             cardUpdates.push({ 
                                 card, 
@@ -8599,6 +8600,7 @@ class FastSearchCard extends HTMLElement {
             rect.left <= containerRect.right
         );
     }
+        
 
 
 
