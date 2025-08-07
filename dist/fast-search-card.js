@@ -302,6 +302,10 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = false;
         this.searchTimeout = null;
         this.isSearching = false;
+
+        // ✅ HIER DIE NEUEN ZEILEN EINFÜGEN
+        this._updateTimeout = null;
+        this._isUpdateQueued = false;        
         
         // Neue State-Variablen
         this.isDetailView = false;
@@ -459,21 +463,36 @@ class FastSearchCard extends HTMLElement {
         const oldHass = this._hass;
         this._hass = hass;
         
+        // Prüfen, ob eine komplette Neuladung der Items nötig ist (z.B. bei Namensänderung)
         const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
         if (shouldUpdateAll) {
             this.updateItems();
+            return; // Wichtig: Nach einem kompletten Update hier beenden
         }
         
+        // --- ✅ NEUE LOGIK ZUR DROSSELUNG DER UPDATES ---
         if (this.isDetailView && this.currentDetailItem) {
+            // In der Detailansicht wollen wir sofortige Updates
             const updatedItem = this.allItems.find(item => item.id === this.currentDetailItem.id);
             if(updatedItem) {
                 this.currentDetailItem = updatedItem;
                 this.updateDetailViewStates();
             }
         } else if (!this.isDetailView && !this.isSearching) {
-            this.updateStates();
+            // Wenn keine Aktualisierung geplant ist, eine neue planen.
+            if (!this._isUpdateQueued) {
+                this._isUpdateQueued = true;
+                
+                // Wir warten 500ms, um mehrere schnelle Updates zu sammeln.
+                this._updateTimeout = setTimeout(() => {
+                    // Führe die eigentliche Aktualisierung aus
+                    this.updateStates(); 
+                    
+                    // Markiere, dass die Aktualisierung abgeschlossen ist.
+                    this._isUpdateQueued = false; 
+                }, 500); // 500ms Verzögerung - kann bei Bedarf angepasst werden
+            }
         }
-        
     }
 
     shouldUpdateItems(oldHass, newHass) {
