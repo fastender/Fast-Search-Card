@@ -5310,6 +5310,7 @@ class FastSearchCard extends HTMLElement {
                 font-size: 18px;
                 line-height: 25px;
                 font-weight: 600;
+                margin: 0px;
             }
             
             .alert-content-text {
@@ -5318,6 +5319,7 @@ class FastSearchCard extends HTMLElement {
                 font-weight: 100;
                 line-height: 38px;
                 color: rgba(255, 255, 255, 0.8);
+                margin-bottom: 80px;
             }
             
             /* Mobile Typography */
