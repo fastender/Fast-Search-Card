@@ -5364,6 +5364,18 @@ class FastSearchCard extends HTMLElement {
             /* Hidden state for no alerts */
             .alert-slideshow-container.hidden {
                 display: none;
+            }           
+
+
+            .chip-count-number {
+                display: inline-block;
+                min-width: 22px; /* Genug Platz für 3 Ziffern */
+                text-align: right;
+                font-weight: 600;
+            }
+
+            .chip-count-text {
+                opacity: 0.8;
             }            
                                                             
             </style>
