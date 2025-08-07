@@ -965,7 +965,6 @@ class FastSearchCard extends HTMLElement {
                 color: var(--text-secondary);
                 opacity: 0.9;
                 min-height: 13px;
-                min-width: 65px; /* ✅ DIESE ZEILE IST DIE LÖSUNG */
             }
 
             .subcategory-chip.active .subcategory-status {
@@ -8406,13 +8405,17 @@ class FastSearchCard extends HTMLElement {
         
         return true;
     }
-    
 
-    getSubcategoryStatusText(subcategory, count) {
+    getSubcategoryStatusText(subcategory, count, returnParts = false) {
         const textMap = { 'lights': 'An', 'climate': 'Aktiv', 'covers': 'Offen', 'media': 'Aktiv' };
-        const text = textMap[subcategory] || 'Aktiv'; 
+        const text = textMap[subcategory] || 'Aktiv';
+        
+        if (returnParts) {
+            return { count: count, text: text };
+        }
+        
         return `${count} ${text}`;
-    }
+    }    
 
     getCategoryItemLabel(category, count = 1) {
         const labels = {
@@ -8457,11 +8460,20 @@ class FastSearchCard extends HTMLElement {
                 return state && this.isEntityActive(state);
             }).length;
             
-            const statusText = this.getSubcategoryStatusText(subcategory, activeCount);
+            const statusTextParts = this.getSubcategoryStatusText(subcategory, activeCount, true); // true für geteilte Rückgabe
             const statusElement = chip.querySelector('.subcategory-status');
-            if (statusElement) { 
-                statusElement.textContent = statusText; 
+            if (statusElement) {
+                // Nur die Zahl aktualisieren, der Text bleibt
+                const numberElement = statusElement.querySelector('.chip-count-number');
+                if (numberElement) {
+                    numberElement.textContent = statusTextParts.count;
+                }
+                // Initial den Text setzen
+                if (!statusElement.querySelector('.chip-count-text')) {
+                     statusElement.innerHTML = `<span class="chip-count-number">${statusTextParts.count}</span><span class="chip-count-text"> ${statusTextParts.text}</span>`;
+                }
             }
+            
         }
         
         // "Alle" Chip Count aktualisieren
