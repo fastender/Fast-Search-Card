@@ -6235,13 +6235,13 @@ class FastSearchCard extends HTMLElement {
         this.updateAlertSlides();
         
         // Initialisiere Slider nach dem nächsten Update
-        this.updateComplete.then(() => {
+        setTimeout(() => {
             const sliderHolder = this.shadowRoot.querySelector('.alert-slider__holder');
             if (sliderHolder && this.alertSlides.length > 0) {
                 this.alertSlider = new InfiniteCardSlider(sliderHolder, this.alertSlides.length);
                 this.setupAlertClickHandlers();
             }
-        });
+        }, 100);
     }
 
 
