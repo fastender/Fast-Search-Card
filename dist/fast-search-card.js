@@ -8505,20 +8505,62 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
-        this.updateSubcategoryCounts(); // Diese Zeile ist jetzt wieder aktiv
+        
+        this.updateSubcategoryCounts();
+        
+        const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
+        deviceCards.forEach(card => {
+            const entityId = card.dataset.entity;
+            const state = this._hass.states[entityId];
+            if (state) {
+                const isActive = this.isEntityActive(state);
+                const wasActive = card.classList.contains('active');
+                card.classList.toggle('active', isActive);
+                if (isActive !== wasActive) { this.animateStateChange(card, isActive); }
+                
+                const statusElement = card.querySelector('.device-status');
+                if (statusElement) {
+                    const item = this.allItems.find(i => i.id === entityId);
+                    if (item && item.domain === 'custom') {
+                        statusElement.textContent = this.getCustomStatusText(item);
+                    } else {
+                        statusElement.textContent = this.getEntityStatus(state);
+                    }
+                }
+            }
+        });
 
-        // --- DEBUGGING TEST 3: NUR KARTEN-UPDATES DEAKTIVIERT ---
-        // const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
-        // deviceCards.forEach(card => {
-        //    ... (ganzer Block auskommentiert) ...
-        // });
-        // const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
-        // deviceListItems.forEach(listItem => {
-        //    ... (ganzer Block auskommentiert) ...
-        // });
+        const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
+        deviceListItems.forEach(listItem => {
+            const entityId = listItem.dataset.entity;
+            const state = this._hass.states[entityId];
+            if (state) {
+                const isActive = this.isEntityActive(state);
+                const wasActive = listItem.classList.contains('active');
+                listItem.classList.toggle('active', isActive);
+                
+                if (isActive !== wasActive) {
+                    this.animateStateChange(listItem, isActive);
+                }
+                
+                const statusElement = listItem.querySelector('.device-list-status');
+                if (statusElement) {
+                    const item = this.allItems.find(i => i.id === entityId);
+                    if (item && item.domain === 'custom') {
+                        statusElement.textContent = this.getCustomStatusText(item);
+                    } else {
+                        statusElement.textContent = this.getEntityStatus(state);
+                    }
+                }
+                
+                const quickActionBtn = listItem.querySelector('.device-list-quick-action');
+                if (quickActionBtn) {
+                    this.updateQuickActionButton(quickActionBtn, entityId, state);
+                }
+            }
+        });
     }
 
     categorizeEntity(domain) {
@@ -17790,23 +17832,19 @@ class FastSearchCard extends HTMLElement {
     }
 
     animateStateChange(card, isActive) {
-        if (!card) return; // ← NEU HINZUFÜGEN
+        if (!card) return;
         
-        const icon = card.querySelector('.device-icon') || card.querySelector('.device-list-icon'); // ← ANPASSEN für beide Typen
-        if (!icon) return; // ← NEU HINZUFÜGEN
+        const icon = card.querySelector('.device-icon') || card.querySelector('.device-list-icon');
+        if (!icon) return;
         
-        card.animate([
-            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, 
-            { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, 
-            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }
-        ], { duration: 600, easing: 'ease-out' });
-        
+        // Die rechenintensive box-shadow Animation wurde entfernt.
+        // Wir behalten nur die schnelle und flüssige Animation des Icons.
         icon.animate([
             { transform: 'scale(1)' }, 
             { transform: 'scale(1.2)' }, 
             { transform: 'scale(1)' }
         ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
-    }    
+    }
 
     getCardSize() { return 4; }
     static getConfigElement() { return document.createElement('fast-search-card-editor'); }
