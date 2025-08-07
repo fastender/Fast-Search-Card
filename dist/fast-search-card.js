@@ -924,7 +924,6 @@ class FastSearchCard extends HTMLElement {
                 display: none;
             }
             
-
             .subcategories {
                 display: flex;
                 gap: 8px;
@@ -935,6 +934,26 @@ class FastSearchCard extends HTMLElement {
                 -webkit-overflow-scrolling: touch;
                 transition: all 0.3s ease;
                 flex-shrink: 0;
+
+                /* === ✅ NEUE OPTIMIERUNGEN HINZUGEFÜGT === */
+                
+                /* 1. Stabile Höhe: Verhindert, dass Textumbrüche die Höhe ändern und den Sprung auslösen. */
+                min-height: 55px; 
+                box-sizing: border-box; /* Stellt sicher, dass Padding in die Höhe einberechnet wird. */
+                
+                /* 2. Performance-Tipp für Chrome: Isoliert das Rendering dieses Bereichs. */
+                contain: layout style; 
+
+                /* 3. Optional, aber empfohlen für bestes UI/UX: Macht die Filter-Chips beim Scrollen "sticky". */
+                position: sticky;
+                top: 72px; /* Höhe der Suchleiste */
+                background: rgba(44, 47, 51, 0.8); /* Leicht transparenter Hintergrund für den Sticky-Effekt */
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                z-index: 3; /* Stellt sicher, dass die Chips über den Karten liegen */
+                margin: 0 -20px; /* Kompensiert das Padding des Parents für Full-Width Effekt */
+                padding-left: 20px;
+                padding-right: 20px;
             }
           
             .subcategories::-webkit-scrollbar {
