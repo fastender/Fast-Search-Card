@@ -8482,7 +8482,14 @@ class FastSearchCard extends HTMLElement {
 
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
+        
         this.updateSubcategoryCounts();
+        
+        // Sammle alle Updates für Batch-Verarbeitung
+        const cardUpdates = [];
+        const listUpdates = [];
+        
+        // Grid Cards analysieren
         const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
         deviceCards.forEach(card => {
             const entityId = card.dataset.entity;
@@ -8490,26 +8497,37 @@ class FastSearchCard extends HTMLElement {
             if (state) {
                 const isActive = this.isEntityActive(state);
                 const wasActive = card.classList.contains('active');
-                card.classList.toggle('active', isActive);
-                if (isActive !== wasActive) { this.animateStateChange(card, isActive); }
                 
-                // ▼▼▼ KORREKTUR STARTET HIER (für Grid-Ansicht) ▼▼▼
+                if (isActive !== wasActive) {
+                    cardUpdates.push({ 
+                        card, 
+                        entityId, 
+                        isActive, 
+                        wasActive, 
+                        state 
+                    });
+                }
+                
+                // Status-Text Updates (für Custom Items)
                 const statusElement = card.querySelector('.device-status');
                 if (statusElement) {
-                    // Finde das zugehörige Item-Objekt, um den Typ zu prüfen
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item && item.domain === 'custom') {
-                        // Für Custom-Items (Sensoren etc.), nutze die korrekte Funktion
-                        statusElement.textContent = this.getCustomStatusText(item);
-                    } else {
-                        // Für normale Geräte, nutze die alte Funktion
-                        statusElement.textContent = this.getEntityStatus(state);
+                        const newStatusText = this.getCustomItemStatusText(item);
+                        if (statusElement.textContent !== newStatusText) {
+                            cardUpdates.push({ 
+                                card, 
+                                statusElement, 
+                                newStatusText,
+                                type: 'status' 
+                            });
+                        }
                     }
                 }
-                // ▲▲▲ KORREKTUR ENDET HIER (für Grid-Ansicht) ▲▲▲
             }
         });
-
+        
+        // List Items analysieren
         const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
         deviceListItems.forEach(listItem => {
             const entityId = listItem.dataset.entity;
@@ -8517,35 +8535,75 @@ class FastSearchCard extends HTMLElement {
             if (state) {
                 const isActive = this.isEntityActive(state);
                 const wasActive = listItem.classList.contains('active');
-                listItem.classList.toggle('active', isActive);
                 
                 if (isActive !== wasActive) {
-                    this.animateStateChange(listItem, isActive);
-                }
-                
-                // ▼▼▼ KORREKTUR STARTET HIER (für Listen-Ansicht) ▼▼▼
-                const statusElement = listItem.querySelector('.device-list-status');
-                if (statusElement) {
-                    // Finde das zugehörige Item-Objekt, um den Typ zu prüfen
-                    const item = this.allItems.find(i => i.id === entityId);
-                    if (item && item.domain === 'custom') {
-                        // Für Custom-Items (Sensoren etc.), nutze die korrekte Funktion
-                        statusElement.textContent = this.getCustomStatusText(item);
-                    } else {
-                        // Für normale Geräte, nutze die alte Funktion
-                        statusElement.textContent = this.getEntityStatus(state);
-                    }
-                }
-                // ▲▲▲ KORREKTUR ENDET HIER (für Listen-Ansicht) ▲▲▲
-                
-                // Update quick action button
-                const quickActionBtn = listItem.querySelector('.device-list-quick-action');
-                if (quickActionBtn) {
-                    this.updateQuickActionButton(quickActionBtn, entityId, state);
+                    listUpdates.push({ 
+                        listItem, 
+                        entityId, 
+                        isActive, 
+                        wasActive, 
+                        state 
+                    });
                 }
             }
         });
+        
+        // Batch-Update in requestAnimationFrame für bessere Performance
+        if (cardUpdates.length > 0 || listUpdates.length > 0) {
+            requestAnimationFrame(() => {
+                // Grid Cards Updates
+                cardUpdates.forEach(update => {
+                    if (update.type === 'status') {
+                        // Status-Text Update
+                        update.statusElement.textContent = update.newStatusText;
+                    } else {
+                        // State-Change Update
+                        update.card.classList.toggle('active', update.isActive);
+                        
+                        // Animation nur für sichtbare Cards
+                        if (this.isCardVisible(update.card)) {
+                            this.animateStateChange(update.card, update.isActive);
+                        }
+                    }
+                });
+                
+                // List Items Updates
+                listUpdates.forEach(update => {
+                    update.listItem.classList.toggle('active', update.isActive);
+                    
+                    // Animation für List Items (falls gewünscht)
+                    if (this.isCardVisible(update.listItem)) {
+                        this.animateStateChange(update.listItem, update.isActive);
+                    }
+                });
+            });
+        }
     }
+    
+    // Hilfsfunktion: Prüft ob Card im Viewport sichtbar ist
+    isCardVisible(card) {
+        if (!card) return false;
+        
+        const rect = card.getBoundingClientRect();
+        const container = this.shadowRoot.querySelector('.results-container');
+        
+        if (!container) return true; // Fallback: immer animieren
+        
+        const containerRect = container.getBoundingClientRect();
+        
+        // Card ist sichtbar wenn sie im Container-Viewport ist
+        return (
+            rect.bottom >= containerRect.top &&
+            rect.top <= containerRect.bottom &&
+            rect.right >= containerRect.left &&
+            rect.left <= containerRect.right
+        );
+    }
+
+
+
+
+    
 
     categorizeEntity(domain) {
         const categoryMap = { light: 'lights', switch: 'lights', climate: 'climate', fan: 'climate', cover: 'covers', media_player: 'media', script: 'scripts', automation: 'automations', scene: 'scenes' };
@@ -17816,23 +17874,49 @@ class FastSearchCard extends HTMLElement {
     }
 
     animateStateChange(card, isActive) {
-        if (!card) return; // ← NEU HINZUFÜGEN
+        if (!card) return;
         
-        const icon = card.querySelector('.device-icon') || card.querySelector('.device-list-icon'); // ← ANPASSEN für beide Typen
-        if (!icon) return; // ← NEU HINZUFÜGEN
+        const icon = card.querySelector('.device-icon') || card.querySelector('.device-list-icon');
+        if (!icon) return;
         
-        card.animate([
-            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, 
-            { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, 
-            { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }
-        ], { duration: 600, easing: 'ease-out' });
+        // Chrome-optimierte Animation (transform statt box-shadow)
+        const isChrome = navigator.userAgent.includes('Chrome');
         
-        icon.animate([
-            { transform: 'scale(1)' }, 
-            { transform: 'scale(1.2)' }, 
-            { transform: 'scale(1)' }
-        ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
-    }    
+        if (isChrome) {
+            // Leichtere Animation für Chrome
+            card.animate([
+                { transform: 'scale(1)', filter: 'brightness(1)' },
+                { transform: 'scale(1.01)', filter: 'brightness(1.05)' },
+                { transform: 'scale(1)', filter: 'brightness(1)' }
+            ], { 
+                duration: 300, 
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+            
+            icon.animate([
+                { transform: 'scale(1)' },
+                { transform: 'scale(1.1)' },
+                { transform: 'scale(1)' }
+            ], { 
+                duration: 200, 
+                easing: 'ease-out'
+            });
+        } else {
+            // Original Animation für Safari/andere Browser
+            card.animate([
+                { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }, 
+                { boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)' }, 
+                { boxShadow: '0 0 0 rgba(0, 122, 255, 0)' }
+            ], { duration: 600, easing: 'ease-out' });
+            
+            icon.animate([
+                { transform: 'scale(1)' }, 
+                { transform: 'scale(1.2)' }, 
+                { transform: 'scale(1)' }
+            ], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+        }
+    }
 
     getCardSize() { return 4; }
     static getConfigElement() { return document.createElement('fast-search-card-editor'); }
