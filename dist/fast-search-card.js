@@ -6256,6 +6256,17 @@ class FastSearchCard extends HTMLElement {
                 this.setupAlertClickHandlers();
             }
         }, 100);
+
+        // NEU: DOM-Debug hinzufügen
+        setTimeout(() => {
+            const container = this.shadowRoot.querySelector('.alert-slideshow-container');
+            const items = this.shadowRoot.querySelectorAll('.alert-slider__item');
+            console.log('🔍 Container found:', !!container);
+            console.log('🔍 Container classes:', container?.className);
+            console.log('🔍 Items found:', items.length);
+            console.log('🔍 First item HTML:', items[0]?.outerHTML);
+        }, 200);
+        
     }
 
 
