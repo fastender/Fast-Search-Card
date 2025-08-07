@@ -302,10 +302,6 @@ class FastSearchCard extends HTMLElement {
         this.hasAnimated = false;
         this.searchTimeout = null;
         this.isSearching = false;
-
-        // ✅ HIER DIE NEUEN ZEILEN EINFÜGEN
-        this._updateTimeout = null;
-        this._isUpdateQueued = false;        
         
         // Neue State-Variablen
         this.isDetailView = false;
@@ -463,36 +459,21 @@ class FastSearchCard extends HTMLElement {
         const oldHass = this._hass;
         this._hass = hass;
         
-        // Prüfen, ob eine komplette Neuladung der Items nötig ist (z.B. bei Namensänderung)
         const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
         if (shouldUpdateAll) {
             this.updateItems();
-            return; // Wichtig: Nach einem kompletten Update hier beenden
         }
         
-        // --- ✅ NEUE LOGIK ZUR DROSSELUNG DER UPDATES ---
         if (this.isDetailView && this.currentDetailItem) {
-            // In der Detailansicht wollen wir sofortige Updates
             const updatedItem = this.allItems.find(item => item.id === this.currentDetailItem.id);
             if(updatedItem) {
                 this.currentDetailItem = updatedItem;
                 this.updateDetailViewStates();
             }
         } else if (!this.isDetailView && !this.isSearching) {
-            // Wenn keine Aktualisierung geplant ist, eine neue planen.
-            if (!this._isUpdateQueued) {
-                this._isUpdateQueued = true;
-                
-                // Wir warten 500ms, um mehrere schnelle Updates zu sammeln.
-                this._updateTimeout = setTimeout(() => {
-                    // Führe die eigentliche Aktualisierung aus
-                    this.updateStates(); 
-                    
-                    // Markiere, dass die Aktualisierung abgeschlossen ist.
-                    this._isUpdateQueued = false; 
-                }, 500); // 500ms Verzögerung - kann bei Bedarf angepasst werden
-            }
+            this.updateStates();
         }
+        
     }
 
     shouldUpdateItems(oldHass, newHass) {
@@ -924,6 +905,7 @@ class FastSearchCard extends HTMLElement {
                 display: none;
             }
             
+
             .subcategories {
                 display: flex;
                 gap: 8px;
@@ -934,26 +916,6 @@ class FastSearchCard extends HTMLElement {
                 -webkit-overflow-scrolling: touch;
                 transition: all 0.3s ease;
                 flex-shrink: 0;
-
-                /* === ✅ NEUE OPTIMIERUNGEN HINZUGEFÜGT === */
-                
-                /* 1. Stabile Höhe: Verhindert, dass Textumbrüche die Höhe ändern und den Sprung auslösen. */
-                min-height: 55px; 
-                box-sizing: border-box; /* Stellt sicher, dass Padding in die Höhe einberechnet wird. */
-                
-                /* 2. Performance-Tipp für Chrome: Isoliert das Rendering dieses Bereichs. */
-                contain: layout style; 
-
-                /* 3. Optional, aber empfohlen für bestes UI/UX: Macht die Filter-Chips beim Scrollen "sticky". */
-                position: sticky;
-                top: 72px; /* Höhe der Suchleiste */
-                background: rgba(44, 47, 51, 0.8); /* Leicht transparenter Hintergrund für den Sticky-Effekt */
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                z-index: 3; /* Stellt sicher, dass die Chips über den Karten liegen */
-                margin: 0 -20px; /* Kompensiert das Padding des Parents für Full-Width Effekt */
-                padding-left: 20px;
-                padding-right: 20px;
             }
           
             .subcategories::-webkit-scrollbar {
