@@ -7326,8 +7326,6 @@ class FastSearchCard extends HTMLElement {
         
         // 🆕 Statistics Graph als erstes Accordion
         const statisticsGraphContent = this.generateStatisticsGraphSection(entityId, state);
-
-        console.log('📊 Statistics graph content generated:', statisticsGraphContent.length, 'characters');
         
         // Bestehende Details als weitere Accordions
         const detailsContent = `## 🔧 Details
@@ -7340,11 +7338,19 @@ class FastSearchCard extends HTMLElement {
     
         const attributesContent = this.generateAttributesSection(state);
         
-        return `${statisticsGraphContent}
+        // ⚠️ WICHTIG: Doppelte Zeilenumbrüche zwischen Sections!
+        const fullContent = `${statisticsGraphContent}
     
     ${detailsContent}
     
     ${attributesContent}`;
+        
+        console.log('📊 Statistics graph content:', statisticsGraphContent.substring(0, 100));
+        console.log('🔧 Details content:', detailsContent.substring(0, 100));
+        console.log('⚙️ Attributes content:', attributesContent.substring(0, 100));
+        console.log('📄 Full content structure:', fullContent);
+        
+        return fullContent;
     }
 
     // NEU: Statistics Graph Section Generator
@@ -14080,24 +14086,56 @@ class FastSearchCard extends HTMLElement {
         return accordionHTML;
     }
     
-    // NEUE METHODE - AUSSERHALB der renderMarkdownAccordions Methode
     extractAccordionSections(html) {
+        console.log('🔧 Extracting accordion sections from HTML length:', html.length);
+        
         const sections = [];
         
-        // Split HTML nach H2 Tags
-        const parts = html.split(/<h2>(.*?)<\/h2>/);
+        // Verbesserte Regex für H2 Tags (berücksichtigt auch Emojis)
+        const h2Regex = /<h2>(.*?)<\/h2>/g;
+        let match;
+        let lastIndex = 0;
         
-        // Erstes Teil (vor erstem H2) überspringen
-        for (let i = 1; i < parts.length; i += 2) {
-            const title = parts[i];
-            const content = parts[i + 1] || '';
-            
-            sections.push({
-                title: title.trim(),
-                content: content.trim()
+        const h2Matches = [];
+        while ((match = h2Regex.exec(html)) !== null) {
+            h2Matches.push({
+                title: match[1],
+                startIndex: match.index,
+                endIndex: match.index + match[0].length
             });
         }
         
+        console.log('🔧 Found H2 matches:', h2Matches.length);
+        h2Matches.forEach((match, index) => {
+            console.log(`🔧 H2 ${index}: "${match.title}"`);
+        });
+        
+        // Content zwischen H2 Tags extrahieren
+        h2Matches.forEach((match, index) => {
+            const nextMatch = h2Matches[index + 1];
+            const contentStart = match.endIndex;
+            const contentEnd = nextMatch ? nextMatch.startIndex : html.length;
+            
+            const content = html.substring(contentStart, contentEnd).trim();
+            
+            console.log(`🔧 Section "${match.title}": ${content.length} chars`);
+            
+            sections.push({
+                title: match.title.trim(),
+                content: content
+            });
+        });
+        
+        // Fallback: Wenn keine H2 gefunden, ganzen Content als eine Section
+        if (sections.length === 0) {
+            console.log('🔧 No H2 found, using entire content as single section');
+            sections.push({
+                title: 'Content',
+                content: html
+            });
+        }
+        
+        console.log('🔧 Final sections count:', sections.length);
         return sections;
     }
 
