@@ -7316,18 +7316,17 @@ class FastSearchCard extends HTMLElement {
     }
     
     generateAutoSensorContent(entityId, state) {
-        console.log('🔧 Generating auto sensor content for:', entityId);
+        console.log('🔧 [REAL FUNCTION] Generating auto sensor content for:', entityId);
         
         const friendlyName = state.attributes.friendly_name || entityId;
         const currentValue = state.state;
         const unit = state.attributes.unit_of_measurement || '';
         const deviceClass = state.attributes.device_class || 'Sensor';
-        const category = this.getCategoryForSensor(state);
+        const category = this.getCategoryForSensor ? this.getCategoryForSensor(state) : deviceClass;
         
         // 1. Statistics Graph Section
         const statisticsGraphContent = this.generateStatisticsGraphSection(entityId, state);
-        console.log('📊 Statistics graph section generated:', statisticsGraphContent.length, 'chars');
-        console.log('📊 Statistics content preview:', statisticsGraphContent.substring(0, 150));
+        console.log('📊 [REAL] Statistics graph section generated:', statisticsGraphContent.length, 'chars');
         
         // 2. Details Section
         const detailsContent = `## 🔧 Details
@@ -7337,13 +7336,11 @@ class FastSearchCard extends HTMLElement {
     - **Device Class:** ${deviceClass}
     
     *Automatisch erkannt durch Fast Search Card*`;
-        console.log('🔧 Details section generated:', detailsContent.length, 'chars');
-        console.log('🔧 Details content preview:', detailsContent.substring(0, 100));
+        console.log('🔧 [REAL] Details section generated:', detailsContent.length, 'chars');
         
         // 3. Attributes Section
         const attributesContent = this.generateAttributesSection(state);
-        console.log('⚙️ Attributes section generated:', attributesContent.length, 'chars');
-        console.log('⚙️ Attributes content preview:', attributesContent.substring(0, 100));
+        console.log('⚙️ [REAL] Attributes section generated:', attributesContent.length, 'chars');
         
         // Zusammenfügen mit doppelten Zeilenumbrüchen
         const fullContent = `${statisticsGraphContent}
@@ -7352,18 +7349,18 @@ class FastSearchCard extends HTMLElement {
     
     ${attributesContent}`;
         
-        console.log('📄 FULL CONTENT STRUCTURE:');
-        console.log('='.repeat(50));
-        console.log(fullContent);
-        console.log('='.repeat(50));
-        console.log('📄 Total length:', fullContent.length);
+        console.log('📄 [REAL] FULL CONTENT PREVIEW:');
+        console.log(fullContent.substring(0, 400));
+        console.log('📄 [REAL] Total length:', fullContent.length);
         
         return fullContent;
     }
 
-    // NEU: Statistics Graph Section Generator (falls nicht korrekt)
+    // NEU: Statistics Graph Section Generator
     generateStatisticsGraphSection(entityId, state) {
-        const currentValue = this.formatSensorValue(state.state, state.attributes.unit_of_measurement);
+        const currentValue = this.formatSensorValue ? 
+            this.formatSensorValue(state.state, state.attributes.unit_of_measurement) : 
+            state.state;
         
         const content = `## 📊 Verlauf
     
@@ -7384,11 +7381,11 @@ class FastSearchCard extends HTMLElement {
         </div>
     </div>`;
     
-        console.log('📊 Generated statistics section:', content.length, 'chars');
+        console.log('📊 [HELPER] Generated statistics section:', content.length, 'chars');
         return content;
     }
     
-    // NEU: Attribute Section Generator (falls nicht vorhanden)
+    // NEU: Attribute Section Generator
     generateAttributesSection(state) {
         const excludeKeys = ['friendly_name', 'unit_of_measurement', 'device_class', 'icon'];
         const relevantAttributes = Object.entries(state.attributes)
@@ -7403,10 +7400,11 @@ class FastSearchCard extends HTMLElement {
             content += `- **${key}:** ${value}\n`;
         });
         
+        console.log('⚙️ [HELPER] Generated attributes section:', content.length, 'chars');
         return content;
     }
     
-    // NEU: Sensor Value Formatter
+    // NEU: Sensor Value Formatter (falls nicht vorhanden)
     formatSensorValue(value, unit) {
         if (value === 'unknown' || value === 'unavailable') {
             return value;
@@ -7433,6 +7431,7 @@ class FastSearchCard extends HTMLElement {
                 return numValue % 1 === 0 ? numValue.toString() : numValue.toFixed(1);
         }
     }    
+
     
     // 5️⃣ HELPER-FUNKTION für Kategorisierung (FÜGE HINZU):
     getCategoryForDomain(domain) {
