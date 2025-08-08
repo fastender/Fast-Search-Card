@@ -7316,6 +7316,8 @@ class FastSearchCard extends HTMLElement {
     }
     
     generateAutoSensorContent(entityId, state) {
+        console.log('🔧 Generating auto sensor content for:', entityId);
+        
         const friendlyName = state.attributes.friendly_name || entityId;
         const currentValue = state.state;
         const unit = state.attributes.unit_of_measurement || '';
@@ -7324,6 +7326,8 @@ class FastSearchCard extends HTMLElement {
         
         // 🆕 Statistics Graph als erstes Accordion
         const statisticsGraphContent = this.generateStatisticsGraphSection(entityId, state);
+
+        console.log('📊 Statistics graph content generated:', statisticsGraphContent.length, 'characters');
         
         // Bestehende Details als weitere Accordions
         const detailsContent = `## 🔧 Details
@@ -13963,37 +13967,7 @@ class FastSearchCard extends HTMLElement {
             viewTabContent.innerHTML = this.renderMarkdownAccordions(item.custom_data.content, item.name);
             this.setupAccordionListeners();
         }
-    }
-    
-    setupAccordionListeners() {
-        const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
-        accordionHeaders.forEach(header => {
-            // Remove old listeners
-            header.replaceWith(header.cloneNode(true));
-            
-            // Add new listeners
-            const newHeader = this.shadowRoot.querySelector(`[data-accordion="${header.dataset.accordion}"]`);
-            if (newHeader) {
-                newHeader.addEventListener('click', () => {
-                    const index = newHeader.dataset.accordion;
-                    const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
-                    const arrow = newHeader.querySelector('.accordion-arrow');
-                    
-                    const isOpen = content.classList.contains('open');
-                    
-                    if (isOpen) {
-                        content.classList.remove('open');
-                        newHeader.classList.remove('active');
-                        arrow.textContent = '▶';
-                    } else {
-                        content.classList.add('open');
-                        newHeader.classList.add('active');
-                        arrow.textContent = '▼';
-                    }
-                });
-            }
-        });
-    }    
+    }   
     
     getCustomInfoHTML(item) {
         const customData = item.custom_data || {};
@@ -14484,7 +14458,6 @@ class FastSearchCard extends HTMLElement {
         if (!isEditable) {
             // Read-only: Accordion Logic + Statistics Graph Setup
             this.setupAccordionListeners();
-            this.setupStatisticsGraphs(); // ← NEU HINZUGEFÜGT!
             return;
         }        
         
@@ -14523,27 +14496,42 @@ class FastSearchCard extends HTMLElement {
         this.setupAccordionListeners();
         this.setupMarkdownEditor(item);
     }
-        
-
 
     setupAccordionListeners() {
         const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
         accordionHeaders.forEach(header => {
-            header.addEventListener('click', () => {
-                const index = header.dataset.accordion;
-                const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
-                
-                // Toggle
-                const isOpen = content.classList.contains('open');
-                
-                if (isOpen) {
-                    content.classList.remove('open');
-                    header.classList.remove('active');
-                } else {
-                    content.classList.add('open');
-                    header.classList.add('active');
-                }
-            });
+            // Remove old listeners
+            header.replaceWith(header.cloneNode(true));
+            
+            // Add new listeners
+            const newHeader = this.shadowRoot.querySelector(`[data-accordion="${header.dataset.accordion}"]`);
+            if (newHeader) {
+                newHeader.addEventListener('click', () => {
+                    const index = newHeader.dataset.accordion;
+                    const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
+                    const arrow = newHeader.querySelector('.accordion-arrow');
+                    
+                    const isOpen = content.classList.contains('open');
+                    
+                    if (isOpen) {
+                        content.classList.remove('open');
+                        newHeader.classList.remove('active');
+                    } else {
+                        content.classList.add('open');
+                        newHeader.classList.add('active');
+                        
+                        // 🆕 Statistics Graph für erstes Accordion (Index 0)
+                        if (index === '0') {
+                            const graphContainer = content.querySelector('.statistics-graph-container');
+                            if (graphContainer && !graphContainer.dataset.loaded) {
+                                console.log('📊 Loading statistics graph for first accordion');
+                                graphContainer.dataset.loaded = 'true';
+                                this.setupStatisticsGraphs();
+                            }
+                        }
+                    }
+                });
+            }
         });
     }
         
@@ -19513,12 +19501,22 @@ class InfiniteCardSlider {
 
     // NEU: Statistics Graph Setup
     setupStatisticsGraphs() {
+        console.log('📊 Setting up statistics graphs...');
+        
         const graphContainers = this.shadowRoot.querySelectorAll('.statistics-graph-container');
+        console.log('📊 Found graph containers:', graphContainers.length);
         
         graphContainers.forEach(container => {
             const entityId = container.dataset.entity;
+            console.log('📊 Setting up graph for entity:', entityId);
+            
             const chartContainer = container.querySelector('.statistics-graph-chart');
             const periodButtons = container.querySelectorAll('.graph-period-btn');
+
+            if (!chartContainer) {
+                console.error('❌ No chart container found for:', entityId);
+                return;
+            }
             
             // Initial Graph laden (24h)
             this.loadStatisticsGraph(entityId, chartContainer, '24h');
@@ -19526,6 +19524,8 @@ class InfiniteCardSlider {
             // Period Button Events
             periodButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
+                    console.log('📊 Period button clicked:', btn.dataset.period);
+                    
                     // Button State Update
                     periodButtons.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
