@@ -7324,10 +7324,11 @@ class FastSearchCard extends HTMLElement {
         const deviceClass = state.attributes.device_class || 'Sensor';
         const category = this.getCategoryForSensor(state);
         
-        // 🆕 Statistics Graph als erstes Accordion
+        // 1. Statistics Graph Section
         const statisticsGraphContent = this.generateStatisticsGraphSection(entityId, state);
+        console.log('📊 Statistics graph section length:', statisticsGraphContent.length);
         
-        // Bestehende Details als weitere Accordions
+        // 2. Details Section
         const detailsContent = `## 🔧 Details
     - **Typ:** ${category}
     - **Entity ID:** \`${entityId}\`
@@ -7335,20 +7336,21 @@ class FastSearchCard extends HTMLElement {
     - **Device Class:** ${deviceClass}
     
     *Automatisch erkannt durch Fast Search Card*`;
-    
-        const attributesContent = this.generateAttributesSection(state);
+        console.log('🔧 Details section length:', detailsContent.length);
         
-        // ⚠️ WICHTIG: Doppelte Zeilenumbrüche zwischen Sections!
+        // 3. Attributes Section
+        const attributesContent = this.generateAttributesSection(state);
+        console.log('⚙️ Attributes section length:', attributesContent.length);
+        
+        // Zusammenfügen mit doppelten Zeilenumbrüchen
         const fullContent = `${statisticsGraphContent}
     
     ${detailsContent}
     
     ${attributesContent}`;
         
-        console.log('📊 Statistics graph content:', statisticsGraphContent.substring(0, 100));
-        console.log('🔧 Details content:', detailsContent.substring(0, 100));
-        console.log('⚙️ Attributes content:', attributesContent.substring(0, 100));
-        console.log('📄 Full content structure:', fullContent);
+        console.log('📄 Full content preview:', fullContent.substring(0, 300));
+        console.log('📄 Full content length:', fullContent.length);
         
         return fullContent;
     }
@@ -19577,9 +19579,6 @@ class InfiniteCardSlider {
         // Remove event listeners would go here if needed
     }
 
-
-
-
     // NEU: Statistics Graph Setup
     setupStatisticsGraphs() {
         console.log('📊 Setting up statistics graphs...');
@@ -19593,7 +19592,7 @@ class InfiniteCardSlider {
             
             const chartContainer = container.querySelector('.statistics-graph-chart');
             const periodButtons = container.querySelectorAll('.graph-period-btn');
-
+            
             if (!chartContainer) {
                 console.error('❌ No chart container found for:', entityId);
                 return;
@@ -19622,6 +19621,7 @@ class InfiniteCardSlider {
     // NEU: Statistics Graph Data Loading
     async loadStatisticsGraph(entityId, chartContainer, period = '24h') {
         try {
+            console.log(`📊 Loading statistics graph for ${entityId}, period: ${period}`);
             chartContainer.innerHTML = '<div class="loading-chart">Lade Verlaufsdaten...</div>';
             
             // Zeitraum berechnen
@@ -19640,26 +19640,33 @@ class InfiniteCardSlider {
                     break;
             }
             
+            console.log(`📊 Fetching history from ${startTime.toISOString()} to ${endTime.toISOString()}`);
+            
             // History API Call
             const historyData = await this._hass.callApi(
                 'GET', 
                 `history/period/${startTime.toISOString()}?filter_entity_id=${entityId}&end_time=${endTime.toISOString()}`
             );
             
+            console.log('📊 History data received:', historyData?.length, 'entities');
+            
             if (historyData && historyData[0] && historyData[0].length > 0) {
+                console.log('📊 Rendering chart with', historyData[0].length, 'data points');
                 this.renderStatisticsChart(chartContainer, historyData[0], entityId, period);
             } else {
                 chartContainer.innerHTML = '<div class="loading-chart">Keine Verlaufsdaten verfügbar</div>';
             }
             
         } catch (error) {
-            console.error('Error loading statistics graph:', error);
+            console.error('❌ Error loading statistics graph:', error);
             chartContainer.innerHTML = '<div class="loading-chart">Fehler beim Laden der Daten</div>';
         }
     }
     
-    // NEU: Einfache Chart Rendering
+    // NEU: Chart Rendering
     renderStatisticsChart(container, rawData, entityId, period) {
+        console.log('📊 Rendering statistics chart...');
+        
         // Daten für Chart aufbereiten
         const chartData = this.processChartData(rawData, period);
         
@@ -19668,10 +19675,14 @@ class InfiniteCardSlider {
             return;
         }
         
+        console.log('📊 Chart data processed:', chartData.length, 'points');
+        
         // Einfache SVG Chart erstellen
         const maxValue = Math.max(...chartData.map(d => d.value));
         const minValue = Math.min(...chartData.map(d => d.value));
         const range = maxValue - minValue || 1;
+        
+        console.log('📊 Chart range:', minValue, 'to', maxValue);
         
         const chartHTML = `
             <svg width="100%" height="200" style="background: transparent;">
@@ -19694,16 +19705,28 @@ class InfiniteCardSlider {
                       stroke="var(--accent)" 
                       stroke-width="2" 
                       fill-opacity="0.3"/>
+                      
+                <!-- Value Labels -->
+                <text x="10" y="20" fill="var(--text-secondary)" font-size="12">
+                    Max: ${maxValue.toFixed(1)}
+                </text>
+                <text x="10" y="190" fill="var(--text-secondary)" font-size="12">
+                    Min: ${minValue.toFixed(1)}
+                </text>
             </svg>
         `;
         
         container.innerHTML = chartHTML;
+        console.log('📊 Chart rendered successfully');
     }
     
     // NEU: Helper Funktionen
     processChartData(rawData, period) {
         return rawData
-            .filter(entry => !isNaN(parseFloat(entry.state)))
+            .filter(entry => {
+                const value = parseFloat(entry.state);
+                return !isNaN(value) && entry.state !== 'unknown' && entry.state !== 'unavailable';
+            })
             .map(entry => ({
                 timestamp: new Date(entry.last_changed),
                 value: parseFloat(entry.state),
