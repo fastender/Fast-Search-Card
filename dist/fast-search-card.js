@@ -14019,9 +14019,9 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    
-
     renderMarkdownAccordions(markdownContent, title) {  
+        console.log('🔧 Rendering markdown accordions...');
+        console.log('🔧 Markdown content length:', markdownContent?.length);
         
         if (!markdownContent || markdownContent === 'unknown' || markdownContent === 'NO_CONTENT_FOUND') {
             return `
@@ -14034,9 +14034,18 @@ class FastSearchCard extends HTMLElement {
         
         // Parse Markdown zu HTML
         const html = this.parseMarkdown(markdownContent);
+        console.log('🔧 Parsed HTML length:', html.length);
         
         // Split nach H2 Überschriften für Accordions
         const sections = this.extractAccordionSections(html);
+        console.log('🔧 Extracted sections:', sections.length);
+        
+        sections.forEach((section, index) => {
+            console.log(`🔧 Section ${index}: "${section.title}" (${section.content.length} chars)`);
+            if (index === 0 && section.content.includes('statistics-graph-container')) {
+                console.log('📊 First section contains statistics graph!');
+            }
+        });
         
         let accordionHTML = `
             <div>
@@ -14067,8 +14076,9 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
         
+        console.log('🔧 Final accordion HTML length:', accordionHTML.length);
         return accordionHTML;
-    } // <- DIESE KLAMMER HAT GEFEHLT!
+    }
     
     // NEUE METHODE - AUSSERHALB der renderMarkdownAccordions Methode
     extractAccordionSections(html) {
@@ -14498,8 +14508,14 @@ class FastSearchCard extends HTMLElement {
     }
 
     setupAccordionListeners() {
+        console.log('🔧 Setting up accordion listeners...');
+        
         const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
-        accordionHeaders.forEach(header => {
+        console.log('🔧 Found accordion headers:', accordionHeaders.length);
+        
+        accordionHeaders.forEach((header, index) => {
+            console.log(`🔧 Setting up header ${index}:`, header.dataset.accordion);
+            
             // Remove old listeners
             header.replaceWith(header.cloneNode(true));
             
@@ -14507,30 +14523,57 @@ class FastSearchCard extends HTMLElement {
             const newHeader = this.shadowRoot.querySelector(`[data-accordion="${header.dataset.accordion}"]`);
             if (newHeader) {
                 newHeader.addEventListener('click', () => {
-                    const index = newHeader.dataset.accordion;
-                    const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
+                    const accordionIndex = newHeader.dataset.accordion;
+                    console.log('🔧 Accordion clicked! Index:', accordionIndex);
+                    
+                    const content = this.shadowRoot.querySelector(`[data-content="${accordionIndex}"]`);
                     const arrow = newHeader.querySelector('.accordion-arrow');
                     
+                    if (!content) {
+                        console.error('❌ No content found for accordion:', accordionIndex);
+                        return;
+                    }
+                    
                     const isOpen = content.classList.contains('open');
+                    console.log('🔧 Accordion state - isOpen:', isOpen);
                     
                     if (isOpen) {
                         content.classList.remove('open');
                         newHeader.classList.remove('active');
+                        console.log('🔧 Closing accordion');
                     } else {
                         content.classList.add('open');
                         newHeader.classList.add('active');
+                        console.log('🔧 Opening accordion');
                         
                         // 🆕 Statistics Graph für erstes Accordion (Index 0)
-                        if (index === '0') {
+                        if (accordionIndex === '0') {
+                            console.log('📊 First accordion opened! Looking for graph container...');
+                            
                             const graphContainer = content.querySelector('.statistics-graph-container');
-                            if (graphContainer && !graphContainer.dataset.loaded) {
-                                console.log('📊 Loading statistics graph for first accordion');
-                                graphContainer.dataset.loaded = 'true';
-                                this.setupStatisticsGraphs();
+                            console.log('📊 Graph container found:', !!graphContainer);
+                            
+                            if (graphContainer) {
+                                console.log('📊 Graph container entity:', graphContainer.dataset.entity);
+                                console.log('📊 Already loaded?', graphContainer.dataset.loaded);
+                                
+                                if (!graphContainer.dataset.loaded) {
+                                    console.log('📊 Loading statistics graph for first time...');
+                                    graphContainer.dataset.loaded = 'true';
+                                    this.setupStatisticsGraphs();
+                                } else {
+                                    console.log('📊 Statistics graph already loaded');
+                                }
+                            } else {
+                                console.error('❌ No statistics graph container found in first accordion');
+                                // Debug: Schaue was im Content ist
+                                console.log('📊 Accordion content HTML:', content.innerHTML.substring(0, 500));
                             }
                         }
                     }
                 });
+            } else {
+                console.error('❌ Could not find new header for:', header.dataset.accordion);
             }
         });
     }
