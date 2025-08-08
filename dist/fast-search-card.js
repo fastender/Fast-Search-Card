@@ -2374,82 +2374,7 @@ class FastSearchCard extends HTMLElement {
                 font-style: italic;
             }            
 
-            // FÜGE DIREKT DANACH HINZU:
-            
-            /* Statistics Graph Styles */
-            .statistics-graph-container {
-                background: rgba(0, 0, 0, 0.2);
-                border-radius: 12px;
-                padding: 16px;
-                margin: 8px 0;
-            }
-            
-            .statistics-graph-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 16px;
-            }
-            
-            .current-value {
-                display: flex;
-                align-items: baseline;
-                gap: 4px;
-            }
-            
-            .current-value .value {
-                font-size: 24px;
-                font-weight: 600;
-                color: var(--text-primary);
-            }
-            
-            .current-value .unit {
-                font-size: 14px;
-                color: var(--text-secondary);
-            }
-            
-            .graph-controls {
-                display: flex;
-                gap: 8px;
-            }
-            
-            .graph-period-btn {
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                color: var(--text-secondary);
-                padding: 6px 12px;
-                border-radius: 6px;
-                font-size: 12px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            
-            .graph-period-btn:hover {
-                background: rgba(255, 255, 255, 0.15);
-            }
-            
-            .graph-period-btn.active {
-                background: var(--accent);
-                color: white;
-                border-color: var(--accent);
-            }
-            
-            .statistics-graph-chart {
-                height: 200px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 8px;
-                position: relative;
-                overflow: hidden;
-            }
-            
-            .loading-chart {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                height: 100%;
-                color: var(--text-secondary);
-                font-size: 14px;
-            }
+
 
 
 
@@ -7316,122 +7241,28 @@ class FastSearchCard extends HTMLElement {
     }
     
     generateAutoSensorContent(entityId, state) {
-        console.log('🔧 [REAL FUNCTION] Generating auto sensor content for:', entityId);
-        
         const friendlyName = state.attributes.friendly_name || entityId;
         const currentValue = state.state;
         const unit = state.attributes.unit_of_measurement || '';
         const deviceClass = state.attributes.device_class || 'Sensor';
-        const category = this.getCategoryForSensor ? this.getCategoryForSensor(state) : deviceClass;
         
-        // 1. Statistics Graph Section
-        const statisticsGraphContent = this.generateStatisticsGraphSection(entityId, state);
-        console.log('📊 [REAL] Statistics graph section generated:', statisticsGraphContent.length, 'chars');
+        let content = `# ${friendlyName}\n\n`;
+        content += `## Aktueller Wert\n**${currentValue} ${unit}**\n\n`;
+        content += `## Details\n`;
+        content += `- **Typ:** ${deviceClass}\n`;
+        content += `- **Entity ID:** \`${entityId}\`\n`;
+        content += `- **Letzte Aktualisierung:** ${new Date(state.last_updated).toLocaleString()}\n\n`;
         
-        // 2. Details Section
-        const detailsContent = `## 🔧 Details
-    - **Typ:** ${category}
-    - **Entity ID:** \`${entityId}\`
-    - **Letzte Aktualisierung:** ${new Date(state.last_updated).toLocaleString()}
-    - **Device Class:** ${deviceClass}
-    
-    *Automatisch erkannt durch Fast Search Card*`;
-        console.log('🔧 [REAL] Details section generated:', detailsContent.length, 'chars');
+        if (state.attributes.device_class) {
+            content += `- **Device Class:** ${state.attributes.device_class}\n`;
+        }
         
-        // 3. Attributes Section
-        const attributesContent = this.generateAttributesSection(state);
-        console.log('⚙️ [REAL] Attributes section generated:', attributesContent.length, 'chars');
+        content += `\n*Automatisch erkannt durch Fast Search Card*`;
         
-        // Zusammenfügen mit doppelten Zeilenumbrüchen
-        const fullContent = `${statisticsGraphContent}
-    
-    ${detailsContent}
-    
-    ${attributesContent}`;
-        
-        console.log('📄 [REAL] FULL CONTENT PREVIEW:');
-        console.log(fullContent.substring(0, 400));
-        console.log('📄 [REAL] Total length:', fullContent.length);
-        
-        return fullContent;
-    }
-
-    // NEU: Statistics Graph Section Generator
-    generateStatisticsGraphSection(entityId, state) {
-        const currentValue = this.formatSensorValue ? 
-            this.formatSensorValue(state.state, state.attributes.unit_of_measurement) : 
-            state.state;
-        
-        const content = `## 📊 Verlauf
-    
-    <div class="statistics-graph-container" data-entity="${entityId}">
-        <div class="statistics-graph-header">
-            <div class="current-value">
-                <span class="value">${currentValue}</span>
-                <span class="unit">${state.attributes.unit_of_measurement || ''}</span>
-            </div>
-            <div class="graph-controls">
-                <button class="graph-period-btn active" data-period="24h">24h</button>
-                <button class="graph-period-btn" data-period="7d">7d</button>
-                <button class="graph-period-btn" data-period="30d">30d</button>
-            </div>
-        </div>
-        <div class="statistics-graph-chart" id="stats-chart-${entityId.replace(/\./g, '_')}">
-            <div class="loading-chart">Lade Verlaufsdaten...</div>
-        </div>
-    </div>`;
-    
-        console.log('📊 [HELPER] Generated statistics section:', content.length, 'chars');
         return content;
     }
-    
-    // NEU: Attribute Section Generator
-    generateAttributesSection(state) {
-        const excludeKeys = ['friendly_name', 'unit_of_measurement', 'device_class', 'icon'];
-        const relevantAttributes = Object.entries(state.attributes)
-            .filter(([key, value]) => !excludeKeys.includes(key) && value !== null && value !== undefined);
-    
-        if (relevantAttributes.length === 0) {
-            return '## ⚙️ Attribute\n*Keine zusätzlichen Attribute verfügbar*';
-        }
-    
-        let content = '## ⚙️ Attribute\n';
-        relevantAttributes.forEach(([key, value]) => {
-            content += `- **${key}:** ${value}\n`;
-        });
-        
-        console.log('⚙️ [HELPER] Generated attributes section:', content.length, 'chars');
-        return content;
-    }
-    
-    // NEU: Sensor Value Formatter (falls nicht vorhanden)
-    formatSensorValue(value, unit) {
-        if (value === 'unknown' || value === 'unavailable') {
-            return value;
-        }
-        
-        const numValue = parseFloat(value);
-        if (isNaN(numValue)) {
-            return value;
-        }
-        
-        // Formatierung basierend auf Unit
-        switch(unit) {
-            case '°C':
-            case '°F':
-                return numValue.toFixed(1);
-            case '%':
-                return Math.round(numValue);
-            case 'W':
-            case 'kW':
-                return numValue.toFixed(0);
-            case 'kWh':
-                return numValue.toFixed(2);
-            default:
-                return numValue % 1 === 0 ? numValue.toString() : numValue.toFixed(1);
-        }
-    }    
 
+    
     
     // 5️⃣ HELPER-FUNKTION für Kategorisierung (FÜGE HINZU):
     getCategoryForDomain(domain) {
@@ -13983,7 +13814,37 @@ class FastSearchCard extends HTMLElement {
             viewTabContent.innerHTML = this.renderMarkdownAccordions(item.custom_data.content, item.name);
             this.setupAccordionListeners();
         }
-    }   
+    }
+    
+    setupAccordionListeners() {
+        const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
+        accordionHeaders.forEach(header => {
+            // Remove old listeners
+            header.replaceWith(header.cloneNode(true));
+            
+            // Add new listeners
+            const newHeader = this.shadowRoot.querySelector(`[data-accordion="${header.dataset.accordion}"]`);
+            if (newHeader) {
+                newHeader.addEventListener('click', () => {
+                    const index = newHeader.dataset.accordion;
+                    const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
+                    const arrow = newHeader.querySelector('.accordion-arrow');
+                    
+                    const isOpen = content.classList.contains('open');
+                    
+                    if (isOpen) {
+                        content.classList.remove('open');
+                        newHeader.classList.remove('active');
+                        arrow.textContent = '▶';
+                    } else {
+                        content.classList.add('open');
+                        newHeader.classList.add('active');
+                        arrow.textContent = '▼';
+                    }
+                });
+            }
+        });
+    }    
     
     getCustomInfoHTML(item) {
         const customData = item.custom_data || {};
@@ -14035,9 +13896,9 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+    
+
     renderMarkdownAccordions(markdownContent, title) {  
-        console.log('🔧 Rendering markdown accordions...');
-        console.log('🔧 Markdown content length:', markdownContent?.length);
         
         if (!markdownContent || markdownContent === 'unknown' || markdownContent === 'NO_CONTENT_FOUND') {
             return `
@@ -14050,18 +13911,9 @@ class FastSearchCard extends HTMLElement {
         
         // Parse Markdown zu HTML
         const html = this.parseMarkdown(markdownContent);
-        console.log('🔧 Parsed HTML length:', html.length);
         
         // Split nach H2 Überschriften für Accordions
         const sections = this.extractAccordionSections(html);
-        console.log('🔧 Extracted sections:', sections.length);
-        
-        sections.forEach((section, index) => {
-            console.log(`🔧 Section ${index}: "${section.title}" (${section.content.length} chars)`);
-            if (index === 0 && section.content.includes('statistics-graph-container')) {
-                console.log('📊 First section contains statistics graph!');
-            }
-        });
         
         let accordionHTML = `
             <div>
@@ -14092,60 +13944,27 @@ class FastSearchCard extends HTMLElement {
             </div>
         `;
         
-        console.log('🔧 Final accordion HTML length:', accordionHTML.length);
         return accordionHTML;
-    }
+    } // <- DIESE KLAMMER HAT GEFEHLT!
     
+    // NEUE METHODE - AUSSERHALB der renderMarkdownAccordions Methode
     extractAccordionSections(html) {
-        console.log('🔧 Extracting accordion sections from HTML length:', html.length);
-        
         const sections = [];
         
-        // Verbesserte Regex für H2 Tags (berücksichtigt auch Emojis)
-        const h2Regex = /<h2>(.*?)<\/h2>/g;
-        let match;
-        let lastIndex = 0;
+        // Split HTML nach H2 Tags
+        const parts = html.split(/<h2>(.*?)<\/h2>/);
         
-        const h2Matches = [];
-        while ((match = h2Regex.exec(html)) !== null) {
-            h2Matches.push({
-                title: match[1],
-                startIndex: match.index,
-                endIndex: match.index + match[0].length
+        // Erstes Teil (vor erstem H2) überspringen
+        for (let i = 1; i < parts.length; i += 2) {
+            const title = parts[i];
+            const content = parts[i + 1] || '';
+            
+            sections.push({
+                title: title.trim(),
+                content: content.trim()
             });
         }
         
-        console.log('🔧 Found H2 matches:', h2Matches.length);
-        h2Matches.forEach((match, index) => {
-            console.log(`🔧 H2 ${index}: "${match.title}"`);
-        });
-        
-        // Content zwischen H2 Tags extrahieren
-        h2Matches.forEach((match, index) => {
-            const nextMatch = h2Matches[index + 1];
-            const contentStart = match.endIndex;
-            const contentEnd = nextMatch ? nextMatch.startIndex : html.length;
-            
-            const content = html.substring(contentStart, contentEnd).trim();
-            
-            console.log(`🔧 Section "${match.title}": ${content.length} chars`);
-            
-            sections.push({
-                title: match.title.trim(),
-                content: content
-            });
-        });
-        
-        // Fallback: Wenn keine H2 gefunden, ganzen Content als eine Section
-        if (sections.length === 0) {
-            console.log('🔧 No H2 found, using entire content as single section');
-            sections.push({
-                title: 'Content',
-                content: html
-            });
-        }
-        
-        console.log('🔧 Final sections count:', sections.length);
         return sections;
     }
 
@@ -14512,12 +14331,12 @@ class FastSearchCard extends HTMLElement {
         
         // NUR MQTT ist editierbar
         const isEditable = customData.type === 'mqtt';
-
+        
         if (!isEditable) {
-            // Read-only: Accordion Logic + Statistics Graph Setup
+            // Read-only: Nur Accordion Logic
             this.setupAccordionListeners();
             return;
-        }        
+        }
         
         // Editable: Full Tab System + Editor (nur für MQTT)
         const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
@@ -14554,75 +14373,27 @@ class FastSearchCard extends HTMLElement {
         this.setupAccordionListeners();
         this.setupMarkdownEditor(item);
     }
+        
+
 
     setupAccordionListeners() {
-        console.log('🔧 Setting up accordion listeners...');
-        
         const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
-        console.log('🔧 Found accordion headers:', accordionHeaders.length);
-        
-        accordionHeaders.forEach((header, index) => {
-            console.log(`🔧 Setting up header ${index}:`, header.dataset.accordion);
-            
-            // Remove old listeners
-            header.replaceWith(header.cloneNode(true));
-            
-            // Add new listeners
-            const newHeader = this.shadowRoot.querySelector(`[data-accordion="${header.dataset.accordion}"]`);
-            if (newHeader) {
-                newHeader.addEventListener('click', () => {
-                    const accordionIndex = newHeader.dataset.accordion;
-                    console.log('🔧 Accordion clicked! Index:', accordionIndex);
-                    
-                    const content = this.shadowRoot.querySelector(`[data-content="${accordionIndex}"]`);
-                    const arrow = newHeader.querySelector('.accordion-arrow');
-                    
-                    if (!content) {
-                        console.error('❌ No content found for accordion:', accordionIndex);
-                        return;
-                    }
-                    
-                    const isOpen = content.classList.contains('open');
-                    console.log('🔧 Accordion state - isOpen:', isOpen);
-                    
-                    if (isOpen) {
-                        content.classList.remove('open');
-                        newHeader.classList.remove('active');
-                        console.log('🔧 Closing accordion');
-                    } else {
-                        content.classList.add('open');
-                        newHeader.classList.add('active');
-                        console.log('🔧 Opening accordion');
-                        
-                        // 🆕 Statistics Graph für erstes Accordion (Index 0)
-                        if (accordionIndex === '0') {
-                            console.log('📊 First accordion opened! Looking for graph container...');
-                            
-                            const graphContainer = content.querySelector('.statistics-graph-container');
-                            console.log('📊 Graph container found:', !!graphContainer);
-                            
-                            if (graphContainer) {
-                                console.log('📊 Graph container entity:', graphContainer.dataset.entity);
-                                console.log('📊 Already loaded?', graphContainer.dataset.loaded);
-                                
-                                if (!graphContainer.dataset.loaded) {
-                                    console.log('📊 Loading statistics graph for first time...');
-                                    graphContainer.dataset.loaded = 'true';
-                                    this.setupStatisticsGraphs();
-                                } else {
-                                    console.log('📊 Statistics graph already loaded');
-                                }
-                            } else {
-                                console.error('❌ No statistics graph container found in first accordion');
-                                // Debug: Schaue was im Content ist
-                                console.log('📊 Accordion content HTML:', content.innerHTML.substring(0, 500));
-                            }
-                        }
-                    }
-                });
-            } else {
-                console.error('❌ Could not find new header for:', header.dataset.accordion);
-            }
+        accordionHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const index = header.dataset.accordion;
+                const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
+                
+                // Toggle
+                const isOpen = content.classList.contains('open');
+                
+                if (isOpen) {
+                    content.classList.remove('open');
+                    header.classList.remove('active');
+                } else {
+                    content.classList.add('open');
+                    header.classList.add('active');
+                }
+            });
         });
     }
         
@@ -19586,194 +19357,6 @@ class InfiniteCardSlider {
         this.stopAutoPlay();
         // Remove event listeners would go here if needed
     }
-
-    // NEU: Statistics Graph Setup
-    setupStatisticsGraphs() {
-        console.log('📊 Setting up statistics graphs...');
-        
-        const graphContainers = this.shadowRoot.querySelectorAll('.statistics-graph-container');
-        console.log('📊 Found graph containers:', graphContainers.length);
-        
-        graphContainers.forEach(container => {
-            const entityId = container.dataset.entity;
-            console.log('📊 Setting up graph for entity:', entityId);
-            
-            const chartContainer = container.querySelector('.statistics-graph-chart');
-            const periodButtons = container.querySelectorAll('.graph-period-btn');
-            
-            if (!chartContainer) {
-                console.error('❌ No chart container found for:', entityId);
-                return;
-            }
-            
-            // Initial Graph laden (24h)
-            this.loadStatisticsGraph(entityId, chartContainer, '24h');
-            
-            // Period Button Events
-            periodButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    console.log('📊 Period button clicked:', btn.dataset.period);
-                    
-                    // Button State Update
-                    periodButtons.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    
-                    // Graph neu laden
-                    const period = btn.dataset.period;
-                    this.loadStatisticsGraph(entityId, chartContainer, period);
-                });
-            });
-        });
-    }
-    
-    // NEU: Statistics Graph Data Loading
-    async loadStatisticsGraph(entityId, chartContainer, period = '24h') {
-        try {
-            console.log(`📊 Loading statistics graph for ${entityId}, period: ${period}`);
-            chartContainer.innerHTML = '<div class="loading-chart">Lade Verlaufsdaten...</div>';
-            
-            // Zeitraum berechnen
-            const endTime = new Date();
-            const startTime = new Date();
-            
-            switch(period) {
-                case '24h':
-                    startTime.setHours(startTime.getHours() - 24);
-                    break;
-                case '7d':
-                    startTime.setDate(startTime.getDate() - 7);
-                    break;
-                case '30d':
-                    startTime.setDate(startTime.getDate() - 30);
-                    break;
-            }
-            
-            console.log(`📊 Fetching history from ${startTime.toISOString()} to ${endTime.toISOString()}`);
-            
-            // History API Call
-            const historyData = await this._hass.callApi(
-                'GET', 
-                `history/period/${startTime.toISOString()}?filter_entity_id=${entityId}&end_time=${endTime.toISOString()}`
-            );
-            
-            console.log('📊 History data received:', historyData?.length, 'entities');
-            
-            if (historyData && historyData[0] && historyData[0].length > 0) {
-                console.log('📊 Rendering chart with', historyData[0].length, 'data points');
-                this.renderStatisticsChart(chartContainer, historyData[0], entityId, period);
-            } else {
-                chartContainer.innerHTML = '<div class="loading-chart">Keine Verlaufsdaten verfügbar</div>';
-            }
-            
-        } catch (error) {
-            console.error('❌ Error loading statistics graph:', error);
-            chartContainer.innerHTML = '<div class="loading-chart">Fehler beim Laden der Daten</div>';
-        }
-    }
-    
-    // NEU: Chart Rendering
-    renderStatisticsChart(container, rawData, entityId, period) {
-        console.log('📊 Rendering statistics chart...');
-        
-        // Daten für Chart aufbereiten
-        const chartData = this.processChartData(rawData, period);
-        
-        if (chartData.length === 0) {
-            container.innerHTML = '<div class="loading-chart">Keine gültigen Daten</div>';
-            return;
-        }
-        
-        console.log('📊 Chart data processed:', chartData.length, 'points');
-        
-        // Einfache SVG Chart erstellen
-        const maxValue = Math.max(...chartData.map(d => d.value));
-        const minValue = Math.min(...chartData.map(d => d.value));
-        const range = maxValue - minValue || 1;
-        
-        console.log('📊 Chart range:', minValue, 'to', maxValue);
-        
-        const chartHTML = `
-            <svg width="100%" height="200" style="background: transparent;">
-                <defs>
-                    <linearGradient id="gradient-${entityId.replace(/\./g, '_')}" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:var(--accent);stop-opacity:0.3" />
-                        <stop offset="100%" style="stop-color:var(--accent);stop-opacity:0.05" />
-                    </linearGradient>
-                </defs>
-                
-                <!-- Grid Lines -->
-                ${[0, 1, 2, 3, 4].map(i => 
-                    `<line x1="0" y1="${i * 50}" x2="100%" y2="${i * 50}" 
-                     stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`
-                ).join('')}
-                
-                <!-- Data Path -->
-                <path d="${this.generateSVGPath(chartData, 200, range, minValue)}" 
-                      fill="url(#gradient-${entityId.replace(/\./g, '_')})" 
-                      stroke="var(--accent)" 
-                      stroke-width="2" 
-                      fill-opacity="0.3"/>
-                      
-                <!-- Value Labels -->
-                <text x="10" y="20" fill="var(--text-secondary)" font-size="12">
-                    Max: ${maxValue.toFixed(1)}
-                </text>
-                <text x="10" y="190" fill="var(--text-secondary)" font-size="12">
-                    Min: ${minValue.toFixed(1)}
-                </text>
-            </svg>
-        `;
-        
-        container.innerHTML = chartHTML;
-        console.log('📊 Chart rendered successfully');
-    }
-    
-    // NEU: Helper Funktionen
-    processChartData(rawData, period) {
-        return rawData
-            .filter(entry => {
-                const value = parseFloat(entry.state);
-                return !isNaN(value) && entry.state !== 'unknown' && entry.state !== 'unavailable';
-            })
-            .map(entry => ({
-                timestamp: new Date(entry.last_changed),
-                value: parseFloat(entry.state),
-                formattedTime: this.formatChartTime(new Date(entry.last_changed), period)
-            }))
-            .sort((a, b) => a.timestamp - b.timestamp);
-    }
-    
-    generateSVGPath(data, height, range, minValue) {
-        if (data.length === 0) return '';
-        
-        const points = data.map((point, index) => {
-            const x = (index / (data.length - 1)) * 100;
-            const y = height - ((point.value - minValue) / range) * 180 - 10;
-            return `${x},${y}`;
-        });
-        
-        return `M ${points.join(' L ')}`;
-    }
-    
-    formatChartTime(date, period) {
-        switch(period) {
-            case '24h':
-                return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-            case '7d':
-                return date.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric' });
-            case '30d':
-                return date.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
-            default:
-                return date.toLocaleString('de-DE');
-        }
-    }
-
-
-
-
-
-
-    
 }
 
 
