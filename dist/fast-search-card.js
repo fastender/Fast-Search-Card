@@ -2374,7 +2374,82 @@ class FastSearchCard extends HTMLElement {
                 font-style: italic;
             }            
 
-
+            // FÜGE DIREKT DANACH HINZU:
+            
+            /* Statistics Graph Styles */
+            .statistics-graph-container {
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 12px;
+                padding: 16px;
+                margin: 8px 0;
+            }
+            
+            .statistics-graph-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 16px;
+            }
+            
+            .current-value {
+                display: flex;
+                align-items: baseline;
+                gap: 4px;
+            }
+            
+            .current-value .value {
+                font-size: 24px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            
+            .current-value .unit {
+                font-size: 14px;
+                color: var(--text-secondary);
+            }
+            
+            .graph-controls {
+                display: flex;
+                gap: 8px;
+            }
+            
+            .graph-period-btn {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: var(--text-secondary);
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .graph-period-btn:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+            
+            .graph-period-btn.active {
+                background: var(--accent);
+                color: white;
+                border-color: var(--accent);
+            }
+            
+            .statistics-graph-chart {
+                height: 200px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .loading-chart {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                color: var(--text-secondary);
+                font-size: 14px;
+            }
 
 
 
@@ -7245,24 +7320,98 @@ class FastSearchCard extends HTMLElement {
         const currentValue = state.state;
         const unit = state.attributes.unit_of_measurement || '';
         const deviceClass = state.attributes.device_class || 'Sensor';
+        const category = this.getCategoryForSensor(state);
         
-        let content = `# ${friendlyName}\n\n`;
-        content += `## Aktueller Wert\n**${currentValue} ${unit}**\n\n`;
-        content += `## Details\n`;
-        content += `- **Typ:** ${deviceClass}\n`;
-        content += `- **Entity ID:** \`${entityId}\`\n`;
-        content += `- **Letzte Aktualisierung:** ${new Date(state.last_updated).toLocaleString()}\n\n`;
+        // 🆕 Statistics Graph als erstes Accordion
+        const statisticsGraphContent = this.generateStatisticsGraphSection(entityId, state);
         
-        if (state.attributes.device_class) {
-            content += `- **Device Class:** ${state.attributes.device_class}\n`;
+        // Bestehende Details als weitere Accordions
+        const detailsContent = `## 🔧 Details
+    - **Typ:** ${category}
+    - **Entity ID:** \`${entityId}\`
+    - **Letzte Aktualisierung:** ${new Date(state.last_updated).toLocaleString()}
+    - **Device Class:** ${deviceClass}
+    
+    *Automatisch erkannt durch Fast Search Card*`;
+    
+        const attributesContent = this.generateAttributesSection(state);
+        
+        return `${statisticsGraphContent}
+    
+    ${detailsContent}
+    
+    ${attributesContent}`;
+    }
+
+    // NEU: Statistics Graph Section Generator
+    generateStatisticsGraphSection(entityId, state) {
+        const currentValue = this.formatSensorValue(state.state, state.attributes.unit_of_measurement);
+        
+        return `## 📊 Verlauf
+    
+    <div class="statistics-graph-container" data-entity="${entityId}">
+        <div class="statistics-graph-header">
+            <div class="current-value">
+                <span class="value">${currentValue}</span>
+                <span class="unit">${state.attributes.unit_of_measurement || ''}</span>
+            </div>
+            <div class="graph-controls">
+                <button class="graph-period-btn active" data-period="24h">24h</button>
+                <button class="graph-period-btn" data-period="7d">7d</button>
+                <button class="graph-period-btn" data-period="30d">30d</button>
+            </div>
+        </div>
+        <div class="statistics-graph-chart" id="stats-chart-${entityId.replace(/\./g, '_')}">
+            <div class="loading-chart">Lade Verlaufsdaten...</div>
+        </div>
+    </div>`;
+    }
+    
+    // NEU: Attribute Section Generator
+    generateAttributesSection(state) {
+        const excludeKeys = ['friendly_name', 'unit_of_measurement', 'device_class', 'icon'];
+        const relevantAttributes = Object.entries(state.attributes)
+            .filter(([key, value]) => !excludeKeys.includes(key) && value !== null && value !== undefined);
+    
+        if (relevantAttributes.length === 0) {
+            return '## ⚙️ Attribute\n*Keine zusätzlichen Attribute verfügbar*';
         }
-        
-        content += `\n*Automatisch erkannt durch Fast Search Card*`;
+    
+        let content = '## ⚙️ Attribute\n';
+        relevantAttributes.forEach(([key, value]) => {
+            content += `- **${key}:** ${value}\n`;
+        });
         
         return content;
     }
-
     
+    // NEU: Sensor Value Formatter
+    formatSensorValue(value, unit) {
+        if (value === 'unknown' || value === 'unavailable') {
+            return value;
+        }
+        
+        const numValue = parseFloat(value);
+        if (isNaN(numValue)) {
+            return value;
+        }
+        
+        // Formatierung basierend auf Unit
+        switch(unit) {
+            case '°C':
+            case '°F':
+                return numValue.toFixed(1);
+            case '%':
+                return Math.round(numValue);
+            case 'W':
+            case 'kW':
+                return numValue.toFixed(0);
+            case 'kWh':
+                return numValue.toFixed(2);
+            default:
+                return numValue % 1 === 0 ? numValue.toString() : numValue.toFixed(1);
+        }
+    }    
     
     // 5️⃣ HELPER-FUNKTION für Kategorisierung (FÜGE HINZU):
     getCategoryForDomain(domain) {
@@ -14331,12 +14480,13 @@ class FastSearchCard extends HTMLElement {
         
         // NUR MQTT ist editierbar
         const isEditable = customData.type === 'mqtt';
-        
+
         if (!isEditable) {
-            // Read-only: Nur Accordion Logic
+            // Read-only: Accordion Logic + Statistics Graph Setup
             this.setupAccordionListeners();
+            this.setupStatisticsGraphs(); // ← NEU HINZUGEFÜGT!
             return;
-        }
+        }        
         
         // Editable: Full Tab System + Editor (nur für MQTT)
         const tabsContainer = this.shadowRoot.querySelector('.detail-tabs');
@@ -19357,6 +19507,161 @@ class InfiniteCardSlider {
         this.stopAutoPlay();
         // Remove event listeners would go here if needed
     }
+
+
+
+
+    // NEU: Statistics Graph Setup
+    setupStatisticsGraphs() {
+        const graphContainers = this.shadowRoot.querySelectorAll('.statistics-graph-container');
+        
+        graphContainers.forEach(container => {
+            const entityId = container.dataset.entity;
+            const chartContainer = container.querySelector('.statistics-graph-chart');
+            const periodButtons = container.querySelectorAll('.graph-period-btn');
+            
+            // Initial Graph laden (24h)
+            this.loadStatisticsGraph(entityId, chartContainer, '24h');
+            
+            // Period Button Events
+            periodButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Button State Update
+                    periodButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Graph neu laden
+                    const period = btn.dataset.period;
+                    this.loadStatisticsGraph(entityId, chartContainer, period);
+                });
+            });
+        });
+    }
+    
+    // NEU: Statistics Graph Data Loading
+    async loadStatisticsGraph(entityId, chartContainer, period = '24h') {
+        try {
+            chartContainer.innerHTML = '<div class="loading-chart">Lade Verlaufsdaten...</div>';
+            
+            // Zeitraum berechnen
+            const endTime = new Date();
+            const startTime = new Date();
+            
+            switch(period) {
+                case '24h':
+                    startTime.setHours(startTime.getHours() - 24);
+                    break;
+                case '7d':
+                    startTime.setDate(startTime.getDate() - 7);
+                    break;
+                case '30d':
+                    startTime.setDate(startTime.getDate() - 30);
+                    break;
+            }
+            
+            // History API Call
+            const historyData = await this._hass.callApi(
+                'GET', 
+                `history/period/${startTime.toISOString()}?filter_entity_id=${entityId}&end_time=${endTime.toISOString()}`
+            );
+            
+            if (historyData && historyData[0] && historyData[0].length > 0) {
+                this.renderStatisticsChart(chartContainer, historyData[0], entityId, period);
+            } else {
+                chartContainer.innerHTML = '<div class="loading-chart">Keine Verlaufsdaten verfügbar</div>';
+            }
+            
+        } catch (error) {
+            console.error('Error loading statistics graph:', error);
+            chartContainer.innerHTML = '<div class="loading-chart">Fehler beim Laden der Daten</div>';
+        }
+    }
+    
+    // NEU: Einfache Chart Rendering
+    renderStatisticsChart(container, rawData, entityId, period) {
+        // Daten für Chart aufbereiten
+        const chartData = this.processChartData(rawData, period);
+        
+        if (chartData.length === 0) {
+            container.innerHTML = '<div class="loading-chart">Keine gültigen Daten</div>';
+            return;
+        }
+        
+        // Einfache SVG Chart erstellen
+        const maxValue = Math.max(...chartData.map(d => d.value));
+        const minValue = Math.min(...chartData.map(d => d.value));
+        const range = maxValue - minValue || 1;
+        
+        const chartHTML = `
+            <svg width="100%" height="200" style="background: transparent;">
+                <defs>
+                    <linearGradient id="gradient-${entityId.replace(/\./g, '_')}" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:var(--accent);stop-opacity:0.3" />
+                        <stop offset="100%" style="stop-color:var(--accent);stop-opacity:0.05" />
+                    </linearGradient>
+                </defs>
+                
+                <!-- Grid Lines -->
+                ${[0, 1, 2, 3, 4].map(i => 
+                    `<line x1="0" y1="${i * 50}" x2="100%" y2="${i * 50}" 
+                     stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`
+                ).join('')}
+                
+                <!-- Data Path -->
+                <path d="${this.generateSVGPath(chartData, 200, range, minValue)}" 
+                      fill="url(#gradient-${entityId.replace(/\./g, '_')})" 
+                      stroke="var(--accent)" 
+                      stroke-width="2" 
+                      fill-opacity="0.3"/>
+            </svg>
+        `;
+        
+        container.innerHTML = chartHTML;
+    }
+    
+    // NEU: Helper Funktionen
+    processChartData(rawData, period) {
+        return rawData
+            .filter(entry => !isNaN(parseFloat(entry.state)))
+            .map(entry => ({
+                timestamp: new Date(entry.last_changed),
+                value: parseFloat(entry.state),
+                formattedTime: this.formatChartTime(new Date(entry.last_changed), period)
+            }))
+            .sort((a, b) => a.timestamp - b.timestamp);
+    }
+    
+    generateSVGPath(data, height, range, minValue) {
+        if (data.length === 0) return '';
+        
+        const points = data.map((point, index) => {
+            const x = (index / (data.length - 1)) * 100;
+            const y = height - ((point.value - minValue) / range) * 180 - 10;
+            return `${x},${y}`;
+        });
+        
+        return `M ${points.join(' L ')}`;
+    }
+    
+    formatChartTime(date, period) {
+        switch(period) {
+            case '24h':
+                return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+            case '7d':
+                return date.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric' });
+            case '30d':
+                return date.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+            default:
+                return date.toLocaleString('de-DE');
+        }
+    }
+
+
+
+
+
+
+    
 }
 
 
