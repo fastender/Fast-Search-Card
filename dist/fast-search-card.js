@@ -7326,7 +7326,8 @@ class FastSearchCard extends HTMLElement {
         
         // 1. Statistics Graph Section
         const statisticsGraphContent = this.generateStatisticsGraphSection(entityId, state);
-        console.log('📊 Statistics graph section length:', statisticsGraphContent.length);
+        console.log('📊 Statistics graph section generated:', statisticsGraphContent.length, 'chars');
+        console.log('📊 Statistics content preview:', statisticsGraphContent.substring(0, 150));
         
         // 2. Details Section
         const detailsContent = `## 🔧 Details
@@ -7336,11 +7337,13 @@ class FastSearchCard extends HTMLElement {
     - **Device Class:** ${deviceClass}
     
     *Automatisch erkannt durch Fast Search Card*`;
-        console.log('🔧 Details section length:', detailsContent.length);
+        console.log('🔧 Details section generated:', detailsContent.length, 'chars');
+        console.log('🔧 Details content preview:', detailsContent.substring(0, 100));
         
         // 3. Attributes Section
         const attributesContent = this.generateAttributesSection(state);
-        console.log('⚙️ Attributes section length:', attributesContent.length);
+        console.log('⚙️ Attributes section generated:', attributesContent.length, 'chars');
+        console.log('⚙️ Attributes content preview:', attributesContent.substring(0, 100));
         
         // Zusammenfügen mit doppelten Zeilenumbrüchen
         const fullContent = `${statisticsGraphContent}
@@ -7349,17 +7352,20 @@ class FastSearchCard extends HTMLElement {
     
     ${attributesContent}`;
         
-        console.log('📄 Full content preview:', fullContent.substring(0, 300));
-        console.log('📄 Full content length:', fullContent.length);
+        console.log('📄 FULL CONTENT STRUCTURE:');
+        console.log('='.repeat(50));
+        console.log(fullContent);
+        console.log('='.repeat(50));
+        console.log('📄 Total length:', fullContent.length);
         
         return fullContent;
     }
 
-    // NEU: Statistics Graph Section Generator
+    // NEU: Statistics Graph Section Generator (falls nicht korrekt)
     generateStatisticsGraphSection(entityId, state) {
         const currentValue = this.formatSensorValue(state.state, state.attributes.unit_of_measurement);
         
-        return `## 📊 Verlauf
+        const content = `## 📊 Verlauf
     
     <div class="statistics-graph-container" data-entity="${entityId}">
         <div class="statistics-graph-header">
@@ -7377,9 +7383,12 @@ class FastSearchCard extends HTMLElement {
             <div class="loading-chart">Lade Verlaufsdaten...</div>
         </div>
     </div>`;
+    
+        console.log('📊 Generated statistics section:', content.length, 'chars');
+        return content;
     }
     
-    // NEU: Attribute Section Generator
+    // NEU: Attribute Section Generator (falls nicht vorhanden)
     generateAttributesSection(state) {
         const excludeKeys = ['friendly_name', 'unit_of_measurement', 'device_class', 'icon'];
         const relevantAttributes = Object.entries(state.attributes)
