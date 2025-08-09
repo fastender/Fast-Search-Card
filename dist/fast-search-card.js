@@ -246,37 +246,40 @@ class ChartManager {
         }
     }
 
-    // Diese Funktion erstellt und konfiguriert die native HA-Karte
+    // Im ChartManager
     async renderStatisticsGraph(container, config) {
         if (!this._hass) {
             container.textContent = "Fehler: Home Assistant ist nicht bereit.";
             return;
         }
-
+    
         try {
-            // Warten, bis das 'ha-statistics-graph'-Element im Frontend verfügbar ist
             await customElements.whenDefined('ha-statistics-graph');
-
+    
             const cardConfig = {
                 type: 'statistics-graph',
                 entities: [config.entity],
                 days_to_show: config.days_to_show || 7,
-                title: config.title, // Titel wird von der HA-Karte selbst angezeigt
-                chart_type: config.chart_type || 'line',
-                stat_types: ['mean', 'min', 'max']
+                title: config.title,
+                chart_type: 'line',
+                stat_types: ['mean']
             };
-
+    
             const card = document.createElement('ha-statistics-graph');
+            
+            // Trick: Karte kurz an den Body anhängen, um sie zu initialisieren
+            document.body.appendChild(card);
             card.setConfig(cardConfig);
             card.hass = this._hass;
-            
-            container.innerHTML = ''; // Leeren des Platzhalters
+    
+            // Warten, bis die Karte gerendert ist, und dann in den Container verschieben
+            await card.updateComplete;
+            container.innerHTML = '';
             container.appendChild(card);
-
-            // Speichern der Instanz für zukünftige HASS-Updates
+    
             const chartId = `native-${config.entity}`;
             this.charts.set(chartId, card);
-
+    
         } catch (e) {
             console.error("Fehler beim Erstellen der nativen Statistik-Karte:", e);
             container.textContent = "Statistik-Karte konnte nicht geladen werden.";
