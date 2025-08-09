@@ -598,7 +598,11 @@ class ChartManager {
     // In der ChartManager-Klasse
     async renderChartsInAccordion(accordionContent, currentItem) {
         console.log("📊 ChartManager: renderChartsInAccordion wird ausgeführt für:", currentItem?.name);
-    
+
+        // ▼▼▼ DIESE ZEILE IST JETZT ENTSCHEIDEND ▼▼▼
+        console.log("DEBUG: Das ist das 'currentItem' in ChartManager:", currentItem);
+
+        
         // Prüfen, ob für einen Auto-Discovery-Sensor noch kein Chart existiert
         if (currentItem && currentItem.domain === 'custom' && currentItem.custom_data?.type === 'auto_sensor' && !accordionContent.querySelector('.chart-block')) {
             console.log(`✅ Bedingung für Auto-Chart erfüllt für: ${currentItem.name}`);
