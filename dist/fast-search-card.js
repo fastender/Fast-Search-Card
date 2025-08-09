@@ -14619,7 +14619,7 @@ class FastSearchCard extends HTMLElement {
         }
         
         // Split nach H2 Überschriften für Accordions
-        const sections = this.extractAccordionSections(processedHtml); // <- processedHtml statt html
+        const sections = this.extractAccordionSections(html); // <- html verwenden!
         
         let accordionHTML = `
             <div>
