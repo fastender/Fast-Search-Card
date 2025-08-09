@@ -7185,13 +7185,20 @@ class FastSearchCard extends HTMLElement {
 
     collapsePanel() {
         if (!this.isPanelExpanded) return;
-
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         const resultsContainer = this.shadowRoot.querySelector('.results-container');
-
         this.isPanelExpanded = false;
-
-        // 🎭 Reverse Animation nur für results-container
+        
+        // 🎬 NEU: Slideshow wieder zeigen wenn Panel kollabiert und Feld leer
+        const searchInput = this.shadowRoot.querySelector('.search-input');
+        const value = searchInput?.value || '';
+        
+        if (!value.trim()) {
+            this.animateSlideshowVisibility(true, 'search_clear');
+            this.searchActive = false;
+        }
+        
+        // 🎭 BESTEHENDE ANIMATION LOGIC
         if (resultsContainer) {
             // Die Animation wird einer Variable zugewiesen
             const animation = resultsContainer.animate([
@@ -7210,7 +7217,7 @@ class FastSearchCard extends HTMLElement {
                 easing: 'ease-in',
                 fill: 'forwards'
             });
-
+            
             // WICHTIG: Erst nachdem die Animation abgeschlossen ist,
             // wird die 'expanded'-Klasse entfernt.
             animation.finished.then(() => {
