@@ -196,576 +196,105 @@ class MiniSearch {
 
 
 
-
 // ============================================
-// MINI CHART IMPLEMENTATION (~8KB)
-// ============================================
-class MiniChart {
-    constructor() {
-        this.colors = {
-            primary: '#06D6A0',
-            secondary: '#118AB2',
-            accent: '#FFD23F',
-            danger: '#EF476F',
-            success: '#06D6A0',
-            grid: 'rgba(255,255,255,0.1)',
-            text: 'rgba(255,255,255,0.7)'
-        };
-        
-        this.timeRanges = [
-            { label: '1m', value: 1, unit: 'minute' },
-            { label: '1h', value: 1, unit: 'hour' },
-            { label: '12h', value: 12, unit: 'hour' },
-            { label: '1d', value: 1, unit: 'day' },
-            { label: '7d', value: 7, unit: 'day' }
-        ];
-        
-        this.currentRange = this.timeRanges[2]; // Default: 12h
-        this._hass = null; // Initialwert hinzufügen
-    }
-
-    // ▼▼▼ HIER EINFÜGEN ▼▼▼
-    setHass(hass) {
-        this._hass = hass;
-    }    
-    
-    // Hauptmethode zum Rendern eines Charts
-    async render(container, config) { // GEÄNDERT: Funktion ist jetzt async
-        const chartId = `chart-${Date.now()}`;
-        
-        // Chart Container mit Tabs erstellen
-        const chartHTML = `
-            <div class="mini-chart-container" id="${chartId}">
-                <div class="chart-header">
-                    <div class="chart-title">${config.title || 'Chart'}</div>
-                    <div class="chart-time-tabs">
-                        ${this.timeRanges.map((range, i) => `
-                            <button class="time-tab ${i === 2 ? 'active' : ''}" 
-                                    data-range="${range.value}" 
-                                    data-unit="${range.unit}">
-                                ${range.label}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-                <div class="chart-wrapper">
-                    <canvas class="chart-canvas" width="600" height="300"></canvas>
-                    <div class="chart-loading" style="display: none;">
-                        <div class="spinner"></div>
-                    </div>
-                </div>
-                <div class="chart-legend"></div>
-            </div>
-        `;
-        
-        container.innerHTML = chartHTML;
-        
-        const canvas = container.querySelector('.chart-canvas');
-        const ctx = canvas.getContext('2d');
-        const loading = container.querySelector('.chart-loading');
-    
-        // ==========================================================
-        // ▼▼▼ HIER IST DIE ENTSCHEIDENDE NEUE LOGIK ▼▼▼
-        // ==========================================================
-        
-        // 1. Ladeanzeige sofort einblenden
-        loading.style.display = 'flex';
-        
-        // 2. Initiale Daten für den Standard-Zeitraum (12h) abrufen
-        const initialData = await this.fetchDataForRange(config.entity, this.currentRange);
-        
-        // 3. Abgerufene Daten zur Konfiguration hinzufügen
-        config.data = initialData;
-    
-        // 4. Ladeanzeige ausblenden
-        loading.style.display = 'none';
-    
-        // Chart initial mit den ECHTEN Daten zeichnen
-        this.drawChart(ctx, config, this.currentRange);
-        
-        // ==========================================================
-        
-        // Tab Click Handler (bleibt wie bisher)
-        container.querySelectorAll('.time-tab').forEach(tab => {
-            tab.addEventListener('click', async (e) => {
-                container.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                loading.style.display = 'flex';
-                
-                const range = {
-                    value: parseInt(tab.dataset.range),
-                    unit: tab.dataset.unit
-                };
-                
-                const newData = await this.fetchDataForRange(config.entity, range);
-                
-                this.drawChart(ctx, {...config, data: newData}, range);
-                
-                loading.style.display = 'none';
-            });
-        });
-        
-        return chartId;
-    }
-    
-    // Chart zeichnen (Line/Area)
-    drawChart(ctx, config, timeRange) {
-        const canvas = ctx.canvas;
-        const width = canvas.width;
-        const height = canvas.height;
-        
-        // Canvas clearen
-        ctx.clearRect(0, 0, width, height);
-        
-        // Beispieldaten generieren (später durch echte Daten ersetzen)
-        const data = config.data || this.generateSampleData(timeRange);
-        
-        if (!data || data.length === 0) {
-            this.drawNoData(ctx, width, height);
-            return;
-        }
-        
-        // Skalierung berechnen
-        const padding = { top: 20, right: 20, bottom: 40, left: 50 };
-        const chartWidth = width - padding.left - padding.right;
-        const chartHeight = height - padding.top - padding.bottom;
-        
-        const minValue = Math.min(...data.map(d => d.value));
-        const maxValue = Math.max(...data.map(d => d.value));
-        const valueRange = maxValue - minValue || 1;
-        
-        // Grid zeichnen
-        this.drawGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue);
-        
-        // Chart Type
-        if (config.type === 'area') {
-            this.drawAreaChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
-        } else {
-            this.drawLineChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
-        }
-        
-        // Achsen zeichnen
-        this.drawAxes(ctx, padding, chartWidth, chartHeight, minValue, maxValue, config.unit);
-        
-        // Zeitlabels
-        this.drawTimeLabels(ctx, data, padding, chartWidth, chartHeight, timeRange);
-    }
-    
-    // Line Chart zeichnen
-    drawLineChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config) {
-        ctx.strokeStyle = config.color || this.colors.primary;
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        
-        ctx.beginPath();
-        data.forEach((point, i) => {
-            const x = padding.left + (i / (data.length - 1)) * chartWidth;
-            const y = padding.top + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
-            
-            if (i === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-        });
-        ctx.stroke();
-        
-        // Datenpunkte
-        if (data.length <= 50) {
-            this.drawDataPoints(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
-        }
-    }
-    
-    // Area Chart zeichnen
-    drawAreaChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config) {
-        // Gradient erstellen
-        const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
-        const color = config.color || this.colors.primary;
-        gradient.addColorStop(0, this.hexToRgba(color, 0.3));
-        gradient.addColorStop(1, this.hexToRgba(color, 0.02));
-        
-        // Area füllen
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        data.forEach((point, i) => {
-            const x = padding.left + (i / (data.length - 1)) * chartWidth;
-            const y = padding.top + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
-            
-            if (i === 0) {
-                ctx.moveTo(x, padding.top + chartHeight);
-                ctx.lineTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-        });
-        ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Linie darüber zeichnen
-        this.drawLineChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
-    }
-    
-    // Datenpunkte zeichnen
-    drawDataPoints(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config) {
-        const color = config.color || this.colors.primary;
-        
-        data.forEach((point, i) => {
-            const x = padding.left + (i / (data.length - 1)) * chartWidth;
-            const y = padding.top + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
-            
-            // Outer circle
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Inner circle (white)
-            ctx.fillStyle = '#1a1a1a';
-            ctx.beginPath();
-            ctx.arc(x, y, 1.5, 0, Math.PI * 2);
-            ctx.fill();
-        });
-    }
-    
-    // Grid zeichnen
-    drawGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue) {
-        ctx.strokeStyle = this.colors.grid;
-        ctx.lineWidth = 0.5;
-        
-        // Horizontale Linien
-        const horizontalLines = 5;
-        for (let i = 0; i <= horizontalLines; i++) {
-            const y = padding.top + (i / horizontalLines) * chartHeight;
-            ctx.beginPath();
-            ctx.moveTo(padding.left, y);
-            ctx.lineTo(padding.left + chartWidth, y);
-            ctx.stroke();
-        }
-        
-        // Vertikale Linien
-        const verticalLines = 6;
-        for (let i = 0; i <= verticalLines; i++) {
-            const x = padding.left + (i / verticalLines) * chartWidth;
-            ctx.beginPath();
-            ctx.moveTo(x, padding.top);
-            ctx.lineTo(x, padding.top + chartHeight);
-            ctx.stroke();
-        }
-    }
-    
-    // Achsen zeichnen
-    drawAxes(ctx, padding, chartWidth, chartHeight, minValue, maxValue, unit = '') {
-        ctx.fillStyle = this.colors.text;
-        ctx.font = '11px system-ui, -apple-system, sans-serif';
-        
-        // Y-Achsen Labels
-        const steps = 5;
-        for (let i = 0; i <= steps; i++) {
-            const value = minValue + (i / steps) * (maxValue - minValue);
-            const y = padding.top + chartHeight - (i / steps) * chartHeight;
-            
-            ctx.textAlign = 'right';
-            ctx.fillText(
-                value.toFixed(1) + (unit ? unit : ''),
-                padding.left - 10,
-                y + 3
-            );
-        }
-    }
-    
-    // Zeit Labels zeichnen
-    drawTimeLabels(ctx, data, padding, chartWidth, chartHeight, timeRange) {
-        ctx.fillStyle = this.colors.text;
-        ctx.font = '10px system-ui, -apple-system, sans-serif';
-        ctx.textAlign = 'center';
-        
-        const labels = this.generateTimeLabels(data, timeRange);
-        const labelCount = Math.min(labels.length, 7);
-        const step = Math.floor(labels.length / labelCount);
-        
-        for (let i = 0; i < labels.length; i += step) {
-            const x = padding.left + (i / (labels.length - 1)) * chartWidth;
-            const y = padding.top + chartHeight + 20;
-            ctx.fillText(labels[i], x, y);
-        }
-    }
-    
-    // Keine Daten Anzeige
-    drawNoData(ctx, width, height) {
-        ctx.fillStyle = this.colors.text;
-        ctx.font = '14px system-ui, -apple-system, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Keine Daten verfügbar', width / 2, height / 2);
-    }
-    
-    // Hilfsfunktionen
-    hexToRgba(hex, alpha) {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-    
-    generateTimeLabels(data, timeRange) {
-        const labels = [];
-        const now = new Date();
-        
-        if (timeRange.unit === 'minute') {
-            // Minuten-Labels
-            for (let i = 0; i < data.length; i++) {
-                const time = new Date(now - (data.length - i) * 60000);
-                labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }));
-            }
-        } else if (timeRange.unit === 'hour') {
-            // Stunden-Labels
-            const hours = timeRange.value === 1 ? 1 : timeRange.value;
-            for (let i = 0; i < data.length; i++) {
-                const time = new Date(now - (data.length - i) * 3600000 * hours / data.length);
-                if (hours <= 12) {
-                    labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }));
-                } else {
-                    labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit' }));
-                }
-            }
-        } else if (timeRange.unit === 'day') {
-            // Tages-Labels
-            for (let i = 0; i < data.length; i++) {
-                const time = new Date(now - (data.length - i) * 86400000 * timeRange.value / data.length);
-                if (timeRange.value === 1) {
-                    labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit' }));
-                } else {
-                    labels.push(time.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }));
-                }
-            }
-        }
-        
-        return labels;
-    }
-    
-    // Sample Daten generieren (für Tests)
-    generateSampleData(timeRange) {
-        const points = timeRange.unit === 'minute' ? 60 : 
-                      timeRange.unit === 'hour' && timeRange.value === 1 ? 60 :
-                      timeRange.unit === 'hour' && timeRange.value === 12 ? 144 :
-                      timeRange.unit === 'day' && timeRange.value === 1 ? 96 :
-                      168; // 7 days
-        
-        const data = [];
-        const baseValue = 20 + Math.random() * 10;
-        
-        for (let i = 0; i < points; i++) {
-            data.push({
-                timestamp: Date.now() - (points - i) * 60000,
-                value: baseValue + Math.sin(i / 10) * 5 + Math.random() * 2
-            });
-        }
-        
-        return data;
-    }
-    
-    // In der MiniChart-Klasse
-    async fetchDataForRange(entity, range) {
-        try {
-            // return this.generateSampleData(range); // AUSKOMMENTIEREN
-    
-            // ▼▼▼ DIESEN BLOCK AKTIVIEREN (/* und */ entfernen) ▼▼▼
-            const endTime = new Date();
-            const startTime = new Date();
-            
-            if (range.unit === 'minute') {
-                startTime.setMinutes(startTime.getMinutes() - range.value);
-            } else if (range.unit === 'hour') {
-                startTime.setHours(startTime.getHours() - range.value);
-            } else if (range.unit === 'day') {
-                startTime.setDate(startTime.getDate() - range.value);
-            }
-            
-            // Prüfen ob _hass verfügbar ist
-            if (!this._hass) {
-                console.error("Chart Error: hass object not available.");
-                return [];
-            }
-    
-            const history = await this._hass.callWS({
-                type: 'history/history_during_period',
-                start_time: startTime.toISOString(),
-                end_time: endTime.toISOString(),
-                entity_ids: [entity],
-                minimal_response: true,
-                significant_changes_only: false // Wichtig für glattere Graphen
-            });
-            
-            return this.processHistoryData(history[entity]); // Angepasst für die neue Antwortstruktur
-            // ▲▲▲ BIS HIER AKTIVIEREN ▲▲▲
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            return [];
-        }
-    }
-
-    // ▼▼▼ HIER EINFÜGEN ▼▼▼
-    processHistoryData(history) {
-        if (!history || !Array.isArray(history)) {
-            return [];
-        }
-        return history.map(entry => {
-            const value = parseFloat(entry.s); // 's' ist der state in minimal_response
-            return {
-                timestamp: new Date(entry.lu * 1000), // 'lu' ist last_updated als Unix-Timestamp
-                value: isNaN(value) ? null : value // Ignoriere nicht-numerische Werte wie "unavailable"
-            };
-        }).filter(entry => entry.value !== null); // Entferne ungültige Einträge
-    }
-    
-}
-
-// ============================================
-// CHART MANAGER (Integration in fast-search-card)
+// CHART MANAGER (für native HA Statistik-Graphen)
 // ============================================
 class ChartManager {
     constructor(shadowRoot) {
         this.shadowRoot = shadowRoot;
-        this.miniChart = new MiniChart();
-        this.advancedChartsLoaded = false;
-        this.charts = new Map(); // Speichert aktive Charts
+        this.charts = new Map(); // Speichert aktive HA-Karten-Instanzen
+        this._hass = null;
     }
 
-    // ▼▼▼ HIER EINFÜGEN ▼▼▼
+    // Nimmt das HASS-Objekt entgegen und gibt es an bestehende Karten weiter
     setHass(hass) {
-        this.miniChart.setHass(hass);
-    }    
-    
-    // In der ChartManager-Klasse
+        this._hass = hass;
+        this.charts.forEach(chartInstance => {
+            if (chartInstance && chartInstance.tagName) {
+                chartInstance.hass = this._hass;
+            }
+        });
+    }
+
+    // Haupt-Einstiegspunkt, wird beim Öffnen eines Accordions aufgerufen
     async renderChartsInAccordion(accordionContent, currentItem) {
-        console.log("📊 ChartManager: renderChartsInAccordion wird ausgeführt für:", currentItem?.name);
-
-        // ▼▼▼ DIESE ZEILE IST JETZT ENTSCHEIDEND ▼▼▼
-        console.log("DEBUG: Das ist das 'currentItem' in ChartManager:", currentItem);
-
-        
-        // Prüfen, ob für einen Auto-Discovery-Sensor noch kein Chart existiert
-        if (currentItem && currentItem.domain === 'custom' && currentItem.custom_data?.type === 'auto_sensor' && !accordionContent.querySelector('.chart-block')) {
-            console.log(`✅ Bedingung für Auto-Chart erfüllt für: ${currentItem.name}`);
-            
+        // Erstellt automatisch einen Chart-Block für Sensoren, falls noch keiner existiert
+        if (currentItem && (currentItem.domain === 'sensor' || currentItem.domain === 'binary_sensor' || (currentItem.domain === 'custom' && currentItem.custom_data?.type === 'auto_sensor')) && !accordionContent.querySelector('.chart-block')) {
             const chartContainer = document.createElement('div');
             chartContainer.className = 'chart-block';
             
+            // Standard-Konfiguration für den auto-erstellten Graphen
             const config = {
-                type: 'area',
                 entity: currentItem.id,
                 title: `Verlauf von ${currentItem.name}`,
-                unit: currentItem.custom_data.metadata?.sensor_unit || '',
-                color: '#06D6A0' // Standardfarbe
+                days_to_show: 7 
             };
-            
-            chartContainer.dataset.config = Object.entries(config).map(([k, v]) => `${k}: ${v}`).join('\n');
+            chartContainer.dataset.config = Object.entries(config).map(([k,v]) => `${k}: ${v}`).join('\n');
             accordionContent.insertBefore(chartContainer, accordionContent.firstChild);
-            console.log("✅ Chart-Block wurde dynamisch zum DOM hinzugefügt.");
         }
-    
+
         const chartBlocks = accordionContent.querySelectorAll('.chart-block');
-        console.log(`🔎 ${chartBlocks.length} Chart-Blöcke gefunden.`);
-        
         for (const block of chartBlocks) {
-            if (block.hasChildNodes()) {
-                console.log("⏭️ Überspringe bereits gerenderten Chart.");
-                continue;
-            }
-    
-            const configString = block.dataset.config;
-            const config = this.parseChartConfig(configString);
-            if (!config.entity && currentItem) {
-                config.entity = currentItem.id;
-            }
+            if (block.hasChildNodes()) continue; // Bereits gerendert
+
+            const config = this.parseChartConfig(block.dataset.config);
+            if (!config.entity && currentItem) config.entity = currentItem.id;
             
-            console.log(`🎨 Rendere Chart mit Config:`, config);
-            if (this.isAdvancedChart(config.type)) {
-                await this.loadAdvancedCharts();
-                this.renderAdvancedChart(block, config);
-            } else {
-                this.miniChart.render(block, config);
-            }
+            // Rendert die native HA-Statistik-Grafik
+            this.renderStatisticsGraph(block, config);
         }
     }
-    
-    // Chart Config aus Markdown parsen
+
+    // Diese Funktion erstellt und konfiguriert die native HA-Karte
+    async renderStatisticsGraph(container, config) {
+        if (!this._hass) {
+            container.textContent = "Fehler: Home Assistant ist nicht bereit.";
+            return;
+        }
+
+        try {
+            // Warten, bis das 'ha-statistics-graph'-Element im Frontend verfügbar ist
+            await customElements.whenDefined('ha-statistics-graph');
+
+            const cardConfig = {
+                type: 'statistics-graph',
+                entities: [config.entity],
+                days_to_show: config.days_to_show || 7,
+                title: config.title, // Titel wird von der HA-Karte selbst angezeigt
+                chart_type: config.chart_type || 'line',
+                stat_types: ['mean', 'min', 'max']
+            };
+
+            const card = document.createElement('ha-statistics-graph');
+            card.setConfig(cardConfig);
+            card.hass = this._hass;
+            
+            container.innerHTML = ''; // Leeren des Platzhalters
+            container.appendChild(card);
+
+            // Speichern der Instanz für zukünftige HASS-Updates
+            const chartId = `native-${config.entity}`;
+            this.charts.set(chartId, card);
+
+        } catch (e) {
+            console.error("Fehler beim Erstellen der nativen Statistik-Karte:", e);
+            container.textContent = "Statistik-Karte konnte nicht geladen werden.";
+        }
+    }
+
+    // Hilfsfunktion zum Parsen der Konfiguration aus dem Markdown
     parseChartConfig(configString) {
-        // Parse YAML-like config from markdown
         const config = {};
-        const lines = configString.split('\n');
-        
-        lines.forEach(line => {
-            const [key, value] = line.split(':').map(s => s.trim());
-            if (key && value) {
-                config[key] = value;
-            }
+        if (!configString) return config;
+        configString.trim().split('\n').forEach(line => {
+            const [key, ...valueParts] = line.split(':');
+            if (key && valueParts.length > 0) config[key.trim()] = valueParts.join(':').trim();
         });
-        
         return config;
     }
-    
-    // Prüfen ob Advanced Chart benötigt wird
-    isAdvancedChart(type) {
-        return ['bar', 'pie', 'doughnut', 'radar', 'scatter'].includes(type);
-    }
-    
-    // Advanced Charts (Chart.js) lazy loaden
-    async loadAdvancedCharts() {
-        if (this.advancedChartsLoaded) return;
-        
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
-            script.onload = () => {
-                this.advancedChartsLoaded = true;
-                console.log('✅ Chart.js loaded successfully');
-                resolve();
-            };
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
-    }
-    
-    // Advanced Chart mit Chart.js rendern
-    renderAdvancedChart(container, config) {
-        const canvas = document.createElement('canvas');
-        container.appendChild(canvas);
-        
-        const chart = new Chart(canvas, {
-            type: config.type,
-            data: {
-                labels: config.labels || [],
-                datasets: [{
-                    label: config.title,
-                    data: config.data || [],
-                    backgroundColor: config.color || '#06D6A0',
-                    borderColor: config.borderColor || '#06D6A0'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: config.showLegend !== 'false'
-                    }
-                }
-            }
-        });
-        
-        this.charts.set(config.id, { type: 'advanced', instance: chart });
-    }
-    
-    // Charts zerstören (Memory Management)
+
+    // Bereinigt die gespeicherten Karten-Instanzen
     destroyCharts() {
-        this.charts.forEach(chart => {
-            if (chart.type === 'advanced' && chart.instance) {
-                chart.instance.destroy();
-            }
-        });
         this.charts.clear();
     }
 }
@@ -14539,40 +14068,29 @@ class FastSearchCard extends HTMLElement {
     }
 
     // In der FastSearchCard-Klasse
+    // (Verwenden Sie die optimierte Version aus der vorherigen Antwort)
     setupAccordionListeners() {
         const accordionContainer = this.shadowRoot.querySelector('.accordion-container');
         if (!accordionContainer || accordionContainer.dataset.listenersAttached) {
-            return; // Verhindert Fehler und doppelte Listener
+            return;
         }
     
-        // Wir nutzen eine einzige Event-Listener-Funktion für alle Klicks
         accordionContainer.addEventListener('click', (event) => {
             const header = event.target.closest('.accordion-header');
-            if (!header) return; // Klick war nicht auf einem Header
+            if (!header) return;
     
-            const content = this.shadowRoot.querySelector(`[data-content="${header.dataset.accordion}"]`);
-            const arrow = header.querySelector('.accordion-arrow svg');
-            if (!content || !arrow) return;
-    
-            // Toggle den 'open'-Zustand und hole den neuen Zustand
+            // ... (Logik zum Öffnen/Schließen des Accordions)
             const isNowOpen = content.classList.toggle('open');
-            header.classList.toggle('active', isNowOpen);
-            arrow.style.transform = isNowOpen ? 'rotate(45deg)' : 'rotate(0deg)';
+            // ...
     
-            // ==========================================================
-            // ▼▼▼ HIER IST DIE ENTSCHEIDENDE LOGIK-ÄNDERUNG ▼▼▼
-            // ==========================================================
-            // Führe Chart-Aktionen NUR aus, wenn das Accordion GERADE GEÖFFNET WURDE
-            // und noch KEIN Chart-Inhalt vorhanden ist.
-            if (isNowOpen && this.supportsCharts(this.currentDetailItem) && !content.querySelector('.mini-chart-container')) {
+            // DIESER TEIL RUFT DEN CHARTMANAGER AUF
+            if (isNowOpen && this.supportsCharts(this.currentDetailItem)) {
                 setTimeout(() => {
-                    // Rufe die Chart-Rendering-Funktion auf
                     this.chartManager.renderChartsInAccordion(content, this.currentDetailItem);
-                }, 50); // Kleiner Delay, damit die Öffnen-Animation startet
+                }, 50);
             }
         });
     
-        // Markiere den Container, damit der Listener nicht erneut hinzugefügt wird
         accordionContainer.dataset.listenersAttached = 'true';
     }
     
