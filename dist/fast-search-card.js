@@ -7535,46 +7535,42 @@ class FastSearchCard extends HTMLElement {
                     // Skip wenn bereits manuell definiert
                     if (manualEntityIds.has(entityId)) continue;
                     
-                    // Erweiterter Entity-Filter, der verschiedene Wildcard-Typen versteht
+                    // ❌ REDUZIERT: Exclude-Filter OHNE individuelle Logs
                     const isExcluded = this._config.exclude_entities.some(pattern => {
-                        // Fall 1: Kein Wildcard -> Exakter Abgleich
                         if (!pattern.includes('*')) {
                             return pattern === entityId;
                         }
-
-                        // Fall 2: "Enthält"-Abgleich (z.B. "*_battery_low*")
+    
                         if (pattern.startsWith('*') && pattern.endsWith('*')) {
                             const substring = pattern.substring(1, pattern.length - 1);
                             return entityId.includes(substring);
                         }
-
-                        // Fall 3: "Endet mit"-Abgleich (z.B. "*_battery_low")
+    
                         if (pattern.startsWith('*')) {
                             const substring = pattern.substring(1);
                             return entityId.endsWith(substring);
                         }
-
-                        // Fall 4: "Beginnt mit"-Abgleich (z.B. "sensor.samsung_*")
+    
                         if (pattern.endsWith('*')) {
                             const substring = pattern.substring(0, pattern.length - 1);
                             return entityId.startsWith(substring);
                         }
-
-                        // Fall 5: Wildcard in der Mitte (z.B. "sensor.*.status")
+    
                         const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
                         return regex.test(entityId);
                     });
-
+    
                     if (isExcluded) {
-                        stats.filtered_by_domain++; // Zählt als gefiltert
-                        continue; // Die Entität sofort überspringen
+                        stats.filtered_by_domain++;
+                        continue;
                     }                        
-
+    
                     const domain = entityId.split('.')[0];
                     
                     if (domain === 'sensor' || domain === 'binary_sensor') {
                         if (this._config.custom_auto_discover && this._config.custom_mode.enabled) {
                             
+                            // ❌ REDUZIERT: System-Filter OHNE Logs
                             if (this.isSystemEntity(entityId, state)) {
                                 stats.filtered_by_system++;
                                 continue;
@@ -7587,8 +7583,11 @@ class FastSearchCard extends HTMLElement {
                             
                             if (this.shouldAutoDiscoverSensorToCustom(entityId, state)) {
                                 stats.sensors_to_custom++;
-                                console.log(`📊 Auto-discovered sensor to custom: ${entityId}`);
                                 
+                                // ✅ NUR ERFOLGREICHE AUTO-DISCOVERY LOGGEN
+                                console.log(`📊 Auto-discovered: ${entityId}`);
+                                
+                                // ❌ REDUZIERT: Area-Detection OHNE Logs
                                 const areaName = this.getEntityArea(entityId, state);
                                 
                                 if (this._config.include_areas.length > 0 && 
@@ -7616,6 +7615,7 @@ class FastSearchCard extends HTMLElement {
                         continue;
                     }
                     
+                    // ❌ REDUZIERT: Domain-Filter OHNE Logs
                     if (this._config.include_domains.length > 0 && 
                         !this._config.include_domains.includes(domain)) {
                         stats.filtered_by_domain++;
@@ -7625,8 +7625,6 @@ class FastSearchCard extends HTMLElement {
                         stats.filtered_by_domain++;
                         continue;
                     }
-                    
-                    // Der alte Entity-Filter Block wurde von hier entfernt.
                     
                     if (this.isSystemEntity(entityId, state)) {
                         stats.filtered_by_system++;
@@ -7638,6 +7636,7 @@ class FastSearchCard extends HTMLElement {
                         continue;
                     }
                     
+                    // ❌ REDUZIERT: Area-Processing OHNE Logs
                     let areaName;
                     if (domain === 'script') {
                         areaName = await this.getScriptArea(entityId, state);
@@ -7677,7 +7676,7 @@ class FastSearchCard extends HTMLElement {
                     });
                     
                 } catch (entityError) {
-                    console.warn(`Error processing entity ${entityId}:`, entityError);
+                    // ❌ REDUZIERT: Nur bei wiederholten Fehlern loggen
                     continue;
                 }
             }
@@ -7685,24 +7684,37 @@ class FastSearchCard extends HTMLElement {
             const discoveryTime = performance.now() - startTime;
             const efficiency = Math.round((discoveredEntities.length / stats.total) * 100);
             
-            console.log('📊 Enhanced Discovery Statistics:', {
-                ...stats,
-                discovered: discoveredEntities.length,
-                discovery_time_ms: Math.round(discoveryTime),
-                efficiency_percent: efficiency,
-                area_coverage: Math.round((stats.areas_assigned / discoveredEntities.length) * 100)
-            });
+            // ✅ NUR SUMMARY STATISTICS LOGGEN
+            console.log(`✅ Auto-discovered ${discoveredEntities.length} entities in ${Math.round(discoveryTime)}ms`);
+            console.log(`📊 ${stats.sensors_to_custom} sensors to custom, ${stats.sensors_excluded} sensors excluded`);
+            
+            // ❌ REDUZIERT: Detaillierte Stats nur bei Debug-Modus
+            if (this._config.debug_mode) {
+                console.log('📊 Detailed Stats:', {
+                    ...stats,
+                    discovered: discoveredEntities.length,
+                    discovery_time_ms: Math.round(discoveryTime),
+                    efficiency_percent: efficiency,
+                    area_coverage: Math.round((stats.areas_assigned / discoveredEntities.length) * 100)
+                });
+            }
             
             discoveredEntities.sort((a, b) => (b.discovery_quality || 0) - (a.discovery_quality || 0));
             
-            console.log(`✅ Auto-discovered ${discoveredEntities.length} entities (${stats.sensors_excluded} sensors excluded, ${stats.sensors_to_custom} sensors to custom)`);
             return discoveredEntities;
             
         } catch (error) {
-            console.error('Error in enhanced auto-discovery:', error);
+            console.error('❌ Error in enhanced auto-discovery:', error);
             return [];
         }
-    }        
+    }
+
+
+
+
+
+
+    
 
     createCustomSensorEntity(entityId, state, areaName) {
         const deviceClass = state.attributes.device_class;
@@ -8324,8 +8336,7 @@ class FastSearchCard extends HTMLElement {
             return 'Ohne Raum';
         }
     }
-
-    // 1️⃣ ERWEITERTE getEntityArea() Funktion (ersetze deine bestehende)
+    
     getEntityArea(entityId, state) {
         try {
             // 1. PRIORITÄT: Echte Home Assistant Area (Entity Registry)
@@ -8333,12 +8344,12 @@ class FastSearchCard extends HTMLElement {
                 const entityRegistry = this._hass.entities[entityId];
                 if (entityRegistry.area_id && this._hass.areas[entityRegistry.area_id]) {
                     const area = this._hass.areas[entityRegistry.area_id];
-                    console.log(`🏠 Entity area found (registry): ${entityId} → ${area.name}`);
+                    // ❌ ENTFERNT: console.log(`🏠 Entity area found (registry): ${entityId} → ${area.name}`);
                     return area.name;
                 }
             }
     
-            // 2. PRIORITÄT: Device-based Area (Device Registry)
+            // 2. PRIORITÄT: Device-based Area (Device Registry)  
             if (this._hass.devices && this._hass.entities && this._hass.entities[entityId]) {
                 const entityRegistry = this._hass.entities[entityId];
                 if (entityRegistry.device_id && this._hass.devices[entityRegistry.device_id]) {
@@ -8346,7 +8357,7 @@ class FastSearchCard extends HTMLElement {
                     
                     if (device.area_id && this._hass.areas && this._hass.areas[device.area_id]) {
                         const area = this._hass.areas[device.area_id];
-                        console.log(`🏠 Device area found: ${entityId} → ${area.name}`);
+                        // ❌ ENTFERNT: console.log(`🏠 Device area found: ${entityId} → ${area.name}`);
                         return area.name;
                     }
                 }
@@ -8356,29 +8367,29 @@ class FastSearchCard extends HTMLElement {
             if (state.attributes.friendly_name) {
                 const detectedArea = this.extractAreaFromName(state.attributes.friendly_name);
                 if (detectedArea !== 'Ohne Raum') {
-                    console.log(`🏠 Area detected from name: ${entityId} → ${detectedArea}`);
+                    // ❌ ENTFERNT: console.log(`🏠 Area detected from name: ${entityId} → ${detectedArea}`);
                     return detectedArea;
                 }
             }
             
-            // 🆕 4. PRIORITÄT: Entity-ID basierte Erkennung
+            // 4. PRIORITÄT: Entity-ID basierte Erkennung
             const entityIdArea = this.extractAreaFromName(entityId);
             if (entityIdArea !== 'Ohne Raum') {
-                console.log(`🏠 Area detected from entity_id: ${entityId} → ${entityIdArea}`);
+                // ❌ ENTFERNT: console.log(`🏠 Area detected from entity_id: ${entityId} → ${entityIdArea}`);
                 return entityIdArea;
             }
             
-            // 🆕 5. PRIORITÄT: Ähnliche Entities in der gleichen Area (Gruppierung)
+            // 5. PRIORITÄT: Ähnliche Entities in der gleichen Area (Gruppierung)
             const similarArea = this.findAreaFromSimilarEntities(entityId);
             if (similarArea !== 'Ohne Raum') {
-                console.log(`🏠 Area inferred from similar entities: ${entityId} → ${similarArea}`);
+                // ❌ ENTFERNT: console.log(`🏠 Area inferred from similar entities: ${entityId} → ${similarArea}`);
                 return similarArea;
             }
             
-            // 🆕 6. PRIORITÄT: Integration-basierte Area-Erkennung
+            // 6. PRIORITÄT: Integration-basierte Area-Erkennung
             const integrationArea = this.detectAreaFromIntegration(entityId, state);
             if (integrationArea !== 'Ohne Raum') {
-                console.log(`🏠 Area detected from integration: ${entityId} → ${integrationArea}`);
+                // ❌ ENTFERNT: console.log(`🏠 Area detected from integration: ${entityId} → ${integrationArea}`);
                 return integrationArea;
             }
             
@@ -8389,6 +8400,7 @@ class FastSearchCard extends HTMLElement {
             return 'Ohne Raum';
         }
     }
+        
  
     parseTemplateSensor(dataSource, sourceIndex = 0) {           
         const state = this._hass.states[dataSource.entity];
