@@ -194,112 +194,82 @@ class MiniSearch {
     }
 }
 
-
-
 // ============================================
-// CHART MANAGER (für native HA Statistik-Graphen)
+// MINI-GRAPH-CARD MANAGER (Die finale Lösung)
 // ============================================
-class ChartManager {
-    constructor(shadowRoot) {
-        this.shadowRoot = shadowRoot;
-        this.charts = new Map(); // Speichert aktive HA-Karten-Instanzen
+class MiniGraphManager {
+    constructor() {
+        this.charts = new Map();
         this._hass = null;
     }
 
-    // In der ChartManager-Klasse
     setHass(hass) {
         this._hass = hass;
-        // WICHTIG: Das neue hass-Objekt an alle bereits erstellten nativen Karten weitergeben
-        this.charts.forEach(chartInstance => {
-            if (chartInstance && chartInstance.tagName) { // Prüft, ob es ein HTML-Element ist
-                chartInstance.hass = this._hass;
-            }
+        // Leite das hass-Objekt an alle bereits erstellten Karten weiter
+        this.charts.forEach(cardInstance => {
+            cardInstance.hass = this._hass;
         });
-    }    
-
-    // Haupt-Einstiegspunkt, wird beim Öffnen eines Accordions aufgerufen
-    async renderChartsInAccordion(accordionContent, currentItem) {
-        // Erstellt automatisch einen Chart-Block für Sensoren, falls noch keiner existiert
-        if (currentItem && (currentItem.domain === 'sensor' || currentItem.domain === 'binary_sensor' || (currentItem.domain === 'custom' && currentItem.custom_data?.type === 'auto_sensor')) && !accordionContent.querySelector('.chart-block')) {
-            const chartContainer = document.createElement('div');
-            chartContainer.className = 'chart-block';
-            
-            // Standard-Konfiguration für den auto-erstellten Graphen
-            const config = {
-                entity: currentItem.id,
-                title: `Verlauf von ${currentItem.name}`,
-                days_to_show: 7 
-            };
-            chartContainer.dataset.config = Object.entries(config).map(([k,v]) => `${k}: ${v}`).join('\n');
-            accordionContent.insertBefore(chartContainer, accordionContent.firstChild);
-        }
-
-        const chartBlocks = accordionContent.querySelectorAll('.chart-block');
-        for (const block of chartBlocks) {
-            if (block.hasChildNodes()) continue; // Bereits gerendert
-
-            const config = this.parseChartConfig(block.dataset.config);
-            if (!config.entity && currentItem) config.entity = currentItem.id;
-            
-            // Rendert die native HA-Statistik-Grafik
-            this.renderStatisticsGraph(block, config);
-        }
     }
 
-    // Im ChartManager
-    async renderStatisticsGraph(container, config) {
+    // Haupt-Render-Funktion, die vom Accordion aufgerufen wird
+    async renderCard(container, item) {
+        if (container.hasChildNodes()) return; // Bereits gerendert
         if (!this._hass) {
-            container.textContent = "Fehler: Home Assistant ist nicht bereit.";
+            container.textContent = "Home Assistant ist noch nicht bereit...";
             return;
         }
-    
+
         try {
-            await customElements.whenDefined('ha-statistics-graph');
-    
-            const cardConfig = {
-                type: 'statistics-graph',
-                entities: [config.entity],
-                days_to_show: config.days_to_show || 7,
-                title: config.title,
-                chart_type: 'line',
-                stat_types: ['mean']
-            };
-    
-            const card = document.createElement('ha-statistics-graph');
+            // Warten, bis das 'mini-graph-card' Element von HACS geladen wurde
+            await customElements.whenDefined('mini-graph-card');
+
+            const card = document.createElement('mini-graph-card');
             
-            // Trick: Karte kurz an den Body anhängen, um sie zu initialisieren
-            document.body.appendChild(card);
+            // Konfiguration für die mini-graph-card erstellen
+            // Diese können Sie nach Belieben anpassen!
+            const cardConfig = {
+                entities: [item.id],
+                hours_to_show: 168, // 7 Tage, der Standard
+                points_per_hour: 1, // Detailgrad
+                line_color: "#06D6A0",
+                line_width: 3,
+                font_size: 75,
+                animate: true,
+                show: {
+                    name: false,
+                    icon: false,
+                    state: true,
+                    legend: false,
+                    fill: "fade", // Schöner Fülleffekt
+                },
+                color_thresholds: [ // Dynamische Farbänderungen
+                    { value: 0, color: "#3498db" },
+                    { value: 15, color: "#2ecc71" },
+                    { value: 25, color: "#f1c40f" },
+                    { value: 30, color: "#e67e22" },
+                    { value: 35, color: "#e74c3c" },
+                ],
+                // Wichtig, um das Standard-Styling der Karte zu entfernen
+                style: `
+                    ha-card {
+                        box-shadow: none;
+                        background: transparent;
+                    }
+                `
+            };
+
             card.setConfig(cardConfig);
             card.hass = this._hass;
-    
-            // Warten, bis die Karte gerendert ist, und dann in den Container verschieben
-            await card.updateComplete;
+
             container.innerHTML = '';
             container.appendChild(card);
-    
-            const chartId = `native-${config.entity}`;
-            this.charts.set(chartId, card);
-    
+            
+            this.charts.set(item.id, card);
+
         } catch (e) {
-            console.error("Fehler beim Erstellen der nativen Statistik-Karte:", e);
-            container.textContent = "Statistik-Karte konnte nicht geladen werden.";
+            console.error("Fehler beim Erstellen der mini-graph-card:", e);
+            container.textContent = "mini-graph-card konnte nicht geladen werden. Ist sie über HACS installiert und in den Ressourcen eingetragen?";
         }
-    }
-
-    // Hilfsfunktion zum Parsen der Konfiguration aus dem Markdown
-    parseChartConfig(configString) {
-        const config = {};
-        if (!configString) return config;
-        configString.trim().split('\n').forEach(line => {
-            const [key, ...valueParts] = line.split(':');
-            if (key && valueParts.length > 0) config[key.trim()] = valueParts.join(':').trim();
-        });
-        return config;
-    }
-
-    // Bereinigt die gespeicherten Karten-Instanzen
-    destroyCharts() {
-        this.charts.clear();
     }
 }
 
@@ -469,7 +439,7 @@ class FastSearchCard extends HTMLElement {
         this.autocompleteTimeout = null;        
 
         // ChartManager initialisieren
-        this.chartManager = null;
+        this.miniGraphManager = new MiniGraphManager();
 
         // ✅ SAFETY: Ensure critical methods exist
         setTimeout(() => {
@@ -568,30 +538,27 @@ class FastSearchCard extends HTMLElement {
         
     }
 
+    // In der FastSearchCard-Klasse
     set hass(hass) {
         if (!hass) return;
-    
-        // WICHTIG: oldHass speichern, BEVOR wir this._hass überschreiben
+        
         const oldHass = this._hass;
         this._hass = hass;
-    
+        
         // ==========================================================
-        // ▼▼▼ HIER BEGINNT DIE NEUE, STABILE LOGIK ▼▼▼
+        // ▼▼▼ ANGEPASST FÜR MINI-GRAPH-CARD ▼▼▼
         // ==========================================================
         
-        // 1. ChartManager erstellen, falls er noch nicht existiert
-        //    (passiert nur beim allerersten Mal, wenn `hass` verfügbar ist)
-        if (!this.chartManager) {
-            this.chartManager = new ChartManager(this.shadowRoot);
+        // 1. MiniGraphManager erstellen, falls er noch nicht existiert
+        if (!this.miniGraphManager) { // <-- Geändert von chartManager
+            this.miniGraphManager = new MiniGraphManager(); // <-- Geändert zu MiniGraphManager
         }
     
         // 2. Das aktuelle `hass`-Objekt IMMER an den Manager weitergeben
-        this.chartManager.setHass(hass);
-    
+        this.miniGraphManager.setHass(hass); // <-- Geändert von chartManager
+        
         // ==========================================================
-        // ▲▲▲ HIER ENDET DIE NEUE LOGIK ▲▲▲
-        // ==========================================================
-    
+        
         // Ihr bestehender Code bleibt erhalten:
         if (!this._favoritesHelperChecked) {
             this._favoritesHelperChecked = true;
