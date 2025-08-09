@@ -6637,6 +6637,13 @@ class FastSearchCard extends HTMLElement {
     }
 
     handleSearchFocus() {
+        // 🎬 NEU: Slideshow verstecken sobald User ins Suchfeld klickt
+        if (this.slideshowVisible) {
+            this.animateSlideshowVisibility(false, 'search');
+            this.searchActive = true;
+        }
+        
+        // 🎯 BESTEHENDE FOCUS-LOGIC
         this.hideCategoryButtons();
         const searchPanel = this.shadowRoot.querySelector('.search-panel');
         searchPanel.animate([
@@ -6646,8 +6653,11 @@ class FastSearchCard extends HTMLElement {
                 /* Die Zeile für 'borderColor' wurde hier entfernt */
             }
         ], { duration: 300, easing: 'ease-out' });
-        if (!this.isPanelExpanded) { this.expandPanel(); }
-    }    
+        
+        if (!this.isPanelExpanded) { 
+            this.expandPanel(); 
+        }
+    }
 
     clearSearch() {
         const searchInput = this.shadowRoot.querySelector('.search-input');
