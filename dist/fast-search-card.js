@@ -14492,52 +14492,40 @@ class FastSearchCard extends HTMLElement {
 
     // In der FastSearchCard-Klasse
     setupAccordionListeners() {
-        console.log("DEBUG 1: setupAccordionListeners wird aufgerufen."); // LOG 1
-    
         const accordionContainer = this.shadowRoot.querySelector('.accordion-container');
-        if (!accordionContainer) {
-            console.error("DEBUG FEHLER: accordion-container nicht gefunden!"); // LOG FEHLER
-            return;
+        if (!accordionContainer || accordionContainer.dataset.listenersAttached) {
+            return; // Verhindert Fehler und doppelte Listener
         }
     
-        if (accordionContainer.dataset.listenersAttached) {
-            console.log("DEBUG INFO: Listener bereits vorhanden."); // LOG INFO
-            return;
-        }
-    
+        // Wir nutzen eine einzige Event-Listener-Funktion für alle Klicks
         accordionContainer.addEventListener('click', (event) => {
-            console.log("DEBUG 2: Klick im Accordion-Container erkannt."); // LOG 2
             const header = event.target.closest('.accordion-header');
-            if (!header) return;
+            if (!header) return; // Klick war nicht auf einem Header
     
-            console.log("DEBUG 3: Header wurde geklickt:", header.textContent.trim()); // LOG 3
-            
             const content = this.shadowRoot.querySelector(`[data-content="${header.dataset.accordion}"]`);
-            if (!content) return;
+            const arrow = header.querySelector('.accordion-arrow svg');
+            if (!content || !arrow) return;
     
-            const isOpen = content.classList.contains('open');
-            // Die Logik hier ist umgedreht, weil der Klick den Zustand ändert
-            // Wenn es also gerade geöffnet WURDE, ist isOpen jetzt true.
-            if (!isOpen) { // Wir prüfen auf den Zustand NACH dem Klick, also wenn es sich öffnet.
-                console.log("DEBUG 4: Accordion wird GEÖFFNET."); // LOG 4
+            // Toggle den 'open'-Zustand und hole den neuen Zustand
+            const isNowOpen = content.classList.toggle('open');
+            header.classList.toggle('active', isNowOpen);
+            arrow.style.transform = isNowOpen ? 'rotate(45deg)' : 'rotate(0deg)';
     
-                const supportsCharts = this.supportsCharts(this.currentDetailItem);
-                console.log("DEBUG 5: Unterstützt dieses Item Charts?", supportsCharts, this.currentDetailItem); // LOG 5
-    
-                if (supportsCharts) {
-                    console.log("DEBUG 6: ✅ Bedingung erfüllt, setTimeout für Chart-Rendering wird gestartet."); // LOG 6
-                    setTimeout(() => {
-                        console.log("DEBUG 7: ✅ setTimeout ausgeführt, rufe chartManager.renderChartsInAccordion auf."); // LOG 7
-                        this.chartManager.renderChartsInAccordion(content, this.currentDetailItem);
-                    }, 100);
-                }
-            } else {
-                 console.log("DEBUG 4: Accordion wird GESCHLOSSEN."); // LOG 4 (alternativ)
+            // ==========================================================
+            // ▼▼▼ HIER IST DIE ENTSCHEIDENDE LOGIK-ÄNDERUNG ▼▼▼
+            // ==========================================================
+            // Führe Chart-Aktionen NUR aus, wenn das Accordion GERADE GEÖFFNET WURDE
+            // und noch KEIN Chart-Inhalt vorhanden ist.
+            if (isNowOpen && this.supportsCharts(this.currentDetailItem) && !content.querySelector('.mini-chart-container')) {
+                setTimeout(() => {
+                    // Rufe die Chart-Rendering-Funktion auf
+                    this.chartManager.renderChartsInAccordion(content, this.currentDetailItem);
+                }, 50); // Kleiner Delay, damit die Öffnen-Animation startet
             }
         });
     
+        // Markiere den Container, damit der Listener nicht erneut hinzugefügt wird
         accordionContainer.dataset.listenersAttached = 'true';
-        console.log("DEBUG INFO: Klick-Listener wurde erfolgreich hinzugefügt.");
     }
     
     // ============================================
