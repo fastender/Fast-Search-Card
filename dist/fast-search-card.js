@@ -595,13 +595,46 @@ class ChartManager {
         this.charts = new Map(); // Speichert aktive Charts
     }
     
-    // Chart aus Markdown parsen und rendern
-    async renderChartsInAccordion(accordionContent) {
-        // Finde alle Chart-Blöcke im Content
+    // NEUE, KORRIGIERTE Version in ChartManager
+    async renderChartsInAccordion(accordionContent, currentItem) {
+        // Prüfen, ob für einen Auto-Discovery-Sensor noch kein Chart existiert
+        if (currentItem && currentItem.domain === 'custom' && currentItem.custom_data?.type === 'auto_sensor' && !accordionContent.querySelector('.chart-block')) {
+            console.log(`📊 Auto-generating chart for sensor: ${currentItem.name}`);
+            
+            // Chart-Container dynamisch erstellen
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'chart-block';
+            
+            // Config für den Sensor-Chart erstellen
+            const config = {
+                type: 'area',
+                entity: currentItem.id, // Die Entity-ID des Sensors
+                title: `Verlauf von ${currentItem.name}`,
+                unit: currentItem.custom_data.metadata?.sensor_unit || '',
+                color: this.miniChart.colors.primary // Standardfarbe
+            };
+            
+            // Config als data-Attribut speichern (für Konsistenz)
+            chartContainer.dataset.config = Object.entries(config).map(([k,v]) => `${k}: ${v}`).join('\n');
+            
+            // Den neuen Chart-Block am Anfang des Accordion-Inhalts einfügen
+            accordionContent.insertBefore(chartContainer, accordionContent.firstChild);
+        }
+    
+        // Finde ALLE Chart-Blöcke (inklusive des gerade erstellten)
         const chartBlocks = accordionContent.querySelectorAll('.chart-block');
         
         for (const block of chartBlocks) {
-            const config = this.parseChartConfig(block.dataset.config);
+            // Verhindern, dass ein Chart doppelt gerendert wird
+            if (block.hasChildNodes()) continue;
+    
+            const configString = block.dataset.config;
+            const config = this.parseChartConfig(configString);
+    
+            // Entity aus dem currentItem hinzufügen, falls nicht in der Config
+            if (!config.entity && currentItem) {
+                config.entity = currentItem.id;
+            }
             
             if (this.isAdvancedChart(config.type)) {
                 await this.loadAdvancedCharts();
@@ -14449,44 +14482,60 @@ class FastSearchCard extends HTMLElement {
         }
     }
     
+
     setupAccordionListeners() {
-        const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
-        accordionHeaders.forEach(header => {
-            // Remove old listeners
-            header.replaceWith(header.cloneNode(true));
-            
-            // Add new listeners
-            const newHeader = this.shadowRoot.querySelector(`[data-accordion="${header.dataset.accordion}"]`);
-            if (newHeader) {
-                newHeader.addEventListener('click', () => {
-                    const index = newHeader.dataset.accordion;
-                    const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
-                    const arrow = newHeader.querySelector('.accordion-arrow');
-                    
-                    const isOpen = content.classList.contains('open');
-                    
-                    if (isOpen) {
-                        content.classList.remove('open');
-                        newHeader.classList.remove('active');
-                        arrow.textContent = '▶';
-                    } else {
-                        content.classList.add('open');
-                        newHeader.classList.add('active');
-                        arrow.textContent = '▼';
-                        
-                        // ============================================
-                        // NUR für Custom Items: Charts rendern
-                        // ============================================
-                        if (this.supportsCharts(this.currentDetailItem)) {
-                            setTimeout(() => {
-                                this.renderChartsInAccordion(content);
-                            }, 100); // Kleiner Delay für Animation
-                        }
-                        
-                    }
-                });
+        // 1. Finde den übergeordneten Container aller Accordion-Elemente
+        const accordionContainer = this.shadowRoot.querySelector('.accordion-container');
+    
+        // 2. Beende die Funktion, wenn kein Accordion vorhanden ist
+        if (!accordionContainer) {
+            return;
+        }
+    
+        // 3. Verhindere, dass der Listener mehrfach hinzugefügt wird
+        if (accordionContainer.dataset.listenersAttached) {
+            return;
+        }
+    
+        // 4. Füge EINEN einzigen Event-Listener am Container hinzu (Event Delegation)
+        accordionContainer.addEventListener('click', (event) => {
+            // 5. Prüfe, ob auf einen Header geklickt wurde
+            const header = event.target.closest('.accordion-header');
+            if (!header) {
+                return; // Klick war nicht auf einem Header, also nichts tun
+            }
+    
+            // 6. Hole die zugehörigen Elemente
+            const index = header.dataset.accordion;
+            const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
+            const arrow = header.querySelector('.accordion-arrow svg');
+    
+            if (!content || !arrow) return;
+    
+            // 7. Toggle den Zustand des Accordions
+            const isOpen = content.classList.contains('open');
+    
+            if (isOpen) {
+                content.classList.remove('open');
+                header.classList.remove('active');
+                arrow.style.transform = 'rotate(0deg)'; // Pfeil zurückdrehen
+            } else {
+                content.classList.add('open');
+                header.classList.add('active');
+                arrow.style.transform = 'rotate(45deg)'; // Pfeil drehen für "Plus"-Effekt
+    
+                // Lade die Charts, wenn das Accordion geöffnet wird
+                if (this.supportsCharts(this.currentDetailItem)) {
+                    setTimeout(() => {
+                        // WICHTIG: Rufe die Methode des ChartManagers auf und übergebe das Item
+                        this.chartManager.renderChartsInAccordion(content, this.currentDetailItem);
+                    }, 100);
+                }
             }
         });
+    
+        // 8. Markiere den Container, damit der Listener nicht erneut hinzugefügt wird
+        accordionContainer.dataset.listenersAttached = 'true';
     }
     
     // ============================================
