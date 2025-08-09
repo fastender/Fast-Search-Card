@@ -10577,7 +10577,6 @@ class FastSearchCard extends HTMLElement {
         if (item.custom_data?.ring_config) {
             const ringIcon = this.createRingTileIcon(item);
             if (ringIcon) {
-                console.log(`🔧 Using Ring-Tile for: ${item.name}`);
                 return ringIcon;
             }
         }
@@ -19106,9 +19105,6 @@ class FastSearchCard extends HTMLElement {
         // Bestimme Farbe basierend auf Wert
         const color = this.getRingColor(sensorValue, ringConfig.colour, min, max);
         
-        // Debug-Log (kann später entfernt werden)
-        console.log(`🔧 Ring-Tile: ${item.name} - Value: ${sensorValue}, Percentage: ${percentage}%, Color: ${color}`);
-        
         return `
             <div class="ring-tile-icon" style="width: ${size}px; height: ${size}px;" data-value="${sensorValue}" data-percentage="${percentage}">
                 <svg viewBox="0 0 50 50" style="width: 100%; height: 100%;">
@@ -19753,7 +19749,6 @@ class FastSearchCard extends HTMLElement {
         if (unit && smartUnitFallbacks[unit]) {
             const fallbackRange = smartUnitFallbacks[unit](deviceClass);
             if (fallbackRange) {
-                console.log(`🔄 Using smart unit-based fallback for: ${unit} (device_class: ${deviceClass})`);
                 return fallbackRange;
             }
         }
@@ -19762,7 +19757,6 @@ class FastSearchCard extends HTMLElement {
         // Fallback: Suche nur nach device_class (erste verfügbare unit)
         if (deviceClass && ranges[deviceClass]) {
             const firstUnit = Object.keys(ranges[deviceClass])[0];
-            console.log(`⚠️ Using fallback: ${deviceClass} + ${firstUnit} (requested: ${unit})`);
             return ranges[deviceClass][firstUnit];
         }
         
