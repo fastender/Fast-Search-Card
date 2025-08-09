@@ -194,11 +194,8 @@ class MiniSearch {
     }
 }
 
-
-
-
 // ============================================
-// MINI CHART IMPLEMENTATION (~8KB)
+// OPTIMIERTES MINI CHART SYSTEM (~6KB)
 // ============================================
 class MiniChart {
     constructor() {
@@ -207,40 +204,44 @@ class MiniChart {
             secondary: '#118AB2',
             accent: '#FFD23F',
             danger: '#EF476F',
-            success: '#06D6A0',
             grid: 'rgba(255,255,255,0.1)',
             text: 'rgba(255,255,255,0.7)'
         };
         
         this.timeRanges = [
-            { label: '1m', value: 1, unit: 'minute' },
             { label: '1h', value: 1, unit: 'hour' },
             { label: '12h', value: 12, unit: 'hour' },
             { label: '1d', value: 1, unit: 'day' },
             { label: '7d', value: 7, unit: 'day' }
         ];
         
-        this.currentRange = this.timeRanges[2]; // Default: 12h
-        this._hass = null; // Initialwert hinzufügen
+        this.currentRange = this.timeRanges[1]; // Default: 12h
+        this._hass = null;
+        this.cache = new Map(); // Daten-Cache
     }
 
-    // ▼▼▼ HIER EINFÜGEN ▼▼▼
     setHass(hass) {
         this._hass = hass;
-    }    
+    }
     
     // Hauptmethode zum Rendern eines Charts
-    async render(container, config) { // GEÄNDERT: Funktion ist jetzt async
+    async render(container, config) {
+        if (!this._hass) {
+            console.error('❌ Chart Error: hass object not available');
+            this.renderError(container, 'Home Assistant nicht verfügbar');
+            return;
+        }
+
         const chartId = `chart-${Date.now()}`;
         
-        // Chart Container mit Tabs erstellen
-        const chartHTML = `
+        // Chart Container erstellen
+        container.innerHTML = `
             <div class="mini-chart-container" id="${chartId}">
                 <div class="chart-header">
                     <div class="chart-title">${config.title || 'Chart'}</div>
                     <div class="chart-time-tabs">
                         ${this.timeRanges.map((range, i) => `
-                            <button class="time-tab ${i === 2 ? 'active' : ''}" 
+                            <button class="time-tab ${i === 1 ? 'active' : ''}" 
                                     data-range="${range.value}" 
                                     data-unit="${range.unit}">
                                 ${range.label}
@@ -250,111 +251,194 @@ class MiniChart {
                 </div>
                 <div class="chart-wrapper">
                     <canvas class="chart-canvas" width="600" height="300"></canvas>
-                    <div class="chart-loading" style="display: none;">
+                    <div class="chart-loading">
                         <div class="spinner"></div>
                     </div>
                 </div>
-                <div class="chart-legend"></div>
             </div>
         `;
-        
-        container.innerHTML = chartHTML;
         
         const canvas = container.querySelector('.chart-canvas');
         const ctx = canvas.getContext('2d');
         const loading = container.querySelector('.chart-loading');
+        
+        // Event Handler für Tabs
+        this.setupTabHandlers(container, config, ctx, loading);
+        
+        // Initiale Daten laden
+        await this.loadAndRenderData(config, ctx, loading, this.currentRange);
+        
+        return chartId;
+    }
     
-        // ==========================================================
-        // ▼▼▼ HIER IST DIE ENTSCHEIDENDE NEUE LOGIK ▼▼▼
-        // ==========================================================
-        
-        // 1. Ladeanzeige sofort einblenden
-        loading.style.display = 'flex';
-        
-        // 2. Initiale Daten für den Standard-Zeitraum (12h) abrufen
-        const initialData = await this.fetchDataForRange(config.entity, this.currentRange);
-        
-        // 3. Abgerufene Daten zur Konfiguration hinzufügen
-        config.data = initialData;
-    
-        // 4. Ladeanzeige ausblenden
-        loading.style.display = 'none';
-    
-        // Chart initial mit den ECHTEN Daten zeichnen
-        this.drawChart(ctx, config, this.currentRange);
-        
-        // ==========================================================
-        
-        // Tab Click Handler (bleibt wie bisher)
+    // Tab Event Handler
+    setupTabHandlers(container, config, ctx, loading) {
         container.querySelectorAll('.time-tab').forEach(tab => {
-            tab.addEventListener('click', async (e) => {
+            tab.addEventListener('click', async () => {
+                // Tab-State aktualisieren
                 container.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                
-                loading.style.display = 'flex';
                 
                 const range = {
                     value: parseInt(tab.dataset.range),
                     unit: tab.dataset.unit
                 };
                 
-                const newData = await this.fetchDataForRange(config.entity, range);
-                
-                this.drawChart(ctx, {...config, data: newData}, range);
-                
-                loading.style.display = 'none';
+                await this.loadAndRenderData(config, ctx, loading, range);
             });
         });
-        
-        return chartId;
     }
     
-    // Chart zeichnen (Line/Area)
-    drawChart(ctx, config, timeRange) {
-        const canvas = ctx.canvas;
-        const width = canvas.width;
-        const height = canvas.height;
+    // Daten laden und Chart rendern
+    async loadAndRenderData(config, ctx, loading, range) {
+        try {
+            loading.style.display = 'flex';
+            
+            const data = await this.fetchDataForRange(config.entity, range);
+            
+            if (!data || data.length === 0) {
+                this.drawNoData(ctx);
+            } else {
+                this.drawChart(ctx, { ...config, data }, range);
+            }
+            
+        } catch (error) {
+            console.error('❌ Chart rendering error:', error);
+            this.drawError(ctx, 'Fehler beim Laden der Daten');
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+    
+    // Daten von Home Assistant abrufen
+    async fetchDataForRange(entity, range) {
+        const cacheKey = `${entity}-${range.unit}-${range.value}`;
         
-        // Canvas clearen
+        // Cache prüfen (1 Minute gültig)
+        if (this.cache.has(cacheKey)) {
+            const cached = this.cache.get(cacheKey);
+            if (Date.now() - cached.timestamp < 60000) {
+                return cached.data;
+            }
+        }
+        
+        try {
+            const endTime = new Date();
+            const startTime = new Date();
+            
+            // Zeitbereich berechnen
+            if (range.unit === 'hour') {
+                startTime.setHours(startTime.getHours() - range.value);
+            } else if (range.unit === 'day') {
+                startTime.setDate(startTime.getDate() - range.value);
+            }
+            
+            // Home Assistant History API
+            const history = await this._hass.callWS({
+                type: 'history/history_during_period',
+                start_time: startTime.toISOString(),
+                end_time: endTime.toISOString(),
+                entity_ids: [entity],
+                minimal_response: true,
+                significant_changes_only: false
+            });
+            
+            const processedData = this.processHistoryData(history[entity] || []);
+            
+            // In Cache speichern
+            this.cache.set(cacheKey, {
+                data: processedData,
+                timestamp: Date.now()
+            });
+            
+            return processedData;
+            
+        } catch (error) {
+            console.error('❌ Error fetching chart data:', error);
+            return [];
+        }
+    }
+    
+    // History Daten verarbeiten
+    processHistoryData(history) {
+        if (!Array.isArray(history)) return [];
+        
+        return history
+            .map(entry => {
+                const value = parseFloat(entry.s || entry.state);
+                const timestamp = entry.lu ? new Date(entry.lu * 1000) : new Date(entry.last_updated);
+                
+                return {
+                    timestamp,
+                    value: isNaN(value) ? null : value
+                };
+            })
+            .filter(entry => entry.value !== null)
+            .slice(-200); // Max 200 Datenpunkte für Performance
+    }
+    
+    // Chart zeichnen
+    drawChart(ctx, config, timeRange) {
+        const { width, height } = ctx.canvas;
+        const data = config.data;
+        
+        // Canvas zurücksetzen
         ctx.clearRect(0, 0, width, height);
         
-        // Beispieldaten generieren (später durch echte Daten ersetzen)
-        const data = config.data || this.generateSampleData(timeRange);
-        
-        if (!data || data.length === 0) {
-            this.drawNoData(ctx, width, height);
+        if (!data?.length) {
+            this.drawNoData(ctx);
             return;
         }
         
-        // Skalierung berechnen
+        // Layout berechnen
         const padding = { top: 20, right: 20, bottom: 40, left: 50 };
         const chartWidth = width - padding.left - padding.right;
         const chartHeight = height - padding.top - padding.bottom;
         
-        const minValue = Math.min(...data.map(d => d.value));
-        const maxValue = Math.max(...data.map(d => d.value));
+        // Wertebereiche
+        const values = data.map(d => d.value);
+        const minValue = Math.min(...values);
+        const maxValue = Math.max(...values);
         const valueRange = maxValue - minValue || 1;
         
-        // Grid zeichnen
-        this.drawGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue);
-        
-        // Chart Type
-        if (config.type === 'area') {
-            this.drawAreaChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
-        } else {
-            this.drawLineChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
-        }
-        
-        // Achsen zeichnen
+        // Chart-Elemente zeichnen
+        this.drawGrid(ctx, padding, chartWidth, chartHeight);
+        this.drawAreaChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
         this.drawAxes(ctx, padding, chartWidth, chartHeight, minValue, maxValue, config.unit);
-        
-        // Zeitlabels
         this.drawTimeLabels(ctx, data, padding, chartWidth, chartHeight, timeRange);
     }
     
-    // Line Chart zeichnen
-    drawLineChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config) {
-        ctx.strokeStyle = config.color || this.colors.primary;
+    // Area Chart zeichnen
+    drawAreaChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config) {
+        const color = config.color || this.colors.primary;
+        
+        // Gradient für Area
+        const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
+        gradient.addColorStop(0, this.hexToRgba(color, 0.3));
+        gradient.addColorStop(1, this.hexToRgba(color, 0.02));
+        
+        // Area Path
+        ctx.beginPath();
+        data.forEach((point, i) => {
+            const x = padding.left + (i / (data.length - 1)) * chartWidth;
+            const y = padding.top + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
+            
+            if (i === 0) {
+                ctx.moveTo(x, padding.top + chartHeight);
+                ctx.lineTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+        ctx.closePath();
+        
+        // Area füllen
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Linie zeichnen
+        ctx.strokeStyle = color;
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -371,137 +455,111 @@ class MiniChart {
             }
         });
         ctx.stroke();
-        
-        // Datenpunkte
-        if (data.length <= 50) {
-            this.drawDataPoints(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
-        }
-    }
-    
-    // Area Chart zeichnen
-    drawAreaChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config) {
-        // Gradient erstellen
-        const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
-        const color = config.color || this.colors.primary;
-        gradient.addColorStop(0, this.hexToRgba(color, 0.3));
-        gradient.addColorStop(1, this.hexToRgba(color, 0.02));
-        
-        // Area füllen
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        data.forEach((point, i) => {
-            const x = padding.left + (i / (data.length - 1)) * chartWidth;
-            const y = padding.top + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
-            
-            if (i === 0) {
-                ctx.moveTo(x, padding.top + chartHeight);
-                ctx.lineTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-        });
-        ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Linie darüber zeichnen
-        this.drawLineChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
-    }
-    
-    // Datenpunkte zeichnen
-    drawDataPoints(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config) {
-        const color = config.color || this.colors.primary;
-        
-        data.forEach((point, i) => {
-            const x = padding.left + (i / (data.length - 1)) * chartWidth;
-            const y = padding.top + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
-            
-            // Outer circle
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Inner circle (white)
-            ctx.fillStyle = '#1a1a1a';
-            ctx.beginPath();
-            ctx.arc(x, y, 1.5, 0, Math.PI * 2);
-            ctx.fill();
-        });
     }
     
     // Grid zeichnen
-    drawGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue) {
+    drawGrid(ctx, padding, chartWidth, chartHeight) {
         ctx.strokeStyle = this.colors.grid;
         ctx.lineWidth = 0.5;
         
         // Horizontale Linien
-        const horizontalLines = 5;
-        for (let i = 0; i <= horizontalLines; i++) {
-            const y = padding.top + (i / horizontalLines) * chartHeight;
+        for (let i = 0; i <= 4; i++) {
+            const y = padding.top + (i / 4) * chartHeight;
             ctx.beginPath();
             ctx.moveTo(padding.left, y);
             ctx.lineTo(padding.left + chartWidth, y);
             ctx.stroke();
         }
-        
-        // Vertikale Linien
-        const verticalLines = 6;
-        for (let i = 0; i <= verticalLines; i++) {
-            const x = padding.left + (i / verticalLines) * chartWidth;
-            ctx.beginPath();
-            ctx.moveTo(x, padding.top);
-            ctx.lineTo(x, padding.top + chartHeight);
-            ctx.stroke();
-        }
     }
     
-    // Achsen zeichnen
+    // Achsen Labels
     drawAxes(ctx, padding, chartWidth, chartHeight, minValue, maxValue, unit = '') {
         ctx.fillStyle = this.colors.text;
         ctx.font = '11px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'right';
         
-        // Y-Achsen Labels
-        const steps = 5;
-        for (let i = 0; i <= steps; i++) {
-            const value = minValue + (i / steps) * (maxValue - minValue);
-            const y = padding.top + chartHeight - (i / steps) * chartHeight;
+        // Y-Achse
+        for (let i = 0; i <= 4; i++) {
+            const value = minValue + (i / 4) * (maxValue - minValue);
+            const y = padding.top + chartHeight - (i / 4) * chartHeight;
             
-            ctx.textAlign = 'right';
             ctx.fillText(
-                value.toFixed(1) + (unit ? unit : ''),
+                `${value.toFixed(1)}${unit}`,
                 padding.left - 10,
                 y + 3
             );
         }
     }
     
-    // Zeit Labels zeichnen
+    // Zeit Labels
     drawTimeLabels(ctx, data, padding, chartWidth, chartHeight, timeRange) {
         ctx.fillStyle = this.colors.text;
         ctx.font = '10px system-ui, -apple-system, sans-serif';
         ctx.textAlign = 'center';
         
-        const labels = this.generateTimeLabels(data, timeRange);
-        const labelCount = Math.min(labels.length, 7);
-        const step = Math.floor(labels.length / labelCount);
+        const labelCount = 6;
+        const step = Math.max(1, Math.floor(data.length / labelCount));
         
-        for (let i = 0; i < labels.length; i += step) {
-            const x = padding.left + (i / (labels.length - 1)) * chartWidth;
+        for (let i = 0; i < data.length; i += step) {
+            const point = data[i];
+            const x = padding.left + (i / (data.length - 1)) * chartWidth;
             const y = padding.top + chartHeight + 20;
-            ctx.fillText(labels[i], x, y);
+            
+            const timeStr = this.formatTimeLabel(point.timestamp, timeRange);
+            ctx.fillText(timeStr, x, y);
         }
     }
     
-    // Keine Daten Anzeige
-    drawNoData(ctx, width, height) {
+    // Zeitformat basierend auf Range
+    formatTimeLabel(timestamp, range) {
+        const date = new Date(timestamp);
+        
+        if (range.unit === 'hour' && range.value <= 12) {
+            return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+        } else if (range.unit === 'day' && range.value === 1) {
+            return date.toLocaleTimeString('de-DE', { hour: '2-digit' });
+        } else {
+            return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+        }
+    }
+    
+    // Error States
+    drawNoData(ctx) {
+        const { width, height } = ctx.canvas;
+        ctx.clearRect(0, 0, width, height);
+        
         ctx.fillStyle = this.colors.text;
         ctx.font = '14px system-ui, -apple-system, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Keine Daten verfügbar', width / 2, height / 2);
+        ctx.fillText('📊 Keine Daten verfügbar', width / 2, height / 2);
     }
     
-    // Hilfsfunktionen
+    drawError(ctx, message) {
+        const { width, height } = ctx.canvas;
+        ctx.clearRect(0, 0, width, height);
+        
+        ctx.fillStyle = this.colors.danger;
+        ctx.font = '14px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`❌ ${message}`, width / 2, height / 2);
+    }
+    
+    renderError(container, message) {
+        container.innerHTML = `
+            <div class="mini-chart-container error">
+                <div class="chart-header">
+                    <div class="chart-title">Chart Fehler</div>
+                </div>
+                <div class="chart-wrapper">
+                    <div style="display: flex; align-items: center; justify-content: center; height: 300px; color: var(--danger);">
+                        ❌ ${message}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Utility
     hexToRgba(hex, alpha) {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
@@ -509,266 +567,125 @@ class MiniChart {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
     
-    generateTimeLabels(data, timeRange) {
-        const labels = [];
-        const now = new Date();
-        
-        if (timeRange.unit === 'minute') {
-            // Minuten-Labels
-            for (let i = 0; i < data.length; i++) {
-                const time = new Date(now - (data.length - i) * 60000);
-                labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }));
-            }
-        } else if (timeRange.unit === 'hour') {
-            // Stunden-Labels
-            const hours = timeRange.value === 1 ? 1 : timeRange.value;
-            for (let i = 0; i < data.length; i++) {
-                const time = new Date(now - (data.length - i) * 3600000 * hours / data.length);
-                if (hours <= 12) {
-                    labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }));
-                } else {
-                    labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit' }));
-                }
-            }
-        } else if (timeRange.unit === 'day') {
-            // Tages-Labels
-            for (let i = 0; i < data.length; i++) {
-                const time = new Date(now - (data.length - i) * 86400000 * timeRange.value / data.length);
-                if (timeRange.value === 1) {
-                    labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit' }));
-                } else {
-                    labels.push(time.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }));
-                }
-            }
-        }
-        
-        return labels;
+    // Cache cleanup
+    clearCache() {
+        this.cache.clear();
     }
-    
-    // Sample Daten generieren (für Tests)
-    generateSampleData(timeRange) {
-        const points = timeRange.unit === 'minute' ? 60 : 
-                      timeRange.unit === 'hour' && timeRange.value === 1 ? 60 :
-                      timeRange.unit === 'hour' && timeRange.value === 12 ? 144 :
-                      timeRange.unit === 'day' && timeRange.value === 1 ? 96 :
-                      168; // 7 days
-        
-        const data = [];
-        const baseValue = 20 + Math.random() * 10;
-        
-        for (let i = 0; i < points; i++) {
-            data.push({
-                timestamp: Date.now() - (points - i) * 60000,
-                value: baseValue + Math.sin(i / 10) * 5 + Math.random() * 2
-            });
-        }
-        
-        return data;
-    }
-    
-    // In der MiniChart-Klasse
-    async fetchDataForRange(entity, range) {
-        try {
-            // return this.generateSampleData(range); // AUSKOMMENTIEREN
-    
-            // ▼▼▼ DIESEN BLOCK AKTIVIEREN (/* und */ entfernen) ▼▼▼
-            const endTime = new Date();
-            const startTime = new Date();
-            
-            if (range.unit === 'minute') {
-                startTime.setMinutes(startTime.getMinutes() - range.value);
-            } else if (range.unit === 'hour') {
-                startTime.setHours(startTime.getHours() - range.value);
-            } else if (range.unit === 'day') {
-                startTime.setDate(startTime.getDate() - range.value);
-            }
-            
-            // Prüfen ob _hass verfügbar ist
-            if (!this._hass) {
-                console.error("Chart Error: hass object not available.");
-                return [];
-            }
-    
-            const history = await this._hass.callWS({
-                type: 'history/history_during_period',
-                start_time: startTime.toISOString(),
-                end_time: endTime.toISOString(),
-                entity_ids: [entity],
-                minimal_response: true,
-                significant_changes_only: false // Wichtig für glattere Graphen
-            });
-            
-            return this.processHistoryData(history[entity]); // Angepasst für die neue Antwortstruktur
-            // ▲▲▲ BIS HIER AKTIVIEREN ▲▲▲
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            return [];
-        }
-    }
-
-    // ▼▼▼ HIER EINFÜGEN ▼▼▼
-    processHistoryData(history) {
-        if (!history || !Array.isArray(history)) {
-            return [];
-        }
-        return history.map(entry => {
-            const value = parseFloat(entry.s); // 's' ist der state in minimal_response
-            return {
-                timestamp: new Date(entry.lu * 1000), // 'lu' ist last_updated als Unix-Timestamp
-                value: isNaN(value) ? null : value // Ignoriere nicht-numerische Werte wie "unavailable"
-            };
-        }).filter(entry => entry.value !== null); // Entferne ungültige Einträge
-    }
-    
 }
 
 // ============================================
-// CHART MANAGER (Integration in fast-search-card)
+// OPTIMIERTER CHART MANAGER
 // ============================================
 class ChartManager {
     constructor(shadowRoot) {
         this.shadowRoot = shadowRoot;
         this.miniChart = new MiniChart();
-        this.advancedChartsLoaded = false;
-        this.charts = new Map(); // Speichert aktive Charts
+        this.charts = new Map();
     }
 
-    // ▼▼▼ HIER EINFÜGEN ▼▼▼
     setHass(hass) {
         this.miniChart.setHass(hass);
-    }    
+    }
     
-    // In der ChartManager-Klasse
+    // Hauptmethode für Auto-Discovery Charts
     async renderChartsInAccordion(accordionContent, currentItem) {
-        console.log("📊 ChartManager: renderChartsInAccordion wird ausgeführt für:", currentItem?.name);
-
-        // ▼▼▼ DIESE ZEILE IST JETZT ENTSCHEIDEND ▼▼▼
-        console.log("DEBUG: Das ist das 'currentItem' in ChartManager:", currentItem);
-
+        console.log("📊 ChartManager: Auto-Discovery Chart Check für:", currentItem?.name);
         
-        // Prüfen, ob für einen Auto-Discovery-Sensor noch kein Chart existiert
-        if (currentItem && currentItem.domain === 'custom' && currentItem.custom_data?.type === 'auto_sensor' && !accordionContent.querySelector('.chart-block')) {
-            console.log(`✅ Bedingung für Auto-Chart erfüllt für: ${currentItem.name}`);
-            
-            const chartContainer = document.createElement('div');
-            chartContainer.className = 'chart-block';
-            
-            const config = {
-                type: 'area',
-                entity: currentItem.id,
-                title: `Verlauf von ${currentItem.name}`,
-                unit: currentItem.custom_data.metadata?.sensor_unit || '',
-                color: '#06D6A0' // Standardfarbe
-            };
-            
-            chartContainer.dataset.config = Object.entries(config).map(([k, v]) => `${k}: ${v}`).join('\n');
-            accordionContent.insertBefore(chartContainer, accordionContent.firstChild);
-            console.log("✅ Chart-Block wurde dynamisch zum DOM hinzugefügt.");
+        // Nur für Auto-Discovery Sensoren
+        if (!this.isAutoDiscoverySensor(currentItem)) {
+            return;
         }
-    
-        const chartBlocks = accordionContent.querySelectorAll('.chart-block');
-        console.log(`🔎 ${chartBlocks.length} Chart-Blöcke gefunden.`);
         
-        for (const block of chartBlocks) {
-            if (block.hasChildNodes()) {
-                console.log("⏭️ Überspringe bereits gerenderten Chart.");
-                continue;
-            }
-    
-            const configString = block.dataset.config;
-            const config = this.parseChartConfig(configString);
-            if (!config.entity && currentItem) {
-                config.entity = currentItem.id;
-            }
-            
-            console.log(`🎨 Rendere Chart mit Config:`, config);
-            if (this.isAdvancedChart(config.type)) {
-                await this.loadAdvancedCharts();
-                this.renderAdvancedChart(block, config);
-            } else {
-                this.miniChart.render(block, config);
-            }
+        // Prüfen ob Chart bereits existiert
+        if (accordionContent.querySelector('.chart-block')) {
+            console.log("⏭️ Chart bereits vorhanden, überspringe");
+            return;
+        }
+        
+        console.log(`✅ Erstelle Auto-Discovery Chart für: ${currentItem.name}`);
+        
+        // Chart Container erstellen
+        const chartContainer = document.createElement('div');
+        chartContainer.className = 'chart-block';
+        
+        // Chart Konfiguration
+        const config = {
+            type: 'area',
+            entity: currentItem.id,
+            title: `${currentItem.name}`,
+            unit: this.getUnitFromItem(currentItem),
+            color: this.getColorFromItem(currentItem)
+        };
+        
+        // Chart an Anfang einfügen
+        accordionContent.insertBefore(chartContainer, accordionContent.firstChild);
+        
+        // Chart rendern
+        try {
+            const chartId = await this.miniChart.render(chartContainer, config);
+            this.charts.set(chartId, { container: chartContainer, config });
+            console.log("✅ Auto-Discovery Chart erfolgreich gerendert");
+        } catch (error) {
+            console.error("❌ Chart rendering failed:", error);
+            chartContainer.remove();
         }
     }
     
-    // Chart Config aus Markdown parsen
-    parseChartConfig(configString) {
-        // Parse YAML-like config from markdown
-        const config = {};
-        const lines = configString.split('\n');
-        
-        lines.forEach(line => {
-            const [key, value] = line.split(':').map(s => s.trim());
-            if (key && value) {
-                config[key] = value;
-            }
-        });
-        
-        return config;
+    // Prüfung für Auto-Discovery Sensoren
+    isAutoDiscoverySensor(item) {
+        return item && 
+               item.domain === 'custom' && 
+               item.custom_data?.type === 'auto_sensor';
     }
     
-    // Prüfen ob Advanced Chart benötigt wird
-    isAdvancedChart(type) {
-        return ['bar', 'pie', 'doughnut', 'radar', 'scatter'].includes(type);
+    // Unit aus Item extrahieren
+    getUnitFromItem(item) {
+        return item.custom_data?.metadata?.sensor_unit || 
+               item.attributes?.unit_of_measurement || '';
     }
     
-    // Advanced Charts (Chart.js) lazy loaden
-    async loadAdvancedCharts() {
-        if (this.advancedChartsLoaded) return;
+    // Farbe basierend auf Sensor-Typ
+    getColorFromItem(item) {
+        const deviceClass = item.custom_data?.metadata?.device_class || 
+                           item.attributes?.device_class;
         
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
-            script.onload = () => {
-                this.advancedChartsLoaded = true;
-                console.log('✅ Chart.js loaded successfully');
-                resolve();
-            };
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
+        const colorMap = {
+            temperature: '#FF6B35',
+            humidity: '#118AB2',
+            illuminance: '#FFD23F',
+            pressure: '#8338EC',
+            power: '#06D6A0',
+            energy: '#06D6A0',
+            battery: '#06D6A0',
+            voltage: '#EF476F'
+        };
+        
+        return colorMap[deviceClass] || '#06D6A0';
     }
     
-    // Advanced Chart mit Chart.js rendern
-    renderAdvancedChart(container, config) {
-        const canvas = document.createElement('canvas');
-        container.appendChild(canvas);
-        
-        const chart = new Chart(canvas, {
-            type: config.type,
-            data: {
-                labels: config.labels || [],
-                datasets: [{
-                    label: config.title,
-                    data: config.data || [],
-                    backgroundColor: config.color || '#06D6A0',
-                    borderColor: config.borderColor || '#06D6A0'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: config.showLegend !== 'false'
-                    }
-                }
-            }
-        });
-        
-        this.charts.set(config.id, { type: 'advanced', instance: chart });
+    // Support Check (vereinfacht)
+    supportsCharts(item) {
+        return this.isAutoDiscoverySensor(item) || 
+               item?.domain === 'sensor' || 
+               item?.domain === 'binary_sensor';
     }
     
-    // Charts zerstören (Memory Management)
+    // Cleanup
     destroyCharts() {
-        this.charts.forEach(chart => {
-            if (chart.type === 'advanced' && chart.instance) {
-                chart.instance.destroy();
+        this.charts.forEach((chart, chartId) => {
+            const canvas = chart.container?.querySelector('canvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx?.clearRect(0, 0, canvas.width, canvas.height);
             }
         });
+        
         this.charts.clear();
+        this.miniChart.clearCache();
+        console.log('🧹 Chart cleanup completed');
     }
 }
+
 
 
 
@@ -14664,52 +14581,27 @@ class FastSearchCard extends HTMLElement {
     }
 
     supportsCharts(item) {
-        // Charts für normale Sensoren UND Custom Items
         if (!item) return false;
+        
+        // Normale HA-Sensoren
         if (item.domain === 'sensor' || item.domain === 'binary_sensor') return true;
         
-        // Auch für Custom Category Items
+        // ✅ NUR Auto-Discovery Sensoren in Custom Category
         if (item.domain === 'custom') {
             const customType = item.custom_data?.type;
-            
-            // Liste um 'auto_sensor' erweitert
-            const supportedTypes = [
-                'template_sensor', 
-                'mqtt', 
-                'sensor', 
-                'sensor_array',
-                'auto_sensor' // <-- HIER IST DIE KORREKTUR
-            ];
-    
-            return supportedTypes.includes(customType);
+            return customType === 'auto_sensor'; // ❌ Alle anderen entfernt
         }
         
         return false;
     }
     
-    parseChartConfig(configString) {
-        const config = {};
-        const lines = configString.trim().split('\n');
-        
-        lines.forEach(line => {
-            const colonIndex = line.indexOf(':');
-            if (colonIndex > -1) {
-                const key = line.substring(0, colonIndex).trim();
-                const value = line.substring(colonIndex + 1).trim();
-                config[key] = value;
-            }
-        });
-        
-        return config;
-    }
-    
     getCustomInfoHTML(item) {
         const customData = item.custom_data || {};
         
-        // MARKDOWN CONTENT mit Accordions
+        // MARKDOWN CONTENT mit Accordions (ohne Chart-Processing)
         if (customData.content) {
-            // HIER: true als dritten Parameter hinzufügen!
-            return this.renderMarkdownAccordions(customData.content, item.name, true);
+            // ❌ ÄNDERN: false statt true als dritten Parameter!
+            return this.renderMarkdownAccordions(customData.content, item.name, false);
         }
         
         // Fallback für andere Custom Types
@@ -14767,18 +14659,6 @@ class FastSearchCard extends HTMLElement {
         
         // Parse Markdown zu HTML
         let html = this.parseMarkdown(markdownContent);  // <- ÄNDERN: const zu let
-        
-        // ============================================
-        // NUR für Custom Items: Chart-Blöcke verarbeiten
-        // ============================================
-        if (isCustomItem) {  // <- NEU: Bedingung hinzufügen
-            const chartRegex = /```chart\n([\s\S]*?)```/g;
-            html = html.replace(chartRegex, (match, config) => {
-                // Generiere unique ID für jeden Chart
-                const chartId = `chart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-                return `<div class="chart-block" data-chart-id="${chartId}" data-config="${encodeURIComponent(config)}"></div>`;
-            });
-        }
         
         // Split nach H2 Überschriften für Accordions
         const sections = this.extractAccordionSections(html); // <- html verwenden!
