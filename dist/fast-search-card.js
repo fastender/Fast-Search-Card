@@ -14493,6 +14493,39 @@ class FastSearchCard extends HTMLElement {
     // NEU: Diese Methoden direkt danach hinzufügen
     // ============================================
     renderChartsInAccordion(accordionContent) {
+        // ============================================
+        // NEU: Für normale Sensoren automatisch Chart hinzufügen
+        // ============================================
+        if (this.currentDetailItem && 
+            (this.currentDetailItem.domain === 'sensor' || 
+             this.currentDetailItem.domain === 'binary_sensor') &&
+            !accordionContent.querySelector('.chart-block')) {
+            
+            // Auto-Chart Container erstellen
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'chart-block';
+            chartContainer.dataset.chartId = `auto-chart-${Date.now()}`;
+            
+            // Auto-Config für Sensor
+            const config = {
+                type: this.currentDetailItem.domain === 'binary_sensor' ? 'line' : 'area',
+                entity: this.currentDetailItem.entity_id,
+                title: `${this.currentDetailItem.attributes?.friendly_name || 'Sensor'} Verlauf`,
+                unit: this.currentDetailItem.attributes?.unit_of_measurement || '',
+                color: this.getChartColorForSensor(this.currentDetailItem)
+            };
+            
+            chartContainer.dataset.config = encodeURIComponent(
+                Object.entries(config).map(([k,v]) => `${k}: ${v}`).join('\n')
+            );
+            
+            // Chart am Anfang einfügen
+            accordionContent.insertBefore(chartContainer, accordionContent.firstChild);
+        }
+        
+        // ============================================
+        // Bestehender Code
+        // ============================================
         // Finde alle Chart-Blöcke in diesem Accordion
         const chartBlocks = accordionContent.querySelectorAll('.chart-block');
         
@@ -14515,15 +14548,47 @@ class FastSearchCard extends HTMLElement {
             this.chartManager.miniChart.render(block, config);
         });
     }
+    
+    // ============================================
+    // NEU: Hilfsmethode für Sensor-spezifische Farben
+    // ============================================
+    getChartColorForSensor(item) {
+        const deviceClass = item.attributes?.device_class;
+        
+        // Farben basierend auf Sensor-Typ
+        const colorMap = {
+            temperature: '#FF6B35',      // Orange-Rot
+            humidity: '#118AB2',         // Blau
+            illuminance: '#FFD23F',      // Gelb
+            pressure: '#8338EC',         // Lila
+            power: '#06D6A0',           // Grün
+            energy: '#06D6A0',          // Grün
+            voltage: '#EF476F',         // Rot
+            current: '#F7931E',         // Orange
+            battery: '#06D6A0',         // Grün
+            carbon_dioxide: '#073B4C',  // Dunkelblau
+            motion: '#EF476F',          // Rot für Binary
+            door: '#118AB2',            // Blau für Binary
+            window: '#118AB2',          // Blau für Binary
+            occupancy: '#FF6B35'        // Orange für Binary
+        };
+        
+        return colorMap[deviceClass] || '#06D6A0'; // Default: Grün
+    }
 
     supportsCharts(item) {
-        // Charts nur für Custom Category Items
-        if (!item || item.domain !== 'custom') return false;
+        // Charts für normale Sensoren UND Custom Items
+        if (item && item.domain === 'sensor') return true;
+        if (item && item.domain === 'binary_sensor') return true;
         
-        // Spezifisch für auto-discovered template sensors
-        const customType = item.custom_data?.type;
-        return ['template_sensor', 'mqtt', 'sensor', 'sensor_array'].includes(customType);
-    }    
+        // Auch für Custom Category Items
+        if (item && item.domain === 'custom') {
+            const customType = item.custom_data?.type;
+            return ['template_sensor', 'mqtt', 'sensor', 'sensor_array'].includes(customType);
+        }
+        
+        return false;
+    }
     
     parseChartConfig(configString) {
         const config = {};
