@@ -8917,7 +8917,6 @@ class FastSearchCard extends HTMLElement {
         return keyMappings[key] || null;
     }    
 
-    // 1️⃣ ERSETZE deine bestehende isSystemEntity() Funktion (finde sie und ersetze komplett):
     isSystemEntity(entityId, state) {
         // ✅ DEINE BESTEHENDEN CHECKS (beibehalten)
         const systemPrefixes = ['sun.', 'zone.', 'persistent_notification.', 'updater.'];
@@ -8962,7 +8961,7 @@ class FastSearchCard extends HTMLElement {
         ];
         
         if (advancedSystemPatterns.some(pattern => pattern.test(entityId))) {
-            console.log(`🚫 System entity filtered: ${entityId}`);
+            // ❌ ENTFERNT: console.log(`🚫 System entity filtered: ${entityId}`);
             return true;
         }
         
@@ -8974,13 +8973,13 @@ class FastSearchCard extends HTMLElement {
                 'update_available', 'problem', 'diagnostic'
             ];
             if (systemDeviceClasses.includes(state.attributes.device_class)) {
-                console.log(`🚫 System device_class filtered: ${entityId} (${state.attributes.device_class})`);
+                // ❌ ENTFERNT: console.log(`🚫 System device_class filtered: ${entityId} (${state.attributes.device_class})`);
                 return true;
             }
             
             // Entity Category = diagnostic (Home Assistant System)
             if (state.attributes.entity_category === 'diagnostic') {
-                console.log(`🚫 Diagnostic entity filtered: ${entityId}`);
+                // ❌ ENTFERNT: console.log(`🚫 Diagnostic entity filtered: ${entityId}`);
                 return true;
             }
             
@@ -8988,20 +8987,23 @@ class FastSearchCard extends HTMLElement {
             if (!state.attributes.icon && 
                 !state.attributes.friendly_name && 
                 entityId.match(/.*_[0-9a-f]{8,}/)) {
-                console.log(`🚫 Technical entity filtered: ${entityId}`);
+                // ❌ ENTFERNT: console.log(`🚫 Technical entity filtered: ${entityId}`);
                 return true;
             }
             
             // Restore-State Entities (nach HA Neustart)
             if (state.attributes.restored === true && 
                 ['unknown', 'unavailable'].includes(state.state)) {
-                console.log(`🚫 Restored unavailable entity filtered: ${entityId}`);
+                // ❌ ENTFERNT: console.log(`🚫 Restored unavailable entity filtered: ${entityId}`);
                 return true;
             }
         }
         
         return false;
     }
+
+
+    
     
     // 2️⃣ FÜGE DIESE NEUE FUNKTION HINZU (z.B. nach isSystemEntity):
     meetsQualityThreshold(entityId, state) {
