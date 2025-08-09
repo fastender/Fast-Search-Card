@@ -9767,34 +9767,31 @@ class FastSearchCard extends HTMLElement {
     }    
 
     handleSearchInput(value) {
-        // 🎬 SLIDESHOW ANIMATION - Neue Logik zuerst
-        const isSearching = value && value.trim().length > 0;
+        // 🎬 SLIDESHOW ANIMATION - Panel-Expansion Logic
+        const isSearchPanelExpanded = !!value; // Auch bei leerem Wert aber aktivem Input
         
-        // Animation nur bei Statuswechsel
-        if (isSearching !== this.searchActive) {
-            this.searchActive = isSearching;
+        // Animation bei Panel-Expansion (nicht nur bei echtem Search)
+        if (isSearchPanelExpanded !== this.searchActive) {
+            this.searchActive = isSearchPanelExpanded;
             
-            if (isSearching) {
-                // Slideshow verstecken beim Suchen
+            if (isSearchPanelExpanded) {
+                // Slideshow verstecken sobald Panel expandiert (bei jedem Input)
                 this.animateSlideshowVisibility(false, 'search');
             } else {
-                // Slideshow wieder zeigen wenn Suche geleert
+                // Slideshow wieder zeigen wenn Panel geschlossen (Input leer)
                 this.animateSlideshowVisibility(true, 'search_clear');
             }
         }
         
-        // 🔍 BESTEHENDE SEARCH LOGIC (console.logs entfernt)
+        // 🔍 BESTEHENDE SEARCH LOGIC
         this.handleSearch(value);
         
         // 🎯 AUTOCOMPLETE LOGIC 
         if (value.length >= 2) {
             clearTimeout(this.autocompleteTimeout);
             this.autocompleteTimeout = setTimeout(() => {
-                // NEU: Prüfe zuerst Filter-Autocomplete
                 const usedFilterAutocomplete = this.updateFilterAutocomplete(value);
-                
                 if (!usedFilterAutocomplete) {
-                    // Standard Autocomplete nur wenn kein Filter-Autocomplete
                     this.updateAutocomplete(value);
                 }
             }, 150);
