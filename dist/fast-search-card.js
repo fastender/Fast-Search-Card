@@ -7535,7 +7535,6 @@ class FastSearchCard extends HTMLElement {
                     // Skip wenn bereits manuell definiert
                     if (manualEntityIds.has(entityId)) continue;
                     
-                    // ❌ REDUZIERT: Exclude-Filter OHNE individuelle Logs
                     const isExcluded = this._config.exclude_entities.some(pattern => {
                         if (!pattern.includes('*')) {
                             return pattern === entityId;
@@ -7570,7 +7569,6 @@ class FastSearchCard extends HTMLElement {
                     if (domain === 'sensor' || domain === 'binary_sensor') {
                         if (this._config.custom_auto_discover && this._config.custom_mode.enabled) {
                             
-                            // ❌ REDUZIERT: System-Filter OHNE Logs
                             if (this.isSystemEntity(entityId, state)) {
                                 stats.filtered_by_system++;
                                 continue;
@@ -7583,11 +7581,7 @@ class FastSearchCard extends HTMLElement {
                             
                             if (this.shouldAutoDiscoverSensorToCustom(entityId, state)) {
                                 stats.sensors_to_custom++;
-                                
-                                // ✅ NUR ERFOLGREICHE AUTO-DISCOVERY LOGGEN
-                                console.log(`📊 Auto-discovered: ${entityId}`);
-                                
-                                // ❌ REDUZIERT: Area-Detection OHNE Logs
+
                                 const areaName = this.getEntityArea(entityId, state);
                                 
                                 if (this._config.include_areas.length > 0 && 
@@ -7615,7 +7609,6 @@ class FastSearchCard extends HTMLElement {
                         continue;
                     }
                     
-                    // ❌ REDUZIERT: Domain-Filter OHNE Logs
                     if (this._config.include_domains.length > 0 && 
                         !this._config.include_domains.includes(domain)) {
                         stats.filtered_by_domain++;
@@ -7636,7 +7629,6 @@ class FastSearchCard extends HTMLElement {
                         continue;
                     }
                     
-                    // ❌ REDUZIERT: Area-Processing OHNE Logs
                     let areaName;
                     if (domain === 'script') {
                         areaName = await this.getScriptArea(entityId, state);
@@ -7676,7 +7668,6 @@ class FastSearchCard extends HTMLElement {
                     });
                     
                 } catch (entityError) {
-                    // ❌ REDUZIERT: Nur bei wiederholten Fehlern loggen
                     continue;
                 }
             }
@@ -7684,11 +7675,9 @@ class FastSearchCard extends HTMLElement {
             const discoveryTime = performance.now() - startTime;
             const efficiency = Math.round((discoveredEntities.length / stats.total) * 100);
             
-            // ✅ NUR SUMMARY STATISTICS LOGGEN
             console.log(`✅ Auto-discovered ${discoveredEntities.length} entities in ${Math.round(discoveryTime)}ms`);
             console.log(`📊 ${stats.sensors_to_custom} sensors to custom, ${stats.sensors_excluded} sensors excluded`);
             
-            // ❌ REDUZIERT: Detaillierte Stats nur bei Debug-Modus
             if (this._config.debug_mode) {
                 console.log('📊 Detailed Stats:', {
                     ...stats,
