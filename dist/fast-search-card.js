@@ -230,7 +230,7 @@ class MiniChart {
     }    
     
     // Hauptmethode zum Rendern eines Charts
-    render(container, config) {
+    async render(container, config) { // GEÄNDERT: Funktion ist jetzt async
         const chartId = `chart-${Date.now()}`;
         
         // Chart Container mit Tabs erstellen
@@ -260,34 +260,46 @@ class MiniChart {
         
         container.innerHTML = chartHTML;
         
-        // Canvas Element holen
         const canvas = container.querySelector('.chart-canvas');
         const ctx = canvas.getContext('2d');
+        const loading = container.querySelector('.chart-loading');
+    
+        // ==========================================================
+        // ▼▼▼ HIER IST DIE ENTSCHEIDENDE NEUE LOGIK ▼▼▼
+        // ==========================================================
         
-        // Chart initial zeichnen
+        // 1. Ladeanzeige sofort einblenden
+        loading.style.display = 'flex';
+        
+        // 2. Initiale Daten für den Standard-Zeitraum (12h) abrufen
+        const initialData = await this.fetchDataForRange(config.entity, this.currentRange);
+        
+        // 3. Abgerufene Daten zur Konfiguration hinzufügen
+        config.data = initialData;
+    
+        // 4. Ladeanzeige ausblenden
+        loading.style.display = 'none';
+    
+        // Chart initial mit den ECHTEN Daten zeichnen
         this.drawChart(ctx, config, this.currentRange);
         
-        // Tab Click Handler
+        // ==========================================================
+        
+        // Tab Click Handler (bleibt wie bisher)
         container.querySelectorAll('.time-tab').forEach(tab => {
             tab.addEventListener('click', async (e) => {
-                // Active State updaten
                 container.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 
-                // Loading State
-                const loading = container.querySelector('.chart-loading');
                 loading.style.display = 'flex';
                 
-                // Neuen Zeitbereich setzen
                 const range = {
                     value: parseInt(tab.dataset.range),
                     unit: tab.dataset.unit
                 };
                 
-                // Daten für neuen Zeitbereich holen
                 const newData = await this.fetchDataForRange(config.entity, range);
                 
-                // Chart neu zeichnen
                 this.drawChart(ctx, {...config, data: newData}, range);
                 
                 loading.style.display = 'none';
