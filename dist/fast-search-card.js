@@ -7949,7 +7949,6 @@ class FastSearchCard extends HTMLElement {
             }
             
             // FALLBACK: Wenn keine Area ermittelt werden kann
-            console.log(`❌ No area found for script: ${entityId}`);
             return 'Ohne Raum';
             
         } catch (error) {
@@ -8283,8 +8282,7 @@ class FastSearchCard extends HTMLElement {
                 console.log(`ℹ️ Scene affects multiple areas: ${[...areas].join(', ')}`);
                 return 'Mehrere Räume';
             }
-            
-            console.log(`❌ No area found for scene: ${entityId}`);
+
             return 'Ohne Raum';
             
         } catch (error) {
@@ -8317,7 +8315,6 @@ class FastSearchCard extends HTMLElement {
                 // Weitere Analyse könnte hier erfolgen
             }
             
-            console.log(`❌ No area found for automation: ${entityId}`);
             return 'Ohne Raum';
             
         } catch (error) {
@@ -19681,11 +19678,9 @@ class FastSearchCard extends HTMLElement {
                 }
             }
         };
-        
-        // ✅ DEINE BESTEHENDE LOGIK (beibehalten)
+
         // Direkte Suche nach device_class und unit
         if (deviceClass && ranges[deviceClass] && unit && ranges[deviceClass][unit]) {
-            console.log(`🎯 Found exact match: ${deviceClass} + ${unit}`);
             return ranges[deviceClass][unit];
         }
         
