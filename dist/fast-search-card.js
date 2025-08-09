@@ -11792,9 +11792,11 @@ class FastSearchCard extends HTMLElement {
             // Read-only: Nur Accordion View (Template Sensor + Static)
             return `
                 <div id="tab-content-container" style="padding: 20px;">
-                    ${this.renderMarkdownAccordions(item.custom_data.content, item.name)}
+                    ${this.renderMarkdownAccordions(item.custom_data.content, item.name, true)}
+                    <!-- HIER: true hinzufügen! ------------------------------------ ^^^^ -->
                 </div>
             `;
+            
         }
         
         // Editable: Tab-System mit Editor (nur MQTT)
@@ -11818,7 +11820,7 @@ class FastSearchCard extends HTMLElement {
             </div>
             <div id="tab-content-container">
                 <div class="detail-tab-content active" data-tab-content="view">
-                    ${this.renderMarkdownAccordions(item.custom_data.content, item.name)}
+                    ${this.renderMarkdownAccordions(item.custom_data.content, item.name, true)}
                 </div>
                 <div class="detail-tab-content" data-tab-content="edit">
                     ${this.getMarkdownEditorHTML(item)}
@@ -14437,11 +14439,12 @@ class FastSearchCard extends HTMLElement {
             this.showSaveStatus('error', 'MQTT Publish-Fehler!');
         });
     }
-    
+
     updateViewTab(item) {
         const viewTabContent = this.shadowRoot.querySelector('[data-tab-content="view"]');
         if (viewTabContent && item.custom_data.content) {
-            viewTabContent.innerHTML = this.renderMarkdownAccordions(item.custom_data.content, item.name);
+            // HIER: true als dritten Parameter!
+            viewTabContent.innerHTML = this.renderMarkdownAccordions(item.custom_data.content, item.name, true);
             this.setupAccordionListeners();
         }
     }
@@ -14472,11 +14475,14 @@ class FastSearchCard extends HTMLElement {
                         arrow.textContent = '▼';
                         
                         // ============================================
-                        // NEU: Charts rendern wenn Accordion geöffnet wird
+                        // NUR für Custom Items: Charts rendern
                         // ============================================
-                        setTimeout(() => {
-                            this.renderChartsInAccordion(content);
-                        }, 100); // Kleiner Delay für Animation
+                        if (this.supportsCharts(this.currentDetailItem)) {
+                            setTimeout(() => {
+                                this.renderChartsInAccordion(content);
+                            }, 100); // Kleiner Delay für Animation
+                        }
+                        
                     }
                 });
             }
@@ -14509,6 +14515,15 @@ class FastSearchCard extends HTMLElement {
             this.chartManager.miniChart.render(block, config);
         });
     }
+
+    supportsCharts(item) {
+        // Charts nur für Custom Category Items
+        if (!item || item.domain !== 'custom') return false;
+        
+        // Spezifisch für auto-discovered template sensors
+        const customType = item.custom_data?.type;
+        return ['template_sensor', 'mqtt', 'sensor', 'sensor_array'].includes(customType);
+    }    
     
     parseChartConfig(configString) {
         const config = {};
@@ -14530,8 +14545,9 @@ class FastSearchCard extends HTMLElement {
         const customData = item.custom_data || {};
         
         // MARKDOWN CONTENT mit Accordions
-        if (customData.content) {  // ← ÄNDERN: markdown_content zu content
-            return this.renderMarkdownAccordions(customData.content, item.name);
+        if (customData.content) {
+            // HIER: true als dritten Parameter hinzufügen!
+            return this.renderMarkdownAccordions(customData.content, item.name, true);
         }
         
         // Fallback für andere Custom Types
@@ -14576,9 +14592,7 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    
-
-    renderMarkdownAccordions(markdownContent, title) {  
+    renderMarkdownAccordions(markdownContent, title, isCustomItem = false) {  // <- NEU: dritten Parameter hinzufügen
         
         if (!markdownContent || markdownContent === 'unknown' || markdownContent === 'NO_CONTENT_FOUND') {
             return `
@@ -14590,18 +14604,19 @@ class FastSearchCard extends HTMLElement {
         }        
         
         // Parse Markdown zu HTML
-        const html = this.parseMarkdown(markdownContent);
-
-
+        let html = this.parseMarkdown(markdownContent);  // <- ÄNDERN: const zu let
+        
         // ============================================
-        // NEU: Chart-Blöcke erkennen und konvertieren
+        // NUR für Custom Items: Chart-Blöcke verarbeiten
         // ============================================
-        const chartRegex = /```chart\n([\s\S]*?)```/g;
-        let processedHtml = html.replace(chartRegex, (match, config) => {
-            // Generiere unique ID für jeden Chart
-            const chartId = `chart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            return `<div class="chart-block" data-chart-id="${chartId}" data-config="${encodeURIComponent(config)}"></div>`;
-        });
+        if (isCustomItem) {  // <- NEU: Bedingung hinzufügen
+            const chartRegex = /```chart\n([\s\S]*?)```/g;
+            html = html.replace(chartRegex, (match, config) => {
+                // Generiere unique ID für jeden Chart
+                const chartId = `chart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                return `<div class="chart-block" data-chart-id="${chartId}" data-config="${encodeURIComponent(config)}"></div>`;
+            });
+        }
         
         // Split nach H2 Überschriften für Accordions
         const sections = this.extractAccordionSections(processedHtml); // <- processedHtml statt html
