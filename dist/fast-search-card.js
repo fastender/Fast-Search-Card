@@ -6670,9 +6670,6 @@ class FastSearchCard extends HTMLElement {
         const animation = this.animateElementOut(clearButton);
         animation.finished.then(() => { clearButton.classList.remove('visible'); });
         
-        // ✅ FIX: hasAnimated NICHT hier zurücksetzen - wird in renderResults gemacht
-        // this.hasAnimated = false; // ← ENTFERNEN
-        
         this.showCurrentCategoryItems();
         searchInput.focus();
     }
@@ -9783,23 +9780,7 @@ class FastSearchCard extends HTMLElement {
         console.log(`🔍 Search "${query}" via ${method}: ${resultCount} results in ${duration.toFixed(2)}ms`);
     }    
 
-    handleSearchInput(value) {
-        // 🎬 SLIDESHOW ANIMATION - Panel-Expansion Logic
-        const isSearchPanelExpanded = !!value; // Auch bei leerem Wert aber aktivem Input
-        
-        // Animation bei Panel-Expansion (nicht nur bei echtem Search)
-        if (isSearchPanelExpanded !== this.searchActive) {
-            this.searchActive = isSearchPanelExpanded;
-            
-            if (isSearchPanelExpanded) {
-                // Slideshow verstecken sobald Panel expandiert (bei jedem Input)
-                this.animateSlideshowVisibility(false, 'search');
-            } else {
-                // Slideshow wieder zeigen wenn Panel geschlossen (Input leer)
-                this.animateSlideshowVisibility(true, 'search_clear');
-            }
-        }
-        
+    handleSearchInput(value) {        
         // 🔍 BESTEHENDE SEARCH LOGIC
         this.handleSearch(value);
         
