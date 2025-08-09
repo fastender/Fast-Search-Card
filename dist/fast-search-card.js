@@ -206,15 +206,16 @@ class ChartManager {
         this._hass = null;
     }
 
-    // Nimmt das HASS-Objekt entgegen und gibt es an bestehende Karten weiter
+    // In der ChartManager-Klasse
     setHass(hass) {
         this._hass = hass;
+        // WICHTIG: Das neue hass-Objekt an alle bereits erstellten nativen Karten weitergeben
         this.charts.forEach(chartInstance => {
-            if (chartInstance && chartInstance.tagName) {
+            if (chartInstance && chartInstance.tagName) { // Prüft, ob es ein HTML-Element ist
                 chartInstance.hass = this._hass;
             }
         });
-    }
+    }    
 
     // Haupt-Einstiegspunkt, wird beim Öffnen eines Accordions aufgerufen
     async renderChartsInAccordion(accordionContent, currentItem) {
@@ -465,7 +466,7 @@ class FastSearchCard extends HTMLElement {
         this.autocompleteTimeout = null;        
 
         // ChartManager initialisieren
-        this.chartManager = new ChartManager(this.shadowRoot);        
+        this.chartManager = null;
 
         // ✅ SAFETY: Ensure critical methods exist
         setTimeout(() => {
@@ -566,20 +567,33 @@ class FastSearchCard extends HTMLElement {
 
     set hass(hass) {
         if (!hass) return;
-
-        // FÜGEN SIE DIESE ZEILE HINZU
-        if (this.chartManager) {
-            this.chartManager.setHass(hass);
-        }        
-
-        // 🚀 NEU: Favorites Helper beim ersten Laden sicherstellen
+    
+        // WICHTIG: oldHass speichern, BEVOR wir this._hass überschreiben
+        const oldHass = this._hass;
+        this._hass = hass;
+    
+        // ==========================================================
+        // ▼▼▼ HIER BEGINNT DIE NEUE, STABILE LOGIK ▼▼▼
+        // ==========================================================
+        
+        // 1. ChartManager erstellen, falls er noch nicht existiert
+        //    (passiert nur beim allerersten Mal, wenn `hass` verfügbar ist)
+        if (!this.chartManager) {
+            this.chartManager = new ChartManager(this.shadowRoot);
+        }
+    
+        // 2. Das aktuelle `hass`-Objekt IMMER an den Manager weitergeben
+        this.chartManager.setHass(hass);
+    
+        // ==========================================================
+        // ▲▲▲ HIER ENDET DIE NEUE LOGIK ▲▲▲
+        // ==========================================================
+    
+        // Ihr bestehender Code bleibt erhalten:
         if (!this._favoritesHelperChecked) {
             this._favoritesHelperChecked = true;
             this.ensureFavoritesHelper();
         }
-        
-        const oldHass = this._hass;
-        this._hass = hass;
         
         const shouldUpdateAll = !oldHass || this.shouldUpdateItems(oldHass, hass);
         if (shouldUpdateAll) {
@@ -595,7 +609,6 @@ class FastSearchCard extends HTMLElement {
         } else if (!this.isDetailView && !this.isSearching) {
             this.updateStates();
         }
-        
     }
 
     shouldUpdateItems(oldHass, newHass) {
