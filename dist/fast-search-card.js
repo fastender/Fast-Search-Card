@@ -221,7 +221,13 @@ class MiniChart {
         ];
         
         this.currentRange = this.timeRanges[2]; // Default: 12h
+        this._hass = null; // Initialwert hinzufügen
     }
+
+    // ▼▼▼ HIER EINFÜGEN ▼▼▼
+    setHass(hass) {
+        this._hass = hass;
+    }    
     
     // Hauptmethode zum Rendern eines Charts
     render(container, config) {
@@ -548,14 +554,12 @@ class MiniChart {
         return data;
     }
     
-    // Echte Daten holen (Home Assistant Integration)
+    // In der MiniChart-Klasse
     async fetchDataForRange(entity, range) {
         try {
-            // Hier würde die Integration mit Home Assistant History API kommen
-            // Vorerst Sample Daten
-            return this.generateSampleData(range);
-            
-            /* Später:
+            // return this.generateSampleData(range); // AUSKOMMENTIEREN
+    
+            // ▼▼▼ DIESEN BLOCK AKTIVIEREN (/* und */ entfernen) ▼▼▼
             const endTime = new Date();
             const startTime = new Date();
             
@@ -567,21 +571,43 @@ class MiniChart {
                 startTime.setDate(startTime.getDate() - range.value);
             }
             
+            // Prüfen ob _hass verfügbar ist
+            if (!this._hass) {
+                console.error("Chart Error: hass object not available.");
+                return [];
+            }
+    
             const history = await this._hass.callWS({
                 type: 'history/history_during_period',
                 start_time: startTime.toISOString(),
                 end_time: endTime.toISOString(),
                 entity_ids: [entity],
-                minimal_response: true
+                minimal_response: true,
+                significant_changes_only: false // Wichtig für glattere Graphen
             });
             
-            return this.processHistoryData(history[0]);
-            */
+            return this.processHistoryData(history[entity]); // Angepasst für die neue Antwortstruktur
+            // ▲▲▲ BIS HIER AKTIVIEREN ▲▲▲
         } catch (error) {
             console.error('Error fetching data:', error);
             return [];
         }
     }
+
+    // ▼▼▼ HIER EINFÜGEN ▼▼▼
+    processHistoryData(history) {
+        if (!history || !Array.isArray(history)) {
+            return [];
+        }
+        return history.map(entry => {
+            const value = parseFloat(entry.s); // 's' ist der state in minimal_response
+            return {
+                timestamp: new Date(entry.lu * 1000), // 'lu' ist last_updated als Unix-Timestamp
+                value: isNaN(value) ? null : value // Ignoriere nicht-numerische Werte wie "unavailable"
+            };
+        }).filter(entry => entry.value !== null); // Entferne ungültige Einträge
+    }
+    
 }
 
 // ============================================
@@ -594,6 +620,11 @@ class ChartManager {
         this.advancedChartsLoaded = false;
         this.charts = new Map(); // Speichert aktive Charts
     }
+
+    // ▼▼▼ HIER EINFÜGEN ▼▼▼
+    setHass(hass) {
+        this.miniChart.setHass(hass);
+    }    
     
     // In der ChartManager-Klasse
     async renderChartsInAccordion(accordionContent, currentItem) {
@@ -994,6 +1025,11 @@ class FastSearchCard extends HTMLElement {
 
     set hass(hass) {
         if (!hass) return;
+
+        // FÜGEN SIE DIESE ZEILE HINZU
+        if (this.chartManager) {
+            this.chartManager.setHass(hass);
+        }        
 
         // 🚀 NEU: Favorites Helper beim ersten Laden sicherstellen
         if (!this._favoritesHelperChecked) {
