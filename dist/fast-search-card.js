@@ -853,7 +853,12 @@ class FastSearchCard extends HTMLElement {
         this.autocompleteTimeout = null;        
 
         // ChartManager initialisieren
-        this.chartManager = new ChartManager(this.shadowRoot);        
+        this.chartManager = new ChartManager(this.shadowRoot);
+
+        // 🎬 Animation State Tracking
+        this.slideshowVisible = true;
+        this.slideshowAnimating = false;
+        this.searchActive = false;        
 
         // ✅ SAFETY: Ensure critical methods exist
         setTimeout(() => {
@@ -951,6 +956,197 @@ class FastSearchCard extends HTMLElement {
         this.alertSlider = null;        
         
     }
+
+
+
+
+
+    // 🎯 HAUPTMETHODE: Slideshow Animation Manager
+    async animateSlideshowVisibility(show = true, reason = 'unknown') {
+        const container = this.shadowRoot.querySelector('.alert-slideshow-container');
+        if (!container || this.slideshowAnimating) return;
+
+        // Skip wenn bereits im gewünschten Zustand
+        if (this.slideshowVisible === show) return;
+
+        this.slideshowAnimating = true;
+        
+        try {
+            if (show) {
+                await this.showSlideshowAnimated(container, reason);
+            } else {
+                await this.hideSlideshowAnimated(container, reason);
+            }
+        } finally {
+            this.slideshowAnimating = false;
+        }
+    }
+
+    // 🎭 VERSCHWINDEN ANIMATION
+    async hideSlideshowAnimated(container, reason = 'search') {
+        if (!container || this.slideshowVisible === false) return;
+
+        // Stoppe Auto-Play während Animation
+        if (this.alertSlider) {
+            this.alertSlider.pauseAutoPlay();
+        }
+
+        // 🎬 VERSCHIEDENE ANIMATIONEN je nach Grund
+        let animation;
+        
+        switch(reason) {
+            case 'search':
+                // Elegant nach oben raussliden + fade
+                animation = container.animate([
+                    { 
+                        opacity: 1, 
+                        transform: 'translateY(0) scale(1)',
+                        filter: 'blur(0px)'
+                    },
+                    { 
+                        opacity: 0, 
+                        transform: 'translateY(-30px) scale(0.95)',
+                        filter: 'blur(4px)'
+                    }
+                ], {
+                    duration: 400,
+                    easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)', // Material Design
+                    fill: 'forwards'
+                });
+                break;
+                
+            case 'category_change':
+                // Seitlich raussliden
+                animation = container.animate([
+                    { 
+                        opacity: 1, 
+                        transform: 'translateX(0) scale(1)'
+                    },
+                    { 
+                        opacity: 0, 
+                        transform: 'translateX(-40px) scale(0.9)'
+                    }
+                ], {
+                    duration: 300,
+                    easing: 'cubic-bezier(0.4, 0.0, 0.6, 1)',
+                    fill: 'forwards'
+                });
+                break;
+                
+            default:
+                // Standard fade out
+                animation = container.animate([
+                    { opacity: 1 },
+                    { opacity: 0 }
+                ], {
+                    duration: 250,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+        }
+
+        await animation.finished;
+        
+        // Verstecke Container für Layout
+        container.style.display = 'none';
+        this.slideshowVisible = false;
+    }
+
+    // 🎭 ERSCHEINEN ANIMATION  
+    async showSlideshowAnimated(container, reason = 'search_clear') {
+        if (!container || this.slideshowVisible === true) return;
+
+        // Zeige Container wieder
+        container.style.display = 'block';
+        
+        // 🎬 VERSCHIEDENE ANIMATIONEN je nach Grund
+        let animation;
+        
+        switch(reason) {
+            case 'search_clear':
+                // Von oben reinsliden + aufblenden
+                animation = container.animate([
+                    { 
+                        opacity: 0, 
+                        transform: 'translateY(-20px) scale(0.95)',
+                        filter: 'blur(4px)'
+                    },
+                    { 
+                        opacity: 1, 
+                        transform: 'translateY(0) scale(1)',
+                        filter: 'blur(0px)'
+                    }
+                ], {
+                    duration: 500,
+                    easing: 'cubic-bezier(0.0, 0.0, 0.2, 1)', // Material Design
+                    fill: 'forwards'
+                });
+                break;
+                
+            case 'category_change':
+                // Von rechts reinsliden
+                animation = container.animate([
+                    { 
+                        opacity: 0, 
+                        transform: 'translateX(40px) scale(0.9)'
+                    },
+                    { 
+                        opacity: 1, 
+                        transform: 'translateX(0) scale(1)'
+                    }
+                ], {
+                    duration: 400,
+                    easing: 'cubic-bezier(0.0, 0.0, 0.2, 1)',
+                    fill: 'forwards'
+                });
+                break;
+                
+            case 'page_load':
+                // Sanfter Fade in beim Laden
+                animation = container.animate([
+                    { 
+                        opacity: 0, 
+                        transform: 'scale(0.9)'
+                    },
+                    { 
+                        opacity: 1, 
+                        transform: 'scale(1)'
+                    }
+                ], {
+                    duration: 600,
+                    easing: 'cubic-bezier(0.0, 0.0, 0.2, 1)',
+                    fill: 'forwards'
+                });
+                break;
+                
+            default:
+                // Standard fade in
+                animation = container.animate([
+                    { opacity: 0 },
+                    { opacity: 1 }
+                ], {
+                    duration: 300,
+                    easing: 'ease-in',
+                    fill: 'forwards'
+                });
+        }
+
+        await animation.finished;
+        
+        // Reaktiviere Auto-Play
+        if (this.alertSlider) {
+            this.alertSlider.resumeAutoPlay();
+        }
+        
+        this.slideshowVisible = true;
+    }
+
+
+
+
+
+
+    
 
     set hass(hass) {
         if (!hass) return;
@@ -6886,7 +7082,7 @@ class FastSearchCard extends HTMLElement {
             this.setupAlertClickHandlers();
         }
     }    
-    
+        
     initAlertSlideshow() {        
         this.updateAlertSlides();                
         
@@ -6896,15 +7092,11 @@ class FastSearchCard extends HTMLElement {
             if (sliderHolder && this.alertSlides.length > 0) {
                 this.alertSlider = new InfiniteCardSlider(sliderHolder, this.alertSlides.length);
                 this.setupAlertClickHandlers();
+                
+                // 🎭 NEU: Initiale Erscheinen-Animation
+                this.animateSlideshowVisibility(true, 'page_load');
             }
         }, 100);
-
-        // NEU: DOM-Debug hinzufügen
-        setTimeout(() => {
-            const container = this.shadowRoot.querySelector('.alert-slideshow-container');
-            const items = this.shadowRoot.querySelectorAll('.alert-slider__item');
-        }, 200);
-        
     }
 
 
@@ -9575,22 +9767,31 @@ class FastSearchCard extends HTMLElement {
     }    
 
     handleSearchInput(value) {
-        console.log('📝 handleSearchInput called with:', value);
+        // 🎬 SLIDESHOW ANIMATION - Neue Logik zuerst
+        const isSearching = value && value.trim().length > 0;
         
-        // Standard search logic
+        // Animation nur bei Statuswechsel
+        if (isSearching !== this.searchActive) {
+            this.searchActive = isSearching;
+            
+            if (isSearching) {
+                // Slideshow verstecken beim Suchen
+                this.animateSlideshowVisibility(false, 'search');
+            } else {
+                // Slideshow wieder zeigen wenn Suche geleert
+                this.animateSlideshowVisibility(true, 'search_clear');
+            }
+        }
+        
+        // 🔍 BESTEHENDE SEARCH LOGIC (console.logs entfernt)
         this.handleSearch(value);
         
-        // Autocomplete logic
+        // 🎯 AUTOCOMPLETE LOGIC 
         if (value.length >= 2) {
-            console.log('🕐 Setting autocomplete timeout for:', value);
             clearTimeout(this.autocompleteTimeout);
             this.autocompleteTimeout = setTimeout(() => {
-                console.log('⏰ Timeout fired, checking autocomplete type:', value);
-                
                 // NEU: Prüfe zuerst Filter-Autocomplete
-                console.log('🔧 About to call updateFilterAutocomplete...');
                 const usedFilterAutocomplete = this.updateFilterAutocomplete(value);
-                console.log('🔧 Filter autocomplete result:', usedFilterAutocomplete);
                 
                 if (!usedFilterAutocomplete) {
                     // Standard Autocomplete nur wenn kein Filter-Autocomplete
@@ -9598,7 +9799,6 @@ class FastSearchCard extends HTMLElement {
                 }
             }, 150);
         } else {
-            console.log('❌ Value too short, clearing suggestion');
             this.clearSuggestion();
         }
     }
@@ -19776,7 +19976,6 @@ class FastSearchCard extends HTMLElement {
 }
 
 
-
 // ===== INFINITE CARD SLIDER CLASS =====
 class InfiniteCardSlider {
     constructor(sliderHolder, totalSlides, clickHandler = null) {
@@ -19795,7 +19994,29 @@ class InfiniteCardSlider {
         this.autoPlayActive = false;
         this.inactivityTimer = null;
         
+        // 🎬 NEU: Auto-Play Pause Kontrolle
+        this.autoPlayPaused = false;
+        
         this.init();
+    }
+
+    // 🎬 NEU: Auto-Play Kontrolle für Slideshow-Animation
+    pauseAutoPlay() {
+        this.autoPlayPaused = true;
+        if (this.autoPlayTimer) {
+            clearInterval(this.autoPlayTimer);
+            this.autoPlayTimer = null;
+        }
+        if (this.inactivityTimer) {
+            clearTimeout(this.inactivityTimer);
+            this.inactivityTimer = null;
+        }
+        this.autoPlayActive = false;
+    }
+    
+    resumeAutoPlay() {
+        this.autoPlayPaused = false;
+        this.startInactivityTimer();
     }
 
     init() {
@@ -19846,6 +20067,9 @@ class InfiniteCardSlider {
     }
 
     startInactivityTimer() {
+        // 🎬 NEU: Prüfe ob Auto-Play pausiert ist
+        if (this.autoPlayPaused) return;
+        
         if (this.inactivityTimer) {
             clearTimeout(this.inactivityTimer);
         }
@@ -19856,11 +20080,12 @@ class InfiniteCardSlider {
     }
 
     startAutoPlay() {
-        if (this.autoPlayActive) return;
+        // 🎬 NEU: Nicht starten wenn pausiert
+        if (this.autoPlayActive || this.autoPlayPaused) return;
         
         this.autoPlayActive = true;
         this.autoPlayTimer = setInterval(() => {
-            if (!this.isAnimating) {
+            if (!this.isAnimating && !this.autoPlayPaused) {
                 this.nextSlide();
             }
         }, this.autoPlayInterval);
@@ -20071,15 +20296,8 @@ class InfiniteCardSlider {
         this.stopAutoPlay();
         // Remove event listeners would go here if needed
     }
+}    
 
-
-
-    
-
-
-
-    
-}
 
 
 
