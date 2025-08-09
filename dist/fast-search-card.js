@@ -14629,13 +14629,23 @@ class FastSearchCard extends HTMLElement {
 
     supportsCharts(item) {
         // Charts für normale Sensoren UND Custom Items
-        if (item && item.domain === 'sensor') return true;
-        if (item && item.domain === 'binary_sensor') return true;
+        if (!item) return false;
+        if (item.domain === 'sensor' || item.domain === 'binary_sensor') return true;
         
         // Auch für Custom Category Items
-        if (item && item.domain === 'custom') {
+        if (item.domain === 'custom') {
             const customType = item.custom_data?.type;
-            return ['template_sensor', 'mqtt', 'sensor', 'sensor_array'].includes(customType);
+            
+            // Liste um 'auto_sensor' erweitert
+            const supportedTypes = [
+                'template_sensor', 
+                'mqtt', 
+                'sensor', 
+                'sensor_array',
+                'auto_sensor' // <-- HIER IST DIE KORREKTUR
+            ];
+    
+            return supportedTypes.includes(customType);
         }
         
         return false;
