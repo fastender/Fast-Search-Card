@@ -197,10 +197,518 @@ class MiniSearch {
 
 
 
+// ============================================
+// MINI CHART IMPLEMENTATION (~8KB)
+// ============================================
+class MiniChart {
+    constructor() {
+        this.colors = {
+            primary: '#06D6A0',
+            secondary: '#118AB2',
+            accent: '#FFD23F',
+            danger: '#EF476F',
+            success: '#06D6A0',
+            grid: 'rgba(255,255,255,0.1)',
+            text: 'rgba(255,255,255,0.7)'
+        };
+        
+        this.timeRanges = [
+            { label: '1m', value: 1, unit: 'minute' },
+            { label: '1h', value: 1, unit: 'hour' },
+            { label: '12h', value: 12, unit: 'hour' },
+            { label: '1d', value: 1, unit: 'day' },
+            { label: '7d', value: 7, unit: 'day' }
+        ];
+        
+        this.currentRange = this.timeRanges[2]; // Default: 12h
+    }
+    
+    // Hauptmethode zum Rendern eines Charts
+    render(container, config) {
+        const chartId = `chart-${Date.now()}`;
+        
+        // Chart Container mit Tabs erstellen
+        const chartHTML = `
+            <div class="mini-chart-container" id="${chartId}">
+                <div class="chart-header">
+                    <div class="chart-title">${config.title || 'Chart'}</div>
+                    <div class="chart-time-tabs">
+                        ${this.timeRanges.map((range, i) => `
+                            <button class="time-tab ${i === 2 ? 'active' : ''}" 
+                                    data-range="${range.value}" 
+                                    data-unit="${range.unit}">
+                                ${range.label}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas class="chart-canvas" width="600" height="300"></canvas>
+                    <div class="chart-loading" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+                <div class="chart-legend"></div>
+            </div>
+        `;
+        
+        container.innerHTML = chartHTML;
+        
+        // Canvas Element holen
+        const canvas = container.querySelector('.chart-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Chart initial zeichnen
+        this.drawChart(ctx, config, this.currentRange);
+        
+        // Tab Click Handler
+        container.querySelectorAll('.time-tab').forEach(tab => {
+            tab.addEventListener('click', async (e) => {
+                // Active State updaten
+                container.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Loading State
+                const loading = container.querySelector('.chart-loading');
+                loading.style.display = 'flex';
+                
+                // Neuen Zeitbereich setzen
+                const range = {
+                    value: parseInt(tab.dataset.range),
+                    unit: tab.dataset.unit
+                };
+                
+                // Daten für neuen Zeitbereich holen
+                const newData = await this.fetchDataForRange(config.entity, range);
+                
+                // Chart neu zeichnen
+                this.drawChart(ctx, {...config, data: newData}, range);
+                
+                loading.style.display = 'none';
+            });
+        });
+        
+        return chartId;
+    }
+    
+    // Chart zeichnen (Line/Area)
+    drawChart(ctx, config, timeRange) {
+        const canvas = ctx.canvas;
+        const width = canvas.width;
+        const height = canvas.height;
+        
+        // Canvas clearen
+        ctx.clearRect(0, 0, width, height);
+        
+        // Beispieldaten generieren (später durch echte Daten ersetzen)
+        const data = config.data || this.generateSampleData(timeRange);
+        
+        if (!data || data.length === 0) {
+            this.drawNoData(ctx, width, height);
+            return;
+        }
+        
+        // Skalierung berechnen
+        const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+        const chartWidth = width - padding.left - padding.right;
+        const chartHeight = height - padding.top - padding.bottom;
+        
+        const minValue = Math.min(...data.map(d => d.value));
+        const maxValue = Math.max(...data.map(d => d.value));
+        const valueRange = maxValue - minValue || 1;
+        
+        // Grid zeichnen
+        this.drawGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue);
+        
+        // Chart Type
+        if (config.type === 'area') {
+            this.drawAreaChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
+        } else {
+            this.drawLineChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
+        }
+        
+        // Achsen zeichnen
+        this.drawAxes(ctx, padding, chartWidth, chartHeight, minValue, maxValue, config.unit);
+        
+        // Zeitlabels
+        this.drawTimeLabels(ctx, data, padding, chartWidth, chartHeight, timeRange);
+    }
+    
+    // Line Chart zeichnen
+    drawLineChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config) {
+        ctx.strokeStyle = config.color || this.colors.primary;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        ctx.beginPath();
+        data.forEach((point, i) => {
+            const x = padding.left + (i / (data.length - 1)) * chartWidth;
+            const y = padding.top + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
+            
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.stroke();
+        
+        // Datenpunkte
+        if (data.length <= 50) {
+            this.drawDataPoints(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
+        }
+    }
+    
+    // Area Chart zeichnen
+    drawAreaChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config) {
+        // Gradient erstellen
+        const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
+        const color = config.color || this.colors.primary;
+        gradient.addColorStop(0, this.hexToRgba(color, 0.3));
+        gradient.addColorStop(1, this.hexToRgba(color, 0.02));
+        
+        // Area füllen
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        data.forEach((point, i) => {
+            const x = padding.left + (i / (data.length - 1)) * chartWidth;
+            const y = padding.top + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
+            
+            if (i === 0) {
+                ctx.moveTo(x, padding.top + chartHeight);
+                ctx.lineTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Linie darüber zeichnen
+        this.drawLineChart(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config);
+    }
+    
+    // Datenpunkte zeichnen
+    drawDataPoints(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange, config) {
+        const color = config.color || this.colors.primary;
+        
+        data.forEach((point, i) => {
+            const x = padding.left + (i / (data.length - 1)) * chartWidth;
+            const y = padding.top + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
+            
+            // Outer circle
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Inner circle (white)
+            ctx.fillStyle = '#1a1a1a';
+            ctx.beginPath();
+            ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+    
+    // Grid zeichnen
+    drawGrid(ctx, padding, chartWidth, chartHeight, minValue, maxValue) {
+        ctx.strokeStyle = this.colors.grid;
+        ctx.lineWidth = 0.5;
+        
+        // Horizontale Linien
+        const horizontalLines = 5;
+        for (let i = 0; i <= horizontalLines; i++) {
+            const y = padding.top + (i / horizontalLines) * chartHeight;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, y);
+            ctx.lineTo(padding.left + chartWidth, y);
+            ctx.stroke();
+        }
+        
+        // Vertikale Linien
+        const verticalLines = 6;
+        for (let i = 0; i <= verticalLines; i++) {
+            const x = padding.left + (i / verticalLines) * chartWidth;
+            ctx.beginPath();
+            ctx.moveTo(x, padding.top);
+            ctx.lineTo(x, padding.top + chartHeight);
+            ctx.stroke();
+        }
+    }
+    
+    // Achsen zeichnen
+    drawAxes(ctx, padding, chartWidth, chartHeight, minValue, maxValue, unit = '') {
+        ctx.fillStyle = this.colors.text;
+        ctx.font = '11px system-ui, -apple-system, sans-serif';
+        
+        // Y-Achsen Labels
+        const steps = 5;
+        for (let i = 0; i <= steps; i++) {
+            const value = minValue + (i / steps) * (maxValue - minValue);
+            const y = padding.top + chartHeight - (i / steps) * chartHeight;
+            
+            ctx.textAlign = 'right';
+            ctx.fillText(
+                value.toFixed(1) + (unit ? unit : ''),
+                padding.left - 10,
+                y + 3
+            );
+        }
+    }
+    
+    // Zeit Labels zeichnen
+    drawTimeLabels(ctx, data, padding, chartWidth, chartHeight, timeRange) {
+        ctx.fillStyle = this.colors.text;
+        ctx.font = '10px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        
+        const labels = this.generateTimeLabels(data, timeRange);
+        const labelCount = Math.min(labels.length, 7);
+        const step = Math.floor(labels.length / labelCount);
+        
+        for (let i = 0; i < labels.length; i += step) {
+            const x = padding.left + (i / (labels.length - 1)) * chartWidth;
+            const y = padding.top + chartHeight + 20;
+            ctx.fillText(labels[i], x, y);
+        }
+    }
+    
+    // Keine Daten Anzeige
+    drawNoData(ctx, width, height) {
+        ctx.fillStyle = this.colors.text;
+        ctx.font = '14px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Keine Daten verfügbar', width / 2, height / 2);
+    }
+    
+    // Hilfsfunktionen
+    hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    
+    generateTimeLabels(data, timeRange) {
+        const labels = [];
+        const now = new Date();
+        
+        if (timeRange.unit === 'minute') {
+            // Minuten-Labels
+            for (let i = 0; i < data.length; i++) {
+                const time = new Date(now - (data.length - i) * 60000);
+                labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }));
+            }
+        } else if (timeRange.unit === 'hour') {
+            // Stunden-Labels
+            const hours = timeRange.value === 1 ? 1 : timeRange.value;
+            for (let i = 0; i < data.length; i++) {
+                const time = new Date(now - (data.length - i) * 3600000 * hours / data.length);
+                if (hours <= 12) {
+                    labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }));
+                } else {
+                    labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit' }));
+                }
+            }
+        } else if (timeRange.unit === 'day') {
+            // Tages-Labels
+            for (let i = 0; i < data.length; i++) {
+                const time = new Date(now - (data.length - i) * 86400000 * timeRange.value / data.length);
+                if (timeRange.value === 1) {
+                    labels.push(time.toLocaleTimeString('de-DE', { hour: '2-digit' }));
+                } else {
+                    labels.push(time.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }));
+                }
+            }
+        }
+        
+        return labels;
+    }
+    
+    // Sample Daten generieren (für Tests)
+    generateSampleData(timeRange) {
+        const points = timeRange.unit === 'minute' ? 60 : 
+                      timeRange.unit === 'hour' && timeRange.value === 1 ? 60 :
+                      timeRange.unit === 'hour' && timeRange.value === 12 ? 144 :
+                      timeRange.unit === 'day' && timeRange.value === 1 ? 96 :
+                      168; // 7 days
+        
+        const data = [];
+        const baseValue = 20 + Math.random() * 10;
+        
+        for (let i = 0; i < points; i++) {
+            data.push({
+                timestamp: Date.now() - (points - i) * 60000,
+                value: baseValue + Math.sin(i / 10) * 5 + Math.random() * 2
+            });
+        }
+        
+        return data;
+    }
+    
+    // Echte Daten holen (Home Assistant Integration)
+    async fetchDataForRange(entity, range) {
+        try {
+            // Hier würde die Integration mit Home Assistant History API kommen
+            // Vorerst Sample Daten
+            return this.generateSampleData(range);
+            
+            /* Später:
+            const endTime = new Date();
+            const startTime = new Date();
+            
+            if (range.unit === 'minute') {
+                startTime.setMinutes(startTime.getMinutes() - range.value);
+            } else if (range.unit === 'hour') {
+                startTime.setHours(startTime.getHours() - range.value);
+            } else if (range.unit === 'day') {
+                startTime.setDate(startTime.getDate() - range.value);
+            }
+            
+            const history = await this._hass.callWS({
+                type: 'history/history_during_period',
+                start_time: startTime.toISOString(),
+                end_time: endTime.toISOString(),
+                entity_ids: [entity],
+                minimal_response: true
+            });
+            
+            return this.processHistoryData(history[0]);
+            */
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            return [];
+        }
+    }
+}
+
+// ============================================
+// CHART MANAGER (Integration in fast-search-card)
+// ============================================
+class ChartManager {
+    constructor(shadowRoot) {
+        this.shadowRoot = shadowRoot;
+        this.miniChart = new MiniChart();
+        this.advancedChartsLoaded = false;
+        this.charts = new Map(); // Speichert aktive Charts
+    }
+    
+    // Chart aus Markdown parsen und rendern
+    async renderChartsInAccordion(accordionContent) {
+        // Finde alle Chart-Blöcke im Content
+        const chartBlocks = accordionContent.querySelectorAll('.chart-block');
+        
+        for (const block of chartBlocks) {
+            const config = this.parseChartConfig(block.dataset.config);
+            
+            if (this.isAdvancedChart(config.type)) {
+                await this.loadAdvancedCharts();
+                this.renderAdvancedChart(block, config);
+            } else {
+                // Mini Chart verwenden
+                const chartId = this.miniChart.render(block, config);
+                this.charts.set(chartId, { type: 'mini', config });
+            }
+        }
+    }
+    
+    // Chart Config aus Markdown parsen
+    parseChartConfig(configString) {
+        // Parse YAML-like config from markdown
+        const config = {};
+        const lines = configString.split('\n');
+        
+        lines.forEach(line => {
+            const [key, value] = line.split(':').map(s => s.trim());
+            if (key && value) {
+                config[key] = value;
+            }
+        });
+        
+        return config;
+    }
+    
+    // Prüfen ob Advanced Chart benötigt wird
+    isAdvancedChart(type) {
+        return ['bar', 'pie', 'doughnut', 'radar', 'scatter'].includes(type);
+    }
+    
+    // Advanced Charts (Chart.js) lazy loaden
+    async loadAdvancedCharts() {
+        if (this.advancedChartsLoaded) return;
+        
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
+            script.onload = () => {
+                this.advancedChartsLoaded = true;
+                console.log('✅ Chart.js loaded successfully');
+                resolve();
+            };
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+    
+    // Advanced Chart mit Chart.js rendern
+    renderAdvancedChart(container, config) {
+        const canvas = document.createElement('canvas');
+        container.appendChild(canvas);
+        
+        const chart = new Chart(canvas, {
+            type: config.type,
+            data: {
+                labels: config.labels || [],
+                datasets: [{
+                    label: config.title,
+                    data: config.data || [],
+                    backgroundColor: config.color || '#06D6A0',
+                    borderColor: config.borderColor || '#06D6A0'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: config.showLegend !== 'false'
+                    }
+                }
+            }
+        });
+        
+        this.charts.set(config.id, { type: 'advanced', instance: chart });
+    }
+    
+    // Charts zerstören (Memory Management)
+    destroyCharts() {
+        this.charts.forEach(chart => {
+            if (chart.type === 'advanced' && chart.instance) {
+                chart.instance.destroy();
+            }
+        });
+        this.charts.clear();
+    }
+}
+
+
+
+
+
+
 
 class FastSearchCard extends HTMLElement {
 
 
+
+
+
+
+
+
+    
 
 
     // Dynamische SVG Icons
@@ -349,6 +857,9 @@ class FastSearchCard extends HTMLElement {
         // NEU: Autocomplete State
         this.currentSuggestion = '';
         this.autocompleteTimeout = null;        
+
+        // ChartManager initialisieren
+        this.chartManager = new ChartManager(this.shadowRoot);        
 
         // ✅ SAFETY: Ensure critical methods exist
         setTimeout(() => {
@@ -5364,7 +5875,126 @@ class FastSearchCard extends HTMLElement {
             /* Hidden state for no alerts */
             .alert-slideshow-container.hidden {
                 display: none;
-            }            
+            }         
+
+
+
+            
+            /* Mini Chart Styles */
+            .mini-chart-container {
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 12px;
+                padding: 16px;
+                margin: 12px 0;
+            }
+            
+            .chart-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+            }
+            
+            .chart-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            
+            .chart-time-tabs {
+                display: flex;
+                gap: 4px;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 2px;
+                border-radius: 8px;
+            }
+            
+            .time-tab {
+                padding: 4px 8px;
+                border: none;
+                background: transparent;
+                color: var(--text-secondary);
+                font-size: 11px;
+                font-weight: 500;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .time-tab:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            
+            .time-tab.active {
+                background: var(--accent);
+                color: var(--bg-primary);
+            }
+            
+            .chart-wrapper {
+                position: relative;
+                width: 100%;
+                height: 300px;
+            }
+            
+            .chart-canvas {
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+            
+            .chart-loading {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(0, 0, 0, 0.5);
+                border-radius: 8px;
+            }
+            
+            .spinner {
+                width: 24px;
+                height: 24px;
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                border-top-color: var(--accent);
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+            
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+            
+            .chart-legend {
+                margin-top: 12px;
+                display: flex;
+                gap: 16px;
+                font-size: 11px;
+                color: var(--text-secondary);
+            }
+            
+            .chart-block {
+                min-height: 350px;
+            }
+            
+            /* Responsive */
+            @media (max-width: 768px) {
+                .chart-wrapper {
+                    height: 200px;
+                }
+                
+                .time-tab {
+                    padding: 3px 6px;
+                    font-size: 10px;
+                }
+            }
+
+
+
+            
                                                             
             </style>
 
@@ -13840,11 +14470,61 @@ class FastSearchCard extends HTMLElement {
                         content.classList.add('open');
                         newHeader.classList.add('active');
                         arrow.textContent = '▼';
+                        
+                        // ============================================
+                        // NEU: Charts rendern wenn Accordion geöffnet wird
+                        // ============================================
+                        setTimeout(() => {
+                            this.renderChartsInAccordion(content);
+                        }, 100); // Kleiner Delay für Animation
                     }
                 });
             }
         });
-    }    
+    }
+    
+    // ============================================
+    // NEU: Diese Methoden direkt danach hinzufügen
+    // ============================================
+    renderChartsInAccordion(accordionContent) {
+        // Finde alle Chart-Blöcke in diesem Accordion
+        const chartBlocks = accordionContent.querySelectorAll('.chart-block');
+        
+        chartBlocks.forEach(block => {
+            // Prüfe ob Chart bereits gerendert wurde
+            if (block.querySelector('.mini-chart-container')) {
+                return; // Chart existiert bereits
+            }
+            
+            // Parse Config
+            const configString = decodeURIComponent(block.dataset.config);
+            const config = this.parseChartConfig(configString);
+            
+            // Füge entity_id hinzu wenn vorhanden
+            if (!config.entity && this.currentDetailItem) {
+                config.entity = this.currentDetailItem.entity_id || this.currentDetailItem.id;
+            }
+            
+            // Render Chart
+            this.chartManager.miniChart.render(block, config);
+        });
+    }
+    
+    parseChartConfig(configString) {
+        const config = {};
+        const lines = configString.trim().split('\n');
+        
+        lines.forEach(line => {
+            const colonIndex = line.indexOf(':');
+            if (colonIndex > -1) {
+                const key = line.substring(0, colonIndex).trim();
+                const value = line.substring(colonIndex + 1).trim();
+                config[key] = value;
+            }
+        });
+        
+        return config;
+    }
     
     getCustomInfoHTML(item) {
         const customData = item.custom_data || {};
@@ -13911,9 +14591,20 @@ class FastSearchCard extends HTMLElement {
         
         // Parse Markdown zu HTML
         const html = this.parseMarkdown(markdownContent);
+
+
+        // ============================================
+        // NEU: Chart-Blöcke erkennen und konvertieren
+        // ============================================
+        const chartRegex = /```chart\n([\s\S]*?)```/g;
+        let processedHtml = html.replace(chartRegex, (match, config) => {
+            // Generiere unique ID für jeden Chart
+            const chartId = `chart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            return `<div class="chart-block" data-chart-id="${chartId}" data-config="${encodeURIComponent(config)}"></div>`;
+        });
         
         // Split nach H2 Überschriften für Accordions
-        const sections = this.extractAccordionSections(html);
+        const sections = this.extractAccordionSections(processedHtml); // <- processedHtml statt html
         
         let accordionHTML = `
             <div>
@@ -14376,26 +15067,7 @@ class FastSearchCard extends HTMLElement {
         
 
 
-    setupAccordionListeners() {
-        const accordionHeaders = this.shadowRoot.querySelectorAll('.accordion-header');
-        accordionHeaders.forEach(header => {
-            header.addEventListener('click', () => {
-                const index = header.dataset.accordion;
-                const content = this.shadowRoot.querySelector(`[data-content="${index}"]`);
-                
-                // Toggle
-                const isOpen = content.classList.contains('open');
-                
-                if (isOpen) {
-                    content.classList.remove('open');
-                    header.classList.remove('active');
-                } else {
-                    content.classList.add('open');
-                    header.classList.add('active');
-                }
-            });
-        });
-    }
+    
         
     handleCustomAction(item, action) {
         const customData = item.custom_data || {};
@@ -19357,6 +20029,14 @@ class InfiniteCardSlider {
         this.stopAutoPlay();
         // Remove event listeners would go here if needed
     }
+
+
+
+    
+
+
+
+    
 }
 
 
