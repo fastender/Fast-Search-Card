@@ -439,7 +439,7 @@ class FastSearchCard extends HTMLElement {
         this.autocompleteTimeout = null;        
 
         // ChartManager initialisieren
-        this.miniGraphManager = new MiniGraphManager();
+        this.miniGraphManager = null;
 
         // ✅ SAFETY: Ensure critical methods exist
         setTimeout(() => {
@@ -14061,9 +14061,7 @@ class FastSearchCard extends HTMLElement {
             const header = event.target.closest('.accordion-header');
             if (!header) return;
     
-            // ▼▼▼ DIESE ZEILE HAT GEFEHLT ▼▼▼
             const content = this.shadowRoot.querySelector(`[data-content="${header.dataset.accordion}"]`);
-            
             const arrow = header.querySelector('.accordion-arrow svg');
             if (!content || !arrow) return;
     
@@ -14071,10 +14069,14 @@ class FastSearchCard extends HTMLElement {
             header.classList.toggle('active', isNowOpen);
             arrow.style.transform = isNowOpen ? 'rotate(45deg)' : 'rotate(0deg)';
     
-            if (isNowOpen && this.supportsCharts(this.currentDetailItem) && !content.querySelector('ha-statistics-graph')) {
-                setTimeout(() => {
-                    this.chartManager.renderChartsInAccordion(content, this.currentDetailItem);
-                }, 50);
+            if (isNowOpen && this.supportsCharts(this.currentDetailItem)) {
+                // ▼▼▼ HIER IST DIE FINALE SICHERHEITSPRÜFUNG ▼▼▼
+                // Führe den Code nur aus, wenn der Manager bereits initialisiert wurde.
+                if (this.miniGraphManager) {
+                    this.miniGraphManager.renderCard(content, this.currentDetailItem);
+                } else {
+                    console.error("FEHLER: miniGraphManager wurde noch nicht initialisiert. Das 'hass'-Objekt wurde möglicherweise noch nicht vollständig verarbeitet.");
+                }
             }
         });
     
