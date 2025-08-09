@@ -7917,7 +7917,12 @@ class FastSearchCard extends HTMLElement {
             content += `- **Device Class:** ${state.attributes.device_class}\n`;
         }
         
-        content += `\n*Automatisch erkannt durch Fast Search Card*`;
+        // ==========================================================
+        // ▼▼▼ HIER IST DIE ENTSCHEIDENDE ERGÄNZUNG ▼▼▼
+        // ==========================================================
+        content += `\n## Verlauf\n\n`; 
+        
+        content += `*Automatisch erkannt durch Fast Search Card*`;
         
         return content;
     }
