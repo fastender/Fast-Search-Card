@@ -14068,7 +14068,6 @@ class FastSearchCard extends HTMLElement {
     }
 
     // In der FastSearchCard-Klasse
-    // (Verwenden Sie die optimierte Version aus der vorherigen Antwort)
     setupAccordionListeners() {
         const accordionContainer = this.shadowRoot.querySelector('.accordion-container');
         if (!accordionContainer || accordionContainer.dataset.listenersAttached) {
@@ -14079,12 +14078,17 @@ class FastSearchCard extends HTMLElement {
             const header = event.target.closest('.accordion-header');
             if (!header) return;
     
-            // ... (Logik zum Öffnen/Schließen des Accordions)
-            const isNowOpen = content.classList.toggle('open');
-            // ...
+            // ▼▼▼ DIESE ZEILE HAT GEFEHLT ▼▼▼
+            const content = this.shadowRoot.querySelector(`[data-content="${header.dataset.accordion}"]`);
+            
+            const arrow = header.querySelector('.accordion-arrow svg');
+            if (!content || !arrow) return;
     
-            // DIESER TEIL RUFT DEN CHARTMANAGER AUF
-            if (isNowOpen && this.supportsCharts(this.currentDetailItem)) {
+            const isNowOpen = content.classList.toggle('open');
+            header.classList.toggle('active', isNowOpen);
+            arrow.style.transform = isNowOpen ? 'rotate(45deg)' : 'rotate(0deg)';
+    
+            if (isNowOpen && this.supportsCharts(this.currentDetailItem) && !content.querySelector('ha-statistics-graph')) {
                 setTimeout(() => {
                     this.chartManager.renderChartsInAccordion(content, this.currentDetailItem);
                 }, 50);
