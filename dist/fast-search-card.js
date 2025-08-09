@@ -7176,13 +7176,11 @@ class FastSearchCard extends HTMLElement {
             
             for (let i = 0; i < customMode.data_sources.length; i++) {
                 const dataSource = customMode.data_sources[i];
-                console.log(`📊 Processing data source ${i + 1}/${customMode.data_sources.length}: ${dataSource.type}`);
                 
                 try {
                     const items = await this.parseSingleDataSource(dataSource, i);
                     if (items && Array.isArray(items)) {
                         allCustomItems = [...allCustomItems, ...items];
-                        console.log(`✅ Loaded ${items.length} items from ${dataSource.entity || dataSource.type}`);
                     } else {
                         console.warn(`⚠️ No items returned from data source ${i + 1}`);
                     }
@@ -7252,7 +7250,6 @@ class FastSearchCard extends HTMLElement {
                 if (savedData) {
                     const parsedData = JSON.parse(savedData);
                     content = parsedData.content || content; // Verwende gespeicherten Content
-                    console.log(`✅ Loaded saved content for: ${item.name}`);
                 }
             } catch (error) {
                 console.warn(`⚠️ Could not load saved content for ${item.name}:`, error);
@@ -19213,13 +19210,10 @@ class FastSearchCard extends HTMLElement {
             const deviceClass = sensorState.attributes.device_class;
             const unit = sensorState.attributes.unit_of_measurement;
             
-            console.log(`🔍 Auto-detect: device_class="${deviceClass}", unit="${unit}"`);
-            
             // Nur automatische Bereiche setzen, wenn nicht explizit konfiguriert
             if (ringConfig.min === undefined || ringConfig.max === undefined || !ringConfig.colour) {
                 const autoRanges = this.getAutoRangesForSensor(deviceClass, unit);
                 if (autoRanges) {
-                    console.log(`✅ Auto-ranges found:`, autoRanges);
                     
                     // Nur setzen wenn nicht explizit konfiguriert
                     if (ringConfig.min === undefined) processedConfig.min = autoRanges.min;
@@ -19775,7 +19769,6 @@ class FastSearchCard extends HTMLElement {
         }
         
         // Kein Match gefunden
-        console.log(`❌ No auto-range found for device_class="${deviceClass}", unit="${unit}"`);
         return null;
     }
 
