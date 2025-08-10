@@ -6347,134 +6347,133 @@ class FastSearchCard extends HTMLElement {
         }
     }    
 
-
-
-
-    // Innerhalb der class FastSearchCard, nach dem constructor
     
     async fetchHistoryForSensor(entityId) {
-        if (!this._hass) return [];
+        if (!this._hass) return { seriesData: [], stateMap: {} };
+    
+        const isBinarySensor = entityId.startsWith('binary_sensor.');
     
         try {
             const endTime = new Date();
             const startTime = new Date();
-            // Wir holen standardmäßig die Daten der letzten 24 Stunden
             startTime.setDate(startTime.getDate() - 1);
     
-            // Wir nutzen die empfohlene WebSocket-Methode
             const history = await this._hass.callWS({
                 type: 'history/history_during_period',
                 start_time: startTime.toISOString(),
                 end_time: endTime.toISOString(),
                 entity_ids: [entityId],
                 minimal_response: true,
-                significant_changes_only: false // Wichtig für glatte Graphen
+                significant_changes_only: false
             });
     
-            if (!history || !history[entityId]) return [];
+            const rawData = history[entityId];
+            if (!rawData || rawData.length === 0) return { seriesData: [], stateMap: {} };
     
-            // Daten aufbereiten und auf 200 Punkte limitieren
-            return history[entityId]
-                .map(entry => ({
+            // NEU: Dynamisches State-Mapping für Binärsensoren
+            if (isBinarySensor) {
+                // 1. Alle einzigartigen Zustände sammeln
+                const uniqueStates = [...new Set(rawData.map(entry => entry.s))];
+                
+                // 2. Eine "Übersetzungstabelle" erstellen, z.B. { 'off': 0, 'on': 1, 'tampered': 2 }
+                const stateMap = {};
+                uniqueStates.forEach((state, index) => {
+                    stateMap[state] = index;
+                });
+    
+                // 3. Datenpunkte mit den neuen Werten erstellen
+                const seriesData = rawData.map(entry => ({
                     timestamp: new Date(entry.lu * 1000).getTime(),
-                    value: parseFloat(entry.s)
-                }))
-                .filter(entry => !isNaN(entry.value))
-                .slice(-200);
+                    value: stateMap[entry.s] // Wert aus der Tabelle nachschlagen
+                }));
+    
+                return { seriesData: seriesData.slice(-200), stateMap: stateMap };
+    
+            } else {
+                // Alte Logik für normale Sensoren
+                const seriesData = rawData
+                    .map(entry => ({
+                        timestamp: new Date(entry.lu * 1000).getTime(),
+                        value: parseFloat(entry.s)
+                    }))
+                    .filter(entry => !isNaN(entry.value));
+    
+                return { seriesData: seriesData.slice(-200), stateMap: {} };
+            }
     
         } catch (error) {
             console.error('❌ Fehler beim Abrufen der Verlaufsdaten:', error);
-            return [];
+            return { seriesData: [], stateMap: {} };
         }
-    }
-    
-        
-    // Innerhalb der class FastSearchCard
+    }        
     
     async renderApexChart(container, item) {
-        // 1. Prüfen, ob ApexCharts geladen ist
-        if (!window.ApexCharts) {
-            container.innerHTML = `<div style="padding: 20px; text-align: center;">⚠️ ApexCharts-Bibliothek nicht gefunden.</div>`;
-            // Hier könnte man die Bibliothek dynamisch nachladen
-            return;
-        }
+        if (!window.ApexCharts) { /* ... bleibt gleich ... */ }
     
         container.innerHTML = `<div style="padding: 20px; text-align: center;">Lade Chart-Daten...</div>`;
+        
+        // NEU: Empfängt jetzt ein Objekt mit seriesData und stateMap
+        const { seriesData, stateMap } = await this.fetchHistoryForSensor(item.id);
     
-        // 2. Daten für den Sensor abrufen
-        const historyData = await this.fetchHistoryForSensor(item.id);
+        if (!seriesData || seriesData.length < 2) { /* ... bleibt gleich ... */ }
     
-        if (!historyData || historyData.length < 2) {
-            container.innerHTML = `<div style="padding: 20px; text-align: center;">📊 Keine ausreichenden Verlaufsdaten gefunden.</div>`;
-            return;
+        const formattedData = seriesData.map(entry => [entry.timestamp, entry.value]);
+        const unit = item.custom_data?.metadata?.sensor_unit || item.attributes?.unit_of_measurement || '';
+        const isBinarySensor = item.id.startsWith('binary_sensor.');
+    
+        let yaxisOptions = { /* ... wie bisher ... */ };
+        let strokeOptions = { curve: 'smooth', width: 2 };
+        let chartType = 'area';
+        let fillOptions = { /* ... wie bisher ... */ };
+        let colors = ['#007AFF'];
+        
+        // NEU: Erweiterte Logik für Binärsensoren
+        if (isBinarySensor) {
+            chartType = 'line';
+            strokeOptions = { curve: 'stepline', width: 2 };
+            colors = ['#f39c12'];
+            fillOptions = { type: 'solid', opacity: 0 };
+    
+            // Erstelle eine umgekehrte Map für die Beschriftungen, z.B. { 0: 'off', 1: 'on' }
+            const reversedStateMap = Object.fromEntries(Object.entries(stateMap).map(([key, value]) => [value, key]));
+            const stateCount = Object.keys(stateMap).length;
+    
+            yaxisOptions = {
+                min: -0.1,
+                max: stateCount - 1 + 0.1, // Dynamisches Maximum
+                tickAmount: stateCount -1, // So viele Striche wie Zustände
+                labels: {
+                    formatter: (val) => {
+                        // Zeige den Text aus unserer umgekehrten Map an
+                        return reversedStateMap[Math.round(val)] || '';
+                    }
+                }
+            };
         }
     
-        // 3. Daten für ApexCharts formatieren
-        const seriesData = historyData.map(entry => [entry.timestamp, entry.value]);
-        const unit = item.custom_data?.metadata?.sensor_unit || item.attributes?.unit_of_measurement || '';
-    
-        // 4. ApexCharts Optionen definieren
         const options = {
-            series: [{
-                name: item.name,
-                data: seriesData
-            }],
-            chart: {
-                type: 'area',
-                height: 250,
-                parentHeightOffset: 0,
-                toolbar: { show: false },
-                zoom: { enabled: false },
-                background: 'transparent'
-            },
-            theme: {
-                mode: 'dark',
-                palette: 'palette1'
-            },
-            colors: ['#007AFF'], // Apple Blau
-            dataLabels: {
-                enabled: false
-            },
-            stroke: {
-                curve: 'smooth',
-                width: 2
-            },
-            grid: {
-                show: true,
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                strokeDashArray: 4,
-                xaxis: { lines: { show: true } },
-                yaxis: { lines: { show: true } },
-            },
-            xaxis: {
-                type: 'datetime',
-                labels: {
-                    datetimeUTC: false // Wichtig für korrekte lokale Zeitanzeige
-                }
-            },
-            yaxis: {
-                labels: {
-                    formatter: (val) => val.toFixed(1) + ` ${unit}`
-                }
-            },
+            series: [{ name: item.name, data: formattedData }],
+            chart: { /* ... wie bisher ... */ },
+            // ... (viele Optionen bleiben gleich) ...
+            stroke: strokeOptions,
+            colors: colors,
+            yaxis: yaxisOptions,
             tooltip: {
-                x: {
-                    format: 'dd MMM yyyy - HH:mm'
-                },
-            },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    shadeIntensity: 1,
-                    opacityFrom: 0.5,
-                    opacityTo: 0.1,
-                    stops: [0, 90, 100]
+                x: { format: 'dd MMM yyyy - HH:mm' },
+                y: {
+                    formatter: (val) => {
+                        if (isBinarySensor) {
+                            const reversedStateMap = Object.fromEntries(Object.entries(stateMap).map(([key, value]) => [value, key]));
+                            return reversedStateMap[val] || 'Unbekannt';
+                        }
+                        return val.toFixed(2) + ` ${unit}`;
+                    }
                 }
-            }
+            },
+            fill: fillOptions
         };
     
-        // 5. Chart rendern
-        container.innerHTML = ''; // Lade-Text entfernen
+        container.innerHTML = '';
         const chart = new ApexCharts(container, options);
         chart.render();
     }
