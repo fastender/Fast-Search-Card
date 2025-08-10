@@ -7429,14 +7429,9 @@ class FastSearchCard extends HTMLElement {
             content += `- **Device Class:** ${state.attributes.device_class}\n`;
         }
     
-        // ==========================================================
-        // ▼▼▼ HIER IST DIE KORREKTUR ▼▼▼
-        // ==========================================================
-        // Text zu "Details" hinzugefügt und aus dem globalen Bereich entfernt
         content += `\n*Automatisch erkannt durch Fast Search Card*\n\n`;
     
-        // Der "Verlauf"-Abschnitt ist jetzt garantiert leer
-        content += `## Verlauf\n\n`; 
+        // Die Zeile "## Verlauf" wurde entfernt.
         
         return content;
     }
@@ -14003,30 +13998,36 @@ class FastSearchCard extends HTMLElement {
             return; // Verhindert Fehler und doppelte Listener
         }
     
-        // Wir nutzen eine einzige Event-Listener-Funktion für alle Klicks
         accordionContainer.addEventListener('click', (event) => {
             const header = event.target.closest('.accordion-header');
-            if (!header) return; // Klick war nicht auf einem Header
-    
+            if (!header) return;
+        
             const content = this.shadowRoot.querySelector(`[data-content="${header.dataset.accordion}"]`);
             const arrow = header.querySelector('.accordion-arrow svg');
             if (!content || !arrow) return;
-    
-            // Toggle den 'open'-Zustand und hole den neuen Zustand
+        
             const isNowOpen = content.classList.toggle('open');
             header.classList.toggle('active', isNowOpen);
             arrow.style.transform = isNowOpen ? 'rotate(45deg)' : 'rotate(0deg)';
-    
-            // Neuer Code in setupAccordionListeners()
-            if (isNowOpen && this.supportsCharts(this.currentDetailItem) && !content.querySelector('.apexcharts-canvas')) {
-                const chartContainer = document.createElement('div');
-                chartContainer.className = 'chart-block'; // Du kannst die Klasse behalten für Styling
-                content.insertBefore(chartContainer, content.firstChild);
-                
-                // Rufe unsere neue Methode auf
-                this.renderApexChart(chartContainer, this.currentDetailItem);
-            }
+        
+            // NEU: Den Titel des angeklickten Headers auslesen
+            const headerTitle = header.querySelector('span').textContent;
             
+            // NEU: Prüfen, ob der Titel "Aktueller Wert" ist
+            if (headerTitle === 'Aktueller Wert') {
+            
+                // Chart-Logik (wird jetzt NUR für dieses Accordion ausgeführt)
+                if (isNowOpen && this.supportsCharts(this.currentDetailItem) && !content.querySelector('.apexcharts-canvas')) {
+                    const chartContainer = document.createElement('div');
+                    chartContainer.className = 'chart-block';
+                    
+                    // GEÄNDERT: Fügt den Chart am Ende des Contents ein, also UNTER dem Text.
+                    content.appendChild(chartContainer);
+                    
+                    // Rufe unsere neue Methode auf
+                    this.renderApexChart(chartContainer, this.currentDetailItem);
+                }
+            }
         });
     
         // Markiere den Container, damit der Listener nicht erneut hinzugefügt wird
