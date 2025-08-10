@@ -6368,41 +6368,19 @@ class FastSearchCard extends HTMLElement {
             });
     
             const rawData = history[entityId];
-            console.log(`RAW HISTORY FÜR ${entityId}:`, rawData); // Wichtiger Debug-Log
+            console.log(`RAW HISTORY FÜR ${entityId}:`, rawData);
     
             if (!rawData || rawData.length === 0) return [];
     
-            const isBinarySensor = entityId.startsWith('binary_sensor.');
-    
-            return rawData
-                .map(entry => {
-                    let value;
-                    const state = entry.s; // Der Zustandswert als String
-    
-                    if (isBinarySensor) {
-                        value = state === 'on' ? 1 : 0;
-                    } else {
-                        // ROBUSTE PARSING-LOGIK:
-                        // Versucht, eine Zahl aus dem String zu extrahieren,
-                        // auch wenn Text dabei ist (z.B. "24.9 °C" -> 24.9)
-                        const parsed = parseFloat(state);
-                        value = isNaN(parsed) ? null : parsed;
-                    }
-    
-                    return {
-                        timestamp: new Date(entry.lu * 1000).getTime(),
-                        value: value
-                    };
-                })
-                // WICHTIG: Filtere alle Einträge heraus, bei denen keine gültige Zahl gefunden wurde
-                .filter(entry => entry.value !== null)
-                .slice(-200);
+            // WICHTIG: Gebe IMMER das gleiche Format zurück
+            // Die renderApexChart Methode entscheidet, was damit gemacht wird
+            return rawData;
     
         } catch (error) {
             console.error(`❌ Fehler beim Abrufen der Verlaufsdaten für ${entityId}:`, error);
             return [];
         }
-    }        
+    }      
 
     
     
@@ -6465,6 +6443,33 @@ class FastSearchCard extends HTMLElement {
         console.log('🔍 Gefundene Zustände:', Array.from(states));
         return states;
     }
+
+    
+    /**
+     * DEBUG HELPER: Zeigt das Datenformat in der Konsole
+     */
+    debugDataFormat(entityId) {
+        this.fetchHistoryForSensor(entityId).then(data => {
+            console.group(`📊 Debug Data Format für ${entityId}`);
+            console.log('Anzahl Einträge:', data.length);
+            console.log('Erste 3 Einträge:', data.slice(0, 3));
+            console.log('Letzte 3 Einträge:', data.slice(-3));
+            
+            // Prüfe Format
+            if (data.length > 0) {
+                const first = data[0];
+                console.log('Datenstruktur:', Object.keys(first));
+                console.log('Hat "s" property?', 's' in first);
+                console.log('Hat "lu" property?', 'lu' in first);
+            }
+            
+            // Teste extractAllStatesFromHistory
+            const states = this.extractAllStatesFromHistory(data);
+            console.log('Extrahierte Zustände:', Array.from(states));
+            
+            console.groupEnd();
+        });
+    }    
     
     /**
      * Gibt die Farbe für einen bestimmten Zustand zurück
@@ -7505,29 +7510,24 @@ class FastSearchCard extends HTMLElement {
     }
     
     /**
-     * Rendert ein Line/Area Chart für normale Sensoren
-     * @param {HTMLElement} container - Container Element
-     * @param {Object} item - Item-Objekt
-     * @param {Array} historyData - History-Daten
-     * @param {string} unit - Einheit des Sensors
+     * NEUE METHODE: Rendert ein Line/Area Chart für normale Sensoren
+     * Diese Methode übernimmt die numerische Filterung
      */
     async renderLineChart(container, item, historyData, unit) {
-        // Transformiere Daten für Line Chart (bestehende Logik)
+        // Transformiere Daten für Line Chart - HIER findet die Filterung statt
         const seriesData = historyData
             .map(entry => {
-                let value;
                 const state = entry.s;
-                
                 // Versuche, eine Zahl aus dem String zu extrahieren
                 const parsed = parseFloat(state);
-                value = isNaN(parsed) ? null : parsed;
+                const value = isNaN(parsed) ? null : parsed;
                 
                 return {
                     timestamp: new Date(entry.lu * 1000).getTime(),
                     value: value
                 };
             })
-            .filter(entry => entry.value !== null)
+            .filter(entry => entry.value !== null)  // Filtere NUR hier für normale Sensoren
             .map(entry => [entry.timestamp, entry.value]);
         
         if (seriesData.length === 0) {
