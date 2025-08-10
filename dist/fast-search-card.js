@@ -6452,25 +6452,95 @@ class FastSearchCard extends HTMLElement {
         }
     
         const options = {
-            series: [{ name: item.name, data: formattedData }],
-            chart: { /* ... wie bisher ... */ },
-            // ... (viele Optionen bleiben gleich) ...
-            stroke: strokeOptions,
-            colors: colors,
-            yaxis: yaxisOptions,
-            tooltip: {
-                x: { format: 'dd MMM yyyy - HH:mm' },
-                y: {
-                    formatter: (val) => {
-                        if (isBinarySensor) {
-                            const reversedStateMap = Object.fromEntries(Object.entries(stateMap).map(([key, value]) => [value, key]));
-                            return reversedStateMap[val] || 'Unbekannt';
-                        }
-                        return val.toFixed(2) + ` ${unit}`;
+            series: [{
+                name: item.name,
+                data: seriesData
+            }],
+            chart: {
+                type: 'area',
+                height: 250,
+                parentHeightOffset: 0,
+                toolbar: {
+                    show: true, // Behalten wir bei, wie du sagtest
+                    tools: {
+                        download: false, // Download-Button entfernen
+                        selection: true,
+                        zoom: true,
+                        zoomin: true,
+                        zoomout: true,
+                        pan: true,
+                        reset: true
+                    }
+                },
+                zoom: { enabled: false },
+                background: 'transparent'
+            },
+            theme: {
+                mode: 'dark', // Grund-Theme bleibt dunkel
+            },
+            colors: ['#007AFF'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 2
+            },
+            grid: {
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                strokeDashArray: 4,
+            },
+            xaxis: {
+                type: 'datetime',
+                labels: {
+                    datetimeUTC: false,
+                    // NEU: Stellt sicher, dass die Zeitangaben korrekt formatiert sind
+                    formatter: function(value, timestamp) {
+                        return new Date(timestamp).toLocaleTimeString('de-DE', { hour: '2-digit', minute:'2-digit' });
+                    },
+                    // NEU: Macht die X-Achsen-Beschriftung weiß
+                    style: {
+                        colors: 'rgba(255, 255, 255, 0.7)'
+                    }
+                },
+                tooltip: {
+                    enabled: false // Verhindert den Standard-Tooltip der Achse
+                }
+            },
+            yaxis: {
+                labels: {
+                    formatter: (val) => val.toFixed(1) + ` ${unit}`,
+                    // NEU: Macht die Y-Achsen-Beschriftung weiß
+                    style: {
+                        colors: 'rgba(255, 255, 255, 0.7)'
                     }
                 }
             },
-            fill: fillOptions
+            tooltip: {
+                // NEU: Erzwingt das dunkle Theme für den Tooltip
+                theme: 'dark', 
+                x: {
+                    // GEÄNDERT: Korrektes Datums- und Zeitformat für den Tooltip
+                    formatter: function(value) {
+                        return new Date(value).toLocaleString('de-DE', {
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            year: 'numeric', 
+                            hour: '2-digit', 
+                            minute: '2-digit'
+                        }) + ' Uhr';
+                    }
+                },
+            },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.5,
+                    opacityTo: 0.1,
+                    stops: [0, 90, 100]
+                }
+            }
         };
     
         container.innerHTML = '';
