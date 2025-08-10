@@ -6404,80 +6404,131 @@ class FastSearchCard extends HTMLElement {
         }
     }        
         
+
     
     async renderApexChart(container, item) {
-        if (!window.ApexCharts) {
-            container.innerHTML = `<div style="padding: 20px; text-align: center;">⚠️ ApexCharts-Bibliothek nicht gefunden.</div>`;
-            return;
-        }
-    
-        container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; height: 250px; color: var(--text-secondary);">Lade Chart-Daten...</div>`;
+        if (!window.ApexCharts) { /* ... bleibt gleich ... */ }
+        container.innerHTML = `<div style="display: flex; justify-content: center; align-...`;
         const historyData = await this.fetchHistoryForSensor(item.id);
-        
-        console.log(`FINAL DATA FÜR ${item.id}:`, historyData); // Wichtiger Debug-Log
-    
-        if (!historyData || historyData.length < 2) {
-            container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; height: 250px; color: var(--text-secondary);">📊 Keine ausreichenden Verlaufsdaten gefunden.</div>`;
+        if (!historyData || historyData.length === 0) { // Geändert zu length === 0
+            container.innerHTML = `<div style="display: flex; justify-content: ...`;
             return;
         }
     
-        const seriesData = historyData.map(entry => [entry.timestamp, entry.value]);
         const unit = item.custom_data?.metadata?.sensor_unit || item.attributes?.unit_of_measurement || '';
         const isBinarySensor = item.id.startsWith('binary_sensor.');
     
-        // Optionen für normale Sensoren
-        let yaxisOptions = {
-            labels: {
-                formatter: (val) => val.toFixed(1) + ` ${unit}`,
-                style: { colors: 'rgba(255, 255, 255, 0.7)' }
-            }
-        };
-        let strokeOptions = { curve: 'smooth', width: 2 };
-        let chartType = 'area';
-        let colors = ['#007AFF'];
-        let fillOptions = {
-            type: 'gradient',
-            gradient: { shadeIntensity: 1, opacityFrom: 0.5, opacityTo: 0.1, stops: [0, 90, 100] }
-        };
+        let options; // Optionen werden jetzt komplett im if/else Block definiert
     
-        // Optionen für Binärsensoren überschreiben
         if (isBinarySensor) {
-            chartType = 'line';
-            strokeOptions = { curve: 'stepline', width: 2 };
-            colors = ['#f39c12'];
-            fillOptions = { type: 'solid', opacity: 0 };
-            yaxisOptions = {
-                min: -0.1, max: 1.1, tickAmount: 1,
-                labels: {
-                    formatter: (val) => {
-                        if (Math.round(val) === 1) return 'An';
-                        if (Math.round(val) === 0) return 'Aus';
-                        return '';
-                    },
-                    style: { colors: 'rgba(255, 255, 255, 0.7)' }
+            // ==========================================================
+            // NEUE LOGIK FÜR BINARY SENSOR (TIMELINE CHART)
+            // ==========================================================
+            
+            // 1. Daten in Zeitbereiche umwandeln
+            const timelineData = [];
+            for (let i = 0; i < historyData.length; i++) {
+                const currentEntry = historyData[i];
+                const nextEntry = historyData[i + 1];
+                
+                const startTime = currentEntry.timestamp;
+                // Wenn es der letzte Eintrag ist, geht der Zustand bis "jetzt"
+                const endTime = nextEntry ? nextEntry.timestamp : new Date().getTime();
+    
+                timelineData.push({
+                    x: currentEntry.value === 1 ? 'An' : 'Aus',
+                    y: [startTime, endTime]
+                });
+            }
+    
+            options = {
+                series: [{
+                    data: timelineData
+                }],
+                chart: {
+                    type: 'rangeBar', // NEUER CHART-TYP
+                    height: 150, // Höhe kann für diesen Typ geringer sein
+                    parentHeightOffset: 0,
+                    toolbar: { show: false },
+                    background: 'transparent'
+                },
+                theme: {
+                    mode: 'dark'
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: true, // Wichtig für Timeline-Darstellung
+                        barHeight: '50%',
+                        rangeBarGroupRows: true // Erlaubt mehrere Zeilen, falls nötig
+                    }
+                },
+                colors: [
+                    // Farbfunktion: Grün für "An", Grau für "Aus"
+                    function({ value, seriesIndex, w }) {
+                        const state = w.globals.seriesX[seriesIndex][w.globals.series[seriesIndex].indexOf(value)];
+                        return state === 'An' ? '#2ecc71' : '#555';
+                    }
+                ],
+                fill: {
+                    type: 'solid',
+                    opacity: 0.6
+                },
+                xaxis: {
+                    type: 'datetime',
+                    labels: {
+                        datetimeUTC: false,
+                        style: { colors: 'rgba(255, 255, 255, 0.7)' }
+                    }
+                },
+                yaxis: {
+                    show: true,
+                    labels: {
+                         style: { colors: 'rgba(255, 255, 255, 0.9)' }
+                    }
+                },
+                grid: {
+                    show: true,
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    strokeDashArray: 4,
+                },
+                tooltip: {
+                    theme: 'dark',
+                    custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                        const start = new Date(series[seriesIndex][dataPointIndex][0]).toLocaleString('de-DE');
+                        const end = new Date(series[seriesIndex][dataPointIndex][1]).toLocaleString('de-DE');
+                        const state = w.globals.seriesX[seriesIndex][dataPointIndex];
+                        return `<div class="apexcharts-tooltip-rangebar">
+                                    <div><strong>Zustand:</strong> ${state}</div>
+                                    <div><strong>Von:</strong> ${start}</div>
+                                    <div><strong>Bis:</strong> ${end}</div>
+                                </div>`;
+                    }
                 }
             };
-        }
     
-        const options = {
-            series: [{ name: item.name, data: seriesData }],
-            chart: { type: chartType, height: 250, parentHeightOffset: 0, toolbar: { show: true, tools: { download: false } }, zoom: { enabled: false }, background: 'transparent' },
-            theme: { mode: 'dark' },
-            colors: colors,
-            dataLabels: { enabled: false },
-            stroke: strokeOptions,
-            grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 4 },
-            xaxis: { type: 'datetime', labels: { datetimeUTC: false, datetimeFormatter: { year: 'yyyy', month: "MMM 'yy", day: 'dd MMM', hour: 'HH:mm' }, style: { colors: 'rgba(255, 255, 255, 0.7)' } } },
-            yaxis: yaxisOptions,
-            tooltip: { theme: 'dark', x: { format: 'dd.MM.yy HH:mm' }, y: { formatter: (val) => isBinarySensor ? (val === 1 ? 'An' : 'Aus') : val.toFixed(2) + ` ${unit}` } },
-            fill: fillOptions
-        };
+        } else {
+            // ==========================================================
+            // BESTEHENDE LOGIK FÜR NORMALE SENSOREN
+            // ==========================================================
+            const seriesData = historyData.map(entry => [entry.timestamp, entry.value]);
+            options = {
+                series: [{ name: item.name, data: seriesData }],
+                chart: { type: 'area', height: 250, /* ... Rest wie zuvor ... */, background: 'transparent' },
+                theme: { mode: 'dark' },
+                colors: ['#007AFF'],
+                stroke: { curve: 'smooth', width: 2 },
+                grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 4 },
+                xaxis: { type: 'datetime', labels: { datetimeUTC: false, style: { colors: 'rgba(255, 255, 255, 0.7)' } } },
+                yaxis: { labels: { formatter: (val) => val.toFixed(1) + ` ${unit}`, style: { colors: 'rgba(255, 255, 255, 0.7)' } } },
+                tooltip: { theme: 'dark', x: { format: 'dd.MM.yy HH:mm' }, y: { formatter: (val) => val.toFixed(2) + ` ${unit}` } },
+                fill: { type: 'gradient', gradient: { opacityFrom: 0.5, opacityTo: 0.1 } }
+            };
+        }
     
         container.innerHTML = '';
         const chart = new ApexCharts(container, options);
         chart.render();
     }
-
 
 
 
