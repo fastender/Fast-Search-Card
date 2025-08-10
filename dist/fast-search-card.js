@@ -380,7 +380,7 @@ class FastSearchCard extends HTMLElement {
             }
         }, 2000); // Wir warten 2 Sekunden, um sicherzugehen, dass alles in Lovelace geladen wurde.
         
-
+         this.generatedColorCache = new Map();
         
         // ✅ SAFETY: Ensure critical methods exist
         setTimeout(() => {
@@ -6403,8 +6403,859 @@ class FastSearchCard extends HTMLElement {
             return [];
         }
     }        
-        
 
+    
+    
+    
+    /**
+     * Generiert eine deterministische Farbe basierend auf einem String
+     * @param {string} str - Input string für Farbgenerierung
+     * @returns {string} - Hex-Farbe
+     */
+    generateColorFromString(str) {
+        // Prüfe Cache
+        if (this.generatedColorCache.has(str)) {
+            return this.generatedColorCache.get(str);
+        }
+        
+        // Simple hash function
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        
+        // Generiere HSL-Farbe für bessere Kontrolle
+        const hue = Math.abs(hash % 360);
+        const saturation = 65 + (Math.abs(hash >> 8) % 20); // 65-85%
+        const lightness = 45 + (Math.abs(hash >> 16) % 15);  // 45-60%
+        
+        // Konvertiere HSL zu Hex
+        const hslToHex = (h, s, l) => {
+            l /= 100;
+            const a = s * Math.min(l, 1 - l) / 100;
+            const f = n => {
+                const k = (n + h / 30) % 12;
+                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                return Math.round(255 * color).toString(16).padStart(2, '0');
+            };
+            return `#${f(0)}${f(8)}${f(4)}`;
+        };
+        
+        const color = hslToHex(hue, saturation, lightness);
+        this.generatedColorCache.set(str, color);
+        
+        console.log(`🎨 Generierte Farbe für "${str}": ${color}`);
+        return color;
+    }
+    
+    /**
+     * Ermittelt alle möglichen Zustände eines Binary-Sensors aus den History-Daten
+     * @param {Array} historyData - Raw history data from Home Assistant
+     * @returns {Set} - Alle gefundenen Zustände
+     */
+    extractAllStatesFromHistory(historyData) {
+        const states = new Set();
+        
+        historyData.forEach(entry => {
+            if (entry.s) {  // entry.s ist der state
+                states.add(entry.s);
+            }
+        });
+        
+        console.log('🔍 Gefundene Zustände:', Array.from(states));
+        return states;
+    }
+    
+    /**
+     * Gibt die Farbe für einen bestimmten Zustand zurück
+     * @param {string} state - Der Zustand
+     * @param {string} deviceClass - Die device_class des Sensors
+     * @returns {string} - Hex-Farbe für den Zustand
+     */
+    getStateColor(state, deviceClass = null) {
+        // Farbschema für verschiedene Zustände
+        const stateColors = {
+            // Positive/Aktive Zustände - Blau/Grün Töne
+            'on': '#22c55e',        // Grün
+            'open': '#3b82f6',      // Blau
+            'detected': '#06b6d4',  // Cyan
+            'home': '#10b981',      // Smaragd
+            'connected': '#22c55e', // Grün
+            'active': '#22c55e',    // Grün
+            'present': '#10b981',   // Smaragd
+            
+            // Negative/Inaktive Zustände - Grau
+            'off': '#64748b',       // Grau
+            'closed': '#64748b',    // Grau
+            'clear': '#64748b',     // Grau
+            'not_home': '#94a3b8',  // Hellgrau
+            'away': '#94a3b8',      // Hellgrau
+            'disconnected': '#64748b', // Grau
+            'inactive': '#64748b',  // Grau
+            'absent': '#94a3b8',    // Hellgrau
+            
+            // Problematische Zustände - Rot/Orange
+            'unavailable': '#ef4444',  // Rot
+            'unknown': '#f97316',      // Orange
+            'error': '#dc2626',        // Dunkelrot
+            'problem': '#ef4444',      // Rot
+            'warning': '#f59e0b',      // Amber
+            'alert': '#ef4444',        // Rot
+            
+            // Spezielle Zustände
+            'idle': '#a78bfa',         // Lila
+            'pending': '#facc15',      // Gelb
+            'locked': '#dc2626',       // Rot
+            'unlocked': '#22c55e',     // Grün
+            'jammed': '#dc2626',       // Rot
+            'armed': '#dc2626',        // Rot
+            'disarmed': '#22c55e',     // Grün
+            'triggered': '#ef4444',    // Rot
+            'armed_home': '#f97316',   // Orange
+            'armed_away': '#dc2626',   // Dunkelrot
+            'armed_night': '#9333ea',  // Lila
+            'armed_vacation': '#7c3aed', // Violett
+            'armed_custom_bypass': '#a78bfa', // Hellila
+            
+            // Zusätzliche Zustände
+            'true': '#22c55e',         // Grün
+            'false': '#64748b',        // Grau
+            'yes': '#22c55e',          // Grün
+            'no': '#64748b',           // Grau
+            'above': '#f97316',        // Orange
+            'below': '#3b82f6',        // Blau
+            'normal': '#22c55e',       // Grün
+        };
+        
+        // Device-class spezifische Überschreibungen
+        const deviceClassOverrides = {
+            // Bewegung/Präsenz
+            'motion': {
+                'on': '#3b82f6',   // Blau für Bewegung
+                'off': '#64748b'   // Grau für keine Bewegung
+            },
+            'occupancy': {
+                'on': '#3b82f6',   // Blau
+                'occupied': '#3b82f6',
+                'off': '#64748b',
+                'clear': '#64748b'
+            },
+            'presence': {
+                'home': '#22c55e',
+                'not_home': '#94a3b8',
+                'on': '#22c55e',
+                'off': '#94a3b8'
+            },
+            
+            // Öffnungen (Sicherheitsrelevant)
+            'door': {
+                'on': '#f97316',   // Orange für offen (Warnung)
+                'off': '#22c55e'   // Grün für geschlossen (sicher)
+            },
+            'garage_door': {
+                'open': '#f97316',
+                'closed': '#22c55e',
+                'opening': '#facc15',
+                'closing': '#facc15'
+            },
+            'window': {
+                'on': '#f97316',
+                'off': '#22c55e'
+            },
+            'opening': {
+                'on': '#f97316',
+                'off': '#22c55e'
+            },
+            'lock': {
+                'locked': '#22c55e',
+                'unlocked': '#f97316',
+                'jammed': '#dc2626',
+                'locking': '#facc15',
+                'unlocking': '#facc15'
+            },
+            
+            // Sicherheit
+            'safety': {
+                'on': '#dc2626',   // Rot für Gefahr
+                'off': '#22c55e'   // Grün für sicher
+            },
+            'smoke': {
+                'on': '#dc2626',   // Rot für Rauch erkannt
+                'off': '#22c55e'
+            },
+            'gas': {
+                'on': '#dc2626',   // Rot für Gas erkannt
+                'off': '#22c55e'
+            },
+            'carbon_monoxide': {
+                'on': '#dc2626',
+                'off': '#22c55e'
+            },
+            'heat': {
+                'on': '#f97316',   // Orange für Hitze
+                'off': '#22c55e'
+            },
+            'cold': {
+                'on': '#3b82f6',   // Blau für Kälte
+                'off': '#22c55e'
+            },
+            
+            // Wasser/Feuchtigkeit
+            'moisture': {
+                'on': '#3b82f6',   // Blau für Feuchtigkeit
+                'wet': '#3b82f6',
+                'off': '#64748b',
+                'dry': '#64748b'
+            },
+            'water': {
+                'on': '#3b82f6',
+                'off': '#64748b'
+            },
+            
+            // Licht/Helligkeit
+            'light': {
+                'on': '#facc15',   // Gelb für hell
+                'off': '#1e293b'   // Dunkelgrau für dunkel
+            },
+            
+            // Vibration/Bewegung
+            'vibration': {
+                'on': '#a78bfa',   // Lila für Vibration
+                'vibrating': '#a78bfa',
+                'off': '#64748b'
+            },
+            'sound': {
+                'on': '#f59e0b',   // Amber für Geräusch
+                'off': '#64748b'
+            },
+            
+            // Strom/Energie
+            'power': {
+                'on': '#facc15',   // Gelb
+                'off': '#64748b'
+            },
+            'plug': {
+                'on': '#22c55e',
+                'off': '#64748b'
+            },
+            'battery': {
+                'on': '#22c55e',   // Grün = OK
+                'off': '#dc2626'   // Rot = Leer
+            },
+            'battery_charging': {
+                'on': '#facc15',   // Gelb = Lädt
+                'off': '#64748b'   // Grau = Lädt nicht
+            },
+            
+            // Konnektivität
+            'connectivity': {
+                'on': '#22c55e',
+                'off': '#dc2626'
+            },
+            'update': {
+                'on': '#f97316',   // Orange = Update verfügbar
+                'off': '#22c55e'   // Grün = Aktuell
+            },
+            
+            // Weitere
+            'problem': {
+                'on': '#dc2626',   // Rot für Problem
+                'off': '#22c55e'   // Grün für OK
+            },
+            'running': {
+                'on': '#22c55e',
+                'off': '#64748b'
+            },
+            'tamper': {
+                'on': '#dc2626',   // Rot für Manipulation
+                'off': '#22c55e'
+            },
+            'moving': {
+                'on': '#3b82f6',
+                'off': '#64748b'
+            }
+        };
+        
+        // Prüfe device-class spezifische Überschreibungen
+        if (deviceClass && deviceClassOverrides[deviceClass]) {
+            const override = deviceClassOverrides[deviceClass][state.toLowerCase()];
+            if (override) return override;
+        }
+        
+        // Standard-Farbe aus stateColors
+        const standardColor = stateColors[state.toLowerCase()];
+        if (standardColor) return standardColor;
+        
+        // FALLBACK: Generiere deterministische Farbe für unbekannte Zustände
+        return this.generateColorFromString(`${deviceClass || 'generic'}_${state}`);
+    }
+    
+    /**
+     * Gibt einen lesbaren Namen für einen Zustand zurück
+     * @param {string} state - Der Zustand
+     * @param {string} deviceClass - Die device_class des Sensors
+     * @returns {string} - Lesbarer Name
+     */
+    getStateLabel(state, deviceClass = null) {
+        // Device-class spezifische Labels
+        const deviceClassLabels = {
+            // Öffnungen
+            'door': {
+                'on': 'Offen',
+                'off': 'Geschlossen',
+                'open': 'Offen',
+                'closed': 'Geschlossen'
+            },
+            'window': {
+                'on': 'Offen',
+                'off': 'Geschlossen',
+                'open': 'Offen',
+                'closed': 'Geschlossen'
+            },
+            'garage_door': {
+                'on': 'Offen',
+                'off': 'Geschlossen',
+                'open': 'Offen',
+                'closed': 'Geschlossen',
+                'opening': 'Öffnet',
+                'closing': 'Schließt'
+            },
+            'opening': {
+                'on': 'Offen',
+                'off': 'Geschlossen'
+            },
+            'lock': {
+                'locked': 'Verriegelt',
+                'unlocked': 'Entriegelt',
+                'jammed': 'Blockiert',
+                'locking': 'Verriegelt...',
+                'unlocking': 'Entriegelt...'
+            },
+            
+            // Bewegung/Präsenz
+            'motion': {
+                'on': 'Bewegung erkannt',
+                'off': 'Keine Bewegung',
+                'detected': 'Erkannt',
+                'clear': 'Frei'
+            },
+            'occupancy': {
+                'on': 'Belegt',
+                'off': 'Leer',
+                'occupied': 'Belegt',
+                'clear': 'Leer'
+            },
+            'presence': {
+                'on': 'Anwesend',
+                'off': 'Abwesend',
+                'home': 'Zuhause',
+                'not_home': 'Unterwegs',
+                'away': 'Weg'
+            },
+            'moving': {
+                'on': 'In Bewegung',
+                'off': 'Stillstand'
+            },
+            
+            // Sicherheit
+            'safety': {
+                'on': 'Unsicher',
+                'off': 'Sicher'
+            },
+            'smoke': {
+                'on': 'Rauch erkannt',
+                'off': 'Kein Rauch',
+                'detected': 'Rauch!',
+                'clear': 'Frei'
+            },
+            'gas': {
+                'on': 'Gas erkannt',
+                'off': 'Kein Gas',
+                'detected': 'Gas!',
+                'clear': 'Frei'
+            },
+            'carbon_monoxide': {
+                'on': 'CO erkannt',
+                'off': 'Kein CO',
+                'detected': 'CO Alarm!',
+                'clear': 'Frei'
+            },
+            'heat': {
+                'on': 'Heiß',
+                'off': 'Normal',
+                'hot': 'Heiß',
+                'normal': 'Normal'
+            },
+            'cold': {
+                'on': 'Kalt',
+                'off': 'Normal',
+                'cold': 'Kalt',
+                'normal': 'Normal'
+            },
+            'tamper': {
+                'on': 'Manipulation!',
+                'off': 'Sicher',
+                'detected': 'Manipulation',
+                'clear': 'OK'
+            },
+            
+            // Wasser/Feuchtigkeit
+            'moisture': {
+                'on': 'Feucht',
+                'off': 'Trocken',
+                'wet': 'Nass',
+                'dry': 'Trocken'
+            },
+            'water': {
+                'on': 'Wasser erkannt',
+                'off': 'Kein Wasser',
+                'leak': 'Leck!',
+                'dry': 'Trocken'
+            },
+            
+            // Licht/Helligkeit
+            'light': {
+                'on': 'Hell',
+                'off': 'Dunkel',
+                'detected': 'Licht erkannt',
+                'dark': 'Dunkel'
+            },
+            
+            // Sound/Vibration
+            'sound': {
+                'on': 'Geräusch',
+                'off': 'Still',
+                'detected': 'Geräusch erkannt',
+                'clear': 'Ruhig'
+            },
+            'vibration': {
+                'on': 'Vibration',
+                'off': 'Ruhig',
+                'vibrating': 'Vibriert',
+                'clear': 'Still'
+            },
+            
+            // Strom/Energie
+            'power': {
+                'on': 'An',
+                'off': 'Aus'
+            },
+            'plug': {
+                'on': 'Ein',
+                'off': 'Aus'
+            },
+            'battery': {
+                'on': 'OK',
+                'off': 'Leer',
+                'low': 'Niedrig',
+                'normal': 'Normal'
+            },
+            'battery_charging': {
+                'on': 'Lädt',
+                'off': 'Lädt nicht',
+                'charging': 'Lädt',
+                'not_charging': 'Lädt nicht'
+            },
+            
+            // Konnektivität
+            'connectivity': {
+                'on': 'Verbunden',
+                'off': 'Getrennt',
+                'connected': 'Verbunden',
+                'disconnected': 'Getrennt'
+            },
+            'update': {
+                'on': 'Update verfügbar',
+                'off': 'Aktuell',
+                'available': 'Verfügbar',
+                'up_to_date': 'Aktuell'
+            },
+            
+            // Sonstige
+            'problem': {
+                'on': 'Problem',
+                'off': 'OK',
+                'detected': 'Problem erkannt',
+                'clear': 'Alles OK'
+            },
+            'running': {
+                'on': 'Läuft',
+                'off': 'Gestoppt',
+                'running': 'In Betrieb',
+                'stopped': 'Angehalten'
+            }
+        };
+        
+        // Prüfe device-class spezifische Labels
+        if (deviceClass && deviceClassLabels[deviceClass]) {
+            const label = deviceClassLabels[deviceClass][state.toLowerCase()];
+            if (label) return label;
+        }
+        
+        // Standard-Labels (erweitert)
+        const standardLabels = {
+            // Basis
+            'on': 'An',
+            'off': 'Aus',
+            'unavailable': 'Nicht verfügbar',
+            'unknown': 'Unbekannt',
+            
+            // Zustände
+            'idle': 'Leerlauf',
+            'active': 'Aktiv',
+            'inactive': 'Inaktiv',
+            'pending': 'Ausstehend',
+            'standby': 'Standby',
+            
+            // Verbindung
+            'connected': 'Verbunden',
+            'disconnected': 'Getrennt',
+            'online': 'Online',
+            'offline': 'Offline',
+            
+            // Sicherheit
+            'locked': 'Verriegelt',
+            'unlocked': 'Entriegelt',
+            'armed': 'Scharf',
+            'disarmed': 'Unscharf',
+            'triggered': 'Ausgelöst',
+            'armed_home': 'Zuhause scharf',
+            'armed_away': 'Abwesend scharf',
+            'armed_night': 'Nacht scharf',
+            'armed_vacation': 'Urlaub scharf',
+            'armed_custom_bypass': 'Teilscharf',
+            
+            // Boolean
+            'true': 'Wahr',
+            'false': 'Falsch',
+            'yes': 'Ja',
+            'no': 'Nein',
+            
+            // Vergleiche
+            'above': 'Über',
+            'below': 'Unter',
+            'normal': 'Normal',
+            
+            // Weitere
+            'open': 'Offen',
+            'closed': 'Geschlossen',
+            'detected': 'Erkannt',
+            'clear': 'Frei',
+            'home': 'Zuhause',
+            'not_home': 'Unterwegs',
+            'away': 'Abwesend',
+            'present': 'Anwesend',
+            'absent': 'Abwesend'
+        };
+        
+        // Fallback: Prüfe Standard-Labels
+        const standardLabel = standardLabels[state.toLowerCase()];
+        if (standardLabel) return standardLabel;
+        
+        // Letzter Fallback: Capitalize first letter
+        return state.charAt(0).toUpperCase() + state.slice(1).toLowerCase();
+    }
+    
+
+
+
+    
+
+
+    /**
+     * Konvertiert History-Daten in Timeline-Bereiche
+     * @param {Array} historyData - Raw history data mit {s: state, lu: timestamp}
+     * @param {Object} stateColors - Farb-Mapping für Zustände
+     * @param {Object} stateLabels - Label-Mapping für Zustände
+     * @returns {Array} - Timeline-Daten für ApexCharts
+     */
+    convertHistoryToTimelineRanges(historyData, stateColors, stateLabels) {
+        if (!historyData || historyData.length === 0) {
+            return [];
+        }
+        
+        // Sortiere nach Zeit (älteste zuerst)
+        const sortedData = [...historyData].sort((a, b) => a.lu - b.lu);
+        
+        const ranges = [];
+        let currentRange = null;
+        
+        sortedData.forEach((entry, index) => {
+            const state = entry.s;
+            const timestamp = entry.lu * 1000; // Konvertiere zu Millisekunden
+            
+            if (!currentRange) {
+                // Starte ersten Bereich
+                currentRange = {
+                    state: state,
+                    startTime: timestamp,
+                    endTime: timestamp,
+                    color: stateColors[state] || '#94a3b8',
+                    label: stateLabels[state] || state
+                };
+            } else if (currentRange.state !== state) {
+                // Zustandswechsel - schließe aktuellen Bereich ab
+                currentRange.endTime = timestamp;
+                ranges.push(currentRange);
+                
+                // Starte neuen Bereich
+                currentRange = {
+                    state: state,
+                    startTime: timestamp,
+                    endTime: timestamp,
+                    color: stateColors[state] || '#94a3b8',
+                    label: stateLabels[state] || state
+                };
+            }
+            
+            // Beim letzten Eintrag: Bereich bis zur aktuellen Zeit erweitern
+            if (index === sortedData.length - 1) {
+                currentRange.endTime = Date.now();
+                ranges.push(currentRange);
+            }
+        });
+        
+        console.log(`📊 ${ranges.length} Timeline-Bereiche erstellt aus ${historyData.length} Datenpunkten`);
+        return ranges;
+    }
+    
+    /**
+     * Formatiert Timeline-Bereiche für ApexCharts Distributed Timeline
+     * @param {Array} ranges - Timeline-Bereiche
+     * @param {string} sensorName - Name des Sensors für die Y-Achse
+     * @returns {Object} - Formatierte Daten für ApexCharts
+     */
+    formatTimelineDataForApexCharts(ranges, sensorName = 'Sensor') {
+        // ApexCharts Timeline benötigt folgendes Format:
+        // series: [{
+        //   data: [{
+        //     x: 'Category',
+        //     y: [timestampStart, timestampEnd],
+        //     fillColor: '#color'
+        //   }]
+        // }]
+        
+        const seriesData = ranges.map(range => ({
+            x: range.label,  // Der Zustandsname
+            y: [range.startTime, range.endTime],
+            fillColor: range.color,
+            // Zusätzliche Metadaten für Tooltip
+            meta: {
+                state: range.state,
+                duration: range.endTime - range.startTime
+            }
+        }));
+        
+        return {
+            series: [{
+                name: sensorName,
+                data: seriesData
+            }],
+            // Sammle alle unique Zustände für die Kategorien
+            categories: [...new Set(ranges.map(r => r.label))]
+        };
+    }
+    
+    /**
+     * Berechnet Statistiken für die Timeline-Daten
+     * @param {Array} ranges - Timeline-Bereiche
+     * @returns {Object} - Statistiken über die Zustände
+     */
+    calculateTimelineStatistics(ranges) {
+        const stats = {};
+        const totalTime = ranges.reduce((sum, range) => 
+            sum + (range.endTime - range.startTime), 0);
+        
+        // Gruppiere nach Zustand
+        ranges.forEach(range => {
+            const state = range.state;
+            if (!stats[state]) {
+                stats[state] = {
+                    count: 0,
+                    totalDuration: 0,
+                    percentage: 0,
+                    label: range.label,
+                    color: range.color
+                };
+            }
+            stats[state].count++;
+            stats[state].totalDuration += (range.endTime - range.startTime);
+        });
+        
+        // Berechne Prozentsätze
+        Object.keys(stats).forEach(state => {
+            stats[state].percentage = (stats[state].totalDuration / totalTime * 100).toFixed(1);
+            // Formatiere Dauer in lesbare Form
+            stats[state].formattedDuration = this.formatDuration(stats[state].totalDuration);
+        });
+        
+        return stats;
+    }
+    
+    /**
+     * Formatiert Millisekunden in lesbare Zeitangabe
+     * @param {number} ms - Millisekunden
+     * @returns {string} - Formatierte Zeitangabe
+     */
+    formatDuration(ms) {
+        const seconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        
+        if (days > 0) {
+            return `${days}d ${hours % 24}h`;
+        } else if (hours > 0) {
+            return `${hours}h ${minutes % 60}m`;
+        } else if (minutes > 0) {
+            return `${minutes}m ${seconds % 60}s`;
+        } else {
+            return `${seconds}s`;
+        }
+    }
+
+
+    
+    /**
+     * ERWEITERTE analyzeHistoryForTimeline Methode - Ersetzt die aus Schritt 1
+     * @param {Array} historyData - Raw history data
+     * @param {string} deviceClass - Optional device class
+     * @returns {Object} - Vollständige Timeline-Daten
+     */
+    analyzeHistoryForTimeline(historyData, deviceClass = null) {
+        if (!historyData || historyData.length === 0) {
+            return {
+                states: [],
+                stateColors: {},
+                stateLabels: {},
+                ranges: [],
+                chartData: null,
+                statistics: {}
+            };
+        }
+        
+        // 1. Alle Zustände extrahieren
+        const uniqueStates = this.extractAllStatesFromHistory(historyData);
+        
+        // 2. Farben und Labels für jeden Zustand vorbereiten
+        const stateColors = {};
+        const stateLabels = {};
+        
+        uniqueStates.forEach(state => {
+            stateColors[state] = this.getStateColor(state, deviceClass);
+            stateLabels[state] = this.getStateLabel(state, deviceClass);
+        });
+        
+        // 3. NEU: Konvertiere zu Timeline-Bereichen
+        const ranges = this.convertHistoryToTimelineRanges(
+            historyData, 
+            stateColors, 
+            stateLabels
+        );
+        
+        // 4. NEU: Formatiere für ApexCharts
+        const chartData = this.formatTimelineDataForApexCharts(
+            ranges, 
+            'Zustandsverlauf'
+        );
+        
+        // 5. NEU: Berechne Statistiken
+        const statistics = this.calculateTimelineStatistics(ranges);
+        
+        console.log('📊 Timeline-Analyse abgeschlossen:', {
+            gefundeneZustände: Array.from(uniqueStates),
+            anzahlBereiche: ranges.length,
+            statistiken: statistics
+        });
+        
+        return {
+            states: Array.from(uniqueStates),
+            stateColors,
+            stateLabels,
+            ranges,
+            chartData,
+            statistics
+        };
+    }
+
+
+
+
+    
+    
+    /**
+     * Generiert eine Info-Box mit Timeline-Statistiken
+     * @param {Object} statistics - Statistik-Objekt
+     * @returns {string} - HTML für die Statistik-Box
+     */
+    generateTimelineStatsHTML(statistics) {
+        if (!statistics || Object.keys(statistics).length === 0) {
+            return '';
+        }
+        
+        const statsHTML = Object.entries(statistics)
+            .sort((a, b) => b[1].percentage - a[1].percentage) // Nach Prozent sortieren
+            .map(([state, data]) => `
+                <div style="display: flex; align-items: center; justify-content: space-between; 
+                            padding: 8px; margin: 4px 0; background: rgba(255,255,255,0.05); 
+                            border-radius: 8px; border-left: 3px solid ${data.color};">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; background: ${data.color}; 
+                                    border-radius: 2px;"></div>
+                        <span style="font-weight: 500;">${data.label}</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 14px; font-weight: 600;">${data.percentage}%</div>
+                        <div style="font-size: 11px; opacity: 0.7;">${data.formattedDuration}</div>
+                    </div>
+                </div>
+            `).join('');
+        
+        return `
+            <div style="margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.2); 
+                        border-radius: 12px;">
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; 
+                            opacity: 0.8; text-transform: uppercase;">
+                    Zustandsverteilung (24h)
+                </div>
+                ${statsHTML}
+            </div>
+        `;
+    }
+    
+    /**
+     * Demo-Funktion zum Testen der Timeline-Transformation
+     * @param {string} entityId - Entity ID zum Testen
+     */
+    async testTimelineTransformation(entityId) {
+        console.log(`🧪 Teste Timeline-Transformation für ${entityId}`);
+        
+        // 1. Hole History-Daten
+        const historyData = await this.fetchHistoryForSensor(entityId);
+        if (!historyData || historyData.length === 0) {
+            console.error('❌ Keine History-Daten gefunden');
+            return;
+        }
+        
+        // 2. Ermittle device_class
+        const state = this._hass?.states[entityId];
+        const deviceClass = state?.attributes?.device_class || null;
+        
+        // 3. Analysiere und transformiere
+        const timelineData = this.analyzeHistoryForTimeline(historyData, deviceClass);
+        
+        // 4. Ausgabe der Ergebnisse
+        console.log('✅ Timeline-Daten:', timelineData);
+        console.log('📈 Chart-Daten:', timelineData.chartData);
+        console.log('📊 Statistiken:', timelineData.statistics);
+        
+        return timelineData;
+    }
+
+
+
+
+    
     async renderApexChart(container, item) {
         if (!window.ApexCharts) {
             container.innerHTML = `<div style="padding: 20px; text-align: center;">⚠️ ApexCharts-Bibliothek nicht gefunden.</div>`;
@@ -6412,85 +7263,402 @@ class FastSearchCard extends HTMLElement {
         }
     
         container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; height: 250px; color: var(--text-secondary);">Lade Chart-Daten...</div>`;
-        const { seriesData, stateMap } = await this.fetchHistoryForSensor(item.id);
-    
-        if (!seriesData || seriesData.length === 0) {
+        
+        // Hole History-Daten
+        const historyData = await this.fetchHistoryForSensor(item.id);
+        
+        console.log(`FINAL DATA FÜR ${item.id}:`, historyData);
+        
+        if (!historyData || historyData.length < 2) {
             container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; height: 250px; color: var(--text-secondary);">📊 Keine ausreichenden Verlaufsdaten gefunden.</div>`;
             return;
         }
-    
-        const unit = item.custom_data?.metadata?.sensor_unit || item.attributes?.unit_of_measurement || '';
+        
+        // Ermittle device_class und unit
+        const deviceClass = item.custom_data?.metadata?.device_class || 
+                           item.attributes?.device_class || 
+                           (this._hass?.states[item.id]?.attributes?.device_class) || 
+                           null;
+        
+        const unit = item.custom_data?.metadata?.sensor_unit || 
+                     item.attributes?.unit_of_measurement || 
+                     (this._hass?.states[item.id]?.attributes?.unit_of_measurement) || 
+                     '';
+        
         const isBinarySensor = item.id.startsWith('binary_sensor.');
-    
-        let options;
-    
+        
+        // ===== NEUE LOGIK: Timeline für Binary-Sensoren =====
         if (isBinarySensor) {
-            const timelineData = [];
-            for (let i = 0; i < seriesData.length; i++) {
-                const currentEntry = seriesData[i];
-                const nextEntry = seriesData[i + 1];
-                const state = Object.keys(stateMap).find(key => stateMap[key] === currentEntry.value);
-                
-                if (state) { // Nur hinzufügen, wenn der Zustand gültig ist
-                    timelineData.push({
-                        x: state.charAt(0).toUpperCase() + state.slice(1), // z.B. 'on' -> 'On'
-                        y: [
-                            currentEntry.timestamp,
-                            nextEntry ? nextEntry.timestamp : new Date().getTime()
-                        ]
-                    });
-                }
-            }
+            await this.renderTimelineChart(container, item, historyData, deviceClass);
+        } else {
+            // Normale Sensoren: Behalte bestehende Line/Area Chart Logik
+            await this.renderLineChart(container, item, historyData, unit);
+        }
+    }
     
-            options = {
-                series: [{ data: timelineData }],
-                chart: { type: 'rangeBar', height: 150, parentHeightOffset: 0, toolbar: { show: false }, background: 'transparent' },
-                theme: { mode: 'dark' },
-                plotOptions: { bar: { horizontal: true, barHeight: '50%', rangeBarGroupRows: false } },
-                colors: [({ value, seriesIndex, w }) => {
-                    const state = w.globals.seriesX[seriesIndex][w.globals.series[seriesIndex].indexOf(value)];
-                    return state.toLowerCase() === 'on' ? '#2ecc71' : '#555';
-                }],
-                fill: { type: 'solid', opacity: 0.6 },
-                xaxis: { type: 'datetime', labels: { datetimeUTC: false, style: { colors: 'rgba(255, 255, 255, 0.7)' } } },
-                yaxis: { show: true, labels: { style: { colors: 'rgba(255, 255, 255, 0.9)', fontSize: '14px' } } },
-                grid: { show: true, borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 2, yaxis: { lines: { show: false } } },
-                tooltip: {
-                    theme: 'dark',
-                    custom: function({ series, seriesIndex, dataPointIndex, w }) {
-                        const start = new Date(series[seriesIndex][dataPointIndex][0]).toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        const end = new Date(series[seriesIndex][dataPointIndex][1]).toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        const state = w.globals.seriesX[seriesIndex][dataPointIndex];
-                        return `<div class="apexcharts-tooltip-rangebar" style="padding: 10px;">
-                                    <div><strong>Zustand:</strong> ${state}</div>
-                                    <div><strong>Von:</strong> ${start}</div>
-                                    <div><strong>Bis:</strong> ${end}</div>
-                                </div>`;
+    /**
+     * Rendert ein Timeline-Chart für Binary-Sensoren
+     * @param {HTMLElement} container - Container Element
+     * @param {Object} item - Item-Objekt
+     * @param {Array} historyData - History-Daten
+     * @param {string} deviceClass - Device Class
+     */
+    async renderTimelineChart(container, item, historyData, deviceClass) {
+        // Analysiere History-Daten für Timeline
+        const timelineAnalysis = this.analyzeHistoryForTimeline(historyData, deviceClass);
+        
+        if (!timelineAnalysis.chartData || timelineAnalysis.ranges.length === 0) {
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">📊 Keine Timeline-Daten verfügbar.</div>`;
+            return;
+        }
+        
+        const { chartData, statistics } = timelineAnalysis;
+        
+        // Container vorbereiten
+        container.innerHTML = '';
+        
+        // Chart-Container erstellen
+        const chartDiv = document.createElement('div');
+        chartDiv.style.width = '100%';
+        chartDiv.style.height = '250px';
+        container.appendChild(chartDiv);
+        
+        // ApexCharts Timeline Options
+        const options = {
+            series: chartData.series,
+            chart: {
+                type: 'rangeBar',
+                height: 250,
+                parentHeightOffset: 0,
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: false,
+                        selection: true,
+                        zoom: true,
+                        zoomin: true,
+                        zoomout: true,
+                        pan: true,
+                        reset: true
+                    }
+                },
+                background: 'transparent',
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 400
+                }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    distributed: true,
+                    dataLabels: {
+                        hideOverflowingLabels: false
+                    },
+                    barHeight: '80%'
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function(val, opts) {
+                    // Zeige den Zustandsnamen
+                    const label = opts.w.config.series[opts.seriesIndex].data[opts.dataPointIndex].x;
+                    return label;
+                },
+                style: {
+                    colors: ['#fff'],
+                    fontSize: '11px',
+                    fontWeight: 500
+                }
+            },
+            fill: {
+                type: 'solid',
+                opacity: 0.9
+            },
+            xaxis: {
+                type: 'datetime',
+                labels: {
+                    datetimeUTC: false,
+                    datetimeFormatter: {
+                        year: 'yyyy',
+                        month: "MMM 'yy",
+                        day: 'dd MMM',
+                        hour: 'HH:mm'
+                    },
+                    style: {
+                        colors: 'rgba(255, 255, 255, 0.7)',
+                        fontSize: '11px'
+                    }
+                },
+                axisBorder: {
+                    show: false
+                },
+                axisTicks: {
+                    show: false
+                }
+            },
+            yaxis: {
+                show: false  // Verstecke Y-Achse, da wir nur eine Zeile haben
+            },
+            grid: {
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                strokeDashArray: 4,
+                xaxis: {
+                    lines: {
+                        show: true
+                    }
+                },
+                yaxis: {
+                    lines: {
+                        show: false
+                    }
+                },
+                padding: {
+                    top: 0,
+                    bottom: 0
+                }
+            },
+            tooltip: {
+                theme: 'dark',
+                custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                    const data = w.config.series[seriesIndex].data[dataPointIndex];
+                    const startTime = new Date(data.y[0]);
+                    const endTime = new Date(data.y[1]);
+                    const duration = data.y[1] - data.y[0];
+                    
+                    // Formatiere Zeiten
+                    const formatTime = (date) => {
+                        return date.toLocaleString('de-DE', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    };
+                    
+                    // Berechne Dauer
+                    const formatDuration = (ms) => {
+                        const seconds = Math.floor(ms / 1000);
+                        const minutes = Math.floor(seconds / 60);
+                        const hours = Math.floor(minutes / 60);
+                        
+                        if (hours > 0) {
+                            return `${hours}h ${minutes % 60}m`;
+                        } else if (minutes > 0) {
+                            return `${minutes}m ${seconds % 60}s`;
+                        } else {
+                            return `${seconds}s`;
+                        }
+                    };
+                    
+                    return `
+                        <div style="background: #1a1a1a; border: 1px solid ${data.fillColor}; 
+                                    border-radius: 8px; padding: 12px; min-width: 200px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <div style="width: 12px; height: 12px; background: ${data.fillColor}; 
+                                            border-radius: 2px;"></div>
+                                <span style="font-weight: 600; font-size: 14px;">${data.x}</span>
+                            </div>
+                            <div style="font-size: 12px; opacity: 0.9; line-height: 1.5;">
+                                <div><strong>Start:</strong> ${formatTime(startTime)}</div>
+                                <div><strong>Ende:</strong> ${formatTime(endTime)}</div>
+                                <div><strong>Dauer:</strong> ${formatDuration(duration)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+            theme: {
+                mode: 'dark'
+            },
+            legend: {
+                show: false  // Verstecke Legende
+            },
+            states: {
+                hover: {
+                    filter: {
+                        type: 'darken',
+                        value: 0.9
+                    }
+                },
+                active: {
+                    filter: {
+                        type: 'darken',
+                        value: 0.7
                     }
                 }
-            };
-    
-        } else {
-            const seriesDataForChart = seriesData.map(entry => [entry.timestamp, entry.value]);
-            options = {
-                series: [{ name: item.name, data: seriesDataForChart }],
-                chart: { type: 'area', height: 250, parentHeightOffset: 0, toolbar: { show: true, tools: { download: false } }, zoom: { enabled: false }, background: 'transparent' },
-                theme: { mode: 'dark' },
-                colors: ['#007AFF'],
-                stroke: { curve: 'smooth', width: 2 },
-                grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 4 },
-                xaxis: { type: 'datetime', labels: { datetimeUTC: false, style: { colors: 'rgba(255, 255, 255, 0.7)' } } },
-                yaxis: { labels: { formatter: (val) => val.toFixed(1) + ` ${unit}`, style: { colors: 'rgba(255, 255, 255, 0.7)' } } },
-                tooltip: { theme: 'dark', x: { format: 'dd.MM.yy HH:mm' }, y: { formatter: (val) => val.toFixed(2) + ` ${unit}` } },
-                fill: { type: 'gradient', gradient: { opacityFrom: 0.5, opacityTo: 0.1 } }
-            };
+            }
+        };
+        
+        // Chart rendern
+        const chart = new ApexCharts(chartDiv, options);
+        await chart.render();
+        
+        // Statistik-Box hinzufügen
+        const statsHTML = this.generateTimelineStatsHTML(statistics);
+        if (statsHTML) {
+            const statsDiv = document.createElement('div');
+            statsDiv.innerHTML = statsHTML;
+            container.appendChild(statsDiv);
         }
+    }
     
+    /**
+     * Rendert ein Line/Area Chart für normale Sensoren
+     * @param {HTMLElement} container - Container Element
+     * @param {Object} item - Item-Objekt
+     * @param {Array} historyData - History-Daten
+     * @param {string} unit - Einheit des Sensors
+     */
+    async renderLineChart(container, item, historyData, unit) {
+        // Transformiere Daten für Line Chart (bestehende Logik)
+        const seriesData = historyData
+            .map(entry => {
+                let value;
+                const state = entry.s;
+                
+                // Versuche, eine Zahl aus dem String zu extrahieren
+                const parsed = parseFloat(state);
+                value = isNaN(parsed) ? null : parsed;
+                
+                return {
+                    timestamp: new Date(entry.lu * 1000).getTime(),
+                    value: value
+                };
+            })
+            .filter(entry => entry.value !== null)
+            .map(entry => [entry.timestamp, entry.value]);
+        
+        if (seriesData.length === 0) {
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">📊 Keine numerischen Daten verfügbar.</div>`;
+            return;
+        }
+        
+        // Options für normale Sensoren (bestehende Logik)
+        const options = {
+            series: [{
+                name: item.name,
+                data: seriesData
+            }],
+            chart: {
+                type: 'area',
+                height: 250,
+                parentHeightOffset: 0,
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: false
+                    }
+                },
+                zoom: {
+                    enabled: false
+                },
+                background: 'transparent'
+            },
+            theme: {
+                mode: 'dark'
+            },
+            colors: ['#007AFF'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 2
+            },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.5,
+                    opacityTo: 0.1,
+                    stops: [0, 90, 100]
+                }
+            },
+            grid: {
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                strokeDashArray: 4
+            },
+            xaxis: {
+                type: 'datetime',
+                labels: {
+                    datetimeUTC: false,
+                    datetimeFormatter: {
+                        year: 'yyyy',
+                        month: "MMM 'yy",
+                        day: 'dd MMM',
+                        hour: 'HH:mm'
+                    },
+                    style: {
+                        colors: 'rgba(255, 255, 255, 0.7)'
+                    }
+                }
+            },
+            yaxis: {
+                labels: {
+                    formatter: (val) => val.toFixed(1) + ` ${unit}`,
+                    style: {
+                        colors: 'rgba(255, 255, 255, 0.7)'
+                    }
+                }
+            },
+            tooltip: {
+                theme: 'dark',
+                x: {
+                    format: 'dd.MM.yy HH:mm'
+                },
+                y: {
+                    formatter: (val) => val.toFixed(2) + ` ${unit}`
+                }
+            }
+        };
+        
         container.innerHTML = '';
         const chart = new ApexCharts(container, options);
-        chart.render();
+        await chart.render();
     }
-
+    
+    /**
+     * Helper-Methode: Prüft ob Timeline-Chart unterstützt wird
+     * @param {Object} item - Item-Objekt
+     * @returns {boolean} - True wenn Timeline unterstützt
+     */
+    supportsTimelineChart(item) {
+        // Timeline nur für Binary-Sensoren
+        return item.id.startsWith('binary_sensor.');
+    }
+    
+    /**
+     * Helper-Methode: Debug-Informationen für Timeline
+     * @param {string} entityId - Entity ID
+     */
+    async debugTimelineData(entityId) {
+        console.group(`🔍 Debug Timeline für ${entityId}`);
+        
+        // 1. Hole History
+        const history = await this.fetchHistoryForSensor(entityId);
+        console.log('1. Raw History:', history);
+        
+        // 2. Ermittle device_class
+        const state = this._hass?.states[entityId];
+        const deviceClass = state?.attributes?.device_class;
+        console.log('2. Device Class:', deviceClass);
+        
+        // 3. Analysiere Timeline
+        const timeline = this.analyzeHistoryForTimeline(history, deviceClass);
+        console.log('3. Timeline Analyse:', timeline);
+        
+        // 4. Chart-Daten
+        console.log('4. Chart-Daten:', timeline.chartData);
+        
+        // 5. Statistiken
+        console.table(timeline.statistics);
+        
+        console.groupEnd();
+        
+        return timeline;
+    }
 
 
     
