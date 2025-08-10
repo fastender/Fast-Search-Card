@@ -7430,8 +7430,6 @@ class FastSearchCard extends HTMLElement {
         }
     
         content += `\n*Automatisch erkannt durch Fast Search Card*\n\n`;
-    
-        // Die Zeile "## Verlauf" wurde entfernt.
         
         return content;
     }
@@ -10833,12 +10831,9 @@ class FastSearchCard extends HTMLElement {
     renderCustomDetailView() {
         const detailPanel = this.shadowRoot.querySelector('.detail-panel');
         if (!this.currentDetailItem) return;
-    
         const item = this.currentDetailItem;
-        
         const leftPaneHTML = this.getCustomDetailLeftPaneHTML(item);
         const rightPaneHTML = this.getCustomDetailRightPaneHTML(item);
-    
         detailPanel.innerHTML = `
             <div class="detail-content">
                 <div class="detail-left">${leftPaneHTML}</div>
@@ -10846,33 +10841,36 @@ class FastSearchCard extends HTMLElement {
                 <div class="detail-right">${rightPaneHTML}</div>
             </div>
         `;
-    
-        // Back Button Event Listener
         this.shadowRoot.querySelector('.back-button').addEventListener('click', (e) => {
             e.stopPropagation();
             this.handleBackClick();
         });
-    
-        // ✅ DAS FEHLTE: Favorite Button Event Listener für Custom Items!
         const favoriteButton = this.shadowRoot.querySelector('.favorite-button');
         if (favoriteButton) {
             favoriteButton.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const entityId = e.currentTarget.dataset.entityId;
-                console.log('🌟 Custom Item Favorite clicked:', entityId);
                 this.toggleStarLabel(entityId);
             });
-            
-            // Initial Button State setzen
             const entityId = item.id || item.custom_id;
             if (entityId) {
                 this.updateStarButtonState(entityId);
             }
         }
-    
-        // Custom Detail Tabs Setup
         this.setupCustomDetailTabs(item);
-    }    
+    
+        // Chart für das standardmäßig geöffnete Accordion sofort rendern
+        const defaultOpenContent = this.shadowRoot.querySelector('.accordion-content.open');
+        if (defaultOpenContent && this.supportsCharts(item)) {
+            const header = defaultOpenContent.previousElementSibling;
+            if (header && header.querySelector('span').textContent === 'Aktueller Wert') {
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'chart-block';
+                defaultOpenContent.appendChild(chartContainer);
+                this.renderApexChart(chartContainer, item);
+            }
+        }
+    }
 
     handleBackClick() {
         this.isDetailView = false;
@@ -13991,48 +13989,45 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    // In der FastSearchCard-Klasse
     setupAccordionListeners() {
         const accordionContainer = this.shadowRoot.querySelector('.accordion-container');
         if (!accordionContainer || accordionContainer.dataset.listenersAttached) {
-            return; // Verhindert Fehler und doppelte Listener
+            return;
         }
     
         accordionContainer.addEventListener('click', (event) => {
             const header = event.target.closest('.accordion-header');
             if (!header) return;
-        
+    
             const content = this.shadowRoot.querySelector(`[data-content="${header.dataset.accordion}"]`);
             const arrow = header.querySelector('.accordion-arrow svg');
             if (!content || !arrow) return;
-        
+    
             const isNowOpen = content.classList.toggle('open');
             header.classList.toggle('active', isNowOpen);
             arrow.style.transform = isNowOpen ? 'rotate(45deg)' : 'rotate(0deg)';
-        
-            // NEU: Den Titel des angeklickten Headers auslesen
+    
             const headerTitle = header.querySelector('span').textContent;
-            
-            // NEU: Prüfen, ob der Titel "Aktueller Wert" ist
             if (headerTitle === 'Aktueller Wert') {
-            
-                // Chart-Logik (wird jetzt NUR für dieses Accordion ausgeführt)
-                if (isNowOpen && this.supportsCharts(this.currentDetailItem) && !content.querySelector('.apexcharts-canvas')) {
-                    const chartContainer = document.createElement('div');
-                    chartContainer.className = 'chart-block';
-                    
-                    // GEÄNDERT: Fügt den Chart am Ende des Contents ein, also UNTER dem Text.
-                    content.appendChild(chartContainer);
-                    
-                    // Rufe unsere neue Methode auf
-                    this.renderApexChart(chartContainer, this.currentDetailItem);
+                if (isNowOpen) {
+                    if (this.supportsCharts(this.currentDetailItem) && !content.querySelector('.apexcharts-canvas')) {
+                        const chartContainer = document.createElement('div');
+                        chartContainer.className = 'chart-block';
+                        content.appendChild(chartContainer);
+                        this.renderApexChart(chartContainer, this.currentDetailItem);
+                    }
+                } else {
+                    const existingChart = content.querySelector('.chart-block');
+                    if (existingChart) {
+                        existingChart.remove();
+                    }
                 }
             }
         });
-    
-        // Markiere den Container, damit der Listener nicht erneut hinzugefügt wird
         accordionContainer.dataset.listenersAttached = 'true';
     }
+        
+
     
 
 
