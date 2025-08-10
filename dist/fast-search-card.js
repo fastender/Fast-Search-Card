@@ -6493,18 +6493,21 @@ class FastSearchCard extends HTMLElement {
             xaxis: {
                 type: 'datetime',
                 labels: {
-                    datetimeUTC: false,
-                    // NEU: Stellt sicher, dass die Zeitangaben korrekt formatiert sind
-                    formatter: function(value, timestamp) {
-                        return new Date(timestamp).toLocaleTimeString('de-DE', { hour: '2-digit', minute:'2-digit' });
+                    datetimeUTC: false, // Wichtig: Behalten wir bei
+                    // NEU: Wir definieren explizite Formate für verschiedene Zoom-Stufen
+                    datetimeFormatter: {
+                        year: 'yyyy',
+                        month: "MMM 'yy",
+                        day: 'dd MMM',
+                        hour: 'HH:mm'
                     },
-                    // NEU: Macht die X-Achsen-Beschriftung weiß
+                    // Die Farbe bleibt weiß
                     style: {
                         colors: 'rgba(255, 255, 255, 0.7)'
                     }
                 },
                 tooltip: {
-                    enabled: false // Verhindert den Standard-Tooltip der Achse
+                    enabled: false
                 }
             },
             yaxis: {
