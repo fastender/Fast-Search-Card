@@ -6348,10 +6348,10 @@ class FastSearchCard extends HTMLElement {
     }    
 
     
-    async fetchHistoryForSensor(entityId) {
-        if (!this._hass) return { seriesData: [], stateMap: {} };
+
     
-        const isBinarySensor = entityId.startsWith('binary_sensor.');
+    async fetchHistoryForSensor(entityId) {
+        if (!this._hass) return [];
     
         try {
             const endTime = new Date();
@@ -6364,186 +6364,113 @@ class FastSearchCard extends HTMLElement {
                 end_time: endTime.toISOString(),
                 entity_ids: [entityId],
                 minimal_response: true,
-                significant_changes_only: false
+                significant_changes_only: false,
             });
     
             const rawData = history[entityId];
-            if (!rawData || rawData.length === 0) return { seriesData: [], stateMap: {} };
+            console.log(`RAW HISTORY FÜR ${entityId}:`, rawData); // Wichtiger Debug-Log
     
-            // NEU: Dynamisches State-Mapping für Binärsensoren
-            if (isBinarySensor) {
-                // 1. Alle einzigartigen Zustände sammeln
-                const uniqueStates = [...new Set(rawData.map(entry => entry.s))];
-                
-                // 2. Eine "Übersetzungstabelle" erstellen, z.B. { 'off': 0, 'on': 1, 'tampered': 2 }
-                const stateMap = {};
-                uniqueStates.forEach((state, index) => {
-                    stateMap[state] = index;
-                });
+            if (!rawData || rawData.length === 0) return [];
     
-                // 3. Datenpunkte mit den neuen Werten erstellen
-                const seriesData = rawData.map(entry => ({
-                    timestamp: new Date(entry.lu * 1000).getTime(),
-                    value: stateMap[entry.s] // Wert aus der Tabelle nachschlagen
-                }));
+            const isBinarySensor = entityId.startsWith('binary_sensor.');
     
-                return { seriesData: seriesData.slice(-200), stateMap: stateMap };
+            return rawData
+                .map(entry => {
+                    let value;
+                    const state = entry.s; // Der Zustandswert als String
     
-            } else {
-                // Alte Logik für normale Sensoren
-                const seriesData = rawData
-                    .map(entry => ({
+                    if (isBinarySensor) {
+                        value = state === 'on' ? 1 : 0;
+                    } else {
+                        // ROBUSTE PARSING-LOGIK:
+                        // Versucht, eine Zahl aus dem String zu extrahieren,
+                        // auch wenn Text dabei ist (z.B. "24.9 °C" -> 24.9)
+                        const parsed = parseFloat(state);
+                        value = isNaN(parsed) ? null : parsed;
+                    }
+    
+                    return {
                         timestamp: new Date(entry.lu * 1000).getTime(),
-                        value: parseFloat(entry.s)
-                    }))
-                    .filter(entry => !isNaN(entry.value));
-    
-                return { seriesData: seriesData.slice(-200), stateMap: {} };
-            }
+                        value: value
+                    };
+                })
+                // WICHTIG: Filtere alle Einträge heraus, bei denen keine gültige Zahl gefunden wurde
+                .filter(entry => entry.value !== null)
+                .slice(-200);
     
         } catch (error) {
-            console.error('❌ Fehler beim Abrufen der Verlaufsdaten:', error);
-            return { seriesData: [], stateMap: {} };
+            console.error(`❌ Fehler beim Abrufen der Verlaufsdaten für ${entityId}:`, error);
+            return [];
         }
     }        
+        
     
     async renderApexChart(container, item) {
-        if (!window.ApexCharts) { /* ... bleibt gleich ... */ }
+        if (!window.ApexCharts) {
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">⚠️ ApexCharts-Bibliothek nicht gefunden.</div>`;
+            return;
+        }
     
-        container.innerHTML = `<div style="padding: 20px; text-align: center;">Lade Chart-Daten...</div>`;
+        container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; height: 250px; color: var(--text-secondary);">Lade Chart-Daten...</div>`;
+        const historyData = await this.fetchHistoryForSensor(item.id);
         
-        // NEU: Empfängt jetzt ein Objekt mit seriesData und stateMap
-        const { seriesData, stateMap } = await this.fetchHistoryForSensor(item.id);
+        console.log(`FINAL DATA FÜR ${item.id}:`, historyData); // Wichtiger Debug-Log
     
-        if (!seriesData || seriesData.length < 2) { /* ... bleibt gleich ... */ }
+        if (!historyData || historyData.length < 2) {
+            container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; height: 250px; color: var(--text-secondary);">📊 Keine ausreichenden Verlaufsdaten gefunden.</div>`;
+            return;
+        }
     
-        const formattedData = seriesData.map(entry => [entry.timestamp, entry.value]);
+        const seriesData = historyData.map(entry => [entry.timestamp, entry.value]);
         const unit = item.custom_data?.metadata?.sensor_unit || item.attributes?.unit_of_measurement || '';
         const isBinarySensor = item.id.startsWith('binary_sensor.');
     
-        let yaxisOptions = { /* ... wie bisher ... */ };
+        // Optionen für normale Sensoren
+        let yaxisOptions = {
+            labels: {
+                formatter: (val) => val.toFixed(1) + ` ${unit}`,
+                style: { colors: 'rgba(255, 255, 255, 0.7)' }
+            }
+        };
         let strokeOptions = { curve: 'smooth', width: 2 };
         let chartType = 'area';
-        let fillOptions = { /* ... wie bisher ... */ };
         let colors = ['#007AFF'];
-        
-        // NEU: Erweiterte Logik für Binärsensoren
+        let fillOptions = {
+            type: 'gradient',
+            gradient: { shadeIntensity: 1, opacityFrom: 0.5, opacityTo: 0.1, stops: [0, 90, 100] }
+        };
+    
+        // Optionen für Binärsensoren überschreiben
         if (isBinarySensor) {
             chartType = 'line';
             strokeOptions = { curve: 'stepline', width: 2 };
             colors = ['#f39c12'];
             fillOptions = { type: 'solid', opacity: 0 };
-    
-            // Erstelle eine umgekehrte Map für die Beschriftungen, z.B. { 0: 'off', 1: 'on' }
-            const reversedStateMap = Object.fromEntries(Object.entries(stateMap).map(([key, value]) => [value, key]));
-            const stateCount = Object.keys(stateMap).length;
-    
             yaxisOptions = {
-                min: -0.1,
-                max: stateCount - 1 + 0.1, // Dynamisches Maximum
-                tickAmount: stateCount -1, // So viele Striche wie Zustände
+                min: -0.1, max: 1.1, tickAmount: 1,
                 labels: {
                     formatter: (val) => {
-                        // Zeige den Text aus unserer umgekehrten Map an
-                        return reversedStateMap[Math.round(val)] || '';
-                    }
+                        if (Math.round(val) === 1) return 'An';
+                        if (Math.round(val) === 0) return 'Aus';
+                        return '';
+                    },
+                    style: { colors: 'rgba(255, 255, 255, 0.7)' }
                 }
             };
         }
     
         const options = {
-            series: [{
-                name: item.name,
-                data: seriesData
-            }],
-            chart: {
-                type: 'area',
-                height: 250,
-                parentHeightOffset: 0,
-                toolbar: {
-                    show: true, // Behalten wir bei, wie du sagtest
-                    tools: {
-                        download: false, // Download-Button entfernen
-                        selection: true,
-                        zoom: true,
-                        zoomin: true,
-                        zoomout: true,
-                        pan: true,
-                        reset: true
-                    }
-                },
-                zoom: { enabled: false },
-                background: 'transparent'
-            },
-            theme: {
-                mode: 'dark', // Grund-Theme bleibt dunkel
-            },
-            colors: ['#007AFF'],
-            dataLabels: {
-                enabled: false
-            },
-            stroke: {
-                curve: 'smooth',
-                width: 2
-            },
-            grid: {
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                strokeDashArray: 4,
-            },
-            xaxis: {
-                type: 'datetime',
-                labels: {
-                    datetimeUTC: false, // Wichtig: Behalten wir bei
-                    // NEU: Wir definieren explizite Formate für verschiedene Zoom-Stufen
-                    datetimeFormatter: {
-                        year: 'yyyy',
-                        month: "MMM 'yy",
-                        day: 'dd MMM',
-                        hour: 'HH:mm'
-                    },
-                    // Die Farbe bleibt weiß
-                    style: {
-                        colors: 'rgba(255, 255, 255, 0.7)'
-                    }
-                },
-                tooltip: {
-                    enabled: false
-                }
-            },
-            yaxis: {
-                labels: {
-                    formatter: (val) => val.toFixed(1) + ` ${unit}`,
-                    // NEU: Macht die Y-Achsen-Beschriftung weiß
-                    style: {
-                        colors: 'rgba(255, 255, 255, 0.7)'
-                    }
-                }
-            },
-            tooltip: {
-                // NEU: Erzwingt das dunkle Theme für den Tooltip
-                theme: 'dark', 
-                x: {
-                    // GEÄNDERT: Korrektes Datums- und Zeitformat für den Tooltip
-                    formatter: function(value) {
-                        return new Date(value).toLocaleString('de-DE', {
-                            day: '2-digit', 
-                            month: '2-digit', 
-                            year: 'numeric', 
-                            hour: '2-digit', 
-                            minute: '2-digit'
-                        }) + ' Uhr';
-                    }
-                },
-            },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    shadeIntensity: 1,
-                    opacityFrom: 0.5,
-                    opacityTo: 0.1,
-                    stops: [0, 90, 100]
-                }
-            }
+            series: [{ name: item.name, data: seriesData }],
+            chart: { type: chartType, height: 250, parentHeightOffset: 0, toolbar: { show: true, tools: { download: false } }, zoom: { enabled: false }, background: 'transparent' },
+            theme: { mode: 'dark' },
+            colors: colors,
+            dataLabels: { enabled: false },
+            stroke: strokeOptions,
+            grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 4 },
+            xaxis: { type: 'datetime', labels: { datetimeUTC: false, datetimeFormatter: { year: 'yyyy', month: "MMM 'yy", day: 'dd MMM', hour: 'HH:mm' }, style: { colors: 'rgba(255, 255, 255, 0.7)' } } },
+            yaxis: yaxisOptions,
+            tooltip: { theme: 'dark', x: { format: 'dd.MM.yy HH:mm' }, y: { formatter: (val) => isBinarySensor ? (val === 1 ? 'An' : 'Aus') : val.toFixed(2) + ` ${unit}` } },
+            fill: fillOptions
         };
     
         container.innerHTML = '';
