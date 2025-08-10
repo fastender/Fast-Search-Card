@@ -6405,99 +6405,63 @@ class FastSearchCard extends HTMLElement {
     }        
         
 
-    
     async renderApexChart(container, item) {
-        if (!window.ApexCharts) { /* ... bleibt gleich ... */ }
-        container.innerHTML = `<div style="display: flex; justify-content: center; align-...`;
-        const historyData = await this.fetchHistoryForSensor(item.id);
-        if (!historyData || historyData.length === 0) { // Geändert zu length === 0
-            container.innerHTML = `<div style="display: flex; justify-content: ...`;
+        if (!window.ApexCharts) {
+            container.innerHTML = `<div style="padding: 20px; text-align: center;">⚠️ ApexCharts-Bibliothek nicht gefunden.</div>`;
+            return;
+        }
+    
+        container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; height: 250px; color: var(--text-secondary);">Lade Chart-Daten...</div>`;
+        const { seriesData, stateMap } = await this.fetchHistoryForSensor(item.id);
+    
+        if (!seriesData || seriesData.length === 0) {
+            container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; height: 250px; color: var(--text-secondary);">📊 Keine ausreichenden Verlaufsdaten gefunden.</div>`;
             return;
         }
     
         const unit = item.custom_data?.metadata?.sensor_unit || item.attributes?.unit_of_measurement || '';
         const isBinarySensor = item.id.startsWith('binary_sensor.');
     
-        let options; // Optionen werden jetzt komplett im if/else Block definiert
+        let options;
     
         if (isBinarySensor) {
-            // ==========================================================
-            // NEUE LOGIK FÜR BINARY SENSOR (TIMELINE CHART)
-            // ==========================================================
-            
-            // 1. Daten in Zeitbereiche umwandeln
             const timelineData = [];
-            for (let i = 0; i < historyData.length; i++) {
-                const currentEntry = historyData[i];
-                const nextEntry = historyData[i + 1];
+            for (let i = 0; i < seriesData.length; i++) {
+                const currentEntry = seriesData[i];
+                const nextEntry = seriesData[i + 1];
+                const state = Object.keys(stateMap).find(key => stateMap[key] === currentEntry.value);
                 
-                const startTime = currentEntry.timestamp;
-                // Wenn es der letzte Eintrag ist, geht der Zustand bis "jetzt"
-                const endTime = nextEntry ? nextEntry.timestamp : new Date().getTime();
-    
-                timelineData.push({
-                    x: currentEntry.value === 1 ? 'An' : 'Aus',
-                    y: [startTime, endTime]
-                });
+                if (state) { // Nur hinzufügen, wenn der Zustand gültig ist
+                    timelineData.push({
+                        x: state.charAt(0).toUpperCase() + state.slice(1), // z.B. 'on' -> 'On'
+                        y: [
+                            currentEntry.timestamp,
+                            nextEntry ? nextEntry.timestamp : new Date().getTime()
+                        ]
+                    });
+                }
             }
     
             options = {
-                series: [{
-                    data: timelineData
+                series: [{ data: timelineData }],
+                chart: { type: 'rangeBar', height: 150, parentHeightOffset: 0, toolbar: { show: false }, background: 'transparent' },
+                theme: { mode: 'dark' },
+                plotOptions: { bar: { horizontal: true, barHeight: '50%', rangeBarGroupRows: false } },
+                colors: [({ value, seriesIndex, w }) => {
+                    const state = w.globals.seriesX[seriesIndex][w.globals.series[seriesIndex].indexOf(value)];
+                    return state.toLowerCase() === 'on' ? '#2ecc71' : '#555';
                 }],
-                chart: {
-                    type: 'rangeBar', // NEUER CHART-TYP
-                    height: 150, // Höhe kann für diesen Typ geringer sein
-                    parentHeightOffset: 0,
-                    toolbar: { show: false },
-                    background: 'transparent'
-                },
-                theme: {
-                    mode: 'dark'
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: true, // Wichtig für Timeline-Darstellung
-                        barHeight: '50%',
-                        rangeBarGroupRows: true // Erlaubt mehrere Zeilen, falls nötig
-                    }
-                },
-                colors: [
-                    // Farbfunktion: Grün für "An", Grau für "Aus"
-                    function({ value, seriesIndex, w }) {
-                        const state = w.globals.seriesX[seriesIndex][w.globals.series[seriesIndex].indexOf(value)];
-                        return state === 'An' ? '#2ecc71' : '#555';
-                    }
-                ],
-                fill: {
-                    type: 'solid',
-                    opacity: 0.6
-                },
-                xaxis: {
-                    type: 'datetime',
-                    labels: {
-                        datetimeUTC: false,
-                        style: { colors: 'rgba(255, 255, 255, 0.7)' }
-                    }
-                },
-                yaxis: {
-                    show: true,
-                    labels: {
-                         style: { colors: 'rgba(255, 255, 255, 0.9)' }
-                    }
-                },
-                grid: {
-                    show: true,
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                    strokeDashArray: 4,
-                },
+                fill: { type: 'solid', opacity: 0.6 },
+                xaxis: { type: 'datetime', labels: { datetimeUTC: false, style: { colors: 'rgba(255, 255, 255, 0.7)' } } },
+                yaxis: { show: true, labels: { style: { colors: 'rgba(255, 255, 255, 0.9)', fontSize: '14px' } } },
+                grid: { show: true, borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 2, yaxis: { lines: { show: false } } },
                 tooltip: {
                     theme: 'dark',
                     custom: function({ series, seriesIndex, dataPointIndex, w }) {
-                        const start = new Date(series[seriesIndex][dataPointIndex][0]).toLocaleString('de-DE');
-                        const end = new Date(series[seriesIndex][dataPointIndex][1]).toLocaleString('de-DE');
+                        const start = new Date(series[seriesIndex][dataPointIndex][0]).toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        const end = new Date(series[seriesIndex][dataPointIndex][1]).toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                         const state = w.globals.seriesX[seriesIndex][dataPointIndex];
-                        return `<div class="apexcharts-tooltip-rangebar">
+                        return `<div class="apexcharts-tooltip-rangebar" style="padding: 10px;">
                                     <div><strong>Zustand:</strong> ${state}</div>
                                     <div><strong>Von:</strong> ${start}</div>
                                     <div><strong>Bis:</strong> ${end}</div>
@@ -6507,13 +6471,10 @@ class FastSearchCard extends HTMLElement {
             };
     
         } else {
-            // ==========================================================
-            // BESTEHENDE LOGIK FÜR NORMALE SENSOREN
-            // ==========================================================
-            const seriesData = historyData.map(entry => [entry.timestamp, entry.value]);
+            const seriesDataForChart = seriesData.map(entry => [entry.timestamp, entry.value]);
             options = {
-                series: [{ name: item.name, data: seriesData }],
-                chart: { type: 'area', height: 250, /* ... Rest wie zuvor ... */, background: 'transparent' },
+                series: [{ name: item.name, data: seriesDataForChart }],
+                chart: { type: 'area', height: 250, parentHeightOffset: 0, toolbar: { show: true, tools: { download: false } }, zoom: { enabled: false }, background: 'transparent' },
                 theme: { mode: 'dark' },
                 colors: ['#007AFF'],
                 stroke: { curve: 'smooth', width: 2 },
