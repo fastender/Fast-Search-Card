@@ -855,6 +855,26 @@ class FastSearchCard extends HTMLElement {
         // ChartManager initialisieren
         this.chartManager = new ChartManager(this.shadowRoot);        
 
+        // ✅ HIER DEN TEST-CODE EINFÜGEN
+        setTimeout(() => {
+            if (window.ApexCharts) {
+                console.log(
+                    '%c✅ ApexCharts GEFUNDEN!', 
+                    'color: #2ecc71; font-weight: bold; background: #222; padding: 4px;',
+                    'Die Bibliothek ist über "window.ApexCharts" verfügbar und kann genutzt werden.',
+                    window.ApexCharts // Gibt das Objekt zur Inspektion aus
+                );
+            } else {
+                console.warn(
+                    '%c⚠️ ApexCharts NICHT GEFUNDEN.',
+                    'color: #e67e22; font-weight: bold; background: #222; padding: 4px;',
+                    'Deine Karte müsste jetzt die Fallback-Logik zum Selbstladen der Bibliothek ausführen.'
+                );
+            }
+        }, 2000); // Wir warten 2 Sekunden, um sicherzugehen, dass alles in Lovelace geladen wurde.
+        
+
+        
         // ✅ SAFETY: Ensure critical methods exist
         setTimeout(() => {
             this.ensureCriticalMethods();
