@@ -10041,7 +10041,8 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 });
-                
+            
+
                 // List Items Updates
                 listUpdates.forEach(update => {
                     if (update.type === 'icon') {
@@ -10056,10 +10057,13 @@ class FastSearchCard extends HTMLElement {
                                 duration: 150, 
                                 easing: 'ease-in'
                             }).finished.then(() => {
+                                // SVG austauschen
                                 update.iconElement.innerHTML = update.newIcon;
                                 
-                                // Trigger Licht-Animation auch in der Liste
-                                this.triggerLightAnimation(update.iconElement, item.isActive);
+                                // WICHTIG: Kurz warten, bis SVG gerendert ist
+                                setTimeout(() => {
+                                    this.triggerLightAnimation(update.iconElement, item.isActive);
+                                }, 10);
                                 
                                 update.iconElement.animate([
                                     { opacity: 0.3, transform: 'scale(0.9)' },
@@ -10083,7 +10087,8 @@ class FastSearchCard extends HTMLElement {
                             this.animateStateChange(update.listItem, update.isActive);
                         }
                     }
-                });                    
+                });
+                 
             });
         }
     }
