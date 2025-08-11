@@ -216,43 +216,25 @@ class FastSearchCard extends HTMLElement {
 
 
     // Dynamische SVG Icons
+
+    // Light Icons
     static LIGHT_OFF_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="39px" height="39px" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
-        <style>
-            .lamp-off { 
-                animation: lamp-off 0.8s ease-in-out forwards;
-            }
-            .fade-out { 
-                animation: fade-out 0.8s ease-in-out forwards; 
-            }
-            
-            @keyframes lamp-off {
-                0% { opacity: 1; transform: translateY(0px); }
-                50% { opacity: 0.7; transform: translateY(-0.5px); }
-                100% { opacity: 0.5; transform: translateY(0px); }
-            }
-            
-            @keyframes fade-out {
-                0% { opacity: 1; }
-                100% { opacity: 0.5; }
-            }
-        </style>
-        
         <!-- Lampenschirm (grau) -->
-        <g class="lamp-off">
+        <g class="lamp-shade">
             <rect width="9.471" height="6.761" rx="0" ry="0" 
                   transform="matrix(1 0 0 1 6.85 1.614)" 
                   fill="#9ea2a6" stroke="none"/>
         </g>
         
         <!-- Lampensockel (grau) -->
-        <g class="fade-out">
+        <g class="lamp-base">
             <rect width="5.881" height="0.705" rx="0" ry="0" 
                   transform="matrix(1 0 0 1 8.646 8.921)" 
                   fill="#5f6267" stroke="none"/>
         </g>
         
         <!-- Mittelstück (grau) -->
-        <g class="fade-out">
+        <g class="lamp-middle">
             <path d="M7.235,10.622C7.235,10.869,7.437,11.07,7.686,11.07L15.486,11.07C15.734,11.07,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" 
                   fill="#5f6267" stroke="none"/>
             <rect width="1.711" height="0.774" rx="0" ry="0" 
@@ -261,60 +243,30 @@ class FastSearchCard extends HTMLElement {
         </g>
         
         <!-- Lampenständer (grau) -->
-        <g class="fade-out">
+        <g class="lamp-stand">
             <path d="M16.29,22.282L13.322,12.935L9.85,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.66,10.803,13.588,10.93,13.612C11.055,13.634,11.15,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.66,12.544,13.779L15.948,22.282L16.29,22.282Z" 
                   fill="#5f6267" stroke="none"/>
         </g>
     </svg>`;
     
     static LIGHT_ON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="39px" height="39px" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
-        <style>
-            .lamp-glow { 
-                animation: lamp-glow 0.8s ease-in-out forwards;
-            }
-            .fade-in { 
-                animation: fade-in 0.8s ease-in-out forwards; 
-                opacity: 0;
-            }
-            .bounce { 
-                animation: bounce 0.8s ease-in-out forwards; 
-            }
-            
-            @keyframes lamp-glow {
-                0% { opacity: 0; transform: translateY(0px); }
-                50% { opacity: 0.8; transform: translateY(-1px); }
-                100% { opacity: 1; transform: translateY(0px); }
-            }
-            
-            @keyframes fade-in {
-                0% { opacity: 0; }
-                100% { opacity: 1; }
-            }
-            
-            @keyframes bounce {
-                0% { transform: translateY(0px); }
-                50% { transform: translateY(-1px); }
-                100% { transform: translateY(0px); }
-            }
-        </style>
-        
         <!-- Lampenschirm (leuchtend) -->
-        <g class="lamp-glow fade-in">
+        <g class="lamp-shade">
             <rect width="9.471" height="6.761" rx="0" ry="0" 
                   transform="matrix(1 0 0 1 6.85 1.614)" 
                   fill="#f8cd41" stroke="none"/>
         </g>
         
         <!-- Lampensockel -->
-        <g class="fade-in">
+        <g class="lamp-base">
             <rect width="5.881" height="0.705" rx="0" ry="0" 
                   transform="matrix(1 0 0 1 8.646 8.921)" 
                   fill="#57a8d7" stroke="none"/>
         </g>
         
         <!-- Mittelstück -->
-        <g class="fade-in">
-            <path d="M7.235,10.622C7.235,10.869,7.437,11.07,7.686,11.07L15.486,11.07C15.734,11.07,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" 
+        <g class="lamp-middle">
+            <path d="M7.235,10.622C7.235,10.869,7.437,11.07,7.686,11.07L15.486,11.07C15.734,11.70,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" 
                   fill="#57a8d7" stroke="none"/>
             <rect width="1.711" height="0.774" rx="0" ry="0" 
                   transform="matrix(1 0 0 1 10.729 11.615)" 
@@ -322,7 +274,7 @@ class FastSearchCard extends HTMLElement {
         </g>
         
         <!-- Lampenständer -->
-        <g class="bounce">
+        <g class="lamp-stand">
             <path d="M16.29,22.282L13.322,12.935L9.85,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.66,10.803,13.588,10.93,13.612C11.055,13.634,11.15,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.66,12.544,13.779L15.948,22.282L16.29,22.282Z" 
                   fill="#57a8d7" stroke="none"/>
         </g>
@@ -19528,9 +19480,12 @@ class FastSearchCard extends HTMLElement {
             const item = this.allItems.find(i => i.id === card.dataset.entity);
             if (item) {
                 icon.innerHTML = this.getDynamicIcon(item);
+                
+                // 3. EINMALIGE Licht-Animation auf den SVG-Elementen
+                this.triggerLightAnimation(icon, isActive);
             }
             
-            // 3. Fade-In des neuen animierten Icons
+            // 4. Fade-In des neuen Icons
             icon.animate([
                 { opacity: 0.3, transform: 'scale(0.9)' },
                 { opacity: 1, transform: 'scale(1)' }
@@ -19541,7 +19496,7 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        // 4. Zusätzlicher Card-Glow-Effekt für Lichter
+        // 5. Card-Glow-Effekt für eingeschaltete Lichter
         if (isActive) {
             card.animate([
                 { boxShadow: '0 4px 20px rgba(248, 205, 65, 0)' },
@@ -19550,6 +19505,55 @@ class FastSearchCard extends HTMLElement {
             ], { 
                 duration: 600, 
                 easing: 'ease-out'
+            });
+        }
+    }
+
+    triggerLightAnimation(iconElement, isActive) {
+        const svg = iconElement.querySelector('svg');
+        if (!svg) return;
+        
+        const lampShade = svg.querySelector('.lamp-shade');
+        const lampBase = svg.querySelector('.lamp-base');
+        const lampMiddle = svg.querySelector('.lamp-middle');
+        const lampStand = svg.querySelector('.lamp-stand');
+        
+        if (isActive) {
+            // EIN-Animation: Glow + Bounce
+            if (lampShade) {
+                lampShade.animate([
+                    { opacity: 0, transform: 'translateY(0px)' },
+                    { opacity: 0.8, transform: 'translateY(-1px)' },
+                    { opacity: 1, transform: 'translateY(0px)' }
+                ], { duration: 800, easing: 'ease-out' });
+            }
+            
+            [lampBase, lampMiddle].forEach(element => {
+                if (element) {
+                    element.animate([
+                        { opacity: 0 },
+                        { opacity: 1 }
+                    ], { duration: 800, easing: 'ease-out' });
+                }
+            });
+            
+            if (lampStand) {
+                lampStand.animate([
+                    { transform: 'translateY(0px)' },
+                    { transform: 'translateY(-1px)' },
+                    { transform: 'translateY(0px)' }
+                ], { duration: 800, easing: 'ease-out' });
+            }
+        } else {
+            // AUS-Animation: Fade Out
+            [lampShade, lampBase, lampMiddle, lampStand].forEach(element => {
+                if (element) {
+                    element.animate([
+                        { opacity: 1, transform: 'translateY(0px)' },
+                        { opacity: 0.7, transform: 'translateY(-0.5px)' },
+                        { opacity: 0.5, transform: 'translateY(0px)' }
+                    ], { duration: 800, easing: 'ease-out' });
+                }
             });
         }
     }    
