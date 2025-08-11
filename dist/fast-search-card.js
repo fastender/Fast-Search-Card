@@ -9867,20 +9867,23 @@ class FastSearchCard extends HTMLElement {
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
-                        const oldState = item.state;
+                        const oldState = item.state;  // Kann undefined sein beim ersten Mal!
                         item.isActive = isActive;
                         item.state = state.state;
                         
-                        // NUR updaten wenn sich der State WIRKLICH geändert hat
-                        if (item.domain === 'light' && oldState !== state.state) {
-                            const newIcon = this.getDynamicIcon(item);
-                            cardUpdates.push({ 
-                                card, 
-                                iconElement, 
-                                newIcon,
-                                type: 'icon' 
-                            });
-                        } else if (item.domain !== 'light') {
+                        // WICHTIG: Auch beim ersten Mal (oldState === undefined) updaten!
+                        if (item.domain === 'light') {
+                            if (oldState === undefined || oldState !== state.state) {
+                                const newIcon = this.getDynamicIcon(item);
+                                cardUpdates.push({ 
+                                    card, 
+                                    iconElement, 
+                                    newIcon,
+                                    type: 'icon' 
+                                });
+                            }
+                            // Sonst kein Update bei gleichem State
+                        } else {
                             // Andere Domains normal updaten
                             const newIcon = this.getDynamicIcon(item);
                             if (iconElement.innerHTML !== newIcon) {
@@ -9892,7 +9895,6 @@ class FastSearchCard extends HTMLElement {
                                 });
                             }
                         }
-                        // Wenn State gleich bleibt -> KEIN Update!
                     }
                 }
 
@@ -9934,20 +9936,28 @@ class FastSearchCard extends HTMLElement {
                         type: 'state'
                     });
                 }
-                
+
                 // Icon Update für List Items
                 const iconElement = listItem.querySelector('.device-list-icon');
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
+                        const oldState = item.state;
                         item.isActive = isActive;
                         item.state = state.state;
                         
-                        const hasAnimatedSVG = iconElement.querySelector('svg[id*="eex3d1yql8ma"]') || 
-                                               iconElement.querySelector('svg[id*="erbdd9pxa8f"]');
-                        
-                        if (!(hasAnimatedSVG && item.attributes?.icon_hue)) {
-                            // Nur updaten wenn KEIN animiertes Icon
+                        // WICHTIG: Auch beim ersten Mal updaten!
+                        if (item.domain === 'light') {
+                            if (oldState === undefined || oldState !== state.state) {
+                                const newIcon = this.getDynamicIcon(item);
+                                listUpdates.push({
+                                    listItem,
+                                    iconElement,
+                                    newIcon,
+                                    type: 'icon'
+                                });
+                            }
+                        } else {
                             const newIcon = this.getDynamicIcon(item);
                             if (iconElement.innerHTML !== newIcon) {
                                 listUpdates.push({
@@ -9960,6 +9970,7 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 }
+
             }
         });
         
@@ -11312,60 +11323,41 @@ class FastSearchCard extends HTMLElement {
         if (item.attributes?.icon_hue) {
             return item.attributes.icon_hue;
         }
-        
-        // Hue-Icon Code - MIT CACHE-KEY
+
         if (item.domain === 'light') {
             const state = this._hass.states[item.id];
             const isOn = state?.state === 'on';
             
-            // WICHTIG: Verwende eine stabile ID ohne Animation-Counter
-            const iconId = `lamp_${item.id.replace(/\./g, '_')}`;
-            
             if (isOn) {
-                return `<svg class="lamp-icon-on" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
+                // Animation die DAUERHAFT läuft
+                return `<svg class="lamp-icon-on" viewBox="0 0 24 24">
                     <style>
-                        @keyframes lampGlow { 
-                            0% {opacity: 0} 
-                            100% {opacity: 1} 
+                        @keyframes lampPulse { 
+                            0%, 100% { opacity: 0.7; transform: scale(1); } 
+                            50% { opacity: 1; transform: scale(1.05); } 
                         }
-                        @keyframes lampMove { 
-                            0%, 100% {transform: translateY(0px)} 
-                            50% {transform: translateY(-0.5px)} 
-                        }
-                        .lamp-shade-on {
-                            animation: lampGlow 1s ease-out forwards;
+                        .lamp-glow {
+                            animation: lampPulse 2s ease-in-out infinite;
                         }
                     </style>
-                    <g class="lamp-shade-on">
+                    <g class="lamp-glow">
                         <rect width="9.471" height="6.761" x="6.85" y="1.614" fill="rgb(248,205,65)"/>
                     </g>
-                    <g>
-                        <rect width="5.881" height="0.705" x="8.646" y="8.921" fill="rgb(87,168,215)"/>
-                        <path d="M7.235,10.622C7.235,10.869,7.437,11.070,7.686,11.070L15.486,11.070C15.734,11.070,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="rgb(87,168,215)"/>
-                        <rect width="1.711" height="0.774" x="10.729" y="11.615" fill="rgb(87,168,215)"/>
-                    </g>
+                    <rect width="5.881" height="0.705" x="8.646" y="8.921" fill="rgb(87,168,215)"/>
+                    <path d="M7.235,10.622C7.235,10.869,7.437,11.070,7.686,11.070L15.486,11.070C15.734,11.070,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="rgb(87,168,215)"/>
+                    <rect width="1.711" height="0.774" x="10.729" y="11.615" fill="rgb(87,168,215)"/>
                     <path d="M16.290,22.282L13.322,12.935L9.850,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.660,10.803,13.588,10.930,13.612C11.055,13.634,11.150,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.660,12.544,13.779L15.948,22.282L16.290,22.282Z" fill="rgb(87,168,215)"/>
                 </svg>`;
             } else {
-                return `<svg class="lamp-icon-off" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
-                    <style>
-                        .lamp-shade-off {
-                            opacity: 0.5;
-                        }
-                    </style>
-                    <g class="lamp-shade-off">
-                        <rect width="9.471" height="6.761" x="6.85" y="1.614" fill="rgb(158,160,162)"/>
-                    </g>
-                    <g>
-                        <rect width="5.881" height="0.705" x="8.646" y="8.921" fill="rgb(95,98,103)"/>
-                        <path d="M7.235,10.622C7.235,10.869,7.437,11.070,7.686,11.070L15.486,11.070C15.734,11.070,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="rgb(95,98,103)"/>
-                        <rect width="1.711" height="0.774" x="10.729" y="11.615" fill="rgb(95,98,103)"/>
-                    </g>
+                return `<svg class="lamp-icon-off" viewBox="0 0 24 24">
+                    <rect width="9.471" height="6.761" x="6.85" y="1.614" fill="rgb(158,160,162)" opacity="0.5"/>
+                    <rect width="5.881" height="0.705" x="8.646" y="8.921" fill="rgb(95,98,103)"/>
+                    <path d="M7.235,10.622C7.235,10.869,7.437,11.070,7.686,11.070L15.486,11.070C15.734,11.070,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="rgb(95,98,103)"/>
+                    <rect width="1.711" height="0.774" x="10.729" y="11.615" fill="rgb(95,98,103)"/>
                     <path d="M16.290,22.282L13.322,12.935L9.850,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.660,10.803,13.588,10.930,13.612C11.055,13.634,11.150,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.660,12.544,13.779L15.948,22.282L16.290,22.282Z" fill="rgb(95,98,103)"/>
                 </svg>`;
             }
-        }
-        
+        }        
         
         // 🆕 NEU: Prüfe zuerst auf Ring-Tile Konfiguration
         if (item.custom_data?.ring_config) {
