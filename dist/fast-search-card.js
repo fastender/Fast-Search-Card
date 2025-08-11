@@ -217,22 +217,39 @@ class FastSearchCard extends HTMLElement {
 
     // Dynamische SVG Icons
 
-
-    static ANIMATED_LIGHT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
-        <g class="lamp-off-parts">
-            <rect width="9.471" height="6.761" rx="0" ry="0" transform="matrix(1 0 0 1 6.85 1.614)" fill="#9ea2a6" stroke="none"/>
-            <rect width="5.881" height="0.705" rx="0" ry="0" transform="matrix(1 0 0 1 8.646 8.921)" fill="#5f6267" stroke="none"/>
-            <path d="M7.235,10.622C7.235,10.869,7.437,11.07,7.686,11.07L15.486,11.07C15.734,11.07,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="#5f6267" stroke="none"/>
-            <rect width="1.711" height="0.774" rx="0" ry="0" transform="matrix(1 0 0 1 10.729 11.615)" fill="#5f6267" stroke="none"/>
-            <path d="M16.29,22.282L13.322,12.935L9.85,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.66,10.803,13.588,10.93,13.612C11.055,13.634,11.15,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.66,12.544,13.779L15.948,22.282L16.29,22.282Z" fill="#5f6267" stroke="none"/>
-        </g>
-
+    // ✅ NEU: Animiertes SVG für den "AN"-Zustand
+    static ANIMATED_LIGHT_ON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
+        <style>
+            .lamp-on-parts { 
+                animation: lamp-glow 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
+            @keyframes lamp-glow {
+                from { opacity: 0; transform: translateY(2px) scale(0.95); }
+                to { opacity: 1; transform: translateY(0px) scale(1); }
+            }
+        </style>
         <g class="lamp-on-parts">
             <rect width="9.471" height="6.761" rx="0" ry="0" transform="matrix(1 0 0 1 6.85 1.614)" fill="#f8cd41" stroke="none"/>
             <rect width="5.881" height="0.705" rx="0" ry="0" transform="matrix(1 0 0 1 8.646 8.921)" fill="#57a8d7" stroke="none"/>
             <path d="M7.235,10.622C7.235,10.869,7.437,11.07,7.686,11.07L15.486,11.07C15.734,11.07,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="#57a8d7" stroke="none"/>
             <rect width="1.711" height="0.774" rx="0" ry="0" transform="matrix(1 0 0 1 10.729 11.615)" fill="#57a8d7" stroke="none"/>
             <path d="M16.29,22.282L13.322,12.935L9.85,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.66,10.803,13.588,10.93,13.612C11.055,13.634,11.15,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.66,12.544,13.779L15.948,22.282L16.29,22.282Z" fill="#57a8d7" stroke="none"/>
+        </g>
+    </svg>`;
+
+    // ✅ NEU: Animiertes SVG für den "AUS"-Zustand
+    static ANIMATED_LIGHT_OFF_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
+        <style>
+            .lamp-off-parts { 
+                opacity: 0.5;
+            }
+        </style>
+        <g class="lamp-off-parts">
+            <rect width="9.471" height="6.761" rx="0" ry="0" transform="matrix(1 0 0 1 6.85 1.614)" fill="#9ea2a6" stroke="none"/>
+            <rect width="5.881" height="0.705" rx="0" ry="0" transform="matrix(1 0 0 1 8.646 8.921)" fill="#5f6267" stroke="none"/>
+            <path d="M7.235,10.622C7.235,10.869,7.437,11.07,7.686,11.07L15.486,11.07C15.734,11.07,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="#5f6267" stroke="none"/>
+            <rect width="1.711" height="0.774" rx="0" ry="0" transform="matrix(1 0 0 1 10.729 11.615)" fill="#5f6267" stroke="none"/>
+            <path d="M16.29,22.282L13.322,12.935L9.85,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.66,10.803,13.588,10.93,13.612C11.055,13.634,11.15,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.66,12.544,13.779L15.948,22.282L16.29,22.282Z" fill="#5f6267" stroke="none"/>
         </g>
     </svg>`;
     
@@ -5405,25 +5422,7 @@ class FastSearchCard extends HTMLElement {
 
 
 
-            /* Dein angepasstes CSS für das animierte Licht-Icon */
-            @keyframes lamp-glow {
-                from { opacity: 0; transform: translateY(2px) scale(0.95); }
-                to { opacity: 1; transform: translateY(0px) scale(1); }
-            }
-            
-            .device-icon .lamp-on-parts {
-                opacity: 0; /* Standardmäßig unsichtbar */
-            }
 
-            .device-icon.active .lamp-off-parts {
-                opacity: 0.5; /* "Aus"-Teile ausblenden */
-                transition: opacity 0.2s ease-out;
-            }
-
-            .device-icon.active .lamp-on-parts {
-                /* "An"-Teile mit deiner Animation einblenden */
-                animation: lamp-glow 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-            }
 
 
             
@@ -9890,27 +9889,20 @@ class FastSearchCard extends HTMLElement {
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
-                        // NEUE LOGIK:
-                        if (item.domain === 'light') {
-                            // Für Lichter, schalte nur die 'active' Klasse um.
-                            // Das SVG bleibt immer dasselbe, das CSS steuert die Animation.
-                            iconElement.classList.toggle('active', isActive);
-                        } else {
-                            // Für alle anderen Geräte, behalte die bisherige Logik bei.
-                            item.isActive = isActive;
-                            const newIcon = this.getDynamicIcon(item);
-                            
-                            if (iconElement.innerHTML !== newIcon) {
-                                cardUpdates.push({
-                                    card,
-                                    iconElement,
-                                    newIcon,
-                                    type: 'icon'
-                                });
-                            }
+                        // Aktuellen Icon-Status setzen für getDynamicIcon()
+                        item.isActive = isActive;
+                        const newIcon = this.getDynamicIcon(item);
+                        
+                        if (iconElement.innerHTML !== newIcon) {
+                            cardUpdates.push({
+                                card,
+                                iconElement,
+                                newIcon,
+                                type: 'icon'
+                            });
                         }
                     }
-                }
+                }                
                 
                 // Status-Text Updates (für Custom Items)
                 const statusElement = card.querySelector('.device-status');
@@ -9951,25 +9943,15 @@ class FastSearchCard extends HTMLElement {
                     });
                 }
 
+                
                 // Icon Update für List Items
                 const iconElement = listItem.querySelector('.device-list-icon');
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
-                        // Die Zustandsänderung (active-Klasse) wird bereits weiter oben in der Funktion behandelt.
-                        // Hier stellen wir nur sicher, dass das korrekte SVG-Icon vorhanden ist.
-                
-                        let newIcon;
-                        if (item.domain === 'light') {
-                            // Für Lichter ist das Icon immer dasselbe animierbare Basis-SVG.
-                            newIcon = FastSearchCard.ANIMATED_LIGHT_SVG;
-                        } else {
-                            // Für andere Geräte, hole das dynamische Icon basierend auf dem Zustand.
-                            item.isActive = isActive;
-                            newIcon = this.getDynamicIcon(item);
-                        }
-                
-                        // Wenn das aktuelle Icon nicht das ist, was wir brauchen, füge ein Update hinzu.
+                        item.isActive = isActive;
+                        const newIcon = this.getDynamicIcon(item);
+                        
                         if (iconElement.innerHTML !== newIcon) {
                             listUpdates.push({
                                 listItem,
@@ -9980,6 +9962,7 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 }
+
             }
         });
         
@@ -11339,8 +11322,9 @@ class FastSearchCard extends HTMLElement {
         // ✅ BESTEHENDE LOGIC: Normale Icons für verschiedene Domains
 
         if (item.domain === 'light') {
-            // Gib IMMER das animierbare SVG zurück.
-            return FastSearchCard.ANIMATED_LIGHT_SVG;
+            return item.isActive ? 
+                FastSearchCard.ANIMATED_LIGHT_ON_SVG : 
+                FastSearchCard.ANIMATED_LIGHT_OFF_SVG;
         }        
         
         if (item.domain === 'cover') {
