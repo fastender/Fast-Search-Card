@@ -11329,35 +11329,76 @@ class FastSearchCard extends HTMLElement {
             const isOn = state?.state === 'on';
             
             if (isOn) {
-                // Animation die DAUERHAFT läuft
-                return `<svg class="lamp-icon-on" viewBox="0 0 24 24">
+                // EXAKT dein ON-SVG mit einmaliger Animation
+                return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
                     <style>
-                        @keyframes lampPulse { 
-                            0%, 100% { opacity: 0.7; transform: scale(1); } 
-                            50% { opacity: 1; transform: scale(1.05); } 
+                        @keyframes lampOn_tt { 
+                            0% {transform: translate(0px,0px)} 
+                            50% {transform: translate(0px,-0.5px)} 
+                            100% {transform: translate(0px,0px)} 
                         }
-                        .lamp-glow {
-                            animation: lampPulse 2s ease-in-out infinite;
+                        @keyframes lampOn_fade { 
+                            0% {opacity: 0} 
+                            100% {opacity: 1} 
+                        }
+                        .lamp-shade-on {
+                            animation: lampOn_tt 1s linear, lampOn_fade 1s linear;
+                            animation-fill-mode: forwards;
                         }
                     </style>
-                    <g class="lamp-glow">
-                        <rect width="9.471" height="6.761" x="6.85" y="1.614" fill="rgb(248,205,65)"/>
+                    <g class="lamp-shade-on" transform="translate(0,0)" opacity="0">
+                        <rect width="9.471000" height="6.761000" rx="0" ry="0" transform="matrix(1 0 0 1 6.84999990463257 1.61399996280670)" fill="rgb(248,205,65)" stroke="none" stroke-width="1"/>
                     </g>
-                    <rect width="5.881" height="0.705" x="8.646" y="8.921" fill="rgb(87,168,215)"/>
-                    <path d="M7.235,10.622C7.235,10.869,7.437,11.070,7.686,11.070L15.486,11.070C15.734,11.070,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="rgb(87,168,215)"/>
-                    <rect width="1.711" height="0.774" x="10.729" y="11.615" fill="rgb(87,168,215)"/>
-                    <path d="M16.290,22.282L13.322,12.935L9.850,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.660,10.803,13.588,10.930,13.612C11.055,13.634,11.150,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.660,12.544,13.779L15.948,22.282L16.290,22.282Z" fill="rgb(87,168,215)"/>
+                    <g>
+                        <rect width="5.881000" height="0.705000" rx="0" ry="0" transform="matrix(1 0 0 1 8.64599990844727 8.92099952697754)" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/>
+                    </g>
+                    <g>
+                        <path d="M7.235000,10.622000C7.235000,10.869000,7.437000,11.070000,7.686000,11.070000L15.486000,11.070000C15.734000,11.070000,15.935000,10.869000,15.935000,10.622000C15.935000,10.373000,15.734000,10.173000,15.486000,10.173000L7.686000,10.173000C7.437000,10.173000,7.235000,10.373000,7.235000,10.622000Z" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/>
+                        <g>
+                            <rect width="1.711000" height="0.774000" rx="0" ry="0" transform="matrix(1 0 0 1 10.72900009155273 11.61499977111816)" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/>
+                        </g>
+                    </g>
+                    <g>
+                        <path d="M16.290000,22.282000L13.322000,12.935000L9.850000,12.935000L6.883000,22.282000L7.226000,22.282000L10.628000,13.779000C10.677000,13.660000,10.803000,13.588000,10.930000,13.612000C11.055000,13.634000,11.150000,13.745000,11.154000,13.873000L11.386000,22.282000L11.787000,22.282000L12.019000,13.873000C12.022000,13.745000,12.115000,13.634000,12.243000,13.612000C12.371000,13.588000,12.496000,13.660000,12.544000,13.779000L15.948000,22.282000L16.290000,22.282000Z" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/>
+                    </g>
                 </svg>`;
             } else {
-                return `<svg class="lamp-icon-off" viewBox="0 0 24 24">
-                    <rect width="9.471" height="6.761" x="6.85" y="1.614" fill="rgb(158,160,162)" opacity="0.5"/>
-                    <rect width="5.881" height="0.705" x="8.646" y="8.921" fill="rgb(95,98,103)"/>
-                    <path d="M7.235,10.622C7.235,10.869,7.437,11.070,7.686,11.070L15.486,11.070C15.734,11.070,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="rgb(95,98,103)"/>
-                    <rect width="1.711" height="0.774" x="10.729" y="11.615" fill="rgb(95,98,103)"/>
-                    <path d="M16.290,22.282L13.322,12.935L9.850,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.660,10.803,13.588,10.930,13.612C11.055,13.634,11.150,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.660,12.544,13.779L15.948,22.282L16.290,22.282Z" fill="rgb(95,98,103)"/>
+                // EXAKT dein OFF-SVG mit einmaliger Animation
+                return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
+                    <style>
+                        @keyframes lampOff_tt { 
+                            0% {transform: translate(0px,0px)} 
+                            50% {transform: translate(0px,-0.5px)} 
+                            100% {transform: translate(0px,0px)} 
+                        }
+                        @keyframes lampOff_fade { 
+                            0% {opacity: 1} 
+                            100% {opacity: 0.5} 
+                        }
+                        .lamp-shade-off {
+                            animation: lampOff_tt 1s linear, lampOff_fade 1s linear;
+                            animation-fill-mode: forwards;
+                        }
+                    </style>
+                    <g class="lamp-shade-off" transform="translate(0,0)">
+                        <rect width="9.471000" height="6.761000" rx="0" ry="0" transform="matrix(1 0 0 1 6.84999990463257 1.61399996280670)" fill="rgb(158,160,162)" stroke="none" stroke-width="1"/>
+                    </g>
+                    <g>
+                        <rect width="5.881000" height="0.705000" rx="0" ry="0" transform="matrix(1 0 0 1 8.64599990844727 8.92099952697754)" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/>
+                    </g>
+                    <g>
+                        <path d="M7.235000,10.622000C7.235000,10.869000,7.437000,11.070000,7.686000,11.070000L15.486000,11.070000C15.734000,11.070000,15.935000,10.869000,15.935000,10.622000C15.935000,10.373000,15.734000,10.173000,15.486000,10.173000L7.686000,10.173000C7.437000,10.173000,7.235000,10.373000,7.235000,10.622000Z" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/>
+                        <g>
+                            <rect width="1.711000" height="0.774000" rx="0" ry="0" transform="matrix(1 0 0 1 10.72900009155273 11.61499977111816)" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/>
+                        </g>
+                    </g>
+                    <g>
+                        <path d="M16.290000,22.282000L13.322000,12.935000L9.850000,12.935000L6.883000,22.282000L7.226000,22.282000L10.628000,13.779000C10.677000,13.660000,10.803000,13.588000,10.930000,13.612000C11.055000,13.634000,11.150000,13.745000,11.154000,13.873000L11.386000,22.282000L11.787000,22.282000L12.019000,13.873000C12.022000,13.745000,12.115000,13.634000,12.243000,13.612000C12.371000,13.588000,12.496000,13.660000,12.544000,13.779000L15.948000,22.282000L16.290000,22.282000Z" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/>
+                    </g>
                 </svg>`;
             }
-        }        
+        }
+            
         
         // 🆕 NEU: Prüfe zuerst auf Ring-Tile Konfiguration
         if (item.custom_data?.ring_config) {
