@@ -10050,14 +10050,25 @@ class FastSearchCard extends HTMLElement {
                         if (item && item.domain === 'light' && this.shouldAnimate()) {
                             // Animierter Icon-Wechsel für Lichter in der Liste
                             update.iconElement.animate([
-                                { opacity: 1 },
-                                { opacity: 0.5 }
-                            ], { duration: 100 }).finished.then(() => {
+                                { opacity: 1, transform: 'scale(1)' },
+                                { opacity: 0.3, transform: 'scale(0.9)' }
+                            ], { 
+                                duration: 150, 
+                                easing: 'ease-in'
+                            }).finished.then(() => {
                                 update.iconElement.innerHTML = update.newIcon;
+                                
+                                // Trigger Licht-Animation auch in der Liste
+                                this.triggerLightAnimation(update.iconElement, item.isActive);
+                                
                                 update.iconElement.animate([
-                                    { opacity: 0.5 },
-                                    { opacity: 1 }
-                                ], { duration: 150 });
+                                    { opacity: 0.3, transform: 'scale(0.9)' },
+                                    { opacity: 1, transform: 'scale(1)' }
+                                ], { 
+                                    duration: 200, 
+                                    easing: 'ease-out',
+                                    fill: 'forwards'
+                                });
                             });
                         } else {
                             // Standard Icon Update für andere Geräte
@@ -10072,7 +10083,7 @@ class FastSearchCard extends HTMLElement {
                             this.animateStateChange(update.listItem, update.isActive);
                         }
                     }
-                });
+                });                    
             });
         }
     }
