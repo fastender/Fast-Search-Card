@@ -9956,23 +9956,27 @@ class FastSearchCard extends HTMLElement {
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
-                        // ✅ DEINE ANGEPASSTE LOGIK HIER
+                        // Die Zustandsänderung (active-Klasse) wird bereits weiter oben in der Funktion behandelt.
+                        // Hier stellen wir nur sicher, dass das korrekte SVG-Icon vorhanden ist.
+                
+                        let newIcon;
                         if (item.domain === 'light') {
-                            // Für Lichter, schalte nur die 'active' Klasse um.
-                            iconElement.classList.toggle('active', isActive);
+                            // Für Lichter ist das Icon immer dasselbe animierbare Basis-SVG.
+                            newIcon = FastSearchCard.ANIMATED_LIGHT_SVG;
                         } else {
-                            // Bisherige Logik für alle anderen Geräte beibehalten.
+                            // Für andere Geräte, hole das dynamische Icon basierend auf dem Zustand.
                             item.isActive = isActive;
-                            const newIcon = this.getDynamicIcon(item);
-                            
-                            if (iconElement.innerHTML !== newIcon) {
-                                listUpdates.push({
-                                    listItem,
-                                    iconElement,
-                                    newIcon,
-                                    type: 'icon'
-                                });
-                            }
+                            newIcon = this.getDynamicIcon(item);
+                        }
+                
+                        // Wenn das aktuelle Icon nicht das ist, was wir brauchen, füge ein Update hinzu.
+                        if (iconElement.innerHTML !== newIcon) {
+                            listUpdates.push({
+                                listItem,
+                                iconElement,
+                                newIcon,
+                                type: 'icon'
+                            });
                         }
                     }
                 }
