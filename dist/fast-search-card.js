@@ -9861,23 +9861,33 @@ class FastSearchCard extends HTMLElement {
                         type: 'state'
                     });
                 }
-                
-                // Icon Update prüfen (für dynamische Icons wie Licht on/off)
+
+                // Icon Update mit Animation-Schutz
                 const iconElement = card.querySelector('.device-icon');
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
-                        // Aktuellen Icon-Status setzen für getDynamicIcon()
                         item.isActive = isActive;
-                        const newIcon = this.getDynamicIcon(item);
+                        item.state = state.state; // NEU: State für icon_hue Template
                         
-                        if (iconElement.innerHTML !== newIcon) {
-                            cardUpdates.push({
-                                card,
-                                iconElement,
-                                newIcon,
-                                type: 'icon'
-                            });
+                        // NEU: Prüfe ob es ein animiertes SVG ist
+                        const hasAnimatedSVG = iconElement.querySelector('svg[id*="eex3d1yql8ma"]') || 
+                                               iconElement.querySelector('svg[id*="erbdd9pxa8f"]');
+                        
+                        if (hasAnimatedSVG && item.attributes?.icon_hue) {
+                            // Animiertes Icon - NICHT updaten, läuft weiter
+                            continue; // Skip dieses Update
+                        } else {
+                            // Normales Icon oder erstes Rendering
+                            const newIcon = this.getDynamicIcon(item);
+                            if (iconElement.innerHTML !== newIcon) {
+                                cardUpdates.push({ 
+                                    card, 
+                                    iconElement, 
+                                    newIcon,
+                                    type: 'icon' 
+                                });
+                            }
                         }
                     }
                 }
@@ -9927,15 +9937,24 @@ class FastSearchCard extends HTMLElement {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
                         item.isActive = isActive;
-                        const newIcon = this.getDynamicIcon(item);
+                        item.state = state.state; // NEU
                         
-                        if (iconElement.innerHTML !== newIcon) {
-                            listUpdates.push({
-                                listItem,
-                                iconElement,
-                                newIcon,
-                                type: 'icon'
-                            });
+                        // NEU: Animation-Schutz
+                        const hasAnimatedSVG = iconElement.querySelector('svg[id*="eex3d1yql8ma"]') || 
+                                               iconElement.querySelector('svg[id*="erbdd9pxa8f"]');
+                        
+                        if (hasAnimatedSVG && item.attributes?.icon_hue) {
+                            continue; // Skip Update
+                        } else {
+                            const newIcon = this.getDynamicIcon(item);
+                            if (iconElement.innerHTML !== newIcon) {
+                                listUpdates.push({
+                                    listItem,
+                                    iconElement,
+                                    newIcon,
+                                    type: 'icon'
+                                });
+                            }
                         }
                     }
                 }
@@ -11285,8 +11304,26 @@ class FastSearchCard extends HTMLElement {
             return groups;
         }, {});
     }
-    
+
     getDynamicIcon(item) {
+        // NEU: Check für custom icon_hue Template (BEHALTEN für Flexibilität)
+        if (item.attributes?.icon_hue) {
+            return item.attributes.icon_hue;
+        }
+        
+        // HIER kommt dein Hue-Icon Code
+        if (item.domain === 'light' && item.id.includes('hue')) {
+            const state = this._hass.states[item.id];
+            const isOn = state?.state === 'on';
+            
+            if (isOn) {
+                return `<svg id="eex3d1yql8ma1"...`; // dein AN-Icon
+            } else {
+                return `<svg id="erbdd9pxa8f81"...`; // dein AUS-Icon
+            }
+        }
+        
+        
         // 🆕 NEU: Prüfe zuerst auf Ring-Tile Konfiguration
         if (item.custom_data?.ring_config) {
             const ringIcon = this.createRingTileIcon(item);
