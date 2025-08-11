@@ -9867,15 +9867,21 @@ class FastSearchCard extends HTMLElement {
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
+                        const oldState = item.state;
                         item.isActive = isActive;
                         item.state = state.state;
                         
-                        // NEU: Prüfe ob es ein animiertes SVG ist
-                        const hasAnimatedSVG = iconElement.querySelector('svg[id*="eex3d1yql8ma"]') || 
-                                               iconElement.querySelector('svg[id*="erbdd9pxa8f"]');
-                        
-                        if (!(hasAnimatedSVG && item.attributes?.icon_hue)) {
-                            // Nur updaten wenn KEIN animiertes Icon vorhanden
+                        // NUR updaten wenn sich der State WIRKLICH geändert hat
+                        if (item.domain === 'light' && oldState !== state.state) {
+                            const newIcon = this.getDynamicIcon(item);
+                            cardUpdates.push({ 
+                                card, 
+                                iconElement, 
+                                newIcon,
+                                type: 'icon' 
+                            });
+                        } else if (item.domain !== 'light') {
+                            // Andere Domains normal updaten
                             const newIcon = this.getDynamicIcon(item);
                             if (iconElement.innerHTML !== newIcon) {
                                 cardUpdates.push({ 
@@ -9886,10 +9892,10 @@ class FastSearchCard extends HTMLElement {
                                 });
                             }
                         }
-                        // Kein else nötig - animierte Icons werden einfach übersprungen
+                        // Wenn State gleich bleibt -> KEIN Update!
                     }
                 }
-                
+
                 // Status-Text Updates (für Custom Items)
                 const statusElement = card.querySelector('.device-status');
                 if (statusElement) {
@@ -11302,25 +11308,61 @@ class FastSearchCard extends HTMLElement {
     }
 
     getDynamicIcon(item) {
-        console.log('getDynamicIcon called for:', item.id, item.domain);
-        
         // Check für custom icon_hue Template
         if (item.attributes?.icon_hue) {
-            console.log('Using icon_hue attribute');
             return item.attributes.icon_hue;
         }
         
-        // Hue-Icon Code
-        if (item.domain === 'light') {  // Erstmal ALLE Lichter, nicht nur hue
-            console.log('Light detected:', item.id);
+        // Hue-Icon Code - MIT CACHE-KEY
+        if (item.domain === 'light') {
             const state = this._hass.states[item.id];
             const isOn = state?.state === 'on';
-            console.log('Light state:', isOn ? 'ON' : 'OFF');
+            
+            // WICHTIG: Verwende eine stabile ID ohne Animation-Counter
+            const iconId = `lamp_${item.id.replace(/\./g, '_')}`;
             
             if (isOn) {
-                return `<svg id="eex3d1yql8ma1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision"><style><![CDATA[#eex3d1yql8ma2 { animation-name: eex3d1yql8ma2__tt, eex3d1yql8ma2_c_o; animation-duration: 1000ms; animation-fill-mode: forwards; animation-timing-function: linear; animation-direction: normal; animation-iteration-count: 1; }@keyframes eex3d1yql8ma2__tt { 0% {transform: translate(0px,0px) translate(0px,0px)} 50% {transform: translate(0px,0px) translate(0px,-0.500000px)} 100% {transform: translate(0px,0px) translate(0px,0px)} }@keyframes eex3d1yql8ma2_c_o { 0% {opacity: 0} 100% {opacity: 1} }]]></style><g id="eex3d1yql8ma2" transform="translate(0,0) translate(0,0)" opacity="0"><rect id="eex3d1yql8ma3" width="9.471000" height="6.761000" rx="0" ry="0" transform="matrix(1 0 0 1 6.84999990463257 1.61399996280670)" fill="rgb(248,205,65)" stroke="none" stroke-width="1"/></g><g id="eex3d1yql8ma4"><rect id="eex3d1yql8ma5" width="5.881000" height="0.705000" rx="0" ry="0" transform="matrix(1 0 0 1 8.64599990844727 8.92099952697754)" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/></g><g id="eex3d1yql8ma6"><path id="eex3d1yql8ma7" d="M7.235000,10.622000C7.235000,10.869000,7.437000,11.070000,7.686000,11.070000L15.486000,11.070000C15.734000,11.070000,15.935000,10.869000,15.935000,10.622000C15.935000,10.373000,15.734000,10.173000,15.486000,10.173000L7.686000,10.173000C7.437000,10.173000,7.235000,10.373000,7.235000,10.622000Z" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/><g id="eex3d1yql8ma8"><rect id="eex3d1yql8ma9" width="1.711000" height="0.774000" rx="0" ry="0" transform="matrix(1 0 0 1 10.72900009155273 11.61499977111816)" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/></g></g><g id="eex3d1yql8ma10"><path id="eex3d1yql8ma11" d="M16.290000,22.282000L13.322000,12.935000L9.850000,12.935000L6.883000,22.282000L7.226000,22.282000L10.628000,13.779000C10.677000,13.660000,10.803000,13.588000,10.930000,13.612000C11.055000,13.634000,11.150000,13.745000,11.154000,13.873000L11.386000,22.282000L11.787000,22.282000L12.019000,13.873000C12.022000,13.745000,12.115000,13.634000,12.243000,13.612000C12.371000,13.588000,12.496000,13.660000,12.544000,13.779000L15.948000,22.282000L16.290000,22.282000Z" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/></g></svg>`;
+                return `<svg class="lamp-icon-on" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
+                    <style>
+                        @keyframes lampGlow { 
+                            0% {opacity: 0} 
+                            100% {opacity: 1} 
+                        }
+                        @keyframes lampMove { 
+                            0%, 100% {transform: translateY(0px)} 
+                            50% {transform: translateY(-0.5px)} 
+                        }
+                        .lamp-shade-on {
+                            animation: lampGlow 1s ease-out forwards;
+                        }
+                    </style>
+                    <g class="lamp-shade-on">
+                        <rect width="9.471" height="6.761" x="6.85" y="1.614" fill="rgb(248,205,65)"/>
+                    </g>
+                    <g>
+                        <rect width="5.881" height="0.705" x="8.646" y="8.921" fill="rgb(87,168,215)"/>
+                        <path d="M7.235,10.622C7.235,10.869,7.437,11.070,7.686,11.070L15.486,11.070C15.734,11.070,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="rgb(87,168,215)"/>
+                        <rect width="1.711" height="0.774" x="10.729" y="11.615" fill="rgb(87,168,215)"/>
+                    </g>
+                    <path d="M16.290,22.282L13.322,12.935L9.850,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.660,10.803,13.588,10.930,13.612C11.055,13.634,11.150,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.660,12.544,13.779L15.948,22.282L16.290,22.282Z" fill="rgb(87,168,215)"/>
+                </svg>`;
             } else {
-                return `<svg id="erbdd9pxa8f81" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision"><style><![CDATA[#erbdd9pxa8f82 { animation-name: erbdd9pxa8f82__tt, erbdd9pxa8f82_c_o; animation-duration: 1000ms; animation-fill-mode: forwards; animation-timing-function: linear; animation-direction: normal; animation-iteration-count: 1; }@keyframes erbdd9pxa8f82__tt { 0% {transform: translate(0px,0px) translate(0px,0px)} 50% {transform: translate(0px,0px) translate(0px,-0.500000px)} 100% {transform: translate(0px,0px) translate(0px,0px)} }@keyframes erbdd9pxa8f82_c_o { 0% {opacity: 1} 100% {opacity: 0.500000} }]]></style><g id="erbdd9pxa8f82" transform="translate(0,0) translate(0,0)"><rect id="erbdd9pxa8f83" width="9.471000" height="6.761000" rx="0" ry="0" transform="matrix(1 0 0 1 6.84999990463257 1.61399996280670)" fill="rgb(158,160,162)" stroke="none" stroke-width="1"/></g><g id="erbdd9pxa8f84"><rect id="erbdd9pxa8f85" width="5.881000" height="0.705000" rx="0" ry="0" transform="matrix(1 0 0 1 8.64599990844727 8.92099952697754)" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/></g><g id="erbdd9pxa8f86"><path id="erbdd9pxa8f87" d="M7.235000,10.622000C7.235000,10.869000,7.437000,11.070000,7.686000,11.070000L15.486000,11.070000C15.734000,11.070000,15.935000,10.869000,15.935000,10.622000C15.935000,10.373000,15.734000,10.173000,15.486000,10.173000L7.686000,10.173000C7.437000,10.173000,7.235000,10.373000,7.235000,10.622000Z" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/><g id="erbdd9pxa8f88"><rect id="erbdd9pxa8f89" width="1.711000" height="0.774000" rx="0" ry="0" transform="matrix(1 0 0 1 10.72900009155273 11.61499977111816)" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/></g></g><g id="erbdd9pxa8f810"><path id="erbdd9pxa8f811" d="M16.290000,22.282000L13.322000,12.935000L9.850000,12.935000L6.883000,22.282000L7.226000,22.282000L10.628000,13.779000C10.677000,13.660000,10.803000,13.588000,10.930000,13.612000C11.055000,13.634000,11.150000,13.745000,11.154000,13.873000L11.386000,22.282000L11.787000,22.282000L12.019000,13.873000C12.022000,13.745000,12.115000,13.634000,12.243000,13.612000C12.371000,13.588000,12.496000,13.660000,12.544000,13.779000L15.948000,22.282000L16.290000,22.282000Z" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/></g></svg>`;
+                return `<svg class="lamp-icon-off" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
+                    <style>
+                        .lamp-shade-off {
+                            opacity: 0.5;
+                        }
+                    </style>
+                    <g class="lamp-shade-off">
+                        <rect width="9.471" height="6.761" x="6.85" y="1.614" fill="rgb(158,160,162)"/>
+                    </g>
+                    <g>
+                        <rect width="5.881" height="0.705" x="8.646" y="8.921" fill="rgb(95,98,103)"/>
+                        <path d="M7.235,10.622C7.235,10.869,7.437,11.070,7.686,11.070L15.486,11.070C15.734,11.070,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="rgb(95,98,103)"/>
+                        <rect width="1.711" height="0.774" x="10.729" y="11.615" fill="rgb(95,98,103)"/>
+                    </g>
+                    <path d="M16.290,22.282L13.322,12.935L9.850,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.660,10.803,13.588,10.930,13.612C11.055,13.634,11.150,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.660,12.544,13.779L15.948,22.282L16.290,22.282Z" fill="rgb(95,98,103)"/>
+                </svg>`;
             }
         }
         
