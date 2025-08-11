@@ -216,26 +216,21 @@ class FastSearchCard extends HTMLElement {
 
 
     // Dynamische SVG Icons
-
-
-    // ✅ Finale Version deines animierten Licht-Icons
-    static FINAL_ANIMATED_LIGHT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
-        <g class="lamp-off">
-            <rect width="9.471" height="6.761" transform="translate(6.85 1.614)" fill="#9ea2a6"/>
-            <rect width="5.881" height="0.705" transform="translate(8.646 8.921)" fill="#5f6267"/>
-            <path d="M7.235,10.622c0,.247.202.448.451.448h7.8c.248,0,.45-.201.45-.448s-.202-.449-.45-.449H7.686c-.249,0-.451.202-.451.449Z" fill="#5f6267"/>
-            <rect width="1.711" height="0.774" transform="translate(10.729 11.615)" fill="#5f6267"/>
-            <path d="M16.29,22.282l-2.968-9.347H9.85L6.883,22.282h.343l3.402-8.503c.049-.119.175-.191.302-.167.125.022.22.133.224.261l.232,8.409h.401l.232-8.409c.003-.128.096-.239.224-.261.128-.024.253.048.301.167l3.404,8.503h.342Z" fill="#5f6267"/>
-        </g>
-        <g class="lamp-on">
-            <rect width="9.471" height="6.761" transform="translate(6.85 1.614)" fill="#f8cd41"/>
-            <rect width="5.881" height="0.705" transform="translate(8.646 8.921)" fill="#57a8d7"/>
-            <path d="M7.235,10.622c0,.247.202.448.451.448h7.8c.248,0,.45-.201.45-.448s-.202-.449-.45-.449H7.686c-.249,0-.451.202-.451.449Z" fill="#57a8d7"/>
-            <rect width="1.711" height="0.774" transform="translate(10.729 11.615)" fill="#57a8d7"/>
-            <path d="M16.29,22.282l-2.968-9.347H9.85L6.883,22.282h.343l3.402-8.503c.049-.119.175-.191.302-.167.125.022.22.133.224.261l.232,8.409h.401l.232-8.409c.003-.128.096-.239.224-.261.128-.024.253.048.301.167l3.404,8.503h.342Z" fill="#57a8d7"/>
-        </g>
+    static LIGHT_OFF_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+      <path d="M9 18H15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 21H14" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M9.00082 15C9.00098 13 8.50098 12.5 7.50082 11.5C6.50067 10.5 6.02422 9.48689 6.00082 8C5.95284 4.95029 8.00067 3 12.0008 3C16.001 3 18.0488 4.95029 18.0008 8C17.9774 9.48689 17.5007 10.5 16.5008 11.5C15.501 12.5 15.001 13 15.0008 15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`;
-    
+
+    static LIGHT_ON_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+      <path d="M21 2L20 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M3 2L4 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M21 16L20 15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M3 16L4 15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M9 18H15" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 21H14" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M11.9998 3C7.9997 3 5.95186 4.95029 5.99985 8C6.02324 9.48689 6.4997 10.5 7.49985 11.5C8.5 12.5 9 13 8.99985 15H14.9998C15 13.0001 15.5 12.5 16.4997 11.5001L16.4998 11.5C17.4997 10.5 17.9765 9.48689 17.9998 8C18.0478 4.95029 16 3 11.9998 3Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
 
     // Cover Icons
     static COVER_CLOSED_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="39" height="39" viewBox="0 0 24 24" fill="currentColor" color="currentColor">
@@ -5404,10 +5399,7 @@ class FastSearchCard extends HTMLElement {
             }         
 
 
-            /* Ersetze das alte Licht-CSS hiermit: */
-            .device-icon .lamp-on {
-                opacity: 0; /* Die "An"-Teile sind standardmäßig unsichtbar. */
-            }
+
 
 
 
@@ -9871,30 +9863,24 @@ class FastSearchCard extends HTMLElement {
                 }
                 
                 // Icon Update prüfen (für dynamische Icons wie Licht on/off)
-                // Diese Logik gilt für beide Stellen in updateStates()
-                const iconElement = card.querySelector('.device-icon'); // oder .device-list-icon
+                const iconElement = card.querySelector('.device-icon');
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
-                        // Zuerst sicherstellen, dass das SVG überhaupt da ist (wichtig für Safari)
-                        if (iconElement.innerHTML === '') {
-                            iconElement.innerHTML = this.getDynamicIcon(item);
-                        }
-                
-                        if (item.domain === 'light') {
-                            // ✅ Rufe unsere neue, saubere Animationsmethode auf
-                            this.animateLightIcon(iconElement, isActive);
-                        } else {
-                            // Alte Logik für alle anderen Geräte
-                            item.isActive = isActive;
-                            const newIcon = this.getDynamicIcon(item);
-                            if (iconElement.innerHTML !== newIcon) {
-                                // Hier das Update zur cardUpdates oder listUpdates hinzufügen
-                                cardUpdates.push({ card, iconElement, newIcon, type: 'icon' });
-                            }
+                        // Aktuellen Icon-Status setzen für getDynamicIcon()
+                        item.isActive = isActive;
+                        const newIcon = this.getDynamicIcon(item);
+                        
+                        if (iconElement.innerHTML !== newIcon) {
+                            cardUpdates.push({
+                                card,
+                                iconElement,
+                                newIcon,
+                                type: 'icon'
+                            });
                         }
                     }
-                }            
+                }
                 
                 // Status-Text Updates (für Custom Items)
                 const statusElement = card.querySelector('.device-status');
@@ -9934,30 +9920,27 @@ class FastSearchCard extends HTMLElement {
                         type: 'state'
                     });
                 }
-
-                // Icon Update für Liste (KORRIGIERTE VERSION)
-                const iconElement = listItem.querySelector('.device-list-icon'); // <-- KORREKTUR 1: .device-list-icon
+                
+                // Icon Update für List Items
+                const iconElement = listItem.querySelector('.device-list-icon');
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
-                        if (iconElement.innerHTML === '') {
-                            iconElement.innerHTML = this.getDynamicIcon(item);
-                        }
+                        item.isActive = isActive;
+                        const newIcon = this.getDynamicIcon(item);
                         
-                        if (item.domain === 'light') {
-                            this.animateLightIcon(iconElement, isActive);
-                        } else {
-                            item.isActive = isActive;
-                            const newIcon = this.getDynamicIcon(item);
-                            if (iconElement.innerHTML !== newIcon) {
-                                listUpdates.push({ listItem, iconElement, newIcon, type: 'icon' }); // <-- KORREKTUR 2: listUpdates
-                            }
+                        if (iconElement.innerHTML !== newIcon) {
+                            listUpdates.push({
+                                listItem,
+                                iconElement,
+                                newIcon,
+                                type: 'icon'
+                            });
                         }
                     }
                 }
             }
         });
-
         
         // Batch-Update in requestAnimationFrame für bessere Performance
         if (cardUpdates.length > 0 || listUpdates.length > 0) {
@@ -11313,11 +11296,12 @@ class FastSearchCard extends HTMLElement {
         }
         
         // ✅ BESTEHENDE LOGIC: Normale Icons für verschiedene Domains
-
+        
         if (item.domain === 'light') {
-            // IMMER das Basis-SVG zurückgeben
-            return FastSearchCard.FINAL_ANIMATED_LIGHT_SVG;
-        }               
+            return item.isActive ? 
+                FastSearchCard.LIGHT_ON_SVG : 
+                FastSearchCard.LIGHT_OFF_SVG;
+        }
         
         if (item.domain === 'cover') {
             // Cover: isActive = offen (position > 0)
@@ -19382,62 +19366,6 @@ class FastSearchCard extends HTMLElement {
             ], { duration: duration * 0.7, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
         }
     }
-
-
-
-    // ✅ NEU: Animations-Logik mit der Web Animations API
-    animateLightIcon(iconElement, isActive) {
-        const lampOn = iconElement.querySelector('.lamp-on');
-        const lampOff = iconElement.querySelector('.lamp-off');
-
-        if (!lampOn || !lampOff) return; // Sicherheitsprüfung
-
-        // Animationseinstellungen
-        const optionsOn = {
-            duration: 500,
-            easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', // Federnder Effekt
-            fill: 'forwards'
-        };
-
-        const optionsOff = {
-            duration: 300,
-            easing: 'ease-out',
-            fill: 'forwards'
-        };
-
-        if (isActive) {
-            // Licht EINSCHALTEN
-            lampOn.animate([
-                { opacity: 0, transform: 'scale(0.95)' },
-                { opacity: 1, transform: 'scale(1)' }
-            ], optionsOn);
-
-            lampOff.animate([
-                { opacity: 1 },
-                { opacity: 0 }
-            ], optionsOff);
-
-        } else {
-            // Licht AUSSCHALTEN
-            lampOn.animate([
-                { opacity: 1, transform: 'scale(1)' },
-                { opacity: 0, transform: 'scale(0.95)' }
-            ], optionsOff);
-
-            lampOff.animate([
-                { opacity: 0 },
-                { opacity: 1 }
-            ], optionsOn);
-        }
-    }
-
-
-
-
-
-
-
-    
 
     getCardSize() { return 4; }
     static getConfigElement() { return document.createElement('fast-search-card-editor'); }
