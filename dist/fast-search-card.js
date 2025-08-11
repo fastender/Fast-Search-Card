@@ -11302,20 +11302,25 @@ class FastSearchCard extends HTMLElement {
     }
 
     getDynamicIcon(item) {
-        // NEU: Check für custom icon_hue Template (BEHALTEN für Flexibilität)
+        console.log('getDynamicIcon called for:', item.id, item.domain);
+        
+        // Check für custom icon_hue Template
         if (item.attributes?.icon_hue) {
+            console.log('Using icon_hue attribute');
             return item.attributes.icon_hue;
         }
         
-        // HIER kommt dein Hue-Icon Code
-        if (item.domain === 'light' && item.id.includes('hue')) {
+        // Hue-Icon Code
+        if (item.domain === 'light') {  // Erstmal ALLE Lichter, nicht nur hue
+            console.log('Light detected:', item.id);
             const state = this._hass.states[item.id];
             const isOn = state?.state === 'on';
+            console.log('Light state:', isOn ? 'ON' : 'OFF');
             
             if (isOn) {
-                return `<svg id="eex3d1yql8ma1"...`; // dein AN-Icon
+                return `<svg id="eex3d1yql8ma1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision"><style><![CDATA[#eex3d1yql8ma2 { animation-name: eex3d1yql8ma2__tt, eex3d1yql8ma2_c_o; animation-duration: 1000ms; animation-fill-mode: forwards; animation-timing-function: linear; animation-direction: normal; animation-iteration-count: 1; }@keyframes eex3d1yql8ma2__tt { 0% {transform: translate(0px,0px) translate(0px,0px)} 50% {transform: translate(0px,0px) translate(0px,-0.500000px)} 100% {transform: translate(0px,0px) translate(0px,0px)} }@keyframes eex3d1yql8ma2_c_o { 0% {opacity: 0} 100% {opacity: 1} }]]></style><g id="eex3d1yql8ma2" transform="translate(0,0) translate(0,0)" opacity="0"><rect id="eex3d1yql8ma3" width="9.471000" height="6.761000" rx="0" ry="0" transform="matrix(1 0 0 1 6.84999990463257 1.61399996280670)" fill="rgb(248,205,65)" stroke="none" stroke-width="1"/></g><g id="eex3d1yql8ma4"><rect id="eex3d1yql8ma5" width="5.881000" height="0.705000" rx="0" ry="0" transform="matrix(1 0 0 1 8.64599990844727 8.92099952697754)" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/></g><g id="eex3d1yql8ma6"><path id="eex3d1yql8ma7" d="M7.235000,10.622000C7.235000,10.869000,7.437000,11.070000,7.686000,11.070000L15.486000,11.070000C15.734000,11.070000,15.935000,10.869000,15.935000,10.622000C15.935000,10.373000,15.734000,10.173000,15.486000,10.173000L7.686000,10.173000C7.437000,10.173000,7.235000,10.373000,7.235000,10.622000Z" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/><g id="eex3d1yql8ma8"><rect id="eex3d1yql8ma9" width="1.711000" height="0.774000" rx="0" ry="0" transform="matrix(1 0 0 1 10.72900009155273 11.61499977111816)" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/></g></g><g id="eex3d1yql8ma10"><path id="eex3d1yql8ma11" d="M16.290000,22.282000L13.322000,12.935000L9.850000,12.935000L6.883000,22.282000L7.226000,22.282000L10.628000,13.779000C10.677000,13.660000,10.803000,13.588000,10.930000,13.612000C11.055000,13.634000,11.150000,13.745000,11.154000,13.873000L11.386000,22.282000L11.787000,22.282000L12.019000,13.873000C12.022000,13.745000,12.115000,13.634000,12.243000,13.612000C12.371000,13.588000,12.496000,13.660000,12.544000,13.779000L15.948000,22.282000L16.290000,22.282000Z" fill="rgb(87,168,215)" stroke="none" stroke-width="1"/></g></svg>`;
             } else {
-                return `<svg id="erbdd9pxa8f81"...`; // dein AUS-Icon
+                return `<svg id="erbdd9pxa8f81" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision"><style><![CDATA[#erbdd9pxa8f82 { animation-name: erbdd9pxa8f82__tt, erbdd9pxa8f82_c_o; animation-duration: 1000ms; animation-fill-mode: forwards; animation-timing-function: linear; animation-direction: normal; animation-iteration-count: 1; }@keyframes erbdd9pxa8f82__tt { 0% {transform: translate(0px,0px) translate(0px,0px)} 50% {transform: translate(0px,0px) translate(0px,-0.500000px)} 100% {transform: translate(0px,0px) translate(0px,0px)} }@keyframes erbdd9pxa8f82_c_o { 0% {opacity: 1} 100% {opacity: 0.500000} }]]></style><g id="erbdd9pxa8f82" transform="translate(0,0) translate(0,0)"><rect id="erbdd9pxa8f83" width="9.471000" height="6.761000" rx="0" ry="0" transform="matrix(1 0 0 1 6.84999990463257 1.61399996280670)" fill="rgb(158,160,162)" stroke="none" stroke-width="1"/></g><g id="erbdd9pxa8f84"><rect id="erbdd9pxa8f85" width="5.881000" height="0.705000" rx="0" ry="0" transform="matrix(1 0 0 1 8.64599990844727 8.92099952697754)" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/></g><g id="erbdd9pxa8f86"><path id="erbdd9pxa8f87" d="M7.235000,10.622000C7.235000,10.869000,7.437000,11.070000,7.686000,11.070000L15.486000,11.070000C15.734000,11.070000,15.935000,10.869000,15.935000,10.622000C15.935000,10.373000,15.734000,10.173000,15.486000,10.173000L7.686000,10.173000C7.437000,10.173000,7.235000,10.373000,7.235000,10.622000Z" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/><g id="erbdd9pxa8f88"><rect id="erbdd9pxa8f89" width="1.711000" height="0.774000" rx="0" ry="0" transform="matrix(1 0 0 1 10.72900009155273 11.61499977111816)" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/></g></g><g id="erbdd9pxa8f810"><path id="erbdd9pxa8f811" d="M16.290000,22.282000L13.322000,12.935000L9.850000,12.935000L6.883000,22.282000L7.226000,22.282000L10.628000,13.779000C10.677000,13.660000,10.803000,13.588000,10.930000,13.612000C11.055000,13.634000,11.150000,13.745000,11.154000,13.873000L11.386000,22.282000L11.787000,22.282000L12.019000,13.873000C12.022000,13.745000,12.115000,13.634000,12.243000,13.612000C12.371000,13.588000,12.496000,13.660000,12.544000,13.779000L15.948000,22.282000L16.290000,22.282000Z" fill="rgb(95,98,103)" stroke="none" stroke-width="1"/></g></svg>`;
             }
         }
         
@@ -11377,6 +11382,11 @@ class FastSearchCard extends HTMLElement {
         
         // Fallback für andere Domains
         return item.icon;
+
+        // Rest der Funktion...
+        console.log('Using default icon for:', item.domain);
+        // Dein bestehender Code für andere Domains
+        
     }
 
     createDeviceCard(item) {
