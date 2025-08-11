@@ -9868,17 +9868,14 @@ class FastSearchCard extends HTMLElement {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
                         item.isActive = isActive;
-                        item.state = state.state; // NEU: State für icon_hue Template
+                        item.state = state.state;
                         
                         // NEU: Prüfe ob es ein animiertes SVG ist
                         const hasAnimatedSVG = iconElement.querySelector('svg[id*="eex3d1yql8ma"]') || 
                                                iconElement.querySelector('svg[id*="erbdd9pxa8f"]');
                         
-                        if (hasAnimatedSVG && item.attributes?.icon_hue) {
-                            // Animiertes Icon - NICHT updaten, läuft weiter
-                            continue; // Skip dieses Update
-                        } else {
-                            // Normales Icon oder erstes Rendering
+                        if (!(hasAnimatedSVG && item.attributes?.icon_hue)) {
+                            // Nur updaten wenn KEIN animiertes Icon vorhanden
                             const newIcon = this.getDynamicIcon(item);
                             if (iconElement.innerHTML !== newIcon) {
                                 cardUpdates.push({ 
@@ -9889,6 +9886,7 @@ class FastSearchCard extends HTMLElement {
                                 });
                             }
                         }
+                        // Kein else nötig - animierte Icons werden einfach übersprungen
                     }
                 }
                 
@@ -9937,15 +9935,13 @@ class FastSearchCard extends HTMLElement {
                     const item = this.allItems.find(i => i.id === entityId);
                     if (item) {
                         item.isActive = isActive;
-                        item.state = state.state; // NEU
+                        item.state = state.state;
                         
-                        // NEU: Animation-Schutz
                         const hasAnimatedSVG = iconElement.querySelector('svg[id*="eex3d1yql8ma"]') || 
                                                iconElement.querySelector('svg[id*="erbdd9pxa8f"]');
                         
-                        if (hasAnimatedSVG && item.attributes?.icon_hue) {
-                            continue; // Skip Update
-                        } else {
+                        if (!(hasAnimatedSVG && item.attributes?.icon_hue)) {
+                            // Nur updaten wenn KEIN animiertes Icon
                             const newIcon = this.getDynamicIcon(item);
                             if (iconElement.innerHTML !== newIcon) {
                                 listUpdates.push({
