@@ -9920,12 +9920,19 @@ class FastSearchCard extends HTMLElement {
                 }
             }
         });
-    
+
+        
         // List Items analysieren
         const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
         deviceListItems.forEach(listItem => {
             const entityId = listItem.dataset.entity;
             const state = this._hass.states[entityId];
+            
+            // NEU: Debug für alle Light-Entities
+            if (entityId.includes('light.')) {
+                console.log('📍 Checking light:', entityId, 'State:', state?.state);
+            }
+            
             if (state) {
                 const isActive = this.isEntityActive(state);
                 const wasActive = listItem.classList.contains('active');
@@ -9947,6 +9954,16 @@ class FastSearchCard extends HTMLElement {
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     
+                    // NEU: Mehr Debug Info
+                    if (item && item.domain === 'light') {
+                        console.log('🔄 Light item found:', {
+                            id: item.id,
+                            oldState: item.state,
+                            newState: state.state,
+                            willUpdate: item.state !== state.state
+                        });
+                    }
+                    
                     if (item) {
                         const oldState = item.state;
                         item.isActive = isActive;
@@ -9955,6 +9972,7 @@ class FastSearchCard extends HTMLElement {
                         if (item.domain === 'light') {
                             if (oldState === undefined || oldState !== state.state) {
                                 const newIcon = this.getDynamicIcon(item);
+                                console.log('✅ Pushing light update to queue');
                                 
                                 listUpdates.push({
                                     listItem,
@@ -9964,7 +9982,6 @@ class FastSearchCard extends HTMLElement {
                                 });
                             }
                         } else {
-                            // ⚠️ DIESER ELSE BLOCK HAT GEFEHLT! - Für andere Domains
                             const newIcon = this.getDynamicIcon(item);
                             if (iconElement.innerHTML !== newIcon) {
                                 listUpdates.push({
@@ -9977,6 +9994,9 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 }
+
+        
+
         
                 // NEU: Status-Text Update für List Items
                 const statusElement = listItem.querySelector('.device-list-status');
@@ -10000,6 +10020,9 @@ class FastSearchCard extends HTMLElement {
             }
         });
         
+        // Nach der forEach, vor requestAnimationFrame:
+        console.log('📊 Total listUpdates:', listUpdates.length, 'Updates:', listUpdates.map(u => u.type));        
+        
         // Batch-Update in requestAnimationFrame für bessere Performance
         if (cardUpdates.length > 0 || listUpdates.length > 0) {
             requestAnimationFrame(() => {
@@ -10021,14 +10044,16 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 });
-    
+
+
                 // List Items Updates
                 listUpdates.forEach(update => {
                     if (update.type === 'icon') {
+                        console.log('🎨 Actually updating icon for:', update.listItem.dataset.entity);
                         // Icon Update für List Items
                         update.iconElement.innerHTML = update.newIcon;
                     } else if (update.type === 'status') {
-                        // NEU: Status-Text Update für List Items
+                        // Status-Text Update für List Items
                         update.statusElement.textContent = update.newStatusText;
                     } else if (update.type === 'state') {
                         // State Update für List Items
@@ -10039,7 +10064,7 @@ class FastSearchCard extends HTMLElement {
                             this.animateStateChange(update.listItem, update.isActive);
                         }
                     }
-                });
+                });                    
                     
             });
         }
