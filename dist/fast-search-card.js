@@ -2162,6 +2162,7 @@ class FastSearchCard extends HTMLElement {
             }
             
             .device-list-icon {
+                border: 1px solid red !important; /* Temporär zum Debuggen */
                 width: 68px;
                 height: 68px;
                 background: rgba(255, 255, 255, 0.15);
@@ -2174,6 +2175,12 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.2s ease;
                 color: var(--text-primary);
             }
+
+            .device-list-icon svg {
+                width: 100% !important;
+                height: 100% !important;
+                display: block !important;
+            }            
             
             .device-list-item.active .device-list-icon {
                 background: rgba(0, 122, 255, 0.3);
@@ -9939,27 +9946,22 @@ class FastSearchCard extends HTMLElement {
         
                 // Icon Update für List Items
                 const iconElement = listItem.querySelector('.device-list-icon');
+                console.log('🔴 Updating list icon for:', entityId, 'Icon element exists:', !!iconElement);
+                
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
+                    console.log('🟠 Found item:', item?.id, 'Domain:', item?.domain);
+                    
                     if (item) {
                         const oldState = item.state;
                         item.isActive = isActive;
                         item.state = state.state;
                         
-                        // WICHTIG: Auch beim ersten Mal updaten!
                         if (item.domain === 'light') {
                             if (oldState === undefined || oldState !== state.state) {
                                 const newIcon = this.getDynamicIcon(item);
-                                listUpdates.push({
-                                    listItem,
-                                    iconElement,
-                                    newIcon,
-                                    type: 'icon'
-                                });
-                            }
-                        } else {
-                            const newIcon = this.getDynamicIcon(item);
-                            if (iconElement.innerHTML !== newIcon) {
+                                console.log('🟣 New icon for light:', newIcon ? newIcon.substring(0, 50) + '...' : 'EMPTY!');
+                                
                                 listUpdates.push({
                                     listItem,
                                     iconElement,
@@ -11897,19 +11899,24 @@ class FastSearchCard extends HTMLElement {
     }
 
     createDeviceListItem(item) {
+        console.log('🔵 Creating list item for:', item.id, item.domain);
+        
         const listItem = document.createElement('div');
         listItem.className = `device-list-item ${item.isActive ? 'active' : ''}`;
         listItem.dataset.entity = item.id;
         
         const quickActionHTML = this.getQuickActionHTML(item);
         
-        // Custom Items behandeln
         const statusText = item.domain === 'custom' ? 
             this.getCustomStatusText(item) : 
             this.getEntityStatus(this._hass.states[item.id]);
         
+        // Debug: Check was getDynamicIcon zurückgibt
+        const iconHTML = this.getDynamicIcon(item);
+        console.log('🟢 Icon HTML for', item.id, ':', iconHTML ? iconHTML.substring(0, 50) + '...' : 'EMPTY!');
+        
         listItem.innerHTML = `
-            <div class="device-list-icon">${this.getDynamicIcon(item)}</div>
+            <div class="device-list-icon">${iconHTML}</div>
             <div class="device-list-content">
                 <div class="device-list-area">${item.area}</div>
                 <div class="device-list-name">${item.name}</div>
@@ -11917,6 +11924,10 @@ class FastSearchCard extends HTMLElement {
             </div>
             ${quickActionHTML}
         `;
+        
+        // Debug: Check ob Icon im DOM ist
+        const iconElement = listItem.querySelector('.device-list-icon');
+        console.log('🟡 Icon element after innerHTML:', iconElement?.innerHTML ? 'Has content' : 'EMPTY!');
         
         // Event Listeners
         const content = listItem.querySelector('.device-list-content');
