@@ -9830,9 +9830,6 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    
-
-
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
         
@@ -9861,7 +9858,7 @@ class FastSearchCard extends HTMLElement {
                         type: 'state'
                     });
                 }
-
+    
                 // Icon Update mit Animation-Schutz
                 const iconElement = card.querySelector('.device-icon');
                 if (iconElement) {
@@ -9871,7 +9868,6 @@ class FastSearchCard extends HTMLElement {
                         item.isActive = isActive;
                         item.state = state.state;
                         
-                        // WICHTIG: Auch beim ersten Mal (oldState === undefined) updaten!
                         if (item.domain === 'light') {
                             if (oldState === undefined || oldState !== state.state) {
                                 const newIcon = this.getDynamicIcon(item);
@@ -9882,9 +9878,7 @@ class FastSearchCard extends HTMLElement {
                                     type: 'icon' 
                                 });
                             }
-                            // Sonst kein Update bei gleichem State
                         } else {
-                            // Andere Domains normal updaten
                             const newIcon = this.getDynamicIcon(item);
                             if (iconElement.innerHTML !== newIcon) {
                                 cardUpdates.push({ 
@@ -9897,7 +9891,7 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 }
-
+    
                 // Status-Text Updates (für Custom Items)
                 const statusElement = card.querySelector('.device-status');
                 if (statusElement) {
@@ -9917,7 +9911,7 @@ class FastSearchCard extends HTMLElement {
             }
         });
         
-        // List Items analysieren
+        // List Items analysieren (NEUE, KORREKTE VERSION)
         const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
         deviceListItems.forEach(listItem => {
             const entityId = listItem.dataset.entity;
@@ -9927,12 +9921,12 @@ class FastSearchCard extends HTMLElement {
                 const wasActive = listItem.classList.contains('active');
                 const item = this.allItems.find(i => i.id === entityId);
                 if (!item) return;
-
+    
                 // 1. Update .active class for styling
                 if (isActive !== wasActive) {
                     listUpdates.push({ listItem, isActive, type: 'state' });
                 }
-
+    
                 // 2. Update icon (behebt das Refresh-Problem)
                 const iconElement = listItem.querySelector('.device-list-icon');
                 if (iconElement && item.state !== state.state) {
@@ -9940,7 +9934,7 @@ class FastSearchCard extends HTMLElement {
                     const newIcon = this.getDynamicIcon(item);
                     listUpdates.push({ iconElement, newIcon, type: 'icon' });
                 }
-
+    
                 // 3. Update status text (fehlte komplett)
                 const statusElement = listItem.querySelector('.device-list-status');
                 const newStatusText = (item.domain === 'custom')
@@ -9964,27 +9958,19 @@ class FastSearchCard extends HTMLElement {
                 // Grid Cards Updates
                 cardUpdates.forEach(update => {
                     if (update.type === 'status') {
-                        // Status-Text Update
                         update.statusElement.textContent = update.newStatusText;
                     } else if (update.type === 'icon') {
-                        // Icon Update
                         update.iconElement.innerHTML = update.newIcon;
                     } else if (update.type === 'state') {
-                        // State-Change Update
                         update.card.classList.toggle('active', update.isActive);
                         
-                        // Animation nur für sichtbare Cards und mit Performance-Check
                         if (this.shouldAnimate() && this.isCardVisible(update.card)) {
                             this.animateStateChange(update.card, update.isActive);
                         }
                     }
                 });
                 
-
-
-
-                // ERSETZEN SIE DEN "listUpdates.forEach" BLOCK AM ENDE DER "updateStates" FUNKTION HIERMIT:
-                // List Items Updates
+                // List Items Updates (NEUE, KORREKTE VERSION)
                 listUpdates.forEach(update => {
                     switch (update.type) {
                         case 'state':
@@ -10011,7 +9997,6 @@ class FastSearchCard extends HTMLElement {
                             break;
                     }
                 });
-
             });
         }
     }
