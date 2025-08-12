@@ -11319,7 +11319,7 @@ class FastSearchCard extends HTMLElement {
         }, {});
     }
 
-    // ERSETZEN SIE IHRE KOMPLETTE getDynamicIcon FUNKTION HIERMIT:
+
     getDynamicIcon(item) {
         // Check für custom icon_hue Template
         if (item.attributes?.icon_hue) {
@@ -11392,71 +11392,9 @@ class FastSearchCard extends HTMLElement {
         
         return item.icon;
     }
-            
-        
-        // 🆕 NEU: Prüfe zuerst auf Ring-Tile Konfiguration
-        if (item.custom_data?.ring_config) {
-            const ringIcon = this.createRingTileIcon(item);
-            if (ringIcon) {
-                return ringIcon;
-            }
-        }
-        
-        // ✅ BESTEHENDE LOGIC: Normale Icons für verschiedene Domains
-        
-        if (item.domain === 'light') {
-            return item.isActive ? 
-                FastSearchCard.LIGHT_ON_SVG : 
-                FastSearchCard.LIGHT_OFF_SVG;
-        }
-        
-        if (item.domain === 'cover') {
-            // Cover: isActive = offen (position > 0)
-            return item.isActive ? 
-                FastSearchCard.COVER_OPEN_SVG : 
-                FastSearchCard.COVER_CLOSED_SVG;
-        }
-        
-        if (item.domain === 'media_player') {
-            const state = this._hass.states[item.id];
-            if (state) {
-                if (state.state === 'playing') {
-                    return FastSearchCard.MEDIA_PAUSE_SVG; // Zeige Pause wenn spielt
-                } else if (state.state === 'paused') {
-                    return FastSearchCard.MEDIA_PLAY_SVG; // Zeige Play wenn pausiert
-                } else {
-                    return FastSearchCard.MEDIA_STOP_SVG; // Zeige Stop wenn gestoppt/idle
-                }
-            }
-            return FastSearchCard.MEDIA_STOP_SVG;
-        }
-        
-        if (item.domain === 'climate') {
-            return item.isActive ?
-                FastSearchCard.CLIMATE_ON_SVG : 
-                FastSearchCard.CLIMATE_OFF_SVG;
-        }
-    
-        if (item.domain === 'script') {
-            return FastSearchCard.SCRIPT_SVG;
-        }
-        
-        if (item.domain === 'automation') {
-            return FastSearchCard.AUTOMATION_SVG;
-        }
-        
-        if (item.domain === 'scene') {
-            return FastSearchCard.SCENE_SVG;
-        }        
-        
-        // Fallback für andere Domains
-        return item.icon;
 
-        // Rest der Funktion...
-        console.log('Using default icon for:', item.domain);
-        // Dein bestehender Code für andere Domains
-        
-    }
+
+
 
     createDeviceCard(item) {
         const card = document.createElement('div');
