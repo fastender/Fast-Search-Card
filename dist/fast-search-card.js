@@ -9916,7 +9916,7 @@ class FastSearchCard extends HTMLElement {
                 }
             }
         });
-        
+
         // List Items analysieren
         const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
         deviceListItems.forEach(listItem => {
@@ -9936,7 +9936,7 @@ class FastSearchCard extends HTMLElement {
                         type: 'state'
                     });
                 }
-
+        
                 // Icon Update für List Items
                 const iconElement = listItem.querySelector('.device-list-icon');
                 if (iconElement) {
@@ -9970,7 +9970,26 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 }
-
+        
+                // NEU: Status-Text Update für List Items
+                const statusElement = listItem.querySelector('.device-list-status');
+                if (statusElement) {
+                    const item = this.allItems.find(i => i.id === entityId);
+                    if (item) {
+                        const newStatusText = item.domain === 'custom' ? 
+                            this.getCustomStatusText(item) : 
+                            this.getEntityStatus(state);
+                            
+                        if (statusElement.textContent !== newStatusText) {
+                            listUpdates.push({ 
+                                listItem, 
+                                statusElement, 
+                                newStatusText,
+                                type: 'status' 
+                            });
+                        }
+                    }
+                }
             }
         });
         
@@ -9995,22 +10014,26 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 });
-                
+
                 // List Items Updates
                 listUpdates.forEach(update => {
                     if (update.type === 'icon') {
                         // Icon Update für List Items
                         update.iconElement.innerHTML = update.newIcon;
+                    } else if (update.type === 'status') {
+                        // NEU: Status-Text Update für List Items
+                        update.statusElement.textContent = update.newStatusText;
                     } else if (update.type === 'state') {
                         // State Update für List Items
                         update.listItem.classList.toggle('active', update.isActive);
                         
-                        // Animation für List Items (falls gewünscht) - mit Performance-Check
+                        // Animation für List Items
                         if (this.shouldAnimate() && this.isCardVisible(update.listItem)) {
                             this.animateStateChange(update.listItem, update.isActive);
                         }
                     }
                 });
+                    
             });
         }
     }
