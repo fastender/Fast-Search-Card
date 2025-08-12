@@ -9925,52 +9925,36 @@ class FastSearchCard extends HTMLElement {
             if (state) {
                 const isActive = this.isEntityActive(state);
                 const wasActive = listItem.classList.contains('active');
-                
+                const item = this.allItems.find(i => i.id === entityId);
+                if (!item) return;
+
+                // 1. Update .active class for styling
                 if (isActive !== wasActive) {
-                    listUpdates.push({ 
-                        listItem, 
-                        entityId, 
-                        isActive, 
-                        wasActive, 
-                        state,
-                        type: 'state'
-                    });
+                    listUpdates.push({ listItem, isActive, type: 'state' });
                 }
 
-                // Icon Update für List Items
+                // 2. Update icon (behebt das Refresh-Problem)
                 const iconElement = listItem.querySelector('.device-list-icon');
-                if (iconElement) {
-                    const item = this.allItems.find(i => i.id === entityId);
-                    if (item) {
-                        const oldState = item.state;
-                        item.isActive = isActive;
-                        item.state = state.state;
-                        
-                        // WICHTIG: Auch beim ersten Mal updaten!
-                        if (item.domain === 'light') {
-                            if (oldState === undefined || oldState !== state.state) {
-                                const newIcon = this.getDynamicIcon(item);
-                                listUpdates.push({
-                                    listItem,
-                                    iconElement,
-                                    newIcon,
-                                    type: 'icon'
-                                });
-                            }
-                        } else {
-                            const newIcon = this.getDynamicIcon(item);
-                            if (iconElement.innerHTML !== newIcon) {
-                                listUpdates.push({
-                                    listItem,
-                                    iconElement,
-                                    newIcon,
-                                    type: 'icon'
-                                });
-                            }
-                        }
-                    }
+                if (iconElement && item.state !== state.state) {
+                    item.state = state.state; // Wichtig: Zustand im Objekt aktualisieren
+                    const newIcon = this.getDynamicIcon(item);
+                    listUpdates.push({ iconElement, newIcon, type: 'icon' });
                 }
 
+                // 3. Update status text (fehlte komplett)
+                const statusElement = listItem.querySelector('.device-list-status');
+                const newStatusText = (item.domain === 'custom')
+                    ? this.getCustomStatusText(item)
+                    : this.getEntityStatus(state);
+                if (statusElement && statusElement.textContent !== newStatusText) {
+                    listUpdates.push({ statusElement, newStatusText, type: 'status' });
+                }
+                
+                // 4. Update quick action button (fehlte komplett)
+                const quickActionBtn = listItem.querySelector('.device-list-quick-action');
+                if (quickActionBtn) {
+                    listUpdates.push({ quickActionBtn, entityId, state, type: 'quick-action' });
+                }
             }
         });
         
@@ -9996,21 +9980,29 @@ class FastSearchCard extends HTMLElement {
                     }
                 });
                 
+
+
                 // List Items Updates
                 listUpdates.forEach(update => {
-                    if (update.type === 'icon') {
-                        // Icon Update für List Items
-                        update.iconElement.innerHTML = update.newIcon;
-                    } else if (update.type === 'state') {
-                        // State Update für List Items
-                        update.listItem.classList.toggle('active', update.isActive);
-                        
-                        // Animation für List Items (falls gewünscht) - mit Performance-Check
-                        if (this.shouldAnimate() && this.isCardVisible(update.listItem)) {
-                            this.animateStateChange(update.listItem, update.isActive);
-                        }
+                    switch (update.type) {
+                        case 'state':
+                            update.listItem.classList.toggle('active', update.isActive);
+                            if (this.shouldAnimate() && this.isCardVisible(update.listItem)) {
+                                this.animateStateChange(update.listItem, update.isActive);
+                            }
+                            break;
+                        case 'icon':
+                            update.iconElement.innerHTML = update.newIcon;
+                            break;
+                        case 'status':
+                            update.statusElement.textContent = update.newStatusText;
+                            break;
+                        case 'quick-action':
+                            this.updateQuickActionButton(update.quickActionBtn, update.entityId, update.state);
+                            break;
                     }
                 });
+
             });
         }
     }
