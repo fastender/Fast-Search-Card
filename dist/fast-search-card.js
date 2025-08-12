@@ -9832,6 +9832,8 @@ class FastSearchCard extends HTMLElement {
 
 
 
+
+
     
     // ERSETZEN SIE IHRE KOMPLETTE updateStates FUNKTION HIERMIT:
     updateStates() {
@@ -9842,94 +9844,75 @@ class FastSearchCard extends HTMLElement {
         const cardUpdates = [];
         const listUpdates = [];
         
-        // Grid Cards analysieren (unverändert)
-        const deviceCards = this.shadowRoot.querySelectorAll('.device-card');
-        deviceCards.forEach(card => {
-            const entityId = card.dataset.entity;
+        const processItemUpdates = (element, updatesArray, isGrid) => {
+            const entityId = element.dataset.entity;
             const state = this._hass.states[entityId];
-            if (state) {
-                const isActive = this.isEntityActive(state);
-                const wasActive = card.classList.contains('active');
-                if (isActive !== wasActive) {
-                    cardUpdates.push({ card, isActive, type: 'state' });
-                }
-                const iconElement = card.querySelector('.device-icon');
+            if (!state) return;
+    
+            const item = this.allItems.find(i => i.id === entityId);
+            if (!item) return;
+    
+            const isActive = this.isEntityActive(state);
+            const wasActive = element.classList.contains('active');
+    
+            // Update .active class
+            if (isActive !== wasActive) {
+                updatesArray.push({ [isGrid ? 'card' : 'listItem']: element, isActive, type: 'state' });
+            }
+    
+            // Update icon, status text, and quick action button
+            // WICHTIG: Die Zustandsprüfung passiert hier ZUERST!
+            if (item.state !== state.state) {
+                // Erst wenn sich der Zustand wirklich geändert hat, aktualisieren wir alles.
+                item.state = state.state; // Internen Zustand SOFORT aktualisieren
+                item.isActive = isActive; // Auch diesen internen Zustand aktualisieren
+    
+                const iconElement = element.querySelector(isGrid ? '.device-icon' : '.device-list-icon');
                 if (iconElement) {
-                    const item = this.allItems.find(i => i.id === entityId);
-                    if (item && item.state !== state.state) {
-                        item.state = state.state;
-                        const newIcon = this.getDynamicIcon(item);
-                        cardUpdates.push({ iconElement, newIcon, type: 'icon' });
+                    const newIcon = this.getDynamicIcon(item);
+                    updatesArray.push({ iconElement, newIcon, type: 'icon' });
+                }
+    
+                const statusElement = element.querySelector(isGrid ? '.device-status' : '.device-list-status');
+                const newStatusText = (item.domain === 'custom') ? this.getCustomStatusText(item) : this.getEntityStatus(state);
+                if (statusElement && statusElement.textContent !== newStatusText) {
+                    updatesArray.push({ statusElement, newStatusText, type: 'status' });
+                }
+    
+                if (!isGrid) {
+                    const quickActionBtn = element.querySelector('.device-list-quick-action');
+                    if (quickActionBtn) {
+                        updatesArray.push({ quickActionBtn, entityId, state, type: 'quick-action' });
                     }
                 }
             }
-        });
-        
-        // List Items analysieren mit DEBUG-AUSGABEN
-        console.log("---[DEBUG]--- Starte Update-Prüfung für Listenansicht ---");
-        const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
-        if (deviceListItems.length === 0) {
-            console.log("[DEBUG] Keine Elemente in der Listenansicht gefunden.");
-        }
+        };
     
-        deviceListItems.forEach(listItem => {
-            const entityId = listItem.dataset.entity;
-            // Wir loggen nur für Lichter, um die Ausgabe übersichtlich zu halten
-            if (!entityId.startsWith('light.')) return;
+        // Grid und List Items mit der gleichen Logik verarbeiten
+        this.shadowRoot.querySelectorAll('.device-card').forEach(card => processItemUpdates(card, cardUpdates, true));
+        this.shadowRoot.querySelectorAll('.device-list-item').forEach(listItem => processItemUpdates(listItem, listUpdates, false));
     
-            console.log(`[DEBUG] Prüfe Entity: ${entityId}`);
-            const state = this._hass.states[entityId];
-    
-            if (state) {
-                const item = this.allItems.find(i => i.id === entityId);
-                if (!item) {
-                    console.error(`[DEBUG] FEHLER: Konnte Item ${entityId} nicht im internen Speicher finden!`);
-                    return;
-                }
-    
-                console.log(`[DEBUG]   Alter Zustand (gespeichert): ${item.state}`);
-                console.log(`[DEBUG]   Neuer Zustand (live):      ${state.state}`);
-                
-                const hasStateChanged = item.state !== state.state;
-                console.log(`[DEBUG]   => Hat sich der Zustand geändert? ${hasStateChanged}`);
-    
-                const iconElement = listItem.querySelector('.device-list-icon');
-                if (iconElement && hasStateChanged) {
-                    console.log(`[DEBUG]   ✅ JAAAA! Zustand hat sich geändert. Icon-Update wird vorbereitet.`);
-                    item.state = state.state; // Internen Zustand aktualisieren
-                    const newIcon = this.getDynamicIcon(item);
-                    listUpdates.push({ iconElement, newIcon, type: 'icon' });
-                } else if (iconElement && !hasStateChanged) {
-                    console.log(`[DEBUG]   ❌ NEIN. Zustand ist gleich. Kein Update nötig.`);
-                }
-                // Hier fügen wir die fehlenden Updates für Text und Buttons hinzu, die wir vorher schon hatten
-                const statusElement = listItem.querySelector('.device-list-status');
-                const newStatusText = this.getEntityStatus(state);
-                if (statusElement && statusElement.textContent !== newStatusText) {
-                    listUpdates.push({ statusElement, newStatusText, type: 'status' });
-                }
-                const quickActionBtn = listItem.querySelector('.device-list-quick-action');
-                if (quickActionBtn) {
-                    listUpdates.push({ quickActionBtn, entityId, state, type: 'quick-action' });
-                }
-            } else {
-                console.warn(`[DEBUG] WARNUNG: Kein Live-Zustand für ${entityId} gefunden.`);
-            }
-        });
-        console.log("---[DEBUG]--- Update-Prüfung für Listenansicht BEENDET ---");
-        
         // Batch-Update in requestAnimationFrame
         if (cardUpdates.length > 0 || listUpdates.length > 0) {
             requestAnimationFrame(() => {
-                cardUpdates.forEach(update => { /* ... unverändert ... */ });
-                // List Items Updates (die robuste Version)
+                // Grid Cards Updates
+                cardUpdates.forEach(update => {
+                    if (update.type === 'state') {
+                        update.card.classList.toggle('active', update.isActive);
+                    } else if (update.type === 'icon') {
+                        update.iconElement.innerHTML = update.newIcon;
+                    } else if (update.type === 'status') {
+                        update.statusElement.textContent = update.newStatusText;
+                    }
+                });
+                
+                // List Items Updates
                 listUpdates.forEach(update => {
                     switch (update.type) {
                         case 'state':
                             update.listItem.classList.toggle('active', update.isActive);
                             break;
                         case 'icon':
-                            console.log("[DEBUG] Führe Icon-Update im DOM aus.");
                             update.iconElement.innerHTML = '';
                             const tempDiv = document.createElement('div');
                             tempDiv.innerHTML = update.newIcon;
@@ -9949,8 +9932,6 @@ class FastSearchCard extends HTMLElement {
             });
         }
     }
-
-
 
     
     
