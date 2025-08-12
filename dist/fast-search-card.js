@@ -9833,99 +9833,104 @@ class FastSearchCard extends HTMLElement {
 
 
 
-
     
-    // ERSETZEN SIE IHRE KOMPLETTE updateStates FUNKTION HIERMIT:
+    // FINALE VERSION: Ersetzen Sie die komplette updateStates-Funktion hiermit
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
-        
+    
         this.updateSubcategoryCounts();
-        
-        const cardUpdates = [];
-        const listUpdates = [];
-        
-        const processItemUpdates = (element, updatesArray, isGrid) => {
-            const entityId = element.dataset.entity;
-            const state = this._hass.states[entityId];
-            if (!state) return;
     
-            const item = this.allItems.find(i => i.id === entityId);
-            if (!item) return;
+        const updates = []; // Nur noch eine Liste für alle Updates
     
-            const isActive = this.isEntityActive(state);
-            const wasActive = element.classList.contains('active');
+        // Nur die aktuell sichtbare Ansicht aktualisieren
+        if (this.currentViewMode === 'grid') {
+            this.shadowRoot.querySelectorAll('.device-card').forEach(card => {
+                const entityId = card.dataset.entity;
+                const state = this._hass.states[entityId];
+                if (!state) return;
     
-            // Update .active class
-            if (isActive !== wasActive) {
-                updatesArray.push({ [isGrid ? 'card' : 'listItem']: element, isActive, type: 'state' });
-            }
+                const item = this.allItems.find(i => i.id === entityId);
+                if (!item) return;
     
-            // Update icon, status text, and quick action button
-            // WICHTIG: Die Zustandsprüfung passiert hier ZUERST!
-            if (item.state !== state.state) {
-                // Erst wenn sich der Zustand wirklich geändert hat, aktualisieren wir alles.
-                item.state = state.state; // Internen Zustand SOFORT aktualisieren
-                item.isActive = isActive; // Auch diesen internen Zustand aktualisieren
-    
-                const iconElement = element.querySelector(isGrid ? '.device-icon' : '.device-list-icon');
-                if (iconElement) {
-                    const newIcon = this.getDynamicIcon(item);
-                    updatesArray.push({ iconElement, newIcon, type: 'icon' });
+                // Nur wenn sich der Zustand wirklich geändert hat
+                if (item.state !== state.state) {
+                    // Internen Zustand für dieses Item aktualisieren
+                    item.state = state.state;
+                    item.isActive = this.isEntityActive(state);
+                    
+                    // Updates für die Grid-Karte vorbereiten
+                    const iconElement = card.querySelector('.device-icon');
+                    if (iconElement) {
+                        updates.push({ element: card, type: 'icon', iconElement, newIcon: this.getDynamicIcon(item) });
+                    }
+                    updates.push({ element: card, type: 'state', isActive: item.isActive });
                 }
+            });
+        } else { // List-Ansicht
+            this.shadowRoot.querySelectorAll('.device-list-item').forEach(listItem => {
+                const entityId = listItem.dataset.entity;
+                const state = this._hass.states[entityId];
+                if (!state) return;
     
-                const statusElement = element.querySelector(isGrid ? '.device-status' : '.device-list-status');
-                const newStatusText = (item.domain === 'custom') ? this.getCustomStatusText(item) : this.getEntityStatus(state);
-                if (statusElement && statusElement.textContent !== newStatusText) {
-                    updatesArray.push({ statusElement, newStatusText, type: 'status' });
-                }
+                const item = this.allItems.find(i => i.id === entityId);
+                if (!item) return;
     
-                if (!isGrid) {
-                    const quickActionBtn = element.querySelector('.device-list-quick-action');
+                // Nur wenn sich der Zustand wirklich geändert hat
+                if (item.state !== state.state) {
+                    // Internen Zustand für dieses Item aktualisieren
+                    item.state = state.state;
+                    item.isActive = this.isEntityActive(state);
+    
+                    // Alle Updates für das List-Item vorbereiten
+                    const iconElement = listItem.querySelector('.device-list-icon');
+                    if (iconElement) {
+                        updates.push({ element: listItem, type: 'icon', iconElement, newIcon: this.getDynamicIcon(item) });
+                    }
+                    
+                    const statusElement = listItem.querySelector('.device-list-status');
+                    if (statusElement) {
+                        updates.push({ element: listItem, type: 'status', statusElement, newStatusText: this.getEntityStatus(state) });
+                    }
+                    
+                    updates.push({ element: listItem, type: 'state', isActive: item.isActive });
+                    
+                    const quickActionBtn = listItem.querySelector('.device-list-quick-action');
                     if (quickActionBtn) {
-                        updatesArray.push({ quickActionBtn, entityId, state, type: 'quick-action' });
+                         updates.push({ element: listItem, type: 'quick-action', quickActionBtn, entityId, state });
                     }
                 }
-            }
-        };
+            });
+        }
     
-        // Grid und List Items mit der gleichen Logik verarbeiten
-        this.shadowRoot.querySelectorAll('.device-card').forEach(card => processItemUpdates(card, cardUpdates, true));
-        this.shadowRoot.querySelectorAll('.device-list-item').forEach(listItem => processItemUpdates(listItem, listUpdates, false));
-    
-        // Batch-Update in requestAnimationFrame
-        if (cardUpdates.length > 0 || listUpdates.length > 0) {
+        // Alle gesammelten Updates auf einmal ausführen
+        if (updates.length > 0) {
             requestAnimationFrame(() => {
-                // Grid Cards Updates
-                cardUpdates.forEach(update => {
-                    if (update.type === 'state') {
-                        update.card.classList.toggle('active', update.isActive);
-                    } else if (update.type === 'icon') {
-                        update.iconElement.innerHTML = update.newIcon;
-                    } else if (update.type === 'status') {
-                        update.statusElement.textContent = update.newStatusText;
-                    }
-                });
-                
-                // List Items Updates
-                listUpdates.forEach(update => {
+                updates.forEach(update => {
                     switch (update.type) {
                         case 'state':
-                            update.listItem.classList.toggle('active', update.isActive);
+                            update.element.classList.toggle('active', update.isActive);
+                            this.animateStateChange(update.element, update.isActive);
                             break;
                         case 'icon':
-                            update.iconElement.innerHTML = '';
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = update.newIcon;
-                            const newSvgElement = tempDiv.firstChild;
-                            if (newSvgElement) {
-                                update.iconElement.appendChild(newSvgElement);
+                            if (update.iconElement) {
+                                 update.iconElement.innerHTML = '';
+                                 const tempDiv = document.createElement('div');
+                                 tempDiv.innerHTML = update.newIcon;
+                                 const newSvgElement = tempDiv.firstChild;
+                                 if (newSvgElement) {
+                                     update.iconElement.appendChild(newSvgElement);
+                                 }
                             }
                             break;
                         case 'status':
-                            update.statusElement.textContent = update.newStatusText;
+                            if (update.statusElement) {
+                                update.statusElement.textContent = update.newStatusText;
+                            }
                             break;
                         case 'quick-action':
-                            this.updateQuickActionButton(update.quickActionBtn, update.entityId, update.state);
+                            if (update.quickActionBtn) {
+                                this.updateQuickActionButton(update.quickActionBtn, update.entityId, update.state);
+                            }
                             break;
                     }
                 });
