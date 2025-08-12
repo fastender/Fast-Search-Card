@@ -9947,27 +9947,25 @@ class FastSearchCard extends HTMLElement {
                         type: 'state'
                     });
                 }
-        
+                        
                 // Icon Update für List Items
                 const iconElement = listItem.querySelector('.device-list-icon');
                 
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
                     
-                    // NEU: Mehr Debug Info
-                    if (item && item.domain === 'light') {
-                        console.log('🔄 Light item found:', {
-                            id: item.id,
-                            oldState: item.state,
-                            newState: state.state,
-                            willUpdate: item.state !== state.state
-                        });
-                    }
-                    
                     if (item) {
-                        const oldState = item.state;
-                        item.isActive = isActive;
-                        item.state = state.state;
+                        const oldState = item.state;  // ZUERST oldState speichern, BEVOR wir es ändern!
+                        
+                        // Debug Info (mit korrektem oldState)
+                        if (item.domain === 'light') {
+                            console.log('🔄 Light item found:', {
+                                id: item.id,
+                                oldState: oldState,  // Jetzt ist es der echte alte Wert
+                                newState: state.state,
+                                willUpdate: oldState !== state.state
+                            });
+                        }
                         
                         if (item.domain === 'light') {
                             if (oldState === undefined || oldState !== state.state) {
@@ -9981,7 +9979,11 @@ class FastSearchCard extends HTMLElement {
                                     type: 'icon'
                                 });
                             }
+                            // NACH dem Vergleich updaten
+                            item.state = state.state;
+                            item.isActive = isActive;
                         } else {
+                            // Andere Domains
                             const newIcon = this.getDynamicIcon(item);
                             if (iconElement.innerHTML !== newIcon) {
                                 listUpdates.push({
@@ -9991,6 +9993,9 @@ class FastSearchCard extends HTMLElement {
                                     type: 'icon'
                                 });
                             }
+                            // Auch hier NACH dem Vergleich
+                            item.state = state.state;
+                            item.isActive = isActive;
                         }
                     }
                 }
