@@ -9837,9 +9837,6 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-    
-
-
     updateStates() {
         if (!this._hass || this.isDetailView || this.isSearching) { return; }
         
@@ -9868,7 +9865,7 @@ class FastSearchCard extends HTMLElement {
                         type: 'state'
                     });
                 }
-
+    
                 // Icon Update mit Animation-Schutz
                 const iconElement = card.querySelector('.device-icon');
                 if (iconElement) {
@@ -9904,7 +9901,7 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 }
-
+    
                 // Status-Text Updates (für Custom Items)
                 const statusElement = card.querySelector('.device-status');
                 if (statusElement) {
@@ -9923,7 +9920,7 @@ class FastSearchCard extends HTMLElement {
                 }
             }
         });
-
+    
         // List Items analysieren
         const deviceListItems = this.shadowRoot.querySelectorAll('.device-list-item');
         deviceListItems.forEach(listItem => {
@@ -9946,11 +9943,9 @@ class FastSearchCard extends HTMLElement {
         
                 // Icon Update für List Items
                 const iconElement = listItem.querySelector('.device-list-icon');
-                console.log('🔴 Updating list icon for:', entityId, 'Icon element exists:', !!iconElement);
                 
                 if (iconElement) {
                     const item = this.allItems.find(i => i.id === entityId);
-                    console.log('🟠 Found item:', item?.id, 'Domain:', item?.domain);
                     
                     if (item) {
                         const oldState = item.state;
@@ -9960,8 +9955,18 @@ class FastSearchCard extends HTMLElement {
                         if (item.domain === 'light') {
                             if (oldState === undefined || oldState !== state.state) {
                                 const newIcon = this.getDynamicIcon(item);
-                                console.log('🟣 New icon for light:', newIcon ? newIcon.substring(0, 50) + '...' : 'EMPTY!');
                                 
+                                listUpdates.push({
+                                    listItem,
+                                    iconElement,
+                                    newIcon,
+                                    type: 'icon'
+                                });
+                            }
+                        } else {
+                            // ⚠️ DIESER ELSE BLOCK HAT GEFEHLT! - Für andere Domains
+                            const newIcon = this.getDynamicIcon(item);
+                            if (iconElement.innerHTML !== newIcon) {
                                 listUpdates.push({
                                     listItem,
                                     iconElement,
@@ -10016,7 +10021,7 @@ class FastSearchCard extends HTMLElement {
                         }
                     }
                 });
-
+    
                 // List Items Updates
                 listUpdates.forEach(update => {
                     if (update.type === 'icon') {
@@ -10039,6 +10044,9 @@ class FastSearchCard extends HTMLElement {
             });
         }
     }
+
+
+
     
     // Hilfsfunktion: Prüft ob Card im Viewport sichtbar ist
     isCardVisible(card) {
