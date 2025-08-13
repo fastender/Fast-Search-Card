@@ -1018,8 +1018,6 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.3s ease; 
                 padding-top: 16px; 
                 padding-bottom: 20px;
-                display: flex; /* <-- HINZUFÜGEN */
-                flex-direction: column; /* <-- Die entscheidende Zeile HINZUFÜGEN */                
             }
 
             .results-container::-webkit-scrollbar {
@@ -5532,7 +5530,35 @@ class FastSearchCard extends HTMLElement {
 
                         <div class="results-container">
                              <div class="subcategories">
-
+                                <div class="subcategory-chip active" data-subcategory="all">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Alle</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
+                                <div class="subcategory-chip" data-subcategory="lights">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Lichter</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
+                                <div class="subcategory-chip" data-subcategory="climate">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Klima</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
+                                <div class="subcategory-chip" data-subcategory="covers">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Rollos</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
+                                </div>
+                                <div class="subcategory-chip" data-subcategory="media">
+                                    <div class="chip-content">
+                                        <span class="subcategory-name">Medien</span>
+                                        <span class="subcategory-status"></span>
+                                    </div>
                                 </div>
 
                             </div>
@@ -11641,60 +11667,39 @@ class FastSearchCard extends HTMLElement {
         
         container.innerHTML = chipsHTML;
     }
-
-    // ERSETZEN SIE IHRE KOMPLETTE renderCategoryChips FUNKTION HIERMIT
+    
     renderCategoryChips(container) {
         // Dynamisch die verfügbaren Domains aus den aktuellen Items ermitteln
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
         const availableDomains = [...new Set(categoryItems.map(item => item.domain))];
         
-        // *** HIER SIND DIE ÄNDERUNGEN ***
-        // Domain-zu-Subcategory Mapping (jede Domain bekommt eine eigene Kategorie)
+        // Domain-zu-Subcategory Mapping
         const domainToSubcategory = {
             'light': 'lights',
-            'switch': 'switches',       // NEU: Eigene Kategorie
+            'switch': 'lights', 
             'climate': 'climate',
-            'fan': 'fans',             // NEU: Eigene Kategorie
+            'fan': 'climate',
             'cover': 'covers',
-            'media_player': 'media',
-            'valve': 'valves',         // NEU
-            'vacuum': 'vacuums',       // NEU
-            'siren': 'sirens',         // NEU
-            'camera': 'cameras',       // NEU
-            'lock': 'locks',           // NEU
-            'humidifier': 'humidifiers'// NEU
+            'media_player': 'media'
         };
-    
+        
         // Deutsche Labels für Subcategories
         const subcategoryLabels = {
             'lights': 'Lichter',
-            'switches': 'Schalter',     // NEU
             'climate': 'Klima', 
-            'fans': 'Ventilatoren',    // NEU
             'covers': 'Rollos',
-            'media': 'Medien',
-            'valves': 'Ventile',       // NEU
-            'vacuums': 'Sauger',       // NEU
-            'sirens': 'Sirenen',       // NEU
-            'cameras': 'Kameras',      // NEU
-            'locks': 'Schlösser',      // NEU
-            'humidifiers': 'Befeuchter'// NEU
+            'media': 'Medien'
         };
         
         // Ermittle verfügbare Subcategories basierend auf verfügbaren Domains
         const availableSubcategories = [...new Set(
             availableDomains
                 .map(domain => domainToSubcategory[domain])
-                .filter(Boolean)
+                .filter(Boolean) // Entferne undefined Werte
         )];
         
         // Sortiere für konsistente Reihenfolge
-        const sortOrder = [
-            'lights', 'switches', 'climate', 'fans', 'humidifiers', 
-            'covers', 'media', 'vacuums', 'cameras', 'locks', 'sirens', 'valves'
-        ];
-        // *** ENDE DER ÄNDERUNGEN ***
-    
+        const sortOrder = ['lights', 'climate', 'covers', 'media'];
         availableSubcategories.sort((a, b) => {
             const indexA = sortOrder.indexOf(a);
             const indexB = sortOrder.indexOf(b);
