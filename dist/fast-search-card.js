@@ -9178,6 +9178,9 @@ class FastSearchCard extends HTMLElement {
         return content;
     }    
 
+
+
+
     parseSensor(dataSource) {
         const state = this._hass.states[dataSource.entity];
         if (!state || !state.attributes) {
@@ -9221,17 +9224,20 @@ class FastSearchCard extends HTMLElement {
             itemArea = 'Sensors';
         }
         
+        // ✅ FIX: Custom name from dataSource
+        const customName = dataSource.title || dataSource.name || state.attributes.friendly_name || state.entity_id;
+        
         // If no array found, create single item from sensor itself
         if (!Array.isArray(items)) {
             return [{
                 id: `sensor_${dataSource.entity}`,
-                name: state.attributes.friendly_name || state.entity_id,
+                name: customName, // ✅ FIXED: Nutzt dataSource.title/name
                 domain: 'custom',
                 category: 'custom',
                 area: itemArea,
                 state: state.state,
                 attributes: {
-                    friendly_name: state.attributes.friendly_name,
+                    friendly_name: customName, // ✅ FIXED: Nutzt dataSource.title/name
                     custom_type: 'sensor_single',
                     source_entity: dataSource.entity
                 },
@@ -9297,7 +9303,7 @@ class FastSearchCard extends HTMLElement {
             }
         }));
     }
-        
+
     generateSensorContent(state) {
         // Auto-generate markdown from sensor attributes
         let content = `# ${state.attributes.friendly_name || state.entity_id}\n\n`;
