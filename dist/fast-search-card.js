@@ -5530,35 +5530,7 @@ class FastSearchCard extends HTMLElement {
 
                         <div class="results-container">
                              <div class="subcategories">
-                                <div class="subcategory-chip active" data-subcategory="all">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Alle</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
-                                </div>
-                                <div class="subcategory-chip" data-subcategory="lights">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Lichter</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
-                                </div>
-                                <div class="subcategory-chip" data-subcategory="climate">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Klima</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
-                                </div>
-                                <div class="subcategory-chip" data-subcategory="covers">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Rollos</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
-                                </div>
-                                <div class="subcategory-chip" data-subcategory="media">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Medien</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
+
                                 </div>
 
                             </div>
