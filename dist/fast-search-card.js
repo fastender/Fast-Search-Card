@@ -11667,39 +11667,60 @@ class FastSearchCard extends HTMLElement {
         
         container.innerHTML = chipsHTML;
     }
-    
+
+    // ERSETZEN SIE IHRE KOMPLETTE renderCategoryChips FUNKTION HIERMIT
     renderCategoryChips(container) {
         // Dynamisch die verfügbaren Domains aus den aktuellen Items ermitteln
         const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
         const availableDomains = [...new Set(categoryItems.map(item => item.domain))];
         
-        // Domain-zu-Subcategory Mapping
+        // *** HIER SIND DIE ÄNDERUNGEN ***
+        // Domain-zu-Subcategory Mapping (jede Domain bekommt eine eigene Kategorie)
         const domainToSubcategory = {
             'light': 'lights',
-            'switch': 'lights', 
+            'switch': 'switches',       // NEU: Eigene Kategorie
             'climate': 'climate',
-            'fan': 'climate',
+            'fan': 'fans',             // NEU: Eigene Kategorie
             'cover': 'covers',
-            'media_player': 'media'
+            'media_player': 'media',
+            'valve': 'valves',         // NEU
+            'vacuum': 'vacuums',       // NEU
+            'siren': 'sirens',         // NEU
+            'camera': 'cameras',       // NEU
+            'lock': 'locks',           // NEU
+            'humidifier': 'humidifiers'// NEU
         };
-        
+    
         // Deutsche Labels für Subcategories
         const subcategoryLabels = {
             'lights': 'Lichter',
+            'switches': 'Schalter',     // NEU
             'climate': 'Klima', 
+            'fans': 'Ventilatoren',    // NEU
             'covers': 'Rollos',
-            'media': 'Medien'
+            'media': 'Medien',
+            'valves': 'Ventile',       // NEU
+            'vacuums': 'Sauger',       // NEU
+            'sirens': 'Sirenen',       // NEU
+            'cameras': 'Kameras',      // NEU
+            'locks': 'Schlösser',      // NEU
+            'humidifiers': 'Befeuchter'// NEU
         };
         
         // Ermittle verfügbare Subcategories basierend auf verfügbaren Domains
         const availableSubcategories = [...new Set(
             availableDomains
                 .map(domain => domainToSubcategory[domain])
-                .filter(Boolean) // Entferne undefined Werte
+                .filter(Boolean)
         )];
         
         // Sortiere für konsistente Reihenfolge
-        const sortOrder = ['lights', 'climate', 'covers', 'media'];
+        const sortOrder = [
+            'lights', 'switches', 'climate', 'fans', 'humidifiers', 
+            'covers', 'media', 'vacuums', 'cameras', 'locks', 'sirens', 'valves'
+        ];
+        // *** ENDE DER ÄNDERUNGEN ***
+    
         availableSubcategories.sort((a, b) => {
             const indexA = sortOrder.indexOf(a);
             const indexB = sortOrder.indexOf(b);
