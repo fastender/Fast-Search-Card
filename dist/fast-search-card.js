@@ -5646,10 +5646,15 @@ class FastSearchCard extends HTMLElement {
                         </div>
 
                         <div class="results-container">
-                             <div class="subcategories">
-                                </div>
 
+                            <div class="subcategories">
+                                 <div class="subcategory-chip active" data-subcategory="all">
+                                     <div class="chip-content">
+                                         <span class="subcategory-name">Alle</span>
+                                         <span class="subcategory-status"></span>
+                                     </div>
                             </div>
+                            
                             <div class="results-grid">
                             </div>
 
@@ -11603,7 +11608,8 @@ class FastSearchCard extends HTMLElement {
         } else if (this.subcategoryMode === 'areas') {
             this.renderAreaChips(subcategoriesContainer);
         } else {
-            this.renderCategoryChips(subcategoriesContainer);
+            // ✅ Verwende die neue Methode statt renderCategoryChips
+            this.renderSmartCategoryChips(subcategoriesContainer);
         }
     }
 
@@ -11840,6 +11846,82 @@ class FastSearchCard extends HTMLElement {
         // Update die Counts für die verfügbaren Subcategories
         this.updateSubcategoryCounts();
     }
+
+    renderSmartCategoryChips(container) {
+        // Wenn keine Items geladen, nur "Alle" anzeigen
+        if (!this.allItems || this.allItems.length === 0) {
+            container.innerHTML = `
+                <div class="subcategory-chip active" data-subcategory="all">
+                    <div class="chip-content">
+                        <span class="subcategory-name">Alle</span>
+                        <span class="subcategory-status">Lädt...</span>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        // Dynamisch die verfügbaren Domains aus den aktuellen Items ermitteln
+        const categoryItems = this.allItems.filter(item => this.isItemInCategory(item, this.activeCategory));
+        const availableDomains = [...new Set(categoryItems.map(item => item.domain))];
+        
+        // Domain-zu-Subcategory Mapping
+        const domainToSubcategory = {
+            'light': 'lights',
+            'switch': 'lights', 
+            'climate': 'climate',
+            'fan': 'climate',
+            'cover': 'covers',
+            'media_player': 'media'
+        };
+        
+        // Deutsche Labels für Subcategories
+        const subcategoryLabels = {
+            'lights': 'Lichter',
+            'climate': 'Klima', 
+            'covers': 'Rollos',
+            'media': 'Medien'
+        };
+        
+        // Ermittle verfügbare Subcategories basierend auf verfügbaren Domains
+        const availableSubcategories = [...new Set(
+            availableDomains
+                .map(domain => domainToSubcategory[domain])
+                .filter(Boolean) // Entferne undefined Werte
+        )];
+        
+        // Sortiere für konsistente Reihenfolge
+        const sortOrder = ['lights', 'climate', 'covers', 'media'];
+        availableSubcategories.sort((a, b) => {
+            const indexA = sortOrder.indexOf(a);
+            const indexB = sortOrder.indexOf(b);
+            return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+        });
+        
+        // Erstelle Chips: Immer "Alle" + dynamische Subcategories
+        const chips = ['all', ...availableSubcategories];
+        
+        const chipsHTML = chips.map(subcategory => {
+            const isActive = subcategory === this.activeSubcategory;
+            const label = subcategory === 'all' ? 'Alle' : subcategoryLabels[subcategory];
+            
+            return `
+                <div class="subcategory-chip ${isActive ? 'active' : ''}" data-subcategory="${subcategory}">
+                    <div class="chip-content">
+                        <span class="subcategory-name">${label}</span>
+                        <span class="subcategory-status"></span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = chipsHTML;
+        
+        // Update die Counts für die verfügbaren Subcategories
+        this.updateSubcategoryCounts();
+    }
+
+    
 
     createDeviceListItem(item) {
         const listItem = document.createElement('div');
