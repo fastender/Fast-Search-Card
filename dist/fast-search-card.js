@@ -10735,7 +10735,16 @@ class FastSearchCard extends HTMLElement {
         } else if (this.subcategoryMode === 'areas') {
             this.filteredItems = categoryItems.filter(item => item.area === this.activeSubcategory);
         } else {
-            const domainMap = { 'lights': ['light', 'switch'], 'climate': ['climate', 'fan'], 'covers': ['cover'], 'media': ['media_player'] };
+            // ✅ ERWEITERTE DOMAIN MAP:
+            const domainMap = { 
+                'lights': ['light', 'switch'], 
+                'climate': ['climate', 'fan', 'humidifier'], 
+                'covers': ['cover'], 
+                'media': ['media_player'],
+                'cleaning': ['vacuum'],
+                'security': ['camera', 'lock', 'siren'],
+                'utilities': ['valve']
+            };
             const domains = domainMap[this.activeSubcategory] || [];
             this.filteredItems = categoryItems.filter(item => domains.includes(item.domain));
         }
