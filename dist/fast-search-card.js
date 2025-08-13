@@ -5529,7 +5529,7 @@ class FastSearchCard extends HTMLElement {
                         </div>
 
                         <div class="results-container">
-                             <div class="subcategories">
+                            <div class="subcategories">
 
 
                             </div>
