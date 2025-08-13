@@ -9733,9 +9733,12 @@ class FastSearchCard extends HTMLElement {
         return true;
     }
     
-
     getSubcategoryStatusText(subcategory, count) {
-        const textMap = { 'lights': 'An', 'climate': 'Aktiv', 'covers': 'Offen', 'media': 'Aktiv' };
+        const textMap = { 
+            'lights': 'An', 'climate': 'Aktiv', 'covers': 'Offen', 'media': 'Aktiv',
+            // ✅ NEU HINZUGEFÜGT:
+            'cleaning': 'Aktiv', 'security': 'Aktiv', 'utilities': 'Offen'
+        };
         const text = textMap[subcategory] || 'Aktiv'; 
         return `${count} ${text}`;
     }
@@ -9763,9 +9766,13 @@ class FastSearchCard extends HTMLElement {
         // Domain-zu-Subcategory Mapping (gleich wie in renderCategoryChips)
         const domainMap = { 
             'lights': ['light', 'switch'], 
-            'climate': ['climate', 'fan'], 
+            'climate': ['climate', 'fan', 'humidifier'], // ✅ humidifier hinzugefügt
             'covers': ['cover'], 
-            'media': ['media_player'] 
+            'media': ['media_player'],
+            // ✅ NEU HINZUGEFÜGT:
+            'cleaning': ['vacuum'],
+            'security': ['camera', 'lock', 'siren'],
+            'utilities': ['valve']
         };
         
         // Nur für verfügbare Subcategories Counts berechnen
@@ -9962,13 +9969,27 @@ class FastSearchCard extends HTMLElement {
 
     
 
+
     categorizeEntity(domain) {
-        const categoryMap = { light: 'lights', switch: 'lights', climate: 'climate', fan: 'climate', cover: 'covers', media_player: 'media', script: 'scripts', automation: 'automations', scene: 'scenes' };
+        const categoryMap = { 
+            light: 'lights', switch: 'lights', climate: 'climate', fan: 'climate', 
+            cover: 'covers', media_player: 'media', script: 'scripts', 
+            automation: 'automations', scene: 'scenes',
+            // ✅ NEU HINZUGEFÜGT:
+            vacuum: 'cleaning', humidifier: 'climate', camera: 'security',
+            lock: 'security', siren: 'security', valve: 'utilities'
+        };
         return categoryMap[domain] || 'other';
-    }
+    }    
 
     getEntityIcon(domain) {
-        const iconMap = { light: '💡', switch: '🔌', climate: '🌡️', fan: '💨', cover: '🪟', media_player: '🎵', script: '📄', automation: '⚙️', scene: '🎬' };
+        const iconMap = { 
+            light: '💡', switch: '🔌', climate: '🌡️', fan: '💨', cover: '🪟', 
+            media_player: '🎵', script: '📄', automation: '⚙️', scene: '🎬',
+            // ✅ NEU HINZUGEFÜGT:
+            vacuum: '🤖', humidifier: '💧', camera: '📷', 
+            lock: '🔒', siren: '🚨', valve: '🚰'
+        };
         return iconMap[domain] || '⚙️';
     }
 
@@ -9978,8 +9999,6 @@ class FastSearchCard extends HTMLElement {
         switch (domain) {
             case 'climate':
                 return !['off', 'unavailable'].includes(state.state);
-
-
             case 'media_player':
                 // SMART CHECK: Nur als aktiv zählen wenn wirklich etwas läuft
                 if (!['playing', 'paused'].includes(state.state)) return false;
@@ -10009,6 +10028,21 @@ class FastSearchCard extends HTMLElement {
                 return state.state === 'open' || (state.attributes.current_position != null && state.attributes.current_position > 0);
             case 'automation':
                 return state.state === 'on';
+            
+            // ✅ NEU HINZUGEFÜGT:
+            case 'vacuum':
+                return ['cleaning', 'returning', 'docked'].includes(state.state);
+            case 'humidifier':
+                return state.state === 'on';
+            case 'camera':
+                return ['recording', 'streaming'].includes(state.state);
+            case 'lock':
+                return state.state === 'unlocked';
+            case 'siren':
+                return state.state === 'on';
+            case 'valve':
+                return state.state === 'open';
+                
             default:
                 return state.state === 'on';
         }
@@ -11657,7 +11691,13 @@ class FastSearchCard extends HTMLElement {
             'climate': 'climate',
             'fan': 'climate',
             'cover': 'covers',
-            'media_player': 'media'
+            'media_player': 'media',
+            'vacuum': 'cleaning',
+            'humidifier': 'climate',
+            'camera': 'security',
+            'lock': 'security',
+            'siren': 'security',
+            'valve': 'utilities'
         };
         
         // Deutsche Labels für Subcategories
@@ -11665,7 +11705,10 @@ class FastSearchCard extends HTMLElement {
             'lights': 'Lichter',
             'climate': 'Klima', 
             'covers': 'Rollos',
-            'media': 'Medien'
+            'media': 'Medien',
+            'cleaning': 'Reinigung',
+            'security': 'Sicherheit',
+            'utilities': 'Utilities'
         };
         
         // Ermittle verfügbare Subcategories basierend auf verfügbaren Domains
@@ -11676,7 +11719,7 @@ class FastSearchCard extends HTMLElement {
         )];
         
         // Sortiere für konsistente Reihenfolge
-        const sortOrder = ['lights', 'climate', 'covers', 'media'];
+        const sortOrder = ['lights', 'climate', 'covers', 'media', 'cleaning', 'security', 'utilities'];
         availableSubcategories.sort((a, b) => {
             const indexA = sortOrder.indexOf(a);
             const indexB = sortOrder.indexOf(b);
