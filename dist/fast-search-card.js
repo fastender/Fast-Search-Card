@@ -1018,6 +1018,8 @@ class FastSearchCard extends HTMLElement {
                 transition: all 0.3s ease; 
                 padding-top: 16px; 
                 padding-bottom: 20px;
+                display: flex; /* <-- HINZUFÜGEN */
+                flex-direction: column; /* <-- Die entscheidende Zeile HINZUFÜGEN */                
             }
 
             .results-container::-webkit-scrollbar {
