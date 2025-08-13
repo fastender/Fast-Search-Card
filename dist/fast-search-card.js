@@ -427,7 +427,9 @@ class FastSearchCard extends HTMLElement {
             action_favorites: config.action_favorites || {},            
 
             ...config
-        };            
+        };
+
+        this.initializeSubcategoriesCache();        
 
         // Alert Slideshow - NACH dem config spread verarbeiten
         this.slideshowAlerts = this._config.slideshow_alerts || [];
@@ -507,6 +509,107 @@ class FastSearchCard extends HTMLElement {
         }
         
     }
+
+    
+    
+
+    initializeSubcategoriesCache() {
+        // Intelligenter Cache basierend auf Config
+        this.subcategoryCache = {
+            devices: this.predictDeviceSubcategories(),
+            scripts: ['all'],
+            automations: ['all'], 
+            scenes: ['all'],
+            custom: this.predictCustomSubcategories()
+        };
+        
+        // Sofort rendern mit Predictions
+        this.renderPredictedSubcategories();
+    }
+    
+    predictDeviceSubcategories() {
+        const predictions = ['all'];
+        
+        // Basiere Predictions auf Config
+        if (this._config.entities) {
+            const domains = [...new Set(this._config.entities.map(e => e.entity.split('.')[0]))];
+            
+            const domainMapping = {
+                'light': 'lights',
+                'switch': 'lights',
+                'climate': 'climate', 
+                'fan': 'climate',
+                'cover': 'covers',
+                'media_player': 'media'
+            };
+            
+            domains.forEach(domain => {
+                const subcategory = domainMapping[domain];
+                if (subcategory && !predictions.includes(subcategory)) {
+                    predictions.push(subcategory);
+                }
+            });
+        }
+        
+        // Fallback: Häufigste Subcategories wenn keine Config
+        if (predictions.length === 1) {
+            predictions.push('lights', 'climate'); // Mindest-Set
+        }
+        
+        return predictions;
+    }
+    
+    predictCustomSubcategories() {
+        if (!this._config.custom_mode?.enabled) return ['all'];
+        
+        // Prediction basierend auf Custom Config
+        const predictions = ['all'];
+        
+        if (this._config.custom_mode.data_sources) {
+            predictions.push('categories', 'areas', 'types');
+        }
+        
+        return predictions;
+    }
+    
+    renderPredictedSubcategories() {
+        const container = this.shadowRoot?.querySelector('.subcategories');
+        if (!container) return;
+        
+        const predictions = this.subcategoryCache[this.activeCategory] || ['all'];
+        
+        const subcategoryLabels = {
+            'all': 'Alle',
+            'lights': 'Lichter',
+            'climate': 'Klima', 
+            'covers': 'Rollos',
+            'media': 'Medien',
+            'categories': 'Kategorien',
+            'areas': 'Räume',
+            'types': 'Typen'
+        };
+        
+        const chipsHTML = predictions.map(subcategory => {
+            const isActive = subcategory === 'all';
+            const label = subcategoryLabels[subcategory] || subcategory;
+            
+            return `
+                <div class="subcategory-chip ${isActive ? 'active' : ''} predicted" data-subcategory="${subcategory}">
+                    <div class="chip-content">
+                        <span class="subcategory-name">${label}</span>
+                        <span class="subcategory-status">...</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = chipsHTML;
+        
+        // Sofort Event-Listener hinzufügen
+        this.attachSubcategoryListeners();
+    }
+
+    
 
     shouldUpdateItems(oldHass, newHass) {
         if (!this._config.entities) return false;
@@ -967,7 +1070,21 @@ class FastSearchCard extends HTMLElement {
                 height: 30px;
                 display: flex;
                 align-items: center;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
+
+            .subcategory-chip.predicted {
+                opacity: 0.8;
+            }
+            
+            .subcategory-chip.predicted .subcategory-status {
+                color: var(--text-secondary);
+                font-style: italic;
+            }
+            
+            .subcategory-status {
+                transition: opacity 0.15s ease;
+            }            
 
             .subcategory-chip.active {
                 background: var(--accent-light);
@@ -5530,35 +5647,6 @@ class FastSearchCard extends HTMLElement {
 
                         <div class="results-container">
                              <div class="subcategories">
-                                <div class="subcategory-chip active" data-subcategory="all">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Alle</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
-                                </div>
-                                <div class="subcategory-chip" data-subcategory="lights">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Lichter</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
-                                </div>
-                                <div class="subcategory-chip" data-subcategory="climate">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Klima</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
-                                </div>
-                                <div class="subcategory-chip" data-subcategory="covers">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Rollos</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
-                                </div>
-                                <div class="subcategory-chip" data-subcategory="media">
-                                    <div class="chip-content">
-                                        <span class="subcategory-name">Medien</span>
-                                        <span class="subcategory-status"></span>
-                                    </div>
                                 </div>
 
                             </div>
@@ -7771,7 +7859,6 @@ class FastSearchCard extends HTMLElement {
     }
 
     switchToCategory(newCategory) {
-        
         // 1. Interne Variable setzen
         this.activeCategory = newCategory;
         
@@ -7785,18 +7872,41 @@ class FastSearchCard extends HTMLElement {
         // 3. Subcategory zurücksetzen
         this.activeSubcategory = 'all';
         
+        // ✅ SOFORT predicted Subcategories anzeigen
+        this.renderPredictedSubcategories();
+        
         // 4. UI-Komponenten aktualisieren
         this.updateCategoryIcon();
         this.updatePlaceholder();
-        this.updateCategoryButtonStates(); // ← NEU
-        this.updateSubcategoryChips();
+        this.updateCategoryButtonStates();
         this.updateTypeButtonVisibility();
         this.updateFilterButtonStates();
         
-        // 5. Items laden und anzeigen
-        this.showCurrentCategoryItems();
-
+        // ✅ Async: Echte Daten nachladen
+        Promise.resolve().then(() => {
+            this.showCurrentCategoryItems();
+            this.upgradeSubcategoriesToReal();
+        });
     }
+
+    upgradeSubcategoriesToReal() {
+        const container = this.shadowRoot.querySelector('.subcategories');
+        if (!container) return;
+        
+        // Prüfe ob wir predicted Chips haben
+        const predictedChips = container.querySelectorAll('.subcategory-chip.predicted');
+        if (predictedChips.length === 0) return;
+        
+        // ✅ Einfacher Approach: Rufe bestehende Logik auf
+        this.updateSubcategoryChips();
+        
+        // Entferne predicted class von allen Chips
+        setTimeout(() => {
+            container.querySelectorAll('.subcategory-chip').forEach(chip => {
+                chip.classList.remove('predicted');
+            });
+        }, 100);
+    }    
     
     updateCategoryButtonStates() {
         this.shadowRoot.querySelectorAll('.category-button').forEach(btn => {
@@ -7885,7 +7995,9 @@ class FastSearchCard extends HTMLElement {
         }, 100);
 
         // Initialize Alert Slideshow after items are loaded
-        this.initAlertSlideshow();        
+        this.initAlertSlideshow();
+
+        this.upgradeSubcategoriesToReal();
         
     }
 
