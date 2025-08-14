@@ -16177,25 +16177,19 @@ class FastSearchCard extends HTMLElement {
     setupVacuumControls(item) {
         console.log('🤖 setupVacuumControls called for:', item.id);
         
-        // NEUER ANSATZ: Controls-Tab zuerst aktivieren
         setTimeout(() => {
             // 1. Controls-Tab sichtbar machen
             console.log('🔄 Forcing controls tab to be active...');
             
-            // Alle Tabs deaktivieren
             const allTabContents = this.shadowRoot.querySelectorAll('.detail-tab-content');
             allTabContents.forEach(tab => tab.classList.remove('active'));
             
-            // Controls-Tab aktivieren
             const controlsTabContent = this.shadowRoot.querySelector('[data-tab-content="controls"]');
             if (controlsTabContent) {
                 controlsTabContent.classList.add('active');
                 console.log('✅ Controls tab activated');
-            } else {
-                console.error('❌ Controls tab content not found');
             }
             
-            // Tab-Buttons auch aktualisieren
             const allTabButtons = this.shadowRoot.querySelectorAll('.detail-tab');
             allTabButtons.forEach(btn => btn.classList.remove('active'));
             
@@ -16205,10 +16199,11 @@ class FastSearchCard extends HTMLElement {
                 console.log('✅ Controls tab button activated');
             }
             
-            // 2. Jetzt nach dem Container suchen
+            // 2. Jetzt nach dem Container suchen - MIT KORREKTEM SELECTOR
             setTimeout(() => {
-                const controlContainer = this.shadowRoot.querySelector('#device-control-' + item.id);
-                console.log('🔍 Control container found after tab activation:', controlContainer ? 'YES' : 'NO');
+                // FIX: Verwende Attribut-Selector statt ID-Selector
+                const controlContainer = this.shadowRoot.querySelector(`[id="device-control-${item.id}"]`);
+                console.log('🔍 Control container found with attribute selector:', controlContainer ? 'YES' : 'NO');
                 
                 if (controlContainer) {
                     console.log('🎯 SUCCESS! Adding vacuum event listeners...');
@@ -16219,17 +16214,15 @@ class FastSearchCard extends HTMLElement {
                     this.loadVacuumSegments(item);
                     
                 } else {
-                    console.error('❌ Still not found. Let me debug the DOM...');
+                    // Fallback: Versuche mit escaped ID
+                    const escapedId = item.id.replace(/\./g, '\\.');
+                    const controlContainer2 = this.shadowRoot.querySelector('#device-control-' + escapedId);
+                    console.log('🔍 Control container found with escaped selector:', controlContainer2 ? 'YES' : 'NO');
                     
-                    // DEBUG: Schaue was im Controls Tab steht
-                    const controlsTab = this.shadowRoot.querySelector('[data-tab-content="controls"]');
-                    if (controlsTab) {
-                        console.log('🔍 Controls tab content:', controlsTab.innerHTML.substring(0, 200) + '...');
-                        
-                        // Suche nach ALLEN device-control Elementen
-                        const allDeviceControls = this.shadowRoot.querySelectorAll('[id^="device-control-"]');
-                        console.log('🔍 All device-control elements found:', allDeviceControls.length);
-                        allDeviceControls.forEach(el => console.log('  -', el.id));
+                    if (controlContainer2) {
+                        console.log('🎯 SUCCESS with escaped selector!');
+                        this.addVacuumEventListeners(controlContainer2, item);
+                        this.loadVacuumSegments(item);
                     }
                 }
                 
@@ -16238,7 +16231,6 @@ class FastSearchCard extends HTMLElement {
         }, 300);
     }
     
-
     // Extrahiere Event Listeners in separate Methode:
     addVacuumEventListeners(controlContainer, item) {
         console.log('🎯 Adding vacuum event listeners...');
