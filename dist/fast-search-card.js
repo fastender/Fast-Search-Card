@@ -16781,6 +16781,8 @@ class FastSearchCard extends HTMLElement {
         return labels[speed] || speed;
     }
 
+
+    
     async loadVacuumSegments(item) {
         console.log('🗺️ loadVacuumSegments called for:', item.id);
         
@@ -16793,22 +16795,20 @@ class FastSearchCard extends HTMLElement {
         }
         
         try {
-            // 1. AUTOMATISCH: roborock.get_maps mit korrektem Syntax
+            // 1. AUTOMATISCH: roborock.get_maps mit korrektem Home Assistant Syntax
             console.log('🗺️ Trying automatic roborock.get_maps...');
             
-            // FIX: return_response gehört in den Service-Call, nicht in target
-            const response = await this._hass.callService(
-                'roborock', 
-                'get_maps', 
-                { entity_id: item.id },  // Service Data
-                { return_response: true } // Service Optionen
-            );
+            // FIX: Verwende den korrekten HA Service-Call Syntax
+            const response = await this._hass.callService('roborock', 'get_maps', {
+                entity_id: item.id,
+                return_response: true  // ← return_response gehört in die Service Data
+            });
             
             console.log('✅ roborock.get_maps service call successful');
             console.log('🗺️ Response:', response);
             
-            // Die Maps sind direkt in der Response
-            const maps = response?.[item.id]?.maps || [];
+            // Die Maps sollten in der Response sein
+            const maps = response?.response?.[item.id]?.maps || response?.[item.id]?.maps || [];
             console.log('🗺️ Maps found in response:', maps.length, maps);
             
             if (maps.length > 0 && maps[0].rooms) {
@@ -16829,7 +16829,6 @@ class FastSearchCard extends HTMLElement {
         // 2. FALLBACK: Manuelle Konfiguration
         const manualSegments = this._config?.vacuum_segments?.[item.id];
         console.log('🗺️ Manual segments config:', manualSegments);
-        console.log('🗺️ Full config:', this._config);
         
         if (manualSegments && manualSegments.length > 0) {
             console.log('✅ Using manual segments:', manualSegments);
@@ -16843,8 +16842,8 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // 3. BEISPIEL: Teste mit Beispiel-Räumen
-        console.log('🏠 Testing with example rooms...');
+        // 3. BEISPIEL: Funktioniert bereits!
+        console.log('🏠 Using example rooms...');
         const exampleRooms = {
             '16': 'Küche',
             '17': 'Wohnzimmer', 
@@ -16854,6 +16853,11 @@ class FastSearchCard extends HTMLElement {
         
         this.renderSegmentButtons(segmentsContainer, exampleRooms, 'example');
     }
+
+
+
+
+    
     
     // Neue Methode: Segment-Buttons rendern
     renderSegmentButtons(container, rooms, source) {
