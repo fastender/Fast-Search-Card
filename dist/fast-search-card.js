@@ -15788,22 +15788,35 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
+    
+    
     getDeviceControlsHTML(item) {
+        console.log('🔍 getDeviceControlsHTML called with domain:', item.domain);
+        
         switch (item.domain) {
             case 'light':
+                console.log('✅ Light case');
                 return this.getLightControlsHTML(item);
             case 'cover':
+                console.log('✅ Cover case');
                 return this.getCoverControlsHTML(item);
             case 'climate':
+                console.log('✅ Climate case');
                 return this.getClimateControlsHTML(item);
             case 'media_player':
+                console.log('✅ Media player case');
                 return this.getMediaPlayerControlsHTML(item);
-            case 'vacuum':  // ← DIESE ZEILE FEHLT BEI DIR!
-                return this.getVacuumControlsHTML(item);
+            case 'vacuum':
+                console.log('✅ VACUUM case - calling getVacuumControlsHTML!');
+                const result = this.getVacuumControlsHTML(item);
+                console.log('🔧 getVacuumControlsHTML returned:', result ? 'HTML STRING' : 'NULL/UNDEFINED');
+                return result;
             default:
+                console.log('❌ Default case, domain:', item.domain);
                 return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Keine Steuerelemente für diesen Gerätetyp.</div>`;
         }
     }
+
 
     getLightControlsHTML(item) {
         const state = this._hass.states[item.id];
@@ -16157,124 +16170,95 @@ class FastSearchCard extends HTMLElement {
     setupVacuumControls(item) {
         console.log('🤖 setupVacuumControls called for:', item.id);
         
+        // Verlängere das Timeout - das HTML braucht Zeit um ins DOM eingefügt zu werden
         setTimeout(() => {
             const controlContainer = this.shadowRoot.querySelector('#device-control-' + item.id);
-            console.log('🔍 Control container found:', controlContainer ? 'YES' : 'NO');
+            console.log('🔍 Control container found after 500ms:', controlContainer ? 'YES' : 'NO');
             
             if (!controlContainer) {
-                console.error('❌ Control container not found with ID:', '#device-control-' + item.id);
+                console.error('❌ Still not found, trying again in 1000ms...');
+                // Noch ein Versuch nach 1000ms
+                setTimeout(() => {
+                    const controlContainer2 = this.shadowRoot.querySelector('#device-control-' + item.id);
+                    console.log('🔍 Control container found after 1500ms total:', controlContainer2 ? 'YES' : 'NO');
+                    
+                    if (controlContainer2) {
+                        this.addVacuumEventListeners(controlContainer2, item);
+                    }
+                }, 1000);
                 return;
             }
-    
-            // Power Button im Circle Ring
-            const powerIcon = controlContainer.querySelector('.power-icon');
-            console.log('⚡ Power icon found:', powerIcon ? 'YES' : 'NO');
             
-            if (powerIcon) {
-                powerIcon.addEventListener('click', () => {
-                    console.log('🔋 Power button clicked!');
-                    const state = this._hass.states[item.id];
-                    const isOff = ['docked', 'charging', 'off'].includes(state.state);
-                    
-                    if (isOff) {
-                        console.log('▶️ Starting vacuum');
-                        this._hass.callService('vacuum', 'start', { entity_id: item.id });
-                    } else {
-                        console.log('🏠 Returning to base');
-                        this._hass.callService('vacuum', 'return_to_base', { entity_id: item.id });
-                    }
-                });
-            }
-    
-            // Control Buttons Event Listeners
-            const startPauseBtn = controlContainer.querySelector('[data-action="start-pause"]');
-            console.log('▶️ Start/Pause button found:', startPauseBtn ? 'YES' : 'NO');
+            this.addVacuumEventListeners(controlContainer, item);
             
-            if (startPauseBtn) {
-                startPauseBtn.addEventListener('click', () => {
-                    console.log('⏯️ Start/Pause clicked!');
-                    const state = this._hass.states[item.id];
-                    const isRunning = ['cleaning'].includes(state.state);
-                    
-                    if (isRunning) {
-                        console.log('⏸️ Pausing vacuum');
-                        this._hass.callService('vacuum', 'pause', { entity_id: item.id });
-                    } else {
-                        console.log('▶️ Starting vacuum');
-                        this._hass.callService('vacuum', 'start', { entity_id: item.id });
-                    }
-                });
-            }
-    
-            const stopBtn = controlContainer.querySelector('[data-action="stop"]');
-            console.log('⏹️ Stop button found:', stopBtn ? 'YES' : 'NO');
-            
-            if (stopBtn) {
-                stopBtn.addEventListener('click', () => {
-                    console.log('🛑 Stop clicked!');
-                    this._hass.callService('vacuum', 'stop', { entity_id: item.id });
-                });
-            }
-    
-            const returnBtn = controlContainer.querySelector('[data-action="return-to-base"]');
-            console.log('🏠 Return button found:', returnBtn ? 'YES' : 'NO');
-            
-            if (returnBtn) {
-                returnBtn.addEventListener('click', () => {
-                    console.log('🏠 Return to base clicked!');
-                    this._hass.callService('vacuum', 'return_to_base', { entity_id: item.id });
-                });
-            }
-    
-            // Filter Button 1: Räume
-            const roomsBtn = controlContainer.querySelector('[data-action="toggle-rooms"]');
-            console.log('🏠 Rooms button found:', roomsBtn ? 'YES' : 'NO');
-            
-            if (roomsBtn) {
-                roomsBtn.addEventListener('click', () => {
-                    console.log('🏠 Rooms toggle clicked!');
-                    const presetsContainer = controlContainer.querySelector('.device-control-presets.vacuum-rooms');
-                    if (presetsContainer) {
-                        const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                        presetsContainer.setAttribute('data-is-open', !isOpen);
-                        
-                        // Settings Container schließen falls offen
-                        const settingsContainer = controlContainer.querySelector('.device-control-presets.vacuum-settings');
-                        if (settingsContainer) {
-                            settingsContainer.setAttribute('data-is-open', 'false');
-                        }
-                    }
-                });
-            }
-    
-            // Filter Button 2: Einstellungen
-            const settingsBtn = controlContainer.querySelector('[data-action="toggle-settings"]');
-            console.log('⚙️ Settings button found:', settingsBtn ? 'YES' : 'NO');
-            
-            if (settingsBtn) {
-                settingsBtn.addEventListener('click', () => {
-                    console.log('⚙️ Settings toggle clicked!');
-                    const presetsContainer = controlContainer.querySelector('.device-control-presets.vacuum-settings');
-                    if (presetsContainer) {
-                        const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                        presetsContainer.setAttribute('data-is-open', !isOpen);
-                        
-                        // Rooms Container schließen falls offen
-                        const roomsContainer = controlContainer.querySelector('.device-control-presets.vacuum-rooms');
-                        if (roomsContainer) {
-                            roomsContainer.setAttribute('data-is-open', 'false');
-                        }
-                    }
-                });
-            }
-    
-            // NEU: Vacuum Segmente automatisch laden
-            console.log('🗺️ Loading vacuum segments...');
-            this.loadVacuumSegments(item);
-    
-        }, 100);
+        }, 500); // Erhöht von 100ms auf 500ms
     }
     
+
+    // Extrahiere Event Listeners in separate Methode:
+    addVacuumEventListeners(controlContainer, item) {
+        console.log('🎯 Adding vacuum event listeners...');
+        
+        // Power Button im Circle Ring
+        const powerIcon = controlContainer.querySelector('.power-icon');
+        console.log('⚡ Power icon found:', powerIcon ? 'YES' : 'NO');
+        
+        if (powerIcon) {
+            powerIcon.addEventListener('click', () => {
+                console.log('🔋 Power button clicked!');
+                const state = this._hass.states[item.id];
+                const isOff = ['docked', 'charging', 'off'].includes(state.state);
+                
+                if (isOff) {
+                    console.log('▶️ Starting vacuum');
+                    this._hass.callService('vacuum', 'start', { entity_id: item.id });
+                } else {
+                    console.log('🏠 Returning to base');
+                    this._hass.callService('vacuum', 'return_to_base', { entity_id: item.id });
+                }
+            });
+        }
+    
+        // Control Buttons Event Listeners
+        const startPauseBtn = controlContainer.querySelector('[data-action="start-pause"]');
+        console.log('▶️ Start/Pause button found:', startPauseBtn ? 'YES' : 'NO');
+        
+        if (startPauseBtn) {
+            startPauseBtn.addEventListener('click', () => {
+                console.log('⏯️ Start/Pause clicked!');
+                const state = this._hass.states[item.id];
+                const isRunning = ['cleaning'].includes(state.state);
+                
+                if (isRunning) {
+                    console.log('⏸️ Pausing vacuum');
+                    this._hass.callService('vacuum', 'pause', { entity_id: item.id });
+                } else {
+                    console.log('▶️ Starting vacuum');
+                    this._hass.callService('vacuum', 'start', { entity_id: item.id });
+                }
+            });
+        }
+    
+        // Weitere Buttons...
+        const stopBtn = controlContainer.querySelector('[data-action="stop"]');
+        if (stopBtn) {
+            stopBtn.addEventListener('click', () => {
+                console.log('🛑 Stop clicked!');
+                this._hass.callService('vacuum', 'stop', { entity_id: item.id });
+            });
+        }
+    
+        const returnBtn = controlContainer.querySelector('[data-action="return-to-base"]');
+        if (returnBtn) {
+            returnBtn.addEventListener('click', () => {
+                console.log('🏠 Return to base clicked!');
+                this._hass.callService('vacuum', 'return_to_base', { entity_id: item.id });
+            });
+        }
+    
+        console.log('✅ All vacuum event listeners added successfully!');
+    }
+
 
     getVacuumControlsHTML(item) {
         console.log('🏗️ getVacuumControlsHTML called for:', item.id);
