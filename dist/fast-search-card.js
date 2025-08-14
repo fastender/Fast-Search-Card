@@ -16781,100 +16781,78 @@ class FastSearchCard extends HTMLElement {
         return labels[speed] || speed;
     }
 
+        
     async loadVacuumSegments(item) {
-        console.log('🗺️ loadVacuumSegments called for:', item.id);
-        
+        console.log('🗺️ [V2] loadVacuumSegments called for:', item.id);
         const segmentsContainer = this.shadowRoot.querySelector(`[id="vacuum-segments-${item.id}"]`);
-        console.log('🗺️ Segments container found:', segmentsContainer ? 'YES' : 'NO');
-        
+    
         if (!segmentsContainer) {
             console.error('❌ Segments container not found:', `[id="vacuum-segments-${item.id}"]`);
             return;
         }
-        
+    
         try {
-            // 1. AUTOMATISCH: Service-Call OHNE return_response
-            console.log('🗺️ Trying roborock.get_maps (without return_response)...');
-            
-            // Rufe den Service auf (ohne return_response)
-            await this._hass.callService('roborock', 'get_maps', {
-                entity_id: item.id
+            // ✅ KORREKT: Service über WebSocket mit return_response aufrufen
+            console.log('🗺️ Calling roborock.get_maps via WebSocket...');
+            const response = await this._hass.callWS({
+                type: 'call_service',
+                domain: 'roborock',
+                service: 'get_maps',
+                service_data: {
+                    entity_id: item.id
+                },
+                return_response: true // 👈 Dies ist der entscheidende Teil!
             });
-            
-            console.log('✅ roborock.get_maps service call successful');
-            
-            // Warte auf Entity-Update
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Schaue direkt in die Entity-Attribute
-            const currentState = this._hass.states[item.id];
-            console.log('🗺️ Current entity attributes:', currentState.attributes);
-            
-            // Schaue nach Maps in verschiedenen Attributen
+    
+            console.log('✅ WebSocket response received:', response);
+    
+            // Die Antwort enthält die Daten direkt. Die genaue Struktur kann variieren,
+            // aber meist ist es ein `response`-Objekt.
+            const mapsData = response.response || response;
             let rooms = null;
-            
-            if (currentState.attributes.maps) {
-                console.log('🗺️ Found maps in entity attributes');
-                const maps = currentState.attributes.maps;
-                if (maps.length > 0 && maps[0].rooms) {
-                    rooms = maps[0].rooms;
-                }
+    
+            // Sicher auf die Raumdaten zugreifen
+            if (mapsData && Array.isArray(mapsData) && mapsData.length > 0) {
+                // Normalerweise ist die erste Karte die aktive
+                rooms = mapsData[0]?.rooms || null;
             }
-            
-            // Alternative: Schaue nach rooms-Attribut direkt
-            if (!rooms && currentState.attributes.rooms) {
-                console.log('🗺️ Found rooms directly in attributes');
-                rooms = currentState.attributes.rooms;
-            }
-            
-            // Alternative: Schaue nach room_mapping oder ähnlichen Attributen
-            if (!rooms && currentState.attributes.room_mapping) {
-                console.log('🗺️ Found room_mapping in attributes');
-                rooms = currentState.attributes.room_mapping;
-            }
-            
-            console.log('🗺️ Final extracted rooms:', rooms);
-            
+    
             if (rooms && Object.keys(rooms).length > 0) {
-                console.log('✅ Auto-loaded segments from entity attributes:', rooms);
-                this.renderSegmentButtons(segmentsContainer, rooms, 'auto');
-                return;
+                console.log('✅ Auto-loaded segments successfully from service response:', rooms);
+                this.renderSegmentButtons(segmentsContainer, rooms, 'auto-api');
+                return; // Erfolg, Funktion hier beenden.
             } else {
-                console.log('⚠️ No rooms found in entity attributes, trying manual config...');
+                console.warn('⚠️ No rooms found in API response, trying manual config...');
             }
-            
+    
         } catch (error) {
-            console.log('⚠️ Auto-loading failed:', error);
-            console.log('🔄 Trying manual config...');
+            console.warn('⚠️ Auto-loading via API failed:', error);
+            console.log('🔄 Trying manual config as fallback...');
         }
-        
-        // 2. FALLBACK: Manuelle Konfiguration
+    
+        // FALLBACK 1: Manuelle Konfiguration (dein bestehender Code, unverändert)
         const manualSegments = this._config?.vacuum_segments?.[item.id];
-        console.log('🗺️ Manual segments config:', manualSegments);
-        
         if (manualSegments && manualSegments.length > 0) {
-            console.log('✅ Using manual segments:', manualSegments);
-            
+            console.log('✅ Using manual segments from config:', manualSegments);
             const rooms = {};
             manualSegments.forEach(segment => {
                 rooms[segment.id] = segment.name;
             });
-            
-            this.renderSegmentButtons(segmentsContainer, rooms, 'manual');
+            this.renderSegmentButtons(segmentsContainer, rooms, 'manual-config');
             return;
         }
-        
-        // 3. PRAGMATISCH: Verwende die Daten aus deinem Screenshot
-        console.log('🏠 Using real rooms from your Roborock...');
+    
+        // FALLBACK 2: Dein pragmatischer Hardcode (sinnvoll für den Fall, dass alles fehlschlägt)
+        console.log('🏠 Using hardcoded real rooms as final fallback...');
         const realRooms = {
             '17': 'Wohnzimmer',
             '18': 'Küche',
-            '19': 'Flur', 
+            '19': 'Flur',
             '20': 'Esszimmer'
         };
-        
         this.renderSegmentButtons(segmentsContainer, realRooms, 'real-hardcoded');
     }
+
 
 
 
