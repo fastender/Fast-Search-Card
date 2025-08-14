@@ -16783,9 +16783,9 @@ class FastSearchCard extends HTMLElement {
 
 
 
-    
+
     async loadVacuumSegments(item) {
-        console.log('🗺️ [V4 FINAL] loadVacuumSegments called for:', item.id);
+        console.log('🗺️ [V7 GROUPED-MAPS] loadVacuumSegments called for:', item.id);
         const segmentsContainer = this.shadowRoot.querySelector(`[id="vacuum-segments-${item.id}"]`);
     
         if (!segmentsContainer) {
@@ -16794,7 +16794,6 @@ class FastSearchCard extends HTMLElement {
         }
     
         try {
-            console.log('🗺️ Calling roborock.get_maps via WebSocket...');
             const response = await this._hass.callWS({
                 type: 'call_service',
                 domain: 'roborock',
@@ -16805,27 +16804,20 @@ class FastSearchCard extends HTMLElement {
                 return_response: true
             });
     
-            // Die Debug-Zeile kann drin bleiben, sie ist nützlich.
-            console.log('🕵️‍♂️ RAW API RESPONSE FROM roborock.get_maps:', JSON.stringify(response, null, 2));
-    
-            // ✅ KORREKTUR: Wir greifen gezielt auf die Daten für unsere Entität zu.
-            // response.response ist das Objekt, [item.id] ist der Schlüssel (z.B. 'vacuum.roborock_qrevo_s')
             const entityResponse = response.response?.[item.id];
             const mapsData = entityResponse?.maps;
-            let rooms = null;
-    
-            // Der Rest der Logik kann gleich bleiben, da mapsData jetzt das korrekte Array ist.
+            
+            // Diese Prüfung bleibt gleich. mapsData ist das Array der Karten.
             if (mapsData && Array.isArray(mapsData) && mapsData.length > 0) {
-                // Wir nehmen die Räume der ersten Karte in der Liste
-                rooms = mapsData[0]?.rooms || null;
-            }
-    
-            if (rooms && Object.keys(rooms).length > 0) {
-                console.log('✅✅✅ Auto-loaded segments successfully from service response:', rooms);
-                this.renderSegmentButtons(segmentsContainer, rooms, 'auto-api');
+                
+                // ✅ ÄNDERUNG HIER:
+                // Wir übergeben jetzt das komplette `mapsData`-Array an die neue Rendering-Funktion.
+                console.log(`✅✅✅ Auto-loaded ${mapsData.length} maps successfully from service response.`);
+                this.renderSegmentButtons(segmentsContainer, mapsData, 'auto-api-multimap');
                 return;
+    
             } else {
-                console.warn('⚠️ No rooms found in API response structure, trying manual config...');
+                console.warn('⚠️ No maps found in API response structure, trying manual config...');
             }
     
         } catch (error) {
@@ -16833,18 +16825,19 @@ class FastSearchCard extends HTMLElement {
             console.log('🔄 Trying manual config as fallback...');
         }
     
-        // Die Fallbacks bleiben für den Notfall erhalten.
+        // Die Fallbacks bleiben für den Notfall erhalten (zeigen aber keine Unterteilung).
         const manualSegments = this._config?.vacuum_segments?.[item.id];
         if (manualSegments && manualSegments.length > 0) {
             const rooms = {};
             manualSegments.forEach(segment => { rooms[segment.id] = segment.name; });
-            this.renderSegmentButtons(segmentsContainer, rooms, 'manual-config');
+            // Die alte Rendering-Funktion kann keine Gruppen, daher wird hier ein Fallback-Objekt erstellt.
+            this.renderSegmentButtons(segmentsContainer, [{name: 'Manuelle Räume', rooms: rooms}], 'manual-config');
             return;
         }
         
         console.log('🏠 Using hardcoded real rooms as final fallback...');
         const realRooms = {'17': 'Wohnzimmer', '18': 'Küche', '19': 'Flur', '20': 'Esszimmer'};
-        this.renderSegmentButtons(segmentsContainer, realRooms, 'real-hardcoded');
+        this.renderSegmentButtons(segmentsContainer, [{name: 'Standard-Räume', rooms: realRooms}], 'real-hardcoded');
     }
     
 
@@ -16852,31 +16845,58 @@ class FastSearchCard extends HTMLElement {
 
 
     
+  
+    // NEUE [V7] Version
+    renderSegmentButtons(container, maps, source) {
+        // Beginnt mit einem leeren HTML-String
+        let buttonsHTML = '';
     
-    // Neue Methode: Segment-Buttons rendern
-    renderSegmentButtons(container, rooms, source) {
-        const buttonsHTML = Object.entries(rooms).map(([id, name]) => `
-            <button class="preset-btn" data-segment-id="${id}" title="${name} reinigen">
-                <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor"/>
-                    <path d="M9 9h6v6H9z" stroke="currentColor"/>
-                </svg>
-                ${name}
-            </button>
-        `).join('');
+        // Iteriert durch jede Karte (z.B. "Erdgeschoss", dann "Map 1")
+        maps.forEach(map => {
+            // Fügt eine Überschrift für die aktuelle Karte hinzu
+            // .trim() entfernt versehentliche Leerzeichen am Ende des Namens
+            buttonsHTML += `
+                <div class="presets-row map-group">
+                    <h4 class="map-header">${map.name.trim()}</h4>
+                    <div class="preset-buttons">
+            `;
+    
+            // Prüft, ob diese Karte auch Räume hat
+            if (map.rooms && Object.keys(map.rooms).length > 0) {
+                // Erstellt die Buttons für jeden Raum in dieser Karte
+                buttonsHTML += Object.entries(map.rooms).map(([id, name]) => `
+                    <button class="preset-btn" data-segment-id="${id}" title="${name} reinigen">
+                        <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor"/>
+                            <path d="M9 9h6v6H9z" stroke="currentColor"/>
+                        </svg>
+                        ${name}
+                    </button>
+                `).join('');
+            }
+    
+            // Schließt die HTML-Tags für diese Kartengruppe
+            buttonsHTML += `
+                    </div>
+                </div>
+            `;
+        });
         
+        // Setzt das komplett generierte HTML in den Container
         container.innerHTML = buttonsHTML;
-        
-        // Event Listeners für die Segment-Buttons
+    
+        // Fügt die Event-Listener für alle neu erstellten Buttons hinzu
         container.querySelectorAll('[data-segment-id]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const segmentId = btn.dataset.segmentId;
-                this.cleanVacuumSegment(container.closest('[id^="device-control-"]').id.replace('device-control-', ''), segmentId);
+                const entityId = container.closest('[id^="device-control-"]').id.replace('device-control-', '');
+                this.cleanVacuumSegment(entityId, segmentId);
             });
         });
-        
-        console.log(`🎯 Rendered ${Object.keys(rooms).length} segment buttons (${source})`);
+    
+        console.log(`🎯 Rendered buttons for ${maps.length} maps (${source})`);
     }
+
     
     // Neue Methode: Segment reinigen
     cleanVacuumSegment(entityId, segmentId) {
