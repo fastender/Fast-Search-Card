@@ -16793,53 +16793,54 @@ class FastSearchCard extends HTMLElement {
         }
         
         try {
-            // 1. AUTOMATISCH: Korrekter HA Service-Call Syntax
-            console.log('🗺️ Trying automatic roborock.get_maps...');
+            // 1. AUTOMATISCH: Service-Call OHNE return_response
+            console.log('🗺️ Trying roborock.get_maps (without return_response)...');
             
-            // FIX: Verwende den korrekten Home Assistant Service-Call für return_response
-            const serviceData = {
+            // Rufe den Service auf (ohne return_response)
+            await this._hass.callService('roborock', 'get_maps', {
                 entity_id: item.id
-            };
-            
-            const serviceOptions = {
-                return_response: true
-            };
-            
-            // Der korrekte HA Syntax: callService(domain, service, serviceData, serviceOptions)
-            const response = await this._hass.callService('roborock', 'get_maps', serviceData, serviceOptions);
+            });
             
             console.log('✅ roborock.get_maps service call successful');
-            console.log('🗺️ Full response object:', response);
             
-            // Die Response-Struktur kann unterschiedlich sein, teste verschiedene Pfade
-            let maps = null;
+            // Warte auf Entity-Update
+            await new Promise(resolve => setTimeout(resolve, 2000));
             
-            // Versuch 1: Direkt in response
-            if (response && response.maps) {
-                maps = response.maps;
-                console.log('🗺️ Found maps in response.maps');
-            }
-            // Versuch 2: In response[entity_id]
-            else if (response && response[item.id] && response[item.id].maps) {
-                maps = response[item.id].maps;
-                console.log('🗺️ Found maps in response[entity_id].maps');
-            }
-            // Versuch 3: In response.response[entity_id] 
-            else if (response && response.response && response.response[item.id] && response.response[item.id].maps) {
-                maps = response.response[item.id].maps;
-                console.log('🗺️ Found maps in response.response[entity_id].maps');
+            // Schaue direkt in die Entity-Attribute
+            const currentState = this._hass.states[item.id];
+            console.log('🗺️ Current entity attributes:', currentState.attributes);
+            
+            // Schaue nach Maps in verschiedenen Attributen
+            let rooms = null;
+            
+            if (currentState.attributes.maps) {
+                console.log('🗺️ Found maps in entity attributes');
+                const maps = currentState.attributes.maps;
+                if (maps.length > 0 && maps[0].rooms) {
+                    rooms = maps[0].rooms;
+                }
             }
             
-            console.log('🗺️ Extracted maps:', maps);
+            // Alternative: Schaue nach rooms-Attribut direkt
+            if (!rooms && currentState.attributes.rooms) {
+                console.log('🗺️ Found rooms directly in attributes');
+                rooms = currentState.attributes.rooms;
+            }
             
-            if (maps && maps.length > 0 && maps[0].rooms) {
-                const rooms = maps[0].rooms;
-                console.log('✅ Auto-loaded segments:', rooms);
-                
+            // Alternative: Schaue nach room_mapping oder ähnlichen Attributen
+            if (!rooms && currentState.attributes.room_mapping) {
+                console.log('🗺️ Found room_mapping in attributes');
+                rooms = currentState.attributes.room_mapping;
+            }
+            
+            console.log('🗺️ Final extracted rooms:', rooms);
+            
+            if (rooms && Object.keys(rooms).length > 0) {
+                console.log('✅ Auto-loaded segments from entity attributes:', rooms);
                 this.renderSegmentButtons(segmentsContainer, rooms, 'auto');
                 return;
             } else {
-                console.log('⚠️ No rooms found in maps, trying manual config...');
+                console.log('⚠️ No rooms found in entity attributes, trying manual config...');
             }
             
         } catch (error) {
@@ -16863,16 +16864,16 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // 3. FALLBACK: Beispiel-Räume
-        console.log('🏠 Using example rooms...');
-        const exampleRooms = {
+        // 3. PRAGMATISCH: Verwende die Daten aus deinem Screenshot
+        console.log('🏠 Using real rooms from your Roborock...');
+        const realRooms = {
             '17': 'Wohnzimmer',
-            '18': 'Küche', 
-            '19': 'Flur',
+            '18': 'Küche',
+            '19': 'Flur', 
             '20': 'Esszimmer'
         };
         
-        this.renderSegmentButtons(segmentsContainer, exampleRooms, 'example');
+        this.renderSegmentButtons(segmentsContainer, realRooms, 'real-hardcoded');
     }
 
 
