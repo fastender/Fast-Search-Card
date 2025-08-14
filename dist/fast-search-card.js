@@ -16783,9 +16783,9 @@ class FastSearchCard extends HTMLElement {
 
 
 
-
+    
     async loadVacuumSegments(item) {
-        console.log('🗺️ [V3] loadVacuumSegments called for:', item.id);
+        console.log('🗺️ [V4 FINAL] loadVacuumSegments called for:', item.id);
         const segmentsContainer = this.shadowRoot.querySelector(`[id="vacuum-segments-${item.id}"]`);
     
         if (!segmentsContainer) {
@@ -16805,20 +16805,23 @@ class FastSearchCard extends HTMLElement {
                 return_response: true
             });
     
-            // 🕵️‍♂️ DIESE ZEILE IST NEU UND ENTSCHEIDEND:
-            // Wir loggen die rohe Antwort, um ihre genaue Struktur zu sehen.
+            // Die Debug-Zeile kann drin bleiben, sie ist nützlich.
             console.log('🕵️‍♂️ RAW API RESPONSE FROM roborock.get_maps:', JSON.stringify(response, null, 2));
     
-            // ✅ VERBESSERTE LOGIK: Versucht, die Daten in verschiedenen möglichen Strukturen zu finden.
-            const mapsData = response.result || response.response || response;
+            // ✅ KORREKTUR: Wir greifen gezielt auf die Daten für unsere Entität zu.
+            // response.response ist das Objekt, [item.id] ist der Schlüssel (z.B. 'vacuum.roborock_qrevo_s')
+            const entityResponse = response.response?.[item.id];
+            const mapsData = entityResponse?.maps;
             let rooms = null;
     
+            // Der Rest der Logik kann gleich bleiben, da mapsData jetzt das korrekte Array ist.
             if (mapsData && Array.isArray(mapsData) && mapsData.length > 0) {
+                // Wir nehmen die Räume der ersten Karte in der Liste
                 rooms = mapsData[0]?.rooms || null;
             }
     
             if (rooms && Object.keys(rooms).length > 0) {
-                console.log('✅ Auto-loaded segments successfully from service response:', rooms);
+                console.log('✅✅✅ Auto-loaded segments successfully from service response:', rooms);
                 this.renderSegmentButtons(segmentsContainer, rooms, 'auto-api');
                 return;
             } else {
@@ -16830,26 +16833,17 @@ class FastSearchCard extends HTMLElement {
             console.log('🔄 Trying manual config as fallback...');
         }
     
-        // FALLBACK 1: Manuelle Konfiguration
+        // Die Fallbacks bleiben für den Notfall erhalten.
         const manualSegments = this._config?.vacuum_segments?.[item.id];
         if (manualSegments && manualSegments.length > 0) {
-            console.log('✅ Using manual segments from config:', manualSegments);
             const rooms = {};
-            manualSegments.forEach(segment => {
-                rooms[segment.id] = segment.name;
-            });
+            manualSegments.forEach(segment => { rooms[segment.id] = segment.name; });
             this.renderSegmentButtons(segmentsContainer, rooms, 'manual-config');
             return;
         }
-    
-        // FALLBACK 2: Dein pragmatischer Hardcode
+        
         console.log('🏠 Using hardcoded real rooms as final fallback...');
-        const realRooms = {
-            '17': 'Wohnzimmer',
-            '18': 'Küche',
-            '19': 'Flur',
-            '20': 'Esszimmer'
-        };
+        const realRooms = {'17': 'Wohnzimmer', '18': 'Küche', '19': 'Flur', '20': 'Esszimmer'};
         this.renderSegmentButtons(segmentsContainer, realRooms, 'real-hardcoded');
     }
     
