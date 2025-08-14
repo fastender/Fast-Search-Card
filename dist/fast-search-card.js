@@ -626,7 +626,7 @@ class FastSearchCard extends HTMLElement {
                 height: 700px;
                 opacity: 0;
                 pointer-events: none;
-                transform: translateX(5%) scale(0.95);
+
             }
 
             .detail-panel.visible {
