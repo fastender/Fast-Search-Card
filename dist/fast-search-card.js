@@ -5399,10 +5399,109 @@ class FastSearchCard extends HTMLElement {
             }         
 
 
-
-
-
-
+            
+            
+            
+            /* Vacuum-spezifische Preset-Container */
+            .device-control-presets.vacuum-rooms,
+            .device-control-presets.vacuum-settings {
+                max-height: 0;
+                opacity: 0;
+                overflow: hidden;
+                transition: all 0.4s ease;
+                width: 100%;
+                max-width: 320px;
+                margin-top: 0;
+            }
+            
+            .device-control-presets.vacuum-rooms[data-is-open="true"],
+            .device-control-presets.vacuum-settings[data-is-open="true"] {
+                max-height: 400px;
+                opacity: 1;
+                margin-top: 20px;
+            }
+            
+            /* Vacuum Preset-Reihen */
+            .presets-row {
+                margin-bottom: 16px;
+            }
+            
+            .presets-row h4 {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                margin: 0 0 8px 0;
+                text-align: left;
+            }
+            
+            .preset-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: flex-start;
+            }
+            
+            .preset-btn {
+                padding: 8px 12px;
+                background: rgba(255, 255, 255, 0.08);
+                border: none;
+                border-radius: 20px;
+                color: var(--text-secondary);
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                white-space: nowrap;
+            }
+            
+            .preset-btn:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-1px);
+            }
+            
+            .preset-btn.active {
+                background: var(--accent);
+                color: var(--text-primary-color);
+            }
+            
+            .preset-btn svg {
+                width: 16px;
+                height: 16px;
+                stroke-width: 1.5;
+            }
+            
+            /* Loading-Spinner für Segmente */
+            .loading-segments {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: var(--text-secondary);
+                font-size: 12px;
+                padding: 16px;
+            }
+            
+            .spinner {
+                width: 20px;
+                height: 20px;
+                animation: spin 2s linear infinite;
+            }
+            
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            
+            /* Vacuum-spezifische Anpassungen */
+            .circular-slider-container.vacuum .progress-fill {
+                stroke: #00A8E6;
+            }
+            
+            .circular-slider-container.vacuum .handle {
+                border-color: #00A8E6;
+            }
             
                                                             
             </style>
