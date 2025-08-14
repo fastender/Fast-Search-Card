@@ -12352,6 +12352,8 @@ class FastSearchCard extends HTMLElement {
             moveDistance = isMobile ? '-190px' : '-220px'; // ← Light: Mobile weniger
         } else if (container.querySelector('.circular-slider-container.cover')) {
             moveDistance = isMobile ? '-190px' : '-220px'; // ← Cover: Mobile weniger  
+        } else if (container.querySelector('.circular-slider-container.vacuum')) {  // ← NEU: Vacuum
+            moveDistance = isMobile ? '-190px' : '-210px';            
         } else if (container.querySelector('.device-control-presets.tts-presets.visible')) {
             moveDistance = isMobile ? '-160px' : '-200px';
         } else {
@@ -16400,23 +16402,8 @@ class FastSearchCard extends HTMLElement {
             roomsBtn.addEventListener('click', () => {
                 console.log('🏠 Rooms toggle clicked!');
                 
-                const presetsContainer = controlContainer.querySelector('.device-control-presets.vacuum-rooms');
-                console.log('🏠 Rooms presets container found:', presetsContainer ? 'YES' : 'NO');
-                
-                if (presetsContainer) {
-                    const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                    console.log('🏠 Current rooms state:', isOpen ? 'OPEN' : 'CLOSED');
-                    
-                    presetsContainer.setAttribute('data-is-open', !isOpen);
-                    console.log('🏠 Rooms state changed to:', !isOpen ? 'OPEN' : 'CLOSED');
-                    
-                    // Settings Container schließen falls offen
-                    const settingsContainer = controlContainer.querySelector('.device-control-presets.vacuum-settings');
-                    if (settingsContainer) {
-                        settingsContainer.setAttribute('data-is-open', 'false');
-                        console.log('⚙️ Settings container closed');
-                    }
-                }
+                // NEU: handleExpandableButton verwenden (wie bei Klima)
+                this.handleExpandableButton(roomsBtn, controlContainer, '.device-control-presets.vacuum-rooms');
             });
         }
     
@@ -16428,23 +16415,8 @@ class FastSearchCard extends HTMLElement {
             settingsBtn.addEventListener('click', () => {
                 console.log('⚙️ Settings toggle clicked!');
                 
-                const presetsContainer = controlContainer.querySelector('.device-control-presets.vacuum-settings');
-                console.log('⚙️ Settings presets container found:', presetsContainer ? 'YES' : 'NO');
-                
-                if (presetsContainer) {
-                    const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
-                    console.log('⚙️ Current settings state:', isOpen ? 'OPEN' : 'CLOSED');
-                    
-                    presetsContainer.setAttribute('data-is-open', !isOpen);
-                    console.log('⚙️ Settings state changed to:', !isOpen ? 'OPEN' : 'CLOSED');
-                    
-                    // Rooms Container schließen falls offen
-                    const roomsContainer = controlContainer.querySelector('.device-control-presets.vacuum-rooms');
-                    if (roomsContainer) {
-                        roomsContainer.setAttribute('data-is-open', 'false');
-                        console.log('🏠 Rooms container closed');
-                    }
-                }
+                // NEU: handleExpandableButton verwenden (wie bei Klima)
+                this.handleExpandableButton(settingsBtn, controlContainer, '.device-control-presets.vacuum-settings');
             });
         }
     
