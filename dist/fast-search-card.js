@@ -16314,6 +16314,12 @@ class FastSearchCard extends HTMLElement {
                     console.log('🗺️ Loading vacuum segments...');
                     this.loadVacuumSegments(item);
                     
+                    // NEU: Settings Event Listeners nach einer weiteren Verzögerung
+                    setTimeout(() => {
+                        console.log('🔧 Adding settings event listeners...');
+                        this.addVacuumSettingsEventListeners(controlContainer, item);
+                    }, 500);
+                    
                 } else {
                     // Fallback: Versuche mit escaped ID
                     const escapedId = item.id.replace(/\./g, '\\.');
@@ -16324,6 +16330,12 @@ class FastSearchCard extends HTMLElement {
                         console.log('🎯 SUCCESS with escaped selector!');
                         this.addVacuumEventListeners(controlContainer2, item);
                         this.loadVacuumSegments(item);
+                        
+                        // NEU: Settings Event Listeners
+                        setTimeout(() => {
+                            console.log('🔧 Adding settings event listeners...');
+                            this.addVacuumSettingsEventListeners(controlContainer2, item);
+                        }, 500);
                     }
                 }
                 
@@ -16331,6 +16343,76 @@ class FastSearchCard extends HTMLElement {
             
         }, 300);
     }
+    
+    // NEU: Separate Methode für Settings Event Listeners
+    addVacuumSettingsEventListeners(controlContainer, item) {
+        // Fan Speed Buttons
+        const fanSpeedButtons = controlContainer.querySelectorAll('[data-fan-speed]');
+        console.log('🌪️ Fan speed buttons found:', fanSpeedButtons.length);
+        
+        fanSpeedButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const speed = btn.dataset.fanSpeed;
+                console.log('🌪️ Fan speed clicked:', speed);
+                
+                this._hass.callService('vacuum', 'set_fan_speed', {
+                    entity_id: item.id,
+                    fan_speed: speed
+                });
+                
+                // Update active state
+                fanSpeedButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        
+        // Mop Mode Buttons
+        const mopModeButtons = controlContainer.querySelectorAll('[data-mop-mode]');
+        console.log('🧽 Mop mode buttons found:', mopModeButtons.length);
+        
+        mopModeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mopMode;
+                console.log('🧽 Mop mode clicked:', mode);
+                
+                // Roborock send_command für Mop Mode
+                this._hass.callService('vacuum', 'send_command', {
+                    entity_id: item.id,
+                    command: 'set_mop_mode',
+                    params: [mode]
+                });
+                
+                // Update active state
+                mopModeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        
+        // Water Level Buttons
+        const waterLevelButtons = controlContainer.querySelectorAll('[data-water-level]');
+        console.log('💧 Water level buttons found:', waterLevelButtons.length);
+        
+        waterLevelButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const level = btn.dataset.waterLevel;
+                console.log('💧 Water level clicked:', level);
+                
+                // Roborock send_command für Water Level
+                this._hass.callService('vacuum', 'send_command', {
+                    entity_id: item.id,
+                    command: 'set_water_box_custom_mode',
+                    params: [level]
+                });
+                
+                // Update active state
+                waterLevelButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        
+        console.log('✅ Settings event listeners added successfully!');
+    }
+        
     
     // Erweitere addVacuumEventListeners um die Filter-Buttons: 
     addVacuumEventListeners(controlContainer, item) {
@@ -16677,26 +16759,37 @@ class FastSearchCard extends HTMLElement {
     }
 
 
-
-
-    // Neue Methode: Vacuum Segmente laden
+    // Debug: loadVacuumSegments mit mehr Logs
+    
     async loadVacuumSegments(item) {
+        console.log('🗺️ loadVacuumSegments called for:', item.id);
+        
         const segmentsContainer = this.shadowRoot.querySelector(`#vacuum-segments-${item.id}`);
-        if (!segmentsContainer) return;
+        console.log('🗺️ Segments container found:', segmentsContainer ? 'YES' : 'NO');
+        
+        if (!segmentsContainer) {
+            console.error('❌ Segments container not found:', `#vacuum-segments-${item.id}`);
+            return;
+        }
         
         try {
             // 1. AUTOMATISCH: roborock.get_maps versuchen
-            console.log('🗺️ Loading Roborock segments automatically...');
+            console.log('🗺️ Trying automatic roborock.get_maps...');
             
-            const mapsResponse = await this._hass.callService('roborock', 'get_maps', {
+            await this._hass.callService('roborock', 'get_maps', {
                 entity_id: item.id
             });
             
+            console.log('✅ roborock.get_maps service call successful');
+            
             // Warte kurz auf die Antwort und hole die Maps aus den Attributen
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Erhöht auf 2 Sekunden
             
             const state = this._hass.states[item.id];
+            console.log('🗺️ Current state after service call:', state?.attributes?.maps ? 'HAS MAPS' : 'NO MAPS');
+            
             const maps = state.attributes.maps || [];
+            console.log('🗺️ Maps found:', maps.length, maps);
             
             if (maps.length > 0 && maps[0].rooms) {
                 // Erfolg: Automatische Segmente gefunden
@@ -16705,14 +16798,19 @@ class FastSearchCard extends HTMLElement {
                 
                 this.renderSegmentButtons(segmentsContainer, rooms, 'auto');
                 return;
+            } else {
+                console.log('⚠️ No rooms in maps, trying manual config...');
             }
             
         } catch (error) {
-            console.log('⚠️ Auto-loading failed, trying manual config...', error);
+            console.log('⚠️ Auto-loading failed:', error);
+            console.log('🔄 Trying manual config...');
         }
         
         // 2. FALLBACK: Manuelle Konfiguration
         const manualSegments = this._config.vacuum_segments?.[item.id];
+        console.log('🗺️ Manual segments config:', manualSegments);
+        
         if (manualSegments && manualSegments.length > 0) {
             console.log('✅ Using manual segments:', manualSegments);
             
