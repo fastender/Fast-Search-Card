@@ -21487,16 +21487,16 @@ class InfiniteCardSlider {
             opacity: 1
         };
 
-        // Spezielle, weiter reduzierte Werte für mobile Ansicht (< 480px)
+        // Spezielle, finale Werte für mobile Ansicht (< 480px)
         if (window.innerWidth <= 480) {
             if (slideNumber === current) {
                 position = { transform: 'translate(0) scale(1)', zIndex: 2, opacity: 1 };
             } else if (slideNumber === this.getNextSlideNumber() || (current === this.totalSlides && slideNumber === 1)) {
-                // Nächste Karte (rechts) - NEU: Weiter reduziert auf 60px
-                position = { transform: 'translateX(60px) scale(0.85)', zIndex: 1, opacity: 0.6 };
+                // Nächste Karte (rechts) - NEU: Reduziert auf 50px
+                position = { transform: 'translateX(50px) scale(0.85)', zIndex: 1, opacity: 0.6 };
             } else if (slideNumber === this.getPrevSlideNumber() || (current === 1 && slideNumber === this.totalSlides)) {
-                // Vorherige Karte (links) - NEU: Weiter reduziert auf 60px
-                position = { transform: 'translateX(-60px) scale(0.85)', zIndex: 1, opacity: 0.6 };
+                // Vorherige Karte (links) - NEU: Reduziert auf 50px
+                position = { transform: 'translateX(-50px) scale(0.85)', zIndex: 1, opacity: 0.6 };
             } else {
                 // Alle anderen Karten komplett ausblenden
                 position = { transform: 'translateX(0) scale(0.5)', zIndex: -1, opacity: 0 };
