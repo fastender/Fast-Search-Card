@@ -16231,7 +16231,7 @@ class FastSearchCard extends HTMLElement {
         }, 300);
     }
     
-    // Extrahiere Event Listeners in separate Methode:
+    // Erweitere addVacuumEventListeners um die Filter-Buttons: 
     addVacuumEventListeners(controlContainer, item) {
         console.log('🎯 Adding vacuum event listeners...');
         
@@ -16275,7 +16275,7 @@ class FastSearchCard extends HTMLElement {
             });
         }
     
-        // Weitere Buttons...
+        // Stop Button
         const stopBtn = controlContainer.querySelector('[data-action="stop"]');
         if (stopBtn) {
             stopBtn.addEventListener('click', () => {
@@ -16284,11 +16284,68 @@ class FastSearchCard extends HTMLElement {
             });
         }
     
+        // Return Button
         const returnBtn = controlContainer.querySelector('[data-action="return-to-base"]');
         if (returnBtn) {
             returnBtn.addEventListener('click', () => {
                 console.log('🏠 Return to base clicked!');
                 this._hass.callService('vacuum', 'return_to_base', { entity_id: item.id });
+            });
+        }
+    
+        // FILTER BUTTON 1: Räume
+        const roomsBtn = controlContainer.querySelector('[data-action="toggle-rooms"]');
+        console.log('🏠 Rooms filter button found:', roomsBtn ? 'YES' : 'NO');
+        
+        if (roomsBtn) {
+            roomsBtn.addEventListener('click', () => {
+                console.log('🏠 Rooms toggle clicked!');
+                
+                const presetsContainer = controlContainer.querySelector('.device-control-presets.vacuum-rooms');
+                console.log('🏠 Rooms presets container found:', presetsContainer ? 'YES' : 'NO');
+                
+                if (presetsContainer) {
+                    const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                    console.log('🏠 Current rooms state:', isOpen ? 'OPEN' : 'CLOSED');
+                    
+                    presetsContainer.setAttribute('data-is-open', !isOpen);
+                    console.log('🏠 Rooms state changed to:', !isOpen ? 'OPEN' : 'CLOSED');
+                    
+                    // Settings Container schließen falls offen
+                    const settingsContainer = controlContainer.querySelector('.device-control-presets.vacuum-settings');
+                    if (settingsContainer) {
+                        settingsContainer.setAttribute('data-is-open', 'false');
+                        console.log('⚙️ Settings container closed');
+                    }
+                }
+            });
+        }
+    
+        // FILTER BUTTON 2: Einstellungen
+        const settingsBtn = controlContainer.querySelector('[data-action="toggle-settings"]');
+        console.log('⚙️ Settings filter button found:', settingsBtn ? 'YES' : 'NO');
+        
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', () => {
+                console.log('⚙️ Settings toggle clicked!');
+                
+                const presetsContainer = controlContainer.querySelector('.device-control-presets.vacuum-settings');
+                console.log('⚙️ Settings presets container found:', presetsContainer ? 'YES' : 'NO');
+                
+                if (presetsContainer) {
+                    const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                    console.log('⚙️ Current settings state:', isOpen ? 'OPEN' : 'CLOSED');
+                    
+                    presetsContainer.setAttribute('data-is-open', !isOpen);
+                    console.log('⚙️ Settings state changed to:', !isOpen ? 'OPEN' : 'CLOSED');
+                    
+                    // Rooms Container schließen falls offen
+                    const roomsContainer = controlContainer.querySelector('.device-control-presets.vacuum-rooms');
+                    if (roomsContainer) {
+                        roomsContainer.setAttribute('data-is-open', 'false');
+                        console.log('🏠 Rooms container closed');
+                    }
+                }
             });
         }
     
