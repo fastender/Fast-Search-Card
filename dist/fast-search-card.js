@@ -16343,10 +16343,9 @@ class FastSearchCard extends HTMLElement {
             
         }, 300);
     }
-    
-    // NEU: Separate Methode für Settings Event Listeners
+
     addVacuumSettingsEventListeners(controlContainer, item) {
-        // Fan Speed Buttons
+        // Fan Speed Buttons (bleibt gleich - funktioniert bereits)
         const fanSpeedButtons = controlContainer.querySelectorAll('[data-fan-speed]');
         console.log('🌪️ Fan speed buttons found:', fanSpeedButtons.length);
         
@@ -16360,13 +16359,12 @@ class FastSearchCard extends HTMLElement {
                     fan_speed: speed
                 });
                 
-                // Update active state
                 fanSpeedButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             });
         });
         
-        // Mop Mode Buttons
+        // Mop Mode Buttons - FIX: Andere Command-Struktur versuchen
         const mopModeButtons = controlContainer.querySelectorAll('[data-mop-mode]');
         console.log('🧽 Mop mode buttons found:', mopModeButtons.length);
         
@@ -16375,20 +16373,33 @@ class FastSearchCard extends HTMLElement {
                 const mode = btn.dataset.mopMode;
                 console.log('🧽 Mop mode clicked:', mode);
                 
-                // Roborock send_command für Mop Mode
-                this._hass.callService('vacuum', 'send_command', {
-                    entity_id: item.id,
-                    command: 'set_mop_mode',
-                    params: [mode]
-                });
+                // Verschiedene Roborock-Commands versuchen
+                try {
+                    // Versuch 1: set_mop_mode
+                    this._hass.callService('vacuum', 'send_command', {
+                        entity_id: item.id,
+                        command: 'set_mop_mode',
+                        params: [mode]
+                    });
+                    console.log('✅ Mop mode command sent (v1)');
+                } catch (error) {
+                    console.log('⚠️ Mop mode v1 failed, trying v2...');
+                    
+                    // Versuch 2: app_set_mop_mode
+                    this._hass.callService('vacuum', 'send_command', {
+                        entity_id: item.id,
+                        command: 'app_set_mop_mode',
+                        params: { mop_mode: mode }
+                    });
+                    console.log('✅ Mop mode command sent (v2)');
+                }
                 
-                // Update active state
                 mopModeButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             });
         });
         
-        // Water Level Buttons
+        // Water Level Buttons - FIX: Andere Command-Struktur versuchen
         const waterLevelButtons = controlContainer.querySelectorAll('[data-water-level]');
         console.log('💧 Water level buttons found:', waterLevelButtons.length);
         
@@ -16397,14 +16408,27 @@ class FastSearchCard extends HTMLElement {
                 const level = btn.dataset.waterLevel;
                 console.log('💧 Water level clicked:', level);
                 
-                // Roborock send_command für Water Level
-                this._hass.callService('vacuum', 'send_command', {
-                    entity_id: item.id,
-                    command: 'set_water_box_custom_mode',
-                    params: [level]
-                });
+                // Verschiedene Roborock-Commands versuchen
+                try {
+                    // Versuch 1: set_water_box_custom_mode
+                    this._hass.callService('vacuum', 'send_command', {
+                        entity_id: item.id,
+                        command: 'set_water_box_custom_mode',
+                        params: [level]
+                    });
+                    console.log('✅ Water level command sent (v1)');
+                } catch (error) {
+                    console.log('⚠️ Water level v1 failed, trying v2...');
+                    
+                    // Versuch 2: app_set_water_box_custom_mode  
+                    this._hass.callService('vacuum', 'send_command', {
+                        entity_id: item.id,
+                        command: 'app_set_water_box_custom_mode',
+                        params: { water_level: level }
+                    });
+                    console.log('✅ Water level command sent (v2)');
+                }
                 
-                // Update active state
                 waterLevelButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             });
@@ -16758,17 +16782,23 @@ class FastSearchCard extends HTMLElement {
         return labels[speed] || speed;
     }
 
-
-    // Debug: loadVacuumSegments mit mehr Logs
-    
     async loadVacuumSegments(item) {
         console.log('🗺️ loadVacuumSegments called for:', item.id);
         
-        const segmentsContainer = this.shadowRoot.querySelector(`#vacuum-segments-${item.id}`);
+        // FIX: Verwende Attribut-Selector statt ID-Selector (gleiche Fix wie beim Container)
+        const segmentsContainer = this.shadowRoot.querySelector(`[id="vacuum-segments-${item.id}"]`);
         console.log('🗺️ Segments container found:', segmentsContainer ? 'YES' : 'NO');
         
         if (!segmentsContainer) {
-            console.error('❌ Segments container not found:', `#vacuum-segments-${item.id}`);
+            console.error('❌ Segments container not found:', `[id="vacuum-segments-${item.id}"]`);
+            
+            // Debug: Schaue was für segment containers existieren
+            const allSegmentContainers = this.shadowRoot.querySelectorAll('[id*="vacuum-segments"]');
+            console.log('🔍 All segment containers found:', allSegmentContainers.length);
+            allSegmentContainers.forEach(container => {
+                console.log('  - Found:', container.id);
+            });
+            
             return;
         }
         
@@ -16783,7 +16813,7 @@ class FastSearchCard extends HTMLElement {
             console.log('✅ roborock.get_maps service call successful');
             
             // Warte kurz auf die Antwort und hole die Maps aus den Attributen
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Erhöht auf 2 Sekunden
+            await new Promise(resolve => setTimeout(resolve, 2000));
             
             const state = this._hass.states[item.id];
             console.log('🗺️ Current state after service call:', state?.attributes?.maps ? 'HAS MAPS' : 'NO MAPS');
@@ -16792,7 +16822,6 @@ class FastSearchCard extends HTMLElement {
             console.log('🗺️ Maps found:', maps.length, maps);
             
             if (maps.length > 0 && maps[0].rooms) {
-                // Erfolg: Automatische Segmente gefunden
                 const rooms = maps[0].rooms;
                 console.log('✅ Auto-loaded segments:', rooms);
                 
@@ -16814,7 +16843,6 @@ class FastSearchCard extends HTMLElement {
         if (manualSegments && manualSegments.length > 0) {
             console.log('✅ Using manual segments:', manualSegments);
             
-            // Konvertiere zu Rooms-Format
             const rooms = {};
             manualSegments.forEach(segment => {
                 rooms[segment.id] = segment.name;
