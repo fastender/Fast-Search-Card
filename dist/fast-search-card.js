@@ -16364,7 +16364,7 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        // DEBUG: Mop Mode - Teste verschiedene Commands
+        // Mop Mode Buttons - FIX: Verwende numerische Parameter
         const mopModeButtons = controlContainer.querySelectorAll('[data-mop-mode]');
         console.log('🧽 Mop mode buttons found:', mopModeButtons.length);
         
@@ -16373,48 +16373,32 @@ class FastSearchCard extends HTMLElement {
                 const mode = btn.dataset.mopMode;
                 console.log('🧽 Mop mode clicked:', mode);
                 
-                // TESTE VERSCHIEDENE COMMANDS:
-                console.log('🧪 Testing different mop mode commands...');
+                // Konvertiere Text zu numerischen Roborock-Parametern
+                const mopModeMap = {
+                    'standard': 300,  // Standard Mop Route
+                    'deep': 301,      // Deep Mop Route  
+                    'deep_plus': 303  // Deep+ Mop Route
+                };
                 
-                // Versuch 1: set_mop_mode
-                this._hass.callService('vacuum', 'send_command', {
-                    entity_id: item.id,
-                    command: 'set_mop_mode',
-                    params: [mode]
-                }).then(() => {
-                    console.log('✅ set_mop_mode succeeded');
-                }).catch(error => {
-                    console.log('❌ set_mop_mode failed:', error);
-                });
-                
-                // Versuch 2: app_set_mop_mode
-                this._hass.callService('vacuum', 'send_command', {
-                    entity_id: item.id,
-                    command: 'app_set_mop_mode',
-                    params: [mode]
-                }).then(() => {
-                    console.log('✅ app_set_mop_mode succeeded');
-                }).catch(error => {
-                    console.log('❌ app_set_mop_mode failed:', error);
-                });
-                
-                // Versuch 3: set_water_box_mode
-                this._hass.callService('vacuum', 'send_command', {
-                    entity_id: item.id,
-                    command: 'set_water_box_mode',
-                    params: [mode]
-                }).then(() => {
-                    console.log('✅ set_water_box_mode succeeded');
-                }).catch(error => {
-                    console.log('❌ set_water_box_mode failed:', error);
-                });
+                const numericMode = mopModeMap[mode];
+                if (numericMode) {
+                    console.log('🧽 Sending numeric mop mode:', numericMode);
+                    
+                    this._hass.callService('vacuum', 'send_command', {
+                        entity_id: item.id,
+                        command: 'set_mop_mode',
+                        params: [numericMode]
+                    });
+                } else {
+                    console.log('❌ Unknown mop mode:', mode);
+                }
                 
                 mopModeButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             });
         });
         
-        // DEBUG: Water Level - Teste verschiedene Commands
+        // Water Level Buttons - FIX: Verwende numerische Parameter
         const waterLevelButtons = controlContainer.querySelectorAll('[data-water-level]');
         console.log('💧 Water level buttons found:', waterLevelButtons.length);
         
@@ -16423,41 +16407,26 @@ class FastSearchCard extends HTMLElement {
                 const level = btn.dataset.waterLevel;
                 console.log('💧 Water level clicked:', level);
                 
-                // TESTE VERSCHIEDENE COMMANDS:
-                console.log('🧪 Testing different water level commands...');
+                // Konvertiere Text zu numerischen Roborock-Parametern
+                const waterLevelMap = {
+                    'off': 200,     // Kein Wasser
+                    'low': 201,     // Niedrig
+                    'medium': 202,  // Mittel
+                    'high': 203     // Hoch
+                };
                 
-                // Versuch 1: set_water_box_custom_mode
-                this._hass.callService('vacuum', 'send_command', {
-                    entity_id: item.id,
-                    command: 'set_water_box_custom_mode',
-                    params: [level]
-                }).then(() => {
-                    console.log('✅ set_water_box_custom_mode succeeded');
-                }).catch(error => {
-                    console.log('❌ set_water_box_custom_mode failed:', error);
-                });
-                
-                // Versuch 2: app_set_water_box_custom_mode
-                this._hass.callService('vacuum', 'send_command', {
-                    entity_id: item.id,
-                    command: 'app_set_water_box_custom_mode',
-                    params: [level]
-                }).then(() => {
-                    console.log('✅ app_set_water_box_custom_mode succeeded');
-                }).catch(error => {
-                    console.log('❌ app_set_water_box_custom_mode failed:', error);
-                });
-                
-                // Versuch 3: set_water_level
-                this._hass.callService('vacuum', 'send_command', {
-                    entity_id: item.id,
-                    command: 'set_water_level',
-                    params: [level]
-                }).then(() => {
-                    console.log('✅ set_water_level succeeded');
-                }).catch(error => {
-                    console.log('❌ set_water_level failed:', error);
-                });
+                const numericLevel = waterLevelMap[level];
+                if (numericLevel) {
+                    console.log('💧 Sending numeric water level:', numericLevel);
+                    
+                    this._hass.callService('vacuum', 'send_command', {
+                        entity_id: item.id,
+                        command: 'set_water_box_custom_mode',
+                        params: [numericLevel]
+                    });
+                } else {
+                    console.log('❌ Unknown water level:', level);
+                }
                 
                 waterLevelButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -16824,19 +16793,21 @@ class FastSearchCard extends HTMLElement {
         }
         
         try {
-            // 1. AUTOMATISCH: roborock.get_maps mit return_response=True
+            // 1. AUTOMATISCH: roborock.get_maps mit korrektem Syntax
             console.log('🗺️ Trying automatic roborock.get_maps...');
             
-            const response = await this._hass.callService('roborock', 'get_maps', {
-                entity_id: item.id
-            }, {
-                return_response: true  // ← FIX: return_response hinzugefügt
-            });
+            // FIX: return_response gehört in den Service-Call, nicht in target
+            const response = await this._hass.callService(
+                'roborock', 
+                'get_maps', 
+                { entity_id: item.id },  // Service Data
+                { return_response: true } // Service Optionen
+            );
             
             console.log('✅ roborock.get_maps service call successful');
             console.log('🗺️ Response:', response);
             
-            // Die Maps sind direkt in der Response, nicht in den Entity-Attributen
+            // Die Maps sind direkt in der Response
             const maps = response?.[item.id]?.maps || [];
             console.log('🗺️ Maps found in response:', maps.length, maps);
             
@@ -16856,8 +16827,9 @@ class FastSearchCard extends HTMLElement {
         }
         
         // 2. FALLBACK: Manuelle Konfiguration
-        const manualSegments = this._config.vacuum_segments?.[item.id];
+        const manualSegments = this._config?.vacuum_segments?.[item.id];
         console.log('🗺️ Manual segments config:', manualSegments);
+        console.log('🗺️ Full config:', this._config);
         
         if (manualSegments && manualSegments.length > 0) {
             console.log('✅ Using manual segments:', manualSegments);
@@ -16871,9 +16843,16 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // 3. FALLBACK: Standard-Buttons (funktioniert bereits)
-        console.log('📍 Using default segments');
-        this.renderSegmentButtons(segmentsContainer, { 'all': 'Alles reinigen' }, 'default');
+        // 3. BEISPIEL: Teste mit Beispiel-Räumen
+        console.log('🏠 Testing with example rooms...');
+        const exampleRooms = {
+            '16': 'Küche',
+            '17': 'Wohnzimmer', 
+            '18': 'Schlafzimmer',
+            'all': 'Alles reinigen'
+        };
+        
+        this.renderSegmentButtons(segmentsContainer, exampleRooms, 'example');
     }
     
     // Neue Methode: Segment-Buttons rendern
