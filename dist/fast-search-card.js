@@ -16275,10 +16275,17 @@ class FastSearchCard extends HTMLElement {
         }, 100);
     }
     
-    
-    
+
     getVacuumControlsHTML(item) {
+        console.log('🏗️ getVacuumControlsHTML called for:', item.id);
+        
         const state = this._hass.states[item.id];
+        if (!state) {
+            console.error('❌ No state found for:', item.id);
+            return '<div>State not found</div>';
+        }
+        
+        console.log('✅ State found:', state.state);
         
         // Status-Mapping von englisch zu deutsch
         const statusLabels = {
@@ -16311,7 +16318,7 @@ class FastSearchCard extends HTMLElement {
             `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>` : // Pause
             `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"></polygon></svg>`; // Play
     
-        return `
+        const html = `
             <div class="device-control-design" id="device-control-${item.id}">
                 <!-- Circle Ring (1:1 wie bei Klima) -->
                 <div class="circular-slider-container vacuum" data-entity="${item.id}">
@@ -16364,12 +16371,11 @@ class FastSearchCard extends HTMLElement {
                     </button>
                 </div>
                 
-                <!-- Filter Bereich 1: Räume (zunächst versteckt) -->
+                <!-- Filter Bereich 1: Räume -->
                 <div class="device-control-presets vacuum-rooms" data-is-open="false">
                     <div class="presets-row">
                         <h4>Räume auswählen</h4>
                         <div class="preset-buttons" id="vacuum-segments-${item.id}">
-                            <!-- Wird dynamisch befüllt durch loadVacuumSegments() -->
                             <div class="loading-segments">
                                 <svg class="spinner" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="31.416" stroke-dashoffset="31.416">
@@ -16461,14 +16467,15 @@ class FastSearchCard extends HTMLElement {
                         </div>
                     </div>
                 </div>
-
-
-                
             </div>
         `;
+        
+        console.log('🏗️ Generated HTML for vacuum, ID will be:', `device-control-${item.id}`);
+        
+        return html;  // ← WICHTIG: return statement hinzugefügt!
     }
-
-
+    
+    // Helper-Methoden hinzufügen (nach der getVacuumControlsHTML Methode):
     getFanSpeedIcon(speed) {
         const icons = {
             'off': `<svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -16520,6 +16527,8 @@ class FastSearchCard extends HTMLElement {
         };
         return labels[speed] || speed;
     }
+
+
 
 
     // Neue Methode: Vacuum Segmente laden
