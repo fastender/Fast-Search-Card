@@ -16345,7 +16345,7 @@ class FastSearchCard extends HTMLElement {
     }
 
     addVacuumSettingsEventListeners(controlContainer, item) {
-        // Fan Speed Buttons (bleibt gleich - funktioniert bereits)
+        // Fan Speed Buttons (funktionieren bereits)
         const fanSpeedButtons = controlContainer.querySelectorAll('[data-fan-speed]');
         console.log('🌪️ Fan speed buttons found:', fanSpeedButtons.length);
         
@@ -16364,7 +16364,7 @@ class FastSearchCard extends HTMLElement {
             });
         });
         
-        // Mop Mode Buttons - FIX: Andere Command-Struktur versuchen
+        // DEBUG: Mop Mode - Teste verschiedene Commands
         const mopModeButtons = controlContainer.querySelectorAll('[data-mop-mode]');
         console.log('🧽 Mop mode buttons found:', mopModeButtons.length);
         
@@ -16373,33 +16373,48 @@ class FastSearchCard extends HTMLElement {
                 const mode = btn.dataset.mopMode;
                 console.log('🧽 Mop mode clicked:', mode);
                 
-                // Verschiedene Roborock-Commands versuchen
-                try {
-                    // Versuch 1: set_mop_mode
-                    this._hass.callService('vacuum', 'send_command', {
-                        entity_id: item.id,
-                        command: 'set_mop_mode',
-                        params: [mode]
-                    });
-                    console.log('✅ Mop mode command sent (v1)');
-                } catch (error) {
-                    console.log('⚠️ Mop mode v1 failed, trying v2...');
-                    
-                    // Versuch 2: app_set_mop_mode
-                    this._hass.callService('vacuum', 'send_command', {
-                        entity_id: item.id,
-                        command: 'app_set_mop_mode',
-                        params: { mop_mode: mode }
-                    });
-                    console.log('✅ Mop mode command sent (v2)');
-                }
+                // TESTE VERSCHIEDENE COMMANDS:
+                console.log('🧪 Testing different mop mode commands...');
+                
+                // Versuch 1: set_mop_mode
+                this._hass.callService('vacuum', 'send_command', {
+                    entity_id: item.id,
+                    command: 'set_mop_mode',
+                    params: [mode]
+                }).then(() => {
+                    console.log('✅ set_mop_mode succeeded');
+                }).catch(error => {
+                    console.log('❌ set_mop_mode failed:', error);
+                });
+                
+                // Versuch 2: app_set_mop_mode
+                this._hass.callService('vacuum', 'send_command', {
+                    entity_id: item.id,
+                    command: 'app_set_mop_mode',
+                    params: [mode]
+                }).then(() => {
+                    console.log('✅ app_set_mop_mode succeeded');
+                }).catch(error => {
+                    console.log('❌ app_set_mop_mode failed:', error);
+                });
+                
+                // Versuch 3: set_water_box_mode
+                this._hass.callService('vacuum', 'send_command', {
+                    entity_id: item.id,
+                    command: 'set_water_box_mode',
+                    params: [mode]
+                }).then(() => {
+                    console.log('✅ set_water_box_mode succeeded');
+                }).catch(error => {
+                    console.log('❌ set_water_box_mode failed:', error);
+                });
                 
                 mopModeButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             });
         });
         
-        // Water Level Buttons - FIX: Andere Command-Struktur versuchen
+        // DEBUG: Water Level - Teste verschiedene Commands
         const waterLevelButtons = controlContainer.querySelectorAll('[data-water-level]');
         console.log('💧 Water level buttons found:', waterLevelButtons.length);
         
@@ -16408,26 +16423,41 @@ class FastSearchCard extends HTMLElement {
                 const level = btn.dataset.waterLevel;
                 console.log('💧 Water level clicked:', level);
                 
-                // Verschiedene Roborock-Commands versuchen
-                try {
-                    // Versuch 1: set_water_box_custom_mode
-                    this._hass.callService('vacuum', 'send_command', {
-                        entity_id: item.id,
-                        command: 'set_water_box_custom_mode',
-                        params: [level]
-                    });
-                    console.log('✅ Water level command sent (v1)');
-                } catch (error) {
-                    console.log('⚠️ Water level v1 failed, trying v2...');
-                    
-                    // Versuch 2: app_set_water_box_custom_mode  
-                    this._hass.callService('vacuum', 'send_command', {
-                        entity_id: item.id,
-                        command: 'app_set_water_box_custom_mode',
-                        params: { water_level: level }
-                    });
-                    console.log('✅ Water level command sent (v2)');
-                }
+                // TESTE VERSCHIEDENE COMMANDS:
+                console.log('🧪 Testing different water level commands...');
+                
+                // Versuch 1: set_water_box_custom_mode
+                this._hass.callService('vacuum', 'send_command', {
+                    entity_id: item.id,
+                    command: 'set_water_box_custom_mode',
+                    params: [level]
+                }).then(() => {
+                    console.log('✅ set_water_box_custom_mode succeeded');
+                }).catch(error => {
+                    console.log('❌ set_water_box_custom_mode failed:', error);
+                });
+                
+                // Versuch 2: app_set_water_box_custom_mode
+                this._hass.callService('vacuum', 'send_command', {
+                    entity_id: item.id,
+                    command: 'app_set_water_box_custom_mode',
+                    params: [level]
+                }).then(() => {
+                    console.log('✅ app_set_water_box_custom_mode succeeded');
+                }).catch(error => {
+                    console.log('❌ app_set_water_box_custom_mode failed:', error);
+                });
+                
+                // Versuch 3: set_water_level
+                this._hass.callService('vacuum', 'send_command', {
+                    entity_id: item.id,
+                    command: 'set_water_level',
+                    params: [level]
+                }).then(() => {
+                    console.log('✅ set_water_level succeeded');
+                }).catch(error => {
+                    console.log('❌ set_water_level failed:', error);
+                });
                 
                 waterLevelButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -16785,41 +16815,30 @@ class FastSearchCard extends HTMLElement {
     async loadVacuumSegments(item) {
         console.log('🗺️ loadVacuumSegments called for:', item.id);
         
-        // FIX: Verwende Attribut-Selector statt ID-Selector (gleiche Fix wie beim Container)
         const segmentsContainer = this.shadowRoot.querySelector(`[id="vacuum-segments-${item.id}"]`);
         console.log('🗺️ Segments container found:', segmentsContainer ? 'YES' : 'NO');
         
         if (!segmentsContainer) {
             console.error('❌ Segments container not found:', `[id="vacuum-segments-${item.id}"]`);
-            
-            // Debug: Schaue was für segment containers existieren
-            const allSegmentContainers = this.shadowRoot.querySelectorAll('[id*="vacuum-segments"]');
-            console.log('🔍 All segment containers found:', allSegmentContainers.length);
-            allSegmentContainers.forEach(container => {
-                console.log('  - Found:', container.id);
-            });
-            
             return;
         }
         
         try {
-            // 1. AUTOMATISCH: roborock.get_maps versuchen
+            // 1. AUTOMATISCH: roborock.get_maps mit return_response=True
             console.log('🗺️ Trying automatic roborock.get_maps...');
             
-            await this._hass.callService('roborock', 'get_maps', {
+            const response = await this._hass.callService('roborock', 'get_maps', {
                 entity_id: item.id
+            }, {
+                return_response: true  // ← FIX: return_response hinzugefügt
             });
             
             console.log('✅ roborock.get_maps service call successful');
+            console.log('🗺️ Response:', response);
             
-            // Warte kurz auf die Antwort und hole die Maps aus den Attributen
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            const state = this._hass.states[item.id];
-            console.log('🗺️ Current state after service call:', state?.attributes?.maps ? 'HAS MAPS' : 'NO MAPS');
-            
-            const maps = state.attributes.maps || [];
-            console.log('🗺️ Maps found:', maps.length, maps);
+            // Die Maps sind direkt in der Response, nicht in den Entity-Attributen
+            const maps = response?.[item.id]?.maps || [];
+            console.log('🗺️ Maps found in response:', maps.length, maps);
             
             if (maps.length > 0 && maps[0].rooms) {
                 const rooms = maps[0].rooms;
@@ -16828,7 +16847,7 @@ class FastSearchCard extends HTMLElement {
                 this.renderSegmentButtons(segmentsContainer, rooms, 'auto');
                 return;
             } else {
-                console.log('⚠️ No rooms in maps, trying manual config...');
+                console.log('⚠️ No rooms in response maps, trying manual config...');
             }
             
         } catch (error) {
@@ -16852,7 +16871,7 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // 3. FALLBACK: Standard-Buttons
+        // 3. FALLBACK: Standard-Buttons (funktioniert bereits)
         console.log('📍 Using default segments');
         this.renderSegmentButtons(segmentsContainer, { 'all': 'Alles reinigen' }, 'default');
     }
