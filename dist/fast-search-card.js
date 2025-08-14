@@ -16781,9 +16781,11 @@ class FastSearchCard extends HTMLElement {
         return labels[speed] || speed;
     }
 
-        
+
+
+
     async loadVacuumSegments(item) {
-        console.log('🗺️ [V2] loadVacuumSegments called for:', item.id);
+        console.log('🗺️ [V3] loadVacuumSegments called for:', item.id);
         const segmentsContainer = this.shadowRoot.querySelector(`[id="vacuum-segments-${item.id}"]`);
     
         if (!segmentsContainer) {
@@ -16792,7 +16794,6 @@ class FastSearchCard extends HTMLElement {
         }
     
         try {
-            // ✅ KORREKT: Service über WebSocket mit return_response aufrufen
             console.log('🗺️ Calling roborock.get_maps via WebSocket...');
             const response = await this._hass.callWS({
                 type: 'call_service',
@@ -16801,28 +16802,27 @@ class FastSearchCard extends HTMLElement {
                 service_data: {
                     entity_id: item.id
                 },
-                return_response: true // 👈 Dies ist der entscheidende Teil!
+                return_response: true
             });
     
-            console.log('✅ WebSocket response received:', response);
+            // 🕵️‍♂️ DIESE ZEILE IST NEU UND ENTSCHEIDEND:
+            // Wir loggen die rohe Antwort, um ihre genaue Struktur zu sehen.
+            console.log('🕵️‍♂️ RAW API RESPONSE FROM roborock.get_maps:', JSON.stringify(response, null, 2));
     
-            // Die Antwort enthält die Daten direkt. Die genaue Struktur kann variieren,
-            // aber meist ist es ein `response`-Objekt.
-            const mapsData = response.response || response;
+            // ✅ VERBESSERTE LOGIK: Versucht, die Daten in verschiedenen möglichen Strukturen zu finden.
+            const mapsData = response.result || response.response || response;
             let rooms = null;
     
-            // Sicher auf die Raumdaten zugreifen
             if (mapsData && Array.isArray(mapsData) && mapsData.length > 0) {
-                // Normalerweise ist die erste Karte die aktive
                 rooms = mapsData[0]?.rooms || null;
             }
     
             if (rooms && Object.keys(rooms).length > 0) {
                 console.log('✅ Auto-loaded segments successfully from service response:', rooms);
                 this.renderSegmentButtons(segmentsContainer, rooms, 'auto-api');
-                return; // Erfolg, Funktion hier beenden.
+                return;
             } else {
-                console.warn('⚠️ No rooms found in API response, trying manual config...');
+                console.warn('⚠️ No rooms found in API response structure, trying manual config...');
             }
     
         } catch (error) {
@@ -16830,7 +16830,7 @@ class FastSearchCard extends HTMLElement {
             console.log('🔄 Trying manual config as fallback...');
         }
     
-        // FALLBACK 1: Manuelle Konfiguration (dein bestehender Code, unverändert)
+        // FALLBACK 1: Manuelle Konfiguration
         const manualSegments = this._config?.vacuum_segments?.[item.id];
         if (manualSegments && manualSegments.length > 0) {
             console.log('✅ Using manual segments from config:', manualSegments);
@@ -16842,7 +16842,7 @@ class FastSearchCard extends HTMLElement {
             return;
         }
     
-        // FALLBACK 2: Dein pragmatischer Hardcode (sinnvoll für den Fall, dass alles fehlschlägt)
+        // FALLBACK 2: Dein pragmatischer Hardcode
         console.log('🏠 Using hardcoded real rooms as final fallback...');
         const realRooms = {
             '17': 'Wohnzimmer',
@@ -16852,7 +16852,7 @@ class FastSearchCard extends HTMLElement {
         };
         this.renderSegmentButtons(segmentsContainer, realRooms, 'real-hardcoded');
     }
-
+    
 
 
 
