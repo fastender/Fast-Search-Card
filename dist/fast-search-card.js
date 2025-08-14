@@ -15788,9 +15788,6 @@ class FastSearchCard extends HTMLElement {
         }
     }
 
-
-    
-    
     getDeviceControlsHTML(item) {
         switch (item.domain) {
             case 'light':
@@ -15799,8 +15796,10 @@ class FastSearchCard extends HTMLElement {
                 return this.getCoverControlsHTML(item);
             case 'climate':
                 return this.getClimateControlsHTML(item);
-            case 'media_player':  // NEU HINZUFÜGEN
-                return this.getMediaPlayerControlsHTML(item);                
+            case 'media_player':
+                return this.getMediaPlayerControlsHTML(item);
+            case 'vacuum':  // ← DIESE ZEILE FEHLT BEI DIR!
+                return this.getVacuumControlsHTML(item);
             default:
                 return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Keine Steuerelemente für diesen Gerätetyp.</div>`;
         }
