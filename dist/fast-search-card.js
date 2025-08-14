@@ -16155,20 +16155,32 @@ class FastSearchCard extends HTMLElement {
 
 
     setupVacuumControls(item) {
+        console.log('🤖 setupVacuumControls called for:', item.id);
+        
         setTimeout(() => {
             const controlContainer = this.shadowRoot.querySelector('#device-control-' + item.id);
-            if (!controlContainer) return;
+            console.log('🔍 Control container found:', controlContainer ? 'YES' : 'NO');
+            
+            if (!controlContainer) {
+                console.error('❌ Control container not found with ID:', '#device-control-' + item.id);
+                return;
+            }
     
             // Power Button im Circle Ring
             const powerIcon = controlContainer.querySelector('.power-icon');
+            console.log('⚡ Power icon found:', powerIcon ? 'YES' : 'NO');
+            
             if (powerIcon) {
                 powerIcon.addEventListener('click', () => {
+                    console.log('🔋 Power button clicked!');
                     const state = this._hass.states[item.id];
                     const isOff = ['docked', 'charging', 'off'].includes(state.state);
                     
                     if (isOff) {
+                        console.log('▶️ Starting vacuum');
                         this._hass.callService('vacuum', 'start', { entity_id: item.id });
                     } else {
+                        console.log('🏠 Returning to base');
                         this._hass.callService('vacuum', 'return_to_base', { entity_id: item.id });
                     }
                 });
@@ -16176,37 +16188,51 @@ class FastSearchCard extends HTMLElement {
     
             // Control Buttons Event Listeners
             const startPauseBtn = controlContainer.querySelector('[data-action="start-pause"]');
+            console.log('▶️ Start/Pause button found:', startPauseBtn ? 'YES' : 'NO');
+            
             if (startPauseBtn) {
                 startPauseBtn.addEventListener('click', () => {
+                    console.log('⏯️ Start/Pause clicked!');
                     const state = this._hass.states[item.id];
                     const isRunning = ['cleaning'].includes(state.state);
                     
                     if (isRunning) {
+                        console.log('⏸️ Pausing vacuum');
                         this._hass.callService('vacuum', 'pause', { entity_id: item.id });
                     } else {
+                        console.log('▶️ Starting vacuum');
                         this._hass.callService('vacuum', 'start', { entity_id: item.id });
                     }
                 });
             }
     
             const stopBtn = controlContainer.querySelector('[data-action="stop"]');
+            console.log('⏹️ Stop button found:', stopBtn ? 'YES' : 'NO');
+            
             if (stopBtn) {
                 stopBtn.addEventListener('click', () => {
+                    console.log('🛑 Stop clicked!');
                     this._hass.callService('vacuum', 'stop', { entity_id: item.id });
                 });
             }
     
             const returnBtn = controlContainer.querySelector('[data-action="return-to-base"]');
+            console.log('🏠 Return button found:', returnBtn ? 'YES' : 'NO');
+            
             if (returnBtn) {
                 returnBtn.addEventListener('click', () => {
+                    console.log('🏠 Return to base clicked!');
                     this._hass.callService('vacuum', 'return_to_base', { entity_id: item.id });
                 });
             }
     
             // Filter Button 1: Räume
             const roomsBtn = controlContainer.querySelector('[data-action="toggle-rooms"]');
+            console.log('🏠 Rooms button found:', roomsBtn ? 'YES' : 'NO');
+            
             if (roomsBtn) {
                 roomsBtn.addEventListener('click', () => {
+                    console.log('🏠 Rooms toggle clicked!');
                     const presetsContainer = controlContainer.querySelector('.device-control-presets.vacuum-rooms');
                     if (presetsContainer) {
                         const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
@@ -16223,8 +16249,11 @@ class FastSearchCard extends HTMLElement {
     
             // Filter Button 2: Einstellungen
             const settingsBtn = controlContainer.querySelector('[data-action="toggle-settings"]');
+            console.log('⚙️ Settings button found:', settingsBtn ? 'YES' : 'NO');
+            
             if (settingsBtn) {
                 settingsBtn.addEventListener('click', () => {
+                    console.log('⚙️ Settings toggle clicked!');
                     const presetsContainer = controlContainer.querySelector('.device-control-presets.vacuum-settings');
                     if (presetsContainer) {
                         const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
@@ -16238,8 +16267,9 @@ class FastSearchCard extends HTMLElement {
                     }
                 });
             }
-
+    
             // NEU: Vacuum Segmente automatisch laden
+            console.log('🗺️ Loading vacuum segments...');
             this.loadVacuumSegments(item);
     
         }, 100);
