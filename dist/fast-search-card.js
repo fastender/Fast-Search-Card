@@ -16174,35 +16174,68 @@ class FastSearchCard extends HTMLElement {
 
     }        
 
-
-
-
-
     setupVacuumControls(item) {
         console.log('🤖 setupVacuumControls called for:', item.id);
         
-        // Verlängere das Timeout - das HTML braucht Zeit um ins DOM eingefügt zu werden
+        // NEUER ANSATZ: Controls-Tab zuerst aktivieren
         setTimeout(() => {
-            const controlContainer = this.shadowRoot.querySelector('#device-control-' + item.id);
-            console.log('🔍 Control container found after 500ms:', controlContainer ? 'YES' : 'NO');
+            // 1. Controls-Tab sichtbar machen
+            console.log('🔄 Forcing controls tab to be active...');
             
-            if (!controlContainer) {
-                console.error('❌ Still not found, trying again in 1000ms...');
-                // Noch ein Versuch nach 1000ms
-                setTimeout(() => {
-                    const controlContainer2 = this.shadowRoot.querySelector('#device-control-' + item.id);
-                    console.log('🔍 Control container found after 1500ms total:', controlContainer2 ? 'YES' : 'NO');
-                    
-                    if (controlContainer2) {
-                        this.addVacuumEventListeners(controlContainer2, item);
-                    }
-                }, 1000);
-                return;
+            // Alle Tabs deaktivieren
+            const allTabContents = this.shadowRoot.querySelectorAll('.detail-tab-content');
+            allTabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Controls-Tab aktivieren
+            const controlsTabContent = this.shadowRoot.querySelector('[data-tab-content="controls"]');
+            if (controlsTabContent) {
+                controlsTabContent.classList.add('active');
+                console.log('✅ Controls tab activated');
+            } else {
+                console.error('❌ Controls tab content not found');
             }
             
-            this.addVacuumEventListeners(controlContainer, item);
+            // Tab-Buttons auch aktualisieren
+            const allTabButtons = this.shadowRoot.querySelectorAll('.detail-tab');
+            allTabButtons.forEach(btn => btn.classList.remove('active'));
             
-        }, 500); // Erhöht von 100ms auf 500ms
+            const controlsTabButton = this.shadowRoot.querySelector('[data-tab="controls"]');
+            if (controlsTabButton) {
+                controlsTabButton.classList.add('active');
+                console.log('✅ Controls tab button activated');
+            }
+            
+            // 2. Jetzt nach dem Container suchen
+            setTimeout(() => {
+                const controlContainer = this.shadowRoot.querySelector('#device-control-' + item.id);
+                console.log('🔍 Control container found after tab activation:', controlContainer ? 'YES' : 'NO');
+                
+                if (controlContainer) {
+                    console.log('🎯 SUCCESS! Adding vacuum event listeners...');
+                    this.addVacuumEventListeners(controlContainer, item);
+                    
+                    // NEU: Vacuum Segmente laden
+                    console.log('🗺️ Loading vacuum segments...');
+                    this.loadVacuumSegments(item);
+                    
+                } else {
+                    console.error('❌ Still not found. Let me debug the DOM...');
+                    
+                    // DEBUG: Schaue was im Controls Tab steht
+                    const controlsTab = this.shadowRoot.querySelector('[data-tab-content="controls"]');
+                    if (controlsTab) {
+                        console.log('🔍 Controls tab content:', controlsTab.innerHTML.substring(0, 200) + '...');
+                        
+                        // Suche nach ALLEN device-control Elementen
+                        const allDeviceControls = this.shadowRoot.querySelectorAll('[id^="device-control-"]');
+                        console.log('🔍 All device-control elements found:', allDeviceControls.length);
+                        allDeviceControls.forEach(el => console.log('  -', el.id));
+                    }
+                }
+                
+            }, 200);
+            
+        }, 300);
     }
     
 
