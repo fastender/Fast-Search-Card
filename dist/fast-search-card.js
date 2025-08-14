@@ -12228,6 +12228,8 @@ class FastSearchCard extends HTMLElement {
             this.updateClimateControlsUI(item);
         } else if (item.domain === 'media_player') {
             this.updateMediaPlayerControlsUI(item);
+        } else if (item.domain === 'vacuum') {
+            this.updateVacuumControlsUI(item);  // ← NEU HINZUFÜGEN
         }
     } 
 
@@ -16148,6 +16150,546 @@ class FastSearchCard extends HTMLElement {
         }
 
     }        
+
+
+
+
+
+    setupVacuumControls(item) {
+        setTimeout(() => {
+            const controlContainer = this.shadowRoot.querySelector('#device-control-' + item.id);
+            if (!controlContainer) return;
+    
+            // Power Button im Circle Ring
+            const powerIcon = controlContainer.querySelector('.power-icon');
+            if (powerIcon) {
+                powerIcon.addEventListener('click', () => {
+                    const state = this._hass.states[item.id];
+                    const isOff = ['docked', 'charging', 'off'].includes(state.state);
+                    
+                    if (isOff) {
+                        this._hass.callService('vacuum', 'start', { entity_id: item.id });
+                    } else {
+                        this._hass.callService('vacuum', 'return_to_base', { entity_id: item.id });
+                    }
+                });
+            }
+    
+            // Control Buttons Event Listeners
+            const startPauseBtn = controlContainer.querySelector('[data-action="start-pause"]');
+            if (startPauseBtn) {
+                startPauseBtn.addEventListener('click', () => {
+                    const state = this._hass.states[item.id];
+                    const isRunning = ['cleaning'].includes(state.state);
+                    
+                    if (isRunning) {
+                        this._hass.callService('vacuum', 'pause', { entity_id: item.id });
+                    } else {
+                        this._hass.callService('vacuum', 'start', { entity_id: item.id });
+                    }
+                });
+            }
+    
+            const stopBtn = controlContainer.querySelector('[data-action="stop"]');
+            if (stopBtn) {
+                stopBtn.addEventListener('click', () => {
+                    this._hass.callService('vacuum', 'stop', { entity_id: item.id });
+                });
+            }
+    
+            const returnBtn = controlContainer.querySelector('[data-action="return-to-base"]');
+            if (returnBtn) {
+                returnBtn.addEventListener('click', () => {
+                    this._hass.callService('vacuum', 'return_to_base', { entity_id: item.id });
+                });
+            }
+    
+            // Filter Button 1: Räume
+            const roomsBtn = controlContainer.querySelector('[data-action="toggle-rooms"]');
+            if (roomsBtn) {
+                roomsBtn.addEventListener('click', () => {
+                    const presetsContainer = controlContainer.querySelector('.device-control-presets.vacuum-rooms');
+                    if (presetsContainer) {
+                        const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                        presetsContainer.setAttribute('data-is-open', !isOpen);
+                        
+                        // Settings Container schließen falls offen
+                        const settingsContainer = controlContainer.querySelector('.device-control-presets.vacuum-settings');
+                        if (settingsContainer) {
+                            settingsContainer.setAttribute('data-is-open', 'false');
+                        }
+                    }
+                });
+            }
+    
+            // Filter Button 2: Einstellungen
+            const settingsBtn = controlContainer.querySelector('[data-action="toggle-settings"]');
+            if (settingsBtn) {
+                settingsBtn.addEventListener('click', () => {
+                    const presetsContainer = controlContainer.querySelector('.device-control-presets.vacuum-settings');
+                    if (presetsContainer) {
+                        const isOpen = presetsContainer.getAttribute('data-is-open') === 'true';
+                        presetsContainer.setAttribute('data-is-open', !isOpen);
+                        
+                        // Rooms Container schließen falls offen
+                        const roomsContainer = controlContainer.querySelector('.device-control-presets.vacuum-rooms');
+                        if (roomsContainer) {
+                            roomsContainer.setAttribute('data-is-open', 'false');
+                        }
+                    }
+                });
+            }
+
+            // NEU: Vacuum Segmente automatisch laden
+            this.loadVacuumSegments(item);
+    
+        }, 100);
+    }
+    
+    
+    
+    getVacuumControlsHTML(item) {
+        const state = this._hass.states[item.id];
+        
+        // Status-Mapping von englisch zu deutsch
+        const statusLabels = {
+            'docked': 'Angedockt',
+            'cleaning': 'Reinigt',
+            'returning': 'Kehrt zurück',
+            'charging': 'Lädt',
+            'paused': 'Pausiert',
+            'error': 'Fehler',
+            'idle': 'Bereit',
+            'off': 'Aus'
+        };
+        
+        // Aktueller Status für die Anzeige
+        const currentStatus = statusLabels[state.state] || state.state;
+        
+        // Batterie-Level für Power-Anzeige (falls verfügbar)
+        const batteryLevel = state.attributes.battery_level || 100;
+        
+        // Ist das Gerät ein/aus (basierend auf Status)
+        const isOn = !['docked', 'charging', 'off'].includes(state.state);
+        
+        // Dynamisch verfügbare Listen aus Attributen lesen
+        const fanSpeedList = state.attributes.fan_speed_list || ['quiet', 'balanced', 'turbo', 'max'];
+        const currentFanSpeed = state.attributes.fan_speed || 'balanced';
+        
+        // Start/Pause Button - dynamisches Icon je nach Status
+        const isRunning = ['cleaning'].includes(state.state);
+        const startPauseIcon = isRunning ? 
+            `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>` : // Pause
+            `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"></polygon></svg>`; // Play
+    
+        return `
+            <div class="device-control-design" id="device-control-${item.id}">
+                <!-- Circle Ring (1:1 wie bei Klima) -->
+                <div class="circular-slider-container vacuum" data-entity="${item.id}">
+                    <div class="slider-track"></div>
+                    <svg class="progress-svg">
+                        <circle class="progress-bg" cx="80" cy="80" r="68"></circle>
+                        <circle class="progress-fill" cx="80" cy="80" r="68" style="stroke: ${isOn ? '#00A8E6' : '#666'};"></circle>
+                    </svg>
+                    <div class="slider-inner">
+                        <div class="power-icon">${isOn ? '⚡' : '⭕'}</div>
+                        <div class="circular-value">${batteryLevel}%</div>
+                        <div class="circular-label">${currentStatus}</div>
+                    </div>
+                    <div class="handle" style="border-color: ${isOn ? '#00A8E6' : '#666'};"></div>
+                </div>
+                
+                <!-- 5 Control Buttons -->
+                <div class="device-control-row">
+                    <button class="device-control-button ${isRunning ? 'active' : ''}" 
+                            data-action="start-pause" title="${isRunning ? 'Pausieren' : 'Starten'}">
+                        ${startPauseIcon}
+                    </button>
+                    
+                    <button class="device-control-button" data-action="stop" title="Stoppen">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="6" width="12" height="12"></rect>
+                        </svg>
+                    </button>
+                    
+                    <button class="device-control-button" data-action="return-to-base" title="Zurück zur Basis">
+                        <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 8L12 2L22 8V22H16V16H8V22H2V8Z" stroke="currentColor" stroke-width="1"/>
+                        </svg>
+                    </button>
+                    
+                    <button class="device-control-button" data-action="toggle-rooms" title="Räume">
+                        <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="1"/>
+                            <rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="1"/>
+                            <rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="1"/>
+                            <rect x="14" y="14" width="7" height="7" stroke="currentColor" stroke-width="1"/>
+                        </svg>
+                    </button>
+                    
+                    <button class="device-control-button" data-action="toggle-settings" title="Einstellungen">
+                        <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1"/>
+                            <path d="M19.4 15A1.65 1.65 0 0 0 20.5 13.36L19.19 12L20.5 10.64A1.65 1.65 0 0 0 19.4 9L18.76 8.4C18.32 7.95 17.65 7.95 17.2 8.4L15.84 9.71L14.48 8.4C14.04 7.95 13.37 7.95 12.92 8.4L12.28 9C11.84 9.45 11.84 10.12 12.28 10.56L13.59 11.92L12.28 13.28C11.84 13.72 11.84 14.39 12.28 14.84L12.92 15.44C13.37 15.89 14.04 15.89 14.48 15.44L15.84 14.13L17.2 15.44C17.65 15.89 18.32 15.89 18.76 15.44L19.4 14.84C19.84 14.39 19.84 13.72 19.4 13.28Z" stroke="currentColor" stroke-width="1"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Filter Bereich 1: Räume (zunächst versteckt) -->
+                <div class="device-control-presets vacuum-rooms" data-is-open="false">
+                    <div class="presets-row">
+                        <h4>Räume auswählen</h4>
+                        <div class="preset-buttons" id="vacuum-segments-${item.id}">
+                            <!-- Wird dynamisch befüllt durch loadVacuumSegments() -->
+                            <div class="loading-segments">
+                                <svg class="spinner" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="31.416" stroke-dashoffset="31.416">
+                                        <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
+                                    </circle>
+                                </svg>
+                                Lade Räume...
+                            </div>
+                        </div>
+                    </div>
+                </div>  
+                
+                <!-- Filter Bereich 2: Einstellungen -->
+                <div class="device-control-presets vacuum-settings" data-is-open="false">
+                    <!-- Reihe 1: Saugkraft -->
+                    <div class="presets-row">
+                        <h4>Saugkraft</h4>
+                        <div class="preset-buttons">
+                            ${fanSpeedList.map(speed => `
+                                <button class="preset-btn ${currentFanSpeed === speed ? 'active' : ''}" 
+                                        data-fan-speed="${speed}" title="${speed}">
+                                    ${this.getFanSpeedIcon(speed)}
+                                    ${this.getFanSpeedLabel(speed)}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Reihe 2: Mop-Modus -->
+                    <div class="presets-row">
+                        <h4>Mop-Modus</h4>
+                        <div class="preset-buttons">
+                            <button class="preset-btn active" data-mop-mode="standard" title="Standard">
+                                <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="3" stroke="currentColor"/>
+                                </svg>
+                                Standard
+                            </button>
+                            <button class="preset-btn" data-mop-mode="deep" title="Gründlich">
+                                <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="2" stroke="currentColor"/>
+                                    <circle cx="12" cy="12" r="6" stroke="currentColor"/>
+                                </svg>
+                                Gründlich
+                            </button>
+                            <button class="preset-btn" data-mop-mode="deep_plus" title="Deep+">
+                                <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="1" stroke="currentColor"/>
+                                    <circle cx="12" cy="12" r="4" stroke="currentColor"/>
+                                    <circle cx="12" cy="12" r="8" stroke="currentColor"/>
+                                </svg>
+                                Deep+
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Reihe 3: Wisch-Intensität -->
+                    <div class="presets-row">
+                        <h4>Wisch-Intensität</h4>
+                        <div class="preset-buttons">
+                            <button class="preset-btn" data-water-level="off" title="Aus">
+                                <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor"/>
+                                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" stroke="currentColor"/>
+                                </svg>
+                                Aus
+                            </button>
+                            <button class="preset-btn" data-water-level="low" title="Niedrig">
+                                <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" stroke="currentColor"/>
+                                </svg>
+                                Niedrig
+                            </button>
+                            <button class="preset-btn active" data-water-level="medium" title="Mittel">
+                                <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" stroke="currentColor"/>
+                                    <path d="M12 6.69l3.66 3.66a5 5 0 1 1-7.31 0z" stroke="currentColor"/>
+                                </svg>
+                                Mittel
+                            </button>
+                            <button class="preset-btn" data-water-level="high" title="Hoch">
+                                <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" stroke="currentColor"/>
+                                    <path d="M12 6.69l3.66 3.66a5 5 0 1 1-7.31 0z" stroke="currentColor"/>
+                                    <path d="M12 10.69l1.66 1.66a2 2 0 1 1-3.31 0z" stroke="currentColor"/>
+                                </svg>
+                                Hoch
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+                
+            </div>
+        `;
+    }
+
+
+    getFanSpeedIcon(speed) {
+        const icons = {
+            'off': `<svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                       <circle cx="12" cy="12" r="10" stroke="currentColor"/>
+                       <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" stroke="currentColor"/>
+                   </svg>`,
+            'quiet': `<svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                         <path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor"/>
+                     </svg>`,
+            'balanced': `<svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor"/>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor"/>
+                        </svg>`,
+            'turbo': `<svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                         <path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor"/>
+                         <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor"/>
+                         <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor"/>
+                     </svg>`,
+            'max': `<svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                       <path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor"/>
+                       <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor"/>
+                       <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor"/>
+                       <path d="M22 2v20" stroke="currentColor"/>
+                   </svg>`,
+            'max_plus': `<svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor"/>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor"/>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor"/>
+                            <circle cx="22" cy="12" r="2" stroke="currentColor"/>
+                        </svg>`,
+            'custom': `<svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor"/>
+                          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor"/>
+                          <path d="M19 9l2 2-2 2" stroke="currentColor"/>
+                       </svg>`
+        };
+        return icons[speed] || icons['balanced'];
+    }
+    
+    getFanSpeedLabel(speed) {
+        const labels = {
+            'off': 'Aus',
+            'quiet': 'Leise',
+            'balanced': 'Balanciert',
+            'turbo': 'Turbo',
+            'max': 'Max',
+            'max_plus': 'Max+',
+            'custom': 'Custom'
+        };
+        return labels[speed] || speed;
+    }
+
+
+    // Neue Methode: Vacuum Segmente laden
+    async loadVacuumSegments(item) {
+        const segmentsContainer = this.shadowRoot.querySelector(`#vacuum-segments-${item.id}`);
+        if (!segmentsContainer) return;
+        
+        try {
+            // 1. AUTOMATISCH: roborock.get_maps versuchen
+            console.log('🗺️ Loading Roborock segments automatically...');
+            
+            const mapsResponse = await this._hass.callService('roborock', 'get_maps', {
+                entity_id: item.id
+            });
+            
+            // Warte kurz auf die Antwort und hole die Maps aus den Attributen
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const state = this._hass.states[item.id];
+            const maps = state.attributes.maps || [];
+            
+            if (maps.length > 0 && maps[0].rooms) {
+                // Erfolg: Automatische Segmente gefunden
+                const rooms = maps[0].rooms;
+                console.log('✅ Auto-loaded segments:', rooms);
+                
+                this.renderSegmentButtons(segmentsContainer, rooms, 'auto');
+                return;
+            }
+            
+        } catch (error) {
+            console.log('⚠️ Auto-loading failed, trying manual config...', error);
+        }
+        
+        // 2. FALLBACK: Manuelle Konfiguration
+        const manualSegments = this._config.vacuum_segments?.[item.id];
+        if (manualSegments && manualSegments.length > 0) {
+            console.log('✅ Using manual segments:', manualSegments);
+            
+            // Konvertiere zu Rooms-Format
+            const rooms = {};
+            manualSegments.forEach(segment => {
+                rooms[segment.id] = segment.name;
+            });
+            
+            this.renderSegmentButtons(segmentsContainer, rooms, 'manual');
+            return;
+        }
+        
+        // 3. FALLBACK: Standard-Buttons
+        console.log('📍 Using default segments');
+        this.renderSegmentButtons(segmentsContainer, { 'all': 'Alles reinigen' }, 'default');
+    }
+    
+    // Neue Methode: Segment-Buttons rendern
+    renderSegmentButtons(container, rooms, source) {
+        const buttonsHTML = Object.entries(rooms).map(([id, name]) => `
+            <button class="preset-btn" data-segment-id="${id}" title="${name} reinigen">
+                <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor"/>
+                    <path d="M9 9h6v6H9z" stroke="currentColor"/>
+                </svg>
+                ${name}
+            </button>
+        `).join('');
+        
+        container.innerHTML = buttonsHTML;
+        
+        // Event Listeners für die Segment-Buttons
+        container.querySelectorAll('[data-segment-id]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const segmentId = btn.dataset.segmentId;
+                this.cleanVacuumSegment(container.closest('[id^="device-control-"]').id.replace('device-control-', ''), segmentId);
+            });
+        });
+        
+        console.log(`🎯 Rendered ${Object.keys(rooms).length} segment buttons (${source})`);
+    }
+    
+    // Neue Methode: Segment reinigen
+    cleanVacuumSegment(entityId, segmentId) {
+        if (segmentId === 'all') {
+            // Alles reinigen
+            this._hass.callService('vacuum', 'start', { entity_id: entityId });
+        } else {
+            // Spezifisches Segment reinigen
+            this._hass.callService('vacuum', 'send_command', {
+                entity_id: entityId,
+                command: 'app_segment_clean',
+                params: [{
+                    segments: [parseInt(segmentId)],
+                    repeat: 1
+                }]
+            });
+        }
+        
+        console.log(`🧹 Cleaning segment ${segmentId} for ${entityId}`);
+    }
+    
+
+
+    updateVacuumControlsUI(item) {
+        const state = this._hass.states[item.id];
+        if (!state) return;
+    
+        const controlContainer = this.shadowRoot.querySelector('#device-control-' + item.id);
+        if (!controlContainer) return;
+    
+        // Status-Mapping von englisch zu deutsch
+        const statusLabels = {
+            'docked': 'Angedockt',
+            'cleaning': 'Reinigt',
+            'returning': 'Kehrt zurück',
+            'charging': 'Lädt',
+            'paused': 'Pausiert',
+            'error': 'Fehler',
+            'idle': 'Bereit',
+            'off': 'Aus'
+        };
+    
+        // 1. Circle Ring Updates
+        const circularLabel = controlContainer.querySelector('.circular-label');
+        const circularValue = controlContainer.querySelector('.circular-value');
+        const powerIcon = controlContainer.querySelector('.power-icon');
+        const progressFill = controlContainer.querySelector('.progress-fill');
+        const handle = controlContainer.querySelector('.handle');
+    
+        // Status Text aktualisieren
+        if (circularLabel) {
+            const currentStatus = statusLabels[state.state] || state.state;
+            circularLabel.textContent = currentStatus;
+        }
+    
+        // Batterie-Level aktualisieren
+        if (circularValue) {
+            const batteryLevel = state.attributes.battery_level || 100;
+            circularValue.textContent = `${batteryLevel}%`;
+        }
+    
+        // Power Icon und Farben aktualisieren
+        const isOn = !['docked', 'charging', 'off'].includes(state.state);
+        const vacuumColor = isOn ? '#00A8E6' : '#666';
+    
+        if (powerIcon) {
+            powerIcon.textContent = isOn ? '⚡' : '⭕';
+        }
+    
+        if (progressFill) {
+            progressFill.style.stroke = vacuumColor;
+        }
+    
+        if (handle) {
+            handle.style.borderColor = vacuumColor;
+        }
+    
+        // 2. Start/Pause Button aktualisieren
+        const startPauseBtn = controlContainer.querySelector('[data-action="start-pause"]');
+        if (startPauseBtn) {
+            const isRunning = ['cleaning'].includes(state.state);
+            
+            // Icon aktualisieren
+            const pauseIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+            const playIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"></polygon></svg>`;
+            
+            startPauseBtn.innerHTML = isRunning ? pauseIcon : playIcon;
+            startPauseBtn.title = isRunning ? 'Pausieren' : 'Starten';
+            startPauseBtn.classList.toggle('active', isRunning);
+        }
+    
+        // 3. Button States basierend auf Status
+        const stopBtn = controlContainer.querySelector('[data-action="stop"]');
+        const returnBtn = controlContainer.querySelector('[data-action="return-to-base"]');
+        
+        // Buttons aktivieren/deaktivieren basierend auf Status
+        const canStop = ['cleaning', 'paused'].includes(state.state);
+        const canReturn = !['returning', 'docked'].includes(state.state);
+        
+        if (stopBtn) {
+            stopBtn.style.opacity = canStop ? '1' : '0.5';
+            stopBtn.style.pointerEvents = canStop ? 'auto' : 'none';
+        }
+        
+        if (returnBtn) {
+            returnBtn.style.opacity = canReturn ? '1' : '0.5';
+            returnBtn.style.pointerEvents = canReturn ? 'auto' : 'none';
+            returnBtn.classList.toggle('active', state.state === 'returning');
+        }
+    
+        console.log(`🤖 Vacuum UI updated: ${state.state} (${statusLabels[state.state] || state.state})`);
+    }
+
+
+
+
+
+
+
+
+
     
     setupClimateControls(item) {
         const climateContainer = this.shadowRoot.getElementById(`device-control-${item.id}`);
@@ -17146,7 +17688,9 @@ class FastSearchCard extends HTMLElement {
         } else if (item.domain === 'climate') {
             this.setupClimateControls(item);
         } else if (item.domain === 'media_player') {
-            this.setupMediaPlayerControls(item);            
+            this.setupMediaPlayerControls(item);
+        } else if (item.domain === 'vacuum') {
+            this.setupVacuumControls(item);  // ← NEU HINZUFÜGEN
         }
     
         // History Event Listeners hinzufügen  ← HIER EINFÜGEN
