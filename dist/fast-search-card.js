@@ -16781,8 +16781,6 @@ class FastSearchCard extends HTMLElement {
         return labels[speed] || speed;
     }
 
-
-    
     async loadVacuumSegments(item) {
         console.log('🗺️ loadVacuumSegments called for:', item.id);
         
@@ -16795,30 +16793,53 @@ class FastSearchCard extends HTMLElement {
         }
         
         try {
-            // 1. AUTOMATISCH: roborock.get_maps mit korrektem Home Assistant Syntax
+            // 1. AUTOMATISCH: Korrekter HA Service-Call Syntax
             console.log('🗺️ Trying automatic roborock.get_maps...');
             
-            // FIX: Verwende den korrekten HA Service-Call Syntax
-            const response = await this._hass.callService('roborock', 'get_maps', {
-                entity_id: item.id,
-                return_response: true  // ← return_response gehört in die Service Data
-            });
+            // FIX: Verwende den korrekten Home Assistant Service-Call für return_response
+            const serviceData = {
+                entity_id: item.id
+            };
+            
+            const serviceOptions = {
+                return_response: true
+            };
+            
+            // Der korrekte HA Syntax: callService(domain, service, serviceData, serviceOptions)
+            const response = await this._hass.callService('roborock', 'get_maps', serviceData, serviceOptions);
             
             console.log('✅ roborock.get_maps service call successful');
-            console.log('🗺️ Response:', response);
+            console.log('🗺️ Full response object:', response);
             
-            // Die Maps sollten in der Response sein
-            const maps = response?.response?.[item.id]?.maps || response?.[item.id]?.maps || [];
-            console.log('🗺️ Maps found in response:', maps.length, maps);
+            // Die Response-Struktur kann unterschiedlich sein, teste verschiedene Pfade
+            let maps = null;
             
-            if (maps.length > 0 && maps[0].rooms) {
+            // Versuch 1: Direkt in response
+            if (response && response.maps) {
+                maps = response.maps;
+                console.log('🗺️ Found maps in response.maps');
+            }
+            // Versuch 2: In response[entity_id]
+            else if (response && response[item.id] && response[item.id].maps) {
+                maps = response[item.id].maps;
+                console.log('🗺️ Found maps in response[entity_id].maps');
+            }
+            // Versuch 3: In response.response[entity_id] 
+            else if (response && response.response && response.response[item.id] && response.response[item.id].maps) {
+                maps = response.response[item.id].maps;
+                console.log('🗺️ Found maps in response.response[entity_id].maps');
+            }
+            
+            console.log('🗺️ Extracted maps:', maps);
+            
+            if (maps && maps.length > 0 && maps[0].rooms) {
                 const rooms = maps[0].rooms;
                 console.log('✅ Auto-loaded segments:', rooms);
                 
                 this.renderSegmentButtons(segmentsContainer, rooms, 'auto');
                 return;
             } else {
-                console.log('⚠️ No rooms in response maps, trying manual config...');
+                console.log('⚠️ No rooms found in maps, trying manual config...');
             }
             
         } catch (error) {
@@ -16842,13 +16863,13 @@ class FastSearchCard extends HTMLElement {
             return;
         }
         
-        // 3. BEISPIEL: Funktioniert bereits!
+        // 3. FALLBACK: Beispiel-Räume
         console.log('🏠 Using example rooms...');
         const exampleRooms = {
-            '16': 'Küche',
-            '17': 'Wohnzimmer', 
-            '18': 'Schlafzimmer',
-            'all': 'Alles reinigen'
+            '17': 'Wohnzimmer',
+            '18': 'Küche', 
+            '19': 'Flur',
+            '20': 'Esszimmer'
         };
         
         this.renderSegmentButtons(segmentsContainer, exampleRooms, 'example');
