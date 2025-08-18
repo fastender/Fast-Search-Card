@@ -11566,6 +11566,174 @@ class FastSearchCard extends HTMLElement {
                 </svg>`;
             }
         }
+
+
+        if (item.domain === 'cover') {
+            const state = this._hass.states[item.id];
+            const deviceClass = state?.attributes?.device_class;
+            
+            // Spezielle Behandlung für Rollläden
+            if (deviceClass === 'shutter' || deviceClass === 'blind' || item.name.toLowerCase().includes('rollladen')) {
+                const isOpen = state?.state === 'open';
+                const isClosed = state?.state === 'closed';
+                
+                if (isOpen) {
+                    // ROLLLÄDEN OFFEN - Lamellen verschwinden von oben nach unten
+                    return `<svg id="rollershutter_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <style>
+                            /* Erste Lamelle Fade-Out */
+                            #first_slat_fill {
+                                animation: fade_out_first 2000ms ease-in-out forwards;
+                                animation-delay: 2000ms;
+                                opacity: 1;
+                            }
+                            
+                            /* Zweite Lamelle Fade-Out mit 1.5s Delay */
+                            #second_slat_fill {
+                                animation: fade_out_second 2000ms ease-in-out forwards;
+                                animation-delay: 1500ms;
+                                opacity: 1;
+                            }
+                            
+                            /* Dritte Lamelle Fade-Out mit 1.0s Delay */
+                            #third_slat_fill {
+                                animation: fade_out_third 2000ms ease-in-out forwards;
+                                animation-delay: 1000ms;
+                                opacity: 1;
+                            }
+                            
+                            /* Vierte Lamelle Fade-Out mit 0.5s Delay */
+                            #fourth_slat_fill {
+                                animation: fade_out_fourth 2000ms ease-in-out forwards;
+                                animation-delay: 500ms;
+                                opacity: 1;
+                            }
+                            
+                            @keyframes fade_out_first {
+                                0% { opacity: 1; }
+                                25% { opacity: 0; }
+                                100% { opacity: 0; }
+                            }
+                            
+                            @keyframes fade_out_second {
+                                0% { opacity: 1; }
+                                25% { opacity: 0; }
+                                100% { opacity: 0; }
+                            }
+                            
+                            @keyframes fade_out_third {
+                                0% { opacity: 1; }
+                                25% { opacity: 0; }
+                                100% { opacity: 0; }
+                            }
+                            
+                            @keyframes fade_out_fourth {
+                                0% { opacity: 1; }
+                                25% { opacity: 0; }
+                                100% { opacity: 0; }
+                            }
+                        </style>
+                        
+                        <!-- Rahmen (Waldgrün - Aktiv/OK) -->
+                        <g id="frame">
+                            <path d="M3 7.5V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6V7.5M21 16.5V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V16.5M3 7.5V16.5M21 7.5V16.5" 
+                                  stroke="#388E3C" 
+                                  stroke-width="1.5"/>
+                        </g>
+                        
+                        <!-- Lamellen-Füllungen (Waldgrün) -->
+                        <rect id="first_slat_fill" x="3" y="3" width="18" height="4.5" fill="rgba(56, 142, 60, 0.3)" stroke="none"/>
+                        <rect id="second_slat_fill" x="3" y="7.5" width="18" height="4.5" fill="rgba(56, 142, 60, 0.3)" stroke="none"/>
+                        <rect id="third_slat_fill" x="3" y="12" width="18" height="4.5" fill="rgba(56, 142, 60, 0.3)" stroke="none"/>
+                        <rect id="fourth_slat_fill" x="3" y="16.5" width="18" height="4.5" fill="rgba(56, 142, 60, 0.3)" stroke="none"/>
+                        
+                        <!-- Rollladenlamellen-Linien (Waldgrün) -->
+                        <path d="M3 7.5H21" stroke="#388E3C" stroke-width="1.5"/>
+                        <path d="M3 12H21" stroke="#388E3C" stroke-width="1.5"/>
+                        <path d="M3 16.5H21" stroke="#388E3C" stroke-width="1.5"/>
+                    </svg>`;
+                } else if (isClosed) {
+                    // ROLLLÄDEN GESCHLOSSEN - Lamellen erscheinen von unten nach oben
+                    return `<svg id="rollershutter_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <style>
+                            /* Erste Lamelle Fade-In */
+                            #first_slat_fill {
+                                animation: fade_in_first 2000ms ease-in-out forwards;
+                                animation-delay: 500ms;
+                                opacity: 0;
+                            }
+                            
+                            /* Zweite Lamelle Fade-In mit 1.0s Delay */
+                            #second_slat_fill {
+                                animation: fade_in_second 2000ms ease-in-out forwards;
+                                animation-delay: 1000ms;
+                                opacity: 0;
+                            }
+                            
+                            /* Dritte Lamelle Fade-In mit 1.5s Delay */
+                            #third_slat_fill {
+                                animation: fade_in_third 2000ms ease-in-out forwards;
+                                animation-delay: 1500ms;
+                                opacity: 0;
+                            }
+                            
+                            /* Vierte Lamelle Fade-In mit 2.0s Delay */
+                            #fourth_slat_fill {
+                                animation: fade_in_fourth 2000ms ease-in-out forwards;
+                                animation-delay: 2000ms;
+                                opacity: 0;
+                            }
+                            
+                            @keyframes fade_in_first {
+                                0% { opacity: 0; }
+                                25% { opacity: 1; }
+                                100% { opacity: 1; }
+                            }
+                            
+                            @keyframes fade_in_second {
+                                0% { opacity: 0; }
+                                25% { opacity: 1; }
+                                100% { opacity: 1; }
+                            }
+                            
+                            @keyframes fade_in_third {
+                                0% { opacity: 0; }
+                                25% { opacity: 1; }
+                                100% { opacity: 1; }
+                            }
+                            
+                            @keyframes fade_in_fourth {
+                                0% { opacity: 0; }
+                                25% { opacity: 1; }
+                                100% { opacity: 1; }
+                            }
+                        </style>
+                        
+                        <!-- Rahmen (Silber) -->
+                        <g id="frame">
+                            <path d="M3 7.5V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6V7.5M21 16.5V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V16.5M3 7.5V16.5M21 7.5V16.5" 
+                                  stroke="#B0BEC5" 
+                                  stroke-width="1.5"/>
+                        </g>
+                        
+                        <!-- Lamellen-Füllungen (Silber) -->
+                        <rect id="first_slat_fill" x="3" y="3" width="18" height="4.5" fill="rgba(176, 190, 197, 0.4)" stroke="none"/>
+                        <rect id="second_slat_fill" x="3" y="7.5" width="18" height="4.5" fill="rgba(176, 190, 197, 0.4)" stroke="none"/>
+                        <rect id="third_slat_fill" x="3" y="12" width="18" height="4.5" fill="rgba(176, 190, 197, 0.4)" stroke="none"/>
+                        <rect id="fourth_slat_fill" x="3" y="16.5" width="18" height="4.5" fill="rgba(176, 190, 197, 0.4)" stroke="none"/>
+                        
+                        <!-- Rollladenlamellen-Linien (Silber) -->
+                        <path d="M3 7.5H21" stroke="#B0BEC5" stroke-width="1.5"/>
+                        <path d="M3 12H21" stroke="#B0BEC5" stroke-width="1.5"/>
+                        <path d="M3 16.5H21" stroke="#B0BEC5" stroke-width="1.5"/>
+                    </svg>`;
+                }
+            }
+            
+            // Fallback für andere Cover-Arten (die bestehenden COVER_OPEN_SVG und COVER_CLOSED_SVG)
+            return item.isActive ? FastSearchCard.COVER_OPEN_SVG : FastSearchCard.COVER_CLOSED_SVG;
+        }
+        
         
         if (item.custom_data?.ring_config) {
             const ringIcon = this.createRingTileIcon(item);
