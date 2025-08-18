@@ -205,10 +205,84 @@ class MiniSearch {
 
 class FastSearchCard extends HTMLElement {
 
+    // NEU: Alle weiteren animierten SVGs als Konstanten definieren
+    static LIGHT_ON_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <style>@keyframes bulbGlow{0%{stroke:#FFD54F;filter:drop-shadow(0 0 0 #FFD54F);transform:scale(1)}50%{stroke:#FFD54F;filter:drop-shadow(0 0 8px #FFD54F);transform:scale(1.05)}100%{stroke:#FFD54F;filter:drop-shadow(0 0 2px #FFD54F);transform:scale(1)}}@keyframes fadeInStep2{0%{opacity:0;transform:translateY(2px)}100%{opacity:1;transform:translateY(0)}}@keyframes fadeInStep3{0%{opacity:0;transform:translateY(2px)}100%{opacity:1;transform:translateY(0)}}#segment1{animation:bulbGlow 1s ease-in-out 1;transform-origin:center}#segment2{opacity:0;animation:fadeInStep2 1s ease-out 300ms forwards}#segment3{opacity:0;animation:fadeInStep3 1s ease-out 600ms forwards}</style>
+        <g id="segment1"><path d="M9.00082 15C9.00098 13 8.50098 12.5 7.50082 11.5C6.50067 10.5 6.02422 9.48689 6.00082 8C5.95284 4.95029 8.00067 3 12.0008 3C16.001 3 18.0488 4.95029 18.0008 8C17.9774 9.48689 17.5007 10.5 16.5008 11.5C15.501 12.5 15.001 13 15.0008 15" stroke="#FFD54F" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="segment2"><path d="M9 18H15" stroke="#42A5F5" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g id="segment3"><path d="M10 21H14" stroke="#42A5F5" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+    </svg>`;
 
+    static LIGHT_OFF_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <style>@keyframes bulbDimOut{0%{stroke:#FFD54F;filter:drop-shadow(0 0 2px #FFD54F);transform:scale(1)}50%{stroke:#F0F4F8;filter:drop-shadow(0 0 0 #F0F4F8);transform:scale(.95)}100%{stroke:#F0F4F8;filter:none;transform:scale(1)}}@keyframes fadeOutStep2{0%{opacity:1;stroke:#42A5F5;transform:translateY(0)}50%{opacity:.3;stroke:#42A5F5;transform:translateY(1px)}100%{opacity:1;stroke:#B0BEC5;transform:translateY(0)}}@keyframes fadeOutStep3{0%{opacity:1;stroke:#42A5F5;transform:translateY(0)}50%{opacity:.3;stroke:#42A5F5;transform:translateY(1px)}100%{opacity:1;stroke:#B0BEC5;transform:translateY(0)}}#segment1{stroke:#F0F4F8;animation:bulbDimOut 1s ease-in-out 1;transform-origin:center}#segment2{stroke:#B0BEC5;opacity:1;animation:fadeOutStep2 1s ease-in 0s forwards}#segment3{stroke:#B0BEC5;opacity:1;animation:fadeOutStep3 1s ease-in 300ms forwards}</style>
+        <g id="segment1"><path d="M9.00082 15C9.00098 13 8.50098 12.5 7.50082 11.5C6.50067 10.5 6.02422 9.48689 6.00082 8C5.95284 4.95029 8.00067 3 12.0008 3C16.001 3 18.0488 4.95029 18.0008 8C17.9774 9.48689 17.5007 10.5 16.5008 11.5C15.501 12.5 15.001 13 15.0008 15" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="segment2"><path d="M9 18H15" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g id="segment3"><path d="M10 21H14" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+    </svg>`;
 
+    static GARAGE_OPEN_ANIMATED_SVG = `<svg id="garage_door_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <style>@keyframes fade_out_bottom{0%{opacity:1}25%{opacity:0}100%{opacity:0}}@keyframes fade_out_middle{0%{opacity:1}25%{opacity:0}100%{opacity:0}}@keyframes fade_out_top{0%{opacity:1}25%{opacity:0}100%{opacity:0}}#bottom_slat_fill{animation:fade_out_bottom 2s ease-in-out forwards;animation-delay:500ms;opacity:1}#middle_slat_fill{animation:fade_out_middle 2s ease-in-out forwards;animation-delay:1s;opacity:1}#top_slat_fill{animation:fade_out_top 2s ease-in-out forwards;animation-delay:1.5s;opacity:1}#garage_door_system{filter:drop-shadow(0 0 2px rgba(93,64,55,.4))}</style>
+        <path d="M6 20H3V6L12 4L21 6V20H18M6 20H18M6 20V16M18 20V16M6 12V8L18 8V12M6 12L18 12M6 12V16M18 12V16M6 16H18" stroke="#388E3C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect id="top_slat_fill" x="6" y="8" width="12" height="4" fill="rgba(56,142,60,0.3)" stroke="none"/><rect id="middle_slat_fill" x="6" y="12" width="12" height="4" fill="rgba(56,142,60,0.3)" stroke="none"/><rect id="bottom_slat_fill" x="6" y="16" width="12" height="4" fill="rgba(56,142,60,0.3)" stroke="none"/>
+    </svg>`;
 
-    // Animierte SVG Icons
+    static GARAGE_CLOSED_ANIMATED_SVG = `<svg id="garage_door_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <style>@keyframes fade_in_top{0%{opacity:0}25%{opacity:1}100%{opacity:1}}@keyframes fade_in_middle{0%{opacity:0}25%{opacity:1}100%{opacity:1}}@keyframes fade_in_bottom{0%{opacity:0}25%{opacity:1}100%{opacity:1}}#top_slat_fill{animation:fade_in_top 2s ease-in-out forwards;animation-delay:500ms;opacity:0}#middle_slat_fill{animation:fade_in_middle 2s ease-in-out forwards;animation-delay:1s;opacity:0}#bottom_slat_fill{animation:fade_in_bottom 2s ease-in-out forwards;animation-delay:1.5s;opacity:0}#garage_door_system{filter:none}</style>
+        <path d="M6 20H3V6L12 4L21 6V20H18M6 20H18M6 20V16M18 20V16M6 12V8L18 8V12M6 12L18 12M6 12V16M18 12V16M6 16H18" stroke="#B0BEC5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect id="top_slat_fill" x="6" y="8" width="12" height="4" fill="rgba(176,190,197,0.3)" stroke="none"/><rect id="middle_slat_fill" x="6" y="12" width="12" height="4" fill="rgba(176,190,197,0.3)" stroke="none"/><rect id="bottom_slat_fill" x="6" y="16" width="12" height="4" fill="rgba(176,190,197,0.3)" stroke="none"/>
+    </svg>`;
+
+    static SHUTTER_OPEN_ANIMATED_SVG = `<svg id="rollershutter_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <style>@keyframes fade_out_first{0%{opacity:1}25%{opacity:0}100%{opacity:0}}@keyframes fade_out_second{0%{opacity:1}25%{opacity:0}100%{opacity:0}}@keyframes fade_out_third{0%{opacity:1}25%{opacity:0}100%{opacity:0}}@keyframes fade_out_fourth{0%{opacity:1}25%{opacity:0}100%{opacity:0}}#first_slat_fill{animation:fade_out_first 2s ease-in-out forwards;animation-delay:2s;opacity:1}#second_slat_fill{animation:fade_out_second 2s ease-in-out forwards;animation-delay:1.5s;opacity:1}#third_slat_fill{animation:fade_out_third 2s ease-in-out forwards;animation-delay:1s;opacity:1}#fourth_slat_fill{animation:fade_out_fourth 2s ease-in-out forwards;animation-delay:500ms;opacity:1}</style>
+        <g id="frame"><path d="M3 7.5V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6V7.5M21 16.5V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V16.5M3 7.5V16.5M21 7.5V16.5" stroke="#388E3C" stroke-width="1.5"/></g>
+        <rect id="first_slat_fill" x="3" y="3" width="18" height="4.5" fill="rgba(56,142,60,0.3)" stroke="none"/><rect id="second_slat_fill" x="3" y="7.5" width="18" height="4.5" fill="rgba(56,142,60,0.3)" stroke="none"/><rect id="third_slat_fill" x="3" y="12" width="18" height="4.5" fill="rgba(56,142,60,0.3)" stroke="none"/><rect id="fourth_slat_fill" x="3" y="16.5" width="18" height="4.5" fill="rgba(56,142,60,0.3)" stroke="none"/>
+        <path d="M3 7.5H21" stroke="#388E3C" stroke-width="1.5"/><path d="M3 12H21" stroke="#388E3C" stroke-width="1.5"/><path d="M3 16.5H21" stroke="#388E3C" stroke-width="1.5"/>
+    </svg>`;
+
+    static SHUTTER_CLOSED_ANIMATED_SVG = `<svg id="rollershutter_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <style>@keyframes fade_in_first{0%{opacity:0}25%{opacity:1}100%{opacity:1}}@keyframes fade_in_second{0%{opacity:0}25%{opacity:1}100%{opacity:1}}@keyframes fade_in_third{0%{opacity:0}25%{opacity:1}100%{opacity:1}}@keyframes fade_in_fourth{0%{opacity:0}25%{opacity:1}100%{opacity:1}}#first_slat_fill{animation:fade_in_first 2s ease-in-out forwards;animation-delay:500ms;opacity:0}#second_slat_fill{animation:fade_in_second 2s ease-in-out forwards;animation-delay:1s;opacity:0}#third_slat_fill{animation:fade_in_third 2s ease-in-out forwards;animation-delay:1.5s;opacity:0}#fourth_slat_fill{animation:fade_in_fourth 2s ease-in-out forwards;animation-delay:2s;opacity:0}</style>
+        <g id="frame"><path d="M3 7.5V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6V7.5M21 16.5V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V16.5M3 7.5V16.5M21 7.5V16.5" stroke="#B0BEC5" stroke-width="1.5"/></g>
+        <rect id="first_slat_fill" x="3" y="3" width="18" height="4.5" fill="rgba(176,190,197,0.4)" stroke="none"/><rect id="second_slat_fill" x="3" y="7.5" width="18" height="4.5" fill="rgba(176,190,197,0.4)" stroke="none"/><rect id="third_slat_fill" x="3" y="12" width="18" height="4.5" fill="rgba(176,190,197,0.4)" stroke="none"/><rect id="fourth_slat_fill" x="3" y="16.5" width="18" height="4.5" fill="rgba(176,190,197,0.4)" stroke="none"/>
+        <path d="M3 7.5H21" stroke="#B0BEC5" stroke-width="1.5"/><path d="M3 12H21" stroke="#B0BEC5" stroke-width="1.5"/><path d="M3 16.5H21" stroke="#B0BEC5" stroke-width="1.5"/>
+    </svg>`;
+
+    static CLIMATE_ON_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <style>@keyframes housingSoftFade{0%{stroke:#000}100%{stroke:#1976D2;filter:drop-shadow(0 0 3px rgba(25,118,210,.3))}}@keyframes displayBlink{0%,100%{stroke:#F44336;opacity:1}50%{stroke:#F44336;opacity:.3}}@keyframes windDraw{0%{stroke-dashoffset:20}50%{stroke-dashoffset:0}100%{stroke-dashoffset:-20}}@keyframes airFlow{0%,100%{transform:translateY(0)}33%{transform:translateY(1px)}66%{transform:translateY(2px)}}@keyframes airPulse{0%,100%{opacity:.7;stroke-width:1}50%{opacity:1;stroke-width:1.3}}#segment1{animation:housingSoftFade 1s ease-out forwards}#segment2{animation:displayBlink 1.5s ease-in-out infinite}#segment5{stroke:#FF7043;stroke-dasharray:20;animation:windDraw 2s linear infinite,airFlow 3s ease-in-out infinite,airPulse 1.5s ease-in-out infinite;transform-origin:center}#segment6{stroke:#FF7043;stroke-dasharray:20;animation:windDraw 2s linear 300ms infinite,airFlow 3s ease-in-out 300ms infinite,airPulse 1.5s ease-in-out 300ms infinite;transform-origin:center}#segment7{stroke:#FF7043;stroke-dasharray:20;animation:windDraw 2s linear 600ms infinite,airFlow 3s ease-in-out 600ms infinite,airPulse 1.5s ease-in-out 600ms infinite;transform-origin:center}</style>
+        <g id="segment1"><path d="M22 3.6V11H2V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6Z" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="segment2"><path d="M18 7H19" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g id="segment3"><path d="M2 11L2.78969 13.5844C3.04668 14.4255 3.82294 15 4.70239 15H6" stroke="#1976D2" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="segment4"><path d="M22 11L21.2103 13.5844C20.9533 14.4255 20.1771 15 19.2976 15H18" stroke="#1976D2" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="segment5"><path d="M9.5 14.5C9.5 14.5 9.5 21.5 6 21.5" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g id="segment6"><path d="M14.5 14.5C14.5 14.5 14.5 21.5 18 21.5" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g id="segment7"><path d="M12 14.5V21.5" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+    </svg>`;
+
+    static CLIMATE_OFF_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <style>@keyframes housingFadeOff{0%{stroke:#1976D2;filter:drop-shadow(0 0 3px rgba(25,118,210,.3))}100%{stroke:#B0BEC5;filter:none}}@keyframes displayFadeOff{0%{stroke:#F44336;opacity:1}50%{stroke:#F44336;opacity:.5}100%{stroke:#F0F4F8;opacity:1}}@keyframes windSlowDown{0%{stroke-dasharray:20;stroke-dashoffset:0;animation-timing-function:linear}50%{stroke-dasharray:40;stroke-dashoffset:10;animation-timing-function:ease-out}100%{stroke-dasharray:60;stroke-dashoffset:60;animation-timing-function:ease-out}}@keyframes airFadeOutOuter{0%{opacity:1;stroke-width:1;transform:translateY(0)}50%{opacity:.3;stroke-width:.7;transform:translateY(-.5px)}100%{opacity:0;stroke-width:.5;transform:translateY(-1px)}}@keyframes windSlowDownCenter{0%{stroke-dasharray:20;stroke-dashoffset:0;animation-timing-function:linear}50%{stroke-dasharray:35;stroke-dashoffset:8;animation-timing-function:ease-out}100%{stroke-dasharray:50;stroke-dashoffset:50;animation-timing-function:ease-out}}@keyframes airFadeOutCenter{0%{opacity:1;stroke-width:1;transform:translateY(0)}50%{opacity:.3;stroke-width:.7;transform:translateY(-.5px)}100%{opacity:0;stroke-width:.5;transform:translateY(-1px)}}#segment1{stroke:#B0BEC5;animation:housingFadeOff 1s ease-out forwards}#segment2{stroke:#F0F4F8;animation:displayFadeOff 1s ease-out 300ms forwards}#segment5,#segment6{stroke:#FF7043;animation:windSlowDown 1.5s ease-out 0s forwards,airFadeOutOuter 1s ease-in 500ms forwards}#segment7{stroke:#FF7043;animation:windSlowDownCenter 1.5s ease-out 300ms forwards,airFadeOutCenter 1s ease-in 1s forwards}</style>
+        <g id="segment1"><path d="M22 3.6V11H2V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6Z" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="segment2"><path d="M18 7H19" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g id="segment3"><path d="M2 11L2.78969 13.5844C3.04668 14.4255 3.82294 15 4.70239 15H6" stroke="#B0BEC5" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="segment4"><path d="M22 11L21.2103 13.5844C20.9533 14.4255 20.1771 15 19.2976 15H18" stroke="#B0BEC5" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+        <g id="segment5"><path d="M9.5 14.5C9.5 14.5 9.5 21.5 6 21.5" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g id="segment6"><path d="M14.5 14.5C14.5 14.5 14.5 21.5 18 21.5" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g id="segment7"><path d="M12 14.5V21.5" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+    </svg>`;
+
+    static SIREN_ON_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+        <style>@keyframes bell_ring{0%,100%{transform:rotate(0)}10%{transform:rotate(-8deg)}30%{transform:rotate(8deg)}50%{transform:rotate(-5deg)}70%{transform:rotate(5deg)}90%{transform:rotate(-2deg)}}@keyframes clapper_swing{0%,100%{transform:rotate(0)}10%{transform:rotate(6deg)}30%{transform:rotate(-6deg)}50%{transform:rotate(4deg)}70%{transform:rotate(-4deg)}90%{transform:rotate(2deg)}}@keyframes alert_pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}#bell{animation:bell_ring 1.5s ease-in-out infinite;transform-origin:12px 6px}#clapper{animation:clapper_swing 1.5s ease-in-out infinite;transform-origin:12px 19px}#alert_icon{animation:alert_pulse 2s ease-in-out infinite;transform-origin:12px 12px}</style>
+        <g id="alert_icon">
+            <g id="bell"><path d="M18 8.4C18 6.70261 17.3679 5.07475 16.2426 3.87452C15.1174 2.67428 13.5913 2 12 2C10.4087 2 8.88258 2.67428 7.75736 3.87452C6.63214 5.07475 6 6.70261 6 8.4C6 15.8667 3 18 3 18H21C21 18 18 15.8667 18 8.4Z" stroke="#F44336" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+            <g id="clapper"><path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" stroke="#FF8F00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+        </g>
+    </svg>`;
+
+    static SIREN_OFF_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+        <style>@keyframes alert_fade_out{0%{opacity:1}100%{opacity:.4}}#alert_icon{animation:alert_fade_out 1s ease-out 1 normal forwards}</style>
+        <g id="alert_icon">
+            <path d="M18 8.4C18 6.70261 17.3679 5.07475 16.2426 3.87452C15.1174 2.67428 13.5913 2 12 2C10.4087 2 8.88258 2.67428 7.75736 3.87452C6.63214 5.07475 6 6.70261 6 8.4C6 15.8667 3 18 3 18H21C21 18 18 15.8667 18 8.4Z" stroke="#9E9E9E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" stroke="#BDBDBD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+    </svg>`;
 
     static TV_ON_ANIMATED_SVG = `<svg id="tv_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M7 21L17 21" stroke="#1976D2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -11425,980 +11499,48 @@ class FastSearchCard extends HTMLElement {
         }, {});
     }
 
-
     getDynamicIcon(item) {
         // Check für custom icon_hue Template
         if (item.attributes?.icon_hue) {
             return item.attributes.icon_hue;
         }
     
-
+        // Licht
         if (item.domain === 'light') {
             const state = this._hass.states[item.id];
-            const isOn = state?.state === 'on';
-            
-            if (isOn) {
-                // DEIN NEUES ON-SVG mit Glühen und gestaffelten Animationen
-                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <style>
-                        /* Pulsieren-Animation für Segment 1 (Glühbirne) - Sonnengelb */
-                        #segment1 {
-                            animation: bulbGlow 1000ms ease-in-out 1;
-                            transform-origin: center;
-                        }
-                        
-                        @keyframes bulbGlow {
-                            0% { 
-                                stroke: #FFD54F; 
-                                filter: drop-shadow(0 0 0px #FFD54F);
-                                transform: scale(1);
-                            }
-                            50% { 
-                                stroke: #FFD54F; 
-                                filter: drop-shadow(0 0 8px #FFD54F);
-                                transform: scale(1.05);
-                            }
-                            100% { 
-                                stroke: #FFD54F; 
-                                filter: drop-shadow(0 0 2px #FFD54F);
-                                transform: scale(1);
-                            }
-                        }
-                        
-                        /* Treppenweise Fade-in für Segment 2 - Himmelblau */
-                        #segment2 {
-                            opacity: 0;
-                            animation: fadeInStep2 1000ms ease-out 300ms forwards;
-                        }
-                        
-                        @keyframes fadeInStep2 {
-                            0% { opacity: 0; transform: translateY(2px); }
-                            100% { opacity: 1; transform: translateY(0px); }
-                        }
-                        
-                        /* Treppenweise Fade-in für Segment 3 - Himmelblau */
-                        #segment3 {
-                            opacity: 0;
-                            animation: fadeInStep3 1000ms ease-out 600ms forwards;
-                        }
-                        
-                        @keyframes fadeInStep3 {
-                            0% { opacity: 0; transform: translateY(2px); }
-                            100% { opacity: 1; transform: translateY(0px); }
-                        }
-                    </style>
-                    
-                    <!-- Segment 1: Glühbirne (Sonnengelb #FFD54F) mit Pulsieren -->
-                    <g id="segment1">
-                        <path d="M9.00082 15C9.00098 13 8.50098 12.5 7.50082 11.5C6.50067 10.5 6.02422 9.48689 6.00082 8C5.95284 4.95029 8.00067 3 12.0008 3C16.001 3 18.0488 4.95029 18.0008 8C17.9774 9.48689 17.5007 10.5 16.5008 11.5C15.501 12.5 15.001 13 15.0008 15" 
-                              stroke="#FFD54F" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round" 
-                              fill="none"/>
-                    </g>
-                    
-                    <!-- Segment 2: Mittlerer Bereich (Himmelblau #42A5F5) mit verzögertem Fade-in -->
-                    <g id="segment2">
-                        <path d="M9 18H15" 
-                              stroke="#42A5F5" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                    
-                    <!-- Segment 3: Unterer Bereich (Himmelblau #42A5F5) mit noch stärker verzögertem Fade-in -->
-                    <g id="segment3">
-                        <path d="M10 21H14" 
-                              stroke="#42A5F5" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                </svg>`;
-            } else {
-                // DEIN NEUES OFF-SVG mit umgekehrter Animation und Farbwechsel
-                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <style>
-                        /* Umgekehrtes Pulsieren für Segment 1 (Glühbirne) - Kaltweiß */
-                        #segment1 {
-                            stroke: #F0F4F8;
-                            animation: bulbDimOut 1000ms ease-in-out 1;
-                            transform-origin: center;
-                        }
-                        
-                        @keyframes bulbDimOut {
-                            0% { 
-                                stroke: #FFD54F; 
-                                filter: drop-shadow(0 0 2px #FFD54F);
-                                transform: scale(1);
-                            }
-                            50% { 
-                                stroke: #F0F4F8; 
-                                filter: drop-shadow(0 0 0px #F0F4F8);
-                                transform: scale(0.95);
-                            }
-                            100% { 
-                                stroke: #F0F4F8; 
-                                filter: none;
-                                transform: scale(1);
-                            }
-                        }
-                        
-                        /* Treppenweise Fade-out für Segment 2 - zuerst (umgekehrte Reihenfolge) */
-                        #segment2 {
-                            stroke: #B0BEC5;
-                            opacity: 1;
-                            animation: fadeOutStep2 1000ms ease-in 0ms forwards;
-                        }
-                        
-                        @keyframes fadeOutStep2 {
-                            0% { 
-                                opacity: 1; 
-                                stroke: #42A5F5;
-                                transform: translateY(0px);
-                            }
-                            50% {
-                                opacity: 0.3;
-                                stroke: #42A5F5;
-                                transform: translateY(1px);
-                            }
-                            100% { 
-                                opacity: 1; 
-                                stroke: #B0BEC5;
-                                transform: translateY(0px);
-                            }
-                        }
-                        
-                        /* Treppenweise Fade-out für Segment 3 - dann (umgekehrte Reihenfolge) */
-                        #segment3 {
-                            stroke: #B0BEC5;
-                            opacity: 1;
-                            animation: fadeOutStep3 1000ms ease-in 300ms forwards;
-                        }
-                        
-                        @keyframes fadeOutStep3 {
-                            0% { 
-                                opacity: 1; 
-                                stroke: #42A5F5;
-                                transform: translateY(0px);
-                            }
-                            50% {
-                                opacity: 0.3;
-                                stroke: #42A5F5;
-                                transform: translateY(1px);
-                            }
-                            100% { 
-                                opacity: 1; 
-                                stroke: #B0BEC5;
-                                transform: translateY(0px);
-                            }
-                        }
-                    </style>
-                    
-                    <!-- Segment 1: Glühbirne (Kaltweiß #F0F4F8) mit umgekehrtem Pulsieren -->
-                    <g id="segment1">
-                        <path d="M9.00082 15C9.00098 13 8.50098 12.5 7.50082 11.5C6.50067 10.5 6.02422 9.48689 6.00082 8C5.95284 4.95029 8.00067 3 12.0008 3C16.001 3 18.0488 4.95029 18.0008 8C17.9774 9.48689 17.5007 10.5 16.5008 11.5C15.501 12.5 15.001 13 15.0008 15" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round" 
-                              fill="none"/>
-                    </g>
-                    
-                    <!-- Segment 2: Mittlerer Bereich (Silber #B0BEC5) -->
-                    <g id="segment2">
-                        <path d="M9 18H15" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                    
-                    <!-- Segment 3: Unterer Bereich (Silber #B0BEC5) -->
-                    <g id="segment3">
-                        <path d="M10 21H14" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                </svg>`;
-            }
+            return state?.state === 'on' ? FastSearchCard.LIGHT_ON_ANIMATED_SVG : FastSearchCard.LIGHT_OFF_ANIMATED_SVG;
         }
-
-
+    
+        // Cover (mit device_class Logik)
         if (item.domain === 'cover') {
             const state = this._hass.states[item.id];
             const deviceClass = state?.attributes?.device_class;
             const itemName = item.name.toLowerCase();
-            
-            // Spezielle Behandlung für Garagentore
+            const isActive = this.isEntityActive(state);
+    
             if (deviceClass === 'garage' || itemName.includes('garage') || itemName.includes('garagentor')) {
-                const isOpen = state?.state === 'open';
-                const isClosed = state?.state === 'closed';
-                
-                if (isOpen) {
-                    // GARAGENTOR OFFEN - Lamellen verschwinden von unten nach oben
-                    return `<svg id="garage_door_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <style>
-                            /* Garagentor öffnet sich - von unten nach oben */
-                            #bottom_slat_fill {
-                                animation: fade_out_bottom 2000ms ease-in-out forwards;
-                                animation-delay: 500ms;
-                                opacity: 1;
-                            }
-                            
-                            #middle_slat_fill {
-                                animation: fade_out_middle 2000ms ease-in-out forwards;
-                                animation-delay: 1000ms;
-                                opacity: 1;
-                            }
-                            
-                            #top_slat_fill {
-                                animation: fade_out_top 2000ms ease-in-out forwards;
-                                animation-delay: 1500ms;
-                                opacity: 1;
-                            }
-                            
-                            @keyframes fade_out_bottom {
-                                0% { opacity: 1; }
-                                25% { opacity: 0; }
-                                100% { opacity: 0; }
-                            }
-                            
-                            @keyframes fade_out_middle {
-                                0% { opacity: 1; }
-                                25% { opacity: 0; }
-                                100% { opacity: 0; }
-                            }
-                            
-                            @keyframes fade_out_top {
-                                0% { opacity: 1; }
-                                25% { opacity: 0; }
-                                100% { opacity: 0; }
-                            }
-                            
-                            /* Glow-Effekt für aktives Garagentor */
-                            #garage_door_system {
-                                filter: drop-shadow(0 0 2px rgba(93, 64, 55, 0.4));
-                            }
-                        </style>
-                        
-                        <!-- Grundstruktur/Rahmen (Waldgrün) -->
-                        <path d="M6 20H3V6L12 4L21 6V20H18M6 20H18M6 20V16M18 20V16M6 12V8L18 8V12M6 12L18 12M6 12V16M18 12V16M6 16H18" 
-                              stroke="#388E3C" 
-                              stroke-width="1.5" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                        
-                        <!-- Lamellen-Füllungen -->
-                        <!-- Oberste Lamelle (8-12) -->
-                        <rect id="top_slat_fill" 
-                              x="6" y="8" width="12" height="4" 
-                              fill="rgba(56, 142, 60, 0.3)" 
-                              stroke="none"/>
-                        
-                        <!-- Mittlere Lamelle (12-16) -->
-                        <rect id="middle_slat_fill" 
-                              x="6" y="12" width="12" height="4" 
-                              fill="rgba(56, 142, 60, 0.3)" 
-                              stroke="none"/>
-                        
-                        <!-- Untere Lamelle (16-20) -->
-                        <rect id="bottom_slat_fill" 
-                              x="6" y="16" width="12" height="4" 
-                              fill="rgba(56, 142, 60, 0.3)" 
-                              stroke="none"/>
-                    </svg>`;
-                } else if (isClosed) {
-                    // GARAGENTOR GESCHLOSSEN - Lamellen erscheinen von oben nach unten
-                    return `<svg id="garage_door_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <style>
-                            /* Garagentor schließt sich - von oben nach unten */
-                            #top_slat_fill {
-                                animation: fade_in_top 2000ms ease-in-out forwards;
-                                animation-delay: 500ms;
-                                opacity: 0;
-                            }
-                            
-                            #middle_slat_fill {
-                                animation: fade_in_middle 2000ms ease-in-out forwards;
-                                animation-delay: 1000ms;
-                                opacity: 0;
-                            }
-                            
-                            #bottom_slat_fill {
-                                animation: fade_in_bottom 2000ms ease-in-out forwards;
-                                animation-delay: 1500ms;
-                                opacity: 0;
-                            }
-                            
-                            @keyframes fade_in_top {
-                                0% { opacity: 0; }
-                                25% { opacity: 1; }
-                                100% { opacity: 1; }
-                            }
-                            
-                            @keyframes fade_in_middle {
-                                0% { opacity: 0; }
-                                25% { opacity: 1; }
-                                100% { opacity: 1; }
-                            }
-                            
-                            @keyframes fade_in_bottom {
-                                0% { opacity: 0; }
-                                25% { opacity: 1; }
-                                100% { opacity: 1; }
-                            }
-                            
-                            /* Kein Glow-Effekt im geschlossenen Zustand */
-                            #garage_door_system {
-                                filter: none;
-                            }
-                        </style>
-                        
-                        <!-- Grundstruktur/Rahmen (Silber) -->
-                        <path d="M6 20H3V6L12 4L21 6V20H18M6 20H18M6 20V16M18 20V16M6 12V8L18 8V12M6 12L18 12M6 12V16M18 12V16M6 16H18" 
-                              stroke="#B0BEC5" 
-                              stroke-width="1.5" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                        
-                        <!-- Lamellen-Füllungen -->
-                        <!-- Oberste Lamelle (8-12) -->
-                        <rect id="top_slat_fill" x="6" y="8" width="12" height="4" fill="rgba(176, 190, 197, 0.3)" stroke="none"/>
-                        
-                        <!-- Mittlere Lamelle (12-16) -->
-                        <rect id="middle_slat_fill" x="6" y="12" width="12" height="4" fill="rgba(176, 190, 197, 0.3)" stroke="none"/>
-                        
-                        <!-- Untere Lamelle (16-20) -->
-                        <rect id="bottom_slat_fill" x="6" y="16" width="12" height="4" fill="rgba(176, 190, 197, 0.3)" stroke="none"/>
-                    </svg>`;
-                }
-            }
-            // Spezielle Behandlung für Rollläden
+                return isActive ? FastSearchCard.GARAGE_OPEN_ANIMATED_SVG : FastSearchCard.GARAGE_CLOSED_ANIMATED_SVG;
+            } 
             else if (deviceClass === 'shutter' || deviceClass === 'blind' || itemName.includes('rollladen')) {
-                const isOpen = state?.state === 'open';
-                const isClosed = state?.state === 'closed';
-                
-                if (isOpen) {
-                    // ROLLLÄDEN OFFEN - Lamellen verschwinden von oben nach unten
-                    return `<svg id="rollershutter_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <style>
-                            /* Erste Lamelle Fade-Out */
-                            #first_slat_fill {
-                                animation: fade_out_first 2000ms ease-in-out forwards;
-                                animation-delay: 2000ms;
-                                opacity: 1;
-                            }
-                            
-                            /* Zweite Lamelle Fade-Out mit 1.5s Delay */
-                            #second_slat_fill {
-                                animation: fade_out_second 2000ms ease-in-out forwards;
-                                animation-delay: 1500ms;
-                                opacity: 1;
-                            }
-                            
-                            /* Dritte Lamelle Fade-Out mit 1.0s Delay */
-                            #third_slat_fill {
-                                animation: fade_out_third 2000ms ease-in-out forwards;
-                                animation-delay: 1000ms;
-                                opacity: 1;
-                            }
-                            
-                            /* Vierte Lamelle Fade-Out mit 0.5s Delay */
-                            #fourth_slat_fill {
-                                animation: fade_out_fourth 2000ms ease-in-out forwards;
-                                animation-delay: 500ms;
-                                opacity: 1;
-                            }
-                            
-                            @keyframes fade_out_first {
-                                0% { opacity: 1; }
-                                25% { opacity: 0; }
-                                100% { opacity: 0; }
-                            }
-                            
-                            @keyframes fade_out_second {
-                                0% { opacity: 1; }
-                                25% { opacity: 0; }
-                                100% { opacity: 0; }
-                            }
-                            
-                            @keyframes fade_out_third {
-                                0% { opacity: 1; }
-                                25% { opacity: 0; }
-                                100% { opacity: 0; }
-                            }
-                            
-                            @keyframes fade_out_fourth {
-                                0% { opacity: 1; }
-                                25% { opacity: 0; }
-                                100% { opacity: 0; }
-                            }
-                        </style>
-                        
-                        <!-- Rahmen (Waldgrün - Aktiv/OK) -->
-                        <g id="frame">
-                            <path d="M3 7.5V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6V7.5M21 16.5V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V16.5M3 7.5V16.5M21 7.5V16.5" 
-                                  stroke="#388E3C" 
-                                  stroke-width="1.5"/>
-                        </g>
-                        
-                        <!-- Lamellen-Füllungen (Waldgrün) -->
-                        <rect id="first_slat_fill" x="3" y="3" width="18" height="4.5" fill="rgba(56, 142, 60, 0.3)" stroke="none"/>
-                        <rect id="second_slat_fill" x="3" y="7.5" width="18" height="4.5" fill="rgba(56, 142, 60, 0.3)" stroke="none"/>
-                        <rect id="third_slat_fill" x="3" y="12" width="18" height="4.5" fill="rgba(56, 142, 60, 0.3)" stroke="none"/>
-                        <rect id="fourth_slat_fill" x="3" y="16.5" width="18" height="4.5" fill="rgba(56, 142, 60, 0.3)" stroke="none"/>
-                        
-                        <!-- Rollladenlamellen-Linien (Waldgrün) -->
-                        <path d="M3 7.5H21" stroke="#388E3C" stroke-width="1.5"/>
-                        <path d="M3 12H21" stroke="#388E3C" stroke-width="1.5"/>
-                        <path d="M3 16.5H21" stroke="#388E3C" stroke-width="1.5"/>
-                    </svg>`;
-                } else if (isClosed) {
-                    // ROLLLÄDEN GESCHLOSSEN - Lamellen erscheinen von unten nach oben
-                    return `<svg id="rollershutter_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <style>
-                            /* Erste Lamelle Fade-In */
-                            #first_slat_fill {
-                                animation: fade_in_first 2000ms ease-in-out forwards;
-                                animation-delay: 500ms;
-                                opacity: 0;
-                            }
-                            
-                            /* Zweite Lamelle Fade-In mit 1.0s Delay */
-                            #second_slat_fill {
-                                animation: fade_in_second 2000ms ease-in-out forwards;
-                                animation-delay: 1000ms;
-                                opacity: 0;
-                            }
-                            
-                            /* Dritte Lamelle Fade-In mit 1.5s Delay */
-                            #third_slat_fill {
-                                animation: fade_in_third 2000ms ease-in-out forwards;
-                                animation-delay: 1500ms;
-                                opacity: 0;
-                            }
-                            
-                            /* Vierte Lamelle Fade-In mit 2.0s Delay */
-                            #fourth_slat_fill {
-                                animation: fade_in_fourth 2000ms ease-in-out forwards;
-                                animation-delay: 2000ms;
-                                opacity: 0;
-                            }
-                            
-                            @keyframes fade_in_first {
-                                0% { opacity: 0; }
-                                25% { opacity: 1; }
-                                100% { opacity: 1; }
-                            }
-                            
-                            @keyframes fade_in_second {
-                                0% { opacity: 0; }
-                                25% { opacity: 1; }
-                                100% { opacity: 1; }
-                            }
-                            
-                            @keyframes fade_in_third {
-                                0% { opacity: 0; }
-                                25% { opacity: 1; }
-                                100% { opacity: 1; }
-                            }
-                            
-                            @keyframes fade_in_fourth {
-                                0% { opacity: 0; }
-                                25% { opacity: 1; }
-                                100% { opacity: 1; }
-                            }
-                        </style>
-                        
-                        <!-- Rahmen (Silber) -->
-                        <g id="frame">
-                            <path d="M3 7.5V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6V7.5M21 16.5V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V16.5M3 7.5V16.5M21 7.5V16.5" 
-                                  stroke="#B0BEC5" 
-                                  stroke-width="1.5"/>
-                        </g>
-                        
-                        <!-- Lamellen-Füllungen (Silber) -->
-                        <rect id="first_slat_fill" x="3" y="3" width="18" height="4.5" fill="rgba(176, 190, 197, 0.4)" stroke="none"/>
-                        <rect id="second_slat_fill" x="3" y="7.5" width="18" height="4.5" fill="rgba(176, 190, 197, 0.4)" stroke="none"/>
-                        <rect id="third_slat_fill" x="3" y="12" width="18" height="4.5" fill="rgba(176, 190, 197, 0.4)" stroke="none"/>
-                        <rect id="fourth_slat_fill" x="3" y="16.5" width="18" height="4.5" fill="rgba(176, 190, 197, 0.4)" stroke="none"/>
-                        
-                        <!-- Rollladenlamellen-Linien (Silber) -->
-                        <path d="M3 7.5H21" stroke="#B0BEC5" stroke-width="1.5"/>
-                        <path d="M3 12H21" stroke="#B0BEC5" stroke-width="1.5"/>
-                        <path d="M3 16.5H21" stroke="#B0BEC5" stroke-width="1.5"/>
-                    </svg>`;
-                }
+                return isActive ? FastSearchCard.SHUTTER_OPEN_ANIMATED_SVG : FastSearchCard.SHUTTER_CLOSED_ANIMATED_SVG;
             }
-            
-            // Fallback für andere Cover-Arten (die bestehenden COVER_OPEN_SVG und COVER_CLOSED_SVG)
-            return item.isActive ? FastSearchCard.COVER_OPEN_SVG : FastSearchCard.COVER_CLOSED_SVG;
+            // Fallback für generische Cover
+            return isActive ? FastSearchCard.COVER_OPEN_SVG : FastSearchCard.COVER_CLOSED_SVG;
         }
-
-
+    
+        // Klima
         if (item.domain === 'climate') {
             const state = this._hass.states[item.id];
-            const isOn = state?.state !== 'off';
-            
-            if (isOn) {
-                // KLIMAANLAGE AN - Mit blinkenden Display und animierten Luftströmen
-                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <style>
-                        /* Segment 1: Hauptgehäuse - Soft Fade zu Dunkelblau */
-                        #segment1 {
-                            animation: housingSoftFade 1000ms ease-out forwards;
-                        }
-                        
-                        @keyframes housingSoftFade {
-                            0% { 
-                                stroke: #000000; 
-                            }
-                            100% { 
-                                stroke: #1976D2; 
-                                filter: drop-shadow(0 0 3px rgba(25, 118, 210, 0.3));
-                            }
-                        }
-                        
-                        /* Segment 2: Display - Kontinuierliches Blinken in Rot */
-                        #segment2 {
-                            animation: displayBlink 1500ms ease-in-out infinite;
-                        }
-                        
-                        @keyframes displayBlink {
-                            0%, 100% { 
-                                stroke: #F44336; 
-                                opacity: 1;
-                            }
-                            50% { 
-                                stroke: #F44336; 
-                                opacity: 0.3;
-                            }
-                        }
-                        
-                        /* Windlinien für die 3 Luftauslässe - Einheitliche Luftbewegung-Kombination */
-                        
-                        /* Segment 5: Linker Luftauslass */
-                        #segment5 {
-                            stroke: #FF7043;
-                            stroke-dasharray: 20;
-                            animation: 
-                                windDraw 2000ms linear infinite,
-                                airFlow 3000ms ease-in-out infinite,
-                                airPulse 1500ms ease-in-out infinite;
-                            transform-origin: center;
-                        }
-                        
-                        /* Segment 6: Rechter Luftauslass */
-                        #segment6 {
-                            stroke: #FF7043;
-                            stroke-dasharray: 20;
-                            animation: 
-                                windDraw 2000ms linear 300ms infinite,
-                                airFlow 3000ms ease-in-out 300ms infinite,
-                                airPulse 1500ms ease-in-out 300ms infinite;
-                            transform-origin: center;
-                        }
-                        
-                        /* Segment 7: Mittlerer Luftauslass */
-                        #segment7 {
-                            stroke: #FF7043;
-                            stroke-dasharray: 20;
-                            animation: 
-                                windDraw 2000ms linear 600ms infinite,
-                                airFlow 3000ms ease-in-out 600ms infinite,
-                                airPulse 1500ms ease-in-out 600ms infinite;
-                            transform-origin: center;
-                        }
-                        
-                        /* Gemeinsame Animationen für alle Luftauslässe */
-                        @keyframes windDraw {
-                            0% { stroke-dashoffset: 20; }
-                            50% { stroke-dashoffset: 0; }
-                            100% { stroke-dashoffset: -20; }
-                        }
-                        
-                        @keyframes airFlow {
-                            0%, 100% { 
-                                transform: translateY(0px); 
-                            }
-                            33% { 
-                                transform: translateY(1px); 
-                            }
-                            66% { 
-                                transform: translateY(2px); 
-                            }
-                        }
-                        
-                        @keyframes airPulse {
-                            0%, 100% { 
-                                opacity: 0.7; 
-                                stroke-width: 1;
-                            }
-                            50% { 
-                                opacity: 1; 
-                                stroke-width: 1.3;
-                            }
-                        }
-                    </style>
-                    
-                    <!-- Segment 1: Hauptgehäuse (Himmelblau #42A5F5) -->
-                    <g id="segment1">
-                        <path d="M22 3.6V11H2V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6Z" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round" 
-                              fill="none"/>
-                    </g>
-                    
-                    <!-- Segment 2: Display (Mint #26A69A) -->
-                    <g id="segment2">
-                        <path d="M18 7H19" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                    
-                    <!-- Segment 3: Linker Lufteinlass (Teil des Gehäuses - Dunkelblau #1976D2) -->
-                    <g id="segment3">
-                        <path d="M2 11L2.78969 13.5844C3.04668 14.4255 3.82294 15 4.70239 15H6" 
-                              stroke="#1976D2"
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round" 
-                              fill="none"/>
-                    </g>
-                    
-                    <!-- Segment 4: Rechter Lufteinlass (Teil des Gehäuses - Dunkelblau #1976D2) -->
-                    <g id="segment4">
-                        <path d="M22 11L21.2103 13.5844C20.9533 14.4255 20.1771 15 19.2976 15H18" 
-                              stroke="#1976D2"
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round" 
-                              fill="none"/>
-                    </g>
-                    
-                    <!-- Segment 5: Linker Luftauslass - Draw-Animation -->
-                    <g id="segment5">
-                        <path d="M9.5 14.5C9.5 14.5 9.5 21.5 6 21.5" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                    
-                    <!-- Segment 6: Rechter Luftauslass - Draw-Animation -->
-                    <g id="segment6">
-                        <path d="M14.5 14.5C14.5 14.5 14.5 21.5 18 21.5" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                    
-                    <!-- Segment 7: Mittlerer Luftauslass - Draw-Animation -->
-                    <g id="segment7">
-                        <path d="M12 14.5V21.5" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                </svg>`;
-            } else {
-                // KLIMAANLAGE AUS - Luftströme stoppen und alles wird grau
-                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <style>
-                        /* Segment 1: Hauptgehäuse - Umgekehrte Soft Fade zu Silber */
-                        #segment1 {
-                            stroke: #B0BEC5;
-                            animation: housingFadeOff 1000ms ease-out forwards;
-                        }
-                        
-                        @keyframes housingFadeOff {
-                            0% { 
-                                stroke: #1976D2; 
-                                filter: drop-shadow(0 0 3px rgba(25, 118, 210, 0.3));
-                            }
-                            100% { 
-                                stroke: #B0BEC5; 
-                                filter: none;
-                            }
-                        }
-                        
-                        /* Segment 2: Display - Stop Blinken, Fade zu Kaltweiß */
-                        #segment2 {
-                            stroke: #F0F4F8;
-                            animation: displayFadeOff 1000ms ease-out 300ms forwards;
-                        }
-                        
-                        @keyframes displayFadeOff {
-                            0% { 
-                                stroke: #F44336; 
-                                opacity: 1;
-                            }
-                            50% {
-                                stroke: #F44336; 
-                                opacity: 0.5;
-                            }
-                            100% { 
-                                stroke: #F0F4F8; 
-                                opacity: 1;
-                            }
-                        }
-                        
-                        /* Segment 5 & 6: Äußere Luftauslässe - Gleichzeitiger Fade-out mit Draw-Verlangsamung */
-                        #segment5, #segment6 {
-                            stroke: #FF7043;
-                            animation: 
-                                windSlowDown 1500ms ease-out 0ms forwards,
-                                airFadeOutOuter 1000ms ease-in 500ms forwards;
-                        }
-                        
-                        @keyframes windSlowDown {
-                            0% { 
-                                stroke-dasharray: 20;
-                                stroke-dashoffset: 0;
-                                animation-timing-function: linear;
-                            }
-                            50% {
-                                stroke-dasharray: 40;
-                                stroke-dashoffset: 10;
-                                animation-timing-function: ease-out;
-                            }
-                            100% { 
-                                stroke-dasharray: 60;
-                                stroke-dashoffset: 60;
-                                animation-timing-function: ease-out;
-                            }
-                        }
-                        
-                        @keyframes airFadeOutOuter {
-                            0% { 
-                                opacity: 1; 
-                                stroke-width: 1;
-                                transform: translateY(0px);
-                            }
-                            50% {
-                                opacity: 0.3;
-                                stroke-width: 0.7;
-                                transform: translateY(-0.5px);
-                            }
-                            100% { 
-                                opacity: 0; 
-                                stroke-width: 0.5;
-                                transform: translateY(-1px);
-                            }
-                        }
-                        
-                        /* Segment 7: Mittlerer Luftauslass - Verzögerter Fade-out */
-                        #segment7 {
-                            stroke: #FF7043;
-                            animation: 
-                                windSlowDownCenter 1500ms ease-out 300ms forwards,
-                                airFadeOutCenter 1000ms ease-in 1000ms forwards;
-                        }
-                        
-                        @keyframes windSlowDownCenter {
-                            0% { 
-                                stroke-dasharray: 20;
-                                stroke-dashoffset: 0;
-                                animation-timing-function: linear;
-                            }
-                            50% {
-                                stroke-dasharray: 35;
-                                stroke-dashoffset: 8;
-                                animation-timing-function: ease-out;
-                            }
-                            100% { 
-                                stroke-dasharray: 50;
-                                stroke-dashoffset: 50;
-                                animation-timing-function: ease-out;
-                            }
-                        }
-                        
-                        @keyframes airFadeOutCenter {
-                            0% { 
-                                opacity: 1; 
-                                stroke-width: 1;
-                                transform: translateY(0px);
-                            }
-                            50% {
-                                opacity: 0.3;
-                                stroke-width: 0.7;
-                                transform: translateY(-0.5px);
-                            }
-                            100% { 
-                                opacity: 0; 
-                                stroke-width: 0.5;
-                                transform: translateY(-1px);
-                            }
-                        }
-                    </style>
-                    
-                    <!-- Segment 1: Hauptgehäuse (Silber #B0BEC5) -->
-                    <g id="segment1">
-                        <path d="M22 3.6V11H2V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6Z" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round" 
-                              fill="none"/>
-                    </g>
-                    
-                    <!-- Segment 2: Display (Kaltweiß #F0F4F8) -->
-                    <g id="segment2">
-                        <path d="M18 7H19" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                    
-                    <!-- Segment 3: Linker Lufteinlass (Silber #B0BEC5) -->
-                    <g id="segment3">
-                        <path d="M2 11L2.78969 13.5844C3.04668 14.4255 3.82294 15 4.70239 15H6" 
-                              stroke="#B0BEC5"
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round" 
-                              fill="none"/>
-                    </g>
-                    
-                    <!-- Segment 4: Rechter Lufteinlass (Silber #B0BEC5) -->
-                    <g id="segment4">
-                        <path d="M22 11L21.2103 13.5844C20.9533 14.4255 20.1771 15 19.2976 15H18" 
-                              stroke="#B0BEC5"
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round" 
-                              fill="none"/>
-                    </g>
-                    
-                    <!-- Segment 5: Linker Luftauslass - Fade-out (außen) -->
-                    <g id="segment5">
-                        <path d="M9.5 14.5C9.5 14.5 9.5 21.5 6 21.5" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                    
-                    <!-- Segment 6: Rechter Luftauslass - Fade-out (außen) -->
-                    <g id="segment6">
-                        <path d="M14.5 14.5C14.5 14.5 14.5 21.5 18 21.5" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                    
-                    <!-- Segment 7: Mittlerer Luftauslass - Verzögerter Fade-out (innen) -->
-                    <g id="segment7">
-                        <path d="M12 14.5V21.5" 
-                              stroke-width="1" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                </svg>`;
-            }
+            return state?.state !== 'off' ? FastSearchCard.CLIMATE_ON_ANIMATED_SVG : FastSearchCard.CLIMATE_OFF_ANIMATED_SVG;
         }
-
-
+    
+        // Sirene
         if (item.domain === 'siren') {
             const state = this._hass.states[item.id];
-            const isOn = state?.state === 'on';
-            
-            if (isOn) {
-                // SIRENE AN - Glocke schwingt mit Klöppel-Animation
-                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
-                    <style>
-                        /* Glocke schwingt (Alert-Klingeln) */
-                        #bell {
-                            animation: bell_ring 1500ms ease-in-out infinite;
-                            transform-origin: 12px 6px;
-                        }
-                        @keyframes bell_ring {
-                            0%, 100% {transform: rotate(0deg)}
-                            10% {transform: rotate(-8deg)}
-                            30% {transform: rotate(8deg)}
-                            50% {transform: rotate(-5deg)}
-                            70% {transform: rotate(5deg)}
-                            90% {transform: rotate(-2deg)}
-                        }
-                        
-                        /* Klöppel schwingt entgegengesetzt */
-                        #clapper {
-                            animation: clapper_swing 1500ms ease-in-out infinite;
-                            transform-origin: 12px 19px;
-                        }
-                        @keyframes clapper_swing {
-                            0%, 100% {transform: rotate(0deg)}
-                            10% {transform: rotate(6deg)}
-                            30% {transform: rotate(-6deg)}
-                            50% {transform: rotate(4deg)}
-                            70% {transform: rotate(-4deg)}
-                            90% {transform: rotate(2deg)}
-                        }
-                        
-                        /* Alert-Pulsieren (Aufmerksamkeit) */
-                        #alert_icon {
-                            animation: alert_pulse 2000ms ease-in-out infinite;
-                            transform-origin: 12px 12px;
-                        }
-                        @keyframes alert_pulse {
-                            0%, 100% {transform: scale(1)}
-                            50% {transform: scale(1.1)}
-                        }
-                    </style>
-                    
-                    <g id="alert_icon">
-                        <!-- Glocken-Körper (schwingt) -->
-                        <g id="bell">
-                            <path d="M18 8.4C18 6.70261 17.3679 5.07475 16.2426 3.87452C15.1174 2.67428 13.5913 2 12 2C10.4087 2 8.88258 2.67428 7.75736 3.87452C6.63214 5.07475 6 6.70261 6 8.4C6 15.8667 3 18 3 18H21C21 18 18 15.8667 18 8.4Z" 
-                                  stroke="#F44336" 
-                                  stroke-width="1.5" 
-                                  stroke-linecap="round" 
-                                  stroke-linejoin="round"/>
-                        </g>
-                        
-                        <!-- Glocken-Klöppel (schwingt entgegengesetzt) -->
-                        <g id="clapper">
-                            <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" 
-                                  stroke="#FF8F00" 
-                                  stroke-width="1.5" 
-                                  stroke-linecap="round" 
-                                  stroke-linejoin="round"/>
-                        </g>
-                    </g>
-                </svg>`;
-            } else {
-                // SIRENE AUS - Statische graue Glocke mit Fade-out
-                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
-                    <style>
-                        /* Fade-out Animation beim Ausschalten */
-                        #alert_icon {
-                            animation: alert_fade_out 1000ms ease-out 1 normal forwards;
-                        }
-                        @keyframes alert_fade_out {
-                            0% {opacity: 1}
-                            100% {opacity: 0.4}
-                        }
-                    </style>
-                    
-                    <g id="alert_icon">
-                        <!-- Glocken-Körper (inaktiv, grau) -->
-                        <path d="M18 8.4C18 6.70261 17.3679 5.07475 16.2426 3.87452C15.1174 2.67428 13.5913 2 12 2C10.4087 2 8.88258 2.67428 7.75736 3.87452C6.63214 5.07475 6 6.70261 6 8.4C6 15.8667 3 18 3 18H21C21 18 18 15.8667 18 8.4Z" 
-                              stroke="#9E9E9E" 
-                              stroke-width="1.5" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                        
-                        <!-- Glocken-Klöppel (inaktiv, grau) -->
-                        <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" 
-                              stroke="#BDBDBD" 
-                              stroke-width="1.5" 
-                              stroke-linecap="round" 
-                              stroke-linejoin="round"/>
-                    </g>
-                </svg>`;
-            }
+            return state?.state === 'on' ? FastSearchCard.SIREN_ON_ANIMATED_SVG : FastSearchCard.SIREN_OFF_ANIMATED_SVG;
         }
-
+    
+        // Media Player (mit device_class Logik)
         if (item.domain === 'media_player') {
             const state = this._hass.states[item.id];
             if (state) {
@@ -12418,41 +11560,19 @@ class FastSearchCard extends HTMLElement {
             }
             return FastSearchCard.MEDIA_STOP_SVG;
         }
-
-        
-        
+    
+        // Ring-Tile Logik
         if (item.custom_data?.ring_config) {
             const ringIcon = this.createRingTileIcon(item);
             if (ringIcon) { return ringIcon; }
         }
-        
-        if (item.domain === 'light') {
-            return item.isActive ? FastSearchCard.LIGHT_ON_SVG : FastSearchCard.LIGHT_OFF_SVG;
-        }
-        
-        if (item.domain === 'cover') {
-            return item.isActive ? FastSearchCard.COVER_OPEN_SVG : FastSearchCard.COVER_CLOSED_SVG;
-        }
-        
-        if (item.domain === 'media_player') {
-            const state = this._hass.states[item.id];
-            if (state) {
-                if (state.state === 'playing') return FastSearchCard.MEDIA_PAUSE_SVG;
-                if (state.state === 'paused') return FastSearchCard.MEDIA_PLAY_SVG;
-                return FastSearchCard.MEDIA_STOP_SVG;
-            }
-            return FastSearchCard.MEDIA_STOP_SVG;
-        }
-        
-        if (item.domain === 'climate') {
-            return item.isActive ? FastSearchCard.CLIMATE_ON_SVG : FastSearchCard.CLIMATE_OFF_SVG;
-        }
     
+        // Fallback für Standard-Icons
         if (item.domain === 'script') { return FastSearchCard.SCRIPT_SVG; }
         if (item.domain === 'automation') { return FastSearchCard.AUTOMATION_SVG; }
-        if (item.domain === 'scene') { return FastSearchCard.SCENE_SVG; }        
+        if (item.domain === 'scene') { return FastSearchCard.SCENE_SVG; }
         
-        return item.icon;
+        return item.icon; // Finaler Fallback
     }
 
 
