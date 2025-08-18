@@ -11879,6 +11879,368 @@ class FastSearchCard extends HTMLElement {
             return item.isActive ? FastSearchCard.COVER_OPEN_SVG : FastSearchCard.COVER_CLOSED_SVG;
         }
 
+
+        if (item.domain === 'climate') {
+            const state = this._hass.states[item.id];
+            const isOn = state?.state !== 'off';
+            
+            if (isOn) {
+                // KLIMAANLAGE AN - Mit blinkenden Display und animierten Luftströmen
+                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <style>
+                        /* Segment 1: Hauptgehäuse - Soft Fade zu Dunkelblau */
+                        #segment1 {
+                            animation: housingSoftFade 1000ms ease-out forwards;
+                        }
+                        
+                        @keyframes housingSoftFade {
+                            0% { 
+                                stroke: #000000; 
+                            }
+                            100% { 
+                                stroke: #1976D2; 
+                                filter: drop-shadow(0 0 3px rgba(25, 118, 210, 0.3));
+                            }
+                        }
+                        
+                        /* Segment 2: Display - Kontinuierliches Blinken in Rot */
+                        #segment2 {
+                            animation: displayBlink 1500ms ease-in-out infinite;
+                        }
+                        
+                        @keyframes displayBlink {
+                            0%, 100% { 
+                                stroke: #F44336; 
+                                opacity: 1;
+                            }
+                            50% { 
+                                stroke: #F44336; 
+                                opacity: 0.3;
+                            }
+                        }
+                        
+                        /* Windlinien für die 3 Luftauslässe - Einheitliche Luftbewegung-Kombination */
+                        
+                        /* Segment 5: Linker Luftauslass */
+                        #segment5 {
+                            stroke: #FF7043;
+                            stroke-dasharray: 20;
+                            animation: 
+                                windDraw 2000ms linear infinite,
+                                airFlow 3000ms ease-in-out infinite,
+                                airPulse 1500ms ease-in-out infinite;
+                            transform-origin: center;
+                        }
+                        
+                        /* Segment 6: Rechter Luftauslass */
+                        #segment6 {
+                            stroke: #FF7043;
+                            stroke-dasharray: 20;
+                            animation: 
+                                windDraw 2000ms linear 300ms infinite,
+                                airFlow 3000ms ease-in-out 300ms infinite,
+                                airPulse 1500ms ease-in-out 300ms infinite;
+                            transform-origin: center;
+                        }
+                        
+                        /* Segment 7: Mittlerer Luftauslass */
+                        #segment7 {
+                            stroke: #FF7043;
+                            stroke-dasharray: 20;
+                            animation: 
+                                windDraw 2000ms linear 600ms infinite,
+                                airFlow 3000ms ease-in-out 600ms infinite,
+                                airPulse 1500ms ease-in-out 600ms infinite;
+                            transform-origin: center;
+                        }
+                        
+                        /* Gemeinsame Animationen für alle Luftauslässe */
+                        @keyframes windDraw {
+                            0% { stroke-dashoffset: 20; }
+                            50% { stroke-dashoffset: 0; }
+                            100% { stroke-dashoffset: -20; }
+                        }
+                        
+                        @keyframes airFlow {
+                            0%, 100% { 
+                                transform: translateY(0px); 
+                            }
+                            33% { 
+                                transform: translateY(1px); 
+                            }
+                            66% { 
+                                transform: translateY(2px); 
+                            }
+                        }
+                        
+                        @keyframes airPulse {
+                            0%, 100% { 
+                                opacity: 0.7; 
+                                stroke-width: 1;
+                            }
+                            50% { 
+                                opacity: 1; 
+                                stroke-width: 1.3;
+                            }
+                        }
+                    </style>
+                    
+                    <!-- Segment 1: Hauptgehäuse (Himmelblau #42A5F5) -->
+                    <g id="segment1">
+                        <path d="M22 3.6V11H2V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6Z" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round" 
+                              fill="none"/>
+                    </g>
+                    
+                    <!-- Segment 2: Display (Mint #26A69A) -->
+                    <g id="segment2">
+                        <path d="M18 7H19" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                    
+                    <!-- Segment 3: Linker Lufteinlass (Teil des Gehäuses - Dunkelblau #1976D2) -->
+                    <g id="segment3">
+                        <path d="M2 11L2.78969 13.5844C3.04668 14.4255 3.82294 15 4.70239 15H6" 
+                              stroke="#1976D2"
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round" 
+                              fill="none"/>
+                    </g>
+                    
+                    <!-- Segment 4: Rechter Lufteinlass (Teil des Gehäuses - Dunkelblau #1976D2) -->
+                    <g id="segment4">
+                        <path d="M22 11L21.2103 13.5844C20.9533 14.4255 20.1771 15 19.2976 15H18" 
+                              stroke="#1976D2"
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round" 
+                              fill="none"/>
+                    </g>
+                    
+                    <!-- Segment 5: Linker Luftauslass - Draw-Animation -->
+                    <g id="segment5">
+                        <path d="M9.5 14.5C9.5 14.5 9.5 21.5 6 21.5" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                    
+                    <!-- Segment 6: Rechter Luftauslass - Draw-Animation -->
+                    <g id="segment6">
+                        <path d="M14.5 14.5C14.5 14.5 14.5 21.5 18 21.5" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                    
+                    <!-- Segment 7: Mittlerer Luftauslass - Draw-Animation -->
+                    <g id="segment7">
+                        <path d="M12 14.5V21.5" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                </svg>`;
+            } else {
+                // KLIMAANLAGE AUS - Luftströme stoppen und alles wird grau
+                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <style>
+                        /* Segment 1: Hauptgehäuse - Umgekehrte Soft Fade zu Silber */
+                        #segment1 {
+                            stroke: #B0BEC5;
+                            animation: housingFadeOff 1000ms ease-out forwards;
+                        }
+                        
+                        @keyframes housingFadeOff {
+                            0% { 
+                                stroke: #1976D2; 
+                                filter: drop-shadow(0 0 3px rgba(25, 118, 210, 0.3));
+                            }
+                            100% { 
+                                stroke: #B0BEC5; 
+                                filter: none;
+                            }
+                        }
+                        
+                        /* Segment 2: Display - Stop Blinken, Fade zu Kaltweiß */
+                        #segment2 {
+                            stroke: #F0F4F8;
+                            animation: displayFadeOff 1000ms ease-out 300ms forwards;
+                        }
+                        
+                        @keyframes displayFadeOff {
+                            0% { 
+                                stroke: #F44336; 
+                                opacity: 1;
+                            }
+                            50% {
+                                stroke: #F44336; 
+                                opacity: 0.5;
+                            }
+                            100% { 
+                                stroke: #F0F4F8; 
+                                opacity: 1;
+                            }
+                        }
+                        
+                        /* Segment 5 & 6: Äußere Luftauslässe - Gleichzeitiger Fade-out mit Draw-Verlangsamung */
+                        #segment5, #segment6 {
+                            stroke: #FF7043;
+                            animation: 
+                                windSlowDown 1500ms ease-out 0ms forwards,
+                                airFadeOutOuter 1000ms ease-in 500ms forwards;
+                        }
+                        
+                        @keyframes windSlowDown {
+                            0% { 
+                                stroke-dasharray: 20;
+                                stroke-dashoffset: 0;
+                                animation-timing-function: linear;
+                            }
+                            50% {
+                                stroke-dasharray: 40;
+                                stroke-dashoffset: 10;
+                                animation-timing-function: ease-out;
+                            }
+                            100% { 
+                                stroke-dasharray: 60;
+                                stroke-dashoffset: 60;
+                                animation-timing-function: ease-out;
+                            }
+                        }
+                        
+                        @keyframes airFadeOutOuter {
+                            0% { 
+                                opacity: 1; 
+                                stroke-width: 1;
+                                transform: translateY(0px);
+                            }
+                            50% {
+                                opacity: 0.3;
+                                stroke-width: 0.7;
+                                transform: translateY(-0.5px);
+                            }
+                            100% { 
+                                opacity: 0; 
+                                stroke-width: 0.5;
+                                transform: translateY(-1px);
+                            }
+                        }
+                        
+                        /* Segment 7: Mittlerer Luftauslass - Verzögerter Fade-out */
+                        #segment7 {
+                            stroke: #FF7043;
+                            animation: 
+                                windSlowDownCenter 1500ms ease-out 300ms forwards,
+                                airFadeOutCenter 1000ms ease-in 1000ms forwards;
+                        }
+                        
+                        @keyframes windSlowDownCenter {
+                            0% { 
+                                stroke-dasharray: 20;
+                                stroke-dashoffset: 0;
+                                animation-timing-function: linear;
+                            }
+                            50% {
+                                stroke-dasharray: 35;
+                                stroke-dashoffset: 8;
+                                animation-timing-function: ease-out;
+                            }
+                            100% { 
+                                stroke-dasharray: 50;
+                                stroke-dashoffset: 50;
+                                animation-timing-function: ease-out;
+                            }
+                        }
+                        
+                        @keyframes airFadeOutCenter {
+                            0% { 
+                                opacity: 1; 
+                                stroke-width: 1;
+                                transform: translateY(0px);
+                            }
+                            50% {
+                                opacity: 0.3;
+                                stroke-width: 0.7;
+                                transform: translateY(-0.5px);
+                            }
+                            100% { 
+                                opacity: 0; 
+                                stroke-width: 0.5;
+                                transform: translateY(-1px);
+                            }
+                        }
+                    </style>
+                    
+                    <!-- Segment 1: Hauptgehäuse (Silber #B0BEC5) -->
+                    <g id="segment1">
+                        <path d="M22 3.6V11H2V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6Z" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round" 
+                              fill="none"/>
+                    </g>
+                    
+                    <!-- Segment 2: Display (Kaltweiß #F0F4F8) -->
+                    <g id="segment2">
+                        <path d="M18 7H19" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                    
+                    <!-- Segment 3: Linker Lufteinlass (Silber #B0BEC5) -->
+                    <g id="segment3">
+                        <path d="M2 11L2.78969 13.5844C3.04668 14.4255 3.82294 15 4.70239 15H6" 
+                              stroke="#B0BEC5"
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round" 
+                              fill="none"/>
+                    </g>
+                    
+                    <!-- Segment 4: Rechter Lufteinlass (Silber #B0BEC5) -->
+                    <g id="segment4">
+                        <path d="M22 11L21.2103 13.5844C20.9533 14.4255 20.1771 15 19.2976 15H18" 
+                              stroke="#B0BEC5"
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round" 
+                              fill="none"/>
+                    </g>
+                    
+                    <!-- Segment 5: Linker Luftauslass - Fade-out (außen) -->
+                    <g id="segment5">
+                        <path d="M9.5 14.5C9.5 14.5 9.5 21.5 6 21.5" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                    
+                    <!-- Segment 6: Rechter Luftauslass - Fade-out (außen) -->
+                    <g id="segment6">
+                        <path d="M14.5 14.5C14.5 14.5 14.5 21.5 18 21.5" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                    
+                    <!-- Segment 7: Mittlerer Luftauslass - Verzögerter Fade-out (innen) -->
+                    <g id="segment7">
+                        <path d="M12 14.5V21.5" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                </svg>`;
+            }
+        }
+
         
         
         if (item.custom_data?.ring_config) {
