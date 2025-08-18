@@ -11375,35 +11375,194 @@ class FastSearchCard extends HTMLElement {
             return item.attributes.icon_hue;
         }
     
+
         if (item.domain === 'light') {
             const state = this._hass.states[item.id];
             const isOn = state?.state === 'on';
             
             if (isOn) {
-                // EXAKT dein ON-SVG mit einmaliger Animation - JETZT MIT width/height
-                return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
+                // DEIN NEUES ON-SVG mit Glühen und gestaffelten Animationen
+                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <style>
-                        @keyframes lampOn_tt { 0% {transform: translate(0px,0px)} 50% {transform: translate(0px,-0.5px)} 100% {transform: translate(0px,0px)} }
-                        @keyframes lampOn_fade { 0% {opacity: 0} 100% {opacity: 1} }
-                        .lamp-shade-on { animation: lampOn_tt 1s linear, lampOn_fade 1s linear; animation-fill-mode: forwards; }
+                        /* Pulsieren-Animation für Segment 1 (Glühbirne) - Sonnengelb */
+                        #segment1 {
+                            animation: bulbGlow 1000ms ease-in-out 1;
+                            transform-origin: center;
+                        }
+                        
+                        @keyframes bulbGlow {
+                            0% { 
+                                stroke: #FFD54F; 
+                                filter: drop-shadow(0 0 0px #FFD54F);
+                                transform: scale(1);
+                            }
+                            50% { 
+                                stroke: #FFD54F; 
+                                filter: drop-shadow(0 0 8px #FFD54F);
+                                transform: scale(1.05);
+                            }
+                            100% { 
+                                stroke: #FFD54F; 
+                                filter: drop-shadow(0 0 2px #FFD54F);
+                                transform: scale(1);
+                            }
+                        }
+                        
+                        /* Treppenweise Fade-in für Segment 2 - Himmelblau */
+                        #segment2 {
+                            opacity: 0;
+                            animation: fadeInStep2 1000ms ease-out 300ms forwards;
+                        }
+                        
+                        @keyframes fadeInStep2 {
+                            0% { opacity: 0; transform: translateY(2px); }
+                            100% { opacity: 1; transform: translateY(0px); }
+                        }
+                        
+                        /* Treppenweise Fade-in für Segment 3 - Himmelblau */
+                        #segment3 {
+                            opacity: 0;
+                            animation: fadeInStep3 1000ms ease-out 600ms forwards;
+                        }
+                        
+                        @keyframes fadeInStep3 {
+                            0% { opacity: 0; transform: translateY(2px); }
+                            100% { opacity: 1; transform: translateY(0px); }
+                        }
                     </style>
-                    <g class="lamp-shade-on" transform="translate(0,0)" opacity="0"><rect width="9.471" height="6.761" rx="0" ry="0" transform="matrix(1 0 0 1 6.85 1.614)" fill="rgb(248,205,65)"/></g>
-                    <g><rect width="5.881" height="0.705" rx="0" ry="0" transform="matrix(1 0 0 1 8.646 8.921)" fill="rgb(87,168,215)"/></g>
-                    <g><path d="M7.235,10.622C7.235,10.869,7.437,11.07,7.686,11.07L15.486,11.07C15.734,11.07,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="rgb(87,168,215)"/><g><rect width="1.711" height="0.774" rx="0" ry="0" transform="matrix(1 0 0 1 10.729 11.615)" fill="rgb(87,168,215)"/></g></g>
-                    <g><path d="M16.29,22.282L13.322,12.935L9.85,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.66,10.803,13.588,10.93,13.612C11.055,13.634,11.15,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.66,12.544,13.779L15.948,22.282L16.29,22.282Z" fill="rgb(87,168,215)"/></g>
+                    
+                    <!-- Segment 1: Glühbirne (Sonnengelb #FFD54F) mit Pulsieren -->
+                    <g id="segment1">
+                        <path d="M9.00082 15C9.00098 13 8.50098 12.5 7.50082 11.5C6.50067 10.5 6.02422 9.48689 6.00082 8C5.95284 4.95029 8.00067 3 12.0008 3C16.001 3 18.0488 4.95029 18.0008 8C17.9774 9.48689 17.5007 10.5 16.5008 11.5C15.501 12.5 15.001 13 15.0008 15" 
+                              stroke="#FFD54F" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round" 
+                              fill="none"/>
+                    </g>
+                    
+                    <!-- Segment 2: Mittlerer Bereich (Himmelblau #42A5F5) mit verzögertem Fade-in -->
+                    <g id="segment2">
+                        <path d="M9 18H15" 
+                              stroke="#42A5F5" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                    
+                    <!-- Segment 3: Unterer Bereich (Himmelblau #42A5F5) mit noch stärker verzögertem Fade-in -->
+                    <g id="segment3">
+                        <path d="M10 21H14" 
+                              stroke="#42A5F5" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
                 </svg>`;
             } else {
-                // EXAKT dein OFF-SVG mit einmaliger Animation - JETZT MIT width/height
-                return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
+                // DEIN NEUES OFF-SVG mit umgekehrter Animation und Farbwechsel
+                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <style>
-                        @keyframes lampOff_tt { 0% {transform: translate(0px,0px)} 50% {transform: translate(0px,-0.5px)} 100% {transform: translate(0px,0px)} }
-                        @keyframes lampOff_fade { 0% {opacity: 1} 100% {opacity: 0.5} }
-                        .lamp-shade-off { animation: lampOff_tt 1s linear, lampOff_fade 1s linear; animation-fill-mode: forwards; }
+                        /* Umgekehrtes Pulsieren für Segment 1 (Glühbirne) - Kaltweiß */
+                        #segment1 {
+                            stroke: #F0F4F8;
+                            animation: bulbDimOut 1000ms ease-in-out 1;
+                            transform-origin: center;
+                        }
+                        
+                        @keyframes bulbDimOut {
+                            0% { 
+                                stroke: #FFD54F; 
+                                filter: drop-shadow(0 0 2px #FFD54F);
+                                transform: scale(1);
+                            }
+                            50% { 
+                                stroke: #F0F4F8; 
+                                filter: drop-shadow(0 0 0px #F0F4F8);
+                                transform: scale(0.95);
+                            }
+                            100% { 
+                                stroke: #F0F4F8; 
+                                filter: none;
+                                transform: scale(1);
+                            }
+                        }
+                        
+                        /* Treppenweise Fade-out für Segment 2 - zuerst (umgekehrte Reihenfolge) */
+                        #segment2 {
+                            stroke: #B0BEC5;
+                            opacity: 1;
+                            animation: fadeOutStep2 1000ms ease-in 0ms forwards;
+                        }
+                        
+                        @keyframes fadeOutStep2 {
+                            0% { 
+                                opacity: 1; 
+                                stroke: #42A5F5;
+                                transform: translateY(0px);
+                            }
+                            50% {
+                                opacity: 0.3;
+                                stroke: #42A5F5;
+                                transform: translateY(1px);
+                            }
+                            100% { 
+                                opacity: 1; 
+                                stroke: #B0BEC5;
+                                transform: translateY(0px);
+                            }
+                        }
+                        
+                        /* Treppenweise Fade-out für Segment 3 - dann (umgekehrte Reihenfolge) */
+                        #segment3 {
+                            stroke: #B0BEC5;
+                            opacity: 1;
+                            animation: fadeOutStep3 1000ms ease-in 300ms forwards;
+                        }
+                        
+                        @keyframes fadeOutStep3 {
+                            0% { 
+                                opacity: 1; 
+                                stroke: #42A5F5;
+                                transform: translateY(0px);
+                            }
+                            50% {
+                                opacity: 0.3;
+                                stroke: #42A5F5;
+                                transform: translateY(1px);
+                            }
+                            100% { 
+                                opacity: 1; 
+                                stroke: #B0BEC5;
+                                transform: translateY(0px);
+                            }
+                        }
                     </style>
-                    <g class="lamp-shade-off" transform="translate(0,0)"><rect width="9.471" height="6.761" rx="0" ry="0" transform="matrix(1 0 0 1 6.85 1.614)" fill="rgb(158,160,162)"/></g>
-                    <g><rect width="5.881" height="0.705" rx="0" ry="0" transform="matrix(1 0 0 1 8.646 8.921)" fill="rgb(95,98,103)"/></g>
-                    <g><path d="M7.235,10.622C7.235,10.869,7.437,11.07,7.686,11.07L15.486,11.07C15.734,11.07,15.935,10.869,15.935,10.622C15.935,10.373,15.734,10.173,15.486,10.173L7.686,10.173C7.437,10.173,7.235,10.373,7.235,10.622Z" fill="rgb(95,98,103)"/><g><rect width="1.711" height="0.774" rx="0" ry="0" transform="matrix(1 0 0 1 10.729 11.615)" fill="rgb(95,98,103)"/></g></g>
-                    <g><path d="M16.29,22.282L13.322,12.935L9.85,12.935L6.883,22.282L7.226,22.282L10.628,13.779C10.677,13.66,10.803,13.588,10.93,13.612C11.055,13.634,11.15,13.745,11.154,13.873L11.386,22.282L11.787,22.282L12.019,13.873C12.022,13.745,12.115,13.634,12.243,13.612C12.371,13.588,12.496,13.66,12.544,13.779L15.948,22.282L16.29,22.282Z" fill="rgb(95,98,103)"/></g>
+                    
+                    <!-- Segment 1: Glühbirne (Kaltweiß #F0F4F8) mit umgekehrtem Pulsieren -->
+                    <g id="segment1">
+                        <path d="M9.00082 15C9.00098 13 8.50098 12.5 7.50082 11.5C6.50067 10.5 6.02422 9.48689 6.00082 8C5.95284 4.95029 8.00067 3 12.0008 3C16.001 3 18.0488 4.95029 18.0008 8C17.9774 9.48689 17.5007 10.5 16.5008 11.5C15.501 12.5 15.001 13 15.0008 15" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round" 
+                              fill="none"/>
+                    </g>
+                    
+                    <!-- Segment 2: Mittlerer Bereich (Silber #B0BEC5) -->
+                    <g id="segment2">
+                        <path d="M9 18H15" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                    
+                    <!-- Segment 3: Unterer Bereich (Silber #B0BEC5) -->
+                    <g id="segment3">
+                        <path d="M10 21H14" 
+                              stroke-width="1" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
                 </svg>`;
             }
         }
