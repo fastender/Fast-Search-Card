@@ -210,7 +210,64 @@ class FastSearchCard extends HTMLElement {
 
 
 
+    static TV_ON_SVG = `<svg id="tv_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7 21L17 21" stroke="#1976D2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M2 16.4V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6V16.4C22 16.7314 21.7314 17 21.4 17H2.6C2.26863 17 2 16.7314 2 16.4Z" stroke="#1976D2" fill="rgba(25, 118, 210, 0.1)" stroke-width="1.5"/>
+      <rect x="3.5" y="4.5" width="17" height="11" fill="rgba(66, 165, 245, 0.2)" stroke="none">
+        <animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <g id="tv_content" stroke="#42A5F5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13.5 7L13.5 11M13.5 13L13.5 11M13.5 11L14.8706 9.43363M17 7L14.8706 9.43363M14.8706 9.43363L17 13">
+          <animate attributeName="opacity" values="0.4;1;0.4" dur="4s" begin="0s" repeatCount="indefinite"/>
+          <animateTransform attributeName="transform" type="scale" values="1;1.05;1" dur="4s" begin="0s" repeatCount="indefinite"/>
+        </path>
+        <path d="M9.5 7L6.5 11.5L10 11.5L10 13">
+          <animate attributeName="opacity" values="0.4;1;0.4" dur="4s" begin="1s" repeatCount="indefinite"/>
+          <animateTransform attributeName="transform" type="scale" values="1;1.05;1" dur="4s" begin="1s" repeatCount="indefinite"/>
+        </path>
+      </g>
+    </svg>`;
 
+    static TV_OFF_SVG = `<svg id="tv_system_off" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7 21L17 21" stroke="#B0BEC5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M2 16.4V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6V16.4C22 16.7314 21.7314 17 21.4 17H2.6C2.26863 17 2 16.7314 2 16.4Z" stroke="#B0BEC5" fill="rgba(176, 190, 197, 0.05)" stroke-width="1.5"/>
+      <rect x="3.5" y="4.5" width="17" height="11" fill="rgba(66, 66, 66, 0.9)" stroke="none">
+        <animate attributeName="opacity" values="0.9;0" dur="3s" fill="freeze"/>
+      </rect>
+      <circle cx="20" cy="5" r="0.5" fill="#F44336" stroke="none">
+        <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+      </circle>
+    </svg>`;
+
+    static SPEAKER_ON_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+      <defs>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+          <feMerge> <feMergeNode in="coloredBlur"/> <feMergeNode in="SourceGraphic"/> </feMerge>
+        </filter>
+      </defs>
+      <style> <![CDATA[ #notenlinie { animation: notenlinieOn 1500ms ease-out forwards, linePulse 2000ms ease-in-out infinite 1500ms; } @keyframes notenlinieOn { 0% { stroke: #9E9E9E; } 100% { stroke: #E91E63; } } @keyframes linePulse { 0%, 100% { stroke-width: 1; opacity: 1; } 50% { stroke-width: 1.2; opacity: 0.8; } } #obereNote { animation: obereNoteOn 1500ms ease-out forwards, notePulse 2000ms ease-in-out infinite 1500ms; transform-origin: 18px 16px; } @keyframes obereNoteOn { 0% { stroke: #9E9E9E; fill: #F0F4F8; fill-opacity: 0.1; } 50% { stroke: #E91E63; fill: #E91E63; fill-opacity: 0.15; } 100% { stroke: #E91E63; fill: #E91E63; fill-opacity: 0.2; } } #untereNote { animation: untereNoteOn 1500ms ease-out forwards, notePulse 2000ms ease-in-out infinite 2000ms; transform-origin: 7px 18px; } @keyframes untereNoteOn { 0% { stroke: #9E9E9E; fill: #F0F4F8; fill-opacity: 0.1; } 50% { stroke: #E91E63; fill: #E91E63; fill-opacity: 0.15; } 100% { stroke: #E91E63; fill: #E91E63; fill-opacity: 0.2; } } @keyframes notePulse { 0%, 100% { transform: scale(1); fill-opacity: 0.2; } 50% { transform: scale(1.05); fill-opacity: 0.3; } } #lightParts { filter: none; animation: addGlow 1500ms ease-out forwards, overallPulse 3000ms ease-in-out infinite 1500ms; transform-origin: 12px 12px; } @keyframes addGlow { 0% { filter: none; } 100% { filter: url(#glow); } } @keyframes overallPulse { 0%, 100% { transform: scale(1); filter: url(#glow); } 50% { transform: scale(1.02); filter: url(#glow) brightness(1.1); } } ]]> </style>
+      <path id="notenlinie" d="M20 14V3L9 5V16" stroke="#9E9E9E" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <g id="lightParts">
+        <path id="obereNote" d="M17 19H18C19.1046 19 20 18.1046 20 17V14H17C15.8954 14 15 14.8954 15 16V17C15 18.1046 15.8954 19 17 19Z" stroke="#9E9E9E" fill="#F0F4F8" fill-opacity="0.1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+        <path id="untereNote" d="M6 21H7C8.10457 21 9 20.1046 9 19V16H6C4.89543 16 4 16.8954 4 18V19C4 20.1046 4.89543 21 6 21Z" stroke="#9E9E9E" fill="#F0F4F8" fill-opacity="0.1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </svg>`;
+
+    static SPEAKER_OFF_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+      <defs>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+          <feMerge> <feMergeNode in="coloredBlur"/> <feMergeNode in="SourceGraphic"/> </feMerge>
+        </filter>
+      </defs>
+      <style> <![CDATA[ #notenlinie { animation: notenlinieOff 1500ms ease-out forwards; } @keyframes notenlinieOff { 0% { stroke: #E91E63; stroke-width: 1.2; opacity: 0.8; } 100% { stroke: #9E9E9E; stroke-width: 1; opacity: 1; } } #obereNote { animation: obereNoteOff 1500ms ease-out forwards; transform-origin: 18px 16px; } @keyframes obereNoteOff { 0% { stroke: #E91E63; fill: #E91E63; fill-opacity: 0.3; transform: scale(1.05); } 50% { stroke: #B0BEC5; fill: #F0F4F8; fill-opacity: 0.15; transform: scale(1); } 100% { stroke: #9E9E9E; fill: #F0F4F8; fill-opacity: 0.1; transform: scale(1); } } #untereNote { animation: untereNoteOff 1500ms ease-out forwards; transform-origin: 7px 18px; } @keyframes untereNoteOff { 0% { stroke: #E91E63; fill: #E91E63; fill-opacity: 0.3; transform: scale(1.05); } 50% { stroke: #B0BEC5; fill: #F0F4F8; fill-opacity: 0.15; transform: scale(1); } 100% { stroke: #9E9E9E; fill: #F0F4F8; fill-opacity: 0.1; transform: scale(1); } } #lightParts { filter: url(#glow); animation: removeGlowAndStop 1500ms ease-out forwards; transform-origin: 12px 12px; } @keyframes removeGlowAndStop { 0% { transform: scale(1.02); filter: url(#glow) brightness(1.1); } 50% { transform: scale(1); filter: url(#glow); } 100% { transform: scale(1); filter: none; } } ]]> </style>
+      <path id="notenlinie" d="M20 14V3L9 5V16" stroke="#E91E63" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <g id="lightParts">
+        <path id="obereNote" d="M17 19H18C19.1046 19 20 18.1046 20 17V14H17C15.8954 14 15 14.8954 15 16V17C15 18.1046 15.8954 19 17 19Z" stroke="#9E9E9E" fill="#F0F4F8" fill-opacity="0.1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+        <path id="untereNote" d="M6 21H7C8.10457 21 9 20.1046 9 19V16H6C4.89543 16 4 16.8954 4 18V19C4 20.1046 4.89543 21 6 21Z" stroke="#9E9E9E" fill="#F0F4F8" fill-opacity="0.1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </svg>`;
 
     
 
@@ -12341,6 +12398,30 @@ class FastSearchCard extends HTMLElement {
                 </svg>`;
             }
         }
+
+        if (item.domain === 'media_player') {
+            const state = this._hass.states[item.id];
+            if (state) {
+                const deviceClass = state.attributes.device_class;
+                // Ein Media Player ist "aktiv", wenn er spielt oder pausiert ist
+                const isActive = this.isEntityActive(state);
+    
+                // Prüfe die device_class
+                if (deviceClass === 'tv') {
+                    return isActive ? FastSearchCard.TV_ON_SVG : FastSearchCard.TV_OFF_SVG;
+                } else if (deviceClass === 'speaker') {
+                    return isActive ? FastSearchCard.SPEAKER_ON_SVG : FastSearchCard.SPEAKER_OFF_SVG;
+                } else {
+                    // Fallback für alle anderen Media Player (z.B. receiver, oder ohne device_class)
+                    if (state.state === 'playing') return FastSearchCard.MEDIA_PAUSE_SVG;
+                    if (state.state === 'paused') return FastSearchCard.MEDIA_PLAY_SVG;
+                    return FastSearchCard.MEDIA_STOP_SVG;
+                }
+            }
+            // Fallback, wenn kein State gefunden wird
+            return FastSearchCard.MEDIA_STOP_SVG;
+        }
+
         
         
         if (item.custom_data?.ring_config) {
