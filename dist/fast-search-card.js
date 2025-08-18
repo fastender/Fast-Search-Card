@@ -10138,6 +10138,12 @@ class FastSearchCard extends HTMLElement {
                     // Internen Zustand für dieses Item aktualisieren
                     item.state = state.state;
                     item.isActive = this.isEntityActive(state);
+
+                    // ✅ HIER DIE KORREKTUR EINFÜGEN:
+                    // Stelle sicher, dass auch der numerische Wert für Ring-Tiles aktualisiert wird.
+                    if (item.domain === 'custom' && item.custom_data?.metadata) {
+                        item.custom_data.metadata.sensor_state = parseFloat(state.state) || 0;
+                    }                    
                     
                     // Updates für die Grid-Karte vorbereiten
                     const iconElement = card.querySelector('.device-icon');
