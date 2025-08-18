@@ -208,9 +208,9 @@ class FastSearchCard extends HTMLElement {
 
 
 
+    // Animierte SVG Icons
 
-
-    static TV_ON_SVG = `<svg id="tv_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    static TV_ON_ANIMATED_SVG = `<svg id="tv_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M7 21L17 21" stroke="#1976D2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M2 16.4V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6V16.4C22 16.7314 21.7314 17 21.4 17H2.6C2.26863 17 2 16.7314 2 16.4Z" stroke="#1976D2" fill="rgba(25, 118, 210, 0.1)" stroke-width="1.5"/>
       <rect x="3.5" y="4.5" width="17" height="11" fill="rgba(66, 165, 245, 0.2)" stroke="none">
@@ -228,7 +228,7 @@ class FastSearchCard extends HTMLElement {
       </g>
     </svg>`;
 
-    static TV_OFF_SVG = `<svg id="tv_system_off" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    static TV_OFF_ANIMATED_SVG = `<svg id="tv_system_off" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M7 21L17 21" stroke="#B0BEC5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M2 16.4V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6V16.4C22 16.7314 21.7314 17 21.4 17H2.6C2.26863 17 2 16.7314 2 16.4Z" stroke="#B0BEC5" fill="rgba(176, 190, 197, 0.05)" stroke-width="1.5"/>
       <rect x="3.5" y="4.5" width="17" height="11" fill="rgba(66, 66, 66, 0.9)" stroke="none">
@@ -239,7 +239,7 @@ class FastSearchCard extends HTMLElement {
       </circle>
     </svg>`;
 
-    static SPEAKER_ON_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+    static SPEAKER_ON_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
       <defs>
         <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
@@ -254,7 +254,7 @@ class FastSearchCard extends HTMLElement {
       </g>
     </svg>`;
 
-    static SPEAKER_OFF_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+    static SPEAKER_OFF_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
       <defs>
         <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
@@ -12403,22 +12403,19 @@ class FastSearchCard extends HTMLElement {
             const state = this._hass.states[item.id];
             if (state) {
                 const deviceClass = state.attributes.device_class;
-                // Ein Media Player ist "aktiv", wenn er spielt oder pausiert ist
                 const isActive = this.isEntityActive(state);
     
-                // Prüfe die device_class
                 if (deviceClass === 'tv') {
-                    return isActive ? FastSearchCard.TV_ON_SVG : FastSearchCard.TV_OFF_SVG;
+                    return isActive ? FastSearchCard.TV_ON_ANIMATED_SVG : FastSearchCard.TV_OFF_ANIMATED_SVG;
                 } else if (deviceClass === 'speaker') {
-                    return isActive ? FastSearchCard.SPEAKER_ON_SVG : FastSearchCard.SPEAKER_OFF_SVG;
+                    return isActive ? FastSearchCard.SPEAKER_ON_ANIMATED_SVG : FastSearchCard.SPEAKER_OFF_ANIMATED_SVG;
                 } else {
-                    // Fallback für alle anderen Media Player (z.B. receiver, oder ohne device_class)
+                    // Fallback für generische Media Player
                     if (state.state === 'playing') return FastSearchCard.MEDIA_PAUSE_SVG;
                     if (state.state === 'paused') return FastSearchCard.MEDIA_PLAY_SVG;
                     return FastSearchCard.MEDIA_STOP_SVG;
                 }
             }
-            // Fallback, wenn kein State gefunden wird
             return FastSearchCard.MEDIA_STOP_SVG;
         }
 
