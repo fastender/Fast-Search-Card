@@ -12241,6 +12241,106 @@ class FastSearchCard extends HTMLElement {
             }
         }
 
+
+        if (item.domain === 'siren') {
+            const state = this._hass.states[item.id];
+            const isOn = state?.state === 'on';
+            
+            if (isOn) {
+                // SIRENE AN - Glocke schwingt mit Klöppel-Animation
+                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+                    <style>
+                        /* Glocke schwingt (Alert-Klingeln) */
+                        #bell {
+                            animation: bell_ring 1500ms ease-in-out infinite;
+                            transform-origin: 12px 6px;
+                        }
+                        @keyframes bell_ring {
+                            0%, 100% {transform: rotate(0deg)}
+                            10% {transform: rotate(-8deg)}
+                            30% {transform: rotate(8deg)}
+                            50% {transform: rotate(-5deg)}
+                            70% {transform: rotate(5deg)}
+                            90% {transform: rotate(-2deg)}
+                        }
+                        
+                        /* Klöppel schwingt entgegengesetzt */
+                        #clapper {
+                            animation: clapper_swing 1500ms ease-in-out infinite;
+                            transform-origin: 12px 19px;
+                        }
+                        @keyframes clapper_swing {
+                            0%, 100% {transform: rotate(0deg)}
+                            10% {transform: rotate(6deg)}
+                            30% {transform: rotate(-6deg)}
+                            50% {transform: rotate(4deg)}
+                            70% {transform: rotate(-4deg)}
+                            90% {transform: rotate(2deg)}
+                        }
+                        
+                        /* Alert-Pulsieren (Aufmerksamkeit) */
+                        #alert_icon {
+                            animation: alert_pulse 2000ms ease-in-out infinite;
+                            transform-origin: 12px 12px;
+                        }
+                        @keyframes alert_pulse {
+                            0%, 100% {transform: scale(1)}
+                            50% {transform: scale(1.1)}
+                        }
+                    </style>
+                    
+                    <g id="alert_icon">
+                        <!-- Glocken-Körper (schwingt) -->
+                        <g id="bell">
+                            <path d="M18 8.4C18 6.70261 17.3679 5.07475 16.2426 3.87452C15.1174 2.67428 13.5913 2 12 2C10.4087 2 8.88258 2.67428 7.75736 3.87452C6.63214 5.07475 6 6.70261 6 8.4C6 15.8667 3 18 3 18H21C21 18 18 15.8667 18 8.4Z" 
+                                  stroke="#F44336" 
+                                  stroke-width="1.5" 
+                                  stroke-linecap="round" 
+                                  stroke-linejoin="round"/>
+                        </g>
+                        
+                        <!-- Glocken-Klöppel (schwingt entgegengesetzt) -->
+                        <g id="clapper">
+                            <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" 
+                                  stroke="#FF8F00" 
+                                  stroke-width="1.5" 
+                                  stroke-linecap="round" 
+                                  stroke-linejoin="round"/>
+                        </g>
+                    </g>
+                </svg>`;
+            } else {
+                // SIRENE AUS - Statische graue Glocke mit Fade-out
+                return `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+                    <style>
+                        /* Fade-out Animation beim Ausschalten */
+                        #alert_icon {
+                            animation: alert_fade_out 1000ms ease-out 1 normal forwards;
+                        }
+                        @keyframes alert_fade_out {
+                            0% {opacity: 1}
+                            100% {opacity: 0.4}
+                        }
+                    </style>
+                    
+                    <g id="alert_icon">
+                        <!-- Glocken-Körper (inaktiv, grau) -->
+                        <path d="M18 8.4C18 6.70261 17.3679 5.07475 16.2426 3.87452C15.1174 2.67428 13.5913 2 12 2C10.4087 2 8.88258 2.67428 7.75736 3.87452C6.63214 5.07475 6 6.70261 6 8.4C6 15.8667 3 18 3 18H21C21 18 18 15.8667 18 8.4Z" 
+                              stroke="#9E9E9E" 
+                              stroke-width="1.5" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                        
+                        <!-- Glocken-Klöppel (inaktiv, grau) -->
+                        <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" 
+                              stroke="#BDBDBD" 
+                              stroke-width="1.5" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </g>
+                </svg>`;
+            }
+        }
         
         
         if (item.custom_data?.ring_config) {
