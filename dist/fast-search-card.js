@@ -205,6 +205,67 @@ class MiniSearch {
 
 class FastSearchCard extends HTMLElement {
 
+    // NEU: Hinzufügen der animierten SVGs für Custom Binary Sensors
+    static DOOR_OPEN_ANIMATED_SVG = `<svg id="door_opening" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <style><![CDATA[ @keyframes door_left_open{0%,70%{transform:translateX(0);opacity:1}85%{transform:translateX(-1px);opacity:.9}100%{transform:translateX(-1.5px);opacity:.8}}#door_frame{animation:door_left_open 2s ease-out infinite;transform-origin:2px 12px}#door_opening_side{transform:translateX(-10px)} ]]></style>
+      <path id="door_frame" d="M2 18V6C2 4.34315 3.34315 3 5 3H7C8.65685 3 10 4.34315 10 6V18C10 19.6569 8.65685 21 7 21H5C3.34315 21 2 19.6569 2 18Z" stroke="#388E3C" fill="rgba(56, 142, 60, 0.1)" stroke-width="1.5"/>
+      <path id="door_opening_side" d="M16 3H18C20.2091 3 22 4.79086 22 7V17C22 19.2091 20.2091 21 18 21H16" stroke="#388E3C" fill="rgba(56, 142, 60, 0.05)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+    static DOOR_CLOSED_ANIMATED_SVG = `<svg id="door_opening" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <style><![CDATA[ @keyframes door_close{0%{transform:translateX(-1.5px);opacity:.8}100%{transform:translateX(0);opacity:.4}}@keyframes door_side_close{0%{transform:translateX(-10px);opacity:1}100%{transform:translateX(-5px);opacity:0}}#door_frame{animation:door_close 1.5s ease-out forwards;transform-origin:2px 12px}#door_opening_side{animation:door_side_close 1.5s ease-out forwards;transform-origin:16px 12px} ]]></style>
+      <path id="door_frame" d="M2 18V6C2 4.34315 3.34315 3 5 3H7C8.65685 3 10 4.34315 10 6V18C10 19.6569 8.65685 21 7 21H5C3.34315 21 2 19.6569 2 18Z" stroke="#B0BEC5" fill="rgba(176, 190, 197, 0.1)" stroke-width="1.5"/>
+      <path id="door_opening_side" d="M16 3H18C20.2091 3 22 4.79086 22 7V17C22 19.2091 20.2091 21 18 21H16" stroke="#B0BEC5" fill="rgba(176, 190, 197, 0.05)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+    static LOCK_UNLOCKED_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+      <style><![CDATA[ @keyframes shackle_opening{0%{transform:rotate(0)}100%{transform:rotate(45deg)}}#shackle{animation:shackle_opening 2s ease-out 1 normal forwards;transform-origin:16px 12px} ]]></style>
+      <path d="M16 12H17.4C17.7314 12 18 12.2686 18 12.6V19.4C18 19.7314 17.7314 20 17.4 20H6.6C6.26863 20 6 19.7314 6 19.4V12.6C6 12.2686 6.26863 12 6.6 12H8M16 12H8" stroke="#FFD54F" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="shackle" d="M16 12V8C16 6.66667 15.2 4 12 4C8.8 4 8 6.66667 8 8V12" stroke="#1976D2" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+    static LOCK_LOCKED_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+      <style><![CDATA[ @keyframes shackle_closing{0%{transform:rotate(45deg)}100%{transform:rotate(0)}}#shackle{animation:shackle_closing 2s ease-out 1 normal forwards;transform-origin:16px 12px} ]]></style>
+      <path d="M16 12H17.4C17.7314 12 18 12.2686 18 12.6V19.4C18 19.7314 17.7314 20 17.4 20H6.6C6.26863 20 6 19.7314 6 19.4V12.6C6 12.2686 6.26863 12 6.6 12H8M16 12H8" stroke="#FFD54F" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="shackle" d="M16 12V8C16 6.66667 15.2 4 12 4C8.8 4 8 6.66667 8 8V12" stroke="#1976D2" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+    static MOTION_ON_ANIMATED_SVG = `<svg id="motion_icon" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <style><![CDATA[ @keyframes motion_wave{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}#motion_diamond1{animation:motion_wave 2s ease-in-out infinite;animation-delay:0s;transform-origin:8px 12px}#motion_diamond2{animation:motion_wave 2s ease-in-out infinite;animation-delay:300ms;transform-origin:15.4px 12px}#motion_diamond3{animation:motion_wave 2s ease-in-out infinite;animation-delay:600ms;transform-origin:19.4px 12px}#motion_icon{filter:drop-shadow(0 0 2px rgba(66,165,245,.3))} ]]></style>
+      <path id="motion_diamond1" d="M13.8476 13.317L9.50515 18.2798C8.70833 19.1905 7.29167 19.1905 6.49485 18.2798L2.15238 13.317C1.49259 12.563 1.49259 11.437 2.15238 10.683L6.49485 5.72018C7.29167 4.80952 8.70833 4.80952 9.50515 5.72017L13.8476 10.683C14.5074 11.437 14.5074 12.563 13.8476 13.317Z" stroke="#42A5F5" fill="rgba(66, 165, 245, 0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="motion_diamond2" d="M13 19L17.8844 13.3016C18.5263 12.5526 18.5263 11.4474 17.8844 10.6984L13 5" stroke="#42A5F5" fill="rgba(66, 165, 245, 0.1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="motion_diamond3" d="M17 19L21.8844 13.3016C22.5263 12.5526 22.5263 11.4474 21.8844 10.6984L17 5" stroke="#42A5F5" fill="rgba(66, 165, 245, 0.05)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+    static MOTION_OFF_ANIMATED_SVG = `<svg id="motion_icon" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <style><![CDATA[ @keyframes motion_stay_visible{0%{opacity:1;transform:scale(1)}100%{opacity:.6;transform:scale(.98)}}@keyframes motion_fade_away{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9)}}#motion_diamond1{animation:motion_stay_visible 1.2s ease-out forwards;animation-delay:0s;transform-origin:center}#motion_diamond2{animation:motion_fade_away 1.2s ease-out forwards;animation-delay:200ms;transform-origin:center}#motion_diamond3{animation:motion_fade_away 1.2s ease-out forwards;animation-delay:400ms;transform-origin:center}#motion_icon{filter:none} ]]></style>
+      <path id="motion_diamond1" d="M13.8476 13.317L9.50515 18.2798C8.70833 19.1905 7.29167 19.1905 6.49485 18.2798L2.15238 13.317C1.49259 12.563 1.49259 11.437 2.15238 10.683L6.49485 5.72018C7.29167 4.80952 8.70833 4.80952 9.50515 5.72017L13.8476 10.683C14.5074 11.437 14.5074 12.563 13.8476 13.317Z" stroke="#B0BEC5" fill="rgba(176, 190, 197, 0.1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="motion_diamond2" d="M13 19L17.8844 13.3016C18.5263 12.5526 18.5263 11.4474 17.8844 10.6984L13 5" stroke="#B0BEC5" fill="rgba(176, 190, 197, 0.05)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="motion_diamond3" d="M17 19L21.8844 13.3016C22.5263 12.5526 22.5263 11.4474 21.8844 10.6984L17 5" stroke="#B0BEC5" fill="rgba(176, 190, 197, 0.02)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+    static PRESENCE_ON_ANIMATED_SVG = `<svg id="presence_sensor" width="39px" height="39px" viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <style><![CDATA[ @keyframes presence_pulse_outer{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}}@keyframes presence_pulse_middle{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.9;transform:scale(1.08)}}@keyframes presence_detected{0%,100%{opacity:.8;transform:scale(1)}50%{opacity:1;transform:scale(1.03)}}#outer_ring{animation:presence_pulse_outer 3s ease-in-out infinite;transform-origin:12px 11px}#middle_ring{animation:presence_pulse_middle 3s ease-in-out infinite;animation-delay:400ms;transform-origin:12px 11px}#person_figure{animation:presence_detected 3s ease-in-out infinite;animation-delay:800ms;transform-origin:12px 18px}#presence_sensor{filter:drop-shadow(0 0 3px rgba(66,165,245,.4))} ]]></style>
+      <path id="outer_ring" d="M6 19.0007C3.57111 17.1763 2 14.2716 2 11C2 5.47715 6.47715 1 12 1C17.5228 1 22 5.47715 22 11C22 14.2716 20.4289 17.1763 18 19.0007" stroke="#42A5F5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="middle_ring" d="M7.52779 15C6.57771 13.9385 6 12.5367 6 11C6 7.68629 8.68629 5 12 5C15.3137 5 18 7.68629 18 11C18 12.5367 17.4223 13.9385 16.4722 15" stroke="#42A5F5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <g id="person_figure">
+        <path d="M12 13C13.1046 13 14 12.1046 14 11C14 9.89543 13.1046 9 12 9C10.8954 9 10 9.89543 10 11C10 12.1046 10.8954 13 12 13Z" stroke="#42A5F5" fill="rgba(66, 165, 245, 0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10.076 16.2827L10.8906 15.7396C11.5624 15.2917 12.4376 15.2917 13.1094 15.7396L13.924 16.2827C14.5789 16.7192 14.9168 17.4993 14.7874 18.2756L14.2785 21.3288C14.1178 22.2932 13.2834 23 12.3057 23H11.6943C10.7166 23 9.8822 22.2932 9.72147 21.3288L9.2126 18.2756C9.08321 17.4993 9.42114 16.7192 10.076 16.2827Z" stroke="#42A5F5" fill="rgba(66, 165, 245, 0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </svg>`;
+
+    static PRESENCE_OFF_ANIMATED_SVG = `<svg id="presence_sensor" width="39px" height="39px" viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <style><![CDATA[ @keyframes presence_fade_out{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.95)}}@keyframes presence_stay_visible{0%{opacity:1;transform:scale(1)}100%{opacity:.4;transform:scale(.98)}}#outer_ring{animation:presence_fade_out 1.5s ease-out forwards;animation-delay:0s;transform-origin:12px 11px}#middle_ring{animation:presence_fade_out 1.5s ease-out forwards;animation-delay:200ms;transform-origin:12px 11px}#person_figure{animation:presence_stay_visible 1.5s ease-out forwards;animation-delay:400ms;transform-origin:12px 18px}#presence_sensor{filter:none} ]]></style>
+      <path id="outer_ring" d="M6 19.0007C3.57111 17.1763 2 14.2716 2 11C2 5.47715 6.47715 1 12 1C17.5228 1 22 5.47715 22 11C22 14.2716 20.4289 17.1763 18 19.0007" stroke="#B0BEC5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="middle_ring" d="M7.52779 15C6.57771 13.9385 6 12.5367 6 11C6 7.68629 8.68629 5 12 5C15.3137 5 18 7.68629 18 11C18 12.5367 17.4223 13.9385 16.4722 15" stroke="#B0BEC5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <g id="person_figure">
+        <path d="M12 13C13.1046 13 14 12.1046 14 11C14 9.89543 13.1046 9 12 9C10.8954 9 10 9.89543 10 11C10 12.1046 10.8954 13 12 13Z" stroke="#B0BEC5" fill="rgba(176, 190, 197, 0.1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10.076 16.2827L10.8906 15.7396C11.5624 15.2917 12.4376 15.2917 13.1094 15.7396L13.924 16.2827C14.5789 16.7192 14.9168 17.4993 14.7874 18.2756L14.2785 21.3288C14.1178 22.2932 13.2834 23 12.3057 23H11.6943C10.7166 23 9.8822 22.2932 9.72147 21.3288L9.2126 18.2756C9.08321 17.4993 9.42114 16.7192 10.076 16.2827Z" stroke="#B0BEC5" fill="rgba(176, 190, 197, 0.05)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </svg>`;
+
+
+
     // NEU: Alle weiteren animierten SVGs als Konstanten definieren
     static LIGHT_ON_ANIMATED_SVG = `<svg width="39px" height="39px" stroke-width="1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <style>@keyframes bulbGlow{0%{stroke:#FFD54F;filter:drop-shadow(0 0 0 #FFD54F);transform:scale(1)}50%{stroke:#FFD54F;filter:drop-shadow(0 0 8px #FFD54F);transform:scale(1.05)}100%{stroke:#FFD54F;filter:drop-shadow(0 0 2px #FFD54F);transform:scale(1)}}@keyframes fadeInStep2{0%{opacity:0;transform:translateY(2px)}100%{opacity:1;transform:translateY(0)}}@keyframes fadeInStep3{0%{opacity:0;transform:translateY(2px)}100%{opacity:1;transform:translateY(0)}}#segment1{animation:bulbGlow 1s ease-in-out 1;transform-origin:center}#segment2{opacity:0;animation:fadeInStep2 1s ease-out 300ms forwards}#segment3{opacity:0;animation:fadeInStep3 1s ease-out 600ms forwards}</style>
@@ -11505,54 +11566,76 @@ class FastSearchCard extends HTMLElement {
             return item.attributes.icon_hue;
         }
     
-        // Licht
+        // ==========================================================
+        // ANFANG DER NEUEN LOGIK: Custom Binary Sensors
+        // ==========================================================
+        if (item.domain === 'custom' && item.custom_data?.type === 'auto_sensor') {
+            const state = this._hass.states[item.id];
+            if (state) {
+                const deviceClass = state.attributes.device_class;
+    
+                // Logik für Tür-Sensor
+                if (deviceClass === 'door' || deviceClass === 'window') {
+                    // 'on' bedeutet offen
+                    return state.state === 'on' ? FastSearchCard.DOOR_OPEN_ANIMATED_SVG : FastSearchCard.DOOR_CLOSED_ANIMATED_SVG;
+                }
+    
+                // Logik für Schloss
+                if (deviceClass === 'lock') {
+                    // 'unlocked' ist der "aktive" Zustand, 'locked' der inaktive
+                    return state.state === 'unlocked' ? FastSearchCard.LOCK_UNLOCKED_ANIMATED_SVG : FastSearchCard.LOCK_LOCKED_ANIMATED_SVG;
+                }
+    
+                // Logik für Bewegungsmelder
+                if (deviceClass === 'motion') {
+                    return state.state === 'on' ? FastSearchCard.MOTION_ON_ANIMATED_SVG : FastSearchCard.MOTION_OFF_ANIMATED_SVG;
+                }
+    
+                // Logik für Anwesenheitssensor
+                if (deviceClass === 'presence' || deviceClass === 'occupancy') {
+                    return state.state === 'on' ? FastSearchCard.PRESENCE_ON_ANIMATED_SVG : FastSearchCard.PRESENCE_OFF_ANIMATED_SVG;
+                }
+            }
+        }
+        // ==========================================================
+        // ENDE DER NEUEN LOGIK
+        // ==========================================================
+    
+        // Bestehende Logik für animierte Icons (light, cover, etc.)
         if (item.domain === 'light') {
             const state = this._hass.states[item.id];
             return state?.state === 'on' ? FastSearchCard.LIGHT_ON_ANIMATED_SVG : FastSearchCard.LIGHT_OFF_ANIMATED_SVG;
         }
-    
-        // Cover (mit device_class Logik)
         if (item.domain === 'cover') {
             const state = this._hass.states[item.id];
             const deviceClass = state?.attributes?.device_class;
             const itemName = item.name.toLowerCase();
             const isActive = this.isEntityActive(state);
-    
             if (deviceClass === 'garage' || itemName.includes('garage') || itemName.includes('garagentor')) {
                 return isActive ? FastSearchCard.GARAGE_OPEN_ANIMATED_SVG : FastSearchCard.GARAGE_CLOSED_ANIMATED_SVG;
-            } 
-            else if (deviceClass === 'shutter' || deviceClass === 'blind' || itemName.includes('rollladen')) {
+            } else if (deviceClass === 'shutter' || deviceClass === 'blind' || itemName.includes('rollladen')) {
                 return isActive ? FastSearchCard.SHUTTER_OPEN_ANIMATED_SVG : FastSearchCard.SHUTTER_CLOSED_ANIMATED_SVG;
             }
-            // Fallback für generische Cover
             return isActive ? FastSearchCard.COVER_OPEN_SVG : FastSearchCard.COVER_CLOSED_SVG;
         }
-    
-        // Klima
         if (item.domain === 'climate') {
             const state = this._hass.states[item.id];
             return state?.state !== 'off' ? FastSearchCard.CLIMATE_ON_ANIMATED_SVG : FastSearchCard.CLIMATE_OFF_ANIMATED_SVG;
         }
-    
-        // Sirene
         if (item.domain === 'siren') {
             const state = this._hass.states[item.id];
             return state?.state === 'on' ? FastSearchCard.SIREN_ON_ANIMATED_SVG : FastSearchCard.SIREN_OFF_ANIMATED_SVG;
         }
-    
-        // Media Player (mit device_class Logik)
         if (item.domain === 'media_player') {
             const state = this._hass.states[item.id];
             if (state) {
                 const deviceClass = state.attributes.device_class;
                 const isActive = this.isEntityActive(state);
-    
                 if (deviceClass === 'tv') {
                     return isActive ? FastSearchCard.TV_ON_ANIMATED_SVG : FastSearchCard.TV_OFF_ANIMATED_SVG;
                 } else if (deviceClass === 'speaker') {
                     return isActive ? FastSearchCard.SPEAKER_ON_ANIMATED_SVG : FastSearchCard.SPEAKER_OFF_ANIMATED_SVG;
                 } else {
-                    // Fallback für generische Media Player
                     if (state.state === 'playing') return FastSearchCard.MEDIA_PAUSE_SVG;
                     if (state.state === 'paused') return FastSearchCard.MEDIA_PLAY_SVG;
                     return FastSearchCard.MEDIA_STOP_SVG;
@@ -11561,7 +11644,7 @@ class FastSearchCard extends HTMLElement {
             return FastSearchCard.MEDIA_STOP_SVG;
         }
     
-        // Ring-Tile Logik
+        // Bestehende Logik für Ring-Tile (wird als Fallback für andere Sensoren verwendet)
         if (item.custom_data?.ring_config) {
             const ringIcon = this.createRingTileIcon(item);
             if (ringIcon) { return ringIcon; }
