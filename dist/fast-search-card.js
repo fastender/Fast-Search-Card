@@ -11571,9 +11571,154 @@ class FastSearchCard extends HTMLElement {
         if (item.domain === 'cover') {
             const state = this._hass.states[item.id];
             const deviceClass = state?.attributes?.device_class;
+            const itemName = item.name.toLowerCase();
             
+            // Spezielle Behandlung für Garagentore
+            if (deviceClass === 'garage' || itemName.includes('garage') || itemName.includes('garagentor')) {
+                const isOpen = state?.state === 'open';
+                const isClosed = state?.state === 'closed';
+                
+                if (isOpen) {
+                    // GARAGENTOR OFFEN - Lamellen verschwinden von unten nach oben
+                    return `<svg id="garage_door_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <style>
+                            /* Garagentor öffnet sich - von unten nach oben */
+                            #bottom_slat_fill {
+                                animation: fade_out_bottom 2000ms ease-in-out forwards;
+                                animation-delay: 500ms;
+                                opacity: 1;
+                            }
+                            
+                            #middle_slat_fill {
+                                animation: fade_out_middle 2000ms ease-in-out forwards;
+                                animation-delay: 1000ms;
+                                opacity: 1;
+                            }
+                            
+                            #top_slat_fill {
+                                animation: fade_out_top 2000ms ease-in-out forwards;
+                                animation-delay: 1500ms;
+                                opacity: 1;
+                            }
+                            
+                            @keyframes fade_out_bottom {
+                                0% { opacity: 1; }
+                                25% { opacity: 0; }
+                                100% { opacity: 0; }
+                            }
+                            
+                            @keyframes fade_out_middle {
+                                0% { opacity: 1; }
+                                25% { opacity: 0; }
+                                100% { opacity: 0; }
+                            }
+                            
+                            @keyframes fade_out_top {
+                                0% { opacity: 1; }
+                                25% { opacity: 0; }
+                                100% { opacity: 0; }
+                            }
+                            
+                            /* Glow-Effekt für aktives Garagentor */
+                            #garage_door_system {
+                                filter: drop-shadow(0 0 2px rgba(93, 64, 55, 0.4));
+                            }
+                        </style>
+                        
+                        <!-- Grundstruktur/Rahmen (Waldgrün) -->
+                        <path d="M6 20H3V6L12 4L21 6V20H18M6 20H18M6 20V16M18 20V16M6 12V8L18 8V12M6 12L18 12M6 12V16M18 12V16M6 16H18" 
+                              stroke="#388E3C" 
+                              stroke-width="1.5" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                        
+                        <!-- Lamellen-Füllungen -->
+                        <!-- Oberste Lamelle (8-12) -->
+                        <rect id="top_slat_fill" 
+                              x="6" y="8" width="12" height="4" 
+                              fill="rgba(56, 142, 60, 0.3)" 
+                              stroke="none"/>
+                        
+                        <!-- Mittlere Lamelle (12-16) -->
+                        <rect id="middle_slat_fill" 
+                              x="6" y="12" width="12" height="4" 
+                              fill="rgba(56, 142, 60, 0.3)" 
+                              stroke="none"/>
+                        
+                        <!-- Untere Lamelle (16-20) -->
+                        <rect id="bottom_slat_fill" 
+                              x="6" y="16" width="12" height="4" 
+                              fill="rgba(56, 142, 60, 0.3)" 
+                              stroke="none"/>
+                    </svg>`;
+                } else if (isClosed) {
+                    // GARAGENTOR GESCHLOSSEN - Lamellen erscheinen von oben nach unten
+                    return `<svg id="garage_door_system" width="39px" height="39px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <style>
+                            /* Garagentor schließt sich - von oben nach unten */
+                            #top_slat_fill {
+                                animation: fade_in_top 2000ms ease-in-out forwards;
+                                animation-delay: 500ms;
+                                opacity: 0;
+                            }
+                            
+                            #middle_slat_fill {
+                                animation: fade_in_middle 2000ms ease-in-out forwards;
+                                animation-delay: 1000ms;
+                                opacity: 0;
+                            }
+                            
+                            #bottom_slat_fill {
+                                animation: fade_in_bottom 2000ms ease-in-out forwards;
+                                animation-delay: 1500ms;
+                                opacity: 0;
+                            }
+                            
+                            @keyframes fade_in_top {
+                                0% { opacity: 0; }
+                                25% { opacity: 1; }
+                                100% { opacity: 1; }
+                            }
+                            
+                            @keyframes fade_in_middle {
+                                0% { opacity: 0; }
+                                25% { opacity: 1; }
+                                100% { opacity: 1; }
+                            }
+                            
+                            @keyframes fade_in_bottom {
+                                0% { opacity: 0; }
+                                25% { opacity: 1; }
+                                100% { opacity: 1; }
+                            }
+                            
+                            /* Kein Glow-Effekt im geschlossenen Zustand */
+                            #garage_door_system {
+                                filter: none;
+                            }
+                        </style>
+                        
+                        <!-- Grundstruktur/Rahmen (Silber) -->
+                        <path d="M6 20H3V6L12 4L21 6V20H18M6 20H18M6 20V16M18 20V16M6 12V8L18 8V12M6 12L18 12M6 12V16M18 12V16M6 16H18" 
+                              stroke="#B0BEC5" 
+                              stroke-width="1.5" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                        
+                        <!-- Lamellen-Füllungen -->
+                        <!-- Oberste Lamelle (8-12) -->
+                        <rect id="top_slat_fill" x="6" y="8" width="12" height="4" fill="rgba(176, 190, 197, 0.3)" stroke="none"/>
+                        
+                        <!-- Mittlere Lamelle (12-16) -->
+                        <rect id="middle_slat_fill" x="6" y="12" width="12" height="4" fill="rgba(176, 190, 197, 0.3)" stroke="none"/>
+                        
+                        <!-- Untere Lamelle (16-20) -->
+                        <rect id="bottom_slat_fill" x="6" y="16" width="12" height="4" fill="rgba(176, 190, 197, 0.3)" stroke="none"/>
+                    </svg>`;
+                }
+            }
             // Spezielle Behandlung für Rollläden
-            if (deviceClass === 'shutter' || deviceClass === 'blind' || item.name.toLowerCase().includes('rollladen')) {
+            else if (deviceClass === 'shutter' || deviceClass === 'blind' || itemName.includes('rollladen')) {
                 const isOpen = state?.state === 'open';
                 const isClosed = state?.state === 'closed';
                 
@@ -11733,6 +11878,7 @@ class FastSearchCard extends HTMLElement {
             // Fallback für andere Cover-Arten (die bestehenden COVER_OPEN_SVG und COVER_CLOSED_SVG)
             return item.isActive ? FastSearchCard.COVER_OPEN_SVG : FastSearchCard.COVER_CLOSED_SVG;
         }
+
         
         
         if (item.custom_data?.ring_config) {
