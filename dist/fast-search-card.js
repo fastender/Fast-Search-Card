@@ -16498,6 +16498,847 @@ class FastSearchCard extends HTMLElement {
 
     }        
 
+
+    // ===============================================
+    // DISHWASHER CONTROLS IMPLEMENTATION
+    // Für fast-search-card.js
+    // ===============================================
+    
+    // 1. Haupt-Methode: HTML für Dishwasher Controls generieren
+    getDishwasherControlsHTML(item) {
+        console.log('🍽️ Generating dishwasher controls for:', item.id);
+        
+        // Extrahiere Entities basierend auf der Haupt-Entity
+        const entities = this.getDishwasherEntities(item.id);
+        console.log('🔍 Found dishwasher entities:', entities);
+        
+        // Hole aktuelle States
+        const powerState = entities.power ? this._hass.states[entities.power] : null;
+        const operationState = entities.operation_state ? this._hass.states[entities.operation_state] : null;
+        const progressState = entities.progress ? this._hass.states[entities.progress] : null;
+        const selectedProgramState = entities.selected_program ? this._hass.states[entities.selected_program] : null;
+        
+        // Status-Informationen
+        const isPoweredOn = powerState?.state === 'on';
+        const currentOperation = operationState?.state || 'Unbekannt';
+        const currentProgress = progressState?.state ? parseInt(progressState.state) : 0;
+        const isRunning = ['run', 'delayedstart'].includes(currentOperation.toLowerCase());
+        
+        // Ring-Farbe basierend auf Status
+        let ringColor = '--primary-color';
+        if (!isPoweredOn) ringColor = '--disabled-color';
+        else if (currentOperation.toLowerCase() === 'finished') ringColor = '--success-color';
+        else if (currentOperation.toLowerCase() === 'error') ringColor = '--error-color';
+        else if (isRunning) ringColor = '--accent-color';
+        
+        const html = `
+            <div class="device-control-container dishwasher-control" id="device-control-${item.id}">
+                <!-- Header mit Ring Tile -->
+                <div class="device-control-header">
+                    <div class="device-ring-container">
+                        <!-- Power Ring (äußerer Ring) -->
+                        <div class="device-ring power-ring ${isPoweredOn ? 'active' : ''}" 
+                             data-action="toggle-power" 
+                             data-entity="${entities.power || ''}"
+                             style="--ring-color: ${ringColor}">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" class="ring-background"/>
+                                <circle cx="50" cy="50" r="45" class="ring-progress" 
+                                        style="stroke-dasharray: 283; stroke-dashoffset: ${283 - (currentProgress * 283 / 100)}"/>
+                            </svg>
+                            
+                            <!-- Power Icon -->
+                            <div class="ring-icon">
+                                <svg viewBox="0 0 24 24" stroke-width="2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.12 0 4.07.74 5.61 1.97" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            
+                            <!-- Progress Overlay (nur bei laufendem Programm) -->
+                            ${isRunning && progressState ? `
+                                <div class="ring-progress-text">
+                                    <span class="progress-percentage">${currentProgress}%</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <!-- Status Text -->
+                        <div class="device-status">
+                            <div class="device-name">${item.name}</div>
+                            <div class="device-state">${this.translateOperationState(currentOperation)}</div>
+                            ${entities.finish_time && isRunning ? `
+                                <div class="device-finish-time">Fertig: ${this.formatFinishTime(this._hass.states[entities.finish_time]?.state)}</div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="device-control-actions">
+                    <!-- Start/Delay Button -->
+                    ${entities.start_delay ? `
+                        <button class="device-control-button" data-action="toggle-start" title="Verzögerter Start">
+                            <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <polygon points="5,3 19,12 5,21" fill="currentColor"/>
+                                <circle cx="12" cy="12" r="2" stroke="currentColor" stroke-width="1" fill="none"/>
+                            </svg>
+                        </button>
+                    ` : ''}
+                    
+                    <!-- Stop Button -->
+                    ${entities.stop_button ? `
+                        <button class="device-control-button" data-action="stop-program" 
+                                title="Programm stoppen" ${!isRunning ? 'disabled' : ''}>
+                            <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="6" y="6" width="12" height="12" fill="currentColor"/>
+                            </svg>
+                        </button>
+                    ` : ''}
+                    
+                    <!-- Filter/Settings Button -->
+                    <button class="device-control-button" data-action="toggle-settings" title="Programme & Einstellungen">
+                        <svg viewBox="0 0 24 24" stroke-width="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1"/>
+                            <path d="M19.4 15A1.65 1.65 0 0 0 20.5 13.36L19.19 12L20.5 10.64A1.65 1.65 0 0 0 19.4 9L18.76 8.4C18.32 7.95 17.65 7.95 17.2 8.4L15.84 9.71L14.48 8.4C14.04 7.95 13.37 7.95 12.92 8.4L12.28 9C11.84 9.45 11.84 10.12 12.28 10.56L13.59 11.92L12.28 13.28C11.84 13.72 11.84 14.39 12.28 14.84L12.92 15.44C13.37 15.89 14.04 15.89 14.48 15.44L15.84 14.13L17.2 15.44C17.65 15.89 18.32 15.89 18.76 15.44L19.4 14.84C19.84 14.39 19.84 13.72 19.4 13.28Z" stroke="currentColor" stroke-width="1"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Filter Bereich 1: Programme -->
+                <div class="device-control-presets dishwasher-programs" data-is-open="false">
+                    <div class="presets-row">
+                        <h4>Programm wählen</h4>
+                        <div class="preset-buttons" id="dishwasher-programs-${item.id}">
+                            ${this.getDishwasherProgramButtons(entities)}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filter Bereich 2: Zusatzoptionen -->
+                <div class="device-control-presets dishwasher-options" data-is-open="false">
+                    <div class="presets-row">
+                        <h4>Weitere Optionen</h4>
+                        <div class="preset-buttons" id="dishwasher-options-${item.id}">
+                            ${this.getDishwasherOptionButtons(entities)}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Start Delay Dialog (versteckt) -->
+                ${entities.start_delay ? `
+                    <div class="dishwasher-delay-dialog" style="display: none;">
+                        <div class="delay-content">
+                            <h4>Verzögerter Start</h4>
+                            <div class="delay-options">
+                                <button class="delay-btn" data-delay="1800">30 Min</button>
+                                <button class="delay-btn" data-delay="3600">1 Std</button>
+                                <button class="delay-btn" data-delay="7200">2 Std</button>
+                                <button class="delay-btn" data-delay="14400">4 Std</button>
+                                <button class="delay-btn" data-delay="28800">8 Std</button>
+                                <button class="delay-btn" data-delay="0">Sofort</button>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        
+        console.log('🏗️ Generated dishwasher HTML for:', item.id);
+        return html;
+    }
+    
+    // 2. Entity Discovery - Finde alle relevanten Dishwasher Entities
+    getDishwasherEntities(mainEntityId) {
+        // Extrahiere Präfix aus der Haupt-Entity
+        const prefix = this.extractEntityPrefix(mainEntityId);
+        console.log('🔍 Extracted prefix:', prefix);
+        
+        const entities = {
+            power: mainEntityId, // Die gegebene Haupt-Entity
+        };
+        
+        // Suche nach verwandten Entities mit verschiedenen Patterns
+        const patterns = {
+            operation_state: ['operation_state', 'betrieb_zustand', 'status', 'state'],
+            progress: ['program_progress', 'fortschritt', 'progress'],
+            selected_program: ['ausgewahltes_programm', 'selected_program', 'active_program'],
+            start_delay: ['start_in_relativ', 'start_delay', 'delayed_start'],
+            stop_button: ['programm_stoppen', 'stop_program', 'stop'],
+            finish_time: ['finish_time', 'end_time', 'fertig_zeit'],
+            
+            // Zusatzoptionen (Switches)
+            extra_dry: ['extra_trocken', 'extra_dry', 'brilliance_dry'],
+            half_load: ['halbe_beladung', 'half_load', 'halbe_ladung'],
+            hygiene: ['hygiene', 'hygiene_plus'],
+            vario_speed: ['vario_speed', 'vario_speed_plus', 'speed_plus']
+        };
+        
+        // Durchsuche alle Patterns
+        for (const [key, patterns_array] of Object.entries(patterns)) {
+            entities[key] = this.findEntityByPatterns(prefix, patterns_array);
+            if (entities[key]) {
+                console.log(`✅ Found ${key}:`, entities[key]);
+            } else {
+                console.log(`❌ Missing ${key}`);
+            }
+        }
+        
+        return entities;
+    }
+    
+    // 3. Helper: Extrahiere Präfix aus Entity ID
+    extractEntityPrefix(entityId) {
+        // Beispiel: "switch.geschirrspuler_power" → "geschirrspuler"
+        const parts = entityId.split('.');
+        if (parts.length < 2) return '';
+        
+        const entityName = parts[1];
+        
+        // Verschiedene Trennzeichen versuchen
+        const separators = ['_power', '_main', '_control', ''];
+        for (const sep of separators) {
+            if (entityName.includes(sep)) {
+                return entityName.split(sep)[0];
+            }
+        }
+        
+        // Fallback: erster Teil vor dem ersten Unterstrich
+        return entityName.split('_')[0];
+    }
+    
+    // 4. Helper: Finde Entity nach Patterns
+    findEntityByPatterns(prefix, patterns) {
+        for (const pattern of patterns) {
+            // Versuche verschiedene Domain-Präfixe
+            const domains = ['sensor', 'switch', 'select', 'number', 'button'];
+            
+            for (const domain of domains) {
+                const entityId = `${domain}.${prefix}_${pattern}`;
+                if (this._hass.states[entityId]) {
+                    return entityId;
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    // 5. Generiere Programm-Buttons
+    getDishwasherProgramButtons(entities) {
+        if (!entities.selected_program) {
+            return '<div class="no-programs">Keine Programme verfügbar</div>';
+        }
+        
+        const programEntity = this._hass.states[entities.selected_program];
+        if (!programEntity || !programEntity.attributes.options) {
+            return '<div class="no-programs">Programme werden geladen...</div>';
+        }
+        
+        const currentProgram = programEntity.state;
+        
+        // Definierte Programme mit deutschen Namen und Icons
+        const programConfig = {
+            'Intensiv 70 °C': { icon: '🔥', description: 'Stark verschmutzt' },
+            'Eco 50 °C': { icon: '🌿', description: 'Energiesparend' },
+            'Auto 2': { icon: '🤖', description: 'Automatik' },
+            'Vorspülen': { icon: '💧', description: 'Vorspülung' },
+            'NightWash': { icon: '🌙', description: 'Leise' },
+            'Kurz 60 °C': { icon: '⚡', description: 'Schnell' },
+            'Maschinenpflege': { icon: '🔧', description: 'Reinigung' }
+        };
+        
+        let buttonsHTML = '';
+        
+        // Gehe durch verfügbare Optionen und filtere gewünschte Programme
+        for (const program of programEntity.attributes.options) {
+            if (programConfig[program]) {
+                const config = programConfig[program];
+                const isActive = currentProgram === program;
+                
+                buttonsHTML += `
+                    <button class="preset-btn ${isActive ? 'active' : ''}" 
+                            data-program="${program}" 
+                            title="${config.description}">
+                        <span class="program-icon">${config.icon}</span>
+                        <span class="program-name">${program}</span>
+                    </button>
+                `;
+            }
+        }
+        
+        if (!buttonsHTML) {
+            // Fallback: Zeige alle verfügbaren Programme
+            for (const program of programEntity.attributes.options) {
+                const isActive = currentProgram === program;
+                buttonsHTML += `
+                    <button class="preset-btn ${isActive ? 'active' : ''}" 
+                            data-program="${program}" 
+                            title="${program}">
+                        <span class="program-name">${program}</span>
+                    </button>
+                `;
+            }
+        }
+        
+        return buttonsHTML;
+    }
+    
+    // 6. Generiere Zusatzoptionen-Buttons
+    getDishwasherOptionButtons(entities) {
+        const options = [
+            { key: 'extra_dry', name: 'Extra Trocken', icon: '💨' },
+            { key: 'half_load', name: 'Halbe Beladung', icon: '📦' },
+            { key: 'hygiene', name: 'Hygiene+', icon: '🦠' },
+            { key: 'vario_speed', name: 'Vario Speed', icon: '⚡' }
+        ];
+        
+        let buttonsHTML = '';
+        
+        for (const option of options) {
+            if (entities[option.key]) {
+                const state = this._hass.states[entities[option.key]];
+                const isActive = state?.state === 'on';
+                
+                buttonsHTML += `
+                    <button class="preset-btn ${isActive ? 'active' : ''}" 
+                            data-option="${option.key}" 
+                            data-entity="${entities[option.key]}"
+                            title="${option.name}">
+                        <span class="option-icon">${option.icon}</span>
+                        <span class="option-name">${option.name}</span>
+                    </button>
+                `;
+            }
+        }
+        
+        if (!buttonsHTML) {
+            return '<div class="no-options">Keine Zusatzoptionen verfügbar</div>';
+        }
+        
+        return buttonsHTML;
+    }
+    
+    // 7. Helper: Übersetze Operation States
+    translateOperationState(state) {
+        const translations = {
+            'inactive': 'Inaktiv',
+            'ready': 'Bereit',
+            'delayedstart': 'Verzögerter Start',
+            'run': 'Läuft',
+            'pause': 'Pausiert',
+            'actionrequired': 'Aktion erforderlich',
+            'finished': 'Fertig',
+            'error': 'Fehler',
+            'aborting': 'Wird abgebrochen'
+        };
+        
+        return translations[state.toLowerCase()] || state;
+    }
+    
+    // 8. Helper: Formatiere Finish Time
+    formatFinishTime(finishTime) {
+        if (!finishTime) return '';
+        
+        try {
+            const date = new Date(finishTime);
+            return date.toLocaleTimeString('de-DE', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        } catch (e) {
+            return finishTime;
+        }
+    }
+
+
+
+
+    
+    // ===============================================
+    // DISHWASHER EVENT HANDLERS IMPLEMENTATION
+    // Für fast-search-card.js
+    // ===============================================
+    
+    // 1. Setup Event Handlers nach HTML-Generierung
+    setupDishwasherEventHandlers(item) {
+        console.log('🎮 Setting up dishwasher event handlers for:', item.id);
+        
+        const container = this.shadowRoot.querySelector(`#device-control-${item.id}`);
+        if (!container) {
+            console.error('❌ Dishwasher container not found for:', item.id);
+            return;
+        }
+        
+        const entities = this.getDishwasherEntities(item.id);
+        
+        // Power Ring Click Handler
+        this.setupPowerRingHandler(container, entities);
+        
+        // Action Buttons Handlers
+        this.setupActionButtonsHandlers(container, entities);
+        
+        // Program Selection Handlers
+        this.setupProgramHandlers(container, entities);
+        
+        // Options Handlers
+        this.setupOptionsHandlers(container, entities);
+        
+        // Delay Dialog Handlers
+        this.setupDelayDialogHandlers(container, entities);
+        
+        // Filter Toggle Handlers
+        this.setupFilterToggleHandlers(container);
+        
+        console.log('✅ Dishwasher event handlers setup complete');
+    }
+    
+    // 2. Power Ring Handler
+    setupPowerRingHandler(container, entities) {
+        const powerRing = container.querySelector('.device-ring[data-action="toggle-power"]');
+        if (!powerRing || !entities.power) return;
+        
+        powerRing.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            
+            const currentState = this._hass.states[entities.power];
+            const newState = currentState?.state === 'on' ? 'off' : 'on';
+            
+            console.log(`🔄 Toggling dishwasher power: ${currentState?.state} → ${newState}`);
+            
+            try {
+                // Power Ring Animation während des Schaltvorgangs
+                powerRing.classList.add('loading');
+                
+                await this._hass.callService('switch', newState === 'on' ? 'turn_on' : 'turn_off', {
+                    entity_id: entities.power
+                });
+                
+                // Kurze Verzögerung für visuelles Feedback
+                setTimeout(() => {
+                    powerRing.classList.remove('loading');
+                    this.updateDishwasherDisplay(container, entities);
+                }, 500);
+                
+            } catch (error) {
+                console.error('❌ Error toggling dishwasher power:', error);
+                powerRing.classList.remove('loading');
+                this.showErrorNotification('Fehler beim Schalten der Spülmaschine');
+            }
+        });
+    }
+    
+    // 3. Action Buttons Handlers
+    setupActionButtonsHandlers(container, entities) {
+        // Start/Delay Button
+        const startButton = container.querySelector('[data-action="toggle-start"]');
+        if (startButton && entities.start_delay) {
+            startButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showDelayDialog(container);
+            });
+        }
+        
+        // Stop Button
+        const stopButton = container.querySelector('[data-action="stop-program"]');
+        if (stopButton && entities.stop_button) {
+            stopButton.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                console.log('🛑 Stopping dishwasher program');
+                
+                try {
+                    stopButton.classList.add('loading');
+                    
+                    await this._hass.callService('button', 'press', {
+                        entity_id: entities.stop_button
+                    });
+                    
+                    setTimeout(() => {
+                        stopButton.classList.remove('loading');
+                        this.updateDishwasherDisplay(container, entities);
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('❌ Error stopping dishwasher:', error);
+                    stopButton.classList.remove('loading');
+                    this.showErrorNotification('Fehler beim Stoppen des Programms');
+                }
+            });
+        }
+        
+        // Settings Toggle Button
+        const settingsButton = container.querySelector('[data-action="toggle-settings"]');
+        if (settingsButton) {
+            settingsButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleDishwasherSettings(container);
+            });
+        }
+    }
+    
+    // 4. Program Selection Handlers
+    setupProgramHandlers(container, entities) {
+        if (!entities.selected_program) return;
+        
+        const programButtons = container.querySelectorAll('[data-program]');
+        
+        programButtons.forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                const selectedProgram = button.dataset.program;
+                console.log('📋 Selecting dishwasher program:', selectedProgram);
+                
+                try {
+                    // Visual Feedback
+                    button.classList.add('loading');
+                    
+                    // Wähle Programm aus
+                    await this._hass.callService('select', 'select_option', {
+                        entity_id: entities.selected_program,
+                        option: selectedProgram
+                    });
+                    
+                    // Update UI
+                    this.updateProgramSelection(container, selectedProgram);
+                    
+                    setTimeout(() => {
+                        button.classList.remove('loading');
+                    }, 500);
+                    
+                    console.log('✅ Program selected successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Error selecting program:', error);
+                    button.classList.remove('loading');
+                    this.showErrorNotification('Fehler beim Auswählen des Programms');
+                }
+            });
+        });
+    }
+    
+    // 5. Options Handlers (Zusatzoptionen)
+    setupOptionsHandlers(container, entities) {
+        const optionButtons = container.querySelectorAll('[data-option]');
+        
+        optionButtons.forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                const optionKey = button.dataset.option;
+                const entityId = button.dataset.entity;
+                
+                if (!entityId) return;
+                
+                const currentState = this._hass.states[entityId];
+                const newState = currentState?.state === 'on' ? 'off' : 'on';
+                
+                console.log(`🔄 Toggling dishwasher option ${optionKey}: ${currentState?.state} → ${newState}`);
+                
+                try {
+                    button.classList.add('loading');
+                    
+                    await this._hass.callService('switch', newState === 'on' ? 'turn_on' : 'turn_off', {
+                        entity_id: entityId
+                    });
+                    
+                    // Update Button State
+                    setTimeout(() => {
+                        button.classList.remove('loading');
+                        if (newState === 'on') {
+                            button.classList.add('active');
+                        } else {
+                            button.classList.remove('active');
+                        }
+                    }, 300);
+                    
+                } catch (error) {
+                    console.error('❌ Error toggling option:', error);
+                    button.classList.remove('loading');
+                    this.showErrorNotification('Fehler beim Ändern der Option');
+                }
+            });
+        });
+    }
+    
+    // 6. Delay Dialog Handlers
+    setupDelayDialogHandlers(container, entities) {
+        if (!entities.start_delay) return;
+        
+        const delayButtons = container.querySelectorAll('[data-delay]');
+        
+        delayButtons.forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                const delaySeconds = parseInt(button.dataset.delay);
+                console.log('⏰ Setting dishwasher delay:', delaySeconds, 'seconds');
+                
+                try {
+                    button.classList.add('loading');
+                    
+                    if (delaySeconds === 0) {
+                        // Sofort starten - nutze aktives Programm
+                        await this.startDishwasherProgram(entities);
+                    } else {
+                        // Verzögerten Start setzen
+                        await this._hass.callService('number', 'set_value', {
+                            entity_id: entities.start_delay,
+                            value: delaySeconds
+                        });
+                        
+                        // Nach kurzer Verzögerung das Programm starten
+                        setTimeout(async () => {
+                            await this.startDishwasherProgram(entities);
+                        }, 500);
+                    }
+                    
+                    // Dialog schließen
+                    this.hideDelayDialog(container);
+                    
+                    setTimeout(() => {
+                        button.classList.remove('loading');
+                        this.updateDishwasherDisplay(container, entities);
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('❌ Error setting delay:', error);
+                    button.classList.remove('loading');
+                    this.showErrorNotification('Fehler beim Setzen der Startzeit');
+                }
+            });
+        });
+    }
+    
+    // 7. Filter Toggle Handlers
+    setupFilterToggleHandlers(container) {
+        // Toggle für Programm-Filter
+        const programsFilter = container.querySelector('.dishwasher-programs');
+        const optionsFilter = container.querySelector('.dishwasher-options');
+        
+        // Event Delegation für dynamische Filter-Toggles
+        container.addEventListener('click', (e) => {
+            const settingsButton = e.target.closest('[data-action="toggle-settings"]');
+            if (settingsButton) {
+                e.stopPropagation();
+                
+                // Toggle beide Filter gleichzeitig
+                const isOpen = programsFilter?.dataset.isOpen === 'true';
+                
+                if (programsFilter) {
+                    programsFilter.dataset.isOpen = (!isOpen).toString();
+                }
+                if (optionsFilter) {
+                    optionsFilter.dataset.isOpen = (!isOpen).toString();
+                }
+                
+                // Animation
+                this.animateFilterToggle([programsFilter, optionsFilter], !isOpen);
+            }
+        });
+    }
+    
+    // 8. Helper: Start Dishwasher Program
+    async startDishwasherProgram(entities) {
+        if (!entities.selected_program) {
+            throw new Error('No program selected');
+        }
+        
+        const selectedProgramState = this._hass.states[entities.selected_program];
+        const currentProgram = selectedProgramState?.state;
+        
+        if (!currentProgram) {
+            throw new Error('No program currently selected');
+        }
+        
+        console.log('🚀 Starting dishwasher with program:', currentProgram);
+        
+        // Nutze Home Connect Service zum Starten
+        await this._hass.callService('home_connect', 'set_program_and_options', {
+            device_id: this.extractDeviceId(entities.power),
+            affects_to: 'active_program',
+            program: currentProgram
+        });
+    }
+    
+    // 9. Helper: Extract Device ID from Entity
+    extractDeviceId(entityId) {
+        // Für Home Connect Integration ist die Device ID oft im Format
+        // "device_id" vom Entity Registry
+        if (this._hass.entities && this._hass.entities[entityId]) {
+            return this._hass.entities[entityId].device_id;
+        }
+        
+        // Fallback: nutze Entity ID
+        return entityId;
+    }
+    
+    // 10. UI Update Helpers
+    updateDishwasherDisplay(container, entities) {
+        // Update Power Ring
+        const powerRing = container.querySelector('.device-ring');
+        const powerState = this._hass.states[entities.power];
+        const isPoweredOn = powerState?.state === 'on';
+        
+        if (powerRing) {
+            if (isPoweredOn) {
+                powerRing.classList.add('active');
+            } else {
+                powerRing.classList.remove('active');
+            }
+        }
+        
+        // Update Status Text
+        const statusElement = container.querySelector('.device-state');
+        if (statusElement && entities.operation_state) {
+            const operationState = this._hass.states[entities.operation_state];
+            if (operationState) {
+                statusElement.textContent = this.translateOperationState(operationState.state);
+            }
+        }
+        
+        // Update Progress Ring
+        const progressRing = container.querySelector('.ring-progress');
+        const progressText = container.querySelector('.progress-percentage');
+        
+        if (progressRing && entities.progress) {
+            const progressState = this._hass.states[entities.progress];
+            const progress = progressState ? parseInt(progressState.state) : 0;
+            
+            const circumference = 283; // 2 * π * 45
+            const offset = circumference - (progress * circumference / 100);
+            progressRing.style.strokeDashoffset = offset;
+            
+            if (progressText) {
+                progressText.textContent = `${progress}%`;
+            }
+        }
+    }
+    
+    updateProgramSelection(container, selectedProgram) {
+        const programButtons = container.querySelectorAll('[data-program]');
+        
+        programButtons.forEach(button => {
+            if (button.dataset.program === selectedProgram) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+    }
+    
+    // 11. Dialog Helpers
+    showDelayDialog(container) {
+        const dialog = container.querySelector('.dishwasher-delay-dialog');
+        if (dialog) {
+            dialog.style.display = 'block';
+            dialog.animate([
+                { opacity: 0, transform: 'scale(0.8)' },
+                { opacity: 1, transform: 'scale(1)' }
+            ], {
+                duration: 200,
+                easing: 'ease-out'
+            });
+        }
+    }
+    
+    hideDelayDialog(container) {
+        const dialog = container.querySelector('.dishwasher-delay-dialog');
+        if (dialog) {
+            const animation = dialog.animate([
+                { opacity: 1, transform: 'scale(1)' },
+                { opacity: 0, transform: 'scale(0.8)' }
+            ], {
+                duration: 200,
+                easing: 'ease-in'
+            });
+            
+            animation.onfinish = () => {
+                dialog.style.display = 'none';
+            };
+        }
+    }
+    
+    toggleDishwasherSettings(container) {
+        const programsFilter = container.querySelector('.dishwasher-programs');
+        const optionsFilter = container.querySelector('.dishwasher-options');
+        
+        if (programsFilter && optionsFilter) {
+            const isOpen = programsFilter.dataset.isOpen === 'true';
+            const newState = !isOpen;
+            
+            programsFilter.dataset.isOpen = newState.toString();
+            optionsFilter.dataset.isOpen = newState.toString();
+            
+            this.animateFilterToggle([programsFilter, optionsFilter], newState);
+        }
+    }
+    
+    animateFilterToggle(filters, isOpen) {
+        filters.forEach(filter => {
+            if (!filter) return;
+            
+            if (isOpen) {
+                filter.style.display = 'block';
+                filter.animate([
+                    { opacity: 0, maxHeight: '0px' },
+                    { opacity: 1, maxHeight: '200px' }
+                ], {
+                    duration: 300,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+            } else {
+                const animation = filter.animate([
+                    { opacity: 1, maxHeight: '200px' },
+                    { opacity: 0, maxHeight: '0px' }
+                ], {
+                    duration: 300,
+                    easing: 'ease-in',
+                    fill: 'forwards'
+                });
+                
+                animation.onfinish = () => {
+                    filter.style.display = 'none';
+                };
+            }
+        });
+    }
+    
+    // 12. Error Notification Helper
+    showErrorNotification(message) {
+        // Nutze Toast/Notification System der Card
+        console.error('🚨', message);
+        
+        // Optional: Zeige visuelles Feedback
+        const notification = document.createElement('div');
+        notification.className = 'error-notification';
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--error-color, #ff5252);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+    
+
+
+
+
+    
     setupVacuumControls(item) {
         console.log('🤖 setupVacuumControls called for:', item.id);
         
@@ -17004,7 +17845,11 @@ class FastSearchCard extends HTMLElement {
         return labels[speed] || speed;
     }
 
-
+    isDishwasher(item) {
+        const dishwasherKeywords = ['dishwasher', 'geschirrspuler', 'spulmaschine', 'spülmaschine'];
+        const itemName = (item.name || item.id).toLowerCase();
+        return dishwasherKeywords.some(keyword => itemName.includes(keyword));
+    }
 
 
     async loadVacuumSegments(item) {
@@ -18242,7 +19087,9 @@ class FastSearchCard extends HTMLElement {
             this.setupMediaPlayerControls(item);
         } else if (item.domain === 'vacuum') {
             this.setupVacuumControls(item);  // ← NEU HINZUFÜGEN
-        }
+        } else if (item.domain === 'switch' && this.isDishwasher(item)) {
+            this.setupDishwasherEventHandlers(item);
+        }        
     
         // History Event Listeners hinzufügen  ← HIER EINFÜGEN
         this.setupHistoryEventListeners(item);
