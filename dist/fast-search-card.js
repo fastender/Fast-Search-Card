@@ -5695,6 +5695,490 @@ class FastSearchCard extends HTMLElement {
                 border-color: #00A8E6;
             }
             
+
+
+            /* ===============================================
+               DISHWASHER CONTROLS CSS STYLES
+               Für fast-search-card.js - In die render() Methode einfügen
+               =============================================== */
+            
+            /* 1. DISHWASHER CONTAINER */
+            .dishwasher-control {
+                --dishwasher-primary: var(--accent-color, #4CAF50);
+                --dishwasher-secondary: var(--primary-color, #2196F3);
+                --dishwasher-background: var(--card-background-color, #1f1f1f);
+                --dishwasher-text: var(--primary-text-color, #ffffff);
+                --dishwasher-border: var(--divider-color, #333);
+            }
+            
+            /* 2. POWER RING SPEZIFISCH FÜR DISHWASHER */
+            .dishwasher-control .device-ring-container {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            
+            .dishwasher-control .device-ring {
+                position: relative;
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .dishwasher-control .device-ring:hover {
+                transform: scale(1.05);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            }
+            
+            .dishwasher-control .device-ring.active {
+                border-color: var(--dishwasher-primary);
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            }
+            
+            .dishwasher-control .device-ring.loading {
+                animation: dishwasher-pulse 1.5s ease-in-out infinite;
+                pointer-events: none;
+            }
+            
+            /* 3. RING SVG PROGRESS */
+            .dishwasher-control .ring-svg {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                transform: rotate(-90deg);
+                z-index: 1;
+            }
+            
+            .dishwasher-control .ring-background {
+                fill: none;
+                stroke: rgba(255, 255, 255, 0.1);
+                stroke-width: 3;
+            }
+            
+            .dishwasher-control .ring-progress {
+                fill: none;
+                stroke: var(--dishwasher-primary);
+                stroke-width: 4;
+                stroke-linecap: round;
+                transition: stroke-dashoffset 0.5s ease-in-out;
+                filter: drop-shadow(0 0 6px rgba(76, 175, 80, 0.5));
+            }
+            
+            /* 4. RING ICON & CONTENT */
+            .dishwasher-control .ring-icon {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 2;
+                width: 32px;
+                height: 32px;
+                color: var(--dishwasher-text);
+                transition: all 0.3s ease;
+            }
+            
+            .dishwasher-control .device-ring:hover .ring-icon {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            
+            .dishwasher-control .ring-progress-text {
+                position: absolute;
+                top: 65%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 2;
+                text-align: center;
+            }
+            
+            .dishwasher-control .progress-percentage {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--dishwasher-primary);
+                text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            }
+            
+            /* 5. STATUS INFORMATION */
+            .dishwasher-control .device-status {
+                text-align: center;
+                margin-top: 15px;
+            }
+            
+            .dishwasher-control .device-name {
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--dishwasher-text);
+                margin-bottom: 5px;
+            }
+            
+            .dishwasher-control .device-state {
+                font-size: 14px;
+                color: var(--secondary-text-color, #aaa);
+                margin-bottom: 3px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            
+            .dishwasher-control .device-finish-time {
+                font-size: 12px;
+                color: var(--dishwasher-primary);
+                opacity: 0.8;
+            }
+            
+            /* 6. ACTION BUTTONS */
+            .dishwasher-control .device-control-actions {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                margin: 20px 0;
+                flex-wrap: wrap;
+            }
+            
+            .dishwasher-control .device-control-button {
+                width: 48px;
+                height: 48px;
+                border: none;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                color: var(--dishwasher-text);
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .dishwasher-control .device-control-button:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            }
+            
+            .dishwasher-control .device-control-button:active {
+                transform: translateY(0);
+            }
+            
+            .dishwasher-control .device-control-button:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+                transform: none;
+                background: rgba(255, 255, 255, 0.05);
+            }
+            
+            .dishwasher-control .device-control-button.loading {
+                animation: dishwasher-spin 1s linear infinite;
+                pointer-events: none;
+            }
+            
+            .dishwasher-control .device-control-button svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            /* 7. FILTER/PRESETS BEREICHE */
+            .dishwasher-control .device-control-presets {
+                margin: 15px 0;
+                overflow: hidden;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .dishwasher-control .device-control-presets[data-is-open="false"] {
+                max-height: 0;
+                opacity: 0;
+                margin: 0;
+                border: none;
+            }
+            
+            .dishwasher-control .device-control-presets[data-is-open="true"] {
+                max-height: 300px;
+                opacity: 1;
+            }
+            
+            .dishwasher-control .presets-row {
+                padding: 15px;
+            }
+            
+            .dishwasher-control .presets-row h4 {
+                margin: 0 0 12px 0;
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--dishwasher-text);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                opacity: 0.9;
+            }
+            
+            .dishwasher-control .preset-buttons {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 8px;
+            }
+            
+            /* 8. PRESET BUTTONS (Programme & Optionen) */
+            .dishwasher-control .preset-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 15px;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 10px;
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(5px);
+                color: var(--dishwasher-text);
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                font-size: 13px;
+                font-weight: 500;
+                text-align: left;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .dishwasher-control .preset-btn:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.3);
+                transform: translateY(-1px);
+            }
+            
+            .dishwasher-control .preset-btn.active {
+                background: var(--dishwasher-primary);
+                border-color: var(--dishwasher-primary);
+                color: white;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            }
+            
+            .dishwasher-control .preset-btn.loading {
+                pointer-events: none;
+                opacity: 0.7;
+            }
+            
+            .dishwasher-control .preset-btn.loading::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                animation: dishwasher-loading-sweep 1.5s infinite;
+            }
+            
+            /* 9. PROGRAMM & OPTION ICONS */
+            .dishwasher-control .program-icon,
+            .dishwasher-control .option-icon {
+                font-size: 16px;
+                min-width: 16px;
+                text-align: center;
+            }
+            
+            .dishwasher-control .program-name,
+            .dishwasher-control .option-name {
+                flex: 1;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            /* 10. DELAY DIALOG */
+            .dishwasher-control .dishwasher-delay-dialog {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 16px;
+            }
+            
+            .dishwasher-control .delay-content {
+                background: var(--dishwasher-background);
+                border-radius: 16px;
+                padding: 25px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                min-width: 280px;
+            }
+            
+            .dishwasher-control .delay-content h4 {
+                margin: 0 0 20px 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--dishwasher-text);
+                text-align: center;
+            }
+            
+            .dishwasher-control .delay-options {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .dishwasher-control .delay-btn {
+                padding: 12px 16px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--dishwasher-text);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-size: 14px;
+                font-weight: 500;
+                text-align: center;
+            }
+            
+            .dishwasher-control .delay-btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 255, 255, 0.4);
+                transform: scale(1.02);
+            }
+            
+            .dishwasher-control .delay-btn:active {
+                transform: scale(0.98);
+            }
+            
+            .dishwasher-control .delay-btn.loading {
+                background: var(--dishwasher-primary);
+                animation: dishwasher-pulse 1s ease-in-out infinite;
+            }
+            
+            /* 11. NO CONTENT STATES */
+            .dishwasher-control .no-programs,
+            .dishwasher-control .no-options {
+                text-align: center;
+                padding: 20px;
+                color: var(--secondary-text-color, #aaa);
+                font-size: 14px;
+                font-style: italic;
+            }
+            
+            /* 12. RESPONSIVE DESIGN */
+            @media (max-width: 768px) {
+                .dishwasher-control .device-ring-container {
+                    margin-bottom: 15px;
+                }
+                
+                .dishwasher-control .device-ring {
+                    width: 100px;
+                    height: 100px;
+                }
+                
+                .dishwasher-control .ring-icon {
+                    width: 28px;
+                    height: 28px;
+                }
+                
+                .dishwasher-control .progress-percentage {
+                    font-size: 14px;
+                }
+                
+                .dishwasher-control .device-control-actions {
+                    gap: 10px;
+                }
+                
+                .dishwasher-control .device-control-button {
+                    width: 44px;
+                    height: 44px;
+                }
+                
+                .dishwasher-control .preset-buttons {
+                    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                    gap: 6px;
+                }
+                
+                .dishwasher-control .preset-btn {
+                    padding: 10px 12px;
+                    font-size: 12px;
+                }
+                
+                .dishwasher-control .delay-options {
+                    grid-template-columns: 1fr;
+                }
+            }
+            
+            /* 13. ANIMATIONS */
+            @keyframes dishwasher-pulse {
+                0% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.05); opacity: 0.8; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            
+            @keyframes dishwasher-spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            
+            @keyframes dishwasher-loading-sweep {
+                0% { left: -100%; }
+                100% { left: 100%; }
+            }
+            
+            @keyframes dishwasher-fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            /* 14. ACCESSIBILITY */
+            .dishwasher-control .preset-btn:focus,
+            .dishwasher-control .device-control-button:focus,
+            .dishwasher-control .delay-btn:focus {
+                outline: 2px solid var(--dishwasher-primary);
+                outline-offset: 2px;
+            }
+            
+            .dishwasher-control .device-ring:focus {
+                outline: 3px solid var(--dishwasher-primary);
+                outline-offset: 3px;
+            }
+            
+            /* 15. DARK/LIGHT MODE SUPPORT */
+            .dishwasher-control[data-theme="light"] {
+                --dishwasher-background: #ffffff;
+                --dishwasher-text: #333333;
+                --dishwasher-border: #e0e0e0;
+            }
+            
+            .dishwasher-control[data-theme="light"] .device-ring,
+            .dishwasher-control[data-theme="light"] .preset-btn,
+            .dishwasher-control[data-theme="light"] .device-control-button {
+                background: rgba(0, 0, 0, 0.05);
+                border-color: rgba(0, 0, 0, 0.1);
+            }
+            
+            .dishwasher-control[data-theme="light"] .device-ring:hover,
+            .dishwasher-control[data-theme="light"] .preset-btn:hover,
+            .dishwasher-control[data-theme="light"] .device-control-button:hover {
+                background: rgba(0, 0, 0, 0.1);
+            }
+            
+            /* 16. INTEGRATION MIT BESTEHENDEN CARD STYLES */
+            .dishwasher-control .device-control-container {
+                padding: 20px;
+                background: var(--dishwasher-background);
+                border-radius: 16px;
+                border: 1px solid var(--dishwasher-border);
+                backdrop-filter: blur(20px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            }
+
                                                             
             </style>
 
@@ -16146,6 +16630,16 @@ class FastSearchCard extends HTMLElement {
                 const result = this.getVacuumControlsHTML(item);
                 console.log('🔧 getVacuumControlsHTML returned:', result ? 'HTML STRING' : 'NULL/UNDEFINED');
                 return result;
+
+            case 'switch':
+                // Neue Dishwasher Erkennung
+                if (this.isDishwasher(item)) {
+                    console.log('✅ DISHWASHER case - calling getDishwasherControlsHTML!');
+                    return this.getDishwasherControlsHTML(item);
+                }
+                // Falls kein Dishwasher, normaler Switch
+                return `<div style="text-align: center;">Switch Steuerelemente</div>`;
+                
             default:
                 console.log('❌ Default case, domain:', item.domain);
                 return `<div style="text-align: center; padding-top: 50px; color: var(--text-secondary);">Keine Steuerelemente für diesen Gerätetyp.</div>`;
