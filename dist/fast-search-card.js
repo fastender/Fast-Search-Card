@@ -621,6 +621,11 @@ class FastSearchCard extends HTMLElement {
             ...config
         };            
 
+        // NEU: Dishwasher Config speichern
+        this._dishwasherEntity = config.dishwasher_entity || null;
+        
+        console.log('🍽️ Dishwasher entity from config:', this._dishwasherEntity);
+            
         // Alert Slideshow - NACH dem config spread verarbeiten
         this.slideshowAlerts = this._config.slideshow_alerts || [];
         console.log('🔧 setConfig: slideshow_alerts loaded:', this.slideshowAlerts);          
@@ -18340,11 +18345,24 @@ class FastSearchCard extends HTMLElement {
     }
 
     isDishwasher(item) {
+        // 1. PRIORITÄT: Config-basierte Erkennung
+        if (this._dishwasherEntity && item.id === this._dishwasherEntity) {
+            console.log('✅ Dishwasher detected via config:', item.id);
+            return true;
+        }
+        
+        // 2. PRIORITÄT: Name-basierte Erkennung (Fallback)
         const dishwasherKeywords = ['dishwasher', 'geschirrspuler', 'spulmaschine', 'spülmaschine'];
         const itemName = (item.name || item.id).toLowerCase();
-        return dishwasherKeywords.some(keyword => itemName.includes(keyword));
+        const isNameMatch = dishwasherKeywords.some(keyword => itemName.includes(keyword));
+        
+        if (isNameMatch) {
+            console.log('✅ Dishwasher detected via name:', item.id);
+            return true;
+        }
+        
+        return false;
     }
-
 
     async loadVacuumSegments(item) {
         console.log('🗺️ [V7 GROUPED-MAPS] loadVacuumSegments called for:', item.id);
