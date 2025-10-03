@@ -3957,6 +3957,9 @@ rect.legend-mouseover-inactive,
           align-items: center;
           justify-content: center;
           transition: all 0.2s;
+          position: relative;
+          z-index: 10; /* CRITICAL: Über ::after Element */
+          pointer-events: auto; /* CRITICAL: Explizit aktivieren */
         }
 
         .back-button:hover {
