@@ -1,0 +1,7 @@
+{
+  "name": "Fast Search Card",
+  "content_in_root": false,
+  "filename": "fast-search-card.js",
+  "render_readme": true,
+  "homeassistant": "2023.1.0"
+}

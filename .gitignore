@@ -1,0 +1,15 @@
+# Ignore everything
+*
+
+# Except dist folder
+!dist/
+!dist/fast-search-card.js
+
+# Except HACS files (required for HACS integration)
+!hacs.json
+!README.md
+!info.md
+!.gitignore
+
+# Ignore node_modules even in dist
+dist/node_modules/
