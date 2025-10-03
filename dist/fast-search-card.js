@@ -5428,7 +5428,7 @@ rect.legend-mouseover-inactive,
         .category-icon .default-icon svg {
           width: 24px;
           height: 24px;
-          stroke: var(--text-secondary);
+          stroke: rgba(255, 255, 255, 0.8); /* FIX: Direkte Farbe statt var() */
           stroke-width: ${ee?"1.5":"2"}; /* Dünnere Linie für Brain-Icon */
           stroke-linecap: round;
           stroke-linejoin: round;
@@ -5500,7 +5500,7 @@ rect.legend-mouseover-inactive,
           font-family: inherit;
           font-weight: inherit;
           line-height: 30px;
-          color: var(--text-primary);
+          color: white; /* FIX: Direkte Farbe statt var() */
           z-index: 2;
           padding: 0;
           margin: 0;
@@ -5522,7 +5522,7 @@ rect.legend-mouseover-inactive,
         .search-group-title {
           font-size: 18px;
           font-weight: 500;
-          color: var(--text-secondary);
+          color: rgba(255, 255, 255, 0.9); /* FIX: Aufgehellt */
           padding: 8px 0;
           margin: 0 0 12px 0;
           position: relative;
@@ -5761,13 +5761,13 @@ rect.legend-mouseover-inactive,
         .category-button svg {
           width: 24px;
           height: 24px;
-          stroke: var(--text-secondary);
+          stroke: rgba(255, 255, 255, 0.8); /* FIX: Direkte Farbe */
           stroke-width: 2;
           fill: none;
         }
 
         .category-button.active svg {
-          stroke: var(--text-primary);
+          stroke: white; /* FIX: Direkte Farbe für aktive Category */
         }
 
         .results-container {
