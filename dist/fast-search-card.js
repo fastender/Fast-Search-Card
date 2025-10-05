@@ -4957,10 +4957,10 @@ console.log('[FastSearchCard] Custom element registered');
         .results-container {
           padding: 20px;
           padding-top: 10px;
-          height: 100%; /* Wichtig: Höhe auf 100% setzen, damit es den Motion-Container füllt */
+          height: 600px; /* Feste Höhe beibehalten für den scrollbaren Container */
           opacity: ${m||ce?1:0};
           
-          /* === ÄNDERUNGEN FÜR SCROLLBARE ERGEBNISSE === */
+          /* === SCROLLING INNERHALB DES CONTAINERS === */
           overflow-y: auto; /* Scrollen aktivieren, wenn Inhalt zu hoch ist */
           overflow-x: hidden;
           
