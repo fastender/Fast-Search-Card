@@ -1,318 +1,282 @@
 # Fast Search Card
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.1.0002-blue.svg)](https://github.com/fastender/Fast-Search-Card)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[](https://github.com/hacs/integration)
+[](./docs/CHANGELOG.md)
+[](LICENSE)
 
-Eine moderne Lovelace Card für Home Assistant mit **visionOS-inspiriertem Design**, **Inline-Autocomplete** und **KI-Integration**.
+A modern, high-performance Lovelace card for Home Assistant, inspired by the **visionOS aesthetic**. It features a lightning-fast search, smart filtering, and an expandable UI with integrated controls, history, scheduling, and a plugin system.
 
-![Fast Search Card Screenshot](https://via.placeholder.com/800x400.png?text=Fast+Search+Card+Screenshot)
-
----
+-----
 
 ## ✨ Features
 
-### 🔍 Intelligente Suche
-- **Inline-Autocomplete**: Zeigt Vorschläge grau hinter dem Text während der Eingabe
-- **Fuzzy Search**: Tolerante Suche mit Fuse.js - findet auch Tippfehler
-- **Multi-Kategorie-Filter**: Geräte, Sensoren, Aktionen, Benutzerdefiniert
-- **Schnellsuche**: Enter-Taste führt erste Aktion direkt aus
+### 🔍 Smart Search & Filtering
+
+  * **Fuzzy Search:** Instantly finds entities, scripts, and scenes, even with typos, powered by Fuse.js.
+  * **Smart Categories:** Filter by Devices, Sensors, Actions, and custom System Entities.
+  * **Sub-Category Bar:** Dynamically filter by room (area), device type, or suggestions.
+  * **Advanced Pattern Filtering:** Exclude entities using wildcard patterns (`sensor.*`, `*_unavailable`, etc.) directly from the settings tab.
 
 ### 🎨 visionOS Design
-- **Glassmorphism**: Moderne Blur-Effekte und transparente Cards
-- **Staggered Animations**: Flüssige Übergänge beim Laden
-- **Grid/List-Ansicht**: Umschaltbare Darstellungsmodi
-- **Responsive**: Optimiert für Desktop, Tablet und Mobile
 
-### 🤖 KI-Integration
-- **AI-Mode**: Natürliche Sprachverarbeitung für Gerätesteuerung
-- **Kontextbewusst**: KI versteht Gerätenamen, Räume und Szenen
-- **Chat-Interface**: Intuitive Konversation mit deinem Smart Home
+  * **Glassmorphism:** Modern blur effects and translucent backgrounds.
+  * **Animated Icons:** Over 100 custom animated SVG icons for different device states (`On`/`Off`), including washing machines, lights, fans, locks, and more.
+  * **Fluid Animations:** Built with Framer Motion for smooth panel transitions and staggered list animations.
+  * **Responsive Layout:** Adapts for desktop, tablet, and mobile use.
 
-### ⭐ Favoriten & Filter
-- **Favoriten-System**: Schnellzugriff auf häufig genutzte Geräte
-- **Excluded Patterns**: Flexible Pattern-basierte Entity-Filterung
-- **Pattern Templates**: 8 vordefinierte Templates (Lichter, Sensoren, etc.)
-- **Live-Vorschau**: Zeigt sofort, welche Entities betroffen sind
-- **Import/Export**: Pattern-Sets als JSON sichern und teilen
+### 🧩 Integrated Detail View
 
-### 📊 Erweiterte Features
-- **Detail-View**: Vollständige Geräteinformationen mit History
-- **Unterkategorien**: Filter nach Raum, Typ oder Status
-- **Icon-System**: 60+ custom SVG-Icons für alle Gerätetypen
-- **Multi-Language**: 10 Sprachen unterstützt (DE, EN, ES, FR, IT, NL, PT, RU, TR, ZH)
+The card expands to a full-featured control center with multiple tabs:
 
----
+  * **Controls:** An interactive circular slider for lights, climate, and covers, plus specific controls like fan modes or solar production.
+  * **Context:** (Formerly Actions) Shows related automations, scripts, and scenes for the device.
+  * **History:** Displays entity history using high-performance `Chart.js` graphs.
+  * **Schedule:** A built-in scheduler with an iOS-style picker to create timers and weekly schedules. Integrates directly with the `nielsfaber/scheduler-component`.
+  * **Settings:** Configure the card, manage excluded patterns, and change languages directly from the UI.
+
+### 🤖 System & Plugin Framework
+
+  * **System Entities:** Core functions like Settings, Marketplace, and a global Schedule Viewer are built as modular entities.
+  * **Plugin Store:** (In Development) A built-in interface to browse, install, and manage plugins for the card.
+  * **Plugin Loader:** (In Development) Dynamically load custom plugins from local files, GitHub, or URLs.
+  * **Experimental AI Mode:** A chat interface for controlling devices with natural language (simulated responses in current build).
+
+-----
 
 ## 📦 Installation
 
-### HACS (Empfohlen)
+### HACS (Recommended)
 
-1. **HACS öffnen** in Home Assistant
-2. **Custom Repository hinzufügen**:
-   - Klicke auf die 3 Punkte oben rechts
-   - Wähle "Custom repositories"
-   - URL: `https://github.com/fastender/Fast-Search-Card`
-   - Kategorie: `Lovelace`
-3. **Installieren**:
-   - Suche nach "Fast Search Card"
-   - Klicke auf "Download"
-4. **Home Assistant neu laden**
+1.  **Open HACS** in your Home Assistant.
+2.  **Add Custom Repository**:
+      * Click the 3 dots in the top right.
+      * Select "Custom repositories".
+      * URL: `https://github.com/fastender/Fast-Search-Card` (or your repo URL)
+      * Category: `Lovelace`
+3.  **Install**:
+      * Find "Fast Search Card" in the list.
+      * Click "Install" (or "Download").
+4.  **Add to Lovelace**:
+      * Go to "Settings" \> "Dashboards".
+      * Click the 3 dots and select "Resources".
+      * Click "Add Resource".
+      * URL: `/hacsfiles/fast-search-card/fast-search-card.js`
+      * Type: `JavaScript Module`.
+5.  **Restart Home Assistant** (recommended).
 
-### Manuelle Installation
+### Manual Installation
 
-1. **Download der neuesten Version**:
-   ```bash
-   wget https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dist/fast-search-card.js
-   ```
+1.  **Download the latest `fast-search-card.js`** file from the [Releases](https://github.com/fastender/Fast-Search-Card/releases) page.
+2.  **Copy the file** to your `config/www/` directory (e.g., `/config/www/community/fast-search-card/fast-search-card.js`).
+3.  **Register the resource** in Home Assistant:
+      * Go to **Settings** → **Dashboards** → **Resources** (under the 3-dot menu).
+      * Click **"Add Resource"**.
+      * URL: `/local/community/fast-search-card/fast-search-card.js`
+      * Type: `JavaScript Module`.
+4.  **Restart Home Assistant**.
 
-2. **Datei kopieren** nach:
-   ```
-   /config/www/community/fast-search-card/fast-search-card.js
-   ```
+-----
 
-3. **Ressource registrieren** in Home Assistant:
-   - Gehe zu **Einstellungen** → **Dashboards** → **Ressourcen**
-   - Klicke auf **"Ressource hinzufügen"**
-   - URL: `/local/community/fast-search-card/fast-search-card.js`
-   - Typ: `JavaScript-Modul`
+## 🚀 Usage
 
-4. **Home Assistant neu laden**
+### Basic Configuration
 
----
-
-## 🚀 Verwendung
-
-### Basis-Konfiguration
-
-```yaml
-type: custom:fast-search-card
-```
-
-Das war's! Die Karte funktioniert out-of-the-box ohne weitere Konfiguration.
-
-### Erweiterte Konfiguration
+Add the card to your Lovelace dashboard:
 
 ```yaml
 type: custom:fast-search-card
-card_height: 600  # Optional: Feste Höhe in Pixel
 ```
 
----
+The card works out-of-the-box. Most configuration is handled directly within the card's interface.
 
-## ⚙️ Konfiguration
-
-Die meisten Einstellungen werden **direkt in der Karte** über den Settings-Tab konfiguriert:
-
-### Settings Tab
-
-#### 📋 About
-- **Excluded Patterns**: Pattern-basierte Entity-Filterung
-  - **Templates**: 8 vordefinierte Pattern-Vorlagen
-  - **Live-Vorschau**: Zeigt sofort betroffene Entities
-  - **Import/Export**: Pattern-Sets als JSON sichern/laden
-  - **Bulk-Operationen**: Mehrere Patterns auf einmal verwalten
-
-#### 🌐 General
-- **Language**: Wähle aus 10 Sprachen
-- **View Mode**: Grid oder List-Ansicht
-- **Theme**: Nutzt automatisch dein Home Assistant Theme
-
-#### 🤖 AI (Optional)
-- **AI-Mode aktivieren**: Natürliche Sprachverarbeitung
-- **API-Key**: OpenAI oder andere KI-Provider
-
-#### 🎨 visionOS Colors
-- Farbpalette für konsistentes Design (Reference only)
-
----
-
-## 📖 Pattern System
-
-### Pattern-Syntax
-
-Patterns unterstützen Wildcards für flexible Filterung:
-
-| Pattern | Beschreibung | Beispiel |
-|---------|--------------|----------|
-| `*` | Beliebige Zeichen | `sensor.*` = Alle Sensoren |
-| `?` | Einzelnes Zeichen | `light.room_?` = light.room_1, light.room_2 |
-| `.` | Literal Punkt | `sensor.temp` = Exakt "sensor.temp" |
-
-### Vordefinierte Templates
-
-| Template | Pattern | Beschreibung |
-|----------|---------|--------------|
-| 🌡️ Klima | `climate.*` | Alle Klima-Geräte |
-| 💡 Lichter | `light.*` | Alle Lichter |
-| 📊 Sensoren | `sensor.*` | Alle Sensoren |
-| 🔘 Binary Sensoren | `binary_sensor.*` | Alle Binary Sensoren |
-| 🔌 Switches | `switch.*` | Alle Switches |
-| ⚠️ Unavailable | `*_unavailable` | Alle nicht verfügbaren Entities |
-| 🔋 Batterie | `*_battery*` | Alle Batterie-Sensoren |
-| 🌡️ Temperatur | `*temp*` | Alle Temperatur-Sensoren |
-
-### Pattern-Beispiele
+### Card Configuration
 
 ```yaml
-# Alle Sensoren ausschließen
-sensor.*
-
-# Alle Motion-Sensoren im Wohnzimmer
-binary_sensor.living_room_motion_*
-
-# Alle nicht verfügbaren Geräte
-*_unavailable
-
-# Spezifische Geräte
-light.kitchen_main
-switch.garage_door
+type: custom:fast-search-card
+card_height: 672px # Optional: Set a fixed height (672px is the default expanded height)
 ```
 
----
+-----
 
-## 🎨 Anpassung
+## ⚙️ In-Card Configuration
 
-### Theme-Integration
+Most settings are managed directly in the **Settings Tab** inside the card:
 
-Die Karte nutzt **automatisch dein Home Assistant Theme**. Keine zusätzliche Konfiguration nötig!
+  * **General:** Change the display language (10 languages supported).
+  * **Appearance:** Toggle between Grid and List view modes. The card automatically uses your active Home Assistant theme.
+  * **Privacy & Filtering:** Manage your "Excluded Patterns" to hide entities from the search results.
+      * **Live Preview:** Instantly see which entities will be hidden by your patterns.
+      * **Templates:** Use pre-defined templates (e.g., hide all sensors, hide unavailable entities).
+      * **Import/Export:** Back up and share your filter lists as JSON.
+  * **About:** View card version and build information.
 
-### Custom Icons
+-----
 
-Die Karte enthält 60+ custom SVG-Icons für:
-- 🏠 Klima (AC, Heizung, Fan)
-- 💡 Lichter (Bulb, Strip, Ceiling)
-- 🔒 Sicherheit (Lock, Siren, Camera)
-- 🧹 Reinigung (Vacuum, Air Purifier)
-- 📺 Media (TV, Speaker, Player)
-- 🚪 Cover (Garage, Blinds, Curtains)
-- 📊 Sensoren (Motion, Door, Temperature)
+## 📚 Documentation & Development
 
----
+For a deeper dive into the architecture, component breakdown, and plugin development, please see the `/docs` folder.
 
-## 🌍 Unterstützte Sprachen
+  * **[/docs/PROJECT\_STRUCTURE.md](./docs/PROJECT_STRUCTURE.md):** A detailed breakdown of the file structure.
+  * **[/docs/PLUGIN\_DEVELOPMENT.md](./docs/PLUGIN_DEVELOPMENT.md):** A guide on how to build your own plugins.
+  * **[/docs/CHANGELOG.md](./docs/CHANGELOG.md):** A complete history of all version changes.
 
-- 🇩🇪 Deutsch
-- 🇬🇧 English
-- 🇪🇸 Español
-- 🇫🇷 Français
-- 🇮🇹 Italiano
-- 🇳🇱 Nederlands
-- 🇵🇹 Português
-- 🇷🇺 Русский
-- 🇹🇷 Türkçe
-- 🇨🇳 中文
+### Tech Stack
 
----
-
-## 🛠️ Entwicklung
+  * **Framework**: Preact 10.27.1
+  * **Build Tool**: Vite 7.1.3
+  * **Search**: Fuse.js
+  * **Charts**: Chart.js
+  * **Animation**: Framer Motion
+  * **Database**: IndexedDB (via `DataProvider`)
+  * **Scheduler**: Integrates `nielsfaber/scheduler-component`
 
 ### Development Setup
 
 ```bash
-# Dependencies installieren
+# Prerequisites: Node.js >= 18.0.0, npm >= 9.0.0
+
+# Install dependencies
 npm install
 
-# Development Server starten
+# Start dev server (with hot reload)
 npm run dev
 
-# Build erstellen
+# Build for production
 npm run build
 
-# Build + GitHub Upload
-./build.sh
+# Preview production build
+npm run preview
 ```
 
-### Projektstruktur
+**Build Output**: `dist/fast-search-card.js` (ready to copy to `/config/www/`)
+
+-----
+
+## 🏗️ Architecture & Recent Improvements
+
+### Modular Structure
+
+The codebase follows a clean, modular architecture with clear separation of concerns:
 
 ```
-fast-search-card/
-├── src/
-│   ├── components/       # React-Komponenten
-│   ├── hooks/           # Custom Hooks
-│   ├── providers/       # Context Provider
-│   ├── utils/           # Helper-Funktionen
-│   ├── assets/          # Icons, Wallpapers
-│   └── index.jsx        # Entry Point
-├── dist/
-│   └── fast-search-card.js  # Build Output
-├── build.sh             # Build + Deploy Script
-└── vite.config.js       # Build Configuration
+src/
+├── components/          # UI components
+│   ├── cards/          # DeviceCard, DetailView
+│   ├── controls/       # CircularSlider, PowerToggle, DomainControls
+│   ├── search/         # SearchBar, SearchResultItem
+│   └── tabs/           # ContextTab, ScheduleTab, HistoryTab, etc.
+├── hooks/              # Custom React/Preact hooks
+├── utils/              # Pure utility functions
+├── services/           # API and data services
+└── styles/             # Global styles
 ```
 
-### Tech Stack
+### Recent Refactoring (October 2025)
 
-- **Framework**: Preact 10.27.1 (React-Alternative)
-- **Build Tool**: Vite 7.1.3
-- **Search**: Fuse.js 7.1.0 (Fuzzy Search)
-- **Charts**: ApexCharts 5.3.4 (History Tab)
-- **Bundler**: esbuild 0.25.9
+Major refactoring effort to improve maintainability, testability, and code reusability:
 
----
+#### Refactored Components
 
-## 📝 Changelog
+1. **ScheduleTab.jsx** (889 → 596 lines, **-33%**)
+   - Extracted service action builders (`serviceActionBuilders.js`)
+   - Extracted edit state loaders (`editStateLoaders.js`)
+   - Extracted timer name generators (`timerNameGenerators.js`)
+   - Created reusable components: `AddScheduleButton`, `ScheduleActionButtons`, `SchedulePickerTable`
 
-### v1.1.0002 (2025-10-03)
-- ✅ GitHub Auto-Upload Integration
-- 📝 Dokumentation erweitert
+2. **HistoryTab.jsx** (795 → 416 lines, **-48%**)
+   - Extracted all inline styles to `HistoryTab.css` (255 lines)
+   - Extracted animation variants to `accordionAnimations.js`
+   - Extracted time formatters (`timeFormatters.js`) and data processors (`historyDataProcessors.js`)
 
-### v1.1.0 (2025-01-20)
-- ✅ Background-System entfernt (nutzt jetzt HA-Theme)
-- 🐛 RegExp Bug in Pattern-Preview behoben
+3. **CircularSlider.jsx** (957 → 525 lines, **-45%**)
+   - Extracted geometry constants (`circularSliderGeometry.js`)
+   - Extracted color utilities (`temperatureColors.js`)
+   - Extracted transform functions (`circularSliderTransforms.js`)
+   - Created reusable components: `PowerToggle`, `CircularSliderDisplay`
+   - Extracted 3 custom hooks:
+     - `useSliderAnimation` - Spring animations and value counting
+     - `useCircularDrag` - Drag interaction logic (mouse & touch)
+     - `usePowerState` - Power toggle with value restoration
 
-### v1.0.0 (2025-01-17)
-- ✨ Pattern Enhancement Features
-  - 📋 Pattern Templates (8 vordefinierte)
-  - 🔍 Live-Vorschau für Patterns
-  - 📤 Import/Export von Pattern-Sets
-  - 🗑️ Bulk-Operationen
-- 🎨 visionOS-Design implementiert
-- 🔍 Inline-Autocomplete
-- 🤖 AI-Mode Integration
-- ⭐ Favoriten-System
-- 🌍 10 Sprachen
+**Total Impact:**
+- **18 new modular files** created
+- **1,104 lines reduced** (-42% average across refactored files)
+- Improved code organization and reusability
+- Enhanced testability with isolated functions and hooks
+- Better performance with CSS extraction
 
----
+### Design Patterns
 
-## 🤝 Beitragen
+- **Custom Hooks** - Encapsulate complex state management and side effects
+- **Utility Functions** - Pure functions for calculations and transformations
+- **Component Composition** - Small, focused, reusable components
+- **CSS Extraction** - Separate styling for better caching and performance
+- **Constants Centralization** - Shared constants in dedicated files
 
-Contributions sind willkommen! Bitte erstelle ein Issue oder Pull Request.
+### Component Guidelines
 
-### Entwicklungs-Workflow
+When contributing, follow these patterns:
 
-1. **Fork** das Repository
-2. **Branch** erstellen: `git checkout -b feature/amazing-feature`
-3. **Commit** Änderungen: `git commit -m '✨ Add amazing feature'`
-4. **Push** zum Branch: `git push origin feature/amazing-feature`
-5. **Pull Request** öffnen
+```javascript
+// ✅ Good: Small, focused component
+export const PowerToggle = ({ isOn, onChange, disabled, size }) => {
+  return (
+    <motion.label className="power-toggle">
+      <input type="checkbox" checked={isOn} onChange={onChange} />
+      <span className="slider" />
+    </motion.label>
+  );
+};
 
----
+// ✅ Good: Custom hook for complex logic
+export const useCircularDrag = ({ svgRef, readOnly, angleToValue }) => {
+  const [isDragging, setIsDragging] = useState(false);
 
-## 📄 Lizenz
+  const handleInteraction = (clientX, clientY) => {
+    // Complex drag calculation logic...
+  };
 
-MIT License - siehe [LICENSE](LICENSE) für Details
+  return { isDragging, handleMouseDown, handleTouchStart };
+};
 
----
+// ✅ Good: Pure utility function
+export const valueToAngle = (value, min, max) => {
+  const range = max - min;
+  const normalizedValue = (value - min) / range;
+  return normalizedValue * 360 - 90; // Start at top
+};
+```
 
-## 🙏 Credits
+### Code Style
 
-- **Design**: Inspiriert von Apple's visionOS
-- **Icons**: Custom SVG-Icons
-- **Fuzzy Search**: Powered by [Fuse.js](https://fusejs.io/)
-- **Charts**: Powered by [ApexCharts](https://apexcharts.com/)
+- Use functional components with hooks (no class components)
+- Keep components under 500 lines (extract when larger)
+- Use JSDoc comments for public APIs
+- Prefer composition over inheritance
+- Extract complex logic to custom hooks
+- Move pure functions to utility files
 
----
+### Naming Conventions
 
-## 📞 Support
+- **Components**: PascalCase (e.g., `CircularSlider.jsx`)
+- **Hooks**: camelCase with `use` prefix (e.g., `useCircularDrag.js`)
+- **Utils**: camelCase with descriptive names (e.g., `timeFormatters.js`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `VIEW_BOX_SIZE`)
 
-- **Issues**: [GitHub Issues](https://github.com/fastender/Fast-Search-Card/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/fastender/Fast-Search-Card/discussions)
-- **Home Assistant Forum**: [Community Thread](https://community.home-assistant.io/)
+-----
 
----
+## 🤝 Contributing
 
-## ⭐ Star History
+Contributions are welcome\! Please feel free to open an Issue or Pull Request.
 
-Wenn dir diese Karte gefällt, gib ihr einen ⭐ auf GitHub!
+1.  **Fork** the repository.
+2.  Create your feature branch: `git checkout -b feature/AmazingFeature`
+3.  Commit your changes: `git commit -m '✨ Add AmazingFeature'`
+4.  Push to the branch: `git push origin feature/AmazingFeature`
+5.  Open a **Pull Request**.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=fastender/Fast-Search-Card&type=Date)](https://star-history.com/#fastender/Fast-Search-Card&Date)
+-----
+
+## 📄 License
+
+MIT License - see the [LICENSE](LICENSE) file for details.
