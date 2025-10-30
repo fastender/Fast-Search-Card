@@ -207,6 +207,15 @@ Complete concept and implementation plan for Weather System-Entity:
 - MVP vs Full-Featured comparison
 - Quick Start Guide (4h MVP)
 
+#### **[🎨 VISIONOS_COLORS.md](./docs/VISIONOS_COLORS.md)** (New)
+Official visionOS color palette for System-Entities:
+- Complete color table (12 visionOS colors with RGB values)
+- Design principles (colored background + white icon)
+- Entity-to-color mapping (Settings=Blue, Weather=Cyan, etc.)
+- Implementation guide (SystemEntity, appearanceConfig, CSS)
+- Guidelines for new entities
+- Code examples and best practices
+
 ### 📊 Documentation Statistics
 
 - **Total Lines:** 5,000+ lines of documentation
