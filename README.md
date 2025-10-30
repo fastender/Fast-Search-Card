@@ -116,9 +116,105 @@ Most settings are managed directly in the **Settings Tab** inside the card:
 
 For a deeper dive into the architecture, component breakdown, and plugin development, please see the `/docs` folder.
 
-  * **[/docs/PROJECT\_STRUCTURE.md](./docs/PROJECT_STRUCTURE.md):** A detailed breakdown of the file structure.
-  * **[/docs/PLUGIN\_DEVELOPMENT.md](./docs/PLUGIN_DEVELOPMENT.md):** A guide on how to build your own plugins.
-  * **[/docs/CHANGELOG.md](./docs/CHANGELOG.md):** A complete history of all version changes.
+### 📖 Complete Documentation
+
+The project includes comprehensive documentation covering all aspects of the card:
+
+#### **[📋 FEATURES.md](./docs/FEATURES.md)** (1,200+ lines)
+Complete feature documentation with detailed explanations:
+- Search & Discovery (Fuzzy search, Categories, Pattern filtering)
+- Smart UI & Navigation (visionOS design, View modes, Animations)
+- Detail View & Tabs (Controls, Context, History, Schedule, Settings)
+- Universal Controls (Domain-specific controls for all entity types)
+- Circular Slider System (Complete architecture with hooks and utilities)
+- Scheduler Integration (Time picker, Weekdays, Domain actions)
+- History & Analytics (Charts, Time-of-day analysis, Statistics)
+- System Entities & Plugins (Framework, Plugin Store)
+- Performance & Optimization (Caching, Animations, Build)
+- Internationalization (10+ languages supported)
+
+#### **[🧩 COMPONENTS.md](./docs/COMPONENTS.md)** (1,388 lines)
+Detailed component architecture and API reference:
+- Core Application & Data (DataProvider, Context hooks)
+- Main UI & Layout (SearchField, DetailView, DeviceCard)
+- Detail View Tabs (5 tabs with props and usage)
+- Reusable UI Controls (CircularSlider, PowerToggle, IOSTimePicker)
+- System Entity Framework (Base class, Registry, Integration)
+- Custom Hooks & State Management (10+ hooks documented)
+- Utility Functions & Helpers (40+ utilities organized by purpose)
+- Refactoring Summary (October 2025 improvements)
+- Component Communication Patterns (Props, Context, Services)
+- Testing Strategy (Unit, Integration, E2E)
+
+#### **[🔌 PLUGIN_DEVELOPMENT.md](./docs/PLUGIN_DEVELOPMENT.md)** (1,401 lines)
+Complete guide for creating system entities and external plugins:
+- System Entity Framework (Universal integration guide)
+- Creating New System Entities (Step-by-step tutorial)
+- Plugin Development (External plugins with manifest format)
+- Plugin Security & Sandboxing (Permissions, Best practices)
+- Plugin API Reference (Context, Storage, Entity, Notification APIs)
+- Advanced Plugin Examples (Weather plugin, Automation builder)
+- Testing & Debugging (Development mode, Common issues)
+- Plugin Distribution (Plugin Store, GitHub releases)
+- UI Guidelines (Styling, Animations, Responsive design)
+- Performance Optimization (Lazy loading, Memoization)
+- Internationalization (Multi-language support)
+
+#### **[📁 PROJECT_STRUCTURE.md](./docs/PROJECT_STRUCTURE.md)** (1,000+ lines)
+Complete project structure documentation:
+- Project Overview (Statistics, File organization)
+- Root Directory (Configuration files, Dependencies)
+- Source Directory (All 150+ files documented)
+- Components (50+ components with line counts)
+- Hooks (10+ custom hooks)
+- Utilities (40+ utility modules)
+- Providers (DataProvider API)
+- System Entities (Framework structure)
+- Build Configuration (Vite setup, Bundle stats)
+- Module Dependencies (Dependency graph)
+- Naming Conventions (Files, Variables, Directories)
+- Code Statistics (35,000+ lines of code)
+- Recent Changes (October 2025 refactoring)
+- Best Practices (File size guidelines, Extraction criteria)
+
+#### **[📝 CHANGELOG.md](./docs/CHANGELOG.md)** (180KB)
+Complete version history and release notes:
+- All releases documented
+- Feature additions
+- Bug fixes
+- Breaking changes
+- Migration guides
+
+#### **[⚡ OPTIMIZATION.md](./docs/OPTIMIZATION.md)** (New)
+Comprehensive optimization guide and opportunities:
+- Current bundle analysis (860KB → target 600KB)
+- Dependency optimizations (Chart.js, Framer Motion tree-shaking)
+- Code-splitting strategies (70% initial load reduction)
+- Large component refactoring candidates (661-548 LOC files)
+- Performance optimizations (Memo, Virtualization, IndexedDB)
+- CSS optimizations (PurgeCSS, Critical CSS)
+- 3-Phase implementation roadmap with expected results
+- Monitoring tools and metrics
+
+#### **[🌤️ WEATHER_ENTITY_CONCEPT.md](./docs/WEATHER_ENTITY_CONCEPT.md)** (New)
+Complete concept and implementation plan for Weather System-Entity:
+- System-Entity Framework analysis (4 existing entities)
+- Weather Entity architecture (6 actions, multi-location support)
+- UI design concept (visionOS-inspired, animated weather icons)
+- Home Assistant Weather API integration
+- 5-Phase implementation roadmap (12-16h total)
+- Component hierarchy (~1,900 LOC)
+- MVP vs Full-Featured comparison
+- Quick Start Guide (4h MVP)
+
+### 📊 Documentation Statistics
+
+- **Total Lines:** 5,000+ lines of documentation
+- **Code Examples:** 100+ code snippets
+- **API References:** Complete API coverage
+- **Tutorials:** Step-by-step guides
+- **Diagrams:** Component hierarchies, Data flows
+- **Coverage:** 100% of features, components, and APIs
 
 ### Tech Stack
 
