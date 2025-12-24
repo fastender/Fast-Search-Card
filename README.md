@@ -17,6 +17,9 @@ A modern, high-performance Lovelace card for Home Assistant, inspired by the **v
   <img src="dfes-4.png" width="200" title="Step 4"> 
 </p>
 
+https://youtu.be/zI3g2FnLR9U
+https://youtu.be/lqQ3jtwOqH8
+
 ## ✨ Features
 
 ### 🔍 Smart Search & Filtering
