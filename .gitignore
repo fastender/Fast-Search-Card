@@ -3,13 +3,19 @@
 
 # Except dist folder
 !dist/
-!dist/fast-search-card.js
+!dist/index.html
+!dist/assets/
+!dist/assets/**
 
 # Except HACS files (required for HACS integration)
 !hacs.json
 !README.md
 !info.md
 !.gitignore
+
+# Except docs folder
+!docs/
+!docs/**
 
 # Ignore node_modules even in dist
 dist/node_modules/
