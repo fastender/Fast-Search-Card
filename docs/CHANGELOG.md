@@ -16,6 +16,915 @@ Fast Search Card ist eine moderne Lovelace Card für Home Assistant mit visionOS
 
 ## Änderungshistorie
 
+### 2026-01-14 - Performance & Background Mode (v1.1.0767)
+
+**Datum:** 14. Januar 2026
+**Version:** 1.1.0766 → 1.1.0767
+**Geänderte Dateien:**
+- src/utils/animations/components.js
+- src/components/WallpaperModeOverlay.jsx (neu)
+- src/index.jsx
+
+---
+
+#### ⚡ DetailView Animation - 55% schneller
+
+**Problem:** DetailView-Öffnen-Animation dauerte ~900ms, fühlte sich träge an
+
+**Lösung - Timing-Optimierung:**
+
+**detailPanelVariants (components.js):**
+- Delay: 150ms → **50ms** (fast sofortig)
+- Duration: 600ms → **350ms**
+- Opacity: 450ms → **250ms**
+- Filter: 650ms → **350ms**
+- Spring: stiffness 200 → **250**, mass 0.8 → **0.6** (schnappiger)
+
+**detailContentVariants (components.js):**
+- Delay: 250ms → **80ms** (minimales Stagger)
+- Duration: 500ms → **300ms**
+- Opacity delay: 300ms → **100ms**
+- Opacity: 400ms → **250ms**
+- Filter delay: 250ms → **80ms**
+- Filter: 550ms → **320ms**
+
+**Ergebnis:** Öffnen-Animation jetzt **~400ms** statt 900ms - deutlich responsiver, behält Apple-Style Blur-Effekt
+
+---
+
+#### 🎨 Background Mode - Wallpaper Manipulation
+
+**Neu:** Background Mode (Automatic/Light/Dark) beeinflusst jetzt tatsächlich den Home Assistant Wallpaper
+
+**Implementierung - WallpaperModeOverlay Komponente:**
+
+**Die 3 Modi:**
+1. **🌙 Dark Mode:**
+   - Schwarzes Overlay mit 40% Opacity
+   - 8px Blur-Effekt
+   - Verdunkelt Wallpaper für besseren Fokus
+
+2. **☀️ Light Mode:**
+   - Weißes Overlay mit 20% Opacity
+   - 8px Blur-Effekt
+   - Hellt Wallpaper auf
+
+3. **🔄 Automatic:**
+   - 20:00 - 06:00 Uhr: Dark Mode (schwarzes Overlay + Blur)
+   - 06:00 - 20:00 Uhr: Kein Effekt (normaler Wallpaper)
+
+**Technische Details:**
+- Fixed Overlay mit `z-index: 0` (hinter Card, über Wallpaper)
+- `backdrop-filter: blur(8px)` für subtilen Unschärfe-Effekt
+- Reagiert auf `darkModeChanged` Events
+- Smooth 0.5s Transitions zwischen Modi
+- Pointer-events: none (keine Blockierung von Interaktionen)
+
+**Wichtig:** Unterschied zu Background Filter Settings:
+- **Background Mode** → Beeinflusst **WALLPAPER** (Overlay + Blur)
+- **Background Settings** (Brightness/Blur/etc.) → Beeinflusst **FAST SEARCH CARD** (Glassmorphism)
+
+---
+
+### 2026-01-12 - UI Polish: Icons, Tooltips & Hover Effects (v1.1.0980)
+
+**Datum:** 12. Januar 2026
+**Version:** 1.1.0979 → 1.1.0980
+**Geänderte Dateien:**
+- src/utils/translations/languages/de.js
+- src/utils/translations/languages/en.js
+- src/components/StatsBar.jsx
+- src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx
+- src/components/tabs/SettingsTab/SettingsTab.css
+- src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx
+- src/system-entities/entities/news/components/iOSSettingsView.css
+- src/components/SearchField/components/FilterControlPanel.jsx
+- src/components/SearchField.jsx
+- src/components/DetailView/TabNavigation.jsx
+- src/components/DetailView.jsx
+
+---
+
+#### 🎨 Widget Settings - SVG Icons statt Emojis
+
+**Problem:** Widget-Einstellungen zeigten noch Emojis (☀️, 🔔, 🕐) statt SVG-Icons
+
+**Lösung:**
+- Entfernt: Doppelte Translations mit Emojis in de.js (Zeilen 522-525) und en.js (506-509)
+- Translations jetzt konsistent ohne Emojis:
+  - `weatherWidget: 'Wetter (Temperatur & Icon)'`
+  - `notificationsWidget: 'Benachrichtigungen (mit Zähler)'`
+  - `timeWidget: 'Uhrzeit (live)'`
+
+#### ⚡ Energy Dashboard - Icon Konsistenz
+
+**Änderung:** Energy (Grid Export) verwendet jetzt dasselbe Icon wie Energy (Grid Import)
+
+**Betroffene Dateien:**
+- StatsBar.jsx (Zeile 330): `GridReturnIcon` → `GridConsumptionIcon`
+- StatsBarSettingsTab.jsx (Zeile 393): `GridReturnIcon` → `GridConsumptionIcon`
+
+**Grund:** Beide Widgets zeigen jetzt den Transmission Tower Icon für bessere visuelle Konsistenz
+
+#### 🎯 Input Text Farben - Verbesserte Lesbarkeit
+
+**Problem:** Input-Felder hatten dunkle/kaum sichtbare Textfarbe
+
+**Lösung - Alle Input-Felder auf weiße Schrift umgestellt:**
+
+1. **SettingsTab.css:**
+   - `.pattern-input` (Zeile 436): `color: #ffffff`
+   - `.number-input` (Zeile 336): `color: #ffffff`
+
+2. **iOSSettingsView.css:**
+   - `.ios-input` (Zeile 407): `color: #ffffff`
+
+3. **PrivacySettingsTab.jsx:**
+   - Maximale Anzahl Entities Input (Zeile 74): `color: '#ffffff'`
+   - Excluded Patterns Input (Zeile 151): `color: '#ffffff'`
+
+#### ✨ iOS-Style Hover Effekte
+
+**1. SVG Icons werden schwarz beim Hover (iOSSettingsView.css, Zeilen 180-192):**
+```css
+.ios-item:hover:not(:active) .ios-item-left svg {
+  color: #000000 !important;
+}
+
+.ios-item:hover:not(:active) .ios-item-left svg path,
+.ios-item:hover:not(:active) .ios-item-left svg polyline,
+.ios-item:hover:not(:active) .ios-item-left svg circle,
+.ios-item:hover:not(:active) .ios-item-left svg rect,
+.ios-item:hover:not(:active) .ios-item-left svg line {
+  stroke: #000000 !important;
+  fill: #000000 !important;
+}
+```
+
+**2. Code-Elemente mit schwarzem Hintergrund (Zeilen 195-198):**
+```css
+.ios-item:hover:not(:active) code.ios-text-strong {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+```
+
+**3. Input-Felder schwarz beim Hover (Zeilen 205-210):**
+```css
+.ios-item:hover:not(:active) input,
+.ios-item:hover:not(:active) .ios-input,
+.ios-item:hover:not(:active) .ios-number-input {
+  color: #000000 !important;
+}
+```
+
+**Effekt:** tvOS-Style Hover mit weißem Hintergrund → alle Inhalte invertieren für optimale Lesbarkeit
+
+#### 🏷️ Tooltips - Filter Controls
+
+**Neue Tooltips für FilterControlPanel:**
+
+**Translations hinzugefügt (de.js + en.js):**
+- `tooltips.gridView`: 'Kachelansicht' / 'Grid view'
+- `tooltips.listView`: 'Listenansicht' / 'List view'
+- `tooltips.filterCategories`: 'Nach Kategorien filtern' / 'Filter by categories'
+- `tooltips.filterAreas`: 'Nach Räumen filtern' / 'Filter by areas'
+- `tooltips.filterTypes`: 'Nach Typen filtern' / 'Filter by types'
+- `tooltips.toggleFilter`: 'Filter öffnen/schließen' / 'Toggle filters'
+
+**Implementierung:**
+- FilterControlPanel.jsx: Import `translateUI`, prop `currentLanguage`
+- Alle 6 Filter-Buttons haben jetzt `title` Attribute mit Übersetzungen
+- SearchField.jsx: `currentLanguage` wird durchgereicht
+
+#### 🏷️ Tooltips - Detail Tabs
+
+**Neue Tooltips für Tab-Navigation:**
+
+**Translations hinzugefügt:**
+- `tooltips.controlsTab`: 'Steuerung' / 'Controls'
+- `tooltips.scheduleTab`: 'Zeitplan' / 'Schedule'
+- `tooltips.historyTab`: 'Verlauf' / 'History'
+- `tooltips.contextTab`: 'Kontext' / 'Context'
+
+**Implementierung:**
+- TabNavigation.jsx:
+  - Import `translateUI`
+  - Helper-Funktion `getTabTooltip(index)`
+  - Prop `currentLanguage` hinzugefügt
+  - Alle Tab-Buttons haben `title={getTabTooltip(index)}`
+- DetailView.jsx: `currentLanguage={lang}` an TabNavigation übergeben
+
+**Betrifft:** Alle 4 Standard-Tabs in der Detail-Ansicht (Controls, Schedule, History, Context)
+
+---
+
+#### 📊 Technische Zusammenfassung
+
+**Betroffene Komponenten:**
+- ✅ StatsBar Widgets (Icons konsistent)
+- ✅ Settings Input-Felder (weiße Schrift)
+- ✅ iOS Settings View (Hover-Effekte optimiert)
+- ✅ Filter Controls (vollständige Tooltips)
+- ✅ Detail Tab Navigation (vollständige Tooltips)
+
+**Vorteile:**
+- 🎯 Bessere Konsistenz (keine Emojis mehr in Settings)
+- 📖 Verbesserte Lesbarkeit (weiße Input-Schrift)
+- ✨ tvOS-inspirierte Hover-Effekte (invertierte Farben)
+- 🔍 Bessere Benutzerführung (Tooltips überall)
+- 🌍 Vollständige Mehrsprachigkeit (DE/EN)
+
+---
+
+### 2026-01-12 - Settings UI Improvements & Reorganization (v1.1.0979)
+
+**Datum:** 12. Januar 2026
+**Version:** 1.1.0978 → 1.1.0979
+**Geänderte Dateien:**
+- src/components/tabs/SettingsTab.jsx
+- src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx
+- src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx
+- src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx
+- src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx
+- src/system-entities/entities/todos/components/TodosSettingsView.jsx
+
+---
+
+#### 🎨 UI/UX Improvements
+
+**1. Settings Tab Reorganization**
+- Verschoben: "Privacy & Security" Sektion von Privacy Tab → About Tab
+- Privacy Tab enthält jetzt: System Settings, Excluded Patterns
+- About Tab enthält jetzt: About Card Info, Privacy & Security
+
+**2. Checkmark Design Update**
+- Alle Checkmarks umgestellt auf neues iOS-inspiriertes Design
+- **Normal State**: Runder weißer Kreis mit schwarzem Haken
+- **Hover State**: Schwarzer Kreis mit weißem Haken
+- Smooth spring animation beim Erscheinen
+- Angewendet auf:
+  - Dark Mode Auswahl (Automatic, Light, Dark)
+  - Grid Columns (4/5 Columns)
+  - Squircle Style (Standard, Prominent, Balanced, Subtle)
+  - Sprach-Auswahl
+  - Todo Settings (Auto Hide, Filter, Sort)
+
+**3. Hover-Effekt Optimierung**
+- Entfernt: Hover-Effekt von Selection-Buttons
+- Behalten: Hover-Effekt nur bei Checkmarks selbst
+- Bessere UX: Visuelles Feedback nur beim relevanten Element
+
+**4. Code Cleanup**
+- Entfernt: 3 Debug console.log Statements aus SettingsTab.jsx
+- Sauberere Browser Console
+
+**Technische Details:**
+```jsx
+// Neues Checkmark Design
+<motion.svg className="ios-checkmark" width="24" height="24">
+  <motion.circle
+    cx="12" cy="12" r="11"
+    fill="white"
+    whileHover={{ fill: "black" }}
+  />
+  <motion.path
+    d="M7 12L10.5 15.5L17 9"
+    stroke="black"
+    whileHover={{ stroke: "white" }}
+  />
+</motion.svg>
+```
+
+---
+
+### 2026-01-11 - Settings: Appearance & General Tab Übersetzungen vervollständigt (v1.1.0950)
+
+**Datum:** 11. Januar 2026
+**Version:** 1.1.0949 → 1.1.0950
+**Geänderte Dateien:**
+- src/utils/translations/languages/de.js
+- src/utils/translations/languages/en.js
+- src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx
+- src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx
+
+---
+
+#### 🌍 Internationalization
+
+**Hardcoded Strings durch Translation-Keys ersetzt**
+
+Die Appearance- und General-Tabs enthielten noch hardcoded deutsche Texte, die nicht ins Englische übersetzt wurden.
+
+**Problem:**
+- AppearanceSettingsTab zeigte hardcoded deutsche Texte in mehreren Bereichen:
+  - StatsBar Detail View: "StatsBar anzeigen", "Benutzername", "Widgets" etc.
+  - Animations View: "Namensschema:", "Beispiele:", "Hinweis:"
+- GeneralSettingsTab zeigte "ALLGEMEIN" statt "GENERAL" (EN)
+- Keine Übersetzung beim Sprachwechsel
+
+**Lösung:**
+
+**1. Translation-Keys hinzugefügt (de.js & en.js):**
+```javascript
+// StatsBar Detail View
+showStatsBar: 'StatsBar anzeigen' / 'Show StatsBar',
+showStatsBarDescription: 'Statusleiste oberhalb des Suchfeldes' / 'Status bar above search field',
+username: 'Benutzername' / 'Username',
+usernamePlaceholder: 'Benutzername eingeben' / 'Enter username',
+usernameFooter: 'Der Benutzername wird in der StatsBar links angezeigt' / 'The username is displayed on the left in the StatsBar',
+widgets: 'Widgets',
+fixedWidgets: 'Feste Widgets:' / 'Fixed Widgets:',
+weatherWidget: '☀️ Wetter (Temperatur & Icon)' / '☀️ Weather (Temperature & Icon)',
+energyWidget: '⚡ Energieverbrauch' / '⚡ Energy consumption',
+notificationsWidget: '🔔 Benachrichtigungen (mit Zähler)' / '🔔 Notifications (with counter)',
+timeWidget: '🕐 Uhrzeit (live)' / '🕐 Time (live)',
+statsBarNote: 'Die StatsBar bleibt immer sichtbar...' / 'The StatsBar remains visible...',
+
+// Animations View
+namingScheme: 'Namensschema:' / 'Naming Scheme:',
+namingSchemeNote: 'Videos werden einmalig abgespielt...' / 'Videos are played once...',
+
+// General Tab
+general: 'ALLGEMEIN' / 'GENERAL' (updated to uppercase)
+```
+
+**2. Hardcoded Strings ersetzt in AppearanceSettingsTab.jsx:**
+```javascript
+// Vorher:
+<div className="ios-item-label">StatsBar anzeigen</div>
+<div className="ios-section-header">Benutzername</div>
+<strong>Namensschema:</strong>
+
+// Nachher:
+<div className="ios-item-label">{t('showStatsBar')}</div>
+<div className="ios-section-header">{t('username')}</div>
+<strong>{t('namingScheme')}</strong>
+```
+
+**3. Section Header ersetzt in GeneralSettingsTab.jsx:**
+```javascript
+// Vorher:
+<div className="ios-section-header">ALLGEMEIN</div>
+
+// Nachher:
+<div className="ios-section-header">{t('general')}</div>
+```
+
+**Ergebnis:**
+- Vollständige Übersetzung aller Settings-Tabs (DE/EN)
+- Konsistentes Sprachumschalt-Verhalten
+- Status & Greetings Section: ✅ übersetzt
+- StatsBar Detail View: ✅ übersetzt
+- Animations View: ✅ übersetzt
+- General Tab Section Header: ✅ übersetzt
+
+---
+
+### 2026-01-11 - StatsBar Settings: Section Header Fix (v1.1.0949)
+
+**Datum:** 11. Januar 2026
+**Version:** 1.1.0948 → 1.1.0949
+**Geänderte Dateien:**
+- src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx
+- src/components/tabs/SettingsTab.jsx
+
+---
+
+#### 🐛 Bug Fix
+
+**"UI.SETTINGS.SETTINGS" Section Header behoben**
+
+Der StatsBar Settings Tab zeigte den unübersetzten Key statt dem deutschen/englischen Text.
+
+**Problem:**
+- Section Header zeigte `UI.SETTINGS.SETTINGS` statt "EINSTELLUNGEN"
+- `t('settings')` führte zu rekursivem Key-Path: `translateUI('settings.settings', lang)`
+- Translation-System suchte nach `ui.settings.settings`, was nicht als übersetzter Key existierte
+
+**Root Cause:**
+```javascript
+// SettingsTab.jsx
+const t = (key) => translateUI(`settings.${key}`, currentLang);
+
+// StatsBarSettingsTab.jsx
+{t('settings')}  // → translateUI('settings.settings', lang) ❌
+```
+
+**Lösung:**
+Section Header durch sprachabhängigen hardcoded Text ersetzt:
+```javascript
+// Vorher:
+<div className="ios-section-header">{t('settings')}</div>
+
+// Nachher:
+<div className="ios-section-header">
+  {lang === 'de' ? 'EINSTELLUNGEN' : 'SETTINGS'}
+</div>
+
+// Props erweitert:
+export const StatsBarSettingsTab = ({ t, hass, lang = 'de' }) => {
+```
+
+**Ergebnis:**
+- StatsBar Settings zeigt "EINSTELLUNGEN" (DE) oder "SETTINGS" (EN)
+- Keine Key-Konflikte im Translation-System
+- Konsistente Darstellung über alle Settings-Tabs
+
+---
+
+### 2026-01-11 - Settings: About-Tab Translation-Keys ergänzt (v1.1.0948)
+
+**Datum:** 11. Januar 2026
+**Version:** 1.1.0947 → 1.1.0948
+**Geänderte Dateien:**
+- src/utils/translations/languages/de.js
+- src/utils/translations/languages/en.js
+
+---
+
+#### 🐛 Bug Fix
+
+**Fehlende Translation-Keys für About-Tab hinzugefügt**
+
+Der About-Tab zeigte Keys statt Übersetzungen, da die Keys nur in EN vorhanden waren.
+
+**Problem:**
+- About-Tab zeigte `ui.settings.maxEntities`, `UI.SETTINGS.SYSTEMSETTINGS` etc.
+- Keys waren in EN vorhanden, fehlten aber in DE
+- `settings` Key hatte falschen Value: `'UI.SETTINGS.SETTINGS'` statt `'Einstellungen'`
+
+**Lösung:**
+- 17 fehlende Keys in `de.js` hinzugefügt
+- 1 falschen Key in `de.js` und `en.js` korrigiert
+
+**Hinzugefügte Keys (DE):**
+```javascript
+// System Settings (About Tab)
+systemSettings: 'Systemeinstellungen',
+maxEntities: 'Maximale Anzahl Entities',
+maxEntitiesDescription: '{count} Entities laden (0 = Unbegrenzt)',
+maxEntitiesUnlimited: 'Unbegrenzte Entities laden (0 = Unbegrenzt)',
+onlyEntitiesWithArea: 'Nur Entities mit Bereich laden',
+onlyEntitiesWithAreaDescription: 'Filtert Entities ohne Bereichszuweisung heraus (Permanent aktiviert)',
+
+// Excluded Patterns
+excludedPatterns: 'Ausschlussmuster',
+excludedPatternsDescription: 'Definiere Muster um bestimmte Entities von der Suche auszuschließen. Verwende Wildcards:',
+wildcardAny: 'beliebige Zeichen (z.B.', wildcardAnySuffix: 'für alle Sensoren)',
+wildcardSingle: 'ein einzelnes Zeichen', examples: 'Beispiele:',
+patternPlaceholder: 'z.B. sensor.temp_*', addPattern: '+ Hinzufügen',
+activePatterns: 'Aktive Muster ({count})', removePattern: 'Muster entfernen',
+noPatternsYet: 'Keine Muster definiert. Alle Entities werden angezeigt.'
+```
+
+**Ergebnis:**
+- About-Tab zeigt jetzt deutsche Texte statt Keys
+- Systemeinstellungen, Ausschlussmuster vollständig übersetzt
+- Alle Settings-Tabs funktionieren jetzt korrekt in DE + EN
+
+---
+
+### 2026-01-11 - Settings: Vollständige Deutsch/Englisch Übersetzungen (v1.1.0947)
+
+**Datum:** 11. Januar 2026
+**Version:** 1.1.0946 → 1.1.0947
+**Geänderte Dateien:**
+- src/utils/translations/languages/de.js
+- src/utils/translations/languages/en.js
+- src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx
+
+---
+
+#### 🌐 Internationalisierung
+
+**Alle Settings-Tabs vollständig übersetzt**
+
+Alle hardcoded deutschen Strings in den Settings wurden durch Translation-Keys ersetzt.
+
+**Übersetzte Komponenten:**
+- **PrivacySettingsTab**: Vorschläge aktivieren, Confidence-Schwellenwert, Zeitfenster, Lerngeschwindigkeit, Cache leeren, Daten zurücksetzen
+- **StatsBarSettingsTab**: Widgets verwalten, Datenquellen, Sensorkonfiguration, Erkennungsmodus (Auto/Manuell), Widget-Labels, Info-Texte
+- **AboutSettingsTab**: Versionsinformationen, Entity-Limits, Excluded Patterns
+
+**Änderungen:**
+- **100+ neue Translation-Keys** in `de.js` und `en.js` hinzugefügt
+- **50+ hardcoded Strings** durch `t()` Calls ersetzt
+- **Alle UI-Texte** jetzt zweisprachig (Deutsch/Englisch)
+
+**Neue Translation-Keys (Auswahl):**
+```javascript
+// Privacy Settings
+enableSuggestions, enableSuggestionsDescription,
+confidenceThresholdCurrent, timeWindowCurrent,
+maxSuggestionsShow, learningSpeed, slow, normal, fast,
+privacySecure, privacyLocalOnly, clearCacheConfirm
+
+// StatsBar Settings
+statsBar, widgets, widgetsDescription, dataSources,
+weatherWidget, energyGridConsumptionWidget,
+solarProductionWidget, notificationsWidget, timeWidget,
+detectionMode, autoDetection, configuredSensors,
+manualConfiguration, aboutDataSources
+```
+
+**Vorteile:**
+- Vollständige Mehrsprachigkeit für alle Settings
+- Konsistente Benutzererfahrung in DE + EN
+- Einfach erweiterbar für weitere Sprachen
+- Zentrale Verwaltung aller UI-Texte
+
+---
+
+### 2026-01-11 - Settings: Sprachauswahl vereinfacht (v1.1.0946)
+
+**Datum:** 11. Januar 2026
+**Version:** 1.1.0945 → 1.1.0946
+**Geänderte Dateien:**
+- src/components/tabs/SettingsTab/constants.jsx
+- src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx
+
+---
+
+#### ♻️ Refactoring
+
+**Sprachauswahl auf Deutsch/Englisch reduziert**
+
+Die Settings-UI wurde vereinfacht mit Fokus auf die wichtigsten Optionen.
+
+**Änderungen:**
+- **Sprachoptionen**: 10 Sprachen → 2 Sprachen (Deutsch, Englisch)
+- **UI-Reorganisation**: Neue "ALLGEMEIN" Übersicht
+  - ✅ Sprachauswahl - Sichtbar
+  - 🙈 AI-Modus - Ausgeblendet (bleibt im Code)
+  - 🙈 Animationen - Ausgeblendet (bleibt im Code)
+  - 🙈 Push-Benachrichtigungen - Ausgeblendet (bleibt im Code)
+
+**Implementierung:**
+```javascript
+// constants.jsx - Nur noch DE/EN
+export const LANGUAGE_CODES = ['de', 'en'];
+
+// GeneralSettingsTab.jsx - Ausgeblendete Items
+<div className="ios-item" style={{ display: 'none' }}>
+  {/* AI-Modus, Animationen, Sound Effects */}
+</div>
+```
+
+**Vorteile:**
+- Fokussierte UX - Weniger Ablenkung für Nutzer
+- Code bleibt erhalten - Einfach wieder aktivierbar
+- Wartbarkeit - Ausgeblendete Features können später reaktiviert werden
+
+---
+
+### 2026-01-11 - Fronius Integration entfernt (v1.1.0945)
+
+**Datum:** 11. Januar 2026
+**Version:** 1.1.0944 → 1.1.0945
+**Geänderte Dateien:**
+- src/system-entities/entities/integration/device-entities/FroniusDeviceEntity.js (ENTFERNT)
+- src/system-entities/entities/integration/device-entities/FroniusDeviceView.jsx (ENTFERNT)
+- src/system-entities/entities/integration/device-entities/tabs/Fronius*.jsx (ENTFERNT)
+- src/system-entities/entities/integration/components/setup-flows/FroniusSetup.jsx (ENTFERNT)
+- src/system-entities/entities/integration/device-entities/DeviceEntityFactory.js
+- src/system-entities/entities/integration/IntegrationView.jsx
+- src/system-entities/entities/integration/components/CategorySelectionView.jsx
+
+---
+
+#### 🗑️ Removed
+
+**Fronius Solar Integration vollständig entfernt**
+
+Die Fronius Integration wurde entfernt, da das Energy Dashboard die gleiche Funktionalität bereits abdeckt.
+
+**Entfernte Komponenten:**
+- `FroniusDeviceEntity` - Entity-Definition für Fronius Geräte
+- `FroniusDeviceView` - Haupt-View mit Live-Power-Grid
+- `FroniusOverviewTab`, `FroniusEnergyTab`, `FroniusBatteryTab`, `FroniusSettingsTab` - Tab-Komponenten
+- `FroniusSetup` - Auto-Discovery Setup Flow
+- Fronius-Kategorie aus Integration Manager
+
+**Grund:**
+- Energy Dashboard bietet bereits umfassende Solar/Battery-Visualisierung
+- Vermeidung von Funktionsduplikation
+- Code-Reduktion: ~520 Zeilen entfernt
+
+---
+
+### 2026-01-11 - DetailView: StatsBar Overlap Fix (v1.1.0944)
+
+**Datum:** 11. Januar 2026
+**Version:** 1.1.0943 → 1.1.0944
+**Geänderte Dateien:**
+- src/components/SearchField/components/DetailViewWrapper.jsx
+- src/components/SearchField.jsx
+- docs/statsbar-greetings-guide.md
+
+---
+
+#### 🐛 Bug Fix
+
+**1. DetailView Positionierung korrigiert**
+
+DetailView hatte ein Überlappungsproblem mit der StatsBar. Das Problem wurde durch eine 2-stufige Positionierungs-Logik gelöst:
+
+**Problem:**
+- DetailView mit `position: absolute; top: 0` überdeckte die StatsBar
+- Nur `y`-Transform war nicht ausreichend
+
+**Lösung:**
+```jsx
+// Zweistufige Positionierung:
+const statsBarHeight = statsBarEnabled ? (isMobile ? 45 : 46) : 0;  // CSS top
+const yOffset = position === 'centered' ? (isMobile ? 60 : 120) : 0;  // Transform y
+
+<motion.div
+  style={{ top: `${statsBarHeight}px` }}  // Fixer Offset für StatsBar
+  animate={{ y: hasAppeared ? yOffset : 0 }}  // Dynamischer Offset für Position
+/>
+```
+
+**Ergebnis:**
+- DetailView hat **immer** korrekten Abstand zur StatsBar (45px Mobile / 46px Desktop)
+- Zusätzlich: Dynamischer Y-Offset für centered/top Position
+- Keine Überlappung mehr ✅
+
+---
+
+### 2026-01-11 - Energy Dashboard: CircularIcon Refactoring & Farbdifferenzierung (v1.1.0942)
+
+**Datum:** 11. Januar 2026
+**Version:** 1.1.0941 → 1.1.0942
+**Geänderte Dateien:**
+- src/components/controls/CircularSliderDisplay.jsx
+- src/components/controls/CircularSlider.jsx
+- src/components/controls/CircularIcon.jsx (ENTFERNT)
+- src/utils/deviceConfigs.js
+
+---
+
+#### ♻️ Refactoring
+
+**1. CircularIcon in value-display-container integriert**
+
+Die CircularIcon-Komponente wurde aufgelöst und direkt in CircularSliderDisplay integriert:
+
+**Vorher:**
+```
+circular-content
+├── circular-icon-container (separate)
+└── value-display-container (separate)
+```
+
+**Nachher:**
+```
+circular-content
+└── value-display-container
+    ├── circular-icon (integriert)
+    ├── value-wrapper
+    ├── sub-value
+    └── label
+```
+
+**Vorteile:**
+- ✅ Bessere DOM-Struktur - Icon ist Teil der Value-Display-Komponente
+- ✅ Konsistentes Layout mit Flexbox
+- ✅ Einfachere Wartung - weniger separate Komponenten
+- ✅ Korrekte z-index Verwaltung
+
+**Implementierung:**
+```jsx
+// CircularSliderDisplay.jsx
+{showCenterIcon && centerIcon && (
+  <motion.div
+    className="circular-icon"
+    variants={circularSliderLabelVariants}
+    initial="hidden"
+    animate="visible"
+    style={{
+      width: `${iconSize}px`,
+      height: `${iconSize}px`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'rgba(255, 255, 255, 0.8)',
+      marginBottom: size < 200 ? '2px' : '4px'
+    }}
+    dangerouslySetInnerHTML={{ __html: centerIcon }}
+  />
+)}
+```
+
+#### ✨ Neue Features
+
+**2. Typspezifische Farben für Energy Dashboard Slides**
+
+Jeder Energy-Typ hat jetzt seine eigene charakteristische Farbe für bessere visuelle Differenzierung:
+
+- 🏠 **Verbrauch** → **Rot** (`#FF6B6B`)
+- ☀️ **Solarerzeugung** → **Gelb** (`#FFD93D`)
+- ⚡ **Nettonutzung** → **Grün** (`#4ECB71`)
+- 🔋 **Batterie** → **Blau** (`#42A5F5`)
+
+**Implementierung in `deviceConfigs.js`:**
+```javascript
+const circularColors = {
+  solarerzeugung: '#FFD93D',    // Gelb - Solar/Sonne
+  verbrauch: '#FF6B6B',         // Rot - Verbrauch/Consumption
+  nettonutzung: '#4ECB71',      // Grün - Netz/Grid
+  batterie: '#42A5F5'           // Blau - Batterie
+};
+
+const circularColor = circularColors[circularType] || 'rgb(48, 209, 88)';
+
+return {
+  // ...
+  color: circularColor  // ✅ Dynamische Farbe je nach Typ
+};
+```
+
+**Vorteile:**
+- ✅ Sofortige visuelle Unterscheidbarkeit der drei Slides
+- ✅ Intuitive Farbzuordnung (Rot = Verbrauch, Gelb = Solar, Grün = Netz)
+- ✅ Konsistent mit gängigen UI/UX Patterns
+- ✅ Erweiterbar für zukünftige Energy-Typen (z.B. Batterie)
+
+#### 🎨 Design-Verbesserungen
+
+- Icon verwendet jetzt `marginBottom` für konsistente Abstände
+- Icon-Größe responsive: 28px (Mobile) / 32px (Desktop)
+- Saubere Integration in Flexbox-Layout des value-display-containers
+
+---
+
+### 2026-01-11 - Energy Dashboard: CircularIcon & UI-Verbesserungen (v1.1.0941)
+
+**Datum:** 11. Januar 2026
+**Version:** 1.1.0940 → 1.1.0941
+**Geänderte Dateien:**
+- src/components/controls/CircularIcon.jsx (NEU)
+- src/components/controls/CircularSlider.jsx
+- src/utils/deviceConfigs.js
+- src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceEntity.js
+
+---
+
+#### ✨ Neue Features
+
+**1. CircularIcon Komponente**
+
+Neue statische Icon-Komponente für Circular Slider (ohne Click-Interaktion):
+- Position wie PowerToggle (oberhalb des Wertes)
+- Runder Container mit Glasmorphism-Effekt
+- Responsive Größenanpassung (Mobile: 48px, Desktop: 56px)
+- SVG-Support mit `dangerouslySetInnerHTML`
+
+**Implementierung:**
+```jsx
+// src/components/controls/CircularIcon.jsx
+export const CircularIcon = ({
+  icon = null,
+  size = 280,
+  show = true,
+  color = 'rgba(255, 255, 255, 0.9)'
+})
+```
+
+**Integration in CircularSlider:**
+```jsx
+<CircularIcon
+  icon={centerIcon}
+  size={dynamicSize}
+  show={showCenterIcon}
+  color={dynamicColor}
+/>
+```
+
+**2. Dummy-SVG-Icons für Energy Dashboard Slider**
+
+Alle drei Slider-Typen haben jetzt eigene Icons:
+
+**Solarerzeugung:**
+- ☀️ Sonne-Icon (Kreis mit Strahlen)
+- Zeigt Energie-Produktion symbolisch
+
+**Verbrauch:**
+- 🏠 Haus-Icon
+- Zeigt Hausverbrauch symbolisch
+
+**Nettonutzung:**
+- 📊 Graph/Wellen-Icon
+- Zeigt Netzfluss symbolisch
+
+**Implementierung in `deviceConfigs.js`:**
+```javascript
+const circularIcons = {
+  solarerzeugung: `<svg>...sun icon...</svg>`,
+  verbrauch: `<svg>...house icon...</svg>`,
+  nettonutzung: `<svg>...graph icon...</svg>`,
+  batterie: `<svg>...battery icon...</svg>`
+};
+
+const centerIcon = circularIcons[circularType] || null;
+
+return {
+  // ...
+  centerIcon: centerIcon,
+  showCenterIcon: centerIcon !== null
+};
+```
+
+**3. Button Icons aktualisiert**
+
+Energy Dashboard Circular-Slideshow Buttons haben neue Icons:
+
+**Verbrauch (controls):**
+- Icon geändert: Stromnetz-Turm (Grid Tower)
+- Vorher: Sonne/Burst Icon
+- SVG viewBox: `0 0 463 463`
+
+**Solar (sensors):**
+- Icon geändert: Solar Panel (3x3 Grid)
+- Vorher: Heartbeat/Wellen Icon
+- SVG viewBox: `0 0 512 512`
+
+**Nettonutzung (diagnostics):**
+- Icon geändert: Grid/Dots Icon (wie Energieunabhängigkeit)
+- Vorher: Wrench/Werkzeug Icon
+- Konsistent mit Energieunabhängigkeit-Button
+
+**4. Detail-Tab Buttons reduziert**
+
+Energy Dashboard Detail-Tabs bereinigt:
+- ❌ "Camera" Button entfernt
+- ❌ "Bild" Button entfernt
+- ✅ Nur noch "Übersicht" und "Einstellungen"
+
+**Vorher:** 4 Buttons (Übersicht, Einstellungen, Camera, Bild)
+**Nachher:** 2 Buttons (Übersicht, Einstellungen)
+
+```javascript
+// EnergyDashboardDeviceEntity.js
+actionButtons: [
+  { id: 'overview', action: 'overview', title: 'Übersicht' },
+  { id: 'settings', action: 'settings', title: 'Einstellungen' }
+]
+```
+
+---
+
+#### 🎨 Design-Verbesserungen
+
+**CircularIcon Container:**
+- Runder Glasmorphism-Container
+- Background: `rgba(255, 255, 255, 0.1)`
+- Backdrop-Filter: `blur(10px)`
+- Border: `1px solid rgba(255, 255, 255, 0.2)`
+
+**Icon-Größen:**
+- Mobile (< 220px): Container 48px, Icon 20px
+- Desktop (≥ 220px): Container 56px, Icon 24px
+
+**Position:**
+- Identisch mit PowerToggle-Position
+- Vertikal-Offset: Mobile 38px, Desktop 60px
+- Horizontal zentriert
+
+---
+
+#### 📝 Technische Details
+
+**Neue Props für CircularSlider:**
+```javascript
+{
+  centerIcon: null,        // SVG String
+  showCenterIcon: false    // Boolean
+}
+```
+
+**CircularIcon Features:**
+- Framer Motion Animation (opacity + scale)
+- Spring-Animation (stiffness: 300, damping: 25)
+- Pointer-Events: none (keine Interaktion)
+- Z-Index: 10 (über Slider, unter Display)
+
+**SVG-Rendering:**
+- String-Icons via `dangerouslySetInnerHTML`
+- Fallback: Default Circle Icon
+- Color-Support via `stroke` attribute
+
+---
+
+#### 🔄 Kompatibilität
+
+- Rückwärtskompatibel: Keine Breaking Changes
+- Bestehende Slider funktionieren ohne centerIcon
+- PowerToggle und CircularIcon koexistieren
+
+---
+
 ### 2026-01-08 - Energy Dashboard: Finale UX-Optimierungen (v1.1.0870)
 
 **Datum:** 8. Januar 2026

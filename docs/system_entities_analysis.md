@@ -85,6 +85,109 @@ src/system-entities/
     └── SystemEntityLoader.js       # Helper for loading resources
 ```
 
+## Recent Updates (v1.1.0980 - 2026-01-12)
+
+### Settings Entity UI Polish
+
+The Settings entity has received significant UI/UX improvements to enhance consistency, readability, and user guidance:
+
+#### **1. Icon Standardization**
+- **Removed**: Emoji icons (☀️, 🔔, 🕐) from widget settings labels
+- **Replaced with**: Clean SVG-only design throughout all settings tabs
+- **Impact**: Better visual consistency and professional appearance
+
+#### **2. Input Field Readability**
+- **Problem**: Input fields had low-contrast dark text
+- **Solution**: Standardized all input fields to `color: #ffffff` (white)
+- **Affected Components**:
+  - `PrivacySettingsTab.jsx`: Entity limit & excluded patterns inputs
+  - All `.ios-input` and `.ios-number-input` elements
+  - Pattern input fields in Settings CSS
+
+#### **3. tvOS-Style Hover Effects**
+Enhanced the iOS-inspired hover system with complete color inversion:
+
+```css
+/* SVG Icons → Black on hover */
+.ios-item:hover:not(:active) .ios-item-left svg {
+  color: #000000 !important;
+  stroke: #000000 !important;
+  fill: #000000 !important;
+}
+
+/* Code elements → Black background */
+.ios-item:hover:not(:active) code.ios-text-strong {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Input text → Black on hover */
+.ios-item:hover:not(:active) input {
+  color: #000000 !important;
+}
+```
+
+**Effect**: When hovering over `.ios-item` elements, the background turns white and all content (icons, text, inputs) inverts to black for optimal contrast.
+
+#### **4. Comprehensive Tooltips**
+Added multilingual tooltips across all interactive elements:
+
+**Filter Controls** (6 tooltips):
+- Grid/List view toggles
+- Category/Area/Type filters
+- Filter panel toggle
+
+**Detail View Tabs** (4 tooltips):
+- Controls Tab (Steuerung / Controls)
+- Schedule Tab (Zeitplan / Schedule)
+- History Tab (Verlauf / History)
+- Context Tab (Kontext / Context)
+
+**Implementation Details**:
+- Translation keys added to `de.js` and `en.js` under `tooltips` section
+- Uses `translateUI()` function for language-aware rendering
+- `currentLanguage` prop propagated through component hierarchy
+- Helper function `getTabTooltip(index)` in TabNavigation.jsx
+
+#### **5. Energy Dashboard Icons**
+- **Grid Export**: Now uses `GridConsumptionIcon` (same as Grid Import)
+- **Consistency**: Both import/export widgets display transmission tower icon
+- **Files Updated**: `StatsBar.jsx`, `StatsBarSettingsTab.jsx`
+
+### Architecture Impact
+
+These improvements demonstrate the System Entity Framework's flexibility:
+
+1. **UI Layer Independence**: UI polish work remains isolated to view components without touching entity logic
+2. **Event-Driven Updates**: All settings changes still propagate via CustomEvents
+3. **Persistent State**: localStorage integration unchanged
+4. **Translations**: Centralized translation system supports easy localization
+5. **Accessibility**: Enhanced contrast and tooltips improve usability
+
+### Files Modified
+
+**Settings Components**:
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx`
+- `src/components/tabs/SettingsTab/SettingsTab.css`
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+
+**Translation System**:
+- `src/utils/translations/languages/de.js`
+- `src/utils/translations/languages/en.js`
+
+**Navigation Components**:
+- `src/components/SearchField/components/FilterControlPanel.jsx`
+- `src/components/DetailView/TabNavigation.jsx`
+- `src/components/DetailView.jsx`
+
+**StatsBar Integration**:
+- `src/components/StatsBar.jsx`
+- `src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx`
+
+---
+
 ## Conclusion
 
 The System Entity Framework is a powerful abstraction that decouples the UI from the underlying data source. By mocking the Home Assistant Entity interface, it allows "Fast Search Card" to extend its capabilities beyond simple HA control, enabling rich, custom applications (like a complete Energy Dashboard or 3D Printer management) to live natively within the same consistent user interface.
+
+The recent v1.1.0980 update demonstrates how this architecture enables iterative UI improvements without breaking the entity abstraction layer, maintaining a clean separation between business logic (entity actions, lifecycle, persistence) and presentation (iOS-style design, tooltips, hover effects).
