@@ -4,6 +4,97 @@ Alle wichtigen Änderungen an der Todo System-Entity werden hier dokumentiert.
 
 ---
 
+## [v1.3.0] - 2026-01-22
+
+### 🔄 Priority Persistence: Description-Based Storage
+
+**Motivation:** Priority verschwindet nach Refresh - Home Assistant API unterstützt kein natives priority Feld
+
+#### ✅ Implemented
+
+##### 1. HTML Comment Storage Pattern
+- **Format:** `<!-- priority:N -->` am Anfang der Description
+- **CommonMark kompatibel:** HTML Comments werden nicht gerendert
+- **Unsichtbar:** User sieht nur clean description in HA Apps
+- **Robust:** Eindeutiges Pattern für Parsing
+
+##### 2. Priority Parser Utility
+- **NEU:** `utils/priorityParser.js` (150 lines)
+- `extractPriority()` - Extrahiert priority aus description
+- `injectPriority()` - Fügt priority in description ein
+- `removePriority()` - Entfernt priority comment
+- `hasPriority()` - Prüft ob priority vorhanden
+
+##### 3. Integration in API Actions
+- **index.jsx `addTodo()`** - Priority wird beim Erstellen gespeichert
+- **index.jsx `updateTodo()`** - Priority wird beim Update gespeichert
+- **index.jsx `_fetchFromHomeAssistant()`** - Priority wird beim Laden extrahiert
+- **TodosView.jsx handlers** - Priority wird weitergegeben
+
+#### 📋 Beispiel
+
+**Gespeichert in Home Assistant:**
+```markdown
+<!-- priority:3 -->
+Bio-Milch kaufen, 3 Liter
+```
+
+**Angezeigt in HA Apps:**
+```
+Bio-Milch kaufen, 3 Liter
+```
+(HTML Comment unsichtbar!)
+
+**Geladen in Fast Search Card:**
+```javascript
+{
+  summary: "Milch kaufen",
+  description: "Bio-Milch kaufen, 3 Liter",
+  priority: 3  // ✅ Persistiert!
+}
+```
+
+#### 🎯 Vorteile
+
+1. **Cross-Device Sync**: Priority sync über alle Geräte (im Gegensatz zu localStorage)
+2. **Unsichtbar**: HTML Comments werden nicht gerendert
+3. **Markdown-Safe**: CommonMark erlaubt HTML, beeinflusst Rendering nicht
+4. **Erweiterbar**: Später z.B. `<!-- priority:3,tags:work -->`
+5. **No Data Loss**: Description bleibt intakt
+
+#### 📦 Build Stats
+
+- Bundle size: 1,457.16 kB (gzip: 385.84 kB)
+- +150 lines (priorityParser.js)
+- Build time: 2.19s
+
+#### 🔧 Technical Details
+
+**Pattern:** `/<!--\s*priority:(\d)\s*-->\s*/`
+
+**Priority Levels:**
+- 0: Keine Priorität (kein comment)
+- 1: Niedrig (!)
+- 2: Mittel (!!)
+- 3: Hoch (!!!)
+
+**Edge Cases behandelt:**
+- Description ist null/undefined
+- Multiple priority comments
+- Ungültige priority values
+- Update nur priority (ohne description ändern)
+
+#### 🧪 Testing
+
+✅ Build erfolgreich
+✅ Keine Breaking Changes
+✅ Backward compatible (priority optional)
+✅ Markdown bleibt intakt
+
+**Next Step:** Step 4 - Optimistic UI Updates (ROADMAP.md)
+
+---
+
 ## [v1.2.0] - 2026-01-22
 
 ### 🎉 Major Refactoring: Shared TodoFormDialog Component
