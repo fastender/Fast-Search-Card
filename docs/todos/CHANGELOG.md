@@ -4,6 +4,203 @@ Alle wichtigen Änderungen an der Todo System-Entity werden hier dokumentiert.
 
 ---
 
+## [v1.4.0] - 2026-01-24
+
+### 🎨 Profile System & Critical Bugfixes
+
+**Motivation:** Priority System durch flexibleres Profile System ersetzen + kritische Bugs im Edit-Mode beheben
+
+#### ✅ Major Changes
+
+##### 1. Profile System (ersetzt Priority)
+- **Profile statt Priority:** Mehrere Profile pro Todo möglich (z.B. "Ender", "Sofie")
+- **Storage Pattern:** `<!-- profiles:profile-id1,profile-id2 -->` in description
+- **NEU:** `utils/profileParser.js` (ersetzt priorityParser.js)
+- **NEU:** `utils/profileColors.js` - Farbverwaltung für Profile
+- **UI:** Profile-Auswahl mit farbigen Chips
+- **Settings:** Profile erstellen, bearbeiten, löschen
+- **Multi-Select:** Mehrere Profile gleichzeitig auswählbar
+
+##### 2. UI/UX Verbesserungen
+- **Navbar Layout:**
+  - "Fertig" Button rechts (statt mittig)
+  - "Fertig" in weißer Farbe
+  - Kein "Speichern" Button mehr im Content
+- **Subviews (Datum/Zeit/Beschreibung):**
+  - Links: "Zurück" (statt "Löschen")
+  - Unten: Roter "Löschen" Button hinzugefügt
+- **Main View:**
+  - "Löschen" als roter Button unten (nur Edit-Mode)
+
+#### 🐛 Critical Bugfixes
+
+##### Bug 1: Date Picker Flicker ✅ FIXED
+**Problem:** Beim Scrollen von Monat/Jahr flackerten ALLE Tage (1-31)
+
+**Root Cause:**
+- `updateData()` in IOSTimePicker.jsx setzte `innerHTML = ''`
+- Komplette DOM-Neuerschaffung bei jeder Änderung
+- Alle Elemente wurden neu gerendert → Flackern
+
+**Fix:**
+```javascript
+// VORHER - Flackern
+innerHTML = '';
+// Alle Elemente neu erstellen
+
+// NACHHER - Kein Flackern
+// Nur geänderte Elemente updaten
+if (element.textContent !== newData[i]) {
+  element.textContent = newData[i];
+}
+```
+
+**Location:** `src/components/IOSTimePicker.jsx` (Zeilen 94-109)
+
+##### Bug 2: Edit Mode Save Failure ✅ FIXED
+**Problem:** Datum/Uhrzeit-Änderungen wurden beim Editieren nicht gespeichert
+
+**Root Cause (mehrere Probleme):**
+
+1. **State Reinitialisierung bei Re-Mount:**
+   - UID-Tracking mit `null` initial → `null === null` → Initialisierung übersprungen
+   - **Fix:** `useRef(undefined)` statt `useRef(null)`
+
+2. **State-Überschreibung im Edit-Mode:**
+   - Init-Effect löschte User-Änderungen wenn `initialTodo.due` leer
+   - **Fix:** Nur in Add-Mode State zurücksetzen, nie in Edit-Mode
+
+3. **Falsche Property im Handler:**
+   - `handleDetailSave` verwendete `updatedTodo.due` statt `updatedTodo.dueDate`
+   - **Fix:** Korrektur in TodosView.jsx Zeile 615
+
+4. **Home Assistant API Requirements:**
+   - HA erfordert mindestens `rename` ODER `status` beim Update
+   - Nur `due_datetime` setzen → API-Fehler
+   - **Fix:** Bessere updateTodo Action mit allen Feldern
+
+**Locations:**
+- `src/system-entities/entities/todos/components/TodoFormDialog.jsx` (Zeilen 146, 240-265)
+- `src/system-entities/entities/todos/TodosView.jsx` (Zeile 615)
+- `src/system-entities/entities/todos/index.jsx` (Zeilen 244-283)
+
+##### Bug 3: Empty Backend Error ✅ FIXED
+**Problem:** Fehler beim Erstellen von Todos wenn Backend komplett leer
+
+**Error Message:**
+```
+invalid_format: not a valid value for dictionary value @ data['entity_id']
+```
+
+**Root Cause:**
+- `availableLists` war leer → `listId` wurde auf `''` gesetzt
+- Home Assistant akzeptiert keine leere entity_id
+
+**Fix:**
+- Fallback zu `entity.entity_id` wenn keine Listen vorhanden
+- `defaultEntityId` prop zu TodoFormDialog hinzugefügt
+
+**Location:** `src/system-entities/entities/todos/components/TodoFormDialog.jsx` (Zeile 125)
+
+##### Bug 4: Missing Fields in Add Dialog ✅ FIXED
+**Problem:** Datum, Uhrzeit, Beschreibung fehlten im Add-Dialog
+
+**Root Cause:**
+- `useListFeatures` gab `false` zurück wenn `listId` leer
+- Alle Felder wurden ausgeblendet
+
+**Fix:**
+```javascript
+// Default: all features enabled when no list selected
+if (!hass || !listId) {
+  return { supportsDate: true, supportsTime: true, supportsDescription: true };
+}
+```
+
+**Location:** `src/system-entities/entities/todos/components/TodoFormDialog.jsx` (Zeilen 24-25)
+
+##### Bug 5: No Real-Time Updates ✅ FIXED
+**Problem:** Änderungen wurden erst nach manuelem Refresh sichtbar
+
+**Root Cause:**
+- CRUD Actions gaben refreshed todos zurück, aber Result wurde ignoriert
+- Lokaler State wurde manuell (und falsch) aktualisiert
+
+**Fix:**
+```javascript
+// VORHER
+await entity.executeAction('updateTodo', {...});
+setTodos(prev => prev.map(...)); // Manuell, inkonsistent
+
+// NACHHER
+const refreshedTodos = await entity.executeAction('updateTodo', {...});
+if (refreshedTodos) {
+  setTodos(refreshedTodos); // Fresh data vom Server
+}
+```
+
+**Location:** `src/system-entities/entities/todos/TodosView.jsx` (Zeilen 531-629)
+
+#### 🔧 Technical Improvements
+
+##### Home Assistant API Integration
+- **Service Calls optimiert:**
+  - `todo.add_item` - Korrekte `due_datetime` Format-Konvertierung
+  - `todo.update_item` - Alle erforderlichen Parameter setzen
+  - Support für `null` um Datum zu löschen
+
+- **Date Format Handling:**
+```javascript
+// ISO Format: YYYY-MM-DDTHH:MM:SS
+// HA Format:  YYYY-MM-DD HH:MM:SS
+serviceData.due_datetime = dueDate.replace('T', ' ');
+```
+
+#### 📊 Code Metrics
+
+```
+Files Changed:
+├── components/TodoFormDialog.jsx     +120 lines (bugfixes)
+├── TodosView.jsx                     +80 lines (real-time updates)
+├── index.jsx (TodosEntity)           +45 lines (API improvements)
+├── IOSTimePicker.jsx                 +35 lines (flicker fix)
+├── utils/profileParser.js            +150 lines (NEW)
+└── utils/profileColors.js            +50 lines (NEW)
+
+Total: +480 lines
+Bundle: 1,479.50 kB (gzip: 389.12 kB)
+```
+
+#### 🧪 Testing Results
+
+✅ **Flicker Bug:** Datum-Wheel flackert nicht mehr
+✅ **Save Bug:** Datum/Uhrzeit werden korrekt gespeichert
+✅ **Empty Backend:** Todos können erstellt werden
+✅ **Real-Time:** Änderungen sofort sichtbar
+✅ **Profile System:** Multi-Select funktioniert
+✅ **Build:** Erfolgreich (1.93s)
+
+#### 🎯 Benefits
+
+1. **Flexibles Profil-System:** Mehrere Profile statt einzelner Priority
+2. **Stabile Edit-Funktion:** Alle State-Management Bugs behoben
+3. **Bessere UX:** Keine Flicker-Effekte, sofortige Updates
+4. **Robuster:** Funktioniert auch mit leerem Backend
+5. **HA-Konform:** Korrekte API-Integration gemäß Dokumentation
+
+#### 📝 Breaking Changes
+
+⚠️ **Priority entfernt:**
+- Alte Todos mit `<!-- priority:N -->` werden nicht automatisch migriert
+- User müssen manuell Profile zuweisen falls gewünscht
+
+#### 🔗 References
+
+- [Home Assistant Todo Integration Docs](https://www.home-assistant.io/integrations/todo/)
+- [Local Todo Component](https://github.com/home-assistant/core/tree/dev/homeassistant/components/local_todo)
+
+---
+
 ## [v1.3.0] - 2026-01-22
 
 ### 🔄 Priority Persistence: Description-Based Storage
