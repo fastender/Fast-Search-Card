@@ -1,6 +1,8 @@
 # Session Notes — 2026-04-17 & 2026-04-18
 
-Zusammenfassung von zwei intensiven Arbeitstagen an der **Fast Search Card**. Von v1.1.1180 bis v1.1.1195, 16 Releases mit **Refactorings, Performance-Optimierungen, Design-Überholung und einer komplett neuen Such-UX**.
+Zusammenfassung von zwei intensiven Arbeitstagen an der **Fast Search Card**. Von v1.1.1180 bis **v1.1.1201**, 22 Releases mit **Refactorings, Performance-Optimierungen, Design-Überholung, neuer Such-UX, Apple-Splash und Suggestions-v2**.
+
+> Zuletzt aktualisiert nach v1.1.1201 (der ursprüngliche Stand war v1.1.1195; Abschnitte 2 und 3 enthalten die späteren Einträge).
 
 ---
 
@@ -39,6 +41,12 @@ Am Ende dieser Session: snappier UI, kühleres Handy, Google-artige Suche, chip-
 | **v1.1.1193** | Hotfix Splash transparent | Hintergrund transparent + Google-Font-Zwischenversuch (Caveat) |
 | **v1.1.1194** | Apple-Original-Lettering | chanhdai's offizieller Apple "hello"-Path (2-Stroke mit Pen-Lift) mit `durationScale: 0.7` synchron zu App-Load |
 | **v1.1.1195** | Apple-Style UI-Reveal | Blur-to-clear + scale + y-translate + Spring-Physik nach Splash-Drawing-Done. Cross-Fade mit Splash |
+| **v1.1.1196** | Auto-Kategorie beim Chip-Create | Sensor-Chip → Sensoren-Kategorie, Actions-Domain → Aktionen, System-Entity → Benutzerdefiniert. Area-Chips triggern keinen Wechsel |
+| **v1.1.1197** | Kategorie-Wechsel per Stichwort | Wörter wie „Sensor", „Aktionen", „Benutzerdefiniert" wechseln direkt die Kategorie, **kein** Chip wird erzeugt. Neue `CATEGORY_SYNONYMS`. Priorität: Area > Category > Domain > Device |
+| **v1.1.1198** | Bug-Fix Background-Filter (1/2) | `contain: paint` von `.glass-panel/.detail-panel` entfernt + `filter: blur()` aus Reveal-Wrapper — backdrop-filter auf HA-Wallpaper geht wieder |
+| **v1.1.1199** | Bug-Fix Background-Filter (2/2) | Auch `scale`/`y` aus Reveal raus, weil framer-motion auch bei identity `transform: matrix(...)` inline setzt → Stacking-Context → backdrop-filter defekt. Reveal jetzt opacity-only |
+| **v1.1.1200** | Header-Border Position-Fix | `.search-group-title`: `padding-bottom` → `margin-bottom`, damit die `::after`-Linie direkt unter dem Text sitzt, der Abstand zu Cards darunter |
+| **v1.1.1201** | Suggestions v2 | Sofortige Vorschläge (kein minUses), `usage_count`-Bootstrap, exponentielles Decay (`exp(-age/half_life)`), Negative Learning (`suggestion_ignored`-Pattern), Reset-Button in Settings |
 
 ---
 
@@ -69,6 +77,36 @@ Am Ende dieser Session: snappier UI, kühleres Handy, Google-artige Suche, chip-
 ### 3.7 Card-Cleanup: Area-Präfix-Strip
 **Grund**: Cards zeigten „Kinderzimmer Kinderzimmer Licht" (Area-Tag + Area im Namen). Mit Section-Header "Kinderzimmer" ist das 3× redundant. `stripAreaPrefix()` entfernt Area-Name-Prefix aus Entity-Namen, wenn er dort als eigenständiges Wort am Anfang steht.
 
+### 3.8 Auto-Kategorie beim Chip-Create (v1.1.1196)
+**Grund**: User tippt „Temperatur" in der „Geräte"-Kategorie → Sensor-Chip wird erzeugt, aber Liste blieb leer, weil Geräte-Kategorie Sensoren ausschließt. `domainChipToCategory()` mappt Chip → Kategorie:
+- `group === 'sensor'` → `sensors`
+- Domain `automation/script/scene` → `actions`
+- Domain `settings/marketplace` → `custom`
+- Default → `devices`
+
+Area-Chips triggern **keinen** Wechsel (Räume sind orthogonal zu Kategorien).
+
+### 3.9 Category-Synonyms statt Chip (v1.1.1197)
+**Grund**: User wollte Stichwörter wie „Sensor", „Aktionen", „Benutzerdefiniert" für schnellen Kategorie-Wechsel ohne Chip-Overhead. Neue `CATEGORY_SYNONYMS`-Array, eigener Index, eigene Priorität (nach Area, vor Domain). Damit wird „Sensor" nicht mehr zum generischen Sensor-Chip, sondern wechselt direkt. Wer explizit einen generischen Sensor-Chip will, tippt `fühler` oder `messwert`.
+
+### 3.10 Kein transform/filter auf Wrappern mit backdrop-filter-Kindern (v1.1.1198–1199)
+**Grund** (bitter gelernt, zwei Bugfixes):
+- `contain: paint` auf `.glass-panel` / `.detail-panel` → **bricht** `backdrop-filter`, weil das Element nicht mehr über seine eigenen Grenzen „schauen" kann (Hintergrund-Settings hatten keine Wirkung mehr).
+- `filter: blur()` auf einem Wrapper-motion.div → erzeugt neuen Stacking-Context → `backdrop-filter` auf inneren `.glass-panel::before` liest nicht mehr zum HA-Wallpaper durch.
+- `transform` (auch `scale: 1` / `y: 0`) auf motion.div → framer-motion setzt INLINE `transform: matrix(...)` → auch identity-matrix erzeugt Stacking-Context → selbes Problem.
+
+**Regel für die Zukunft**: Elemente, die irgendwo `.glass-panel`, `.detail-panel` oder andere `backdrop-filter`-Kinder enthalten, dürfen **nie** `transform`, `filter`, `opacity < 1`, `contain: paint`, `isolation: isolate`, `will-change: transform/filter` haben. Nur `opacity` ist OK (erzeugt Stacking-Context nur während Animation, nicht wenn voll deckend).
+
+### 3.11 Suggestions v2 (v1.1.1201)
+**Grund**: Feature war schwach — brauchte 2-5 Klicks bevor überhaupt was erschien, alte Patterns zählten gleichstark wie neue, ignorierte Vorschläge wurden nicht gelernt, keine Reset-Möglichkeit.
+
+**Lösung**:
+- `minUses`-Schwelle **entfernt** — jeder Klick kann potenziell Vorschlag generieren, Confidence-Threshold reguliert die Qualität
+- **Bootstrap** via `entity.usage_count` wenn Pattern-basierte Ergebnisse zu dünn sind (`< maxSuggestions/2`)
+- **Exponentielles Decay** `exp(-age_days / half_life)` mit Half-Lives 28/14/7 je nach learning-rate. Lookback erweitert auf 30/60/90 Tage, aber alte Patterns sind dank Decay schwach gewichtet.
+- **Negative Learning**: `DataProvider` speichert `lastShownSuggestionsRef`; bei `device_click` werden NICHT-geklickte Suggestions als `suggestion_ignored`-Patterns gespeichert. Diese ziehen Confidence ab (`weighted_ignored * 0.04 * multiplier`, cap 0.5). Schutz: nur einmal pro Show-Cycle, nur innerhalb 10 Min nach Show.
+- **Reset-Button** (rot) in Settings → Vorschläge → Lerndaten, löscht USER_PATTERNS + setzt entity.usage_count/last_used auf 0.
+
 ---
 
 ## 4. Etablierte Conventions
@@ -79,6 +117,8 @@ Am Ende dieser Session: snappier UI, kühleres Handy, Google-artige Suche, chip-
 - 🟢 **Grün/Teal** `rgba(52, 211, 153, …)` — **Sensor-Chip** (Temperatur, Bewegung, Energie, …)
 
 Jeweils mit `.selected`-Variante (100% Opacity + Shadow-Ring).
+
+**Kategorie-Wörter** (Sensor, Aktionen, Benutzerdefiniert, Gerät) werden **NICHT** zu Chips — sie wechseln nur die Kategorie. Der Ghost-Text für diese Wörter hat kein Icon-Prefix (bewusst, um Chip-vs-Category visuell zu trennen).
 
 ### 4.2 Spacing-Werte (finalisiert)
 - Vertikaler Abstand zwischen Card-Reihen: **16px** (`.v-row { padding-bottom: 16px !important }`)
@@ -105,15 +145,14 @@ durations = {
 - Fade: 0.4s
 - **Total: ~3.15s, synchron zur 2.5s App-Load**
 
-### 4.5 UI-Reveal-Animation nach Splash
+### 4.5 UI-Reveal-Animation nach Splash (v1.1.1199+)
+**Wichtig**: Nur Opacity animieren – kein scale/y/filter auf dem motion.div Wrapper, sonst bricht backdrop-filter (siehe 3.10).
 ```js
-initial: { opacity: 0, scale: 0.94, y: 14, filter: 'blur(14px)' }
-animate: { opacity: 1, scale: 1,   y: 0,  filter: 'blur(0px)'  }
-transition:
-  default: spring (stiffness: 220, damping: 26, mass: 1)
-  opacity: 0.5s
-  filter:  0.65s
+initial: { opacity: 0 }
+animate: { opacity: shouldReveal ? 1 : 0 }
+transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] }
 ```
+Der „Apple-Reveal"-Charakter kommt jetzt primär aus der Apple-Hello-Splash-Animation und dem sanften Opacity-Übergang. Das frühere Scale+Y+Spring ist weg (war Kollateralschaden des Bug-Fixes).
 
 ### 4.6 Icon-Prefix im Ghost-Text
 - `📍` → Area-Match (SVG `AreasIcon`, nicht Emoji)
@@ -125,27 +164,31 @@ transition:
 ## 5. Wichtige Dateien und ihre Rolle
 
 ### Neu erstellt in diesen Sessions
-- `src/components/AppleHelloSplash.jsx` — Apple-Hello-Animation
-- `src/components/SearchField/utils/computeSuggestion.js` — Smart typed Suggestions
+- `src/components/AppleHelloSplash.jsx` — Apple-Hello-Animation (chanhdai Pfade)
+- `src/components/SearchField/utils/computeSuggestion.js` — Smart typed Suggestions (Area/Category/Domain/Device)
 - `src/components/SearchField/utils/buildVirtualItems.js` — Flat-Item-Adapter für Virtualisierung
 - `src/hooks/useColumnCount.js` — Reaktive Spalten-Zahl
 - `src/hooks/usePendingAction.js` — Pub/Sub Hook für pending service calls
 - `src/utils/pendingActionTracker.js` — Pub/Sub-Tracker-Klasse
 - `src/utils/searchIntent.js` — Intent-Parser (Area + Domain)
-- `src/utils/searchSynonyms.js` — Synonym-Array mit group+device_class
+- `src/utils/searchSynonyms.js` — Synonym-Array mit group+device_class + `CATEGORY_SYNONYMS` (v1.1.1197)
 - `src/utils/systemSettingsStorage.js` — localStorage Utility mit Dot-Path
 - `src/utils/deviceNameHelpers.js` — `stripAreaPrefix()`
+- `src/utils/clearLearningData.js` — Reset-Utility für Predictive Suggestions (v1.1.1201)
 - `src/styles/perceivedSpeed.css` — Tier-1 Performance-CSS
 - `src/components/SearchField/SearchFieldV4.css` — Chip + Hints + Mobile
 
 ### Stark modifiziert
-- `src/providers/DataProvider.jsx` — rAF-Batching, areas im State, pendingTracker, loadingRef, IndexedDB batch
-- `src/components/SearchField.jsx` — V4-Search-Flow, areaSensorMap, Chip-Rendering in SubcategoryBar
-- `src/components/SearchField/components/SearchInputSection.jsx` — Ghost + Hints + Confirm-Btn
+- `src/providers/DataProvider.jsx` — rAF-Batching, areas im State, pendingTracker, loadingRef, IndexedDB batch, `lastShownSuggestionsRef` + `resetLearningData` (v1.1.1201)
+- `src/components/SearchField.jsx` — V4-Search-Flow, areaSensorMap, Chip-Rendering in SubcategoryBar, categoryIndex (v1.1.1197)
+- `src/components/SearchField/components/SearchInputSection.jsx` — Ghost + Hints + Confirm-Btn + Category-Handling
 - `src/components/SearchField/components/GroupedDeviceList.jsx` — Virtualisierung + Area-Sensoren im Header
 - `src/components/SubcategoryBar.jsx` — `filterChips` Prop für Area/Domain-Chips
 - `src/components/DeviceCard.jsx` — memo-Comparator, pendingHook, prefetch
 - `src/hooks/useFuzzySearch.js` — Intent-Pre-Filter, Extended Search, LRU-Cache, Scoring-Mix
+- `src/utils/suggestionsCalculator.js` — v2 mit Decay + Bootstrap + Negative Learning (v1.1.1201)
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` — Splashscreen-Selector, Reset-Button für Lerndaten
+- `src/index.jsx` — Splashscreen-Style-Rendering, Opacity-only Reveal-Motion-Wrapper
 
 ### Gebundelt
 - **Kein Google-Font** mehr (Borel-Font wieder entfernt in v1.1.1194)
@@ -223,7 +266,10 @@ Wenn die Session zu 100% Context stürmt und wir in einer neuen anfangen müssen
 ### User-Feedback zwischenzeitlich
 - "es ist besser geworden" (nach v1.1.1183)
 - "das gefällt mir" (nach v1.1.1186)
-- "es gefällt mir sehr gut" (nach v1.1.1194)
+- "es gefällt mir sehr gut" (nach v1.1.1194 – Apple Hello)
+- Entdeckter Bug: Backdrop-Filter-Settings wirken nicht (v1.1.1198/1199 Bugfix-Serie)
+- Gewünschte UX-Verbesserungen: Auto-Kategorie bei Chip (1196), Stichwort→Kategorie (1197), Header-Border-Position (1200)
+- Gewünschte Suggestion-Features: Sofort vorschlagen, Decay, Negative Learning, Reset (alle in 1201 geliefert)
 
 ---
 
