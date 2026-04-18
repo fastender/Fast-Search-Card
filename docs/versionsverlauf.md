@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1196 - 2026-04-18
+
+**Title:** Auto-Kategorie-Wechsel bei Chip-Erstellung
+**Hero:** none
+**Tags:** Bug Fix, UX
+
+### 🎯 Chip und Kategorie bleiben konsistent
+
+**Problem:** User tippt „Temperatur" in der Kategorie „Geräte" → Sensor-Chip wird korrekt erstellt, aber die Ergebnisliste bleibt leer, weil „Geräte" Sensoren ausschließt.
+
+**Fix:** Beim Erstellen eines Domain-Chips wechselt die Hauptkategorie jetzt automatisch:
+
+| Chip | Auto-Kategorie |
+|------|----------------|
+| Sensor-Chip (🟢 grün) – Temperatur, Bewegung, … | → **Sensoren** |
+| Action-Chip – Automation, Szene, Skript | → **Aktionen** |
+| System-Entity-Chip – Settings, Marketplace | → **Benutzerdefiniert** |
+| Device-Chip (🟣 violett) – Licht, Schalter, Klima, … | → **Geräte** |
+
+**Area-Chips** triggern keinen Kategorie-Wechsel – Räume sind orthogonal zu Kategorien.
+
+**Implementation:**
+- Neue Helper-Funktion `domainChipToCategory()` in `searchEventHandlers.js`
+- `acceptSuggestion` + `handleGhostTap` rufen beim Chip-Create `setActiveCategory()` mit der passenden Kategorie
+- Funktioniert bei Tab, → (ArrowRight), Tap-on-Ghost und Mobile-Confirm-Button
+
+---
+
 ## Version 1.1.1195 - 2026-04-18
 
 **Title:** Apple-Style UI-Reveal nach Splash
