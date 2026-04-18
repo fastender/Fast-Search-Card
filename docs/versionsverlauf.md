@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1197 - 2026-04-18
+
+**Title:** Kategorie-Wechsel per Stichwort
+**Hero:** none
+**Tags:** Feature, UX
+
+### ⚡ Schnell-Wechsel zwischen Kategorien
+
+Bestimmte Wörter triggern jetzt **direkt einen Kategorie-Wechsel**, ohne einen Chip zu erzeugen. Damit wird die Navigation zwischen den Haupt-Kategorien deutlich schneller.
+
+**Mapping:**
+
+| Getippt | Wechsel zu |
+|---------|-----------|
+| `Gerät`, `Geräte`, `Device`, `Devices` | **Geräte** |
+| `Sensor`, `Sensoren`, `Sensors` | **Sensoren** |
+| `Aktion`, `Aktionen`, `Action`, `Actions` | **Aktionen** |
+| `Custom`, `Benutzerdefiniert` | **Benutzerdefiniert** |
+
+Diese Wörter tauchen im Ghost-Text auf (wie gewohnt), und beim Accept (Tab, →, Tap, Mobile Confirm) wird nur die Kategorie gewechselt – **kein Chip** erscheint.
+
+**Priorität:** Area > Category > Domain > Device. Wer einen Raum mit dem Namen „Sensor" hat (unwahrscheinlich), bekommt den Area-Treffer zuerst.
+
+**Exclude-Logik:** Wenn die aktuelle Kategorie bereits aktiv ist, wird ihr Synonym nicht mehr als Ghost vorgeschlagen (kein Self-Switch).
+
+**Chip-Differenzierung:** Das generische `Sensor`/`Sensoren` triggert jetzt den Kategorie-Wechsel, nicht mehr den Fallback-Chip für generische Sensoren. Wer gezielt alle Sensoren als Chip filtern will, tippt `Fühler` oder `Messwert` – dann entsteht ein Chip „Fühler" bzw. „Messwert".
+
+---
+
 ## Version 1.1.1196 - 2026-04-18
 
 **Title:** Auto-Kategorie-Wechsel bei Chip-Erstellung
