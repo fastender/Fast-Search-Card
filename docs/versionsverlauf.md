@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.1192 - 2026-04-18
+
+**Title:** Design-Feinschliff + Apple Hello Splashscreen
+**Hero:** none
+**Tags:** Design, UX, Feature
+
+### 👋 Apple-inspirierter „hallo"-Splashscreen
+
+Neue Splashscreen-Option mit Handschrift-Animation im Stil von Apples iPhone/Mac-Setup.
+
+**Technik:**
+- 🎨 Fünf einzelne SVG-Paths (h-a-l-l-o bzw. h-e-l-l-o)
+- ✍️ Framer-Motion `pathLength` Animation – Buchstaben werden „geschrieben"
+- ⏱ Gestaffelt: jeder Buchstabe startet 250 ms nach dem vorherigen, ~550 ms Draw-Zeit
+- 🌐 Sprach-abhängig: Deutsch → „hallo", alle anderen → „hello"
+- 🎬 Gesamte Show-Dauer ~2.5 s, dann Fade-out
+
+### ⚙️ Splashscreen-Selector in Settings
+
+Unter „Status & Begrüßung" neuer Eintrag:
+- **Aus** – Card öffnet direkt ohne Ladebildschirm
+- **Standard** – klassischer Progress-Ladebildschirm (wie bisher)
+- **Apple Hello** – neue Handschrift-Animation
+
+Klick rotiert durch die drei Optionen. Einstellung greift beim nächsten Card-Reload.
+
+### 🌡 Sensor-Synonyme erweitert + neue Chip-Farbe
+
+Die Suche erkennt jetzt deutlich mehr Sensor-Begriffe, unterscheidet sie farblich von Geräte-Filtern und filtert auf Basis von `device_class`:
+
+**Neu erkannt:**
+- `Temperatur`, `Luftfeuchtigkeit`, `Helligkeit`, `Lux`
+- `Energie`, `Verbrauch`, `kWh`, `Strom`, `Leistung`, `Watt`
+- `Batterie`, `Akku`, `Spannung`, `Druck`, `CO2`, `Feinstaub`
+- `Bewegung`, `Präsenz`, `Tür`, `Fenster`, `Rauch`, `Wasserleck`
+
+**Filtering:** Jedes Synonym filtert nicht mehr nur nach `domain`, sondern auch nach `device_class` – tippt man „Temperatur", erscheinen wirklich nur Temperatur-Sensoren, nicht alle Sensoren.
+
+**Neue Chip-Farben:**
+- 🔵 **Blau** – Area (Räume)
+- 🟣 **Violett** – Gerät (Licht, Schalter, Klima, …)
+- 🟢 **Grün/Teal** – Sensor (passive Messwerte)
+
+### 🎨 Feinschliff am UI
+
+- **Zeilen-Abstand 16 px** zwischen Card-Reihen (vorher gefühlt zu dicht)
+- **Section-Header-Padding unten 16 px** (Titel + erste Card-Reihe hatten zu wenig Luft)
+- **Ghost-Icon im Eingabefeld**: SVG (Haus / Diamond) statt Emoji – konsistent mit den Chips
+- **Ghost-Text Case-Match**: Tippst du „bel", zeigt der Ghost „bel…", nicht „Bel…" – die Texte überlagern sich jetzt pixelgenau
+- **Section-Header transparent**: kein dunkler Blur-Balken mehr über dem Inhalt
+
+---
+
 ## Version 1.1.1191 - 2026-04-18
 
 **Title:** Area-Sensoren im Header + Design-Feinschliff
