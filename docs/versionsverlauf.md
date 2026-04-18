@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1201 - 2026-04-18
+
+**Title:** Vorschläge v2 – sofort lernen, Decay, Negative Learning, Reset
+**Hero:** none
+**Tags:** Feature, UX
+
+### 🧠 Predictive Suggestions – komplett überarbeitet
+
+**1. Sofortige Vorschläge (kein minUses mehr)**
+- Bisher: 2-5 Klicks nötig, bevor Device überhaupt vorgeschlagen wird → Feature lieferte in den ersten Tagen nichts
+- Jetzt: schon ab dem ersten Klick möglich, plus **Bootstrap** über `entity.usage_count` wenn Pattern-Daten zu dünn sind
+
+**2. Exponentielles Decay statt harter Cutoff**
+- Jedes Pattern hat ein Decay-Gewicht: `weight = exp(-age / half_life)`
+- Half-Life je nach Learning-Rate:
+  - `slow`: 28 Tage (altes Verhalten zählt lang)
+  - `normal`: 14 Tage (Default)
+  - `fast`: 7 Tage (schnell vergessen)
+- Pattern von heute: Gewicht 1. Nach Half-Life: Gewicht 0.5. Glatte Übergänge statt „ab Tag 31 = nix".
+
+**3. Negative Learning**
+- Wenn User Suggestions sieht, dann ein NICHT-vorgeschlagenes Device klickt → jedes übergangene Suggestion bekommt einen `suggestion_ignored`-Pattern
+- Diese reduzieren die Confidence beim nächsten Berechnen (gewichtet, ebenfalls mit Decay)
+- Schutz: nur innerhalb 10 Minuten nach Show, nur einmal pro Show-Cycle (keine Schleifen)
+
+**4. Reset-Button in Settings**
+- Unter „Einstellungen → Vorschläge → Lerndaten" jetzt Button „**Lerndaten löschen**" (rot)
+- Löscht alle `USER_PATTERNS` + setzt `entity.usage_count` + `entity.last_used` auf den Ausgangszustand
+- Mit Bestätigungs-Dialog + Stats-Anzeige nach dem Löschen („X Patterns + Y Nutzungszähler gelöscht")
+
+### Neue Files
+
+- `src/utils/clearLearningData.js` – Reset-Logik
+- `src/utils/suggestionsCalculator.js` – komplett rewrite (v2)
+
+### Modifiziert
+
+- `DataProvider.jsx` – `lastShownSuggestionsRef` für Negative Learning, `resetLearningData` im Context
+- `GeneralSettingsTab.jsx` – Reset-UI in der Suggestions-Detail-View
+- Translations (de/en) – neue Keys für Reset-Section
+
+---
+
 ## Version 1.1.1200 - 2026-04-18
 
 **Title:** Section-Header Linie korrekt positioniert
