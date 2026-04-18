@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.1200 - 2026-04-18
+
+**Title:** Section-Header Linie korrekt positioniert
+**Hero:** none
+**Tags:** Design, Bug Fix
+
+### 📏 Linie direkt unter Titel, Abstand darunter
+
+Vorher war `padding-bottom: 16px` auf dem Section-Titel („Anziehraum"), weshalb die Border-Linie 16px UNTER dem Text sass mit leerem Raum dazwischen.
+
+**Jetzt:**
+- `padding: 8px 0 0 0` – kompakt um den Text
+- Border (`::after`) direkt am padding-box-bottom
+- `margin-bottom: 16px` – Abstand zur ersten Card-Reihe kommt NACH der Linie
+
+Visuell: Text → Linie → 16px Luft → Cards (wie gewünscht).
+
+---
+
 ## Version 1.1.1199 - 2026-04-18
 
 **Title:** Bug-Fix: Blur wirkt wieder (Transform raus)
