@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1195 - 2026-04-18
+
+**Title:** Apple-Style UI-Reveal nach Splash
+**Hero:** none
+**Tags:** Design, UX
+
+### ✨ Blur-Scale-Spring UI-Reveal
+
+Nach der „hello"-Handschrift-Animation erscheint die UI (StatsBar + Suchleiste) jetzt in **echtem Apple-Stil**: Blur-to-Clear + Scale-Up + leichter Y-Translate, mit Spring-Physik.
+
+**Animation:**
+```
+initial: { opacity: 0, scale: 0.94, y: 14, filter: 'blur(14px)' }
+animate: { opacity: 1, scale: 1,   y: 0,  filter: 'blur(0px)'  }
+transition:
+  position/scale → spring (stiffness: 220, damping: 26, mass: 1)
+  opacity        → 0.5s easeInOut-Apple
+  filter (blur)  → 0.65s easeInOut-Apple
+```
+
+**Cross-Fade mit Splash:**
+- Apple-Hello-Splash callbackt via `onDrawingDone` zum App-Component, sobald die Handschrift fertig gezeichnet ist
+- In genau diesem Moment startet die UI-Reveal-Animation → **die UI morpht sich heraus, während die Splash fadet**
+- Bei Splash-Style „Standard" oder „Aus" bleibt es beim Standard-Reveal wenn `isLoadingComplete` fires
+
+**Gefühlt:** Wie das visionOS-Reveal oder iOS-Setup – sanft, bouncy, premium.
+
+---
+
 ## Version 1.1.1194 - 2026-04-18
 
 **Title:** Apple Hello Effect mit originalem macOS-Lettering
