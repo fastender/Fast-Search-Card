@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1198 - 2026-04-18
+
+**Title:** Bug-Fix: Hintergrund-Settings wirken wieder
+**Hero:** none
+**Tags:** Bug Fix
+
+### 🐛 Backdrop-Filter repariert
+
+Die Regler „Deckkraft", „Weichzeichner", „Kontrast" und „Sättigung" unter Einstellungen → Hintergrund hatten keine sichtbare Wirkung mehr. Zwei Ursachen gefixt:
+
+**1. `contain: paint` auf `.glass-panel` + `.detail-panel` entfernt** (stammte aus v1.1.1183 Tier-2-Performance)
+- `contain: paint` isoliert das Element paint-seitig → `backdrop-filter` konnte den HA-Wallpaper nicht mehr sehen
+- Settings wurden zwar gespeichert + CSS-Vars gesetzt, aber der Filter hatte nichts zum Filtern
+
+**2. `filter: blur()` auf Motion-Wrapper entfernt** (stammte aus v1.1.1195 Apple-Reveal)
+- `filter` erzeugt einen neuen Stacking-Context → backdrop-filter auf Kindern liest nicht mehr zum HA-Wallpaper durch
+- Reveal-Animation bleibt erhalten via opacity + scale + y-translate mit Spring – nur der Blur-In-Effekt ist weg
+- Visual-Unterschied ist minimal, UX fühlt sich praktisch identisch an
+
+---
+
 ## Version 1.1.1197 - 2026-04-18
 
 **Title:** Kategorie-Wechsel per Stichwort
