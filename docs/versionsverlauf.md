@@ -1,5 +1,176 @@
 # Versionsverlauf
 
+## Version 1.1.1191 - 2026-04-18
+
+**Title:** Area-Sensoren im Header + Design-Feinschliff
+**Hero:** none
+**Tags:** Feature, UX, Design
+
+### 🌡 Area-Sensoren im Section-Header
+
+Wenn im Home Assistant Backend für eine Area ein Temperatur- oder Luftfeuchtigkeits-Sensor zugeordnet ist, werden die Werte jetzt direkt im Section-Header angezeigt.
+
+**Beispiel:**
+```
+Anziehraum                              🌡 21.5°C   💧 48%
+```
+
+**Bausteine:**
+- 📡 DataProvider exportiert komplette `areas`-Registry (mit `temperature_entity_id` + `humidity_entity_id`)
+- 🗺 `areaSensorMap` in SearchField: Map<Area-Name → Sensor-Entities>
+- 🎨 Iconoir-Stil SVGs (Thermometer + Droplet), stroke-basiert, passt zum Look
+- 🔄 Real-time: Werte aktualisieren automatisch via rAF-Batch
+- ✨ Graceful: Areas ohne konfigurierte Sensoren zeigen nur den Namen
+
+### 🎛 Weitere Design-Feinschliffe
+
+- **Row-Spacing**: Vertikaler Abstand zwischen Card-Reihen jetzt 6px (vorher 8px)
+- **Section-Header transparent**: Kein dunkelgrauer Hintergrund + Blur mehr – Header schwebt sauber über dem Inhalt
+
+---
+
+## Version 1.1.1190 - 2026-04-18
+
+**Title:** SVG-Icons statt Emojis in Chips
+**Hero:** none
+**Tags:** Design, UX
+
+### 🎨 Konsistente Icons aus der Filter-Bar
+
+Die Chip-Icons nutzen jetzt die gleichen SVGs wie die Buttons im Filter-Panel:
+
+| Chip | Vorher | Jetzt |
+|------|--------|-------|
+| Area-Chip | 📍 Emoji | `AreasIcon` (Haus-Shape) |
+| Domain-Chip | 💡 Emoji | `CategoriesIcon` (Diamond-Shape) |
+
+**Vorteile:**
+- 🎯 SVGs übernehmen via `stroke: currentColor` die Chip-Farbe (blau/violett/weiß)
+- 🔗 Visuelle Konsistenz: User erkennt sofort „Das ist ein Räume-/Kategorien-Filter"
+- ✨ Keine Emoji-Inkonsistenzen zwischen Plattformen
+
+---
+
+## Version 1.1.1189 - 2026-04-18
+
+**Title:** Kritischer Bug-Fix + Chip-Platzierung
+**Hero:** none
+**Tags:** Bug Fix, UX
+
+### 🐛 Scope-Filter-Bug gefixt
+
+`filterDevices` bekam die ungescopte Geräte-Liste → Results zeigten auch Entities, die nicht zum Chip-Filter passten.
+
+**Fix:** `filterDevices` erhält jetzt `scopedDevices` (gefiltert durch Area/Domain-Chip) statt der vollen Collection. Bei aktivem Chip enthält die Results-Liste jetzt **nur** noch passende Entities.
+
+### 🎨 Chips wandern in die Subcategory-Bar
+
+Chips sind **Filter-Elemente** und gehören visuell zu den Kategorien. Sie erscheinen jetzt links vor „Alle / Beleuchtung / Schalter / …":
+
+```
+[🏠 Kinderzimmer] [💎 Lampe]  |  Alle  Beleuchtung  Schalter  Klima  …
+       ↑ Filter-Chips                ↑ normale Kategorien
+```
+
+**Vorteile:**
+- 🧭 Sofortige visuelle Erkennung: „Das sind aktive Filter"
+- 🧼 Eingabefeld bleibt sauber – reiner Text-Input
+- 👁 Chips bleiben sichtbar, auch während User weiter tippt
+- 🆕 Neue generische `filterChips` Prop in `SubcategoryBar` für zukünftige Filter-Typen
+
+---
+
+## Version 1.1.1188 - 2026-04-18
+
+**Title:** Kombinierbare Filter-Chips (Area + Domain)
+**Hero:** none
+**Tags:** Feature, UX
+
+### 🔗 Area-Chip + Domain-Chip gleichzeitig
+
+Vorher: Nur Area wurde zu Chip, Domain fiel als Text ein (und matchte oft nichts).
+Jetzt: Beide Typen werden zu Filter-Chips mit visueller Unterscheidung.
+
+| Tippst | Ghost | Icon | Nach Tab/→ |
+|--------|-------|------|------------|
+| `Kin` | `derzimmer` | 📍 | `[📍 Kinderzimmer]` **blauer Chip** |
+| `lam` | `Lampe` | 💡 | `[💡 Lampe]` **violetter Chip** |
+
+**Kombinierbar:**
+```
+1. "Kin" → Tab  →  [📍 Kinderzimmer] |
+2. "la" → Tab   →  [📍 Kinderzimmer] [💡 Lampe] |
+3. Liste zeigt nur Lampen im Kinderzimmer
+```
+
+**Neue State-Struktur:**
+- `areaChip: { area_id, name } | null`
+- `domainChip: { domain, label } | null`
+- `selectedChipId: 'area' | 'domain' | null` (iOS-Pattern für Delete)
+
+**Smart Excludes:** Wenn Area-Chip aktiv → keine weiteren Area-Vorschläge im Ghost. Gleiches für Domain.
+
+### 🎨 Visuelle Trennung
+- 📍 Area-Chip: Blau (`rgba(66, 165, 245, ...)`)
+- 💡 Domain-Chip: Violett (`rgba(192, 132, 252, ...)`)
+
+---
+
+## Version 1.1.1187 - 2026-04-18
+
+**Title:** V4 Search: Chip-Input + Ghost-Fixes + Card-Cleanup
+**Hero:** none
+**Tags:** Feature, UX, Design
+
+### 🎯 Google-like Suche mit Chips
+
+Große Überarbeitung des Such-Inputs auf Basis eines neuen Mockup-Designs.
+
+**Smart Typed Suggestions:**
+- Neue Priorität in `computeSuggestion`: Area > Domain > Device
+- Tippst du „Kin" → erkennt die Area „Kinderzimmer" zuerst
+- Tippst du „lam" → Domain-Synonym „Lampe" → `light`
+- Fällt auf Device-Name-Prefix zurück, wenn keines matched
+
+**Area-Chip im Input:**
+- Nach Tab/→ (Desktop) oder Tap auf Ghost (Mobile) wird der Area-Match zum Chip
+- Card-Liste filtert automatisch auf den Chip-Scope
+
+**Mobile-Anpassungen:**
+- Chip-Touch-Target ≥ 44 pt (Apple HIG)
+- iOS-Pattern zum Löschen: Tap selektiert → Tap² löscht
+- Dedizierter ↵-Button rechts im Input (nur Mobile)
+- Ghost mit gestrichelter Unterlinie als Tap-Hinweis
+
+**Ghost-Icon-Prefix:**
+- 📍 wenn Area-Match
+- 💡 wenn Domain-Match
+- Nichts bei Device-Match (damit's nicht zu voll wird)
+
+**Keyboard-Hints (Desktop):**
+- Kleine Badges `→ Tab` rechts im Input
+- Nur sichtbar, wenn Ghost aktiv
+- Via `@media (hover: none)` auf Touch-Geräten ausgeblendet
+
+### 🧹 Card-Cleanup (Bonus)
+
+Neue `stripAreaPrefix()`-Utility entfernt redundante Area-Präfixe aus Entity-Namen:
+
+| Vorher | Nachher |
+|--------|---------|
+| Kinderzimmer **Licht** | **Licht** |
+| Kinderzimmer **Thermostat** | **Thermostat** |
+| Anziehraum **Rolllade Motor** | **Rolllade Motor** |
+
+Da der Section-Header schon „Kinderzimmer" anzeigt, ist das Präfix in jedem Card-Namen redundant und kann weg.
+
+**Neue Files:**
+- `computeSuggestion.js` – Smart Typed Suggestion
+- `SearchFieldV4.css` – Chip + Hints + Mobile-Styles
+- `deviceNameHelpers.js` – Area-Präfix-Stripping
+
+---
+
 ## Version 1.1.1186 - 2026-04-17
 
 **Title:** Press-Feedback & Detail-Prefetch
