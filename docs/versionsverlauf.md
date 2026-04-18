@@ -1,5 +1,51 @@
 # Versionsverlauf
 
+## Version 1.1.1194 - 2026-04-18
+
+**Title:** Apple Hello Effect mit originalem macOS-Lettering
+**Hero:** none
+**Tags:** Design, UX, Feature
+
+### 👋 Echtes Apple Hello aus macOS Sonoma
+
+Splashscreen nutzt jetzt das **offizielle Apple „hello"-Lettering** aus macOS Sonoma (extrahiert und publiziert von chanhdai.com). Das ist der iconicale Handschrift-Zug, den du von jedem neuen Mac kennst.
+
+**Technik:**
+- 🎨 **Zwei SVG-Paths** (statt einem):
+  - `h1` zeichnet den ersten Abstrich des „h"
+  - `h2 + ello` zeichnet Hump vom h + komplettes „ello" in einem Zug
+- ✍️ Der Stift wird zwischen den Paths „angehoben" (0.49s Pause) – genau wie bei echtem Schreiben
+- 🎬 Framer-Motion `pathLength` 0→1 Animation, ease-in-out
+- ⚡ Gesamt-Draw ~2.45s, plus 0.3s Hold, plus 0.4s Fade → **endet bei ~3.15s**, synchron zum App-Load
+- 🌐 Sprach-unabhängig: „hello" ist zum universellen Apple-Symbol geworden
+
+### 🧹 Cleanup
+
+- Lokale Borel-Font (25 KB) wieder entfernt – nicht mehr nötig
+- Alte hand-gezeichnete SVG-Paths raus
+- Keine Google-Fonts-Anbindung mehr (war schon ab v1.1.1193)
+
+### Hinweis zum Timing
+
+Die Splash-Animation ist mit `durationScale: 0.7` auf die App-Load-Zeit (~2.5s) synchronisiert. Das Wort ist fertig geschrieben genau wenn die Suchleiste erscheint. Falls du eine andere Geschwindigkeit willst, lässt sich der Wert in `AppleHelloSplash.jsx` anpassen.
+
+---
+
+## Version 1.1.1193 - 2026-04-18
+
+**Title:** Hotfix Splashscreen – Google-Font entfernt
+**Hero:** none
+**Tags:** Bug Fix
+
+### 🔧 Hintergrund transparent + erste Font-Iteration
+
+Schneller Hotfix für v1.1.1192:
+- Splash-Hintergrund von dunklem Blur auf **komplett transparent** gestellt
+- Google-Font „Caveat" (über @import) als Zwischenlösung ausprobiert
+- Wurde in v1.1.1194 durch Apple-Original-Paths ersetzt
+
+---
+
 ## Version 1.1.1192 - 2026-04-18
 
 **Title:** Design-Feinschliff + Apple Hello Splashscreen
