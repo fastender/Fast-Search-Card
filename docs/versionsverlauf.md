@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1199 - 2026-04-18
+
+**Title:** Bug-Fix: Blur wirkt wieder (Transform raus)
+**Hero:** none
+**Tags:** Bug Fix
+
+### 🐛 Noch ein Stacking-Context-Killer entfernt
+
+Nach v1.1.1198 wirkten Blur-Änderungen immer noch nicht. Grund: der Motion-Wrapper animierte weiterhin `scale` und `y` – selbst bei `scale: 1` setzt framer-motion `transform: matrix(1,0,0,1,0,0)` als Inline-Style. Das erzeugt einen neuen Stacking-Context → `backdrop-filter` auf `.glass-panel::before` kann den HA-Wallpaper nicht mehr sehen.
+
+**Fix:** Transform-Animation ganz raus. Nur Opacity-Fade bleibt.
+
+**Verlorene Feinheit:** Das bouncy-soft Scale+Y mit Spring-Physik ist weg. Was bleibt:
+- ✅ Opacity 0 → 1 mit 0.55s ease-in-out
+- ✅ Apple-Hello-Splash-Animation davor (unverändert)
+- ✅ Cross-Fade mit Splash (startet wenn Drawing fertig)
+
+**Trade-off akzeptiert:** Sauberer Blur-Filter wichtiger als subtile Scale-Animation.
+
+---
+
 ## Version 1.1.1198 - 2026-04-18
 
 **Title:** Bug-Fix: Hintergrund-Settings wirken wieder
