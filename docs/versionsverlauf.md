@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.1208 - 2026-04-19
+
+**Title:** Ausschlussmuster – Quick-Add-Presets + First-Run-Seed
+**Hex:** none
+**Tags:** Feature, UX
+
+### ⚡ Weniger Tipparbeit beim Einrichten der Ausschlussmuster
+
+Das bestehende `excludedPatterns`-Feature (Settings → Privatsphäre → Ausschlussmuster) ist mächtig, aber bislang musste jedes Muster per Hand eingetippt werden. Die meisten HA-User wissen gar nicht, dass Entities wie `update.home_assistant_core_update`, `sensor.phone_battery_level` oder `sensor.zigbee_linkquality` überhaupt existieren – und filtern sie deshalb nicht weg.
+
+Zwei neue Mechanismen:
+
+### 1. First-Run-Seed
+
+Beim allerersten App-Start wird `localStorage.excludedPatterns` mit einer sinnvollen Mini-Default-Liste initialisiert:
+
+```
+update.*
+*_battery_level
+*_linkquality
+*_rssi
+*_last_boot
+```
+
+Greift nur wenn der Key **noch nie** gesetzt war (`null`, nicht leeres Array). Wer die Defaults nicht will, kann sie einfach entfernen – sie werden nicht wieder gesetzt.
+
+### 2. Quick-Add-Presets im Settings-UI
+
+Neuer Bereich „Schnellauswahl" oberhalb des Input-Felds. Vier Kategorien:
+
+| Button | Fügt hinzu |
+|---|---|
+| **Updates** | `update.*` |
+| **Batterien** | `*_battery_level`, `*_battery_state`, `*_battery` |
+| **Signal** | `*_rssi`, `*_linkquality`, `*_signal_strength` |
+| **System-Sensoren** | `*_last_boot`, `*_last_triggered`, `*_uptime`, `*_connectivity` |
+
+Bereits aktive Kategorien werden als `✓ Updates` angezeigt (Button deaktiviert).
+
+Duplikate werden übersprungen, bestehende User-Patterns bleiben erhalten.
+
+### Neue / geänderte Dateien
+
+- `src/utils/excludedPatternPresets.js` (**neu**) – Presets + Seed-Defaults + `ensureInitialExcludedPatterns()`
+- `src/index.jsx` – Seed-Call direkt nach den Style-Imports
+- `src/components/tabs/SettingsTab.jsx` – neue `addPatterns(array)`-Funktion (Bulk, Duplikat-sicher, ein Event)
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx` – Preset-Chips zwischen Beschreibung und Input
+
+### Hintergrund
+
+Vorschlag kam aus der Analyse der Predictive-Suggestions-Pipeline: ohne diese Filter landen `update.*`- oder Battery-Entities in den Cold-Start-Fallback-Listen und produzieren nutzlose Vorschläge. Die Infrastruktur (`filterExcludedEntities` im DataProvider, gesteuert über `localStorage.excludedPatterns`) war bereits da – es fehlten nur die Defaults und die UX.
+
+---
+
 ## Version 1.1.1207 - 2026-04-19
 
 **Title:** Vorschläge sofort sichtbar – Cold-Start-Fallback
