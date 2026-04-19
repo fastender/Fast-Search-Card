@@ -48,16 +48,23 @@ Beide nutzen jetzt die bestehende Factory `createSlideVariants()` aus `src/utils
 | **nach Phase 6 (1206)** | **360.1** | **19.2** | **379.4** |
 | **Gesamt-Einsparung** | **-36.8 KB** | **-3.0 KB** | **-39.8 KB (-9.5 %)** |
 
-### Ehrliche Einschätzung & realistisches Restpotenzial
+### Ehrliche Einschätzung & Stopp der Performance-Roadmap
 
 Die letzten zwei Phasen (2 + 6) waren Qualität, nicht Shrink. Terser + gzip komprimieren Code-Duplikation gut – der Gewinn durch DRY entsteht im Source, nicht im Bundle.
 
-**Nächste Hebel mit echtem Bundle-Impact (hohes Risiko):**
-- Phase A (framer-motion LazyMotion): -15 bis -25 KB, 69 Files Migration
-- Phase 4B (Chart.js → Chartist/frappe): -60 bis -70 KB, Design-Regression
+**Entscheidung: Performance-Roadmap hier pausiert.** Die verbleibenden Hebel sind zu riskant für die erwartete Einsparung:
+- Phase A (framer-motion LazyMotion): -15 bis -25 KB, aber 69 Files Migration
+- Phase 4B (Chart.js → Chartist/frappe): -60 bis -70 KB, aber Design-Regression
 
-**Nächste ohne Bundle-Impact:**
-- Phase 5.1 (Chrome Performance Profile auf Handy): echte Runtime-Hotspots
+**Abschluss-Bilanz** nach 5 umgesetzten Phasen:
+- Bundle: 397 → 360 KB gzip (**-9.5 %**, -39.8 KB total)
+- Build-Zeit: +5 s durch Terser
+- Code-Qualität: 2 Files weg, 3 Icons dedupliziert, 1 Name-Clash eliminiert, 1 Runtime-Allokation weg
+- Dependencies: -81 transitive (react-markdown-Stack) + 3 neue (marked, dompurify, visualizer)
+
+**Wieder aufnehmen sobald:**
+- Chrome Performance Profile von Handy vorliegt (Phase 5.1 → gezielte Runtime-Optimierungen)
+- oder eine Chart-Library-Migration sich lohnt (Phase 4B)
 
 ---
 

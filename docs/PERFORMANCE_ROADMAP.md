@@ -1,6 +1,8 @@
 # Performance-Roadmap
 
-Schrittweiser Plan zur Performance-Steigerung und Bundle-Reduktion. Erstellt 2026-04-19, Baseline **v1.1.1201**. Laufend aktualisiert.
+**Status: PAUSIERT ab 2026-04-19 nach v1.1.1206.** Erreicht: -9.5 % Bundle (419 → 379 KB gzip). Weitere Hebel nur noch mit hohem Risiko – siehe Entscheidung unten.
+
+Erstellt 2026-04-19, Baseline **v1.1.1201**.
 
 ## Constraints (unverhandelbar)
 - **Single-File-Build** bleibt (`dist/fast-search-card.js` via `build.sh`)
@@ -151,11 +153,20 @@ Nicht sicher ob der Trade-Off den Aufwand wert ist.
 
 ---
 
-## Reihenfolge-Empfehlung (aktualisiert)
-1. ✅ Phase 1
-2. ✅ Phase 3
-3. ✅ Phase 4A
-4. ✅ Phase 2
-5. **→ Phase 6 (System-Entities-Audit)** ← als Nächstes
-6. Phase 5.1 (Chrome Profile, sobald User-Session möglich)
-7. Phase A oder 4B (hohes Risiko, nur wenn sich Phase 6 lohnt)
+## Reihenfolge (tatsächlich umgesetzt)
+1. ✅ Phase 1 (Build-Hygiene, v1.1.1202): -15.6 KB
+2. ✅ Phase 3 (marked statt react-markdown, v1.1.1203): -13.2 KB
+3. ✅ Phase 4A (chart.js Tree-Shaking, v1.1.1204): -10.7 KB
+4. ✅ Phase 2 (Utils-Duplikat-Audit, v1.1.1205): -0.1 KB
+5. ✅ Phase 6 (System-Entities-Dedupe, v1.1.1206): -0.14 KB
+
+## Abschluss-Entscheidung (2026-04-19)
+
+**Stopp bei v1.1.1206.** 9.5 % Einsparung ist substantiell und risk-free erreicht. Die verbleibenden Hebel:
+
+- **Phase A (framer-motion LazyMotion)**: -15 bis -25 KB, aber 69 Files müssen auf `m.*` migriert werden. Hohes Regression-Risiko.
+- **Phase 4B (Chart.js → Chartist/frappe)**: -60 bis -70 KB, aber Design-Regression wahrscheinlich.
+- **Phase 5.1 (Chrome Profile)**: kein Bundle-Shrink, nur Runtime. Braucht User-Session am Handy.
+- **Phase 5.3 (CSS Container Queries)**: kein Bundle-Shrink, nur Runtime-Entlastung.
+
+Wieder aufnehmen, wenn sich konkrete Symptome zeigen (z.B. Handy wird wieder warm, oder ein Feature braucht mehr Budget).
