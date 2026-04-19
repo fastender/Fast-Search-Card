@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1213 - 2026-04-19
+
+**Title:** Notifications-System – HA persistent_notification angebunden
+**Hero:** none
+**Tags:** Feature, UX
+
+### 🔔 Echte Benachrichtigungen in der Card
+
+Nach dem Aufräumen der alten UI-Leichen in v1.1.1210 ist das Notifications-Widget jetzt **funktional** – mit HA `persistent_notification.*` als Quelle. Dazu ein aufklappbares Panel zum Lesen und Abhaken einzelner Einträge, plus Toast bei neuen Notifications.
+
+### Was passiert
+
+**1. Daten-Anbindung (DataProvider)**
+- Neuer State `notifications`: Liste aller aktiven `persistent_notification.*`-Entities
+- Extractor liest aus `hass.states` und normalisiert zu `{ notification_id, title, message, created_at }`
+- `state_changed`-Events für `persistent_notification.*` triggern ein Re-Scan
+- **Toast-Diff**: bei wirklich neuen Notifications (nicht initial) erscheint ein Info-Toast mit Titel/Message
+
+**2. StatsBar-Widget (wieder zurück, diesmal mit Sinn)**
+- Glocken-Icon + Zähler-Badge – erscheint nur wenn Count > 0
+- **Klickbar** → öffnet Panel direkt darunter
+- Settings-Toggle in StatsBar-Settings: „Benachrichtigungen (mit Zähler)" zeigt/versteckt Widget
+
+**3. NotificationsPanel (neu)**
+- Glass-Popover rechts vom Widget, max 60vh scrollbar
+- Pro Eintrag: Titel (fett), Message, relative Zeit („vor 5 Min")
+- `×`-Button pro Zeile → ruft `persistent_notification.dismiss`
+- Outside-Click schließt Panel
+- Leerer Zustand: „Keine Benachrichtigungen"
+
+**4. Neuer Hook**
+- `useNotifications()` → `{ notifications, count, dismiss }`
+
+### Modifizierte / neue Dateien
+
+- **Neu:** `src/components/NotificationsPanel.jsx`
+- `src/providers/DataProvider.jsx` – State, Extractor, Dismiss, Hook-Export, Toast-Diff
+- `src/components/StatsBar.jsx` – Widget wieder drin, Button+Panel, `useNotifications` eingebunden, `NotificationIcon` re-importiert
+- `src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx` – Widget-Toggle zurück, `NotificationIcon` re-importiert, `notifications` in Widget-Defaults
+- Translations-Keys `notificationsWidget*` wieder verwendet (waren in 10 Sprachen erhalten geblieben)
+
+### Was nicht (bewusst)
+
+- **Outgoing-Notifications** (`notify.mobile_app_*` Service-Calls für Push ans Handy) – separate Richtung, später bei konkretem Use-Case
+- **Sound / Vibration** – keine Browser-Permission-Anfrage
+- **Persistence über Card-Reload** – Dismissed-State kommt direkt aus HA, kein eigener State
+
+### Test
+
+1. In HA eine persistent_notification erzeugen (Developer Tools → Services → `persistent_notification.create` mit `title: "Test"`, `message: "Hallo"`)
+2. Card aktualisiert sich sofort → Widget oben mit Badge „1" + Toast erscheint
+3. Klick aufs Widget → Panel öffnet sich, zeigt den Eintrag
+4. Klick auf `×` → dismissed, Panel-Eintrag + Badge verschwinden
+
+---
+
 ## Version 1.1.1212 - 2026-04-19
 
 **Title:** Versionsverlauf-Cache von 1 h auf 5 Min reduziert
