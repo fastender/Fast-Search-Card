@@ -1,5 +1,66 @@
 # Versionsverlauf
 
+## Version 1.1.1206 - 2026-04-19
+
+**Title:** System-Entities Dedupe (Phase 6 Performance-Roadmap)
+**Hero:** none
+**Tags:** Refactor, Code Quality
+
+### 🧹 Dedupes in System-Entities – geringe Bundle-Wirkung, echte Runtime-Verbesserung
+
+Phase 6 der Performance-Roadmap: die fettesten System-Entity-Files auf Duplikate gescannt. Ehrliche Bilanz: **Bundle nur -0.14 KB gzip** (Terser+gzip komprimieren duplizierte SVG-Strings und Variant-Objekte ohnehin aggressiv), aber **zwei Runtime-Verbesserungen**.
+
+### Was gemacht wurde
+
+**1. SVG-Icons in TodosSettingsView extrahiert**
+
+Drei Icons waren je 2× inline dupliziert:
+- `PencilIcon` (Edit) – für Profile + Templates
+- `TrashIcon` (Delete) – für Profile + Templates
+- `PlusIcon` (Add) – für Profile + Templates
+
+Jetzt je eine `const`-Komponente oben im File, 6 Inline-SVGs durch Komponenten ersetzt.
+
+**2. `slideVariants` dedupliziert via `createSlideVariants()`**
+
+Inline-Definition (~14 Zeilen) war in zwei Files:
+- `TodosSettingsView.jsx`
+- `TodoFormDialog.jsx`
+
+Beide nutzen jetzt die bestehende Factory `createSlideVariants()` aus `src/utils/animations/base.js`. **Runtime-Win:** Variants wurden vorher **bei jedem Render neu erstellt** – jetzt einmal auf Modul-Level. Spart Allokation bei jedem Setting-Screen-Wechsel.
+
+### Was bewusst NICHT gemacht wurde
+
+- **`normalizeToKwh` vs `normalizePeriodEnergy`** in `EnergyChartsView.jsx`: sehen ähnlich aus, haben aber unterschiedliche Regeln (ein zusätzlicher Cutoff `>=10` für Statistics-API-Bug). Keine echten Duplikate – Zusammenlegen würde API komplizieren.
+- **Label-Funktionen** in `TodosSettingsView` (3× ähnliches `lang === 'de' ? ... : ...`-Pattern): unterschiedliche Keys/Values, gemeinsamer Factory würde kaum was sparen.
+- **`console.error`-Logs** (4 Stellen in EnergyChartsView): legitime Error-Logs für API-Failures, ~200 Bytes total. Bleibt drin.
+- **`console.log`-Logs** im Bundle: werden bereits von Terser-`pure_funcs` entfernt (seit Phase 1).
+
+### Bundle seit Baseline v1.1.1201
+
+| | gzip JS | gzip CSS | Total |
+|---|---:|---:|---:|
+| Baseline (1201) | 397.0 | 22.2 | 419.2 |
+| nach Phase 1 (1202) | 384.3 | 19.2 | 403.5 |
+| nach Phase 3 (1203) | 371.1 | 19.2 | 390.3 |
+| nach Phase 4A (1204) | 360.4 | 19.2 | 379.6 |
+| nach Phase 2 (1205) | 360.3 | 19.2 | 379.5 |
+| **nach Phase 6 (1206)** | **360.1** | **19.2** | **379.4** |
+| **Gesamt-Einsparung** | **-36.8 KB** | **-3.0 KB** | **-39.8 KB (-9.5 %)** |
+
+### Ehrliche Einschätzung & realistisches Restpotenzial
+
+Die letzten zwei Phasen (2 + 6) waren Qualität, nicht Shrink. Terser + gzip komprimieren Code-Duplikation gut – der Gewinn durch DRY entsteht im Source, nicht im Bundle.
+
+**Nächste Hebel mit echtem Bundle-Impact (hohes Risiko):**
+- Phase A (framer-motion LazyMotion): -15 bis -25 KB, 69 Files Migration
+- Phase 4B (Chart.js → Chartist/frappe): -60 bis -70 KB, Design-Regression
+
+**Nächste ohne Bundle-Impact:**
+- Phase 5.1 (Chrome Performance Profile auf Handy): echte Runtime-Hotspots
+
+---
+
 ## Version 1.1.1205 - 2026-04-19
 
 **Title:** Duplikat-Audit & Merges in `src/utils/` (Phase 2 Performance-Roadmap)
