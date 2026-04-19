@@ -1,5 +1,67 @@
 # Versionsverlauf
 
+## Version 1.1.1215 - 2026-04-19
+
+**Title:** Toast-Einstellungen – neue Section „Toasts"
+**Hero:** none
+**Tags:** Feature, UX
+
+### 🍞 In-App-Toasts jetzt konfigurierbar
+
+Neue Section **„Toasts"** in Settings → Allgemein (nach „Status & Begrüßung" und „Vorschläge"). Klick öffnet eine Detailseite mit vollen Kontrollmöglichkeiten darüber, wann Toasts erscheinen und wie sie aussehen.
+
+### Konfigurierbare Event-Typen
+
+| Event | Default | Beschreibung |
+|---|:---:|---|
+| HA-Benachrichtigungen | ✅ | `persistent_notification.*` aus HA (seit v1.1.1213) |
+| Szenen / Skripte | ✅ | Beim Ausführen im ContextTab |
+| Aktion erfolgreich | ❌ | z. B. Licht an, Thermostat geändert |
+| Aktion fehlgeschlagen | ✅ | Fehler beim Service-Call |
+| Favoriten-Änderung | ❌ | Favorit hinzugefügt/entfernt |
+| Timer / Schedule | ❌ | Create / Update / Delete |
+
+### Darstellung
+
+- **Position**: Oben mittig (Default), Oben rechts, Unten mittig, Unten rechts
+- **Dauer**: Kurz (2 s), **Mittel (3 s — Default)**, Lang (5 s)
+- **Master-Toggle**: schaltet global alle Toasts aus
+- **Test-Button** zeigt einen Probe-Toast mit den aktuellen Einstellungen
+- **Standard-Button** setzt alles auf Defaults zurück
+
+### Persistenz
+
+Alles in `localStorage.systemSettings.toasts`:
+```json
+{
+  "enabled": true,
+  "events": { "haPersistent": true, "actionError": true, ... },
+  "display": { "position": "top-center", "duration": "medium" }
+}
+```
+
+### Neue / geänderte Dateien
+
+- **Neu:** `src/utils/toastSettings.js` – Defaults, Reader, `shouldShowToastFor(eventKey)`, `getToastDisplayOptions()`, `saveToastSettings()`
+- **Neu:** `src/components/tabs/SettingsTab/components/ToastSettingsTab.jsx` – Detailseite
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` – neue Section + Subview-Routing
+- `src/providers/DataProvider.jsx` – Toast-Gates für HA-Persistent, Service-Call-Success/-Error, Favoriten-Änderung
+- `src/components/tabs/ContextTab.jsx` – Szenen/Skripte/Automation-Toasts gated
+- `src/utils/scheduleUtils.js` – Create/Update/Delete-Toasts gated
+
+### Testablauf
+
+1. Settings → Allgemein → **Toasts** öffnen
+2. „Aktion erfolgreich" aktivieren → **Licht einschalten** → Toast erscheint
+3. Position auf „Unten rechts" ändern → **Test-Toast** → kommt unten rechts
+4. Master aus → kein Toast erscheint bei nichts mehr
+
+### Wie weiter
+
+Regelbasierte Notifications („Klima zu lange an" etc.) → separate Phase, mit HA-Automations als Backend. Nicht in diesem Release.
+
+---
+
 ## Version 1.1.1214 - 2026-04-19
 
 **Title:** Hotfix: Mount-Error „Cannot access 'O' before initialization"
