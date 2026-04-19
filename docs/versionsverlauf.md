@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.1205 - 2026-04-19
+
+**Title:** Duplikat-Audit & Merges in `src/utils/` (Phase 2 Performance-Roadmap)
+**Hero:** none
+**Tags:** Refactor, Code Quality
+
+### 🧹 Qualitäts-Phase – zwei Dateien weg, ein Name-Clash weg
+
+Phase 2 der Performance-Roadmap: bewusst Qualität, nicht Bundle-Größe. Ergebnis: **-0.1 KB gzip** (vernachlässigbar), aber cleanerer Codebase.
+
+### Audit-Ergebnis
+
+Von den fünf verdächtigen Paaren / Familien in `src/utils/` hatten nur drei echte Arbeit:
+
+| Paar | Ergebnis |
+|---|---|
+| `domainHandlers` ↔ `domainHelpers` | split-ok, saubere Trennung |
+| `deviceConfigs` ↔ `deviceHelpers` | split-ok, Configs konsumieren Helpers |
+| schedule-Familie | **merged**, siehe unten |
+| history-Familie | **merged**, siehe unten |
+| `formatters/timeFormatters` ↔ `scheduleConstants` | **renamed**, siehe unten |
+
+### Merge 1: `scheduleHandlers.js` → `scheduleUtils.js`
+
+- `handleTimerCreate` + `handleScheduleCreate` (mit Format-Transformation für den nielsfaber-Scheduler) nach `scheduleUtils.js` verschoben
+- `handleScheduleUpdate` + `handleScheduleDelete` ersatzlos gelöscht – **waren unbenutzt**
+- `DetailView.jsx`-Import-Pfad aktualisiert
+- Datei `src/utils/scheduleHandlers.js` gelöscht
+
+### Merge 2: `historyDataProcessors.js` → `historyUtils.js`
+
+- `generateCategoryData()` (15 LOC) nach `historyUtils.js` verschoben
+- `HistoryTab.jsx` nutzt jetzt einen einzigen Import für die 4 History-Utilities
+- Datei `src/utils/historyDataProcessors.js` gelöscht
+
+### Dedupe 3: `formatTime()` Namens-Clash
+
+`scheduleConstants.js::formatTime(hours, minutes)` und `formatters/timeFormatters.js::formatTime(timestamp, timeRange)` hatten denselben Namen, aber komplett unterschiedliche Signaturen & Zwecke. Risiko: versehentlicher Import der falschen Version.
+
+**Fix:** `scheduleConstants.formatTime` → `formatClockTime` umbenannt. Konsument (`scheduleUtils.js`) entsprechend aktualisiert. Die Timestamp-Formatter bleiben unter `formatTime`.
+
+### Geänderte / gelöschte Dateien
+
+- **Gelöscht:** `src/utils/scheduleHandlers.js`, `src/utils/historyDataProcessors.js`
+- **Geändert:** `src/utils/scheduleUtils.js`, `src/utils/scheduleConstants.js`, `src/utils/historyUtils.js`, `src/components/DetailView.jsx`, `src/components/tabs/HistoryTab.jsx`
+
+### Bundle seit Baseline v1.1.1201
+
+| | gzip JS | gzip CSS | Total |
+|---|---:|---:|---:|
+| Baseline (1201) | 397.0 | 22.2 | 419.2 |
+| nach Phase 1 (1202) | 384.3 | 19.2 | 403.5 |
+| nach Phase 3 (1203) | 371.1 | 19.2 | 390.3 |
+| nach Phase 4A (1204) | 360.4 | 19.2 | 379.6 |
+| **nach Phase 2 (1205)** | **360.3** | **19.2** | **379.5** |
+| **Gesamt-Einsparung** | **-36.7 KB** | **-3.0 KB** | **-39.7 KB (-9.5 %)** |
+
+### Nächste Schritte
+
+- Phase 5.1: Chrome Performance Profile auf Handy (benötigt User-Session)
+- optional Phase 4B: Chartist/frappe als echte Chart.js-Migration (Design-Regression möglich)
+
+---
+
 ## Version 1.1.1204 - 2026-04-19
 
 **Title:** Chart.js Tree-Shaking (Phase 4A Performance-Roadmap)
