@@ -222,7 +222,7 @@ Wenn die Session zu 100% Context stürmt und wir in einer neuen anfangen müssen
 
 ### Dem neuen Claude zeigen
 1. Diesen Dokument-Pfad: `docs/SESSION_NOTES_2026-04-17_18.md`
-2. Aktuelle Version aus `AboutSettingsTab.jsx` (heute: **v1.1.1195**)
+2. Aktuelle Version aus `AboutSettingsTab.jsx` (zuletzt: **v1.1.1201**; bei neuer Session vorher via `grep "ios-item-value\">[0-9]" src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` verifizieren)
 3. Den letzten `git log --oneline -20`
 
 ### Neuer Claude soll tun
@@ -276,12 +276,12 @@ Wenn die Session zu 100% Context stürmt und wir in einer neuen anfangen müssen
 ## 9. Session-Ende-Checkliste
 
 - [x] Letzter Commit + Push auf `main`
-- [x] Tag `v1.1.1195` auf GitHub
+- [x] Tag `v1.1.1201` auf GitHub
 - [x] Release mit Asset erstellt
 - [x] `docs/versionsverlauf.md` aktuell
 - [x] `current_version` in Versionsverlauf-Entity hochgezogen
-- [x] Diese Session-Notes erstellt
+- [x] Diese Session-Notes erstellt + aktualisiert
 
 ---
 
-*Session-Notes geschrieben am 2026-04-18 nach ~16 Releases in zwei Tagen. Nächste Session: zuerst hier reinlesen.*
+*Session-Notes zuletzt aktualisiert am 2026-04-19 nach 22 Releases (v1.1.1180 – v1.1.1201) in zwei Tagen. Nächste Session: zuerst hier reinlesen.*
