@@ -1,5 +1,67 @@
 # Versionsverlauf
 
+## Version 1.1.1210 - 2026-04-19
+
+**Title:** Dead-Code raus – nicht-funktionale Notifications-UI entfernt
+**Hero:** none
+**Tags:** Refactor, Code Quality
+
+### 🧹 Zwei UI-Leichen aufgeräumt
+
+Beim Audit des „Notify-Systems" zeigte sich, dass zwei UI-Elemente **sichtbar und bedienbar** waren, aber **nichts** bewirkten. Beide komplett entfernt.
+
+### 1. Push-Notifications-Toggle in Settings
+
+**Wo war er:** Settings → Allgemein → Benachrichtigungen → Switch „Push-Benachrichtigungen"
+
+**Warum tot:**
+- State `notifications` wurde nicht aus localStorage geladen, Default hartcodiert `true`
+- Setter `setNotifications()` schrieb weder in localStorage noch löste er irgendeine Action aus
+- Der Wert wurde durch drei Komponenten-Ebenen durchgereicht, aber **nie gelesen**
+- Kein HA-Service-Aufruf, keine Browser-Permission-Anfrage, keine Anbindung
+
+**Bonus:** Die Section war bereits auf `display: none` gesetzt – also war sie für User *unsichtbar*, aber der React-State + Prop-Kette lief trotzdem.
+
+**Entfernt aus:**
+- `SettingsTab.jsx` – State + Setter + Prop-Weitergabe
+- `GeneralSettingsTab.jsx` – Props + Section-JSX
+
+### 2. StatsBar Notifications-Widget
+
+**Wo war es:** StatsBar → Widget mit Glocken-Icon + Counter-Badge (wenn Count > 0)
+
+**Warum tot:**
+- `notificationCount` war in `SearchField.jsx` hartcodiert auf `0` – Kommentar sagte selbst „mock for now"
+- Quelle für echten Count war nie angebunden (HA `persistent_notification.*` oder ähnlich)
+- Widget hätte sich also **nie** gerendert
+- Settings-Toggle „Benachrichtigungen (mit Zähler)" konnte aktiviert werden – aber ohne Quelle blieb das Widget leer
+
+**Entfernt aus:**
+- `StatsBar.jsx` – Prop, Widget-JSX, `notifications` aus widgetSettings-Defaults, `NotificationIcon`-Import
+- `SearchField.jsx` – Mock-Konstante + Prop-Weitergabe
+- `StatsBarSettingsTab.jsx` – Widget-Toggle-Section, `notifications` aus Default-Settings, `NotificationIcon`-Import
+
+### Was bleibt
+
+- **Toast-System** (`src/utils/toastNotification.js`) – aktiv, wird von ContextTab genutzt, weitere Use-Cases jederzeit möglich
+- **pendingActionTracker** – internes Pub/Sub für pending Service-Calls, hat nichts mit User-Notifications zu tun
+- **Translations-Keys** (`pushNotifications`, `notificationsWidget` etc.) in 10 Sprachen bleiben drin – schaden nicht, könnten später bei einem echten Notifications-Feature wiederverwendet werden
+- **`NotificationIcon`** als Export in `EnergyIcons.jsx` bleibt – Terser tree-shaked ungenutzte Exports
+
+### Bundle
+
+- JS gzip: 360.14 → **360.64 KB** (leicht gewachsen, vermutlich Preset-Zuwachs aus v1.1.1209)
+- Code-Reduktion hauptsächlich struktureller Natur: eine tote Prop-Kette, drei tote UI-Sections
+
+### Nächste Schritte (offen)
+
+Falls später ein echtes Notifications-Feature gewünscht ist:
+- Anbindung an HA `persistent_notification.*` Domain → füllt `notificationCount`
+- Widget + Toggle können aus Git-History wieder reingeholt werden
+- Oder: Browser-Push via Notification API (HTTPS erforderlich)
+
+---
+
 ## Version 1.1.1209 - 2026-04-19
 
 **Title:** Preset „fastender" für Ausschlussmuster
