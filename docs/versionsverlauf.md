@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.1214 - 2026-04-19
+
+**Title:** Hotfix: Mount-Error „Cannot access 'O' before initialization"
+**Hero:** none
+**Tags:** Bug Fix
+
+### 🐛 TDZ-Fehler nach v1.1.1213 gefixt
+
+**Symptom:** Nach dem Notifications-Release warf die Card beim Mount:
+```
+Error mounting Fast Search Card: Cannot access 'O' before initialization
+```
+
+**Ursache:** In `DataProvider.jsx` wurde `refreshNotifications` (ein `useCallback`) im Dependency-Array zweier `useEffect`-Hooks referenziert:
+
+```js
+useEffect(() => { ... refreshNotifications() }, [hass, refreshNotifications]);
+```
+
+Dependency-Arrays werden **beim Render** evaluiert. Der `useCallback`-Definition stand aber **weiter unten** im Component-Body. Bei minifiziertem Bundle (Variable = `O`) führt das zum TDZ-Fehler (`const` in Temporal Dead Zone).
+
+**Fix:** `refreshNotifications` + `dismissNotification` im DataProvider **nach oben** verschoben, direkt unter die Refs und damit vor alle useEffects, die sie nutzen.
+
+### Modifizierte Datei
+
+- `src/providers/DataProvider.jsx`
+
+### Keine Feature-Änderung
+
+Das Notifications-System funktioniert wie in v1.1.1213 – Widget, Panel, Toast, Dismiss. Nur die Deklarations-Reihenfolge wurde geändert.
+
+---
+
 ## Version 1.1.1213 - 2026-04-19
 
 **Title:** Notifications-System – HA persistent_notification angebunden
