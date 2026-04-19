@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1204 - 2026-04-19
+
+**Title:** Chart.js Tree-Shaking (Phase 4A Performance-Roadmap)
+**Hero:** none
+**Tags:** Performance, Refactor
+
+### 📦 Chart.js /auto → explizite Registrierung
+
+Phase 4A der Performance-Roadmap: `chart.js/auto` ersetzt durch Tree-Shaken-Import via `src/utils/chartjs/chartConfig.js`. Diese Konfigurations-Datei existierte schon, war aber nie benutzt worden – beide Chart-Consumer importierten `chart.js/auto` direkt, was alle Controller/Elements/Scales ins Bundle zog.
+
+**Ergebnis:**
+- JS gzip: **371.10 → 360.39 KB** (-10.7 KB)
+- chart.js im Bundle: **100.6 → 85.2 KB** (-15.4 KB an Deps)
+- Bundle-Delta kleiner als Dep-Delta, weil chart.js intern schon gut tree-shaked
+
+**Gesamt seit Baseline v1.1.1201: -37 KB gzip (-9.3 %)**
+
+### Ehrliche Einschätzung
+
+Ursprüngliche Schätzung war -50 KB. Tatsächlich nur -10.7 KB. Grund: `chart.js/auto` triggert zwar Auto-Registrierung aller Chart-Typen, aber moderne Rollup-Tree-Shaking entfernt ungenutzte Chart-Controller ohnehin teilweise. Die explizite Registrierung bringt nur die letzte Meile.
+
+### Was registriert wird (via chartConfig.js)
+
+Nur was wir tatsächlich brauchen – Line, Bar, Area:
+- Controllers: `LineController`, `BarController`
+- Elements: `LineElement`, `BarElement`, `PointElement`
+- Scales: `LinearScale`, `CategoryScale`, `TimeScale`
+- Plugins: `Filler` (für Area), `Title`, `Tooltip`, `Legend`
+
+### Geänderte Dateien
+
+- `src/components/charts/ChartComponents.jsx` – Import von `chart.js/auto` auf `chartConfig`
+- `src/system-entities/entities/integration/device-entities/components/EnergyChartsView.jsx` – dito
+- `src/utils/chartjs/chartConfig.js` – doppelte Exports entfernt (Rollup-Error gefixt)
+
+### Weitere Chart-Library-Migrationen bewusst verworfen
+
+- **uPlot**: unterstützt **keine** Bar-Charts → raus (DeviceCategoriesChart + EnergyChartsView bars)
+- **Chartist**: ~80 KB Einsparung möglich, aber plainer Look + Tooltips manuell nachbauen → zu viel Regression-Risiko
+- **frappe-charts**: ~80 KB Einsparung möglich, aber API-Bruch + Design-Regression
+
+### Nächste Schritte (Roadmap)
+
+- Phase 2: Duplikat-Audit in `src/utils/`
+- Phase 5.1: Chrome Performance Profile auf Handy (Runtime-Perf)
+
+---
+
 ## Version 1.1.1203 - 2026-04-19
 
 **Title:** react-markdown → marked + DOMPurify (Phase 3 Performance-Roadmap)
