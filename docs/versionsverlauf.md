@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1217 - 2026-04-19
+
+**Title:** Fix: Doppelter Toast bei Licht-Toggle
+**Hero:** none
+**Tags:** Bug Fix
+
+### 🐛 Zwei identische Toasts bei jeder Aktion
+
+Nach v1.1.1216 feuerten zwei Toasts mit identischem Text (z. B. `light.turn_on: light.xyz`) bei jedem Licht-Toggle.
+
+**Ursache:** Zwei Gates produzierten den exakt selben Text:
+1. `DetailViewWrapper.handleServiceCall` (v1.1.1216 Fix – tatsächlich genutzt)
+2. `DataProvider.callService` (v1.1.1215 Fix – Code-Pfad, der nirgends im UI explizit konsumiert wird, aber aktiv war)
+
+Obwohl Code-Analyse nahelegte, dass `DataProvider.callService` nicht im UI-Pfad hängt, feuerte sein Toast-Gate offenbar doch – wahrscheinlich über indirekten Kontext-Zugriff.
+
+**Fix:** Toast-Code aus `DataProvider.callService` entfernt. Einziger aktiver Toast-Gate bleibt `DetailViewWrapper.handleServiceCall`. `showSuccessToast` + `showErrorToast` Imports aus DataProvider gekickt (Bundle-Diät).
+
+### Modifizierte Datei
+
+- `src/providers/DataProvider.jsx`
+
+### Verbleibende Toast-Quellen (einmal pro Event)
+
+| Pfad | Events |
+|---|---|
+| `DetailViewWrapper.handleServiceCall` | actionSuccess / actionError |
+| `DataProvider.refreshNotifications` | haPersistent |
+| `DataProvider.toggleFavorite` | favoriteChange |
+| `ContextTab.executeAction` | scenesScripts |
+| `scheduleUtils` (create/update/delete) | scheduleChange |
+
+### Test
+
+1. Settings → Toasts → „Aktion erfolgreich" an
+2. Licht schalten → **ein** Toast
+3. „Aktion fehlgeschlagen" an, HA-Verbindung kappen → **ein** Toast
+
+---
+
 ## Version 1.1.1216 - 2026-04-19
 
 **Title:** Fix: Toast-Gate auf tatsächlich genutzten Service-Call-Pfad gelegt
