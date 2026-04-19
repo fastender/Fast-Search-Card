@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1212 - 2026-04-19
+
+**Title:** Versionsverlauf-Cache von 1 h auf 5 Min reduziert
+**Hero:** none
+**Tags:** UX
+
+### ⏱️ Neue Releases schneller sichtbar
+
+Der App-interne Cache für den Changelog hing bisher auf 60 Minuten. Das hieß: Nach einem neuen Release musste man bis zu einer Stunde warten oder manuell den „Aktualisieren"-Button drücken, um den neuen Eintrag zu sehen.
+
+**Neu:** Cache-TTL = **5 Minuten**. GitHub-raw + HACS-CDN cachen eh server-seitig, darum ist's kein Performance-Risk.
+
+### Modifizierte Datei
+
+- `src/system-entities/entities/versionsverlauf/index.js` – Konstante `ONE_HOUR` → `FIVE_MINUTES`
+
+---
+
 ## Version 1.1.1211 - 2026-04-19
 
 **Title:** Bug-Fix: System-Entities fehlen beim ersten Load (Race-Condition)
