@@ -59,8 +59,11 @@ Von den fünf verdächtigen Paaren / Familien in `src/utils/` hatten nur drei ec
 
 ### Nächste Schritte
 
-- Phase 5.1: Chrome Performance Profile auf Handy (benötigt User-Session)
-- optional Phase 4B: Chartist/frappe als echte Chart.js-Migration (Design-Regression möglich)
+- **Phase 6: System-Entities-Audit** (134 KB gzip unerforscht, Ziel: -10 bis -30 KB durch Duplikat/Unused-Scan in Energy/Todos/News-Views)
+- Phase 5.2 (Icon-Sprite-Sheet) **verworfen**: Icons sind animierte SVGs mit SMIL (`<animate>`, individuelle Farben+Delays) – Sprite mit `<use>` würde Animationen/Farben brechen
+- Phase 5.1 (Chrome Performance Profile) benötigt User-Session auf dem Handy
+- Phase 4B (Chartist/frappe statt chart.js) bleibt Option, aber Design-Regression wahrscheinlich
+- Phase A (framer-motion LazyMotion, ~-20 KB): 69 Files Migration, hohes Regression-Risiko
 
 ---
 
