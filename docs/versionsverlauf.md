@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1216 - 2026-04-19
+
+**Title:** Fix: Toast-Gate auf tatsächlich genutzten Service-Call-Pfad gelegt
+**Hero:** none
+**Tags:** Bug Fix
+
+### 🐛 Toast kam bei Licht-Toggle nicht
+
+**Symptom:** Nach v1.1.1215 „Aktion erfolgreich" aktiviert → Licht über UI eingeschaltet → **kein Toast**.
+
+**Ursache:** Card hat zwei parallele Service-Call-Wege:
+- `DataProvider.callService` — hat seit v1.1.1215 den Toast-Gate
+- `callHAService(hass, ...)` direkt aus `utils/homeAssistantService.js` — **wird tatsächlich** für alle UI-Aktionen genutzt, hatte aber keinen Toast-Gate
+
+Der `DataProvider.callService`-Weg wird nirgends im UI aufgerufen, obwohl der Code existiert. Alle tatsächlichen Licht/Schalter-Toggles laufen über `DetailViewWrapper.handleServiceCall` → `callHAService`.
+
+**Fix:** Toast-Gate zusätzlich in `DetailViewWrapper.handleServiceCall` eingebaut. Ruft `shouldShowToastFor('actionSuccess')` / `actionError` nach erfolgreichem/fehlgeschlagenem Service-Call.
+
+### Modifizierte Datei
+
+- `src/components/SearchField/components/DetailViewWrapper.jsx`
+
+### Langfristig (nicht in diesem Release)
+
+Die zwei parallelen Call-Wege sollten zusammengelegt werden – entweder alle auf `DataProvider.callService` migriert (um Pending-Tracker-Puls + Toast aus einer Quelle zu bekommen), oder `callHAService` als einziger Pfad bleibt. Aktuell doppelt nicht schlimm, aber unnötig.
+
+### Test
+
+1. Settings → Allgemein → Toasts → „Aktion erfolgreich" aktivieren
+2. Licht ein-/ausschalten → **Toast erscheint**
+3. Settings → „Aktion fehlgeschlagen" aktivieren, HA-Verbindung kappen → Click auf Licht → **Error-Toast**
+
+---
+
 ## Version 1.1.1215 - 2026-04-19
 
 **Title:** Toast-Einstellungen – neue Section „Toasts"
