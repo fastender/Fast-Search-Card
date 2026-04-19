@@ -1,5 +1,54 @@
 # Versionsverlauf
 
+## Version 1.1.1211 - 2026-04-19
+
+**Title:** Bug-Fix: System-Entities fehlen beim ersten Load (Race-Condition)
+**Hero:** none
+**Tags:** Bug Fix
+
+### 🐛 System-Entities verschwinden bis man Ausschlussmuster modifiziert
+
+**Symptom:** Beim Öffnen der Card sind News, Todos, Versionsverlauf, Weather, Printer3D, AllSchedules in der Kategorie „Benutzerdefiniert" teilweise nicht sichtbar. Erst nach einer Pattern-Änderung in Settings → Privatsphäre erscheinen sie alle.
+
+**Root Cause — Race-Condition zwischen zwei Entity-Loads beim Init:**
+
+Im `DataProvider` gibt es zwei parallele Trigger für `loadEntitiesFromHA()`:
+
+1. **useEffect „hass-Retry"**: wird sofort aktiv wenn `hass.connection` verfügbar ist
+2. **`initializeDataProvider`**: ruft `await systemRegistry.initialize(...)` auf, dann `loadBackgroundData()` → `loadEntitiesFromHA()`
+
+Wenn Pfad 1 **vor** Pfad 2's Registry-Init fertig ist, läuft `loadEntitiesFromHA()` mit einer noch nicht initialisierten Registry. In diesem Fall fällt `getSystemEntities()` in [initialization.js:10](src/system-entities/initialization.js:10) auf einen 2-Entity-Fallback zurück (nur Settings + PluginStore). Alle anderen System-Entities fehlen bis zu einem späteren Re-Load.
+
+**Der Pattern-Modifikations-Trick funktioniert**, weil `excludedPatternsChanged`-Event erneut `loadEntitiesFromHA()` triggert – dann ist die Registry längst ready.
+
+### Fix
+
+Zwei kleine Änderungen in [src/providers/DataProvider.jsx](src/providers/DataProvider.jsx):
+
+1. **hass-Retry-useEffect an `isInitialized` gekoppelt**: läuft erst, wenn `initializeDataProvider` komplett durch ist (inkl. Registry-Init).
+   ```js
+   useEffect(() => {
+     if (hass?.connection && isInitialized && !hasTriggeredInitialLoadRef.current) {
+       hasTriggeredInitialLoadRef.current = true;
+       loadEntitiesFromHA();
+     }
+   }, [hass, isInitialized]);
+   ```
+
+2. **`hasTriggeredInitialLoadRef` wird in `loadEntitiesFromHA` selbst gesetzt** (nach dem Mutex-Guard): egal wer den initialen Load triggert, der useEffect skippt nicht-erwünschte Doppel-Calls.
+
+### Modifizierte Datei
+
+- `src/providers/DataProvider.jsx`
+
+### Test
+
+1. Card neu laden
+2. Kategorie „Benutzerdefiniert" öffnen
+3. **Alle** System-Entities sollten sofort erscheinen: Settings, Bambu Lab, Zeitpläne Übersicht, Feeds, Todos, Versionsverlauf, etc. – **ohne** Pattern-Modifikation.
+
+---
+
 ## Version 1.1.1210 - 2026-04-19
 
 **Title:** Dead-Code raus – nicht-funktionale Notifications-UI entfernt
