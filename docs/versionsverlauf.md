@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1209 - 2026-04-19
+
+**Title:** Preset „fastender" für Ausschlussmuster
+**Hero:** none
+**Tags:** Feature, UX
+
+### 🧹 Neuer Schnellauswahl-Button mit 35 vorkonfigurierten Mustern
+
+Neben den bestehenden Presets (Updates / Batterien / Signal / System-Sensoren) gibt es jetzt einen fünften Button **fastender** – eine persönliche Sammlung der Patterns, die im eigenen Setup weggefiltert werden sollen.
+
+**Enthalten:**
+- Tasmota: `sensor.tasmota*`, `switch.tasmota*`
+- Temperatur-Sensoren: `*aussentemperatur*`, `*zimmertemperatur*`
+- Rauchmelder-Nebenwerte: `*smoke_sensor_*_fault`, `*_test`, `*_reliability`, `*_temperature`, `*_battery_low`, `*_humidity`, `*_linkquality`
+- Rollladen-Interna: `*rolllade_moving*`, `*rolllade_calibration*`, `*rolllade_motor*`, `*motor_reversal*`, `*breaker_status*`, `*calibration*`
+- Light-Attribute: `*color_options*`, `*adaptive_lighting*`, `*kindersicherung*`
+- Sonstiges: `time.*`, `switch.smart_garage*`, `sensor.melcloudhome*`, `binary_sensor.melcloudhome*`, `*ventil*`, `sun.sun`, `select.*`, `number.*`, `*nspanel*`, `switch.reolink*`, `switch.schedule*`, `switch.nuki*`, `*_linkquality`, `*_signal_strength`, `*frostschutz*`
+
+**Verhalten:**
+- Wie die anderen Presets: Duplikate werden übersprungen, bereits-aktive Patterns werden als `✓`-Chip (disabled) angezeigt
+- Einzelne Patterns können danach manuell per `×` entfernt werden
+
+### Modifizierte Datei
+
+- `src/utils/excludedPatternPresets.js` – neuer Preset-Eintrag
+
+---
+
 ## Version 1.1.1208 - 2026-04-19
 
 **Title:** Ausschlussmuster – Quick-Add-Presets + First-Run-Seed
