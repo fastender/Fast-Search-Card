@@ -1,5 +1,67 @@
 # Versionsverlauf
 
+## Version 1.1.1203 - 2026-04-19
+
+**Title:** react-markdown → marked + DOMPurify (Phase 3 Performance-Roadmap)
+**Hero:** none
+**Tags:** Performance, Refactor
+
+### 📦 Markdown-Stack halbiert
+
+Phase 3 der Performance-Roadmap: der komplette `react-markdown`-Stack (unified + micromark + mdast-util-* + hast-util-* + remark-rehype + property-information + …) wurde durch `marked` + `DOMPurify` ersetzt.
+
+**Ergebnis:**
+- JS gzip: **384.28 → 371.10 KB** (-13.2 KB)
+- Deps-Summe: react-markdown-Stack ~45 KB weg, marked (12.4 KB) + DOMPurify (17.1 KB) dazu
+- **Gesamt seit Baseline v1.1.1201: -26 KB gzip (-6.5 %)**
+
+### Warum jetzt diese Kombi
+
+- **marked** (~12 KB gzip): Parser `md → HTML-String`. Kein GFM, keine Tabellen gebraucht (Audit an der einzigen Usage-Stelle `VersionDetail.jsx`).
+- **DOMPurify** (~17 KB gzip): Sanitize des generierten HTML. Content kommt via `fetch` von GitHub – bei kompromittiertem Repo kein XSS-Risiko.
+- **Warum nicht nur marked?** Hätte ~17 KB mehr gespart, aber das Sicherheitsnetz ist hier die Zusatzkosten wert.
+
+### Migration (exakt eine Stelle)
+
+`src/system-entities/entities/versionsverlauf/components/VersionDetail.jsx`:
+
+**Vorher:**
+```jsx
+import ReactMarkdown from 'react-markdown';
+// …
+<ReactMarkdown>{version.content}</ReactMarkdown>
+```
+
+**Nachher:**
+```jsx
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
+import { useMemo } from 'preact/hooks';
+// …
+const sanitizedHTML = useMemo(() => {
+  if (!version?.content) return '';
+  return DOMPurify.sanitize(marked.parse(version.content));
+}, [version?.content]);
+// …
+<div className="version-detail-content"
+     dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
+```
+
+`marked.setOptions({ gfm: false, breaks: false })` — simple markdown ist genug für unseren Changelog.
+
+### npm-Dependencies
+
+- **Entfernt:** `react-markdown` (und damit 81 transitive Packages inkl. unified/micromark/mdast/hast/…)
+- **Hinzugefügt:** `marked` + `dompurify`
+
+### Nächste Schritte (Roadmap)
+
+- Phase 4: chart.js → uPlot (~-80 KB gzip, größter Hebel)
+- Phase 2: Duplikat-Audit in `src/utils/`
+- Phase 5.1: Chrome Performance Profile für Runtime-Optimierungen
+
+---
+
 ## Version 1.1.1202 - 2026-04-19
 
 **Title:** Build-Hygiene – Terser + PurgeCSS (Phase 1 Performance-Roadmap)
