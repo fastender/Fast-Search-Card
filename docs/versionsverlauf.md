@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1207 - 2026-04-19
+
+**Title:** Vorschläge sofort sichtbar – Cold-Start-Fallback
+**Hero:** none
+**Tags:** Bug Fix, UX
+
+### 🐛 Bug-Fix: „Vorschläge" erschienen bei frischem Setup nicht
+
+**Problem:** Der Suggestions-Calculator hatte nur zwei Pfade: Pattern-basiert (braucht Klick-History) und Bootstrap (braucht `usage_count > 0`). Bei einem brandneuen Setup ohne jegliche Interaktion lieferten beide nichts → keine Suggestions → der „Vorschläge"-Chip in der Subcategory-Bar erschien gar nicht (SubcategoryBar prüft `hasSuggestions`).
+
+**Fix:** Dritte Fallback-Stufe, **Cold-Start**, in `suggestionsCalculator.js`. Greift wenn nach Pattern+Bootstrap immer noch zu wenig Suggestions da sind.
+
+### Wie die drei Stufen jetzt ineinandergreifen
+
+1. **Pattern-basiert** (Confidence ≥ Threshold): echte Nutzungs-Patterns mit Decay + Same-Weekday-Boost + Consistency-Bonus + Negative-Learning-Penalty. Optimal für Power-User.
+2. **Bootstrap** (Confidence 0.55 fix): Fallback auf `entity.usage_count > 0`. Greift ab dem ersten Klick.
+3. **Cold-Start** (Confidence 0.4 fix, **NEU**): Top-N Entities aus Priority-Domains alphabetisch, wenn Setup brandneu.
+
+### Cold-Start-Logik
+
+```js
+const PRIORITY_DOMAINS = ['light', 'switch', 'media_player', 'climate', 'cover', 'fan'];
+```
+
+- Filtert Entities nach diesen Domains
+- Sortiert: erst nach Domain-Priorität, dann alphabetisch
+- Confidence 0.4 – niedriger als Bootstrap, damit echte Patterns schnell verdrängen
+- Markiert mit `suggestion_reason: 'cold_start'` + `usage_pattern.cold_start: true` (für spätere UI-Differenzierung möglich)
+
+### Was sich dadurch nicht ändert
+
+- **Master-Toggle** (`predictiveSuggestions = false`) schaltet weiterhin alles aus
+- **Reset-Button** in Settings funktioniert weiter (löscht Patterns + usage_count → Cold-Start greift)
+- **Bootstrap** bleibt unverändert
+
+### Modifizierte Datei
+
+- `src/utils/suggestionsCalculator.js`
+
+---
+
 ## Version 1.1.1206 - 2026-04-19
 
 **Title:** System-Entities Dedupe (Phase 6 Performance-Roadmap)
