@@ -1,5 +1,67 @@
 # Versionsverlauf
 
+## Version 1.1.1202 - 2026-04-19
+
+**Title:** Build-Hygiene – Terser + PurgeCSS (Phase 1 Performance-Roadmap)
+**Hero:** none
+**Tags:** Performance, Build
+
+### 📦 Bundle-Shrink ohne Feature-Bruch
+
+Erster Schritt der neuen Performance-Roadmap (`docs/PERFORMANCE_ROADMAP.md`): Build-Hygiene. Kein Code-Umbau, nur Konfig.
+
+**Ergebnis:**
+- JS gzip: **396.99 → 384.28 KB** (-12.7 KB, -3.2 %)
+- CSS gzip: **22.17 → 19.24 KB** (-2.9 KB, -13.2 %)
+- Total: **-15.6 KB gzip**
+
+### 1. Terser statt esbuild-Minify
+
+`vite.config.js` → `minify: 'terser'` mit `terserOptions`:
+- `compress.passes: 2` (doppelter Optimierungs-Pass)
+- `pure_funcs: ['console.log', 'console.debug', 'console.info']`
+- `drop_debugger: true`
+- `format.comments: false`
+
+Preis: Build dauert ~5 s länger (5 → 13 s). Gewinn: ~12 KB JS-gzip.
+
+### 2. PostCSS-Pipeline mit PurgeCSS + cssnano
+
+Neu: `postcss.config.cjs` mit:
+- `autoprefixer` (vendor prefixes)
+- `purgeCSSPlugin` – entfernt ungenutzte CSS-Regeln (nur im Production-Build)
+- `cssnano` – finale CSS-Minification
+
+**PurgeCSS-Safelist großzügig:**
+- `ios-*`, `fsc-*`, `v-*` (virtua), `framer-*`, `chip-*`, `card-*`, `device-*`
+- `schedule-*`, `history-*`, `settings-*`, `detail-*`, `glass-*`, `backdrop-*`
+- `search-*`, `greeting-*`, `stats-*`, `subcategory-*`, `action-sheet-*`
+- `splash-*`, `apple-hello-*`, `energy-*`, `climate-*`, `toast-*`, `circular-*`, `slider-*`
+- State-Klassen: `selected`, `active`, `pending`, `open`, `hidden`, `visible`, `loading`, etc.
+- Transitions-Suffixe: `-enter`, `-exit`, `-appear`
+
+Lieber ein paar KB weniger gespart als gebrochene UI.
+
+### Caveat
+
+cssnano wirft eine Warnung bei `backdrop-filter: ... saturate(calc(180% * var(--background-saturation, 1)))` – die Regel wird pass-through gelassen. Visueller Test auf HA-Wallpaper: **backdrop-filter wirkt weiter korrekt**.
+
+### Neue / modifizierte Dateien
+
+- `postcss.config.cjs` (neu)
+- `vite.config.js` – Terser-Block + `rollup-plugin-visualizer` hinter `ANALYZE=1`
+- `docs/PERFORMANCE_ROADMAP.md` (neu) – 5-Phasen-Plan, Ziel ~235 KB gzip
+- `analyze-bundle.js` (temp) – Text-Report aus `dist/bundle-stats.html`
+
+### Nächste Schritte (Roadmap)
+
+- Phase 2: Duplikat-Audit in `src/utils/`
+- Phase 3: react-markdown → marked (~-60 KB gzip)
+- Phase 4: chart.js → uPlot (~-80 KB gzip)
+- Ziel: Bundle ~235 KB gzip (-40 % vs. heute)
+
+---
+
 ## Version 1.1.1201 - 2026-04-18
 
 **Title:** Vorschläge v2 – sofort lernen, Decay, Negative Learning, Reset
