@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1237 - 2026-04-24
+
+**Title:** Sidebar –10 % instead of –20 %, iOS navbar title now actually centered
+**Hero:** none
+**Tags:** Bug Fix, Design
+
+### Two fixes
+
+**1. Sidebar slightly less slim**
+
+Horizontal padding adjusted to 12 px (from 8 px in v1.1.1236). Net change vs. the original 16 px is ~–10 % in width – the previous –20 % was too much.
+
+```css
+.vpm-menu.glass-panel { padding: 12px 12px; }
+```
+
+**2. iOS navbar title centering bug**
+
+Inside version-detail pages (and every other iOS-style navbar) the title uses `position: absolute; left: 50%; transform: translateX(-50%)` to center itself. But the parent `.ios-navbar` was missing `position: relative`, so the title was positioned against a far ancestor and visually landed at the left next to the back button instead of centered.
+
+Fix: one line in `.ios-navbar`:
+
+```css
+position: relative;
+```
+
+All navbars using `.ios-navbar` + `.ios-navbar-title` now show a properly centered title.
+
+### Changed files
+
+- `src/components/SearchField/SearchField.css` – `.vpm-menu.glass-panel` padding
+- `src/system-entities/entities/news/components/iOSSettingsView.css` – `.ios-navbar { position: relative }`
+
+### Test
+
+- Sidebar is a little wider than after v1.1.1236, a little slimmer than before
+- Versionsverlauf → pick any version → detail page title (e.g. `v1.1.1236`) is now horizontally centered in the navbar, not stuck next to the "Back" button
+
+---
+
 ## Version 1.1.1236 - 2026-04-24
 
 **Title:** Sidebar 20 % slimmer + font stack matches StatsBar
