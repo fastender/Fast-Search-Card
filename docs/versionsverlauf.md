@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1231 - 2026-04-24
+
+**Title:** Sidebar polish: real SVG icons, vertically centered, panel no longer shifts
+**Hero:** none
+**Tags:** Bug Fix, Design
+
+### Three issues from v1.1.1230 resolved
+
+**1. Icons were rendered as text**
+
+Some system entities carry their icon as an `mdi:*` string rather than an inline SVG. The previous `dangerouslySetInnerHTML` path showed the raw string (e.g. `mdi:cog`, `newspaper`). Now the sidebar reuses the **same renderer the device cards use** (`getSystemEntityIcon`), so every shortcut shows the proper SVG icon.
+
+**2. Sidebar now vertically centered to the panel**
+
+Changed from `top: 0` to `top: 50%` + `translateY(-50%)`. Centers inside the search-row (≈ panel height) regardless of panel content.
+
+**3. Panel no longer shifts right when the sidebar appears**
+
+The sidebar sat inside `.search-row` with `position: absolute`, but some flex edge-cases still nudged the panel. Fix: wrap it in a **zero-width anchor**:
+
+```css
+.search-sidebar-anchor {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 0;
+  pointer-events: none;
+}
+.search-sidebar-anchor > * { pointer-events: auto; }
+```
+
+The anchor takes no layout space at all, so the panel stays put whether the sidebar is shown or not.
+
+### Changed files
+
+- `src/components/SearchSidebar.jsx` – icons via `getSystemEntityIcon`, new anchor wrapper on desktop
+- `src/components/SearchField/SearchField.css` – `.search-sidebar-anchor` rules, `top: 50%` + `translateY(-50%)` on desktop rail
+
+### Test
+
+- Desktop: open panel → sidebar sits centered vertically next to the panel, real SVG icons visible, panel width/position unchanged whether sidebar is shown or not
+- Hover → width expands, labels fade in
+- Mobile: unchanged horizontal pill bottom-center
+
+---
+
 ## Version 1.1.1230 - 2026-04-24
 
 **Title:** Sidebar: shortcut rail to system entities (desktop vertical, mobile horizontal)
