@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1220 - 2026-04-19
+
+**Title:** DetailView-Header + Stat-Items aktualisieren jetzt in Echtzeit
+**Hero:** none
+**Tags:** Bug Fix
+
+### 🐛 „100% Helligkeit" + „Ausgeschaltet" gleichzeitig
+
+In der DetailView konnte der Kopfbereich mit Quick-Stats (Helligkeit %, State-Text „Ausgeschaltet" / „Eingeschaltet") und die Tab-Navigation einen veralteten Zustand zeigen, während der tatsächliche HA-State längst gewechselt war. Beispiel: Licht ausgeschaltet → Stat-Leiste zeigt noch „100% Helligkeit" und „Ausgeschaltet" gleichzeitig.
+
+### Ursache
+
+In `DetailView.jsx` gibt es zwei Repräsentationen des Entity:
+
+- **`item`**: die statische Prop, die vom Device-Klick weitergegeben wird – bleibt unverändert so lange die DetailView offen ist
+- **`liveItem`** (via `useMemo` + `useEntities`): der Live-Zustand aus dem DataProvider, wird bei jedem `state_changed`-Event aktualisiert
+
+Alle Control-Tabs (UniversalControlsTab, HistoryTab, ScheduleTab) nutzten bereits `liveItem`. Aber **drei** Stellen hingen noch am statischen `item`:
+
+1. `<DetailHeader item={item} ... />` – Titel/Icon
+2. `<EntityIconDisplay item={item} ... />` – **Quick-Stats** inkl. Helligkeit + State-Text
+3. `<TabNavigation stateText={... getStateText(item, lang)} stateDuration={... getStateDuration(item, lang)} item={item} ... />` – Tab-Header mit State-Anzeige
+4. `<ContextTab item={item} ... />` – Actions-Liste
+
+### Fix
+
+Alle vier Stellen auf `liveItem` umgestellt. Damit erneuern sich Header, Stats und Tab-State bei jedem state_changed-Event automatisch (getriggert durch die Map<entity_id → new_state> rAF-Batch-Updates im DataProvider).
+
+### Modifizierte Datei
+
+- `src/components/DetailView.jsx`
+
+### Test
+
+1. Licht öffnen (DetailView)
+2. Licht im Dashboard (oder über Controls) ein-/ausschalten
+3. Oberer Bereich: „100% Helligkeit" / „Eingeschaltet" wechselt **sofort** zu „Ausgeschaltet" – kein Widerspruch mehr
+4. Helligkeit ändern → Prozent-Stat updated live
+
+---
+
 ## Version 1.1.1219 - 2026-04-19
 
 **Title:** Echter Fix: PowerToggle feuerte doppelt (Preact `<label>`+`<input>`-Bug)
