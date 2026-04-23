@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1233 - 2026-04-24
+
+**Title:** Sidebar next to panel (12 px gap), stays visible during DetailView, detail top 54 → 52
+**Hero:** none
+**Tags:** Bug Fix, Design
+
+### Three small but important fixes on the new sidebar
+
+**1. Rail now sits next to the panel, not at the viewport edge**
+
+The `position: fixed; left: 2rem` from v1.1.1232 pinned the rail to the left edge of the viewport, leaving a huge gap to the panel on wide screens. It now sits right next to the panel with a constant 12 px gap:
+
+```css
+.vision-pro-menu--desktop {
+  position: absolute;
+  right: 100%;      /* rail's right edge anchored to panel's left edge */
+  top: 50%;
+  margin-right: 12px;
+  transform: translateY(-50%);
+}
+```
+
+Hover expansion grows to the left into the free area – the gap to the panel stays 12 px no matter how wide the rail becomes.
+
+**2. Sidebar stays visible while DetailView is open**
+
+The previous render condition included `!showDetail`, so the rail disappeared the moment a device was opened. Removed – shortcuts are now always reachable.
+
+**3. DetailView top offset 54 → 52 px**
+
+Minor tweak to match the StatsBar pill exactly. Mobile unchanged at 45 px.
+
+### Changed files
+
+- `src/components/SearchField/SearchField.css` – `.vision-pro-menu--desktop` switched from `position: fixed` to `position: absolute` with `right: 100% + margin-right: 12px`
+- `src/components/SearchField.jsx` – `!showDetail` removed from sidebar render condition
+- `src/components/SearchField/components/DetailViewWrapper.jsx` – `statsBarHeight` desktop 54 → 52
+
+### Test
+
+- Desktop: open panel → rail sits 12 px left of the panel, vertically centered
+- Hover rail → it widens to the left (into empty space), panel position never changes
+- Open a device → DetailView appears, rail stays visible at the same spot
+- Detail header now flush to the StatsBar without any visual collision (52 px offset)
+
+---
+
 ## Version 1.1.1232 - 2026-04-24
 
 **Title:** Sidebar redesign – Vision-Pro mockup v2 (fixed to viewport, hover-expand labels)
