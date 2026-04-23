@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1221 - 2026-04-19
+
+**Title:** Mobile: auto-open search panel on start
+**Hero:** none
+**Tags:** Feature, UX, Mobile
+
+### 📱 New setting: search panel starts already expanded on mobile
+
+By default the search panel opens in its collapsed shape (the search bar) and only expands when the user taps it. On mobile this extra tap is often unwanted — people land on the dashboard and want to see the full panel right away.
+
+New toggle in **Settings → General → Mobile → Auto-open search panel**. When enabled and the device is in mobile layout (`window.innerWidth ≤ 768`), the panel starts expanded directly after the splash.
+
+### How it works
+
+- Setting lives under `localStorage.systemSettings.mobile.panelExpandedByDefault`
+- Read at mount time in `useSearchFieldState` so the very first render is already expanded – no flash or layout jump
+- Desktop is never affected (check gated on `window.innerWidth ≤ 768`)
+- Default: **off** (existing users see no change)
+
+### Changed files
+
+- `src/components/SearchField/hooks/useSearchFieldState.js` – initial values for `isExpanded`, `isMobile`, `isExpandedRef` now read from window + localStorage
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` – new "Mobile" section with the toggle, plus load/save helpers for the `mobile` settings branch
+
+### Test
+
+1. Settings → General → **Mobile → Auto-open search panel** → **On**
+2. Reload the card on a narrow viewport (phone or `innerWidth ≤ 768`)
+3. After splash the panel should be **expanded** immediately (672 px height, category list visible)
+4. Turn the toggle off again → next reload starts collapsed as before
+5. Desktop viewport: toggle state does not matter, panel always starts collapsed
+
+---
+
 ## Version 1.1.1220 - 2026-04-19
 
 **Title:** DetailView header + stat items now update in real time
