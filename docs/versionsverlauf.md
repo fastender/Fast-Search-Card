@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1223 - 2026-04-19
+
+**Title:** Mobile auto-expand: panel starts at top (y=0) like a click-expand
+**Hero:** none
+**Tags:** Bug Fix, UX, Mobile
+
+### 🔁 Reverses v1.1.1222
+
+In v1.1.1222 the auto-expanded panel on mobile was pushed down to `y=120` to match the desktop reference. Wrong direction — what the user actually wants is the **opposite**: the panel should sit flush at the top (`y=0`), exactly like after a normal click-expand (which sets `position='top'`).
+
+### Fix
+
+Instead of patching the `y` math, just initialise `position` correctly. If the mobile auto-expand setting is on and we're mounting on a mobile viewport, `position` starts as `'top'` (not `'centered'`). That cascades through the existing animation logic: `y=0`, floating box-shadow, no center-gap.
+
+```js
+const [position, setPosition] = useState(() => {
+  if (window.innerWidth <= 768) {
+    const parsed = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+    if (parsed?.mobile?.panelExpandedByDefault === true) return 'top';
+  }
+  return 'centered';
+});
+```
+
+The `y` expression is reverted to the original simple form.
+
+### Changed file
+
+- `src/components/SearchField.jsx` – initial `position` reads the setting; `y` math reverted
+
+### Test
+
+1. Settings → General → Mobile → *Auto-open search panel* → **On**
+2. Reload on narrow viewport → panel expanded, sitting at the top of the screen (no centered gap)
+3. Settings → Off → reload → panel collapsed & centered as before
+
+---
+
 ## Version 1.1.1222 - 2026-04-19
 
 **Title:** Mobile auto-expand: proper top spacing
