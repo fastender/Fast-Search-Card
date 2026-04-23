@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1229 - 2026-04-24
+
+**Title:** StatsBar: widgets left, avatar right, mobile rotates every 5 s
+**Hero:** none
+**Tags:** Design, UX, Mobile
+
+### 🔄 Three changes in one pass
+
+**1. Positions swapped**
+
+Widgets are now on the left side of the pill, the user avatar sits on the right. This matches the inspiration mockup from earlier.
+
+**2. Username label removed**
+
+Only the avatar circle (or fallback `👤` if no HA user picture) is shown. The "Ender" text is gone.
+
+**3. Mobile: single rotating widget, 5 s per step**
+
+On mobile the pill now shows **one widget at a time**. After 5 seconds it advances to the next active widget (time → weather → grid consumption → …), wrapping around. Order = order in the source list / settings order.
+
+```js
+useEffect(() => {
+  if (!isMobile) return;
+  if (notifPanelOpen) return; // pause while panel is open
+  const timer = setInterval(() => setRotationIndex(i => i + 1), 5000);
+  return () => clearInterval(timer);
+}, [isMobile, notifPanelOpen]);
+```
+
+Rotation pauses automatically while the notifications panel is open, so you can read what's there without it disappearing.
+
+### How the widget list is built
+
+All active widgets are collected into a `widgetNodes = [{ key, node }, …]` array before render. Desktop renders the whole array, mobile renders only `widgetNodes[rotationIndex % widgetNodes.length]`.
+
+Adding/removing widgets in Settings → Status & Greetings → StatsBar → Widgets now directly drives the rotation roster.
+
+### Changed file
+
+- `src/components/StatsBar.jsx`
+
+### Test
+
+- **Desktop**: widgets left, avatar right, no name visible
+- **Mobile**: exactly one widget visible, advances every ~5 s, loop restarts at the end
+- **Mobile + tap notification**: rotation pauses, panel opens; close panel → rotation resumes
+- Toggling individual widgets off in Settings → that widget no longer shows up in rotation
+
+---
+
 ## Version 1.1.1228 - 2026-04-19
 
 **Title:** Settings: StatsBar "Active/Inactive" label now reflects the sub-page toggle
