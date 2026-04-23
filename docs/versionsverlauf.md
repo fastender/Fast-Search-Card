@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.1235 - 2026-04-24
+
+**Title:** StatsBar vertical padding doubled (6 → 12 px), DetailView top offsets adjusted
+**Hero:** none
+**Tags:** Design
+
+### Small height tweak
+
+Vertical padding on the StatsBar pill was 6 px top & bottom – a bit tight. Doubled to 12 px for more breathing room around icons and text. Horizontal padding unchanged (12 / 16 px on mobile / desktop).
+
+```jsx
+padding: isMobile ? '12px 12px' : '12px 16px'
+```
+
+Because the pill is now ~12 px taller, the DetailView top offset moved up by the same amount so the detail panel still starts flush with the bottom of the StatsBar:
+
+```js
+const statsBarHeight = statsBarEnabled ? (isMobile ? 57 : 64) : 0;
+// previously: (isMobile ? 45 : 52)
+```
+
+### Changed files
+
+- `src/components/StatsBar.jsx` – inline padding
+- `src/components/SearchField/components/DetailViewWrapper.jsx` – `statsBarHeight` + 12 px on both breakpoints
+
+### Test
+
+- Expand panel → StatsBar pill looks less cramped, icons + text nicely centered
+- Open a device → DetailView lands directly below the StatsBar with no overlap and no visible gap
+
+---
+
 ## Version 1.1.1234 - 2026-04-24
 
 **Title:** Sidebar inherits user background, 12 × 16 px padding, StatsBar gated by expand
