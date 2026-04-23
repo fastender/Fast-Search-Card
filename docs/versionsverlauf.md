@@ -1,5 +1,54 @@
 # Versionsverlauf
 
+## Version 1.1.1234 - 2026-04-24
+
+**Title:** Sidebar inherits user background, 12 × 16 px padding, StatsBar gated by expand
+**Hero:** none
+**Tags:** Design, UX
+
+### Three adjustments
+
+**1. Sidebar now shares the glass background with StatsBar + panel**
+
+Replaced the custom `apple-window` look (hard-coded `rgba(0,0,0,0.25)` + local blur) with the project-wide `glass-panel` class. That class reads the user-configurable CSS variables (`--background-blur`, `--background-saturation`, `--background-brightness`, `--background-contrast`, `--background-grayscale`) via `::before`, so Appearance settings now affect the sidebar exactly like they affect StatsBar and the expanded panel.
+
+```jsx
+<ul className="vpm-menu glass-panel">
+```
+
+Border-radius override keeps the 2 rem pill look:
+
+```css
+.vpm-menu.glass-panel {
+  border-radius: 2rem !important;
+  padding: 12px 16px;   /* matches StatsBar */
+  …
+}
+```
+
+**2. Padding aligned with StatsBar**
+
+`12 px` vertical / `16 px` horizontal on the rail container. Icon hit-areas remain unchanged.
+
+**3. StatsBar now appears only when the panel is expanded**
+
+Same gating pattern as the sidebar. The `show` prop is now `statsBarSettings.enabled && isExpanded`. When the panel is collapsed the StatsBar disappears along with the sidebar – cleaner idle state, more focus on the search bar.
+
+### Changed files
+
+- `src/components/SearchSidebar.jsx` – class swap `apple-window` → `glass-panel`
+- `src/components/SearchField/SearchField.css` – old `.apple-window` block removed, new `.vpm-menu.glass-panel` block with padding 12 × 16
+- `src/components/SearchField.jsx` – `show={statsBarSettings.enabled && isExpanded}` on `<StatsBar>`
+
+### Test
+
+- Reload card collapsed → no StatsBar, no sidebar
+- Click to expand panel → both appear, sharing the same glass background
+- Settings → Appearance → change Background Blur / Saturation → sidebar reacts together with StatsBar and panel
+- Sidebar padding matches the StatsBar pill (12 × 16 px)
+
+---
+
 ## Version 1.1.1233 - 2026-04-24
 
 **Title:** Sidebar next to panel (12 px gap), stays visible during DetailView, detail top 54 → 52
