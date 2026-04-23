@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1225 - 2026-04-19
+
+**Title:** DetailView covers StatsBar on desktop (bottom gap fixed)
+**Hero:** none
+**Tags:** Bug Fix, Layout
+
+### 🐛 Sliver of panel peeking out below the DetailView
+
+On desktop, opening a device card left a dark rounded sliver at the bottom of the screen — the device grid behind the DetailView was not fully hidden. Mobile was fine.
+
+### Root cause
+
+`.detail-panel-wrapper` in `SearchField.css` had a hard-coded `height: 672px` and `top: 0`. That matches the panel alone, but not the whole stack on desktop: the StatsBar wrapper adds ~41 px + `margin-bottom: 12 px` above the search-panel. The main container is therefore ~725 px tall while the DetailView stays 672 px — the missing ~53 px at the bottom were the visible sliver.
+
+### Fix
+
+`.detail-panel-wrapper` now pins to all four edges instead of specifying a fixed height:
+
+```css
+.detail-panel-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;       /* NEW */
+  min-height: 672px; /* fallback if parent is ever smaller */
+  z-index: 10;
+  pointer-events: auto;
+}
+```
+
+### Changed file
+
+- `src/components/SearchField/SearchField.css`
+
+### Test
+
+1. Desktop viewport, StatsBar enabled
+2. Click any device card → DetailView opens and covers the entire card-root height, no sliver of the grid visible at the bottom
+3. Mobile view unchanged (was already fine)
+
+---
+
 ## Version 1.1.1224 - 2026-04-19
 
 **Title:** StatsBar redesign: single continuous glass pill
