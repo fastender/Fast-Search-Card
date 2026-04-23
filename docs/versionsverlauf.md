@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.1232 - 2026-04-24
+
+**Title:** Sidebar redesign – Vision-Pro mockup v2 (fixed to viewport, hover-expand labels)
+**Hero:** none
+**Tags:** Design
+
+### 🆕 Completely new sidebar look
+
+Based on the second Vision-Pro mockup the user provided. Main differences vs v1.1.1231:
+
+- **Fixed to the viewport**, not to the panel
+  - Desktop: `left: 2rem`, vertically centered
+  - Mobile: `bottom: 2rem`, horizontally centered
+- **Never interferes with the card layout** – `position: fixed`, `pointer-events: none` on the outer wrapper, `auto` only on the menu itself
+- **Apple-window glass style** – `border-radius: 2rem`, `backdrop-filter: blur(1rem)`, subtle 2 px border
+- **Hover-expand labels** – pill width grows from icon-only to icon + 8 rem label, pure CSS transition (250 ms ease-in-out)
+- **Pill-shaped items** with `border-radius: 2rem`, hover / active background `hsla(0,0%,90%,0.2)`
+- **Mobile**: labels hidden entirely (`display: none`), horizontal row of icons
+
+### Structure (new)
+
+```jsx
+<div class="vision-pro-menu vision-pro-menu--desktop">
+  <div class="vpm-wrapper">
+    <ul class="vpm-menu apple-window">
+      <li>
+        <button class="vpm-item" onClick={…}>
+          <span class="vpm-icon">{getSystemEntityIcon(…)}</span>
+          <span class="vpm-label">Label</span>
+        </button>
+      </li>
+      …
+    </ul>
+  </div>
+</div>
+```
+
+Icons come from the existing `getSystemEntityIcon()` path (same icons the device cards use) – unchanged from v1.1.1231.
+
+### Changed files
+
+- `src/components/SearchSidebar.jsx` – rewritten to match mockup structure (button + icon + label span)
+- `src/components/SearchField/SearchField.css` – old `.search-sidebar*` rules removed, new `.vision-pro-menu*` / `.vpm-*` rules added
+
+### Test
+
+- Desktop: rail sits top-left of viewport, 2 rem inset, vertically centered; hover the pill → icons + labels; click an icon → DetailView opens
+- Mobile: horizontal pill at bottom center, icons only, tap → DetailView
+- Panel position/size stays **identical** whether sidebar is visible or not
+- Settings → General → Sidebar toggles still work
+
+---
+
 ## Version 1.1.1231 - 2026-04-24
 
 **Title:** Sidebar polish: real SVG icons, vertically centered, panel no longer shifts
