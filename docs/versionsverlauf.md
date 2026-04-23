@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1226 - 2026-04-19
+
+**Title:** DetailView desktop top offset 47 → 54 px
+**Hero:** none
+**Tags:** Layout
+
+### ↕️ More breathing room below the StatsBar
+
+After the StatsBar pill redesign in v1.1.1224 the pill is a few pixels taller than before. The DetailView top offset on desktop was still computed with the old value (47 px), so the DetailView started slightly too close underneath the pill.
+
+### Fix
+
+`DetailViewWrapper.jsx` – `statsBarHeight` bumped from **47 → 54 px** on desktop. Mobile stays at 45 (unchanged, pill layout there is different).
+
+```js
+const statsBarHeight = statsBarEnabled ? (isMobile ? 45 : 54) : 0;
+```
+
+### Changed file
+
+- `src/components/SearchField/components/DetailViewWrapper.jsx`
+
+### Test
+
+Desktop + StatsBar enabled → open any device → DetailView starts with clean gap below the pill, no visual collision.
+
+---
+
 ## Version 1.1.1225 - 2026-04-19
 
 **Title:** DetailView covers StatsBar on desktop (bottom gap fixed)
