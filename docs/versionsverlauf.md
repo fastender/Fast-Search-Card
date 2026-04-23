@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.1227 - 2026-04-19
+
+**Title:** StatsBar: shared glass background + narrower on desktop
+**Hero:** none
+**Tags:** Design, Layout
+
+### 🫧 Same background as the expanded panel
+
+The StatsBar had its own hard-coded glass look (`rgba(255, 255, 255, 0.08)` + local `backdrop-filter`), ignoring the user's background settings (blur / saturation / brightness / contrast / grayscale) that already drive the expanded panel via the `.glass-panel` class.
+
+Now the StatsBar opts into the same class and inherits those settings automatically. Inline glass-look styles removed:
+
+```jsx
+<motion.div
+  className="stats-bar stats-bar-pill glass-panel"
+  // no more background / backdrop-filter / border inline
+/>
+```
+
+A dedicated CSS rule keeps the pill shape (overrides the default 35 px radius from `.glass-panel`):
+
+```css
+.stats-bar-pill.glass-panel {
+  border-radius: 999px !important;
+}
+```
+
+### 📐 Narrower on desktop (~20 % off)
+
+On desktop the wrapper around the StatsBar is now `width: 80%` / `max-width: 800px`, centered:
+
+```jsx
+style={{
+  width: isMobile ? '100%' : '80%',
+  maxWidth: isMobile ? '100%' : '800px',
+  margin: isMobile ? '0 0 12px 0' : '0 auto 12px',
+}}
+```
+
+Mobile keeps full width (nothing to spare).
+
+### Changed files
+
+- `src/components/StatsBar.jsx` – class swap + wrapper sizing
+- `src/components/SearchField/SearchField.css` – new `.stats-bar-pill.glass-panel` rule for pill radius
+
+### Test
+
+1. Desktop → StatsBar visible, narrower than before and centered, same glass as the expanded panel beneath it
+2. Settings → Appearance → Background Blur / Saturation / etc. → changes now affect the StatsBar as well
+3. Mobile → StatsBar still spans the full width
+
+---
+
 ## Version 1.1.1226 - 2026-04-19
 
 **Title:** DetailView desktop top offset 47 → 54 px
