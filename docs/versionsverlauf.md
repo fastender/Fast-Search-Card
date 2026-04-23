@@ -2,42 +2,46 @@
 
 ## Version 1.1.1220 - 2026-04-19
 
-**Title:** DetailView-Header + Stat-Items aktualisieren jetzt in Echtzeit
+**Title:** DetailView header + stat items now update in real time
 **Hero:** none
 **Tags:** Bug Fix
 
-### 🐛 „100% Helligkeit" + „Ausgeschaltet" gleichzeitig
+### 🐛 "100% brightness" + "Off" shown simultaneously
 
-In der DetailView konnte der Kopfbereich mit Quick-Stats (Helligkeit %, State-Text „Ausgeschaltet" / „Eingeschaltet") und die Tab-Navigation einen veralteten Zustand zeigen, während der tatsächliche HA-State längst gewechselt war. Beispiel: Licht ausgeschaltet → Stat-Leiste zeigt noch „100% Helligkeit" und „Ausgeschaltet" gleichzeitig.
+In the DetailView the header area with quick stats (brightness %, state label "On" / "Off") and the tab navigation could show a stale state while the actual HA state had long changed. Example: light turned off → stat bar still shows "100% brightness" and "Off" at the same time.
 
-### Ursache
+### Root cause
 
-In `DetailView.jsx` gibt es zwei Repräsentationen des Entity:
+`DetailView.jsx` has two representations of the entity:
 
-- **`item`**: die statische Prop, die vom Device-Klick weitergegeben wird – bleibt unverändert so lange die DetailView offen ist
-- **`liveItem`** (via `useMemo` + `useEntities`): der Live-Zustand aus dem DataProvider, wird bei jedem `state_changed`-Event aktualisiert
+- **`item`**: the static prop handed over on device click – stays unchanged for as long as the DetailView is open
+- **`liveItem`** (via `useMemo` + `useEntities`): the live state from the DataProvider, refreshed on every `state_changed` event
 
-Alle Control-Tabs (UniversalControlsTab, HistoryTab, ScheduleTab) nutzten bereits `liveItem`. Aber **drei** Stellen hingen noch am statischen `item`:
+All control tabs (UniversalControlsTab, HistoryTab, ScheduleTab) already used `liveItem`. But **four** places still pointed at the static `item`:
 
-1. `<DetailHeader item={item} ... />` – Titel/Icon
-2. `<EntityIconDisplay item={item} ... />` – **Quick-Stats** inkl. Helligkeit + State-Text
-3. `<TabNavigation stateText={... getStateText(item, lang)} stateDuration={... getStateDuration(item, lang)} item={item} ... />` – Tab-Header mit State-Anzeige
-4. `<ContextTab item={item} ... />` – Actions-Liste
+1. `<DetailHeader item={item} ... />` – title / icon
+2. `<EntityIconDisplay item={item} ... />` – **quick stats** incl. brightness + state label
+3. `<TabNavigation stateText={... getStateText(item, lang)} stateDuration={... getStateDuration(item, lang)} item={item} ... />` – tab header with state display
+4. `<ContextTab item={item} ... />` – actions list
 
 ### Fix
 
-Alle vier Stellen auf `liveItem` umgestellt. Damit erneuern sich Header, Stats und Tab-State bei jedem state_changed-Event automatisch (getriggert durch die Map<entity_id → new_state> rAF-Batch-Updates im DataProvider).
+Switched all four to `liveItem`. Header, stats and tab state now refresh automatically on every state_changed event (triggered by the Map<entity_id → new_state> rAF-batch updates in the DataProvider).
 
-### Modifizierte Datei
+### Changed file
 
 - `src/components/DetailView.jsx`
 
 ### Test
 
-1. Licht öffnen (DetailView)
-2. Licht im Dashboard (oder über Controls) ein-/ausschalten
-3. Oberer Bereich: „100% Helligkeit" / „Eingeschaltet" wechselt **sofort** zu „Ausgeschaltet" – kein Widerspruch mehr
-4. Helligkeit ändern → Prozent-Stat updated live
+1. Open a light (DetailView)
+2. Toggle it via the dashboard or controls
+3. Header area: "100% brightness" / "On" switches **immediately** to "Off" – no contradiction anymore
+4. Change brightness → percent stat updates live
+
+### ⚠️ Convention change from now on
+
+All future changelog entries will be written in **English only**.
 
 ---
 
