@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1224 - 2026-04-19
+
+**Title:** StatsBar redesign: single continuous glass pill
+**Hero:** none
+**Tags:** Design, UX
+
+### 🫧 One pill instead of many
+
+Until now the StatsBar was a flex row of separate widget pills — each widget (weather, grid, time, notifications, …) had its own glass background + border radius. From a distance it looked like a bar of fragments.
+
+New design, per mockup: the **whole StatsBar is one continuous pill**. Widgets sit inside without individual backgrounds, separated only by a consistent 12 / 16 px gap.
+
+### What changed visually
+
+- Outer container: `background: rgba(255, 255, 255, 0.08)` + `backdrop-filter: blur(20px)` + 1 px border + `border-radius: 999px` (full pill)
+- Horizontal padding on the container (6 / 16 px), internal gap between widgets
+- Every widget lost its own `background` / `border-radius` / `padding` — just icon + value inline
+- Notifications button: red bubble gone from the outer shape, the counter badge itself stays red as an accent
+- Subtle box-shadow under the pill
+
+### Caveat
+
+The StatsBar container now has its own `backdrop-filter`. There are no `.glass-panel` children inside, so the stacking-context lesson from v1.1.1198/1199 doesn't apply here. During the initial `opacity: 0 → 1` fade the blur may briefly render flat – acceptable, reverts after 400 ms.
+
+### Changed file
+
+- `src/components/StatsBar.jsx` – container style + all widget inline styles
+
+### Test
+
+1. Reload → StatsBar is a single rounded pill across the top
+2. Widgets (weather / grid / time / notifications / etc.) are flush inside, no visible separators
+3. Notifications: red counter badge intact and tappable
+4. StatsBar settings (toggle individual widgets on/off) still work
+
+---
+
 ## Version 1.1.1223 - 2026-04-19
 
 **Title:** Mobile auto-expand: panel starts at top (y=0) like a click-expand
