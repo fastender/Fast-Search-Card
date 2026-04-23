@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1230 - 2026-04-24
+
+**Title:** Sidebar: shortcut rail to system entities (desktop vertical, mobile horizontal)
+**Hero:** none
+**Tags:** Feature, UX
+
+### 🧭 Jump straight to settings, todos, news, changelog…
+
+Inspired by the Apple Vision Pro side-menu mockup: a slim glass rail that lives next to the expanded search panel. One icon per system-entity shortcut. On **desktop** the rail sits vertically to the left of the panel and **expands on hover** to reveal labels. On **mobile** it sits as a horizontal pill at the bottom center, icons only.
+
+Default shortcuts (in order): **Settings · Todos · News · Versionsverlauf · Plugin Store**.
+Tap / click → opens that system-entity directly in the DetailView, just like clicking a device card.
+
+### Settings
+
+New section **Settings → General → Sidebar** with two toggles:
+
+- **Show sidebar** (default: on)
+- **Always visible** (default: off — rail appears only while the panel is expanded)
+
+### Files
+
+- **New:** `src/components/SearchSidebar.jsx` – reads entities from `systemRegistry`, renders glass pill, hover-expand labels
+- `src/components/SearchField/SearchField.css` – new `.search-sidebar` rules (desktop vertical / mobile horizontal / hover label animation)
+- `src/components/SearchField.jsx` – reads sidebar settings, listens to `sidebarSettingsChanged`, mounts `<SearchSidebar>` inside `.search-row`, click handler opens DetailView
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` – new "Sidebar" section with both toggles, persisted under `systemSettings.sidebar`
+
+### Design
+
+- Glass look shared with expanded panel (`.glass-panel` class → user blur/saturation settings propagate)
+- Hover on desktop expands width from 56 px to 220 px with labels fading in (pure CSS transition 0.25 s)
+- Mobile: fixed position bottom 16 px, centered, horizontal overflow scroll if many items
+
+### Not in this release (phase 2)
+
+- Per-icon configuration (which shortcuts appear, in what order)
+- Drag-to-reorder
+
+### Test
+
+- Desktop, panel open → rail visible on the left, hover → labels appear, click an icon → DetailView opens
+- Mobile (narrow viewport) → rail sits bottom-center with just icons
+- Settings → Show sidebar off → rail disappears
+- Settings → Always visible on → rail stays even when panel is collapsed
+
+---
+
 ## Version 1.1.1229 - 2026-04-24
 
 **Title:** StatsBar: widgets left, avatar right, mobile rotates every 5 s
