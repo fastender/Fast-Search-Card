@@ -1,5 +1,71 @@
 # Versionsverlauf
 
+## Version 1.1.1219 - 2026-04-19
+
+**Title:** Echter Fix: PowerToggle feuerte doppelt (Preact `<label>`+`<input>`-Bug)
+**Hero:** none
+**Tags:** Bug Fix, Root-Cause
+
+### 🎯 Quelle gefunden – nicht nur Toast, sondern der ganze Service-Call doppelt
+
+Die Diagnose-Logs aus v1.1.1218 haben gezeigt:
+```
+[DetailViewWrapper] handleServiceCall light turn_on light.wohnzimmer_einbauleuchten
+[DetailViewWrapper] handleServiceCall light turn_on light.wohnzimmer_einbauleuchten
+```
+
+**Zweimal** pro Click. Beide aus dem gleichen Stack: `handlePowerToggle → onChange`.
+
+### Root Cause
+
+Der `PowerToggle`-Component in `src/components/controls/PowerToggle.jsx` nutzt das Standard-Pattern:
+
+```jsx
+<label>
+  <input type="checkbox" onChange={onChange} />
+  <span className="power-slider">...</span>
+</label>
+```
+
+**Problem:** Preact im Compat-Mode propagiert den Click auf dem `<label>` sowohl als `change`-Event auf dem `<input>` **als auch** triggert er eine zweite `change`-Dispatch durch Label-Redirect. In manchen Setups (konkret hier) feuert `onChange` zweimal.
+
+Das war kein Toast-Bug – **der Service-Call ging doppelt an HA raus**. Auch wenn `turn_on` idempotent ist: unnötige Last, und bei `toggle`-Services wäre es ein echter Fehler gewesen.
+
+### Fix
+
+150 ms Dedupe im `CircularSlider.handlePowerToggle`-Wrapper:
+
+```js
+const lastPowerToggleRef = useRef(0);
+const handlePowerToggle = (e) => {
+  const now = Date.now();
+  if (now - lastPowerToggleRef.current < 150) return;
+  lastPowerToggleRef.current = now;
+  powerToggleHandler(e, ...);
+};
+```
+
+Das hält echte User-Interaktionen (> 150 ms zwischen Clicks) durch, blockt aber die Event-Duplikate aus dem Preact-Compat-Bug (< 5 ms Abstand).
+
+### Weitere Änderungen
+
+- **Toast-Dedupe bleibt** (aus v1.1.1218) als Defense-in-Depth – falls doch mal wieder ein Doppel-Trigger woanders entsteht
+- **Diagnose-Logs aus `DetailViewWrapper`** entfernt (Quelle gefunden)
+- Toast-Dedupe-Log von `console.warn` zurück auf silent – kein Bedarf mehr für Prod-Logs
+
+### Modifizierte Dateien
+
+- `src/components/controls/CircularSlider.jsx` – Dedupe-Wrapper + Ref
+- `src/components/SearchField/components/DetailViewWrapper.jsx` – Diagnose-Log raus
+- `src/utils/toastNotification.js` – Dedupe-Log silent
+
+### Test
+
+1. Licht ein-/ausschalten → **ein** Toast, **ein** Service-Call im HA-Log
+2. HA Developer Tools → Log prüfen: kein doppeltes `service_called` für `light.turn_on`
+
+---
+
 ## Version 1.1.1218 - 2026-04-19
 
 **Title:** Toast-Dedupe – Doppelter Toast unterdrückt, Diagnose-Logs aktiv
