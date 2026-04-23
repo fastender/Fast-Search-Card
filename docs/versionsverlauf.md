@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1236 - 2026-04-24
+
+**Title:** Sidebar 20 % slimmer + font stack matches StatsBar
+**Hero:** none
+**Tags:** Design
+
+### Two small tweaks
+
+**1. Narrower rail**
+
+Container horizontal padding cut from 16 px to 8 px (vertical stays at 12 px). The pill is now ≈ 20 % slimmer in the collapsed state. Item padding and icon size are unchanged – more breathing space on the page, same hit-area.
+
+**2. Font stack unified**
+
+The rail used `system-ui, -apple-system, sans-serif` while the StatsBar uses the Apple-style fallback chain. The rail now matches:
+
+```css
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+```
+
+Same look as the rest of the glass UI (StatsBar, GreetingsBar, etc.).
+
+### Changed file
+
+- `src/components/SearchField/SearchField.css` – `.vpm-menu.glass-panel` padding + font-family
+
+### Test
+
+Visual inspection; the rail should look noticeably slimmer and label text (when expanded) should share the same weight / metrics as the StatsBar pill above.
+
+---
+
 ## Version 1.1.1235 - 2026-04-24
 
 **Title:** StatsBar vertical padding doubled (6 → 12 px), DetailView top offsets adjusted
