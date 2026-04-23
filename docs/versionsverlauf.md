@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.1218 - 2026-04-19
+
+**Title:** Toast-Dedupe – Doppelter Toast unterdrückt, Diagnose-Logs aktiv
+**Hero:** none
+**Tags:** Bug Fix, Diagnostic
+
+### 🐛 Doppelter Toast trotz v1.1.1217-Fix
+
+Der Duplikat-Toast kam **nicht** aus `DataProvider.callService` (war schon entfernt). Quelle immer noch unklar – mein Audit fand keinen zweiten Trigger im statischen Code, aber der Toast feuert trotzdem zweimal.
+
+### Zwei-Schichten-Fix
+
+**1. Dedupe-Buffer in `showToast`**
+
+Identische Toasts (`type:message`-Key) innerhalb **500 ms** werden unterdrückt:
+
+```js
+const _toastDedupeBuffer = new Map();
+const TOAST_DEDUPE_MS = 500;
+```
+
+Das ist robust gegen jede Quelle von Doppel-Triggern – egal ob:
+- Zwei DetailViewWrapper-Instanzen (z. B. durch AnimatePresence-Glitch)
+- Touch + Click Event auf Mobile
+- Zwei Card-Mounts im HA-Edit-Mode
+- Sonst irgendein Race
+
+**2. Diagnose-Logs (bleiben in Prod)**
+
+`console.warn` (wird nicht von Terser entfernt) in:
+- `showToast` → loggt `[Toast] deduped identical toast within Xms` wenn Dedupe greift
+- `DetailViewWrapper.handleServiceCall` → loggt `[DetailViewWrapper] handleServiceCall <domain> <service> <entity>`
+
+### So findest du die Quelle im Browser
+
+1. DevTools → Console öffnen
+2. Licht schalten
+3. Zählen:
+   - **`[DetailViewWrapper] handleServiceCall`** zweimal? → Handler selbst wird doppelt aufgerufen (Click-Duplizierung)
+   - Einmal + **`[Toast] deduped`** → irgendwo feuert ein zweiter `showToast` direkt (nicht über handleServiceCall)
+
+Mit der Log-Info kann der nächste Patch chirurgisch sein.
+
+### Modifizierte Dateien
+
+- `src/utils/toastNotification.js` – Dedupe-Buffer
+- `src/components/SearchField/components/DetailViewWrapper.jsx` – Diagnose-Log
+
+### Test
+
+Licht schalten → **ein** Toast. Console öffnen → Log-Messages melden falls Dedupe greift oder Handler doppelt ruft.
+
+---
+
 ## Version 1.1.1217 - 2026-04-19
 
 **Title:** Fix: Doppelter Toast bei Licht-Toggle
