@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1228 - 2026-04-19
+
+**Title:** Settings: StatsBar "Active/Inactive" label now reflects the sub-page toggle
+**Hero:** none
+**Tags:** Bug Fix, Settings
+
+### 🐛 Main setting showed "Active" even after disabling in sub-page
+
+Toggling StatsBar off inside the detail page (Settings → Status & Greetings → StatsBar → toggle) updated the StatsBar itself, but the parent row still said "Active" after a reload.
+
+### Root cause
+
+Two different storage slots for the same flag:
+
+- `StatsBarSettingsTab` (sub-page) wrote to **legacy key** `localStorage.statsBarEnabled`
+- `GeneralSettingsTab` (parent page) read from **`systemSettings.appearance.statsBarEnabled`** (via `readSystemSettingsSection`)
+
+The event-based live sync covered the visible state of the parent row while the app was open, but the persisted value in `systemSettings` was never updated → on remount, the old value reappeared.
+
+### Fix
+
+`handleStatsBarToggle` in the sub-page now writes both:
+
+```js
+localStorage.setItem('statsBarEnabled', enabled);                             // legacy for StatsBar.jsx
+updateSystemSettingsSection('appearance', { statsBarEnabled: enabled });      // canonical for GeneralSettingsTab
+```
+
+No changes needed on `StatsBar.jsx` (it still reads from the legacy key; that path keeps working).
+
+### Changed file
+
+- `src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx`
+
+### Test
+
+1. Settings → Status & Greetings → StatsBar → toggle **off**
+2. Back to main settings → row shows **"Inactive"**
+3. Reload the card → still "Inactive"
+4. Toggle back on → row updates live and survives reload
+
+---
+
 ## Version 1.1.1227 - 2026-04-19
 
 **Title:** StatsBar: shared glass background + narrower on desktop
