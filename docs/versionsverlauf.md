@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1222 - 2026-04-19
+
+**Title:** Mobile auto-expand: proper top spacing
+**Hero:** none
+**Tags:** Bug Fix, UX, Mobile
+
+### 🪟 Auto-expanded panel now has the same top gap as desktop
+
+After enabling *Auto-open search panel* on mobile, the panel opened glued to the top of the screen — only 60 px gap to the HA header, while on desktop the expanded panel has a comfortable 120 px gap. Felt cramped.
+
+### Fix
+
+The `y` offset on `.search-panel` is computed from `position` (`centered` | `top`) and `isMobile`. For `position === 'centered'` it was 60 px on mobile vs 120 px on desktop. New rule: if the panel is **expanded and still centered** (i.e. auto-expanded on mount, not user-clicked which would also move `position` to `'top'`), use 120 px on both mobile and desktop.
+
+```js
+y: hasAppeared
+  ? (position === 'centered'
+      ? (isExpanded ? 120 : (isMobile ? 60 : 120))
+      : 0)
+  : 0
+```
+
+Collapsed state and normal click-expand flow are unchanged.
+
+### Changed file
+
+- `src/components/SearchField.jsx` (both animated.y spots)
+
+### Test
+
+1. Settings → General → Mobile → *Auto-open search panel* → On
+2. Reload on a narrow viewport → panel starts with **120 px top gap**, visually matching the desktop reference
+3. Turn toggle off, reload → collapsed panel still uses the original 60 px gap
+
+---
+
 ## Version 1.1.1221 - 2026-04-19
 
 **Title:** Mobile: auto-open search panel on start
