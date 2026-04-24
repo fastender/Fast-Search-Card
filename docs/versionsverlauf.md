@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.1244 - 2026-04-24
+
+**Title:** Thermal fixes round 2 — pending pulse + state_changed throttle
+**Hero:** none
+**Tags:** Performance, Mobile, Bug Fix
+
+### Context
+
+After v1.1.1242 replaced the skeleton shimmer's `background-position` animation with a compositor-only opacity pulse, the phone was still getting hot. A systematic audit turned up two more ongoing heat sources that aren't tied to the skeleton:
+
+1. **`pendingPulse` on device cards** animated `box-shadow` at 60 fps while a service call was in flight. Same paint-per-frame pattern that v1.1.1181 fought back with the "Icon-Diät", and what v1.1.1242 fixed for the skeleton. When the user taps multiple toggles in quick succession, several 1.1 s overlapping box-shadow loops run at once.
+2. **`state_changed` events had no rate limit.** The existing rAF batcher in `DataProvider.scheduleEntityStateUpdate` only guaranteed "at most one `setEntities` per frame" — so if Home Assistant pushes events in a stream (energy sensors, automations, presence), up to 60 `setEntities` calls per second would land. Each call re-renders `SearchField` (1100 lines, not memoized), `useMemo`s recalculate, Virtua remeasures, framer-motion re-interpolates its animated props. That's sustained CPU on mobile.
+
+### Fix 1 — pendingPulse: box-shadow → opacity ring
+
+Before:
+
+```css
+@keyframes pendingPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(100, 180, 255, 0.35); }
+  50%  { box-shadow: 0 0 0 3px rgba(100, 180, 255, 0.18); }
+  100% { box-shadow: 0 0 0 0 rgba(100, 180, 255, 0.0); }
+}
+.device-card.pending { animation: pendingPulse 1.1s infinite; will-change: box-shadow; }
+```
+
+Problem: `box-shadow` paints the entire card rectangle every frame. `will-change: box-shadow` keeps a Compositor layer alive the whole time the card is mounted (even when no animation is running).
+
+Now:
+
+```css
+@keyframes pendingPulse {
+  0%, 100% { opacity: 0; }
+  50%      { opacity: 1; }
+}
+.device-card.pending::after {
+  content: ''; position: absolute; inset: -2px; border-radius: inherit;
+  border: 2px solid rgba(100, 180, 255, 0.55);
+  animation: pendingPulse 1.1s infinite;
+}
+```
+
+A pseudo-element ring, opacity-only animation. The ring is a static border (paint once), the animation only changes opacity (compositor-only, GPU blends the layer at varying alpha). Same visual signal ("I'm working on this"), near-zero GPU cost.
+
+### Fix 2 — min 150 ms between state_changed flushes
+
+`DataProvider.scheduleEntityStateUpdate` now tracks `lastFlushAtRef` and enforces a minimum 150 ms gap between flushes. Events arriving inside that window accumulate in the pending `Map` (last-write-wins per `entity_id`) and flush together at the end of the window.
+
+- Before: up to 60 re-renders per second when HA fires a stream of events.
+- After: at most ~6–7 re-renders per second. Sensor updates arrive visually in the same frame as before (human perception threshold is ~100 ms anyway).
+
+Safari's natural rAF throttling for hidden tabs still applies on top of this — when the card is backgrounded, rAF won't fire at all, events just accumulate.
+
+### What this doesn't fix
+
+The audit also flagged:
+- **Framer-motion `animate={{ boxShadow: ... }}`** on `SearchField` — string interpolation each re-render. Candidate for the next round if heat persists.
+- **`.glass-panel` backdrop-filter** with `blur(20px + user-configured)` on multiple stacked panels (StatsBar + Panel + Sidebar) — expensive on mobile GPU, but removing or reducing it would change the design. Could add a mobile-reduced-blur media query, but that's a visual call, not a bug fix.
+- **Printer3D `setInterval(..., 2000)`** polling — only runs if the user has a 3D printer and opens that view. Not a general heat source.
+
+If v1.1.1244 still leaves the phone warm, next step is an on-device Chrome/Safari Performance profile — we need data, not more guesses.
+
+---
+
 ## Version 1.1.1243 - 2026-04-24
 
 **Title:** StatsBar flashes "--°C / 0.0 kW" — snapshot was being wiped right after loading
