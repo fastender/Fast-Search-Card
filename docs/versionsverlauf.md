@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1239 - 2026-04-24
+
+**Title:** IndexedDB warm-cache — panel is populated in ~0 ms from second boot onwards
+**Hero:** none
+**Tags:** Performance
+
+### The idea
+
+The card has persisted HA entities to IndexedDB for a long time already (the `STORES.ENTITIES` batch-write at the end of `loadEntitiesFromHA`). But on boot, that cache was never read unless `hassRef.current` was missing — i.e. dead code for every real HA session. The full first paint always waited for `loadEntitiesFromHA` to round-trip (~2–4 s on iPhone).
+
+Now: boot reads the cache and renders it before `loadEntitiesFromHA` even starts. Second boot onwards, the panel is populated immediately.
+
+### What the warm cache does
+
+1. **Read from IndexedDB.** New `loadEntitiesFromCache(db, hassRef)` in `dataLoaders.js` pulls all non-system entities out of `STORES.ENTITIES`.
+2. **Enrich with live state.** Cached entities carry stale `state` from the last session (a light might be stored as "on" even if it's actually off now). To avoid showing stale state, each cached entity is merged with `hassRef.current.states[entity_id]` if available — cached shape (`name`, `area`, `icon`, `relevance_score`) plus live `state`, `attributes`, `last_changed`, `last_updated`. When `hass.states` isn't yet populated, we fall back to cached state; `loadEntitiesFromHA` will correct it a beat later.
+3. **Apply excluded patterns.** Same `filterExcludedEntities` as the main path — no risk of showing entities the user has since excluded.
+4. **Merge with system entities.** System entities always come from the registry (never cached). Warm-cache `setEntities` uses the functional updater: `prev.filter(is_system)` stays, non-system is replaced with the cache payload.
+
+### Wiring
+
+`initializeDataProvider` in `DataProvider.jsx`:
+
+```
+IndexedDB.init()
+systemRegistry.initialize() → setEntities(systemEntities)   # 5–6 entities
+loadCriticalData()                                           # settings + favorites
+→ NEW: loadEntitiesFromCache → setEntities([sys + cached])  # full warm list
+setIsInitialized(true)                                       # UI reveals
+loadBackgroundData() → loadEntitiesFromHA()                  # fresh data replaces
+```
+
+The hass-retry `useEffect` still fires once `isInitialized` flips to `true`, so fresh entities overwrite the warm cache via the same `setEntities(allEntities)` call as before. Preact's keyed reconciliation (keyed by `entity_id`) means the cards stay mounted during the swap — no flash, no re-animation.
+
+### Expected effect
+
+- **First ever boot:** cache is empty → no benefit, skeleton shimmer from v1.1.1238 carries the ~3–5 s until `loadEntitiesFromHA` finishes.
+- **Every subsequent boot (~99 % of sessions):** `devices.filter(d => !d.is_system).length === 0` flips false in roughly one IndexedDB read (~20–50 ms). Panel is populated before the user notices. Fresh state arrives 2–4 s later but the swap is invisible.
+
+### What this does NOT do
+
+- **No IndexedDB write optimization.** The batch-put at the end of `loadEntitiesFromHA` is unchanged — the cache just now gets *read* too.
+- **No splash change.** The setTimeouts in `index.jsx` are still the ~2.5 s they've been. Once we have real measurements of the warm-cache effect, we can re-tune the splash. Not now.
+- **No DataProvider split.** Still 1100+ lines; still the right call to leave it alone for now.
+
+---
+
 ## Version 1.1.1238 - 2026-04-24
 
 **Title:** First-Load perf — defer changelog fetch + skeleton cards
