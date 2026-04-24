@@ -1,5 +1,65 @@
 # Versionsverlauf
 
+## Version 1.1.1242 - 2026-04-24
+
+**Title:** Skeleton shimmer → opacity pulse (thermal fix, mobile GPU)
+**Hero:** none
+**Tags:** Performance, Bug Fix, Mobile
+
+### The regression
+
+After v1.1.1238 and v1.1.1240 added skeleton shimmer animations in two places (React-level `perceivedSpeed.css` and pre-JS HTML placeholder in `build.sh`), the phone was getting warm again. Exactly the same thermal pattern as v1.1.1181's "58 → 42 endless SVG animations" fix.
+
+### Why
+
+The shimmer keyframe animated `background-position`:
+
+```css
+@keyframes skeletonShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+```
+
+`background-position` is **not compositor-accelerated**. The browser has to repaint the entire element on every frame. With 8 skeleton cards + a title + a search bar shimmering at 60 fps, that's 600+ paints per second, all on the main thread, all forcing GPU texture uploads on mobile. Heat.
+
+### The fix
+
+Opacity pulse instead. Opacity is compositor-only — the GPU blends an existing texture at a different alpha, no repaint, no texture upload:
+
+```css
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+.device-card-skeleton {
+  background: rgba(255, 255, 255, 0.08);
+  animation: skeletonPulse 1.6s ease-in-out infinite;
+}
+```
+
+Applied in both places:
+- `src/styles/perceivedSpeed.css` — React-level skeleton (shown while entities load)
+- `build.sh` `_createPlaceholder` — HTML placeholder (shown before Preact mounts)
+
+Same timing (1.6 s), same reduced-motion fallback, much less thermal load. Visually still clearly "this is loading" — pulse-style skeletons are the LinkedIn / Facebook / YouTube pattern.
+
+### What this means for the user
+
+- Same boot-perf wins from v1.1.1238–1241 stay.
+- Phone should no longer heat during the brief skeleton phase.
+- If heat persists after this, the cause is elsewhere (e.g. `pendingPulse` box-shadow animation during service calls, framer-motion re-layouts, or something older) and needs a Chrome Performance profile on-device to pinpoint.
+
+### Audit of remaining infinite animations
+
+Checked every `animation: ... infinite` in the codebase. All compositor-friendly:
+- `spin` (6 places): `transform: rotate()` — compositor-only ✓
+- `pulse` (various views): mostly opacity or transform ✓
+- `float` (WeatherView): transform ✓
+- `pendingPulse` (perceivedSpeed.css): animates `box-shadow` (paint), but only runs briefly during a service call — not a thermal concern
+
+---
+
 ## Version 1.1.1241 - 2026-04-24
 
 **Title:** localStorage snapshot — Safari-friendly 1st-tier warm cache
