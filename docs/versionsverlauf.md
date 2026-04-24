@@ -1,5 +1,70 @@
 # Versionsverlauf
 
+## Version 1.1.1240 - 2026-04-24
+
+**Title:** Splash delays gone + pre-JS skeleton in Custom Element placeholder
+**Hero:** none
+**Tags:** Performance, UX, Safari
+
+### Context
+
+After v1.1.1238 (deferred GitHub fetch + React-level skeleton) and v1.1.1239 (IndexedDB warm-cache), Chrome / iPhone HA app felt clearly faster. Safari (iOS + macOS) did not — still slow to reach the first interactive paint. Two reasons: the splash screen was still holding 2.5 s of hardcoded `setTimeout` padding that was originally calibrated to the old ~2.5 s app-load, and Safari's slower JS start-up meant the Custom Element placeholder (a centered "🔍 Loading…") was visible for longer than on other engines.
+
+This release addresses both.
+
+### Fix A — drop the splash padding
+
+`src/index.jsx` used to chain five `setTimeout`s between progress bar stages:
+
+```
+0 % → wait 250 ms → 25 % (parse settings) → wait 500 ms
+    → 50 % → wait 500 ms → 75 % → wait 500 ms
+    → 100 % → wait 750 ms → reveal
+```
+
+Total artificial wait: 2500 ms. Those delays were added back when `DataProvider` itself needed ~2.5 s to become ready; the splash *covered* that cost. With Phase 1 + Phase 2, real init is under 200 ms on warm boots, so the padding is pure cost.
+
+Now:
+
+```
+0 % → parse settings (real work) → 100 %
+    → 120 ms flash protection → reveal
+```
+
+`splashDrawingDone` still gates the 'hello' splash (Apple Hello animation is a deliberate design choice, untouched), so users on that style still see the full lettering. Users on the default 'progress' style now get ~120 ms of splash instead of 2.5 s.
+
+### Fix B — skeleton IN the Custom Element placeholder (pre-Preact)
+
+`build.sh` writes a Shadow-DOM placeholder straight into the Custom Element constructor. This HTML is the very first thing Safari (or any browser) renders, *before* the main 1.4 MB bundle is even parsed. It used to be:
+
+```html
+<div>🔍 Fast Search Card</div>
+<div>Loading…</div>
+```
+
+Visually: a plain white box with centered text.
+
+New placeholder renders a pure-HTML+CSS skeleton with:
+
+- A fake search bar (56 px high, rounded 28 px, shimmer)
+- A fake section title (16 × 140 px, shimmer)
+- An 8-card skeleton grid — 4 cols desktop, 3 cols tablet, 2 cols mobile
+
+Same `@keyframes fscShimmer` as the React-level skeleton from v1.1.1238, scoped inside the shadow root so no style leak. `prefers-reduced-motion` disables the animation. The `_render()` function already removes `.fsc-placeholder` when Preact mounts, so no wiring change needed there.
+
+### Expected effect
+
+- **macOS Safari / iOS Safari:** the blank-white-box moment is gone. From the first frame the user sees a structured shimmering grid. The real app takes over once Preact finishes parsing (~300–800 ms later depending on CPU), and warm-cache cards arrive within another ~50 ms.
+- **Chrome / Firefox / iPhone HA app:** also benefits — the placeholder was white there too, just for shorter. Combined with the splash-delay removal, the total perceived boot on a warm second start is now ~200–400 ms before real cards appear.
+
+### What this does NOT do
+
+- The Apple Hello splash animation timing is unchanged — that's a designed experience, not a bottleneck.
+- The real JS bundle size (1.4 MB / 366 KB gzip) is untouched. Code-splitting would break the HACS single-file constraint.
+- No DataProvider or SearchField refactor. Still pending but not now.
+
+---
+
 ## Version 1.1.1239 - 2026-04-24
 
 **Title:** IndexedDB warm-cache — panel is populated in ~0 ms from second boot onwards
