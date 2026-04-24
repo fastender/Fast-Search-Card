@@ -1,5 +1,79 @@
 # Versionsverlauf
 
+## Version 1.1.1241 - 2026-04-24
+
+**Title:** localStorage snapshot — Safari-friendly 1st-tier warm cache
+**Hero:** none
+**Tags:** Performance, Safari
+
+### Context
+
+After v1.1.1240 dropped the splash padding and added a pre-JS skeleton in the Custom Element placeholder, Safari still felt sluggish between "skeleton visible" and "real cards visible". Two reasons, both Safari-specific:
+
+1. **IndexedDB open is slow on WebKit.** 50–500 ms on first connect, compared to ~20 ms on V8. The warm-cache from v1.1.1239 reads from IndexedDB, so it inherits this latency.
+2. **Big JS bundle parses slower.** 1.4 MB (366 KB gzipped) takes 500–1500 ms to parse on Safari. Everything downstream has to wait.
+
+(1) is addressable. (2) is not, without breaking the HACS single-file constraint.
+
+### The fix — three-tier warm cache
+
+Memory (cache), IndexedDB, localStorage, HA. Previously only the last three were in the boot path, and the fastest of them still involved async I/O. Now we have a synchronous front-of-queue:
+
+1. **localStorage** — synchronous, ~1 ms even on Safari. Top-120 entities with just the fields a device card needs (entity_id, domain, state, attributes, area, relevance_score, usage_count, last_changed/updated). Read in the `useState` initializer, so Preact renders cards in the very first render frame — before any effect fires.
+2. **IndexedDB** — async, 50–500 ms on Safari. Full entity shape, richer metadata. Reads in `initializeDataProvider` after `loadCriticalData`. Overrides the localStorage tier via a functional `setEntities` updater.
+3. **Home Assistant** — async, 2–4 s. Fresh authoritative data. `loadEntitiesFromHA` runs via the existing `hass`-retry `useEffect`.
+
+The three writes use Preact's keyed reconciliation (`entity_id`), so cards stay mounted through all three updates — no flash, no layout shift, no re-animation.
+
+### New file — `src/utils/entitiesSnapshot.js`
+
+Three exports:
+
+- `loadEntitiesSnapshot()` — sync read from `localStorage['fsc_entities_snapshot_v1']`, returns `[]` on any failure (private browsing, disabled storage, parse error).
+- `saveEntitiesSnapshot(entities)` — filters non-system, sorts by `relevance_score`, caps at 120 entities, writes compact JSON. ~15–20 KB at cap, well within Safari's localStorage quota.
+- `clearEntitiesSnapshot()` — wipes the key. Called from `resetLearningData` so the next boot doesn't paint stale usage counts.
+
+### Wiring
+
+**Read path** — `DataProvider.jsx`:
+
+```js
+const [entities, setEntities] = useState(() => {
+  const snap = loadEntitiesSnapshot();
+  if (snap.length === 0) return [];
+  const liveStates = hass?.states;
+  if (!liveStates) return snap;
+  return snap.map(e => {
+    const live = liveStates[e.entity_id];
+    return live
+      ? { ...e, state: live.state, attributes: live.attributes, last_changed: live.last_changed, last_updated: live.last_updated }
+      : e;
+  });
+});
+```
+
+`hass` is already passed as a prop when DataProvider mounts (HA calls `setHass` before the card is visible). So the initializer can enrich the cached shape with live state right away — no stale on/off.
+
+**Write path** — end of `loadEntitiesFromHA`, right after the existing `setEntities(allEntities)`:
+
+```js
+saveEntitiesSnapshot(allEntities);
+```
+
+### What changes for the user
+
+- **First ever boot on a device:** no snapshot → no change. Skeleton still carries the wait.
+- **Every subsequent boot:** the React-level skeleton never even renders. Cards are visible in the first paint frame after Preact mounts. On Safari this saves the full IndexedDB-open cost — 50–500 ms of pure waiting, gone.
+- **After "Reset Learning Data":** snapshot is cleared, next boot behaves like a first-boot (skeleton carries the wait until fresh HA data writes a new snapshot).
+
+### What this does NOT do
+
+- Does not shrink the 1.4 MB bundle. JS parse time on Safari is untouched.
+- Does not pre-open IndexedDB in parallel with Preact mount (option C from the plan — lower priority now that snapshot short-circuits the IndexedDB path for rendering).
+- Does not touch the data flow for settings or favorites — those stay in IndexedDB via `loadCriticalData`.
+
+---
+
 ## Version 1.1.1240 - 2026-04-24
 
 **Title:** Splash delays gone + pre-JS skeleton in Custom Element placeholder
