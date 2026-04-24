@@ -1,5 +1,60 @@
 # Versionsverlauf
 
+## Version 1.1.1243 - 2026-04-24
+
+**Title:** StatsBar flashes "--°C / 0.0 kW" — snapshot was being wiped right after loading
+**Hero:** none
+**Tags:** Bug Fix, Performance
+
+### The regression
+
+User reported seeing "--°C" for weather and "0.0 kW" for grid consumption in StatsBar right after a cold boot, even after the snapshot warm-cache from v1.1.1241 was in place. The snapshot is supposed to make cards visible from the first render — so why was StatsBar missing its inputs?
+
+### Root cause
+
+`initializeDataProvider` in `DataProvider.jsx` had this sequence:
+
+```
+useState initializer → entities := snapshot (120 non-system entities including weather)
+useEffect fires → dbRef.init() → systemRegistry.initialize()
+  → setEntities(systemEntities)          ← REPLACES the snapshot entities!
+→ loadCriticalData()
+→ loadEntitiesFromCache (IndexedDB)      ← re-populates, but state was empty in between
+→ setIsInitialized(true) → UI renders
+```
+
+Line 399 was `setEntities(systemEntities)` — a straight replace. It wiped every non-system entity that the snapshot had just loaded, including the `weather.*` entity that StatsBar's `useMemo` depends on. For the ~50–500 ms window between "system registry done" and "IndexedDB warm-cache done" (longer on Safari), StatsBar saw an empty device list → `weatherEntity` was `null` → `--°C`.
+
+### Fix
+
+`setEntities` now uses a functional updater that merges system entities with whatever non-system entities were already there:
+
+```js
+setEntities(prev => {
+  const nonSystemPrev = prev.filter(e => !e.is_system);
+  return [...systemEntities, ...nonSystemPrev];
+});
+```
+
+Now the sequence is:
+
+1. Snapshot loads 120 non-system entities in the useState initializer (sync).
+2. `systemRegistry.initialize()` finishes → system entities merged in. Snapshot entities preserved.
+3. IndexedDB warm-cache replaces the non-system tier with a fresher/wider set. System entities preserved.
+4. `loadEntitiesFromHA` replaces everything with live HA data.
+
+Three paint updates, same as before, but the StatsBar widget never sees an empty device list anymore. Weather temperature, grid consumption, solar production — all visible from the first frame on warm boots.
+
+### Why this wasn't caught earlier
+
+The warm-cache wipe existed in the original code too — but back then `useState([])` started empty, so "wiping to just system entities" was equivalent to "filling in the system entities". The snapshot from v1.1.1241 changed the initial state from empty to populated, and the replace became a regression.
+
+### Not changed
+
+- Energy dashboard (`energyData`) is still fetched async via `getEnergyDashboardData`. The "0.0 kW" in the screenshot is the live sensor state from `hass.states` (via `getEnergyValue` fallback), which works the same as before. If it shows 0.0 kW right after boot, that's either the actual consumption at that moment or the sensor is still populating — not affected by this fix.
+
+---
+
 ## Version 1.1.1242 - 2026-04-24
 
 **Title:** Skeleton shimmer → opacity pulse (thermal fix, mobile GPU)
