@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1238 - 2026-04-24
+
+**Title:** First-Load perf — defer changelog fetch + skeleton cards
+**Hero:** none
+**Tags:** Performance, UX
+
+### The problem
+
+On the very first start (iPhone app or desktop browser) the expanded panel stayed empty for 3–10 seconds before device cards appeared. Root-cause audit across both recent session notes revealed two layers stacking on top of each other:
+
+1. **Versionsverlauf entity blocked the registry init.** Its `onMount` did a synchronous GitHub fetch for `docs/versionsverlauf.md`. The `systemRegistry.initialize()` call in `DataProvider` awaited `Promise.all([...onMount(), ...])`, so the slowest mount — this one, ~150–300 ms on slow networks — gated everything else, including `loadEntitiesFromHA`.
+2. **No visual feedback between splash fadeout and first cards.** Once the splash screen disappeared, the expanded panel rendered but `groupedFilteredDevices` was still empty. `GroupedDeviceList` returned `null`, so the user saw a blank panel area for the remaining 2–4 s while HA entities loaded.
+
+### Two minimal fixes
+
+**1. Versionsverlauf cache-only on boot**
+
+`onMount` now reads `localStorage.versionsverlauf_cache` directly (synchronous, ~1 ms) and never touches the network. The GitHub fetch still happens — just lazily, when `VersionsverlaufView` itself mounts (its own `useEffect` already calls `executeAction('loadChangelog')`). First-time users without a cache see an empty list until they open the view; next boot the cache is warm anyway.
+
+New `loadFromCacheOnly` action alongside the existing `loadChangelog`. Separation of concerns:
+- `loadFromCacheOnly` — boot path, synchronous, no network
+- `loadChangelog` — view path, cache-first with GitHub fallback (unchanged)
+
+**2. Skeleton cards during entity load**
+
+While `devices.filter(d => !d.is_system).length === 0` (HA entities haven't arrived yet), `GroupedDeviceList` now renders a shimmer-animated placeholder grid: 2 fake section headers with a column-matched row of fake cards each. Columns honor `useColumnCount` so the skeleton stays visually consistent with the real grid.
+
+The shimmer stops the moment real rooms arrive — no transition jank. `aria-busy="true"` + `aria-live="polite"` for accessibility. `prefers-reduced-motion` disables the animation.
+
+### What this does NOT do
+
+- **Does not shorten the splash setTimeouts** (still 250 + 500 + 500 + 500 + 750 ms). Removing them without also speeding up the real load would make things visually worse — the splash currently hides the init gap. Next release once we measure the registry improvement.
+- **Does not add IndexedDB warm-cache read** (next release, medium complexity).
+- **Does not refactor DataProvider or SearchField.** Both are 1100+ lines and overdue for splitting, but high-risk right now. Fix the acute pain first.
+
+### Expected effect
+
+- Versionsverlauf: ~150–300 ms earlier registry completion on cold starts.
+- Skeleton: the 3–10 s gap is no longer a blank panel — shimmer fills the visual void so the card feels alive from the first frame after splash.
+
+---
+
 ## Version 1.1.1237 - 2026-04-24
 
 **Title:** Sidebar –10 % instead of –20 %, iOS navbar title now actually centered
