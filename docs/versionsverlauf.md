@@ -1,5 +1,80 @@
 # Versionsverlauf
 
+## Version 1.1.1245 - 2026-04-25
+
+**Title:** Boot-time profiling — `performance.mark` instrumentation, no behavior change
+**Hero:** none
+**Tags:** Performance, Diagnostics
+
+### Why this release
+
+After the Phase 1–3 boot wins (snapshot, warm-cache, splash trim, thermal fixes), the next round of optimizations would each save 20–60 ms in theory. That's small enough to want **measurements before more code changes** — otherwise we'd be guessing which 30 ms to optimize.
+
+This release is instrumentation only. No behavior change.
+
+### What was added
+
+A small `src/utils/perfMarks.js` helper exposing:
+
+- `perfMark(name)` — wraps `performance.mark('fsc:' + name)` plus appends to an in-memory list.
+- `perfDump()` — prints the list as a `console.table` plus a copy-paste-friendly text block.
+- `perfReset()` — clear and start fresh for a re-measurement.
+- `window.__fsc_perf` — manual access in the DevTools console.
+
+### Marks placed (in chronological order)
+
+| Mark | Where | What it captures |
+|---|---|---|
+| `element-constructor` | `build.sh` Custom Element ctor | Earliest mark — fires before JS bundle is evaluated |
+| `bundle-evaluated` | top of `src/index.jsx` | Bundle parsed, module-level code running |
+| `app-first-render` | first call to `App()` | Preact has begun rendering |
+| `loadapp-start` | `src/index.jsx:loadApp` async start | Begin appearance-settings parse |
+| `loadapp-done` | end of `loadApp` | `setIsLoadingComplete(true)` about to fire |
+| `dp-snapshot-init` | `DataProvider` `useState` initializer | localStorage snapshot loading |
+| `dp-init-start` | `initializeDataProvider` start | DataProvider effect fired |
+| `dp-db-init` | after `dbRef.init()` | IndexedDB connection ready |
+| `dp-registry-done` | after `systemRegistry.initialize()` | System entities mounted |
+| `dp-critical-done` | after `loadCriticalData()` | Settings + favorites loaded |
+| `dp-warmcache-done` | after `loadEntitiesFromCache()` | IndexedDB warm-cache merged |
+| `dp-initialized` | after `setIsInitialized(true)` | UI is allowed to reveal |
+| `dp-ha-start` | start of `loadEntitiesFromHA` | HA fetch begins |
+| `dp-ha-fetched` | after `Promise.all([loadAreas, loadDeviceReg, loadEntityReg])` | Registries pulled |
+| `dp-ha-scored` | after `scoreEntities` | Per-entity usage scoring done |
+| `dp-ha-rendered` | after `setEntities(allEntities)` | Real cards committed to state |
+| `dp-ha-indexed` | after `buildSearchIndex` | Search index complete; auto-dump fires |
+
+After `dp-ha-indexed` the helper schedules a `setTimeout(0)` callback that calls `perfDump()`. The user sees the full timeline in the browser console without any manual action.
+
+### How to read the output
+
+Open the dashboard with the DevTools console open. After ~3–5 seconds you'll see:
+
+```
+[fsc:perf] Boot timeline (relative to first mark):
+┌─────────┬──────────────────────┬──────────┬──────────┐
+│ (index) │ step                 │ total_ms │ delta_ms │
+├─────────┼──────────────────────┼──────────┼──────────┤
+│ 0       │ element-constructor  │ 0.0      │ 0.0      │
+│ 1       │ bundle-evaluated     │ 412.3    │ 412.3    │
+│ ...
+```
+
+`total_ms` is time since the first mark (the constructor). `delta_ms` is time since the previous mark — that's where the bottleneck shows up: the largest delta is the slowest step.
+
+The same data is also in DevTools Performance → User Timing as `fsc:*` named entries, so you can see them inline with the broader profile.
+
+### What this is for
+
+Once you've got a profile from Safari (or wherever the slowness is most pronounced), paste the copy-paste-friendly text block back to me. The next round of optimization picks the actual largest delta — not a guess.
+
+### What this isn't
+
+- Not a behavior change. All marks are no-ops if `performance` is missing.
+- Not a perf regression. Each `perfMark` is a few microseconds. Total overhead across all marks is below human-perception threshold.
+- Not enabled-only-in-dev. The marks ship in the production bundle so we can measure the actual production behavior. They cost essentially nothing.
+
+---
+
 ## Version 1.1.1244 - 2026-04-24
 
 **Title:** Thermal fixes round 2 — pending pulse + state_changed throttle
