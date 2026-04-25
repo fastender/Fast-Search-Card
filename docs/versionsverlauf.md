@@ -1,5 +1,78 @@
 # Versionsverlauf
 
+## Version 1.1.1250 - 2026-04-25
+
+**Title:** The 10 s mystery solved — `window._hass` was referenced but never set
+**Hero:** none
+**Tags:** Performance, Bug Fix, Boot
+
+### The smoking gun
+
+Phases 5 and 6 didn't move the `dp-registry-done` needle. Profile after v1.1.1249 still showed ~10 s. That's a suspicious round number. Searching the codebase for `window._hass`:
+
+```
+hassRetryService.js:32   if (hassReadyFlag && (context?.hass || window._hass))
+hassRetryService.js:33     return context?.hass || window._hass;
+hassRetryService.js:54   // Source 2: Global window._hass (set by Home Assistant)   ← LIE
+hassRetryService.js:55   if (!hass && typeof window !== 'undefined' && window._hass)
+hassRetryService.js:56     hass = window._hass;
+registry.js:426       hass: window._hass || null,
+```
+
+Read in 5 places. **Set: nowhere.** The comment "set by Home Assistant" was wishful thinking — HA does not set this global, our wrapper has to.
+
+### Why this caused exactly 10 s
+
+`waitForHass` in `src/utils/hassRetryService.js`:
+- `maxRetries = 20`, `interval = 500 ms` → **10 000 ms** ceiling.
+- Every 500 ms it checks `context?.hass || window._hass` for `hass.states` populated.
+
+When `DataProvider` mounts, the `hass` prop is often `null` for the first render — Home Assistant calls `set hass()` on the Custom Element asynchronously, after `setConfig`. So `hassRef.current` is `null` when `systemRegistry.initialize()` fires, and the `{hass: hassRef.current, ...}` object captures `null` at registry-call time.
+
+`waitForHass` then:
+- Re-checks `context.hass` (still `null`, captured by closure).
+- Re-checks `window._hass` (also `null`, never set).
+- Polls 20× × 500 ms = 10 000 ms.
+- Promise rejects.
+- Every entity using `mountWithRetry` loses its initial data.
+
+That explains the consistent ~10.0 s in every measurement and why several earlier theories (Integration parallel, EnergyDashboard parallel) didn't move the number — none of them addressed the actual blocker.
+
+### The fix (two lines)
+
+`build.sh` — Custom Element `set hass(hass)` setter, runs as soon as HA passes `hass` to the element, before Preact even mounts:
+
+```js
+if (typeof window !== 'undefined' && hass) {
+  window._hass = hass;
+}
+```
+
+`DataProvider.jsx` — `useEffect` that already syncs `hassRef.current = hass`, gets the same line for defense-in-depth (covers dev-mode where the Custom-Element wrapper isn't used):
+
+```js
+if (typeof window !== 'undefined' && hass) {
+  window._hass = hass;
+}
+```
+
+### Expected effect
+
+`waitForHass` finds `window._hass` on its very first poll (or on the polling tick within ≤500 ms after `hass` actually arrives). The 10 s ceiling becomes ~0–500 ms.
+
+`dp-registry-done` should drop from ~10 000 ms to ~700–1500 ms (the time it actually takes to mount all entities once they have `hass`).
+
+### Side effects
+
+- Every system entity using `mountWithRetry` actually gets its initial data on first mount (not just after a state-change later) — small fix for unrelated quirks like StatsBar widgets being delayed.
+- iPhone heat: 10 s of wasted polling + 10 s of background mount work after it gives up = real CPU time gone. Should reduce sustained warmth on first-load.
+
+### What this also says about the audit process
+
+Three releases (Phases 5, 6, instrumentation) chased the wrong cause because the profile only showed the symptom (`dp-registry-done` at 10 s), not the underlying mechanism. The root-cause grep took 30 seconds and would have been the right first step. Lesson noted.
+
+---
+
 ## Version 1.1.1249 - 2026-04-25
 
 **Title:** Phase 6 — `EnergyDashboardDeviceEntity.onMount` parallelized
