@@ -1,5 +1,85 @@
 # Versionsverlauf
 
+## Version 1.1.1248 - 2026-04-25
+
+**Title:** Phase 5 — Integration & Plugin reloads parallel (registry 10 s → ~3 s)
+**Hero:** none
+**Tags:** Performance, Background
+
+### Why this release
+
+The Safari profile from v1.1.1247 (now matching what we suspected) confirmed the only remaining big delta:
+
+```
+dp-ha-indexed     →  dp-registry-done    8 940 ms  ← background but real
+```
+
+That's nine seconds of HA chatter happening in the background after the user already sees their cards. It contributes to:
+- iPhone heat (sustained network + JS work),
+- system entities (News, Todos, Versionsverlauf, etc.) appearing 9 s late in the search results.
+
+Two `for…await` anti-patterns were responsible — both now parallelized.
+
+### Fix A — `Integration.loadSavedDevices` parallel
+
+`src/system-entities/entities/integration/index.js:206`. Each saved device's `onMount` makes several sequential HA calls (e.g. `EnergyDashboardDeviceEntity` chains `_loadAreaFromSensors → loadEnergyPreferences → getGridImportValue → getEnergyData`). With 2 devices the loop ran them back-to-back, ~10 s total.
+
+```js
+// Before:
+for (const deviceData of devices) {
+  const deviceEntity = createDeviceEntity(deviceData);
+  await deviceEntity.onMount({ hass, storage });   // sequential!
+  systemRegistry.register(deviceEntity);
+}
+
+// After:
+await Promise.all(devices.map(async (deviceData) => {
+  const deviceEntity = createDeviceEntity(deviceData);
+  await deviceEntity.onMount({ hass, storage });
+  systemRegistry.register(deviceEntity);
+}));
+```
+
+Each device entity has its own internal state — no shared mutable storage. HA's WebSocket handles concurrent requests fine. `try/catch` is per-device, so one mount failing doesn't block the others (same behavior as before, just parallel).
+
+### Fix B — `Pluginstore` plugin reloads parallel
+
+Same `for…await` anti-pattern in `src/system-entities/entities/pluginstore/index.js:580`. Each enabled plugin gets reloaded from GitHub or URL on mount — sequential network roundtrips. With multiple plugins this added up too.
+
+```js
+// Before:
+for (const plugin of installedPlugins) {
+  if (!plugin.enabled) continue;
+  await loader.loadPluginFromGitHub(plugin.repo);  // sequential!
+}
+
+// After:
+const enabled = installedPlugins.filter(p => p.enabled);
+await Promise.all(enabled.map(async (plugin) => {
+  await loader.loadPluginFromGitHub(plugin.repo);
+}));
+```
+
+### Expected effect
+
+If the user has 2 Integration devices each costing 5 s:
+- Before: 10 s `dp-registry-done`
+- After: ~5 s (limited by the slowest single device)
+
+If the user has 1 Integration device + 0 plugins, no change — Promise.all on a single-element array is the same as awaiting it.
+
+The user-visible boot path (cards visible at ~900 ms) is unchanged. This release purely shrinks the background work — registry-done arrives sooner, system entities pop into search results sooner, less sustained HA chatter (less heat).
+
+### What this still doesn't do
+
+`EnergyDashboardDeviceEntity.onMount` still has 4 sequential `await`s internally. Those could become `Promise.all` too — would shave another ~2 s — but each call writes to attributes and the order may matter for area inheritance. Held for a future profile-driven fix if the new `dp-registry-done` is still uncomfortable.
+
+### Verification
+
+After update, the registry-done callback should fire noticeably sooner. Check the **second** auto-dump in the console (the one that has `dp-registry-done` in it). The delta `dp-ha-indexed → dp-registry-done` should drop from ~9 s to roughly the duration of the slowest single device's onMount.
+
+---
+
 ## Version 1.1.1247 - 2026-04-25
 
 **Title:** Phase 4 — `loadCriticalData` parallel + `buildSearchIndex` fire-and-forget
