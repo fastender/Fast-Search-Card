@@ -1,5 +1,83 @@
 # Versionsverlauf
 
+## Version 1.1.1247 - 2026-04-25
+
+**Title:** Phase 4 — `loadCriticalData` parallel + `buildSearchIndex` fire-and-forget
+**Hero:** none
+**Tags:** Performance
+
+### Why this release
+
+The v1.1.1246 profile cleanly identified the two remaining bottlenecks in the visible boot path:
+
+```
+dp-db-init        → dp-critical-done    335.7 ms   ← settings + favorites read (sequential)
+dp-ha-rendered    → dp-ha-indexed       324.2 ms   ← buildSearchIndex blocking finally
+```
+
+Both are addressed here.
+
+### Fix A — `loadCriticalData` parallel
+
+`src/utils/dataLoaders.js` was reading settings then favorites sequentially:
+
+```js
+const storedSettings = await db.get(STORES.SETTINGS, 'user_preferences');
+// ...
+const storedFavorites = await db.getAll(STORES.FAVORITES);
+```
+
+Two independent IndexedDB transactions, no reason to serialize them. Wrapped in `Promise.all`:
+
+```js
+const [storedSettings, storedFavorites] = await Promise.all([
+  db.get(STORES.SETTINGS, 'user_preferences'),
+  db.getAll(STORES.FAVORITES),
+]);
+```
+
+Expected savings: ~100–150 ms on Safari (each IndexedDB roundtrip is ~150 ms there). This shows up directly in `dp-initialized` timing.
+
+### Fix B — `buildSearchIndex` fire-and-forget
+
+`loadEntitiesFromHA` was awaiting the search index build before releasing the `loadEntitiesRunningRef` mutex. Cards were already committed to state at `dp-ha-rendered` — the user could see them — but the function held its mutex for another 324 ms while the index was written to IndexedDB.
+
+Now the index builds in the background:
+
+```js
+buildSearchIndexUtil(dbRef.current, allEntities)
+  .then(() => { perfMark('dp-ha-indexed'); /* dump */ })
+  .catch(err => console.warn('[DataProvider] buildSearchIndex failed (background):', err));
+```
+
+Fuse.js search still works directly on entity names without the index — the index is just a Bonus-Beschleuniger. If a user searches in the first 200 ms after boot, they get slightly slower results until the index lands; in practice imperceptible.
+
+The `initialLoadCompleteRef.current = true` flip moved up before the index call so state-change events flow normally during the background index build.
+
+### Expected effect (relative to v1.1.1246)
+
+```
+dp-db-init        → dp-critical-done   ~200 ms   (was 335 ms)
+dp-ha-rendered    → dp-ha-indexed       ~324 ms but no longer blocking
+```
+
+User-visible boot to `dp-ha-rendered`: 869 ms → ~700 ms. Mutex available for excludedPattern reloads etc. without 324 ms penalty.
+
+### Auto-dump timing
+
+The `setTimeout(perfDump, 0)` moved into the `buildSearchIndex` `.then()` so the dump still includes `dp-ha-indexed` (otherwise it would fire before that mark exists). The registry-done callback still emits its own dump when the registry eventually finishes — full timeline.
+
+### What's not in this release
+
+`Integration.loadSavedDevices` is still a `for…await` loop — registry takes ~10 s in the background. That's the next clear hebel and would need:
+
+- `Promise.all` on the loop (low risk, big win)
+- Or per-device `Promise.all` of the multiple HA calls inside each `onMount`
+
+Both improve background load and may reduce the heat we still see. Held for the next release pending another profile to confirm there's no other surprise.
+
+---
+
 ## Version 1.1.1246 - 2026-04-25
 
 **Title:** Profiling result — `systemRegistry.initialize()` was blocking 10 s. Now non-blocking.
