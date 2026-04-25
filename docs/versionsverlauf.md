@@ -1,5 +1,74 @@
 # Versionsverlauf
 
+## Version 1.1.1251 - 2026-04-25
+
+**Title:** Phase 7 — `DataProvider` context value memoized (runtime perf)
+**Hero:** none
+**Tags:** Performance, Runtime
+
+### What changed
+
+`DataProvider`'s `contextValue` object is now wrapped in `useMemo`. Before:
+
+```js
+const contextValue = {
+  isInitialized, isLoading, error,
+  entities, favorites, settings, areas, notifications,
+  cache: cacheRef.current,
+  toggleFavorite, updateSetting, searchEntities, callService,
+  calculateSuggestions, resetLearningData, updateEntityState,
+  recordUserAction, refreshNotifications, dismissNotification,
+  db: dbRef.current,
+  generateTestPatterns,
+  hass: hassRef.current,
+  pendingTracker: pendingTrackerRef.current,
+};
+```
+
+This object got rebuilt on every single render of `DataProvider` — even when the underlying data didn't change. React's Context API does shallow identity comparison, so a new object identity = every consumer re-renders. With `SearchField` (1100 lines, 33 hooks) being the primary consumer plus a half-dozen `useData()` hook callsites, that adds up.
+
+After:
+
+```js
+const contextValue = useMemo(() => ({ … }), [
+  isInitialized, isLoading, error,
+  entities, favorites, settings, areas, notifications,
+  hass,
+  toggleFavorite, updateSetting, searchEntities, callService,
+  calculateSuggestions, resetLearningData, updateEntityState,
+  recordUserAction, refreshNotifications, dismissNotification,
+  generateTestPatterns,
+]);
+```
+
+Refs (`cacheRef.current`, `dbRef.current`, `pendingTrackerRef.current`) aren't in the deps because their identity is stable for the lifetime of the provider. Pre-existing `useCallback` wrappers on every method ensure those stay stable too. The previously-not-memoized `generateTestPatterns` now uses `useCallback` with `[entities, calculateSuggestions]` deps.
+
+### Other small fix
+
+`hass` in context now reads the prop directly (`hass`) instead of `hassRef.current`. The ref read had a one-render lag because `hassRef.current` is updated in a `useEffect` that runs after render — the prop is the source of truth in the render itself.
+
+### Why this matters for runtime perf and heat
+
+Every Home Assistant `state_changed` event triggers `setEntities`, which re-renders `DataProvider`. Before this fix, every such re-render rebuilt the context object even though nothing else changed → `SearchField` and its descendants re-render → `useMemo`s recompute → Virtua remeasures → framer-motion re-interpolates animated props.
+
+State changes from a typical smart home (sensors, automations) come in steady streams — easily 5–10 per second. Even with the 150 ms throttle from v1.1.1244 keeping flushes at ~6/s, every flush was forcing the entire tree to re-render unnecessarily.
+
+After: most `setEntities` calls only update `entities`. The other 20 context properties keep their references → `useData()` hooks that don't read `entities` (e.g. `useFavorites`, `useNotifications`) won't trigger re-renders. Even consumers reading `entities` benefit because the callbacks they depend on stay stable — no cascading re-render of memoized child components.
+
+### Expected effect
+
+- Sustained CPU work during use ↓ (less re-render cascade per state change)
+- Battery / heat ↓ (same reason)
+- Boot path: unchanged (no new code on the boot critical path)
+
+### Risk
+
+The risk in this kind of change is missing a dep — if a callback closes over state that's not in the deps array, consumers see a stale closure. All callbacks in the deps array were already individually `useCallback`-wrapped so their identities only change when their own deps change. The `useMemo` propagates that correctly.
+
+If anything breaks (a button stops working, a state update doesn't propagate), it's almost certainly a missing dep — please report so we can fix it specifically.
+
+---
+
 ## Version 1.1.1250 - 2026-04-25
 
 **Title:** The 10 s mystery solved — `window._hass` was referenced but never set
