@@ -1,5 +1,64 @@
 # Versionsverlauf
 
+## Version 1.1.1249 - 2026-04-25
+
+**Title:** Phase 6 — `EnergyDashboardDeviceEntity.onMount` parallelized
+**Hero:** none
+**Tags:** Performance, Background
+
+### Why Phase 5 didn't move the needle
+
+After v1.1.1248 the user re-profiled and `dp-registry-done` was still ~9.7 s. Phase 5 parallelized `Integration.loadSavedDevices` outer loop, but if you only have one Integration device (in this case the EnergyDashboard), `Promise.all` over a single-element array is the same as awaiting it. The 10 s lives **inside** that one device's `onMount`.
+
+Looking at the code: `EnergyDashboardDeviceEntity.onMount` had 4 sequential awaits, each a separate HA call:
+
+```js
+await this._loadAreaFromSensors(hass, config);       // ~2 s
+await this.executeAction('loadEnergyPreferences');   // ~3 s (HA WebSocket: energy/get_prefs)
+await this.executeAction('getGridImportValue');      // ~1 s (state read)
+await this.executeAction('getEnergyData');           // ~3 s (statistics fetch)
+```
+
+~9 s sequential, matches the profile.
+
+### The fix
+
+Each action verified to be independent:
+- `_loadAreaFromSensors` — reads `hass.states` for area inheritance, sets `this.area*` props
+- `loadEnergyPreferences` — `hass.connection.sendMessagePromise({ type: 'energy/get_prefs' })`, sets `energy_prefs` attribute
+- `getGridImportValue` — reads `hass.states[gridImportSensor]`, sets `grid_import_value` attribute
+- `getEnergyData` — searches `hass.states` for serial-tagged entities, sets `energy_data` attribute
+
+None reads another's output. Each has its own `try { … } catch { return null; }` so failures don't propagate. Safe for `Promise.all`:
+
+```js
+await Promise.all([
+  this._loadAreaFromSensors(hass, config),
+  this.executeAction('loadEnergyPreferences', { hass }),
+  this.executeAction('getGridImportValue', { hass }),
+  this.executeAction('getEnergyData', { hass }),
+]);
+```
+
+### Expected effect
+
+Wall-clock for the 4 calls becomes max(slowest) instead of sum. On the v1.1.1248 profile that should drop the EnergyDashboard contribution from ~9 s to ~3 s.
+
+If this is the only Integration device the user has, `dp-registry-done` should land around **~3-4 s** instead of ~9.7 s.
+
+### Verification
+
+After update, check the **second** auto-dump in console. The `dp-registry-done` total_ms is the metric. If it's still ~9 s, then the slow path is somewhere else — would need another targeted profile (per-action marks inside the EnergyDashboard onMount).
+
+### What's left (only if needed)
+
+- `EnergyDashboard.executeAction('getEnergyData')` does its own internal multi-step fetch — could be further sped up if profile shows it's still the bottleneck.
+- `WeatherDeviceEntity.onMount` calls `getCurrentWeather` (one await) — if user has it configured and it's slow on its own, no parallelization possible there.
+
+For now: this is the targeted fix the v1.1.1248 profile demanded.
+
+---
+
 ## Version 1.1.1248 - 2026-04-25
 
 **Title:** Phase 5 — Integration & Plugin reloads parallel (registry 10 s → ~3 s)
