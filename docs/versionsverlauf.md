@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1256 - 2026-04-25
+
+**Title:** News image debug — `window.debugNewsImages()` for live feed inspection
+**Hero:** none
+**Tags:** Diagnostics, News
+
+### Why
+
+After v1.1.1255 enabled multi-shape thumbnail extraction, some feeds may still come through without images. To pinpoint *which* RSS shape a particular feed uses, we need raw data from the live `event.feedreader_*` entities — the existing `debugNews()` only showed already-processed articles.
+
+### What was added
+
+`window.debugNewsImages()` (callable in DevTools console) lists every feedreader event entity currently in `hass.states` and prints, per entity:
+
+- `image` (direct)
+- `enclosures` (array, Python feedparser plural form)
+- `enclosure` (singular fallback)
+- `media_thumbnail` (string or array of dicts)
+- `media_content` (array, often holds the image)
+- whether `content` is a string or array
+- first 300 chars of `description`
+- the thumbnail our `_extractThumbnail` helper currently extracts
+
+Returns the same data as an array, so you can `const out = window.debugNewsImages(); console.table(out);` for a tabular view.
+
+### Usage
+
+1. Open the dashboard with the News card visible.
+2. Open DevTools → Console.
+3. `window.debugNewsImages()` and expand the per-entity groups.
+4. If `▶ extracted thumbnail` says `(none)` for a feed that *does* show an image in the actual RSS, paste the raw `image / enclosures / media_thumbnail / media_content / description` values back to me — I'll extend `_extractThumbnail` for that shape.
+
+This release is purely a diagnostics helper — no behavior change for end users.
+
+---
+
 ## Version 1.1.1255 - 2026-04-25
 
 **Title:** News thumbnails — actually find images for most feeds now
