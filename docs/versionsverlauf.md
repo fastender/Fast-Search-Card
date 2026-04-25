@@ -1,5 +1,63 @@
 # Versionsverlauf
 
+## Version 1.1.1255 - 2026-04-25
+
+**Title:** News thumbnails — actually find images for most feeds now
+**Hero:** none
+**Tags:** Bug Fix, News
+
+### What was wrong
+
+Most articles in the News view rendered without thumbnails, even though the feed clearly had images. The culprit was the image-extraction code in `news/index.jsx`. It checked exactly three places:
+
+```js
+let thumbnail = data.image || null;                    // rarely populated
+if (!thumbnail) thumbnail = extractFromHtml(content);  // narrow regex
+if (!thumbnail && data.enclosure?.url) ...             // SINGULAR
+if (!thumbnail && data.media_thumbnail) thumbnail = data.media_thumbnail;
+```
+
+Three problems with that:
+
+1. **Wrong shape for most feeds.** Home Assistant's `feedreader` integration uses Python's `feedparser` library, which delivers images in **arrays of dicts**: `enclosures` (plural), `media_thumbnail: [{url, width, height}]`, `media_content: [{url, medium, type}]`. The card was checking singular keys with string values — most feeds went through this code untouched.
+2. **HTML regex too narrow.** It matched only `<img src="...">` (double-quotes). Plenty of feeds (Tagesschau among them) emit single-quoted or unquoted attributes in their description HTML.
+3. **No graceful failure on the `<img>` itself.** When the extracted URL was correct but the host blocked hot-linking (Referer-based), the user saw a broken-image icon.
+
+### The fix
+
+**Central helper `_extractThumbnail(data)` covers every common RSS shape:**
+
+1. `data.image` (string or `{url}`)
+2. `data.enclosures[]` — finds first item with `type` starting `image/` or any `url`
+3. `data.enclosure.url` — singular fallback for older sources
+4. `data.media_thumbnail[0].url` — array shape
+5. `data.media_thumbnail` — string shape
+6. `data.media_content[]` — finds `medium === 'image'` or `type` starting `image/`
+7. `data.content` if it's an array — Atom-style `[{value, ...}]` joined for HTML scan
+8. `data.description` / `data.summary` — HTML scan as last resort
+
+Both call sites (live feedreader event in `_handleFeedreaderEvent`, and event-entity warm-load in `_loadFeedreaderEventEntities`) now share this helper. Same data shape going in, same thumbnail logic.
+
+**HTML regex now handles all quoting styles** plus `og:image` and `twitter:image` meta tags as final fallback:
+
+```js
+// <img src="..."> | <img src='...'> | <img src=...>
+/<img[^>]+src=(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i
+```
+
+**`<img>` tags hardened in NewsView.jsx:**
+
+- `referrerPolicy="no-referrer"` — many sites (German news especially) check the `Referer` header and block external embedding. Stripping it fixes a lot of "image present but won't load" cases.
+- `onError` handler — if the image URL is correct but the load still fails (404, blocked, mixed-content), hide the container instead of showing a broken-image icon. Article still readable, just no thumbnail.
+
+### Expected effect
+
+Most feeds that previously came through with `thumbnail: null` should now have one. For feeds where the image really isn't in the data, behavior is unchanged. For feeds where the URL was right but blocked, the broken-icon is gone.
+
+If a specific feed still doesn't show images, the article object will have `thumbnail: null` — open the browser console and inspect what `data.media_content` / `data.enclosures` / etc. actually contain for one of those events. We can extend the helper for unusual shapes case-by-case.
+
+---
+
 ## Version 1.1.1254 - 2026-04-25
 
 **Title:** News empty-state — point users at the two HA integrations that provide feeds
