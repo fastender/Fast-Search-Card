@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1254 - 2026-04-25
+
+**Title:** News empty-state — point users at the two HA integrations that provide feeds
+**Hero:** none
+**Tags:** UX, Documentation, News
+
+### What was wrong
+
+When a user opens **News → Settings** without any feeds configured, the previous empty state just said "No Feedreader feeds found." — which is correct but unhelpful. The user has no idea what to do next: which integration to install, what to put in `configuration.yaml`, or that an alternative even exists.
+
+### The fix
+
+The empty state in `iOSSettingsView` now lists the two integrations that produce News-card feeds, with direct links:
+
+1. **A better Feedparser** ([github.com/timmaurice/feedparser](https://github.com/timmaurice/feedparser)) — HACS, UI-based setup. Recommended for users who don't want to edit YAML.
+2. **`feedreader`** ([home-assistant.io/integrations/feedreader/](https://www.home-assistant.io/integrations/feedreader/)) — Core integration, YAML configuration. Battle-tested.
+
+Both use HA's server-side Python to fetch RSS — the only sane way to handle CORS for arbitrary feed URLs. Direct browser-side RSS fetching from a custom Lovelace card requires a third-party CORS proxy, which we deliberately avoid (privacy, reliability, rate limits).
+
+### Why we don't bundle our own RSS fetcher in the card
+
+CORS. Almost no RSS feeds set permissive CORS headers, so the browser blocks `fetch()`. Working around that needs either:
+- A self-hosted proxy — but the only server most users have is HA itself, which means using one of the integrations above anyway.
+- A third-party CORS proxy (`allorigins.win`, `corsproxy.io`, `rss2json.com`) — leaks user IP, rate-limits, and these services come and go.
+
+So the integrations above stay the right architecture; the card's job is just to make their data look good and not waste user time when the setup isn't there.
+
+### What this release does NOT do
+
+The card still only reads from the core `feedreader` event entities. It does not yet read from `feedparser`'s `sensor.*` entities (which carry entries in attributes, different shape). If a user installs `A better Feedparser` instead of `feedreader`, the card currently won't populate.
+
+That's the **next step if there's demand**: an adapter in `news/index.jsx` that auto-detects either source. ~50–100 LOC. Held until at least one user actually runs `feedparser` and confirms it would help. Premature otherwise.
+
+---
+
 ## Version 1.1.1253 - 2026-04-25
 
 **Title:** News entity — boot-block fix + dead-code cleanup + lazy images
