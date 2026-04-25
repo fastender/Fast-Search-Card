@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1252 - 2026-04-25
+
+**Title:** Bug bundle — translation keys, toggle dedupe, instant favorites/suggestions, IOSToggle component
+**Hero:** none
+**Tags:** Bug Fix, UX, i18n
+
+### Bug 1 — `ui.suggestions.frequentlyUsed` shown as raw key
+
+The Vorschläge subcategory rendered `ui.suggestions.frequentlyUsed` instead of the translated label. `searchFilters.js:296` references four group labels (`frequentlyUsed`, `contextBased`, `timeBased`, `areaBased`) under `ui.suggestions.*`, but the translations file only had three confidence-level keys there. English file had no `ui.suggestions` block at all.
+
+Added the missing keys in both languages:
+- DE: "Häufig genutzt" / "Im Kontext" / "Zu dieser Zeit" / "In diesem Bereich"
+- EN: "Frequently used" / "Context-based" / "At this time" / "In this area"
+
+### Bug 2 + 4 — Preact-Compat double-onChange across all toggles
+
+The `<label> + <input type="checkbox">` pattern fires `onChange` twice in Preact-Compat. First call writes the new value, second call writes the flipped-back value — net effect is the toggle persists as the *opposite* of what the user clicked. Same root cause as v1.1.1219's `CircularSlider.PowerToggle` fix.
+
+User reported the mobile auto-expand setting reverting after every refresh. Audit found the same pattern in **42 toggles** across the codebase.
+
+Fix: created `src/components/common/IOSToggle.jsx` — a drop-in component that wraps the `<label>` + `<input>` pattern with a built-in 150 ms timestamp dedupe. Migrated all 42 callsites:
+
+| File | Toggles |
+|---|---:|
+| `GeneralSettingsTab.jsx` | 8 |
+| `StatsBarSettingsTab.jsx` | 11 |
+| `AppearanceSettingsTab.jsx` | 4 |
+| `ToastSettingsTab.jsx` | 2 |
+| `iOSSettingsView.jsx` (news) | 3 |
+| `TodosSettingsView.jsx` | 7 |
+| `EnergyDashboardDeviceView.jsx` | 1 |
+| `Printer3DDeviceView.jsx` | 6 |
+
+API: `<IOSToggle checked={x} onChange={setX} disabled stopPropagation />`. Drop-in for the old 7-line label/input/span block — also slightly less code per call.
+
+Toggles using `defaultChecked` (uncontrolled) or with no `onChange` weren't migrated — they don't have the bug. `PowerToggle.jsx` keeps its existing internal dedupe.
+
+### Bug 3 — Favorites and Suggestions empty for ~100 ms after refresh
+
+After v1.1.1241 added a localStorage snapshot for entities, the regular cards appeared instantly on hard-refresh — but the **Favoriten** and **Vorschläge** tabs were still empty for ~50–150 ms (waiting on IndexedDB read for favorites, and on `calculateSuggestions` async result for suggestions).
+
+Added matching localStorage snapshots in `src/utils/uiStateSnapshots.js`:
+- `loadFavoritesSnapshot()` / `saveFavoritesSnapshot(Set)` — favorites Set serialized as array of entity_ids.
+- `loadSuggestionsSnapshot()` / `saveSuggestionsSnapshot(arr)` — top-60 suggestions, capped to keep payload small.
+
+`DataProvider`'s `useState` initializer for `favorites` now reads the snapshot. `useSuggestions`'s initializer reads the suggestions snapshot. Both write back on every state change, so the next boot has fresh data.
+
+`resetLearningData` also clears these snapshots (otherwise the next boot would flash old usage counts before re-calculation).
+
+Trade-off: the suggestions snapshot can be slightly stale (time-of-day affects the contextBased ranking), but it flashes for ~100 ms before fresh calculation overrides — much better than blank.
+
+### Build
+
+Build green, 707 modules, ~366 KB gzip JS. PostCSS `Cannot divide by "%"` warnings are pre-existing and unrelated.
+
+---
+
 ## Version 1.1.1251 - 2026-04-25
 
 **Title:** Phase 7 — `DataProvider` context value memoized (runtime perf)
