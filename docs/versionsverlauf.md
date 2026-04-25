@@ -1,5 +1,66 @@
 # Versionsverlauf
 
+## Version 1.1.1246 - 2026-04-25
+
+**Title:** Profiling result — `systemRegistry.initialize()` was blocking 10 s. Now non-blocking.
+**Hero:** none
+**Tags:** Performance, Boot
+
+### What the v1.1.1245 profile showed
+
+A single delta dwarfed everything else:
+
+```
+dp-db-init        → dp-registry-done       10.110 ms   ← 95 % of boot
+dp-registry-done  → dp-critical-done           53 ms
+dp-critical-done  → dp-warmcache-done          30 ms
+dp-warmcache-done → dp-initialized              0 ms
+dp-ha-start       → dp-ha-fetched             189 ms
+dp-ha-fetched     → dp-ha-scored               56 ms
+dp-ha-scored      → dp-ha-rendered             52 ms
+dp-ha-rendered    → dp-ha-indexed             250 ms
+```
+
+`systemRegistry.initialize()` took **over 10 seconds**. Phase 1 (v1.1.1238) deferred Versionsverlauf's GitHub fetch — but other system entities have similar blocking work. The biggest offender: `Integration.loadSavedDevices` (`integration/index.js:211`) iterates registered devices with a `for…await` loop and calls `await deviceEntity.onMount()` sequentially. Each device's `onMount` makes multiple sequential HA calls (e.g. `EnergyDashboardDeviceEntity` has 4: `_loadAreaFromSensors` → `loadEnergyPreferences` → `getGridImportValue` → `getEnergyData`). With 1–2 integration devices configured, easy 10 s.
+
+`pluginstore.onMount` has the same anti-pattern for installed plugins (`for…await loadPluginFromGitHub`).
+
+### The fix
+
+`DataProvider.initializeDataProvider` no longer awaits `systemRegistry.initialize()`. The boot path becomes:
+
+```
+IndexedDB.init()       (~50 ms)
+loadCriticalData()     (~50 ms)   ← settings + favorites
+loadEntitiesFromCache  (~30 ms)   ← IndexedDB warm-cache
+setIsInitialized(true)            ← UI is now visible at ~150 ms
+loadBackgroundData() → loadEntitiesFromHA()   (~250-500 ms)
+```
+
+`systemRegistry.initialize()` runs in parallel as a fire-and-forget promise. When it eventually finishes, a `.then()` callback merges the real system entities into the entity state via a functional `setEntities(prev => …)` updater. Until then, `getSystemEntities()` returns the existing fallback (1 entity: `system.settings`) so the user can still reach Settings if they look for it.
+
+`loadEntitiesFromHA` was changed to preserve any "real" system entities already in state (count > fallback count) — this handles the race where the registry callback fires either before or after `loadEntitiesFromHA`'s own `setEntities`.
+
+### What the user sees
+
+- Cards visible at ~50 ms from snapshot (unchanged from v1.1.1241).
+- Live HA data merged in at ~400-700 ms (unchanged).
+- **System entities (News / Todos / Versionsverlauf / Pluginstore / Integration / Weather etc.) appear when the registry finishes** — could be 1–10 s depending on how heavy your integration devices are. They pop in without disrupting layout because they live in the search results, not the always-visible UI shell.
+
+### What this does NOT fix (but is now visible in profile)
+
+- `Integration.loadSavedDevices` is still sequential. Parallelizing it (`Promise.all`) would speed up the registry from 10 s to ~3 s — useful for users actively browsing system entities, but no longer blocks first paint.
+- `EnergyDashboardDeviceEntity.onMount` has 4 sequential HA calls that could run as `Promise.all`.
+- `pluginstore.onMount` reloads plugins sequentially.
+
+These are now optional optimizations — the heat / blocking pain is gone for the boot path. We can do them later if the registry-done time bothers users browsing system entities.
+
+### Verification
+
+After update, look at the console dump on first boot. The `dp-registry-done` mark now arrives **after** `dp-ha-indexed`, somewhere later in the timeline. The earlier marks should all be sub-200 ms in total. A second `perfDump()` is auto-emitted when registry finishes, showing the full picture.
+
+---
+
 ## Version 1.1.1245 - 2026-04-25
 
 **Title:** Boot-time profiling — `performance.mark` instrumentation, no behavior change
