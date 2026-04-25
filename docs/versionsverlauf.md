@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1257 - 2026-04-25
+
+**Title:** News debug — show all attribute keys + live event logger
+**Hero:** none
+**Tags:** Diagnostics, News
+
+### Why
+
+The v1.1.1256 `debugNewsImages()` output revealed that BBC, CNN, Guardian feedreader event entities have **no image fields whatsoever** in their attributes — `enclosures`, `image`, `media_content`, `media_thumbnail` are all `undefined`. That points at HA's `feedreader` integration: the `event.*` entities it creates are a **sparse state representation** (mostly title, link, published). The rich payload with images lives only on the event bus, delivered to live subscribers.
+
+Two diagnostics added so we can see what's really there.
+
+### `debugNewsImages()` — extended
+
+Now also prints, per entity:
+- `Object.keys(attributes)` — full list of every attribute key the entity has
+- The full `attributes` object dump
+
+So if HA stores images under a key we haven't checked (`image_url`, `summary_image`, etc.), we'll see it now.
+
+### `logNewsLiveEvents()` — new
+
+Subscribes to the live `feedreader` event bus and logs every incoming article. Each log shows:
+- The full event object
+- `event.data` payload + `Object.keys(event.data)` so we can see the bus-side schema
+- The thumbnail our extractor finds (or `(none)`)
+
+Usage:
+```js
+window.logNewsLiveEvents();          // start logging
+// ... wait for HA's feedreader to fetch a feed (default 1h interval) ...
+// or trigger a forced fetch from HA: feedreader.update_entity ...
+window.logNewsLiveEvents.stop();     // stop logging
+```
+
+If the bus events have rich data (`media_thumbnail`, etc.), our existing `_extractThumbnail` will already find images for new articles arriving live. The historical entries are the gap — those came from sparse event-entity attributes.
+
+### What this release isn't
+
+Still no behavior change for end users — pure diagnostics. The next release decides what to actually fix once we see the real data shape.
+
+---
+
 ## Version 1.1.1256 - 2026-04-25
 
 **Title:** News image debug — `window.debugNewsImages()` for live feed inspection
