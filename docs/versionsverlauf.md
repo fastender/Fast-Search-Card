@@ -1,5 +1,80 @@
 # Versionsverlauf
 
+## Version 1.1.1258 - 2026-04-25
+
+**Title:** News — full migration off HA-core `feedreader`, now uses HACS `timmaurice/feedparser`
+**Hero:** none
+**Tags:** Breaking, News, Architecture
+
+### Why
+
+The v1.1.1257 debug session revealed that HA's core `feedreader` integration intentionally exposes only four fields on its `event.feedreader_*` entities: `title`, `link`, `description`, `content`. No image data, no media URLs, no enclosures. That's hardcoded in HA's `feedreader/event.py`. Bus events have rich data, but bus events only fire on *new* articles — historical entries that loaded from the entity attributes are stuck without images.
+
+Two paths to richer data:
+- Detection adapter that reads from both core `feedreader` AND HACS `timmaurice/feedparser`.
+- Full switch to `timmaurice/feedparser`, drop core `feedreader` support entirely.
+
+User chose **the full switch**. Cleaner, less code, no dual-path maintenance.
+
+### What `timmaurice/feedparser` exposes
+
+Per configured feed, a `sensor.<feed_name>` entity:
+
+```js
+state: 10,                                                  // entry count
+attributes: {
+  channel: { title, link, image, ... },
+  entries: [
+    { title, link, summary, published, image, ... },        // image is a string URL,
+    ...                                                     // already extracted on the
+  ],                                                        // Python side
+  attribution: 'Data retrieved using RSS feedparser',
+}
+```
+
+`image` is **already a string URL** — Python's `feedparser.py` runs the multi-source extraction (media_content / media_thumbnail / enclosures / summary HTML), so no JS-side regex extraction needed.
+
+### Code change scope
+
+`src/system-entities/entities/news/index.jsx` — 1044 → 875 lines.
+
+**Removed entirely:**
+- `_handleFeedreaderEvent`, `_loadFeedreaderHistory`, `_loadFeedreaderEventEntities`, `_loadFeedreaderHistoryInBackground`
+- `_extractThumbnail`, `_extractImageFromHtml` — multi-source image extraction (handled by Python now)
+- `_findEntityIdByFeedUrl` — feedparser sensor IDs are direct, no URL-to-entity lookup needed
+- `subscribeEvents('feedreader')` listener
+- `has_feedreader` attribute, `feedreader:read` permission
+- `window.testFeedreaderEvent` debug helper
+
+**Added:**
+- `_loadFeedparserSensors(hass)` — finds all `sensor.*` with `attributes.entries` array + `attributes.channel`
+- `_processFeedparserSensor(sensor)` — iterates `attributes.entries`, maps each to internal article shape
+- `_handleSensorStateChange(event)` — listens for `state_changed` events, updates when feedparser sensors get new entries
+- `_entryToArticle(entry, channel, sensorId)` action — maps feedparser entry → card's article shape
+- `_stripHtml(html)` action — used inline in entry mapping
+- `_findFeedparserSensors`, `_fetchFromFeedparser` — feedparser-aware fetch + lookup helpers
+
+**Subscription model changed:** instead of subscribing to the `feedreader` event type, the entity now subscribes to `state_changed` and filters for sensors with the feedparser shape. Same effect (live-update when feeds refresh), different mechanism — sensor state updates are more reliable than event-bus subscriptions.
+
+`src/system-entities/entities/news/components/iOSSettingsView.jsx`:
+- Feed-detection switched from `event.*` with `event_type: feedreader` to `sensor.*` with `entries[]` + `channel`
+- Empty state simplified — only mentions `A better Feedparser` (HACS) now, since core `feedreader` is no longer supported
+
+`src/system-entities/entities/news/NewsView.jsx`:
+- `hasFeedreader` checks renamed to `hasFeedparser`, hint text updated
+
+### Migration impact for users
+
+- Users with the core `feedreader` integration installed will see **no feeds** in the News card after this update. They need to install the HACS integration `A better Feedparser` from `github.com/timmaurice/feedparser` and reconfigure their feeds via UI.
+- Existing News-card settings (per-feed category, enabled/disabled toggles) are keyed by entity ID. Since entity IDs change from `event.bbc_news` to `sensor.bbc_news`, settings won't carry over — user re-toggles per feed once.
+- Article cache (read/favorite state) is keyed by article URL, so any matching old articles keep their state. New articles arrive with images.
+
+### Why this was the right call
+
+The core `feedreader` integration is not going to expose richer data — its event entity schema is intentionally minimal (HA dev decision, see `_unrecorded_attributes` and the four hardcoded ATTR_* keys in upstream). To get images, the integration has to be different. `timmaurice/feedparser` does the right thing on the Python side: full feedparser entry, image pre-extracted, entries directly in attributes. Card just reads them. No CORS proxies, no third parties, no schema gymnastics.
+
+---
+
 ## Version 1.1.1257 - 2026-04-25
 
 **Title:** News debug — show all attribute keys + live event logger
