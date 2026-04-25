@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1253 - 2026-04-25
+
+**Title:** News entity — boot-block fix + dead-code cleanup + lazy images
+**Hero:** none
+**Tags:** Performance, Code Cleanup, News
+
+### What was wrong
+
+The `system.news` entity awaited a WebSocket call (`hass.callWS({ type: 'logbook/get_events', ... })`) inside its `onMount`. Same anti-pattern that v1.1.1238 fixed for Versionsverlauf: if Home Assistant's recorder/logbook is slow to respond, the entity's mount hangs, the registry's `Promise.all` waits for it, and the user sees a delay before the News tab is available.
+
+Plus three files of dead code: `config/feedSources.js`, `utils/articleCache.js`, `utils/rssParser.js`. None imported anywhere — leftovers from an earlier RSS-fetching design that was replaced by HA's `feedreader` integration. `rssParser.parseRSSFeed()` even had a `// TODO: Implement actual RSS fetching` marker.
+
+### Fix 1 — `onMount` boot-block
+
+`src/system-entities/entities/news/index.jsx` `onMount` no longer awaits the WebSocket history fetch. The fast steps stay in `onMount`:
+
+- Subscribe to live `feedreader` events.
+- `_loadFeedreaderEventEntities(hass)` — pure `hass.states` read, no network.
+- `executeAction('getArticles')` — pure cache read.
+
+The slow step (`_loadFeedreaderHistory(hass)` — recorder/logbook lookup) moves to a new `_loadFeedreaderHistoryInBackground(hass)` method that runs fire-and-forget with an 8-second `Promise.race` timeout. When it lands, the article list is refreshed via another `getArticles` call. When it times out, a `console.warn` is emitted and the user keeps whatever the cache + live event entities provided.
+
+Net effect: the News entity's mount completes in milliseconds regardless of HA recorder latency. Same boot timing improvement v1.1.1238 brought to Versionsverlauf.
+
+### Fix 2 — dead code removed
+
+Deleted (verified unimported):
+
+- `src/system-entities/entities/news/config/feedSources.js` (335 LOC, defaultFeeds + helpers, never imported)
+- `src/system-entities/entities/news/utils/articleCache.js` (singleton class, never imported)
+- `src/system-entities/entities/news/utils/rssParser.js` (incomplete TODO)
+
+Empty `config/` and `utils/` directories also removed. Bundle is fractionally smaller and the directory structure is honest about what's actually used.
+
+### Fix 3 — lazy + async image decoding
+
+Two `<img>` tags in `NewsView.jsx` (article-detail + article-card thumbnail) now have `loading="lazy"` and `decoding="async"`. With 100+ articles in the feed, this avoids fetching every thumbnail upfront and keeps image decoding off the main thread.
+
+### What this doesn't fix (deferred — risk vs. reward)
+
+- **Virtualization for long article lists** — would require a structural refactor of `NewsView`. Worth doing if profiling shows scroll-jank on devices with 200+ articles, not before.
+- **`useCallback` / `useMemo` audit** — `NewsView` has 19 useState hooks and inline handlers that could be memoized. Real but small gain. Held for a focused render-perf pass later.
+- **65 `console.log` calls** — cosmetic cleanup, not urgent. Most are useful for live debugging.
+- **Global `window._newsViewRef`** — small leak risk on remount. Held; would need a context-based replacement.
+
+### What was a false positive in the audit
+
+The auditor flagged "Settings persistence inconsistency" as Critical #2. Re-reading the code: `iOSSettingsView` calls `onUpdateSetting(path, value)` → `handleUpdateSetting` (NewsView:608) → `handleUpdateSettings` (NewsView:363) → `saveSettings`. Path is consistent — every setting change persists. Skipped.
+
+---
+
 ## Version 1.1.1252 - 2026-04-25
 
 **Title:** Bug bundle — translation keys, toggle dedupe, instant favorites/suggestions, IOSToggle component
