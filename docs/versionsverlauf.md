@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1273 - 2026-04-26
+
+**Title:** Schedule edit fixes — TimePicker now shows the actual saved time, picker UI flash gone, Zeitformat-row removed
+**Hero:** none
+**Tags:** ScheduleTab, all_schedules, Bugfix, UX
+
+### Why
+
+Three follow-up issues from v1.1.1272's all_schedules inline-edit:
+
+1. **Wrong time in the picker wheel.** Editing a 21:00 schedule, the picker showed `01:00` (or always `09:00` after the AM/PM conversion) instead of the saved value. Header was correct, picker wasn't.
+2. **List flashes briefly before edit opens.** ~100ms of the ScheduleTab's normal list/filter UI showed up between the click and the picker appearing.
+3. **Header showed aggregate counts during edit.** "11 Zeitpläne / 0 Timer · 11 Pläne" stayed visible while editing a specific device's schedule.
+4. **Redundant Zeitformat-row** (24h / AM / PM picker inside the schedule itself) — that choice belongs in global system settings, not per-schedule.
+
+### Changes
+
+**TimePicker constructor call corrected** ([pickerInitializers.js:153-178](src/components/tabs/ScheduleTab/utils/pickerInitializers.js#L153)). Old code passed three arguments to `new TimePicker(hoursEl, minutesEl, optionsObject)` — but the constructor signature is `(hoursElement, minutesElement, periodElement, options)`. The options object was being interpreted as `periodElement`, so the *real* options (`callback`, `initialHour`, `initialMinute`, `hourMode`) all silently fell back to defaults. Result: callback was a no-op (so React's `setTime` was never wired up), `initialHour` defaulted to `'09'`, and the period picker tried to attach to the options object as if it were a DOM element. New call passes `null` as the third argument and the options as the fourth.
+
+**TimePicker resilient to null `periodElement` and supports 24h-only mode** ([IOSTimePicker.jsx:138-235](src/components/IOSTimePicker.jsx#L138)). New `is24h = !this.periodElement || options.hourMode === '24h'` flag. When true: hours data spans 00-23 instead of 01-12, period auto-set to `'24h'`, no AM/PM conversion of the initial hour, and `periodPicker` instantiation is skipped (avoids the previous IOSPicker crash on null element). Defensive `Math.max(0, hoursData.indexOf(...))` so a non-matching value falls back to index 0 instead of `-1`.
+
+**ScheduleTab list/filter/add hidden during the auto-edit transition** ([ScheduleTab.jsx:551-583](src/components/tabs/ScheduleTab.jsx#L551)). New `isAutoEditing = !!initialEditItem && !showPicker && !editingItem` guard wraps the `<ScheduleFilter>`, `<ScheduleList>`, and `<AddScheduleButton>` in a fragment that only renders when NOT auto-editing. The picker still renders below (because it has its own `showPicker` gate). Result: clicking from all_schedules drops directly into a blank panel that becomes the picker once `handleItemClick` finishes, with no list flash.
+
+**Auto-edit trigger uses `Promise.resolve().then` instead of a 250ms `setTimeout`** ([ScheduleTab.jsx:399-410](src/components/tabs/ScheduleTab.jsx#L399)). Microtask scheduling: gives React one tick to mount and process state, then fires immediately. Combined with the auto-editing render guard above, the perceived delay drops from ~350ms to whatever `handleItemClick`'s internal 100ms `setTimeout` requires.
+
+**Header now shows the device when editing inline** ([DetailView.jsx:344-368](src/components/DetailView.jsx#L344), [AllSchedulesView.jsx:206-219](src/system-entities/entities/all-schedules/AllSchedulesView.jsx#L206)). `getAllSchedulesHeaderInfo()` checks `selectedSchedule` first: if set, returns `stateText: <deviceName>` and `stateDuration: "<DomainLabel> · bearbeiten"` (e.g. "Flur" / "Klima · bearbeiten"). The ViewRef now exposes `selectedScheduleDeviceName` (resolved from `hass.states[entities[0]].friendly_name`) and `selectedScheduleDomainLabel` so the header lookup is a pure read.
+
+**Zeitformat-row removed from `SchedulePickerTable`** ([SchedulePickerTable.jsx:95-96](src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx#L95)). Per-schedule 24h/AM/PM choice is gone. TimePicker runs in 24h mode only; if a user wants AM/PM globally, that's a system-settings job. The `initializeTimeFormatPicker` call in `ScheduleTab` is also dropped since the DOM slot no longer exists.
+
+### Files touched
+
+- `src/components/tabs/ScheduleTab.jsx` — `initialEditItem` ref-based trigger via microtask, `isAutoEditing` render guard, `initializeTimeFormatPicker` call removed
+- `src/components/tabs/ScheduleTab/utils/pickerInitializers.js` — `new TimePicker(...)` call signature fixed
+- `src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx` — Zeitformat-row + picker container removed
+- `src/components/IOSTimePicker.jsx` — `is24h` mode support, null `periodElement` guarded, `selected` index defensive
+- `src/components/DetailView.jsx` — `getAllSchedulesHeaderInfo` returns device-context header during inline-edit
+- `src/system-entities/entities/all-schedules/AllSchedulesView.jsx` — ViewRef exposes `selectedScheduleDeviceName` / `selectedScheduleDomainLabel`
+
 ## Version 1.1.1272 - 2026-04-26
 
 **Title:** all_schedules inline-edit — click on a schedule edits in place, no navigation away
