@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.1262 - 2026-04-26
+
+**Title:** News card cleanup — drop date, fade-truncate long source names
+**Hero:** none
+**Tags:** News, UX, Polish
+
+### Changes
+
+**Date removed from article cards** ([NewsView.jsx:902-905](src/system-entities/entities/news/NewsView.jsx#L902)). The bucket headers (Heute / Gestern / Diese Woche / Älter) introduced in v1.1.1261 already convey the time grouping; per-card dates were redundant and caused awkward wrapping when long source names pushed them onto a second line. The footer now shows just the source.
+
+**Source name now truncates with the same gradient fade as the title** ([NewsView.css:307-316](src/system-entities/entities/news/styles/NewsView.css#L307)). Long sources like "tagesschau.de - Die Nachrichten der ARD" used to wrap to two lines and break the card layout. They now stay on one line and fade out at 85% width via `linear-gradient` + `background-clip: text`, matching the existing `.article-title` treatment.
+
+### Files touched
+
+- `src/system-entities/entities/news/NewsView.jsx` — removed `.article-separator` and `.article-date` from card footer
+- `src/system-entities/entities/news/styles/NewsView.css` — `.article-source` gets `white-space: nowrap`, `overflow: hidden`, `min-width: 0`, gradient text-fade
+
 ## Version 1.1.1261 - 2026-04-26
 
 **Title:** News — group articles by time bucket (Today / Yesterday / This Week / Older) with sticky headers
