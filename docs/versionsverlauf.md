@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1264 - 2026-04-26
+
+**Title:** News — bucket headers match room-header style, real feed icons in settings
+**Hero:** none
+**Tags:** News, UI, Polish
+
+### Changes
+
+**Bucket headers no longer sticky, restyled to match the search/devices room-header pattern** ([NewsView.css:212-232](src/system-entities/entities/news/styles/NewsView.css#L212)). Dropped `position: sticky`, the dark blurred background, the uppercase 12px label and the negative margin trick. New look: 18px, weight 500, `rgba(255,255,255,0.9)`, `padding: 8px 0`, with a `::after` pseudo-element drawing a 1px hairline at the bottom — exactly like `.search-group-title` in `SearchField.css`. So `Heute` / `Gestern` / `Diese Woche` / `Älter` now sit between cards as inline section labels with a divider underneath, the same way `Anziehraum` does in the device list.
+
+**Feed icon in news settings now shows the actual feed logo / favicon** ([iOSSettingsView.jsx:48,206-219](src/system-entities/entities/news/components/iOSSettingsView.jsx)). `fast-news-reader`'s `_build_channel` exposes both `channel.image` (the RSS feed's own logo, e.g. Tagesschau's red square) and `channel.icon` (a favicon URL derived from the feed's host). The settings list now renders these as `<img>` inside the existing `.ios-feed-icon` 29px tile, with the 📰 emoji as a fallback if the image fails to load. CSS got `overflow: hidden` on the tile and `object-fit: cover` on the image so it fills the rounded square without distortion.
+
+### Files touched
+
+- `src/system-entities/entities/news/styles/NewsView.css` — `.news-bucket-header` rewritten to `.search-group-title` style
+- `src/system-entities/entities/news/components/iOSSettingsView.jsx` — `iconUrl` field added to `availableFeeds`; conditional `<img>` + emoji fallback rendered inside `.ios-feed-icon`
+- `src/system-entities/entities/news/components/iOSSettingsView.css` — `overflow: hidden` on tile, image fill rules
+
 ## Version 1.1.1263 - 2026-04-26
 
 **Title:** News — drop manual per-feed category override, read category from `entry.category` (fast-news-reader)
