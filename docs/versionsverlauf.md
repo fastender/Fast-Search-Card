@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1276 - 2026-04-26
+
+**Title:** TodoDetailView CSS for `.time-picker-separator` was unscoped — it was overriding ScheduleTab's picker
+**Hero:** none
+**Tags:** ScheduleTab, todos, CSS, Bugfix
+
+### Why
+
+The schedule edit picker's center column (the colon between hours and minutes) looked different from the wheel columns: the dark gradient that frames the selected band was missing, and the inspector showed `background: transparent` plus `z-index: 11` winning over ScheduleTab's gradient. Source: two unscoped `.time-picker-separator { ... }` rules in `TodoDetailView.css` that bled into ScheduleTab and overrode the gradient + raised the separator above the new container hairlines (so they appeared discontinuous).
+
+### Changes
+
+**Both `.time-picker-separator` rules in [TodoDetailView.css](src/system-entities/entities/todos/styles/TodoDetailView.css) scoped to their todos containers**:
+- The rule near line 224 → scoped to `.todo-time-picker-wheels .time-picker-separator`
+- The rule near line 523 (the one with `z-index: 11`) → scoped to `.todo-picker-container .time-picker-separator`
+- The matching `:before/:after { height: 0 }` killers also scoped (they were nuking the schedule container's hairlines globally)
+
+**Result:** ScheduleTab's `.time-picker-separator` keeps its proper `linear-gradient(180deg, rgba(0,0,0,.25), transparent 42.86%, transparent 57.14%, rgba(0,0,0,.25))` background and the colon column now has the same dark frame at top/bottom as the wheel columns. The container-level hairlines from v1.1.1275 (`.time-picker-container::before/::after`) now sit above the separator and form one continuous line across all three columns.
+
+### Files touched
+
+- `src/system-entities/entities/todos/styles/TodoDetailView.css` — three `.time-picker-separator*` rules scoped to their todos wrappers; one redundant `:before/:after { height: 0 }` block deleted
+
 ## Version 1.1.1275 - 2026-04-26
 
 **Title:** TimePicker shows actual saved value when expanded; center-band hairlines now seamless
