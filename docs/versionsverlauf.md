@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1272 - 2026-04-26
+
+**Title:** all_schedules inline-edit — click on a schedule edits in place, no navigation away
+**Hero:** none
+**Tags:** all_schedules, UX
+
+### Why
+
+Clicking a schedule in `all_schedules` previously called `onNavigate(targetEntityId, { openTab: 'schedule' })` and dropped the user into the device-detail view's `ScheduleTab`. Two clicks (item → device detail → schedule list → click again to edit), and the user lost their place in the schedule overview. User wants direct edit-in-place: click → edit picker opens → save → back to overview.
+
+### Changes
+
+**`ScheduleTab` accepts an `initialEditItem` prop** ([ScheduleTab.jsx:49,128-132,389-403](src/components/tabs/ScheduleTab.jsx#L49)). When set, the tab auto-fires `handleItemClick(editItem)` 250ms after mount, so the picker opens pre-filled with that schedule's time / days / action / domain-specific settings. `handleItemClick` is referenced through a `ref` (set after its `const` declaration) because of TDZ: the trigger `useEffect` runs at the top of the function but `handleItemClick` is defined further down. Defensive shape coercion: `editItem.domain = editItem.domain || editItem.domainRaw` since all_schedules uses the latter.
+
+**`AllSchedulesView` click handler swapped from navigation to local state** ([AllSchedulesView.jsx:339-352](src/system-entities/entities/all-schedules/AllSchedulesView.jsx#L339)). Out: `onNavigate(targetEntityId, { openTab: 'schedule' })`. In: `setSelectedSchedule(schedule)` plus closing search/settings if open. New `handleCloseEdit()` clears `selectedSchedule` and bumps `refreshTrigger` so the list reloads after potential edits.
+
+**Inline edit branch in render** ([AllSchedulesView.jsx:444-468](src/system-entities/entities/all-schedules/AllSchedulesView.jsx#L444)). When `selectedSchedule` is set, the toolbar/list is replaced by a `<ScheduleTab>` mounted inline. The `item` prop is constructed on the fly from `selectedSchedule.entities[0]` looked up against `hassRef.current.states` (entity_id, domain, friendly_name, attributes, state). `initialEditItem={selectedSchedule}` triggers the auto-edit. `onTimerCreate` / `onScheduleCreate` callbacks point to `handleCloseEdit` (mostly a no-op for edits, since updates take a different code path inside ScheduleTab — but covers the create-from-edit-mode case).
+
+**Back-navigation hierarchy extended** ([AllSchedulesView.jsx:267-275](src/system-entities/entities/all-schedules/AllSchedulesView.jsx#L267)). `handleBackNavigation` priority: selected-schedule → settings → search → onBack(). The Detail-Header's back-button (which already invokes `handleBackNavigation` via the all_schedules ViewRef) now correctly closes the inline-edit and returns to the overview list.
+
+**ViewRef now exposes `selectedSchedule`** so DetailView can react to the inline-edit state if needed (e.g. header swap in a follow-up).
+
+### Tradeoffs
+
+The embedded `ScheduleTab` brings its own UI with it: its own filter row (Alle/Timer/Zeitpläne), its own list of schedules-for-this-device, its own AddScheduleButton. Effectively two filter rows visible, and the list shown inline shows only schedules for the clicked schedule's parent device, not the whole overview. This is a pragmatic first iteration — full functionality is preserved, but UX is denser than ideal. A follow-up could trim the embedded UI down to just the picker (no filter/list/add) when in initialEditItem mode.
+
+### Files touched
+
+- `src/components/tabs/ScheduleTab.jsx` — `initialEditItem` prop + ref-based auto-trigger
+- `src/system-entities/entities/all-schedules/AllSchedulesView.jsx` — `selectedSchedule` state, click handler swap, inline-edit branch, back-navigation hierarchy, ViewRef
+- `src/system-entities/styles/AllSchedulesView.css` — `.all-schedules-edit-wrapper` scroll container
+
 ## Version 1.1.1271 - 2026-04-26
 
 **Title:** all_schedules adopts the news design language — same toolbar, same cards, same detail-tabs, same header
