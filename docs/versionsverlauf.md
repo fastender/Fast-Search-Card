@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1268 - 2026-04-26
+
+**Title:** News grouping cycle — dedicated mode-button (Quellen ⇄ Topics ⇄ Themen), chip toggling, multi-tag support
+**Hero:** none
+**Tags:** News, UX, Bugfix
+
+### Why
+
+The v1.1.1267 implementation packed mode-cycling and "reset to all" into the same `Alle ___` chip. Two-state click behaviour was confusing — to cycle modes from a filtered state, you had to click twice and the user couldn't predict whether a click would reset or cycle. fast-news-reader's own Lovelace card solves this with a dedicated mode-cycle button (separate from the chip strip) that always cycles + always resets the active chip. Plus their topic mode iterates the full `entry.category` array (multi-tag), and they have an "Other" bucket so feeds without a curated theme don't silently disappear in Themen-mode. Adopting that whole pattern.
+
+### Changes
+
+**Article shape now stores the full `entry.category` array** ([news/index.jsx:330-354](src/system-entities/entities/news/index.jsx#L330)). New field `categories` (slugified array) sits next to `category` (first slug, used by the badge). Topic-mode chip building and filtering iterate `categories[]` so an article tagged `["politik", "ausland"]` shows under both pills.
+
+**Dedicated mode-cycle button replaces the dual-purpose `Alle ___` chip** ([NewsView.jsx:801-816](src/system-entities/entities/news/NewsView.jsx#L801), [NewsView.css:121-148](src/system-entities/entities/news/styles/NewsView.css#L121)). New `.news-grouping-mode-btn` sits between the status group and the chip row, styled with the news-orange accent so it visually reads as a control rather than a filter chip. Shows the current mode label (`Quellen` / `Topics` / `Themen`) and a swap-horizontal icon. Click always cycles to the next mode and resets `categoryFilter` to `'all'`. Default mode is `'quellen'`. The hover title spells out the cycle order so first-time users get the mechanic.
+
+**Chips now toggle on click** ([NewsView.jsx:818-829](src/system-entities/entities/news/NewsView.jsx#L818)). Tapping the active chip again deactivates it (back to `categoryFilter === 'all'` for the current mode). Standard iOS-style multi-state behaviour — no separate "Alle" pseudo-chip needed since deselecting any chip yields the "all" state.
+
+**Themen-mode "Other" bucket** ([NewsView.jsx:506-528, 287-298](src/system-entities/entities/news/NewsView.jsx#L506)). Feeds without a fast-news-reader preset (custom URLs added by the user) get `theme: null`. Without a fallback they'd vanish from the chip row entirely under Themen-mode. Now `getChips()` appends a synthetic `__other__` value when at least one article lacks a theme; the chip displays as "Sonstige" / "Other" and the filter matches `!a.theme`.
+
+### Dropped
+
+- The dual-purpose `Alle ___` chip (replaced by mode-button + chip toggling)
+- `groupingAllLabel` helper (no longer needed)
+- The two-click "first reset, then cycle" interaction
+
+### Files touched
+
+- `src/system-entities/entities/news/index.jsx` — `_entryToArticle` slugifies + stores full `categories` array
+- `src/system-entities/entities/news/NewsView.jsx` — default mode `quellen`, multi-tag filter logic, "Other" bucket, dedicated cycle button, chip toggle behaviour
+- `src/system-entities/entities/news/styles/NewsView.css` — `.news-grouping-mode-btn` styling
+
 ## Version 1.1.1267 - 2026-04-26
 
 **Title:** News bundle — search button moves to detail-tabs, status+topic chips merged, full-cover article image, bookmark icon, 3-mode grouping cycle (Quellen/Topics/Themen)
