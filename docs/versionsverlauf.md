@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1275 - 2026-04-26
+
+**Title:** TimePicker shows actual saved value when expanded; center-band hairlines now seamless
+**Hero:** none
+**Tags:** ScheduleTab, IOSPicker, Bugfix
+
+### Why
+
+Two related visual bugs in the schedule edit picker:
+
+1. **Wheel showed `00:00` even though the schedule's saved time was `21:00`.** The header on top of the picker correctly showed `21:00` (from React state), but the wheel column was stuck at index 0. Reproducible by opening any schedule's inline-edit and clicking the "Zeitplan"-row to expand the time picker.
+
+2. **Selection-band hairlines didn't line up across columns.** The horizontal lines that frame the center "selected" row were drawn three separate times — `picker-up`'s `border-bottom`, `picker-down`'s `border-top`, and the `time-picker-separator`'s `::before/::after` pseudos — at slightly different y-coordinates and different widths. Visible as small steps where the lines met the colon column.
+
+### Changes
+
+**`IOSPicker` re-applies its initial scroll position once the element first becomes visible** ([IOSTimePicker.jsx:16-37](src/components/IOSTimePicker.jsx#L16)). Root cause of #1: `div.picker { display: none; }` is the default styling for all picker rows in the schedule table — they only become visible when the user clicks a row to expand. But IOSPicker's `init()` runs as soon as the picker DOM mounts (before the row gets expanded). At init time, the scroll container has 0 visible height, so `cloneScroller.scrollTop = lineHeight * selected` has no effect — the wheel is stuck at index 0 forever, even after the row becomes visible.
+
+Fix: a `ResizeObserver` watches the scroll container. The first time the container reports a non-zero height (= the row got expanded), the observer re-applies `scrollTop = lineHeight * selected`, calls `updateRotation()`, then disconnects. One-shot — won't interfere with user scrolling later. Falls back gracefully on environments without `ResizeObserver` (very old browsers).
+
+Added a public `scrollToSelected()` method too, in case external consumers need to re-center the picker programmatically. Also stashed `this.element._iosPicker = this` so consumers can find the instance from the DOM.
+
+**Center-band hairlines unified into one continuous line per side** ([ScheduleTab.css:402-428,459-486](src/components/tabs/ScheduleTab/styles/ScheduleTab.css#L402)). Removed:
+- `.picker-up { border-bottom: 1px ... }` (was at y=90-91 without box-sizing)
+- `.picker-down { border-top: 1px ... }` (was at y=120-121)
+- `.time-picker-separator::before` (was at y=89, off by 1)
+- `.time-picker-separator::after` (was at y=120)
+
+Replaced with two pseudo-elements on `.time-picker-container` that span the entire row — one at `top: 90px`, one at `top: 120px`, both `1px` tall, `rgba(255,255,255,0.3)`, `z-index: 3`. One line, no offsets, no width gaps.
+
+### Files touched
+
+- `src/components/IOSTimePicker.jsx` — `ResizeObserver`-based scroll re-apply, `scrollToSelected()` method, instance back-reference
+- `src/components/tabs/ScheduleTab/styles/ScheduleTab.css` — three-piece hairlines collapsed into two `.time-picker-container` pseudos
+
 ## Version 1.1.1274 - 2026-04-26
 
 **Title:** all_schedules edit-flow polish + grouping cycle + global 24h/AM-PM time format setting
