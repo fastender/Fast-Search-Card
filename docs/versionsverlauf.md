@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1270 - 2026-04-26
+
+**Title:** PurgeCSS no longer strips dynamic mode-classes; nav arrows reposition top-right; ghost-list fix for prev/next navigation
+**Hero:** none
+**Tags:** News, Bugfix, Build
+
+### Why
+
+Three things shipped together:
+
+1. The per-mode background colors from v1.1.1269 (`.mode-quellen`, `.mode-topics`, `.mode-themen`) were being **stripped at build time by PurgeCSS** — the className uses dynamic interpolation (`mode-${groupingMode}`), so the static class extractor never saw the literal class names and treated them as unused.
+2. The floating prev/next arrows from v1.1.1269 were vertically centered overlay buttons; user wants them anchored top-right at the height of the article's category badge.
+3. **Backward and forward buttons broke when the active article got auto-marked as read while the status filter was set to "Ungelesen"** — the article instantly fell out of `filteredArticles`, so `findIndex` returned -1 and both prev/next went to `null`. Same root cause for the "first article = forward dead" report and the "backward never works" report.
+
+### Changes
+
+**PurgeCSS safelist extended** ([postcss.config.cjs:65-71](postcss.config.cjs#L65)). Added `/^mode-/`, `/^news-/`, and `/^article-/` to the deep regex safelist. Confirmed in `dist/fast-search-card.js` that `.mode-quellen`, `.mode-topics`, and `.mode-themen` now survive minification with their respective `#007aff` / `#ff9500` / `#af52de` backgrounds. The grouping-mode button now actually shows the per-mode color it was supposed to since v1.1.1269.
+
+**Nav arrows now top-right at category-badge height** ([NewsView.css:868-902](src/system-entities/entities/news/styles/NewsView.css#L868)). Removed the `top: 50%; transform: translateY(-50%)` floating-vertical-center positioning. New layout: `top: 28px`, prev at `right: 60px`, next at `right: 20px` — both 32×32 (down from 40×40) so they fit visually at the top corner without competing with the badge or the title. Hover/active scale transforms no longer need to compensate for the centering transform.
+
+**Navigation Ghost-List fix** ([NewsView.jsx:683-700, 332-359](src/system-entities/entities/news/NewsView.jsx#L683)). The render path (and the keyboard handler) now build a `navigationList` that's `filteredArticles` plus the active article re-inserted at its natural date-sorted position when it's been filtered out. Trigger case: status filter `unread` + `autoMarkRead: true` setting → opening any article instantly removes it from the visible list, causing `findIndex(a.id === selectedArticle.id)` to return -1 and both prev/next to evaluate to null. With the ghost-list approach, navigation order is preserved across the read state-change and you can keep stepping through.
+
+### Files touched
+
+- `postcss.config.cjs` — safelist regexes for `mode-`, `news-`, `article-`
+- `src/system-entities/entities/news/NewsView.jsx` — `navigationList` ghost-list logic in render + keydown handler
+- `src/system-entities/entities/news/styles/NewsView.css` — `.news-detail-nav-arrow(-prev/-next)` repositioned + resized
+
 ## Version 1.1.1269 - 2026-04-26
 
 **Title:** News article-detail prev/next nav, mode-button restyled to match chips with per-mode color
