@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1274 - 2026-04-26
+
+**Title:** all_schedules edit-flow polish + grouping cycle + global 24h/AM-PM time format setting
+**Hero:** none
+**Tags:** all_schedules, ScheduleTab, Settings, UX
+
+### Why
+
+A bunch of follow-ups from v1.1.1273 plus a new global setting:
+
+1. **Brief flash of ScheduleTab's normal list before the edit picker opens.** v1.1.1273's render guard `!!initialEditItem && !showPicker && !editingItem` failed because `setEditingItem` fires before the 100ms `setShowPicker` timeout — making the guard turn off too early.
+2. **"Abbrechen" button did nothing.** It called `resetPickerStates` which set `showPicker = false`, leaving the user looking at an empty container (since the list is hidden by the inline-edit guard). No way back to the all_schedules overview.
+3. **Action labels rendered as raw translation keys** (`ui.schedule.schedule_close`, `ui.schedule.setTemperature`). The `t` helper in AllSchedulesView already prefixes with `schedule.`; calling `t('schedule.X')` produces `schedule.schedule.X`, which doesn't exist in the translations.
+4. **`ui.schedule.createInDetailView` footer text** at the bottom of all_schedules — taking up space, raw key shown.
+5. **Need a global toggle for grouping** like news has (Quellen / Topics / Themen) — for all_schedules the natural dimensions are Type (Klima/Rollläden) / Devices (entity friendly_name) / Rooms (area name).
+6. **No global 24h vs AM/PM setting** anywhere in the system. Per-schedule Zeitformat-row was removed in v1.1.1273; now there's nowhere to choose.
+
+### Changes
+
+**Inline-edit list-flash fully fixed** ([ScheduleTab.jsx:553-557](src/components/tabs/ScheduleTab.jsx#L553)). Render-guard simplified from `!!initialEditItem && !showPicker && !editingItem` to `!!initialEditItem`. When `initialEditItem` is set (= called from all_schedules), the entire normal ScheduleTab UI (`<ScheduleFilter>`, `<ScheduleList>`, `<AddScheduleButton>`) is suppressed for the lifetime of the inline-edit. Only the picker renders. No more flash.
+
+**`onClose` prop on ScheduleTab + parent gets notified on cancel/save** ([ScheduleTab.jsx:49,159-171](src/components/tabs/ScheduleTab.jsx#L49)). New optional `onClose` prop. Inside `resetPickerStates` (which runs on Cancel and after a successful Save), `onClose` fires with a 100ms delay so any refresh calls finish first. all_schedules passes `handleCloseEdit` to it — clicking Abbrechen now correctly returns to the overview list. Save also returns to overview.
+
+**Action label translation keys fixed** ([AllSchedulesView.jsx:153-180](src/system-entities/entities/all-schedules/AllSchedulesView.jsx#L153)). Removed the double `schedule.` namespace prefix in all action lookups (`t('schedule.close')` → `t('close')`, etc.). Added `setTemperature` to de+en translations (was missing entirely). Fallback for unknown service names: capitalize the service tail (`light.toggle` → `Toggle`) instead of showing the raw service path.
+
+**Footer removed** ([AllSchedulesView.jsx](src/system-entities/entities/all-schedules/AllSchedulesView.jsx)). `info-footer` div with `ui.schedule.createInDetailView` placeholder text deleted from the JSX.
+
+**Grouping-mode cycle button** ([AllSchedulesView.jsx:131-148, 222-251, 273-290, 461-490](src/system-entities/entities/all-schedules/AllSchedulesView.jsx#L131)). Three modes:
+- **Typ** (default, orange via `mode-topics`) — chips show domains (Klima, Rollläden, Lichter, Schalter, ...)
+- **Geräte** (blue via `mode-quellen`) — chips show device friendly_names
+- **Räume** (purple via `mode-themen`) — chips show room/area names
+
+New `getEntityArea(entityId)` helper resolves area name through the registry chain: entity-registry → device-registry → state-attr → `hass.areas[id].name`. Each schedule item gets `deviceName` and `roomName` precomputed during `processAllSchedules` so the toolbar render stays cheap. Filter logic uses `groupingFieldOf(item)` to pick the right field per mode. Click cycles the mode and resets `categoryFilter`. Chip toggle behaviour identical to news (click active chip again = deactivate). Search now also looks at `deviceName` and `roomName`.
+
+Reuses the news mode-button CSS classes (`.news-grouping-mode-btn.mode-topics/-quellen/-themen`) since both views are in the same bundle and the styling is identical.
+
+**Global 24h vs AM/PM time format setting** ([timeFormatPreference.js](src/utils/timeFormatPreference.js), [GeneralSettingsTab.jsx](src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx)).
+- New `src/utils/timeFormatPreference.js` helper with `readTimeFormat()` / `writeTimeFormat()` / `is24hFormat()`. Stored in `localStorage.userTimeFormat`. Writes dispatch a `timeFormatChanged` event for live reactivity.
+- New row in Settings → Allgemein, after Währung: "Zeitformat" / "Wähle 24-Stunden oder AM/PM". Tap opens a sub-view with two radio-style options: "24-Stunden (z.B. 21:00)" and "12-Stunden (AM/PM) (z.B. 9:00 PM)". Same visual pattern as the existing currency picker.
+- Translations added to de + en under the same section as `appCurrency`.
+
+**TimePicker now respects the global preference** ([pickerInitializers.js:153-180](src/components/tabs/ScheduleTab/utils/pickerInitializers.js#L153), [SchedulePickerTable.jsx:130-141](src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx#L130), [ScheduleTab.jsx:177-181](src/components/tabs/ScheduleTab.jsx#L177)). `pickerRefs` gets a new `periodRef`. The picker table conditionally renders the period DOM slot — only when 12h-mode is active. `initializeTimePicker` reads `is24hFormat()` and either passes `periodEl=null + hourMode='24h'` or `periodEl=ref.current + hourMode=undefined` (which lets TimePicker derive AM/PM from the initial hour). Same hour 21:00 now shows as "21" in 24h mode or "PM 09" with AM/PM mode visible.
+
+### Files touched
+
+- `src/components/tabs/ScheduleTab.jsx` — `onClose` prop, `resetPickerStates` calls it, render-guard simplified, `pickerRefs.periodRef` added
+- `src/system-entities/entities/all-schedules/AllSchedulesView.jsx` — grouping mode state + helpers, action key translations fixed, footer removed
+- `src/components/tabs/ScheduleTab/utils/pickerInitializers.js` — reads global time format
+- `src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx` — conditional period DOM slot
+- `src/utils/timeFormatPreference.js` — new helper module
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` — Zeitformat row + sub-view
+- `src/utils/translations/languages/de.js` + `en.js` — new keys
+
+### Notes
+
+The TodoFormDialog also uses TimePicker but is not yet wired to the new preference — it always renders the period element. Easy follow-up if needed: read `is24hFormat()` and conditionally hide the period slot the same way.
+
 ## Version 1.1.1273 - 2026-04-26
 
 **Title:** Schedule edit fixes — TimePicker now shows the actual saved time, picker UI flash gone, Zeitformat-row removed
