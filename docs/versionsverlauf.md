@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1277 - 2026-04-26
+
+**Title:** TimePicker layout: equal-share wheels work for both 24h (2 wheels) and 12h (3 wheels)
+**Hero:** none
+**Tags:** ScheduleTab, IOSPicker, Bugfix
+
+### Why
+
+After v1.1.1274 wired the global 24h/AM-PM setting to the TimePicker, switching to AM/PM mode added a third wheel column (period) to the picker. But `.time-picker-container > div:first-child` and `> div:last-child` still hard-pinned `max-width: 50%`. With 3 wheels + 20px separator that meant: hours = 50% (first), period = 50% (last), minutes squeezed in between → the entire picker shifted left and looked broken.
+
+### Changes
+
+**Width rule generalized** ([ScheduleTab.css:475-485](src/components/tabs/ScheduleTab/styles/ScheduleTab.css#L475)). Replaced the two `:first-child` / `:last-child` rules with one rule targeting any wheel column (= any direct `<div>` that isn't `.time-picker-separator`):
+
+```css
+.time-picker-container > div:not(.time-picker-separator) {
+  flex: 1;
+  min-width: 0;
+}
+```
+
+Each wheel gets equal share of the remaining space after the 20px separator. 24h mode: 2 wheels ≈ 50% each. 12h mode: 3 wheels ≈ 33% each. No `max-width` cap needed — flex-1 + min-width-0 handles it cleanly.
+
+### Files touched
+
+- `src/components/tabs/ScheduleTab/styles/ScheduleTab.css` — `.time-picker-container` child width rule generalized
+
 ## Version 1.1.1276 - 2026-04-26
 
 **Title:** TodoDetailView CSS for `.time-picker-separator` was unscoped — it was overriding ScheduleTab's picker
