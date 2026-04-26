@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1266 - 2026-04-26
+
+**Title:** News — article image now lives on `detail-left` (icon-background), search bar + status filters above topics
+**Hero:** none
+**Tags:** News, UI, Feature
+
+### Why
+
+v1.1.1265 put the article hero image on the right side of the news view (split layout). Wrong half — the image belongs on `.detail-left`, replacing the generic newspaper-emoji `.icon-background` that all system entities show. That's the same slot a video plays in for media devices. Plus the user wanted in-line search and status filters separated from topic filters, since 100+ articles need a real find-bar.
+
+### Changes
+
+**Article image moved to `detail-left`'s `icon-background`** ([EntityIconDisplay.jsx:9-43](src/components/DetailView/EntityIconDisplay.jsx#L9), [DetailView.jsx:595-606](src/components/DetailView.jsx#L595)). New optional `customIconImageUrl` prop on `EntityIconDisplay` — when set, renders an `<img class="icon-background-image">` filling the 260×260 tile via `object-fit: cover`, instead of the domain icon over a gradient. `DetailView` reads `window._newsViewRef.selectedArticle.thumbnail` and passes it through. On image load error: revert to gradient + emoji. The right-side `.article-detail-hero`/`.article-detail-body-wrapper` split from v1.1.1265 is reverted — article detail is back to the centered single-column body, since the image now anchors the left panel.
+
+**New top toolbar with search + 3 status icons** ([NewsView.jsx:660-714](src/system-entities/entities/news/NewsView.jsx#L660), [NewsView.css:78-178](src/system-entities/entities/news/styles/NewsView.css#L78)). Above the topic-filter row sits a flex toolbar:
+- **Left**: 3 compact pill buttons — `Alle` (list icon + total), `Ungelesen` (filled circle when active + count), `Favoriten` (heart, filled when active + count). Active button uses the inverted iOS pill style (white bg + dark text), same look as the topic filter's active state.
+- **Right**: a search input (rounded pill, magnifier icon + clear button when text present). Filters articles client-side by title / source / description. Pressing the X clears it.
+
+**Filter logic split into 3 dimensions** ([NewsView.jsx:147-153, 244-262](src/system-entities/entities/news/NewsView.jsx#L147)). Old single `activeFilter` state went away; replaced by `statusFilter` ('all'/'unread'/'favorites') + `categoryFilter` ('all'/`<slug>`) + `searchQuery`. They compose: status → category → search, applied in one `useEffect`. Each state is independent — picking a topic doesn't clear the unread filter, typing in search doesn't clear the topic. Old `defaultFilter` setting still hydrates `statusFilter` if it's one of the three valid values.
+
+**Topic filter row only shows topic chips now** ([NewsView.jsx:716-781](src/system-entities/entities/news/NewsView.jsx#L716)). Removed the `Alle / Ungelesen / Favoriten` chips that lived in the same horizontal scroll row. New first chip: `Alle Themen` (= `categoryFilter === 'all'`), then one chip per detected category from the feeds. The whole row is now hidden when no categories exist (empty article list), so there's no empty filter scroll-area on first launch.
+
+### Files touched
+
+- `src/components/DetailView/EntityIconDisplay.jsx` — `customIconImageUrl` prop, image render branch with error fallback
+- `src/components/DetailView/EntityIconDisplay.jsx` — wired through `customIconImageUrl` from `window._newsViewRef`
+- `src/components/DetailView.jsx` — passes article thumbnail into the icon display
+- `src/components/DetailView.css` — `.icon-background-image` rule (cover, rounded)
+- `src/system-entities/entities/news/NewsView.jsx` — state split (status/category/search), toolbar JSX, topic-only filter row, empty-state message for no-search-result, reverted detail layout
+- `src/system-entities/entities/news/styles/NewsView.css` — `.news-toolbar`, `.news-status-buttons`, `.news-status-btn`, `.news-search`, `.news-search-input`, `.news-search-clear` rules; reverted `.news-detail-content` to single scroll column
+
+### Why search is client-side
+
+`fast-news-reader` doesn't expose a Home Assistant service for server-side search; the cached article list (max 100 by default, capped at 500) lives in the browser anyway. A simple `.includes()` over title / source / description across <500 items is sub-millisecond per keystroke — no debounce needed. If we ever go beyond a few thousand cached articles per user, this is the place to add it.
+
 ## Version 1.1.1265 - 2026-04-26
 
 **Title:** Article detail view — split layout with hero image covering the left panel
