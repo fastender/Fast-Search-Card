@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1259 - 2026-04-26
+
+**Title:** News — recommend `fastender/fast-news-reader`, fix settings bugs and detail-view UI
+**Hero:** none
+**Tags:** News, Bugfix, UI
+
+### Why
+
+Two-part release. Part one: the user shipped their own HA custom integration [fastender/fast-news-reader](https://github.com/fastender/fast-news-reader) (HACS), which closes the `<content:encoded>` image-extraction gap that `timmaurice/feedparser` and core `feedreader` both ignore. The card now points users at it. Part two: a batch of UX/settings bugs surfaced while testing on real feeds.
+
+### Changes
+
+**News integration recommendation switched.** Empty-state hints in `NewsView.jsx`, settings empty-state in `iOSSettingsView.jsx`, and the top-of-file JSDoc in `news/index.jsx` now name `fastender/fast-news-reader` exclusively. Old hints recommending `timmaurice/feedparser` ("A better Feedparser") are gone. Setup steps rewritten for the HACS Custom Repository flow. Internal sensor-loading code (`_loadFeedparserSensors`, `_processFeedparserSensor`, `has_feedparser` attribute, `.news-feedparser-hint` CSS class) is unchanged — `fast-news-reader` is schema-compatible with `timmaurice/feedparser`, so renaming would be churn without functional gain.
+
+**Scrollbar positioning fix in news view.** `.news-view-container` was missing `position: relative`, so the absolutely-positioned `<CustomScrollbar right: 3px>` resolved to a higher positioned ancestor and rendered outside the card. Added `position: relative` — scrollbar now sits inside the container at its right edge, on the dark backdrop instead of bleeding into the wallpaper.
+
+**Article detail view buttons no longer show a stray white slider on the back button.** In the article detail view, the action buttons are `[back, read, favorite]` but `activeButton` state stays at `'overview'` (none of them match). The slider position memo defaulted to `x: 0` on no-match and rendered with `opacity: 1`, so the back button always looked "active" with a white pill behind it. Slider now animates `opacity: 0` when no button matches; the read/favorite filled-state still works via SVG `fill="currentColor"`.
+
+**Feed counter in news header was always "0 Feeds".** `feedCount` was computed from `Object.keys(settings.feeds).filter(...enabled)` — but `settings.feeds` starts as `{}` and feeds are only written there when the user explicitly toggles them; default state for an untoggled feed is "enabled" via `enabled !== false`. Result: header always showed 0 even with feeds present. Now derived from `hass.states` (count feedparser sensors not explicitly disabled), matching what `IOSSettingsView` shows.
+
+**Default settings between `NewsView.loadSettings()` and entity `_loadSettings()` were inconsistent.** Entity defaulted to `feeds: []` (array, but every consumer treats it as object), `maxArticles: 50`, and was missing `showImages`/`autoMarkRead`/`defaultFilter`. UI defaulted to `feeds: {}`, `maxArticles: 100`, full display block. Synced the entity defaults to match the UI's, so the first-ever load (no localStorage entry yet) doesn't render with mixed defaults.
+
+**`maxArticles` setting was ignored above 100.** `_loadArticlesFromEventCache` had a hardcoded `slice(0, 100)` cap, so picking 150/200/300/500 in the UI did nothing — the user always got 100 articles max. Now reads the setting (`Math.min(value, 500)` to keep the cache-size cap as a defensive max).
+
+**Header stats stale until user leaves settings.** The `news-view-state-changed` event that prompts `DetailView` to recompute the header was gated to `[selectedArticle, showSettings]` only. Toggling a feed in settings updated the local `settings` state but didn't refire the event, so the "X Feeds" header kept its old value until the user closed settings. Added `settings` to the event-effect deps; settings changes now propagate to the header immediately.
+
+### Files touched
+
+- `src/system-entities/entities/news/NewsView.jsx` — empty-state recommendation, `feedCount` calculation, event-deps
+- `src/system-entities/entities/news/components/iOSSettingsView.jsx` — settings empty-state recommendation
+- `src/system-entities/entities/news/index.jsx` — top JSDoc, `_loadSettings` defaults, `maxArticles` slice, `debugNewsImages` console hint
+- `src/system-entities/entities/news/styles/NewsView.css` — `position: relative` on container
+- `src/components/DetailView/TabNavigation.jsx` — slider opacity on no-match
+
+### Internal naming kept stable on purpose
+
+`hasFeedparser`, `_loadFeedparserSensors`, `_processFeedparserSensor`, `has_feedparser` attribute, `.news-feedparser-hint` CSS class — all unchanged. The "feedparser" name correctly describes the *schema* (which `fast-news-reader` deliberately keeps compatible with `timmaurice/feedparser`) and the underlying Python library that both integrations use. Renaming would be cosmetic churn without changing behavior, and would risk breaking saved state for existing users.
+
 ## Version 1.1.1258 - 2026-04-25
 
 **Title:** News — full migration off HA-core `feedreader`, now uses HACS `timmaurice/feedparser`
