@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1260 - 2026-04-26
+
+**Title:** News — hide native scrollbar in article detail view, add CustomScrollbar there
+**Hero:** none
+**Tags:** News, UI, Polish
+
+### Why
+
+After v1.1.1259's `position: relative` fix, the news list view's `CustomScrollbar` correctly sits inside the container at the right edge. But the article detail view (`.news-detail-content`) still had `scrollbar-width: thin` and rendered the OS-native scrollbar — visible as a wider grey bar to the right of the custom one when you opened a long article. Two scroll indicators side-by-side, ugly.
+
+### Changes
+
+**`.news-detail-content`** ([NewsView.css:798-808](src/system-entities/entities/news/styles/NewsView.css#L798)) — switched `scrollbar-width: thin` → `scrollbar-width: none`, dropped the obsolete `scrollbar-color`, added the `::-webkit-scrollbar { display: none }` rule for Safari. Same pattern as `.news-feed`. Native scrollbar is now hidden in the detail view.
+
+**`.news-settings-content`** — same cleanup applied even though the class is dead code (no JSX uses it since the v1.1.1252 migration to `IOSSettingsView`). Killed the stale `scrollbar-width: thin` so future revivals don't regress.
+
+**Article detail view gets its own `<CustomScrollbar>`** ([NewsView.jsx:608-609](src/system-entities/entities/news/NewsView.jsx#L608)). New `detailScrollRef` + `isDetailHovered` state, attached to the `.news-detail-content` container with hover handlers. Same iOS-style indicator as the article list and settings.
+
+### Files touched
+
+- `src/system-entities/entities/news/styles/NewsView.css` — hide native scrollbars in detail + settings
+- `src/system-entities/entities/news/NewsView.jsx` — `detailScrollRef`, `isDetailHovered`, `<CustomScrollbar>` in detail-view branch
+
+### Why detail view didn't already have one
+
+When the detail view was first written, articles were short enough that scroll wasn't a concern. Long-form articles (Tagesschau-style) with hero image + description + content + button push past viewport, and the OS-native bar was good enough back then. Now that the rest of news uses the iOS-style indicator consistently, the detail view stuck out.
+
 ## Version 1.1.1259 - 2026-04-26
 
 **Title:** News — recommend `fastender/fast-news-reader`, fix settings bugs and detail-view UI
