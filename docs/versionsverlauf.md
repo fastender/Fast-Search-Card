@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1269 - 2026-04-26
+
+**Title:** News article-detail prev/next nav, mode-button restyled to match chips with per-mode color
+**Hero:** none
+**Tags:** News, UI, Polish
+
+### Changes
+
+**Floating prev/next arrows in the article detail view** ([NewsView.jsx:684-712](src/system-entities/entities/news/NewsView.jsx#L684), [NewsView.css:868-899](src/system-entities/entities/news/styles/NewsView.css#L868)). Two 40px circular buttons with `backdrop-filter: blur(12px) saturate(140%)` overlay the news container at vertical center, left and right edges (`left/right: 12px`). They navigate through `filteredArticles` (so they respect the current status / topic / search filter — clicking next from the last visible article won't jump to a hidden one). Hidden when no prev/next exists. Hover scales up by 1.06, click presses to 0.96.
+
+**Keyboard navigation in the detail view** ([NewsView.jsx:329-348](src/system-entities/entities/news/NewsView.jsx#L329)). `ArrowLeft` / `ArrowRight` walk through the same filtered list. The handler ignores keystrokes targeting `<input>`, `<textarea>`, or `contentEditable` elements, so typing in the search bar isn't affected.
+
+**Mode-cycle button restyled** ([NewsView.jsx:809-821](src/system-entities/entities/news/NewsView.jsx#L809), [NewsView.css:121-152](src/system-entities/entities/news/styles/NewsView.css#L121)). Previous version had its own typography (12px, weight 600, letter-spacing) that didn't match the surrounding chip pills. Now uses identical `.filter-tab` typography: `padding: 8px 16px`, `border-radius: 20px`, `font-size: 14px`, `font-weight: 500`. The swap-icon SVG is gone — the label alone is enough since each mode also has a distinct background color.
+
+**Per-mode background color on the cycle button**. Each mode now wears one of three iOS system colors with matching glow:
+- **Quellen** → blue `rgb(0, 122, 255)` + blue box-shadow
+- **Topics** → orange `rgb(255, 149, 0)` + orange box-shadow (matches `--news-orange`)
+- **Themen** → purple `rgb(175, 82, 222)` + purple box-shadow
+
+White text on all three. Hover bumps brightness by 10%. Active mode is now visible at a glance from the color, not just the label.
+
+### Files touched
+
+- `src/system-entities/entities/news/NewsView.jsx` — prev/next button JSX + index calc, keydown handler, restyled mode-button (no SVG, mode-class)
+- `src/system-entities/entities/news/styles/NewsView.css` — `.news-detail-nav-arrow(-prev/-next)` rules, rewritten `.news-grouping-mode-btn` with per-mode color variants
+
 ## Version 1.1.1268 - 2026-04-26
 
 **Title:** News grouping cycle — dedicated mode-button (Quellen ⇄ Topics ⇄ Themen), chip toggling, multi-tag support
