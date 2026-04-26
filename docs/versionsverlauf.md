@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1261 - 2026-04-26
+
+**Title:** News — group articles by time bucket (Today / Yesterday / This Week / Older) with sticky headers
+**Hero:** none
+**Tags:** News, UX
+
+### Why
+
+`maxArticles` defaults to 100 (and goes up to 500). Scrolling through 100 dated cards as one undifferentiated wall makes it hard to know what's recent and what's days old. Feedly solves this with day-bucket section headers — copying that pattern.
+
+### Changes
+
+**`groupArticlesByTimeBucket(articles, lang)`** ([NewsView.jsx:50-78](src/system-entities/entities/news/NewsView.jsx#L50)) — pure helper. Splits the (already-sorted-newest-first) article list into four buckets keyed by published date:
+- `Heute` / `Today` — published since 00:00 today
+- `Gestern` / `Yesterday` — published 24h before that
+- `Diese Woche` / `This Week` — published in the prior 6 days
+- `Älter` / `Older` — everything else
+
+Empty buckets are filtered out so headers don't show for absent buckets.
+
+**Rendering switched from a flat `.map()` to bucketed sections** ([NewsView.jsx:825-895](src/system-entities/entities/news/NewsView.jsx#L825)). Each bucket renders as `<div class="news-bucket">` containing a `.news-bucket-header` and the cards. Memoized with `useMemo([filteredArticles, lang])`. The card-stagger animation now uses an absolute index across buckets, capped at 10 (`Math.min(idx, 10) * 0.05`) so the last card in a 100-item list doesn't take 5s to fade in like before.
+
+**Sticky headers** ([NewsView.css:212-232](src/system-entities/entities/news/styles/NewsView.css#L212)). `.news-bucket-header` uses `position: sticky; top: 0` within `.news-feed` (the scroll container), with backdrop-blur (20px + saturation) so cards behind it stay readable. iOS-style label: 12px uppercase, letter-spacing 0.06em, white at 60% opacity. Negative `margin: 0 -4px` extends the blur background through the list's small inset padding.
+
+### Tradeoffs considered
+
+- **Hour-based buckets** ("vor 1h", "vor 2h", …) — too many micro-buckets, especially in the "Today" range
+- **Weekday buckets** (Mon/Tue/Wed/…) — too noisy on mobile, and ambiguous after a week
+- **Non-sticky date dividers** — simpler but loses the "where am I?" anchoring during long scrolls
+
+Sticky day-buckets won on density vs. orientation.
+
+### Stagger-delay regression fix bundled
+
+Old code used `delay: index * 0.05` with no cap. With 100 articles the 100th card took 5 seconds to appear. Capped at index 10 (= 0.5s max) — preserves the iOS-style cascade for the first batch, then everything past that fades in immediately.
+
 ## Version 1.1.1260 - 2026-04-26
 
 **Title:** News — hide native scrollbar in article detail view, add CustomScrollbar there
