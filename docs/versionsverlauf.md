@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1265 - 2026-04-26
+
+**Title:** Article detail view — split layout with hero image covering the left panel
+**Hero:** none
+**Tags:** News, UI
+
+### Why
+
+The article detail view used to stack everything in one centered column: small thumbnail near the top, then title, description, body, button. The image was decorative-sized and didn't earn its space. The video-card pattern (image-as-hero on the left, controls/text on the right) makes the article's image the center of attention while keeping the text readable on the right.
+
+### Changes
+
+**Layout split** ([NewsView.jsx:559-619](src/system-entities/entities/news/NewsView.jsx#L559)). `.news-detail-content` is now a flex row with two children:
+- **Left** — `.article-detail-hero` covers the full panel height (45% width) with the article's thumbnail. `object-fit: cover`, `overflow: hidden` so it crops cleanly without distortion.
+- **Right** — `.article-detail-body-wrapper` is the scrollable column holding the category badge, title, description, body text, and "Artikel öffnen" button.
+
+The old `.article-detail-thumbnail` block inside the article body is gone — the image only appears as the hero now, not duplicated inline.
+
+**Scroll moved from `.news-detail-content` to `.article-detail-body-wrapper`** ([NewsView.css:837-879](src/system-entities/entities/news/styles/NewsView.css#L837)). The hero stays fixed in place while the text scrolls. `<CustomScrollbar>` ref points to the new wrapper. `.news-detail-content` itself becomes `overflow: hidden` so the rounded corners on the news container clip the hero properly.
+
+**Empty-state fallback** — if the article has no thumbnail OR `display.showImages` is off, the hero panel is omitted entirely and the body wrapper takes 100% width. No empty grey rectangle.
+
+**Mobile breakpoint** ([NewsView.css:881-893](src/system-entities/entities/news/styles/NewsView.css#L881)) — under 600px viewport, the hero stacks above the text (200px tall band) instead of taking 45% width. Avoids unreadable narrow text columns on phones.
+
+### Files touched
+
+- `src/system-entities/entities/news/NewsView.jsx` — restructured detail JSX into hero + body-wrapper
+- `src/system-entities/entities/news/styles/NewsView.css` — `.news-detail-content` flex-row, new `.article-detail-hero` and `.article-detail-body-wrapper` rules, `.article-detail-thumbnail` rules removed, mobile media query
+
 ## Version 1.1.1264 - 2026-04-26
 
 **Title:** News — bucket headers match room-header style, real feed icons in settings
