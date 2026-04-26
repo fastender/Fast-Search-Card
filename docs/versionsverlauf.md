@@ -1,5 +1,54 @@
 # Versionsverlauf
 
+## Version 1.1.1267 - 2026-04-26
+
+**Title:** News bundle — search button moves to detail-tabs, status+topic chips merged, full-cover article image, bookmark icon, 3-mode grouping cycle (Quellen/Topics/Themen)
+**Hero:** none
+**Tags:** News, UI, Feature
+
+### Why
+
+Five paper cuts in one release: source name on cards was getting clipped at the bottom, the inline search input ate too much horizontal space, status filters and topic chips lived on two separate rows even though they're conceptually one filter strip, the favorite icon was a heart (cliché for an article reader), the article hero image only filled a 260×260 tile inside `.detail-left` instead of the whole panel, and the topic chips only ever showed RSS-tag groupings — fast-news-reader's `channel.theme` (curated preset category like "tech" for Heise) and the per-feed source name were both unreachable from the UI.
+
+### Changes
+
+**`.article-footer line-height: 0.8 → 1.4`** ([NewsView.css:298-307](src/system-entities/entities/news/styles/NewsView.css#L298)). Old value was below the actual glyph height, so descenders in source names like "tagesspiegel" got clipped at the bottom edge of the card. Fixed.
+
+**Search moved from inline toolbar to action-buttons row** ([news/index.jsx:50-69](src/system-entities/entities/news/index.jsx#L50), [TabNavigation.jsx:175-181, 245-251](src/components/DetailView/TabNavigation.jsx#L175)). New `search` action button appears between `overview` and `settings` in the news detail-tabs strip. Tapping it toggles `searchOpen` in `NewsView`, which swaps the entire filter row for a single full-width search input (auto-focused, with a clear-X button). Tapping search again — or the X — closes it and returns the filter row. Reuses the slider-opacity treatment from v1.1.1259 so the slider tracks `activeButton === 'search'`.
+
+**Status filters and topic chips merged into one horizontal scroll row** ([NewsView.jsx:716-790](src/system-entities/entities/news/NewsView.jsx#L716), [NewsView.css:78-115](src/system-entities/entities/news/styles/NewsView.css#L78)). Status icons (Alle / Ungelesen / Favoriten) sit at the left in compact icon+count pills, then a 1px vertical divider, then the topic chips. The whole strip lives inside `.filter-tabs` so the existing scroll-indicators and arrow buttons work for the entire combined row. Removes the second row entirely.
+
+**Favorite icon: heart → bookmark** ([NewsView.jsx:741-746](src/system-entities/entities/news/NewsView.jsx#L741), [TabNavigation.jsx:258-263](src/components/DetailView/TabNavigation.jsx#L258)). Both the status filter pill and the article-detail action button switched from the heart path to the bookmark shape (`M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z`). Filled when active. Storage field stays `favorite` — only the icon changed.
+
+**Article image now covers the entire `.detail-left` panel** ([DetailView.jsx:572-633](src/components/DetailView.jsx#L572), [DetailView.css:266-280, 580-589](src/components/DetailView.css#L266)). Mirrors the existing `.detail-left-video-background` pattern: when the news entity has an article selected with a thumbnail, an `<img class="detail-left-news-image">` is rendered as `position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover` with the same 35px-on-left border-radius as the panel. The 260×260 icon-tile (from `EntityIconDisplay`) is hidden via a new `hideIcon` prop while the article image is shown — same way `videoUrl` already suppresses it. Mobile media query bumps `.detail-left.has-news-image` to 250px min-height and rounds the image's top corners instead of the left ones, matching the video pattern. The intermediate `customIconImageUrl` approach from v1.1.1266 (image inside the icon tile) is reverted.
+
+**3-mode grouping cycle for the chip row** ([news/index.jsx:344-348](src/system-entities/entities/news/index.jsx#L344), [NewsView.jsx:148-155, 286-307, 500-543](src/system-entities/entities/news/NewsView.jsx#L148)).
+- **Quellen** (Sources) — chips by `article.source` (feed name)
+- **Topics** — chips by `article.category` (the raw RSS `<category>` tag — current default)
+- **Themen** (Themes) — chips by `article.theme` (`channel.theme_label` from fast-news-reader's preset, e.g. Heise → Tech, Tagesschau → News)
+
+The first chip is always `Alle ___` (Quellen / Topics / Themen depending on mode). Tapping it has two-state behaviour:
+1. If a chip is currently selected → reset filter to `all` (don't change mode)
+2. If already on `all` → cycle to the next mode and rebuild the chip list
+
+`groupingField` derived from `groupingMode` switches which article field the chip set / count / filter all read from. The colored `.category-*` styling for the seven internal slugs is now only applied in the `topics` mode — sources and themes use the default chip background (cleaner, since e.g. "tagesspiegel.de: News" doesn't deserve a `.category-news` tint).
+
+**`_entryToArticle` reads `channel.theme` + `channel.theme_label`** ([news/index.jsx:344-347](src/system-entities/entities/news/index.jsx#L344)). fast-news-reader exposes both per sensor (theme is the slug, theme_label is the display name). Custom feeds without a preset get `theme: null` and don't appear as a chip in Themen mode.
+
+### Files touched
+
+- `src/system-entities/entities/news/index.jsx` — `actionButtons` adds `search`, `_entryToArticle` exposes `theme`/`themeLabel`
+- `src/system-entities/entities/news/NewsView.jsx` — `searchOpen` + `groupingMode` state, `handleToggleSearch`, `cycleGroupingMode`, `getChips`/`getChipCount`/`getChipLabel`, JSX rewritten for combined toolbar + search-row swap, bookmark SVG, body-wrapper cleanup
+- `src/system-entities/entities/news/styles/NewsView.css` — `.news-status-btn`, `.news-toolbar-divider`, `.news-search-row`, `.news-search`/`-input`/`-icon`/`-clear`, `.article-footer line-height` fix
+- `src/components/DetailView/TabNavigation.jsx` — `search` case in handler + icon, bookmark SVG for favorite
+- `src/components/DetailView/EntityIconDisplay.jsx` — `customIconImageUrl` reverted, `hideIcon` prop added
+- `src/components/DetailView.jsx` — full-cover `<img class="detail-left-news-image">` rendered when news + article, `hideIcon` passed through
+- `src/components/DetailView.css` — `.detail-left-news-image` rule + mobile variant; `.icon-background-image` removed
+
+### Why the 3-mode cycle on a single button
+
+Three radio-style buttons would steal another row of vertical space we just freed. A dropdown would feel out of place inside a chip strip. Cycle-on-tap is cheap, the current mode is always visible in the button label, and the cycle order is the same direction every time. Hover title spells out the cycle for users who don't immediately catch the mechanic.
+
 ## Version 1.1.1266 - 2026-04-26
 
 **Title:** News — article image now lives on `detail-left` (icon-background), search bar + status filters above topics
