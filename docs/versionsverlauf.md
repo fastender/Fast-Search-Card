@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.1271 - 2026-04-26
+
+**Title:** all_schedules adopts the news design language — same toolbar, same cards, same detail-tabs, same header
+**Hero:** none
+**Tags:** all_schedules, News, UX, Architecture
+
+### Why
+
+User wants the news view's design (toolbar / detail-tabs / detail-header-info / card layout) applied 1:1 to other system entities. First target: `system.all_schedules`. Goal is a consistent visual language across system entities so users don't relearn each view.
+
+### Changes
+
+**Entity action-buttons** ([all-schedules/index.js:24-29](src/system-entities/entities/all-schedules/index.js#L24)). Added `actionButtons: [overview, search, settings, refresh]` matching the news entity's set. The slider in `TabNavigation` now tracks an active button for all_schedules just like for news.
+
+**Toolbar replaced with the news pattern** ([AllSchedulesView.jsx:435-501](src/system-entities/entities/all-schedules/AllSchedulesView.jsx#L435)). Out: the old sticky `.filter-tabs-container` with the gradient `.scheduler-filter-slider` and 3 plain text tabs (Alle / Timer / Zeitpläne). In: the news `.news-filter-bar` layout — three compact `.news-status-btn` icon-pills (list / clock / calendar SVGs + counts) for status filter, then a `.news-toolbar-divider`, then `.filter-tab` chips for the unique device-domains found across the items (Klima, Lichter, Rollläden, Schalter, ...). Status filters are exclusive (radio); chips toggle on click (active again deactivates the filter). The two filters compose: status × domain × search.
+
+**Cards now use `.news-article-card` styling** ([AllSchedulesView.jsx:506-553](src/system-entities/entities/all-schedules/AllSchedulesView.jsx#L506)). Out: the old `.scheduler-item` with `.item-icon` / `.item-content` / `.item-time` / `.item-type` badge. In: the news card structure — left a 55×55 `.article-thumbnail` tile holding the timer/schedule SVG icon (a small CSS override `.schedule-thumbnail` swaps the news image-background for a dark tile with a centered icon and hides the gradient overlay). Right side: `.article-category-badge.category-${domainRaw}` + `.article-title` (entity friendly_name) + `.article-footer` (time · days · action). Stagger animation, hover scale, transition timing all match news.
+
+**Domain badge color rules** ([NewsView.css:526-549](src/system-entities/entities/news/styles/NewsView.css#L526)). Added 6 new `.article-category-badge.category-*` rules so the badges work for the schedule domains too, sharing the news badge styling: climate (blue), light (orange), cover (green), switch (grey), fan (teal), media_player (purple).
+
+**Search inline-bar** ([AllSchedulesView.jsx:419-446](src/system-entities/entities/all-schedules/AllSchedulesView.jsx#L419)). Same pattern as news: tapping the search action-button toggles `searchOpen`; the toolbar gets replaced by a `.news-search-row` with a `.news-search` pill (magnifier + autofocused `<input>` + clear-X). Filters items by entity name / action / days / time / domain label as you type. Closing search clears the query.
+
+**Settings stub** ([AllSchedulesView.jsx:407-419](src/system-entities/entities/all-schedules/AllSchedulesView.jsx#L407), [AllSchedulesView.css:78-105](src/system-entities/styles/AllSchedulesView.css#L78)). The settings action-button is wired but all_schedules has no real settings yet. Renders a centered placeholder ("⚙️ Einstellungen kommen demnächst") so the slot in the action-button row isn't dead.
+
+**`window._allSchedulesViewRef` exposes** the same surface as `_newsViewRef`: `handleOverview`, `handleOpenSettings`, `handleToggleSearch`, `handleRefresh`, `handleBackNavigation`, `getActiveButton`, plus stats (`totalCount`, `timerCount`, `scheduleCount`, `showSettings`, `searchOpen`).
+
+**Wiring across the shared infrastructure**:
+- `TabNavigation.jsx` — `_allSchedulesViewRef` added to the view-ref chain (3 places) and to `handleActionClick` for `back` / `overview` / `settings` / `refresh` / `search`. Slider opacity now correctly hides when no button matches the active mode.
+- `DetailView.jsx` — added an event listener for `all-schedules-view-state-changed` that re-runs `updateActionButtons` so the slider refreshes on toggle. New `getAllSchedulesHeaderInfo()` returns `"X Zeitpläne / Y Timer · Z Pläne"` and is added to the `stateText`/`stateDuration` fallback chain alongside the news/todos/printer header info.
+
+**Container restyled** ([AllSchedulesView.css:9-30](src/system-entities/styles/AllSchedulesView.css#L9)). The old flat `padding: 0 16px` is gone. `.all-schedules-view` now matches `.news-view-container`: `width: 100%; height: 100%; max-height: 555px; background: rgba(0, 0, 0, 0.2); border-radius: 24px; overflow: hidden; position: relative` so the CustomScrollbar positions correctly inside it (same fix as the v1.1.1259 news scrollbar issue).
+
+**News CSS imported into AllSchedulesView**. Both views share the same toolbar / chip / card classes; importing `../news/styles/NewsView.css` from `AllSchedulesView.jsx` ensures the styles are loaded even when the user opens schedules without ever opening news. Vite dedupes the CSS so the bundle doesn't grow.
+
+### Migration note for the next entity
+
+The pattern is now reusable. To onboard another system entity (e.g. `weather`, `todos`, `versionsverlauf`):
+1. Add `actionButtons: [overview, search, settings, refresh]` to the entity config (or whichever subset makes sense).
+2. Expose `window._<entity>ViewRef` with `handleOverview` / `handleOpenSettings` / `handleToggleSearch` / `handleRefresh` / `handleBackNavigation` / `getActiveButton` + stat fields.
+3. Dispatch a `<entity>-view-state-changed` event on state transitions.
+4. Add the ref to the chain in `TabNavigation.jsx` (3 lines) and to each action handler (1 line per case).
+5. Add a `get<Entity>HeaderInfo()` to `DetailView.jsx` and append to the fallback chain.
+6. In the view JSX: import `NewsView.css`, use `.news-filter-bar` / `.news-status-btn` / `.filter-tab` / `.news-article-card` / `.news-search-row`. Container styled like `.news-view-container`.
+
+### Files touched
+
+- `src/system-entities/entities/all-schedules/index.js` — actionButtons
+- `src/system-entities/entities/all-schedules/AllSchedulesView.jsx` — full restructure (state, handlers, ref, search, settings stub, JSX)
+- `src/system-entities/styles/AllSchedulesView.css` — container restyled, schedule-thumbnail override, settings-stub, footer; old scheduler-item / filter-tabs / scheduler-filter-slider rules removed
+- `src/system-entities/entities/news/styles/NewsView.css` — 6 new domain badge color rules (climate/light/cover/switch/fan/media_player)
+- `src/components/DetailView/TabNavigation.jsx` — `_allSchedulesViewRef` in ref-chain + 5 action handlers
+- `src/components/DetailView.jsx` — event listener + `getAllSchedulesHeaderInfo`
+
 ## Version 1.1.1270 - 2026-04-26
 
 **Title:** PurgeCSS no longer strips dynamic mode-classes; nav arrows reposition top-right; ghost-list fix for prev/next navigation
