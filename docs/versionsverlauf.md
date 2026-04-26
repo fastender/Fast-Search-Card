@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1263 - 2026-04-26
+
+**Title:** News — drop manual per-feed category override, read category from `entry.category` (fast-news-reader)
+**Hero:** none
+**Tags:** News, UX, Cleanup
+
+### Why
+
+Until now each feed had a manual "Kategorie" picker in settings (mapping the feed to one of 7 hard-coded internal categories: news / tech / smarthome / sport / entertainment / politics / business). With `fastender/fast-news-reader` the per-article category is already provided by the integration: `coordinator.py:_build_entry` extracts `entry.category` as a list of `tags[].term` values from feedparser. Manually re-tagging at the feed level is redundant — and worse, it overrides whatever the source feed itself declared.
+
+### Changes
+
+**`_entryToArticle`** ([news/index.jsx:330-348](src/system-entities/entities/news/index.jsx#L330)) now reads `entry.category` directly. Handles both array (fast-news-reader: `["politik"]`) and string shapes, picks the first term, slugifies it (`/[^a-z0-9]+/g` → `-`, trim leading/trailing dashes) for use both as the badge text and the CSS class. Falls back to `null` when no category — the badge is then omitted (already conditional in JSX).
+
+**`_loadArticlesFromEventCache`** ([news/index.jsx:413-422](src/system-entities/entities/news/index.jsx#L413)) — the per-feed category-override step is gone. Loop now only filters disabled feeds; categories survive untouched from `_entryToArticle`. About 25 lines lighter, zero behavioural overrides on the article shape.
+
+**`_getCategoryForEntityId` action removed** — no remaining callers.
+
+**iOSSettingsView**:
+- The "Kategorie" item under each enabled feed is gone — settings now shows just the feed name + article count + on/off toggle
+- The entire `category-{feedId}` sub-view (selection list of 7 categories with checkmarks) is removed
+- Helpers `availableCategories`, `getFeedCategory`, `getCategoryLabel`, `handleFeedClick`, `handleCategorySelect`, `selectedFeed` state — all removed
+- `onUpdateFeedCategory` prop removed
+
+**NewsView** — `handleUpdateFeedCategory` handler and the prop pass-through both deleted.
+
+### What this means for filter tabs
+
+The category filter tabs at the top of the news list (`getCategories()`) now reflect whatever the actual feeds put in `<category>` tags. So a Tagesschau-heavy setup might surface tabs like "Inland", "Ausland", "Wirtschaft", "Sport" instead of the hard-coded 7. The seven `.article-category-badge.category-*` color rules in CSS still apply when a feed happens to use one of those slugs (e.g. "sport" → red badge). Other categories get the default white-on-translucent badge.
+
+### Backwards compatibility
+
+Existing users have `settings.feeds[id].category` saved in localStorage. The key is just ignored now — no migration needed, no errors. Cleanup will happen naturally when a user re-toggles a feed.
+
 ## Version 1.1.1262 - 2026-04-26
 
 **Title:** News card cleanup — drop date, fade-truncate long source names
