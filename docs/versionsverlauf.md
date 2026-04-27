@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1286 - 2026-04-28
+
+**Title:** Bugfix — Timer wurde beim Refresh als Zeitplan kategorisiert. Detection läuft jetzt über Einzelmodus/Schemamodus statt fragilem Name-Prefix
+**Hero:** none
+**Tags:** ScheduleTab, Bugfix, nielsfaber
+
+### Why
+
+In v1.1.1285 wurden Timer beim Refresh als Zeitpläne im Schemamodus angezeigt, obwohl sie als Timer (Einzelmodus, ohne Endzeit) erstellt wurden. Root cause: die Kategorisierung lief auf `friendly_name.startsWith('timer')` — fragile Heuristik die kaputt ging wenn der Schedule-Name nicht durchkam wie wir ihn gesendet haben. Plus konzeptueller Bruch: die Timer/Zeitplan-Trennung war an einem Anzeigewert (Name) verankert, nicht am tatsächlichen Schedule-Storage-Format.
+
+### Changes
+
+**[scheduleUtils.js](src/utils/scheduleUtils.js)** — Kategorisierung in `transformToScheduleObject` umgestellt von Name-Prefix auf das Vorhandensein eines `stop`-Werts im ersten Timeslot. Neuer Helper `hasStopMarker(slot)` deckt alle drei nielsfaber-Timeslot-Formate ab (string `"08:00"`, range string `"08:00:00 - 10:00:00"`, object `{start, stop, actions}`):
+
+```
+Timer    = Einzelmodus = no stop
+Schedule = Schemamodus = stop set
+```
+
+Damit ist die Round-Trip-Logik direkt: was der User im Picker als "Timer" erstellt (`timeslots: [{start, actions}]`), kommt beim Refresh als Timer zurück. Was er als "Zeitplan" erstellt (`timeslots: [{start, stop, actions}]`), bleibt Zeitplan. Kein Name-Parsing mehr.
+
+**[ScheduleTab.jsx](src/components/tabs/ScheduleTab.jsx)** — die in v1.1.1286-Entwurf vorübergehend hinzugefügten `tags: ['fsc-timer']` Marker (waren ein Workaround für die fragile Name-Detection) wieder entfernt — mit der Storage-basierten Detection nicht mehr nötig.
+
+### Behavior preserved
+
+- Timer-Save: schickt weiterhin `timeslots: [{start, actions}]` ohne `stop`. Beim Read kommt es als Einzelmodus zurück → Timer-Kategorie ✓
+- Schedule-Save: schickt `timeslots: [{start, stop, actions}]`. Beim Read kommt es als Schemamodus zurück → Schedule-Kategorie ✓
+- ScheduleListItem: Timer-Items rendern weiterhin `Um 23:56 - Noch X Min` (Einzelmodus-Display), Schedules rendern `08:00 → 10:00 - Mo, Di` (Schemamodus-Display)
+- handleItemClick: bei `item.type === 'timer'` wird `loadTimerState` aufgerufen, sonst `loadScheduleState` mit setEndTime — unverändert
+
+### Files touched
+
+- `src/utils/scheduleUtils.js` — `hasStopMarker` helper, neue Kategorisierung
+- `src/components/tabs/ScheduleTab.jsx` — `tags`-Zusatz wieder raus
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Migrations-Hinweis
+
+Falls noch alte Schedules existieren die mit Name `Timer - X - HH:MM` aber MIT `stop` gespeichert sind (in v1.1.1285 unklar ob das passiert ist), werden die jetzt als Schedule kategorisiert. Falls das stört: einmalig in nielsfaber's eigener Card öffnen und ins Einzelmodus zurück-konvertieren.
+
 ## Version 1.1.1285 - 2026-04-28
 
 **Title:** Zeitplan = Schemamodus mit Start- + Endzeit; Repeat erweitert auf 3 Werte (Wiederholen / Stoppen / Löschen) für Timer und Zeitplan
