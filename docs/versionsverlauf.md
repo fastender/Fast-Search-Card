@@ -1,5 +1,73 @@
 # Versionsverlauf
 
+## Version 1.1.1281 - 2026-04-27
+
+**Title:** ScheduleTab pickers fully reactive (Phase 5 of the IOSPicker rebuild) — Action / Position / Scheduler / Days / Repeat now Preact components; pickerInitializers.js deleted
+**Hero:** none
+**Tags:** ScheduleTab, IOSPicker, Refactor, Picker-Rebuild
+
+### Why
+
+Phase 5, the last leg of the picker rebuild plan from v1.1.1277. The remaining five legacy `IOSPicker`/`MultiSelectPicker` consumers in ScheduleTab (Action, Position for cover, Scheduler, Days, Repeat) are all now Preact components composed from `<PickerWheel>` and the new `<MultiSelectWheel>`. The whole imperative picker-init pipeline — the 70-line `useEffect` that ran 100ms after mount, the `pickerRefs` object, the `pickersInitialized` flag map, the `updateView` DOM-poking helper — is gone.
+
+### Changes
+
+**New: [`<MultiSelectWheel>`](src/components/picker/MultiSelectWheel.jsx)** — composes `<PickerWheel>` with a per-option active/inactive chip and a select/deselect button next to the center band. UX matches the legacy `MultiSelectPicker` 1:1 (scroll → button appears → click toggles). Hides the button while scrolling, same as the old picker.
+
+**New: [`renderOption` prop on `<PickerWheel>`](src/components/picker/PickerWheel.jsx)** — optional custom renderer for the visible 3D-cylinder side. The clone-scroller (hidden, used only for native scroll geometry) keeps plain text. `<MultiSelectWheel>` uses this to draw the per-day chip.
+
+**[SchedulePickerTable.jsx](src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx)** — full rewrite:
+- All five picker `<div ref={pickerRefs.X}>` slots replaced with `<PickerWheel>` (Action, Position, Scheduler, Repeat) and `<MultiSelectWheel>` (Days)
+- New props: `setAction`, `setCoverPosition`, `setScheduler`, `setDays`, `setRepeat`
+- `pickerRefs` prop dropped
+- Inline helpers `daysValueToArray` / `arrayToDaysValue` round-trip the user-facing days display string ("Mo, Di" / "Täglich" / etc.) through an array — same predicate set as the legacy callback (`noDays` / `daily` / `weekdays` / `weekend`). Sort by weekday-order on the way back so the display string is stable.
+- Position picker emits `'30%'`-style strings that get `parseInt`'d back to the integer state expected by the rest of the schedule pipeline
+
+**[ScheduleTab.jsx](src/components/tabs/ScheduleTab.jsx)** — removed:
+- Imports: `IOSPicker` / `MultiSelectPicker` from `IOSTimePicker`, all six init helpers from `pickerInitializers` (file deleted, see below)
+- The `pickerRefs` object (six refs)
+- The `pickersInitialized` flag map
+- The 70-line `useEffect` that ran the imperative init pipeline 100ms after `showPicker` flipped to true
+- The `updateView` helper — its DOM-poking (toggling `.schedule-option` row visibility, updating `#time-label` text) is now driven directly by JSX in SchedulePickerTable; the only meaningful side-effect (forcing time to `00:00` on switch to timer mode) lives in a new `handleSchedulerChange` wrapper passed as the scheduler picker's `onChange`
+
+**[ClimateSettingsPicker.jsx](src/components/climate/ClimateSettingsPicker.jsx)** — dropped dead `TimePicker` and `MultiSelectPicker` imports (only `IOSPicker` is actually used).
+
+**Deleted: `src/components/tabs/ScheduleTab/utils/pickerInitializers.js`** — all six init helpers (`initializeActionPicker`, `initializePositionPicker`, `initializeSchedulerPicker`, `initializeTimeFormatPicker`, `initializeDaysPicker`, `initializeRepeatPicker`) had no remaining callers after Phases 3-5.
+
+### What's NOT in this release (and why)
+
+The original plan called for deleting `src/components/IOSTimePicker.jsx` entirely in Phase 5. That isn't possible yet because two consumers still use it:
+
+- **`<ClimateScheduleSettings>` and `<ClimateSettingsPicker>`** — five `new IOSPicker(...)` instantiations (temperature / hvacMode / fanMode / swingMode / presetMode + fanSpeed / horizontal / vertical)
+- **`<TodoFormDialog>`** — `new DatePicker(...)` for the date-view (Phase 4 only migrated its TimePicker)
+
+The legacy `TimePicker` and `MultiSelectPicker` classes inside `IOSTimePicker.jsx` are now dead code (no consumer), but the file as a whole stays. A future Phase 6 can either migrate the climate pickers + DatePicker or remove the dead classes inline.
+
+### Behavior preserved (acceptance criteria from the plan)
+
+- Action / Scheduler / Repeat / Position scroll-snap and onChange semantics match the legacy callback (one event per scroll-end, snapped to grid)
+- Days picker: scroll → button appears → click toggles. Display string round-trips correctly through `daysValueToArray` / `arrayToDaysValue`
+- Cover position: scrolling past `'50%'` updates the integer state to `50`
+- Switching to timer mode resets time to `00:00` (replaces the legacy `updateView` side-effect)
+- Schedule-option rows (Days / Repeat) hide in timer mode, time-label text flips between "Timer" and "Schedule" — both now JSX-reactive instead of DOM-poked
+- All async resources (scroll listener, two rAFs, scroll-stop timeout, ResizeObserver) cleaned up on unmount — no leak across multi-edit
+
+### Files touched
+
+- `src/components/picker/PickerWheel.jsx` — added `renderOption` prop
+- `src/components/picker/MultiSelectWheel.jsx` — NEW
+- `src/components/picker/MultiSelectWheel.css` — NEW
+- `src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx` — rewrite
+- `src/components/tabs/ScheduleTab.jsx` — picker init pipeline removed
+- `src/components/climate/ClimateSettingsPicker.jsx` — dead imports cleaned
+- `src/components/tabs/ScheduleTab/utils/pickerInitializers.js` — DELETED
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Risk profile
+
+ScheduleTab is the most-used edit UI in the app — schedules, timers, all_schedules inline-edit. A regression here means users can't edit time plans. Mitigation: the new `<PickerWheel>` is the same component already shipped in v1.1.1278+ inside `<TimePickerWheel>` and exercised in production for two days; this release just expands its consumer set.
+
 ## Version 1.1.1280 - 2026-04-27
 
 **Title:** TodoFormDialog time picker migrated to `<TimePickerWheel>` (Phase 4 of the IOSPicker rebuild) — global 24h/AM-PM setting now applies to todos
