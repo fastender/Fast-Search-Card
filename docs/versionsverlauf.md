@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1280 - 2026-04-27
+
+**Title:** TodoFormDialog time picker migrated to `<TimePickerWheel>` (Phase 4 of the IOSPicker rebuild) — global 24h/AM-PM setting now applies to todos
+**Hero:** none
+**Tags:** todos, IOSPicker, Refactor, Picker-Rebuild
+
+### Why
+
+Phase 4 of the picker rebuild plan. `TodoFormDialog` had its own `new TimePicker(hoursElement, minutesElement, periodElement, options)` instantiation in a `useEffect` triggered by switching to the `'time'` view — independent from the ScheduleTab path migrated in v1.1.1279. This was the only other legacy TimePicker call site in the bundle.
+
+A side benefit: the global System-Settings → 24h/AM-PM choice now actually applies in todos. Before, the dialog always rendered three slots (hours / minutes / period) and passed all three to `new TimePicker`, which forced the picker into 12h-mode regardless of the global setting. `<TimePickerWheel format="auto"` reads `is24hFormat()` and renders 2 wheels (24h) or 3 wheels (12h) accordingly — matching the ScheduleTab behavior introduced in v1.1.1274.
+
+### Changes
+
+**[TodoFormDialog.jsx](src/system-entities/entities/todos/components/TodoFormDialog.jsx)**:
+- Imports: `TimePicker` removed, `TimePickerWheel` added
+- Refs removed: `hoursRef`, `minutesRef`, `periodRef`, `timePickerRef`
+- The `useEffect([currentView])` block that did the imperative `new TimePicker(...)` (with its `requestAnimationFrame` loop waiting for refs to attach) is gone
+- Time-view JSX: the three `<div className="time-picker-wheel">` slots + `<div className="time-picker-separator">:</div>` replaced with a single `<TimePickerWheel value={dueTime || '09:00'} onChange={...} format="auto" />`
+- `onChange` callback semantics preserved: still updates `dueTime`, `dueTimeDisplay`, and flips `setHasChanges(true)`
+- Default fallback `'09:00'` matches the previous `['09', '00']` initial values
+
+The `DatePicker` import stays — it is still consumed by the date-view `useEffect` (Phase 5 will deal with it).
+
+### Behavior preserved + improved
+
+- **Edit-open shows the saved value** — `<TimePickerWheel>` carries the same ResizeObserver visibility recovery as ScheduleTab, so opening the time view after the initial `display:none` mount anchors correctly
+- **AM/PM works when global setting is `ampm`** — was effectively forced-12h before; now properly conditional
+- **No memory leak on view switch** — the legacy code never disposed previous `TimePicker` instances when the view re-mounted; the new component cleans up its scroll listener / two rAFs / scroll-stop timeout / ResizeObserver on unmount
+
+### Files touched
+
+- `src/system-entities/entities/todos/components/TodoFormDialog.jsx` — import swap, refs removed, useEffect dropped, JSX replaced
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### What's next
+
+Phase 5 — last leg of the rebuild. Migrate `Action`, `Position` (cover), `Scheduler`, `Days` (multi-select), and `Repeat` pickers in ScheduleTab to wrappers around `<PickerWheel>`. Once the last consumer is gone, delete `src/components/IOSTimePicker.jsx` (and the now-unused `pickerInitializers.js`) entirely.
+
 ## Version 1.1.1279 - 2026-04-27
 
 **Title:** ScheduleTab time picker is now a reactive Preact component (Phase 3 of the IOSPicker rebuild)
