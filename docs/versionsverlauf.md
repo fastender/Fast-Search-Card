@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1284 - 2026-04-28
+
+**Title:** Climate-Schedules aus nielsfaber: Edit zeigt jetzt korrekte Aktion und behält den ursprünglichen Service beim Speichern
+**Hero:** none
+**Tags:** ScheduleTab, climate, nielsfaber, Bugfix
+
+### Why
+
+Wenn ein Climate-Schedule direkt im nielsfaber/scheduler-Backend (z.B. über deren eigene Card) mit `climate.set_hvac_mode` erstellt wird (statt `climate.set_temperature`), zeigte unser Edit-View **"Ausschalten"** an — egal ob der HVAC-Mode `heat` / `cool` / `fan_only` etc. war. Schlimmer: bei Save schrieb unsere Card den Schedule **immer** auf `climate.set_temperature` zurück. Wer also nur die Uhrzeit eines `set_hvac_mode`-Schedules ändern wollte, verlor den ursprünglichen Service.
+
+Beide Bugs hingen am gleichen Stelleninkrement: die Card kannte historisch nur `set_temperature` als „aktiven" Climate-Service.
+
+### Changes
+
+**[editStateLoaders.js](src/components/tabs/ScheduleTab/utils/editStateLoaders.js)** — `loadClimateEditState`:
+- Vorher: `const isTurnOn = serviceName === 'set_temperature';` — alles andere (`set_hvac_mode`, `set_fan_mode`, `set_swing_mode`, `set_preset_mode`, `set_humidity`, `turn_on`) fiel auf "Ausschalten"
+- Jetzt: nur `turn_off` UND `set_hvac_mode` mit `hvac_mode: 'off'` zählen als Ausschalten. Alle anderen climate-Services werden als "Einschalten" mit den entsprechenden Settings geladen
+- Neu: optionaler `setOriginalServiceName`-Parameter speichert den ursprünglichen Service für lossless save
+- `showClimateSettings` greift nur bei "Einschalten" — vorher konnte es auch bei `set_hvac_mode/off` aufgehen, was inkonsistent zum Action-State war
+
+**[serviceActionBuilders.js](src/components/tabs/ScheduleTab/utils/serviceActionBuilders.js)** — komplett rewrite. Neue Helper `pickClimateOnService(settings, originalServiceName)` mit Prioritäten:
+1. `temperature` in den Settings → `climate.set_temperature` (HA's set_temperature akzeptiert `hvac_mode` etc. als optionale Zusatz-Parameter)
+2. Genau ein Schlüssel der zu einem dedizierten Service passt (`hvac_mode` → `set_hvac_mode`, `fan_mode` → `set_fan_mode`, `swing_mode` → `set_swing_mode`, `preset_mode` → `set_preset_mode`, `humidity` → `set_humidity`) → dieser dedizierte Service. **Das ist der lossless-edit-Fall**
+3. originalServiceName aus dem Edit + passender Schlüssel weiterhin in den Settings → ursprünglicher Service. Deckt "User hat zusätzlich zu hvac_mode noch Temperatur gesetzt" — wobei dann Regel 1 zuerst greift
+4. Fallback: `climate.set_temperature` (breiteste Akzeptanz in HA)
+
+Plus: `actionValue === t('turnOn')` ohne Settings → `climate.turn_on` (vorher: fiel auf den generischen `${domain}.turn_on`-Pfad). `actionValue === t('turnOff')` mit `originalServiceName === 'set_hvac_mode'` und `hvac_mode === 'off'` → behält `set_hvac_mode/off` (lossless).
+
+**[useScheduleForm.js](src/components/tabs/ScheduleTab/hooks/useScheduleForm.js)** — neuer State `originalServiceName: null`. Reducer-Cases `SET_ORIGINAL_SERVICE_NAME` und Reset im `RESET_FORM` / `LOAD_EDIT_DATA`. Neuer Action-Creator `setOriginalServiceName`.
+
+**[ScheduleTab.jsx](src/components/tabs/ScheduleTab.jsx)** — `originalServiceName` und `setOriginalServiceName` aus dem Hook destrukturiert, an `loadClimateEditState` übergeben, an alle vier `createServiceAction`-Aufrufe (handleConfirm, handleSubmit für Timer/Schedule, Update-Branch). Plus: Reset von `originalServiceName` zu Beginn von `handleItemClick` damit kein stale Wert von einem vorherigen Edit überlebt.
+
+### Behavior tabel — was jetzt passiert
+
+| Schedule kommt mit | Edit-View Action | Edit-View Climate-Settings | Save (ohne Änderung) |
+|---|---|---|---|
+| `set_temperature` `{temperature: 22, hvac_mode: heat}` | Einschalten | Temp 22, HVAC heat | `set_temperature` (unverändert) |
+| `set_hvac_mode` `{hvac_mode: fan_only}` | Einschalten | HVAC: Nur Lüftung | `set_hvac_mode` (lossless ✓) |
+| `set_fan_mode` `{fan_mode: auto}` | Einschalten | Fan auto | `set_fan_mode` (lossless ✓) |
+| `set_hvac_mode` `{hvac_mode: off}` | Ausschalten | (versteckt) | `set_hvac_mode` mit `hvac_mode: off` (lossless ✓) |
+| `turn_off` | Ausschalten | (versteckt) | `turn_off` |
+
+### Files touched
+
+- `src/components/tabs/ScheduleTab/utils/editStateLoaders.js` — climate-edit-Loader korrigiert
+- `src/components/tabs/ScheduleTab/utils/serviceActionBuilders.js` — smart climate service-pick
+- `src/components/tabs/ScheduleTab/hooks/useScheduleForm.js` — originalServiceName state
+- `src/components/tabs/ScheduleTab.jsx` — Wiring + Reset bei handleItemClick
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1283 - 2026-04-27
 
 **Title:** ScheduleTab Wochentage-Picker — chip-row replaces the multi-select wheel
