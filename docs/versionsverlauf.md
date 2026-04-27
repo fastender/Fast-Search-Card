@@ -1,5 +1,51 @@
 # Versionsverlauf
 
+## Version 1.1.1279 - 2026-04-27
+
+**Title:** ScheduleTab time picker is now a reactive Preact component (Phase 3 of the IOSPicker rebuild)
+**Hero:** none
+**Tags:** ScheduleTab, IOSPicker, Refactor, Picker-Rebuild
+
+### Why
+
+Phase 3 of the picker rebuild plan from v1.1.1277 (see `docs/SESSION_NOTES_2026-04-26.md` §3). The ScheduleTab time picker was the largest legacy `IOSPicker`/`TimePicker` consumer — driven imperatively from a 600+ line useEffect that called `new TimePicker(hoursElement, minutesElement, periodElement, options)` and then poked at the resulting instance via dead methods (`setHourMode`, `reinitHours`, `setTime` — none of which existed; they failed silently). Replacing it with the new `<TimePickerWheel>` removes the imperative DOM manipulation, makes the controlled `value`/`onChange` flow obvious, and fixes a class of memory leaks (the legacy code re-instantiated `IOSPicker`s on every period switch without disposing the previous one).
+
+The new components were built and smoke-tested in v1.1.1278 (`src/components/picker/PickerWheel.jsx` + `TimePickerWheel.jsx`) but stayed unused in the bundle until this release.
+
+### Changes
+
+**[SchedulePickerTable.jsx](src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx)** — replaced the manual three-`<div>` time-picker scaffold (`#picker-line-6-hours` / `.time-picker-separator` / `#picker-line-6-minutes` plus the conditional `#picker-line-6-period`) with a single `<TimePickerWheel value={timeValue} onChange={setTime} format={timeFormat} />`. Timer mode forces `format="24h"` (a duration has no AM/PM); schedule mode uses `"auto"` so the wheel honors the global System-Settings choice. Added `setTime` to the component's props.
+
+**[ScheduleTab.jsx](src/components/tabs/ScheduleTab.jsx)** — removed:
+- Imports: `TimePicker` from `IOSTimePicker`, `initializeTimePicker` from `pickerInitializers`
+- Refs: `pickerRefs.hoursRef` / `minutesRef` / `periodRef`, plus the standalone `timePickerRef`
+- The `initializeTimePicker(...)` block in the big picker-init `useEffect` (and the `pickersInitialized.current.time` flag)
+- The `timePickerRef.current = null` cleanup (no longer needed)
+- The `setTimeout(... timePickerRef.current.setTime(hour, minute) ...)` block in `handleItemClick` — `<TimePickerWheel>` already anchors to the latest `timeValue` prop
+- The dead-method wall in `updateView` (`selectedHour='00'`, `setHourMode('24h')`, `reinitHours()`, `updateValue()`) — replaced with a single `setTime('00:00')`
+- Pass `setTime` through to `<SchedulePickerTable>`
+
+**[pickerInitializers.js](src/components/tabs/ScheduleTab/utils/pickerInitializers.js)** — removed `initializeTimePicker` and the now-unused `TimePicker` / `is24hFormat` imports. Other init helpers (`initializeActionPicker`, `initializeRepeatPicker`, etc.) stay until Phase 5.
+
+### Behavior preserved (acceptance criteria from the plan)
+
+- 24h mode: hour wheel anchors to the saved value on edit-open, even when the picker container is initially `display:none` — `<PickerWheel>` carries the same `ResizeObserver` recovery the legacy fix added in v1.1.1275
+- 12h mode: hours show 01-12 + AM/PM, internal value stays canonical 24h, AM↔PM switch reuses the same hour-list (no rebuild)
+- Re-mount on cancel/save scroll-syncs to `timeValue` automatically via the `[options, value]` sync effect
+- No memory leak on multi-edit: every async resource (scroll listener, two rAFs, scroll-stop timeout, ResizeObserver) is cleaned up on unmount
+
+### Files touched
+
+- `src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx` — TimePickerWheel mount, `setTime` prop, `timeFormat` derivation
+- `src/components/tabs/ScheduleTab.jsx` — removed time-picker imperative path, passes `setTime` down
+- `src/components/tabs/ScheduleTab/utils/pickerInitializers.js` — `initializeTimePicker` and stale imports removed
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### What's next
+
+Phase 4 migrates `TodoFormDialog` (the only other `new TimePicker(...)` call site). Phase 5 finishes off Action / Days / Repeat / Position / Scheduler with `<PickerWheel>` and removes `IOSTimePicker.jsx` entirely.
+
 ## Version 1.1.1278 - 2026-04-27
 
 **Title:** ScheduleTab picker polish — period choices, repeat from backend, separator gradient parity
