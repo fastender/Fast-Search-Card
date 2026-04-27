@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1278 - 2026-04-27
+
+**Title:** ScheduleTab picker polish — period choices, repeat from backend, separator gradient parity
+**Hero:** none
+**Tags:** ScheduleTab, IOSPicker, Polish, Bugfix
+
+### Why
+
+Three small picker issues left over from the v1.1.1273-1277 wave, bundled into one release as a clean baseline before the upcoming `<PickerWheel>` rebuild:
+
+1. **Period picker still offered "24h"** as a third option even though the global 24h/AM-PM setting now lives in System-Settings (since v1.1.1274). When a `periodElement` is passed at all, we are by definition in 12h-mode — only AM/PM make sense.
+2. **Repeat wheel was hardcoded to "Einmalig"** on edit-open, regardless of the schedule's actual `repeat_type`. Editing a recurring schedule and tapping Save without touching the Repeat wheel silently flipped it to single.
+3. **Separator gradient was a single 210px gradient** with manual stops at 42.86%/57.14%, while the wheel columns (`.picker-up`/`.picker-down`) use two separate 90px overlays. Sub-pixel rounding made the dark frame in the colon column slightly different from the wheels under some zoom levels.
+
+### Changes
+
+**Period choices reduced to AM/PM** ([IOSTimePicker.jsx:235-255](src/components/IOSTimePicker.jsx#L235)). `periodData` is now `['AM', 'PM']`. If a legacy caller still has `selectedPeriod === '24h'` in its state, we fall back to AM via `Math.max(0, indexOf(...))`. The 24h/12h decision is now purely owned by `is24hFormat()` in System-Settings.
+
+**Repeat wheel reads from `item.repeat_type`** ([editStateLoaders.js:73-102](src/components/tabs/ScheduleTab/utils/editStateLoaders.js#L73)). `loadScheduleState` and `loadTimerState` now accept `setRepeat`. Schedules: `repeat_type === 'single'` → `t('once')`, otherwise `t('regular')`. Timers: always `t('once')` (timer = einmalig per Definition). [`initializeRepeatPicker`](src/components/tabs/ScheduleTab/utils/pickerInitializers.js#L140) accepts a `currentValue` and positions the wheel on it instead of always defaulting to index 1.
+
+**Separator gradient split into two 90px overlays** ([ScheduleTab.css:485-500](src/components/tabs/ScheduleTab/styles/ScheduleTab.css#L485)). Replaced the single `linear-gradient(180deg, ...)` with stops at 42.86%/57.14% by two no-repeat backgrounds: one 90px from the top, one 90px from the bottom. Pixel-identical to `.picker-up` and `.picker-down` on the wheel columns, so all three columns frame the center band the exact same way at every zoom level.
+
+### Files touched
+
+- `src/components/IOSTimePicker.jsx` — period picker data reduced to `['AM', 'PM']`
+- `src/components/tabs/ScheduleTab/utils/editStateLoaders.js` — `loadScheduleState` / `loadTimerState` set repeat from `item.repeat_type`
+- `src/components/tabs/ScheduleTab/utils/pickerInitializers.js` — `initializeRepeatPicker(ref, t, setRepeat, currentValue)` honors the current state
+- `src/components/tabs/ScheduleTab.jsx` — passes `setRepeat` through to the state loaders, passes `repeatValue` to `initializeRepeatPicker`
+- `src/components/tabs/ScheduleTab/styles/ScheduleTab.css` — `.time-picker-separator` background = two 90px overlays
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1277 - 2026-04-26
 
 **Title:** TimePicker layout: equal-share wheels work for both 24h (2 wheels) and 12h (3 wheels)
