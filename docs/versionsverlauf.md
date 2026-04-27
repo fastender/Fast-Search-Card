@@ -1,5 +1,71 @@
 # Versionsverlauf
 
+## Version 1.1.1285 - 2026-04-28
+
+**Title:** Zeitplan = Schemamodus mit Start- + Endzeit; Repeat erweitert auf 3 Werte (Wiederholen / Stoppen / Löschen) für Timer und Zeitplan
+**Hero:** none
+**Tags:** ScheduleTab, Schemamodus, Wiederholung, nielsfaber
+
+### Why
+
+Die nielsfaber/scheduler-component unterstützt zwei Schedule-Typen — **Einzelmodus** (nur Startzeit) und **Schemamodus** (Start + Endzeit als Zeitfenster) — sowie drei `repeat_type`-Werte (`repeat`, `pause`, `single`). Unsere Card kannte bisher nur Einzelmodus mit zwei repeat-Werten. Diese Release bringt unser Mental-Model in Einklang: Timer = Einzelmodus, Zeitplan = Schemamodus, beide mit allen drei Wiederholungs-Optionen.
+
+### Changes
+
+**Repeat von 2 auf 3 Werte** ([SchedulePickerTable.jsx](src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx)):
+- Vorher: `[t('regular'), t('once')]`
+- Jetzt: `[t('repeatRepeat'), t('repeatPause'), t('repeatSingle')]` — DE: Wiederholen / Stoppen / Löschen, EN: Repeat / Pause / Delete
+- Mapping zur nielsfaber-API: `repeat` / `pause` / `single` (über `repeatLabelToApi` in ScheduleTab.jsx)
+- Repeat-Row ist jetzt sichtbar in **beiden** Modi (vorher nur Zeitplan) — Timer-User können auch "Stoppen" oder "Wiederholen" wählen
+
+**Schemamodus für Zeitplan** ([SchedulePickerTable.jsx](src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx)):
+- Neue **Endzeit-Row** mit eigenem `<TimePickerWheel>`, sichtbar nur bei `schedulerValue === t('scheduleMode')`
+- Position direkt unter der Startzeit (data-line="8")
+- Default = `01:00` (Start + 1h)
+
+**Save-Pfad** ([ScheduleTab.jsx](src/components/tabs/ScheduleTab.jsx)):
+- `handleCreateSchedule` / `handleUpdateSchedule` schreiben jetzt `timeslots: [{ start, stop, actions }]` (vorher nur `start`)
+- Alle vier Save-Pfade (Timer-Create/Update, Schedule-Create/Update) nutzen `repeat_type: repeatLabelToApi(repeatValue)` statt hardcoded `'single'` / `'repeat'`
+- Timer-Save fügt **kein** `stop` hinzu — bleibt Einzelmodus
+
+**Edit-Loading** ([editStateLoaders.js](src/components/tabs/ScheduleTab/utils/editStateLoaders.js)):
+- Neuer Helper `repeatTypeToLabel(repeatType, t)` mappt API-Werte zurück auf User-Labels
+- `loadTimerState` + `loadScheduleState` setzen jetzt den korrekten 3-Wert-Label (vorher waren beide auf `t('once')` / `t('regular')` zurückgemappt)
+- `loadScheduleState` akzeptiert optionalen `setEndTime`-Parameter und übernimmt die Endzeit aus `item.endTime` falls vorhanden
+
+**API-Read** ([scheduleUtils.js](src/utils/scheduleUtils.js)):
+- Neuer Helper `extractTimeRange(slot)` unterstützt drei mögliche Formate für `timeslots[0]`: plain string ("08:00"), range string ("08:00:00 - 10:00:00"), object ({start, stop, actions}). Robust für alle Read-Pfade
+- Schedule + Timer transformation gibt jetzt zusätzlich `endTime` und `repeat_type` zurück, damit der Edit-Loader sie nutzen kann
+
+**State-Hook** ([useScheduleForm.js](src/components/tabs/ScheduleTab/hooks/useScheduleForm.js)):
+- Neuer State `endTimeValue` (Default `'01:00'`), Action-Creator `setEndTime`, Reducer-Cases `SET_END_TIME` und Reset-Logik in `RESET_FORM` / `LOAD_EDIT_DATA`
+- Default-Repeat im Initial-State und nach Reset: `t('repeatSingle')`. Der `handleSchedulerChange`-Wrapper in ScheduleTab flippt das auf `t('repeatRepeat')` wenn der User auf Zeitplan-Mode wechselt — und auf `t('repeatSingle')` wenn zurück auf Timer
+
+**Liste-Display** ([ScheduleListItem.jsx](src/components/tabs/ScheduleTab/components/ScheduleListItem.jsx)):
+- Schedules mit Endzeit zeigen jetzt `08:00 → 10:00 - Mo, Di` statt nur `Um 08:00 - Mo, Di` (Schemamodus visuell erkennbar)
+- Timer + Schedules ohne Endzeit: unverändert
+
+**Translations** ([de.js](src/utils/translations/languages/de.js), [en.js](src/utils/translations/languages/en.js)):
+- Neue Keys: `repeatRepeat`, `repeatPause`, `repeatSingle`, `endTime`
+- Alte Keys (`regular`, `once`) bleiben für Backwards-Compat in den translations, werden aber nicht mehr aktiv genutzt
+
+### Backwards-Compat
+
+- **Existierende Schedules ohne Endzeit:** beim Edit erscheint die Endzeit-Row mit dem Form-Default (`01:00`). Beim Save wird ein `stop`-Feld geschrieben — der Schedule wird damit zum Schemamodus konvertiert. Pro User-Wunsch keine spezielle Migration für bestehende Daten
+
+### Files touched
+
+- `src/components/tabs/ScheduleTab/hooks/useScheduleForm.js` — endTimeValue state + setEndTime + repeat-default `repeatSingle`
+- `src/components/tabs/ScheduleTab/utils/editStateLoaders.js` — repeatTypeToLabel + setEndTime in loadScheduleState
+- `src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx` — 3-Werte Repeat-Picker, neue Endzeit-Row, Repeat in Timer-Mode sichtbar
+- `src/components/tabs/ScheduleTab/components/ScheduleListItem.jsx` — Schemamodus-Display "start → end"
+- `src/components/tabs/ScheduleTab.jsx` — handleSchedulerChange flippt Repeat-Default, repeatLabelToApi, alle vier Save-Pfade mit `stop` + dynamic repeat_type, setEndTime an SchedulePickerTable
+- `src/utils/scheduleUtils.js` — extractTimeRange helper, endTime + repeat_type in transformierten objects
+- `src/utils/translations/languages/de.js` — repeatRepeat / repeatPause / repeatSingle / endTime
+- `src/utils/translations/languages/en.js` — gleiche keys
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1284 - 2026-04-28
 
 **Title:** Climate-Schedules aus nielsfaber: Edit zeigt jetzt korrekte Aktion und behält den ursprünglichen Service beim Speichern
