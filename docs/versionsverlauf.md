@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1282 - 2026-04-27
+
+**Title:** Climate pickers + Todo DatePicker migrated to `<PickerWheel>` / `<DatePickerWheel>`; legacy `IOSTimePicker.jsx` deleted (Phase 6 of the IOSPicker rebuild)
+**Hero:** none
+**Tags:** Climate, todos, IOSPicker, Refactor, Picker-Rebuild
+
+### Why
+
+Phase 6 closes out the picker rebuild. The remaining nine `new IOSPicker(...)` and one `new DatePicker(...)` call sites — all in Climate components and TodoFormDialog — are now self-contained Preact components. With the last consumer gone, `src/components/IOSTimePicker.jsx` has been deleted entirely (~660 lines).
+
+### Changes
+
+**New: [`<DatePickerWheel>`](src/components/picker/DatePickerWheel.jsx)** — three `<PickerWheel>`s (day / month / year) sharing a center band hairline. Day count adapts to the selected month + year (Feb leap year, 30/31-day months) — same clamp-on-month-change as the legacy `DatePicker.updateDayPicker`. Month names localized for `de` / `en`. Year range default 6 (current year + 5).
+
+**[TodoFormDialog.jsx](src/system-entities/entities/todos/components/TodoFormDialog.jsx)**:
+- Import `DatePicker` from `IOSTimePicker` removed; `DatePickerWheel` added
+- Refs `dayRef` / `monthRef` / `yearRef` / `datePickerRef` removed
+- `useEffect([currentView, lang])` block with `new DatePicker(...)` + `requestAnimationFrame` wait-for-refs loop — gone
+- Date-view JSX: three `<div className="date-picker-wheel">` slots replaced by `<DatePickerWheel value={dueDate} onChange={(iso, display) => ...} lang={lang} />`
+
+**[ClimateScheduleSettings.jsx](src/components/climate/ClimateScheduleSettings.jsx)** — five legacy `new IOSPicker(...)` calls (temperature, hvacMode, fanMode, swingMode, presetMode) replaced with `<PickerWheel>`:
+- The `pickerRefs` object and `pickersInitialized` flag map removed
+- The `useEffect([lang])` that ran the imperative init pipeline 100ms after mount is gone
+- Pre-computed label arrays (`hvacLabels` etc.) and per-picker `handleXChange` handlers translate label-strings ↔ mode keys at the picker boundary so the rest of the component keeps working in mode-keys
+
+**[ClimateSettingsPicker.jsx](src/components/climate/ClimateSettingsPicker.jsx)** — three legacy `new IOSPicker(...)` calls (fanSpeed, horizontal, vertical) replaced with `<PickerWheel>`. Refs / init useEffect / `try`-`catch` boilerplate / global `document.querySelector('.value-line-N')` text-content pokes — all gone, the value cells are JSX-driven by component state.
+
+**Deleted: `src/components/IOSTimePicker.jsx`** — last consumer gone. The four legacy classes (`IOSPicker`, `TimePicker`, `DatePicker`, `MultiSelectPicker`, ~660 lines total) are now history. The picker rebuild plan from v1.1.1277 / `docs/SESSION_NOTES_2026-04-26.md` §3 is complete.
+
+### Picker rebuild — closing summary
+
+| Phase | Release | What |
+|---|---|---|
+| 1 | v1.1.1278 | `<PickerWheel>` core component (single-column 3D wheel) |
+| 2 | v1.1.1278 | `<TimePickerWheel>` composed from PickerWheel |
+| 3 | v1.1.1279 | ScheduleTab time picker → `<TimePickerWheel>` |
+| 4 | v1.1.1280 | TodoFormDialog time picker → `<TimePickerWheel>`, global 24h/AM-PM setting now applies to todos |
+| 5 | v1.1.1281 | ScheduleTab Action / Position / Scheduler / Days / Repeat → `<PickerWheel>` + `<MultiSelectWheel>`; `pickerInitializers.js` deleted |
+| 6 | v1.1.1282 | Climate pickers + Todo DatePicker migrated; `IOSTimePicker.jsx` deleted |
+
+Net code change across the six phases: roughly −900 lines of imperative DOM-manipulation classes and useEffect init pipelines, +600 lines of self-contained reactive Preact components. Memory leaks (instances re-created without disposal on AM/PM switch / view re-mount) are gone — all async resources are cleaned up on unmount. Dead methods (`setHourMode`, `reinitHours`, `setTime` on TimePicker — none ever existed, all silent failures) are gone with their callers.
+
+### Files touched
+
+- `src/components/picker/DatePickerWheel.jsx` — NEW
+- `src/components/picker/DatePickerWheel.css` — NEW
+- `src/system-entities/entities/todos/components/TodoFormDialog.jsx` — DatePicker → DatePickerWheel
+- `src/components/climate/ClimateScheduleSettings.jsx` — 5 IOSPicker → PickerWheel
+- `src/components/climate/ClimateSettingsPicker.jsx` — 3 IOSPicker → PickerWheel
+- `src/components/IOSTimePicker.jsx` — DELETED
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Risk profile
+
+Climate components are less-frequently used than ScheduleTab — but `<ClimateScheduleSettings>` is part of the schedule edit flow when scheduling a climate entity (auto-mounts when action = "Einschalten"). Same migration pattern as Phase 5, same `<PickerWheel>` exercised in production for the past two days. TodoFormDialog DatePicker is straightforward — three independent PickerWheels with the day-clamp matching legacy behavior.
+
 ## Version 1.1.1281 - 2026-04-27
 
 **Title:** ScheduleTab pickers fully reactive (Phase 5 of the IOSPicker rebuild) — Action / Position / Scheduler / Days / Repeat now Preact components; pickerInitializers.js deleted
