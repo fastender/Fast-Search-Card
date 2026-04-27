@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1283 - 2026-04-27
+
+**Title:** ScheduleTab Wochentage-Picker — chip-row replaces the multi-select wheel
+**Hero:** none
+**Tags:** ScheduleTab, UX, Picker
+
+### Why
+
+The wheel-based weekday picker (scroll to a day, then click a separate "Auswählen" button to toggle) was a quirky two-step on a touch surface — every toggle cost a scroll plus a tap, and the button moved back and forth with the wheel. With seven options that all fit comfortably on one row, a chip-row gives **one tap per toggle** and the whole week is visible at a glance. The technical migration in v1.1.1281 (Phase 5) deliberately stayed 1:1 with the legacy UX so the rebuild stayed scope-controlled; this release is the follow-up UX cleanup that was flagged in `docs/SESSION_NOTES_2026-04-26.md` §8.
+
+### Changes
+
+**New: [`<DaysChipRow>`](src/components/picker/DaysChipRow.jsx)** — flat row of 7 buttons. Active chips get the iOS-blue fill, inactive chips a translucent outline. Same controlled API as the old `<MultiSelectWheel>` (`options`, `selectedValues`, `onChange`) — drop-in swap, the SchedulePickerTable handlers don't change.
+
+**[SchedulePickerTable.jsx](src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx)** — `<MultiSelectWheel>` import + JSX replaced by `<DaysChipRow>`. Comment in the days-round-trip helper section updated.
+
+**Deleted: `src/components/picker/MultiSelectWheel.jsx` + `MultiSelectWheel.css`** — only consumer migrated, file went unused. The `renderOption` prop on `<PickerWheel>` (added in Phase 5 specifically for MultiSelectWheel) stays in place — it's harmless and a plausible future extension point.
+
+### Behavior preserved
+
+- Round-trip through `daysValueToArray` / `arrayToDaysValue` is unchanged — the daysValue display string (`"Mo, Di"` / `"Täglich"` / `"Mo-Fr"` / `"Sa, So"` / `"Keine"`) keeps the same predicate set, so existing schedules read back the same way and `mapDaysToSchedulerFormat` (used at submit time) is unaffected
+- aria-pressed reflects active state for screen-reader users
+- Chip height (56px) plus padding fits the 210px picker container the rest of the schedule edit table uses, so the open/close animation doesn't snap
+
+### Files touched
+
+- `src/components/picker/DaysChipRow.jsx` — NEW
+- `src/components/picker/DaysChipRow.css` — NEW
+- `src/components/picker/MultiSelectWheel.jsx` — DELETED
+- `src/components/picker/MultiSelectWheel.css` — DELETED
+- `src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx` — import swap, JSX replace
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1282 - 2026-04-27
 
 **Title:** Climate pickers + Todo DatePicker migrated to `<PickerWheel>` / `<DatePickerWheel>`; legacy `IOSTimePicker.jsx` deleted (Phase 6 of the IOSPicker rebuild)
