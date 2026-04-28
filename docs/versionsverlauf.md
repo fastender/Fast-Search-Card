@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1291 - 2026-04-28
+
+**Title:** System-Settings Sub-View-Wechsel: kein Flackern mehr, schneller + flüssiger
+**Hero:** none
+**Tags:** SettingsTab, Animation, framer-motion
+
+### Why
+
+Beim Wechsel von der System-Settings-Hauptansicht in ein Untermenü (Sprache, Währung, Zeitformat, Vorschläge etc.) gab's ein sichtbares Flackern. Drei zusammenwirkende Ursachen:
+
+1. **`mode="wait"`** auf `<AnimatePresence>` — wartet bis die alte View komplett raus animiert ist, **bevor** die neue beginnt → ein paar Frames ohne Inhalt
+2. **`custom={-1}` auf der Main-View + `custom={1}` auf den Sub-Views** überschrieben das `custom`-Prop von AnimatePresence. Folge: bei main → sub liefen beide Views in dieselbe Richtung statt iOS-typisch gegenläufig
+3. **`initial={false}` auf der Main-View** → beim Zurück-Navigieren ploppte main einfach ein, kein Slide-In von links
+4. **Spring 300/30** ist eher bouncy als snappy — wirkt zäh
+
+### Changes
+
+[GeneralSettingsTab.jsx](src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx):
+
+- `<AnimatePresence>`: `mode="wait"` raus → Default-Sync, alte und neue View animieren überlappend
+- Main `<motion.div>`: `custom={-1}` raus, `initial={false}` → `initial="enter"`. Slidet jetzt von links rein wenn man zurück navigiert
+- Alle 5 Sub-View `<motion.div>`: `custom={1}` raus. Direction wird jetzt einheitlich von AnimatePresence's `custom` gesteuert
+- Alle 6 `transition`: `{ type: 'spring', stiffness: 300, damping: 30 }` → `{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }`. Das Easing matcht iOS-native Decel-Kurve, 250ms ist snappy aber nicht abrupt
+
+### Result
+
+- main → sub: main slidet nach links raus, sub slidet von rechts rein, **gleichzeitig**, in 250ms
+- sub → main: sub slidet nach rechts raus, main slidet von links rein, gleichzeitig, in 250ms
+- sub → sub (z.B. suggestions → learningRate): forward slide
+
+### Files touched
+
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+Andere Settings-Tabs (AppearanceSettingsTab, TodosSettingsView etc.) nutzen das gleiche Pattern und könnten dasselbe Treatment vertragen. Falls dort auch Flackern sichtbar ist — gerne melden, dann ziehe ich das nach.
+
 ## Version 1.1.1290 - 2026-04-28
 
 **Title:** iOS-Section-Header Padding/Letter-Spacing fix; Checkmarks nur noch der Haken (kein weißes Hintergrund-Pill)
