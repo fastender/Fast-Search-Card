@@ -1,5 +1,51 @@
 # Versionsverlauf
 
+## Version 1.1.1292 - 2026-04-28
+
+**Title:** IOSToggle: vom iOS-Slider-Switch auf einfachen "An" / "Aus"-Text gewechselt
+**Hero:** none
+**Tags:** IOSToggle, Settings, UI
+
+### Why
+
+User-Feedback: der iOS-Style-Switch (grüner Pill mit weißem Kreis) wirkt veraltet. Plain-Text "An"/"Aus" ist schneller lesbar, matcht den Stil der anderen Wert-Anzeigen in den Settings-Rows (`Aktiv`, `Inaktiv`, `Deutsch`, `24-Stunden` etc.) und braucht weniger Platz.
+
+### Changes
+
+**[IOSToggle.jsx](src/components/common/IOSToggle.jsx)** — komplett rewrite:
+- Render: jetzt ein `<button type="button">` mit Text "An" oder "Aus" (statt `<label>` + `<input type="checkbox">` + slider-pill)
+- API kompatibel zu vorher: `checked`, `onChange(value, event)`, `disabled`, `stopPropagation`, `className`, `style`
+- Neue optionale Props: `onLabel` / `offLabel` (defaults: "An" / "Aus") für andere Sprachen oder eigenen Text
+- 150 ms Dedupe für `onChange` bleibt — defensiv, falls Handler im Codebase auf höchstens-einen-fire-pro-Klick gebaut sind
+- `aria-pressed` für Screen-Reader
+
+**[iOSSettingsView.css](src/system-entities/entities/news/components/iOSSettingsView.css)** — neue `.ios-toggle-text` Klasse:
+- Default (off): `rgba(255, 255, 255, 0.45)` — gedimmt grau
+- `.is-on`: `rgb(10, 132, 255)` — iOS-Blue (Dark-Mode-Tint)
+- Hover-Row (heller Hintergrund): `rgba(0, 0, 0, 0.45)` off / `rgb(0, 122, 255)` on (Standard-iOS-Blue auf hellem BG)
+- `:disabled` / `.is-disabled`: opacity 0.4
+- 16px font, 500 weight, padding 6px 4px
+
+Die alten `.ios-toggle` / `.ios-toggle-slider` Klassen bleiben in der CSS bestehen — falls irgendwo direkt `<label className="ios-toggle">…</label>` Markup steht (außerhalb der IOSToggle-Komponente). Keine Breaking-Change-Risiken.
+
+### Files touched
+
+- `src/components/common/IOSToggle.jsx` — vom slider auf text rewrite
+- `src/system-entities/entities/news/components/iOSSettingsView.css` — `.ios-toggle-text` styles, alte `.ios-toggle` als legacy markiert
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Wo wirkt das?
+
+Alle ~30 Verwendungen von `<IOSToggle>` im Codebase:
+- GeneralSettingsTab: GreetingsBar, Toasts-Settings, Mobile-Panel-Auto-Expand etc.
+- AppearanceSettingsTab: diverse Anzeige-Toggles
+- TodosSettingsView: 6+ Toggles für Todo-Filter / -Visibility
+- iOSSettingsView (News): Show-Source-Icons / Auto-Refresh etc.
+- Printer3D / EnergyDashboard: device-spezifische Toggles
+
+Alle bekommen automatisch das neue Text-Treatment ohne Code-Änderung an der Aufrufseite.
+
 ## Version 1.1.1291 - 2026-04-28
 
 **Title:** System-Settings Sub-View-Wechsel: kein Flackern mehr, schneller + flüssiger
