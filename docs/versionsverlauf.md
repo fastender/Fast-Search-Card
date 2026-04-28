@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1298 - 2026-04-29
+
+**Title:** News-Suchleiste fadet sanft ein/aus statt instant zu erscheinen
+**Hero:** none
+**Tags:** News, Animation
+
+### Why
+
+Beim Klick auf das Lupen-Icon im Top-Header der News-View ploppte die Suchleiste sofort auf — kein Übergang, kein Fade. Andere Tab-Wechsel (z.B. Übersicht) haben weichere Animationen, die Suchleiste fiel da rausstilistisch.
+
+### Changes
+
+[NewsView.jsx](src/system-entities/entities/news/NewsView.jsx):
+- Suchleiste in `<AnimatePresence>` + `<motion.div>` eingewickelt
+- `initial={{ opacity: 0, y: -6 }}` → `animate={{ opacity: 1, y: 0 }}` → `exit={{ opacity: 0, y: -6 }}`
+- 220ms tween mit iOS-Easing `[0.32, 0.72, 0, 1]`
+- Filter-Wrapper als `{!searchOpen && (...)}` umgeschrieben damit nur eines von beidem gerendert wird (statt der Ternary)
+
+Effekt: Klick auf Suchen-Icon → Suchleiste slidet leicht von oben rein und fadet ein. Nochmal Klick (oder Übersicht) → Suchleiste fadet+slidet wieder weg, Filter-Zeile erscheint.
+
+### Files touched
+
+- `src/system-entities/entities/news/NewsView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1297 - 2026-04-29
 
 **Title:** Todo-Listen-Einstellungen: Symbol/Farbe wirken sofort, "Fertig"-Button entfällt
