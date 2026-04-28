@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1289 - 2026-04-28
+
+**Title:** News-/Schedule-Cards behalten das horizontale Layout auch unter 481px Breite
+**Hero:** none
+**Tags:** News, AllSchedules, Mobile, Layout
+
+### Why
+
+Der `@media (max-width: 480px)`-Block in `NewsView.css` hat die Cards auf Mobile in eine Vertikale gestapelt: `flex-direction: column`, Thumbnail 100% Breite und 180px Höhe statt 55×55. Das hat zwei Probleme erzeugt:
+
+1. Auf Mobile haben `.news-article-card` und (über das geteilte CSS) auch die `.news-article-card` in der `system.all_schedules`-Übersicht plötzlich anders ausgesehen als auf Desktop — User-Feedback war: das soll konsistent sein
+2. Speziell für Schedule-Cards (klein, mit Mini-Icon-Tile) ist das vertikale Layout overkill — sie wirken aufgebläht
+
+### Changes
+
+`@media (max-width: 480px)`-Block in [NewsView.css](src/system-entities/entities/news/styles/NewsView.css) entfernt. Der `@media (max-width: 768px)`-Block davor bleibt — der schrumpft Thumbnail (50×50) und Schrift (13px), behält aber das Row-Layout.
+
+### Files touched
+
+- `src/system-entities/entities/news/styles/NewsView.css` — Mobile-Stack-Block entfernt
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1288 - 2026-04-28
 
 **Title:** Picker-Container ohne eigene Rundungen — die Ecken übernimmt das Eltern-Card-Chrome
