@@ -1,5 +1,78 @@
 # Versionsverlauf
 
+## Version 1.1.1287 - 2026-04-28
+
+**Title:** Picker-Redesign — visionOS-Glass-Surface mit Center-Pill, flache (translateY) Wheel-Mechanik
+**Hero:** none
+**Tags:** PickerWheel, TimePickerWheel, DatePickerWheel, Design, visionOS
+
+### Why
+
+Das alte 3D-Cylinder-Design (Items rotiert um die x-Achse, perspektivische Verzerrung) wurde abgelöst durch eine flache translateY-Liste mit visionOS-style Glass-Surface und einer translucent-white Center-Pille. Inspiration: [MEddarhri/react-ios-time-picker](https://github.com/MEddarhri/react-ios-time-picker) + visionOS Vibrancy-Treatment. User-Feedback: ruhiger, sauberer, näher an iOS-17/visionOS-Aesthetik.
+
+### Was sich geändert hat — UI
+
+**Alle PickerWheel-Komponenten** (PickerWheel, TimePickerWheel, DatePickerWheel) rendern jetzt:
+- **Glass-Surface-Container**: `rgba(28,28,30,0.5)` + `backdrop-filter: blur(30px) saturate(180%)`, `border-radius: 16px`, soft inset-highlight an der Oberkante
+- **Center-Pille** statt Hairlines: rounded rectangle (`border-radius: 10px`) hinter dem aktiven Item, translucent white background
+- **Flache Items**: stack normal, kein 3D-Cylinder. Items außerhalb des Center-Bands dimmen via Top/Bottom-Fade-Gradient (matched die Surface-Farbe für nahtlosen Übergang)
+- **Aktives Item**: bold (`font-weight: 600`) + voll deckende weiße Schrift. Andere Items: `rgba(255,255,255,0.4)`
+
+**TimePickerWheel + DatePickerWheel:** Container-glass + eine Pille die über alle 2/3 Spalten spannt (Hours + Doppelpunkt + Minutes [+ AM/PM] bzw. Tag + Monat + Jahr). Inner-Wheels nutzen `bare={true}` — keine eigene Surface mehr, transparenter Pass-Through.
+
+### Was sich geändert hat — Code
+
+**[PickerWheel.jsx](src/components/picker/PickerWheel.jsx)**:
+- Removed: `ANGLE_STEP_DEG`, `TRANSLATE_Z_PX`, per-option `rotateX(...)translateZ(...)` transforms
+- Items stack jetzt im normalen Block-Flow (kein `position: absolute` pro Item)
+- `updateRotation` umbenannt zu `updateTransform` — setzt nur `pickerScroller.style.transform = translateY(${-scrollTop}px)`
+- Neuer `bare`-Prop suppress Glass + Pille + Fades — für den Use-Case in TimePickerWheel/DatePickerWheel
+- `VISIBLE_RANGE` von 7 auf 9 erhöht (flache Liste zeigt mehr Items als der 3D-Cylinder, auch außerhalb der Center-Band)
+
+**[PickerWheel.css](src/components/picker/PickerWheel.css)**:
+- Removed: `perspective`, `transform-style: preserve-3d`, `backface-visibility`, alle 3D-spezifischen Properties
+- Default-Surface: Glass + Pill + Top/Bottom-Fade
+- `.fsc-picker-wheel.is-bare`: alles transparent für Container-driven Rendering
+
+**[TimePickerWheel.css](src/components/picker/TimePickerWheel.css) + [DatePickerWheel.css](src/components/picker/DatePickerWheel.css)**:
+- Container-Glass-Surface
+- Single spanning Pill via `::before` (top:90px, height:30px = Center-Band)
+- Top/Bottom-Fade via `::after` als Container-Overlay (deckt Seams zwischen Wheels)
+- Separator schmaler (16px statt 20px), keine eigene Hintergrund-Gradient — die Pille deckt das Center-Band
+
+**[TimePickerWheel.jsx](src/components/picker/TimePickerWheel.jsx) + [DatePickerWheel.jsx](src/components/picker/DatePickerWheel.jsx)**:
+- Inner `<PickerWheel>` Aufrufe mit `bare` prop
+
+### Verhalten unverändert
+
+- Native Scroll auf cloneScroller (Touch + Mouse)
+- ResizeObserver-Recovery bei display:none → block (z.B. wenn Picker in einer collapsed Schedule-Row geöffnet wird)
+- smoothScrollTo mit easing, cancelable, rAF-driven
+- onChange firet auf Scroll-End (150ms debounce)
+- Initial-scroll suppress + Echo-suppress für sauberen Mount-Flow
+- Cleanup: scroll listener, 2× rAF, scroll-stop timeout, ResizeObserver — alle im unmount disposed
+
+### Wo das Design erscheint
+
+Überall wo ein Picker im UI ist:
+- ScheduleTab Edit-View: Action / Position / Scheduler / Repeat / Time / Endzeit
+- TodoFormDialog: Time + Date
+- Climate-Schedule-Settings: Temperature / HVAC / Fan / Swing / Preset
+- ClimateSettingsPicker: Fan-Speed / Horizontal / Vertical
+
+DaysChipRow ist unverändert — der Wochentage-Picker ist eine Chip-Row, kein Wheel.
+
+### Files touched
+
+- `src/components/picker/PickerWheel.jsx` — flat presentation, bare prop
+- `src/components/picker/PickerWheel.css` — visionOS rewrite, bare modifier
+- `src/components/picker/TimePickerWheel.jsx` — bare wheels
+- `src/components/picker/TimePickerWheel.css` — container glass + spanning pill
+- `src/components/picker/DatePickerWheel.jsx` — bare wheels
+- `src/components/picker/DatePickerWheel.css` — container glass + spanning pill
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1286 - 2026-04-28
 
 **Title:** Bugfix — Timer wurde beim Refresh als Zeitplan kategorisiert. Detection läuft jetzt über Einzelmodus/Schemamodus statt fragilem Name-Prefix
