@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1294 - 2026-04-28
+
+**Title:** System-Settings-Header zeigt jetzt aktiven Tab-Namen statt "Gerade Eben"
+**Hero:** none
+**Tags:** SettingsTab, DetailView, Header
+
+### Why
+
+Der Header der System-Einstellungen zeigte:
+- Zeile 1: "System Einstellungen"
+- Zeile 2: "Gerade Eben" (vom State-Helper, sinnlos für Settings)
+
+Sinnvoller: Zeile 1 = welcher Tab (Allgemein / Darstellung / Privatsphäre / Über), Zeile 2 = "Einstellungen" als Kontext-Label.
+
+### Changes
+
+[DetailView.jsx](src/components/DetailView.jsx):
+- Neue `getSettingsHeaderInfo()`-Funktion analog zu den existierenden `getNewsHeaderInfo()` / `getTodosHeaderInfo()` / etc.
+- Liest `activeTab` (DetailView's State, wird vom TabNavigation-Klick gesetzt) und mappt auf den deutschen/englischen Tab-Namen
+- `stateText` = `['Allgemein', 'Darstellung', 'Privatsphäre', 'Über'][activeTab]`
+- `stateDuration` = `'Einstellungen'`
+- Eingehängt in die OR-Chain für `stateText` / `stateDuration` an den `<TabNavigation>` Props (höchste Priorität, vor den anderen Domain-Headers)
+
+Reagiert sofort beim Tab-Wechsel — TabNavigation triggert sowohl `settingsTabRef.current.setActiveTab(index)` (für SettingsTab-Inhalt) als auch `setActiveTab(index)` (DetailView-State, das wir hier lesen).
+
+### Files touched
+
+- `src/components/DetailView.jsx` — `getSettingsHeaderInfo` + Wiring
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1293 - 2026-04-28
 
 **Title:** Range-Slider-Thumb mit blauem Rand passend zur Track-Farbe
