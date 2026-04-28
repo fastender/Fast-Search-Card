@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1288 - 2026-04-28
+
+**Title:** Picker-Container ohne eigene Rundungen — die Ecken übernimmt das Eltern-Card-Chrome
+**Hero:** none
+**Tags:** PickerWheel, TimePickerWheel, DatePickerWheel, Design
+
+### Why
+
+Beim Test in HA war zu sehen: drei der vier Picker-Ecken waren rund, die vierte (rechts unten) eckig — Inkonsistenz weil das Eltern-Element (HA-Card / `.picker-table-container`) bereits seine eigenen abgerundeten Ecken hat und sie dort das Schedule-Card visuell abschließen. Mein zusätzliches `border-radius: 16px` auf den Picker-Surfaces hat sich mit den Eltern-Rundungen überlagert und an manchen Stellen einen sichtbaren Knick ergeben.
+
+### Changes
+
+`border-radius: 16px` aus den drei Picker-Container-Stilen entfernt:
+- [PickerWheel.css](src/components/picker/PickerWheel.css) — `.fsc-picker-wheel` (plus die `.is-bare`-Override für border-radius war redundant, auch raus)
+- [TimePickerWheel.css](src/components/picker/TimePickerWheel.css) — `.fsc-time-picker-wheel`
+- [DatePickerWheel.css](src/components/picker/DatePickerWheel.css) — `.fsc-date-picker-wheel`
+
+Die Picker-Surface ist jetzt rechteckig — die Pille bleibt rund (10px), das ist der einzige Round-Element. Alle 4 Ecken vom Picker-Container sind nun visuell identisch (scharf), das Eltern-Card kümmert sich um die Außenrundung.
+
+Glass-Treatment (Backdrop-Blur, Saturate, Box-Shadow, inset white-line) bleibt unverändert.
+
+### Files touched
+
+- `src/components/picker/PickerWheel.css`
+- `src/components/picker/TimePickerWheel.css`
+- `src/components/picker/DatePickerWheel.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1287 - 2026-04-28
 
 **Title:** Picker-Redesign — visionOS-Glass-Surface mit Center-Pill, flache (translateY) Wheel-Mechanik
