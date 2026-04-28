@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1300 - 2026-04-29
+
+**Title:** Darstellung-Settings: Sub-View-Wechsel ohne Item-Flicker beim Zurück-Navigieren
+**Hero:** none
+**Tags:** SettingsTab, AppearanceSettingsTab, Animation
+
+### Why
+
+Beim Wechsel von einem Sub-Menü (z.B. Hintergrund, Rasterspalten, Kartenform) zurück zur Darstellung-Hauptansicht blitzten alle Items ~1ms hell auf. Identische Ursache wie der Sub-View-Flicker in den System-Settings (gefixt in v1.1.1291): `mode="wait"` + `initial={false}` + Spring-Transition + per-Element-`custom`-Override sorgen dafür, dass die main-View instant ohne Anim einrastet, während die sub-View noch verschwindet — die kurze Überlappung triggert Hover-State auf den Items unter dem Cursor.
+
+### Changes
+
+[AppearanceSettingsTab.jsx](src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx) — gleiche Behandlung wie GeneralSettingsTab in v1.1.1291:
+- `<AnimatePresence>`: `mode="wait"` raus → Default-Sync, alte und neue View animieren überlappend
+- Main `<motion.div>`: `custom={-1}` raus, `initial={false}` → `initial="enter"`. Slidet jetzt von links rein wenn man zurück navigiert, kein Pop-In mehr
+- Alle Sub-View `<motion.div>`: `custom={1}` raus — Direction wird einheitlich von AnimatePresence's `custom` gesteuert
+- Alle 6 `transition`-Definitionen: `{ type: 'spring', stiffness: 300, damping: 30 }` → `{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }` (iOS-native Decel-Easing, 250ms)
+
+### Effekt
+
+- main → sub: main slidet nach links raus, sub slidet von rechts rein, gleichzeitig in 250ms
+- sub → main: sub slidet nach rechts raus, main slidet von links rein, gleichzeitig in 250ms
+- **Kein Item-Flackern mehr beim Zurück-Navigieren** — die main-View ist erst voll positioniert wenn der Cursor wieder zugreifen kann
+
+### Files touched
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+TodosSettingsView und ggf. weitere haben noch das alte Pattern. Falls dort auch Flackern auftritt — kurz Bescheid geben, dann ziehe ich's nach.
+
 ## Version 1.1.1299 - 2026-04-29
 
 **Title:** Benutzerdefiniert-Ansicht: Device-Card-Schrift heller für bessere Lesbarkeit auf farbigen Hintergründen
