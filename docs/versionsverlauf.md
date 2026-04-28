@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1293 - 2026-04-28
+
+**Title:** Range-Slider-Thumb mit blauem Rand passend zur Track-Farbe
+**Hero:** none
+**Tags:** Slider, UI, Settings
+
+### Why
+
+Der Slider-Knopf war ein einfacher weißer Punkt — wenig Bezug zum blauen Track-Fill. Mit farbigem Rand in iOS-Blue wird der Zusammenhang sofort sichtbar.
+
+### Changes
+
+[iOSSettingsView.css](src/system-entities/entities/news/components/iOSSettingsView.css):
+- `input[type="range"]::-webkit-slider-thumb` und `::-moz-range-thumb`:
+  - Größe von 12×12 auf 18×18 (deutlicher sichtbar)
+  - Neuer 2px-Border in `rgb(0, 122, 255)` (gleicher Ton wie der Track-Fill in den Slider-Komponenten)
+  - `box-sizing: border-box` damit Border in der Größe enthalten ist
+  - Box-Shadow + weißes Center bleiben
+
+Wirkt automatisch auf alle Slider die das generic `input[type="range"]` Pattern nutzen — z.B. Hintergrund-Deckkraft / -Blur / -Saturation / -Vignette in den Appearance-Settings.
+
+### Files touched
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1292 - 2026-04-28
 
 **Title:** IOSToggle: vom iOS-Slider-Switch auf einfachen "An" / "Aus"-Text gewechselt
