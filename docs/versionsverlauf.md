@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1297 - 2026-04-29
+
+**Title:** Todo-Listen-Einstellungen: Symbol/Farbe wirken sofort, "Fertig"-Button entfällt
+**Hero:** none
+**Tags:** Todos, SettingsView, Bugfix
+
+### Why
+
+Beim Anpassen einer Todo-Liste (z.B. Einkaufsliste → Symbol + Farbe ändern) waren die Auswahlen nur Local-State und wirkten erst nach Klick auf "Fertig" — was leicht übersehen wurde. Plus: nach manuellem Test-Feedback war es so, dass die Farbauswahl auch nach "Fertig" nicht visuell durchschlug.
+
+Beide Symptome gingen auf dieselbe Ursache zurück: jeder Klick auf eine Farbe oder ein Symbol setzte zwar Local-State, aber persistierte nichts ins Settings-Object — das passierte erst beim Fertig-Klick. Wer den Button nicht klickte, dachte, die Farbauswahl funktioniere nicht.
+
+### Changes
+
+[TodosSettingsView.jsx](src/system-entities/entities/todos/components/TodosSettingsView.jsx):
+
+- Neuer Helper `applyListCustomization(patch)` der den Patch (`{ icon }` oder `{ color }`) sowohl in den Local-State als auch direkt via `onUpdateSetting('lists', ...)` ins Settings-Object schreibt
+- Klick auf Emoji im Symbol-Picker: `applyListCustomization({ icon: emoji })` statt `setListIcon(emoji)`
+- Klick auf Farbe im Farb-Picker: `applyListCustomization({ color })` statt `setListColor(color)`
+- "Fertig"-Button im Listen-Detail-Navbar **entfernt** — Zurück-Button reicht, alle Änderungen sind eh schon persistiert
+- Die alte `saveListCustomization`-Funktion ist auf einen No-Op-Fallback reduziert (für falls noch wer die Funktion aufruft)
+
+### Verhalten
+
+1. User öffnet Todos → Einstellungen → Listen → wählt z.B. "Einkaufsliste"
+2. Klick auf Farbe → Farb-Picker öffnet
+3. Klick auf z.B. Blau → **sofort** persistiert + Settings-Object aktualisiert
+4. Zurück-Navigation zum Listen-Detail → blaue Farbe sichtbar
+5. Zurück zur Hauptansicht → Todo-Cards der Einkaufsliste rendern sofort mit blauem Gradient
+
+Kein "Fertig" mehr nötig.
+
+### Files touched
+
+- `src/system-entities/entities/todos/components/TodosSettingsView.jsx` — applyListCustomization + Fertig-Button raus
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1296 - 2026-04-28
 
 **Title:** Todos: immer sichtbares Suchfeld über den Filter-Tabs
