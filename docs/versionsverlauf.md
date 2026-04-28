@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1295 - 2026-04-28
+
+**Title:** Aktualisieren-Button rotiert während die Schedules neu geladen werden
+**Hero:** none
+**Tags:** AllSchedules, UI, TabNavigation
+
+### Why
+
+Der "Aktualisieren"-Button im Header der Zeitpläne-Übersicht hat optisch nichts gemacht beim Klick — keine Rückmeldung dass tatsächlich ein Refresh läuft. User-Wunsch: Icon soll rotieren solange der Vorgang läuft.
+
+### Changes
+
+**[AllSchedulesView.jsx](src/system-entities/entities/all-schedules/AllSchedulesView.jsx)**:
+- `isLoading`-State (existierte schon) wird jetzt auf `window._allSchedulesViewRef.isRefreshing` exposed
+- `all-schedules-view-state-changed` Event feuert auch bei `isLoading`-Änderungen, sodass DetailView die Action-Buttons neu rendert
+- `loadData()`: Minimum-Duration von 500ms eingebaut. Da HASS-States bereits in-memory sind, läuft der Refresh effektiv synchron — ohne Min-Duration würde der Spinner nie sichtbar werden. 500ms ist genug für visuelles Feedback ohne dass es sich blockiert anfühlt
+
+**[DetailView.jsx](src/components/DetailView.jsx)**:
+- Special-Branch für `item.domain === 'all_schedules'` in `getActionButtons()`: kopiert die Refresh-Button-Definition und setzt `isRefreshing: !!window._allSchedulesViewRef?.isRefreshing` als Flag
+
+**[TabNavigation.jsx](src/components/DetailView/TabNavigation.jsx)**:
+- `case 'refresh'` SVG bekommt `className={button.isRefreshing ? 'is-spinning' : ''}`
+
+**[DetailView.css](src/components/DetailView.css)**:
+- Neue Animation `detail-tab-spin` (0.9s linear infinite) auf `.detail-tab svg.is-spinning`
+- `transform-origin: 50% 50%` damit das Icon um seinen Mittelpunkt rotiert
+
+### Files touched
+
+- `src/system-entities/entities/all-schedules/AllSchedulesView.jsx`
+- `src/components/DetailView.jsx`
+- `src/components/DetailView/TabNavigation.jsx`
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1294 - 2026-04-28
 
 **Title:** System-Settings-Header zeigt jetzt aktiven Tab-Namen statt "Gerade Eben"
