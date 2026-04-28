@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1296 - 2026-04-28
+
+**Title:** Todos: immer sichtbares Suchfeld über den Filter-Tabs
+**Hero:** none
+**Tags:** Todos, Search
+
+### Why
+
+Das Suchen in der Todo-Liste ist eine Hauptinteraktion, sollte aber nicht hinter einem Lupen-Icon im Header versteckt sein. User-Feedback: Suchfeld immer sichtbar, oberhalb der Filter-Tab-Leiste, im selben dunklen Container wie der Rest.
+
+### Changes
+
+[TodosView.jsx](src/system-entities/entities/todos/TodosView.jsx):
+- Neuer `searchQuery`-State (initial `''`)
+- `filterTodos()` filtert zusätzlich nach `searchQuery` (case-insensitive Substring-Match auf `summary` + `description`) — als Step 3b nach den activeFilter-Stufen
+- `useEffect`-Deps für Re-Filter erweitert um `searchQuery`
+- Neues JSX direkt vor `.todos-filter-bar`: `<div className="todos-search-bar">` mit Lupen-Icon links, `<input>` mittig (placeholder "Suchen…" / "Search…"), Clear-Button (×) rechts wenn was eingetippt ist
+
+[TodosView.css](src/system-entities/entities/todos/styles/TodosView.css):
+- `.todos-search-bar`: flex-row, `rgba(255,255,255,0.08)`-Hintergrund, `border-radius: 10px`, `padding: 8px 12px`, `margin-bottom: 12px` zum Filter-Tab-Layer
+- `.todos-search-input`: transparent, `font-size: 15px`, weiße Text-Farbe, gedimmter Placeholder
+- `.todos-search-clear`: gedimmtes Icon, hellt bei Hover auf
+
+### Verhalten
+
+- Tab-Auswahl + Suche kombinieren sich (z.B. Tab="Heute" + "Hans" → nur heute fällige Todos die "Hans" enthalten)
+- Filter-Badges (`Alle 6`, `Unerledigt 6`...) zeigen weiterhin die Counts ohne Such-Filter — das Suchfeld filtert nur die angezeigte Liste
+
+### Files touched
+
+- `src/system-entities/entities/todos/TodosView.jsx`
+- `src/system-entities/entities/todos/styles/TodosView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1295 - 2026-04-28
 
 **Title:** Aktualisieren-Button rotiert während die Schedules neu geladen werden
