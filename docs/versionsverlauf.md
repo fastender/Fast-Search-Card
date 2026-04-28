@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1290 - 2026-04-28
+
+**Title:** iOS-Section-Header Padding/Letter-Spacing fix; Checkmarks nur noch der Haken (kein weißes Hintergrund-Pill)
+**Hero:** none
+**Tags:** SettingsTab, iOSSettingsView, Polish
+
+### Why
+
+Zwei kleine UI-Fixes in den iOS-style Einstellungs-Views:
+
+1. **Section-Header** (`ALLGEMEIN`, `STATUS & BEGRÜSSUNG` etc.): hatten `padding-left: 0` und `letter-spacing: 0.5px`. Das hat sie links bündig mit dem Content gemacht und gestreckt aussehen lassen.
+
+2. **Checkmark** in den ausgewählten Optionen (Time-Format, Splashscreen, Auto-Hide-Days etc.): bestand aus einem **weißen runden Hintergrund-Pillen** mit schwarzem Tick darin. Sah wie ein Schalter aus, nicht wie ein iOS-Checkmark.
+
+### Changes
+
+**[iOSSettingsView.css](src/system-entities/entities/news/components/iOSSettingsView.css)**:
+
+- `.ios-section-header`:
+  - `padding-left: 0px` → `padding-left: 15px` (Header rückt etwas ein)
+  - `letter-spacing: 0.5px` → `letter-spacing: normal` (kein Streck-Tracking)
+
+- `.ios-checkmark`:
+  - `background: white` + `border-radius: 50%` weg — kein weißer Pill mehr
+  - `color: rgb(0, 122, 255)` → `color: white`
+  - Zusätzlich: alle `<circle>`-Elemente innerhalb (vom alten JSX-Markup) werden via CSS `fill: none; stroke: none` versteckt
+  - Alle `<path>`-Strokes werden auf `currentColor` (also weiß) geforcet — überschreibt inline `stroke="black"` aus dem JSX
+
+- Hover-State (Row wechselt zu hellem Hintergrund):
+  - `.ios-checkmark { background: black }` weg → `background: none`
+  - Path-Stroke wechselt auf `rgba(0, 0, 0, 0.6)` (dunkler Tick auf hellem Hintergrund)
+
+JSX-Code in `GeneralSettingsTab.jsx`, `AppearanceSettingsTab.jsx`, `TodosSettingsView.jsx` etc. ist nicht angefasst — die `<motion.circle>` und `<motion.path>` mit alten Inline-Werten bleiben, werden aber durch die neue CSS-Schicht visuell überschrieben.
+
+### Files touched
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1289 - 2026-04-28
 
 **Title:** News-/Schedule-Cards behalten das horizontale Layout auch unter 481px Breite
