@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1299 - 2026-04-29
+
+**Title:** Benutzerdefiniert-Ansicht: Device-Card-Schrift heller für bessere Lesbarkeit auf farbigen Hintergründen
+**Hero:** none
+**Tags:** Custom-View, DeviceCard, Lesbarkeit
+
+### Why
+
+In der Benutzerdefiniert-Ansicht (Kategorie `custom`) haben die System-Entity-Cards (Zeitpläne, Nachrichten, Todos, Versionsverlauf, Integration, Energie-Dashboard) voll-saturierte Hintergründe (orange, blau, lila, gelb). Die Default-Schrift (`rgba(255,255,255,0.7)` × `opacity: 0.5` ≈ 35%-weißer Effektivton) war auf diesen Hintergründen zu dunkel — User-Feedback: Texte schlecht lesbar.
+
+Andere Ansichten (Geräte, Sensoren, Aktionen) haben gemischte / transparente Hintergründe wo der Default-Wert passt — daher Änderung **scoped** auf nur die Custom-View.
+
+### Changes
+
+**[GroupedDeviceList.jsx](src/components/SearchField/components/GroupedDeviceList.jsx)**:
+- Neuer Prop `activeCategory` (default null)
+- Wenn `activeCategory === 'custom'`: Grid-Container kriegt zusätzliche Class `is-custom-view`
+
+**[SearchField.jsx](src/components/SearchField.jsx)**:
+- `activeCategory` an beide `<GroupedDeviceList>`-Aufrufe (search-results + non-search-results) durchgereicht
+
+**[DeviceCardGridView.jsx](src/components/DeviceCard/DeviceCardGridView.jsx)** — neue CSS-Regeln:
+- `.device-grid-container.is-custom-view .device-card .device-area`: `rgba(255,255,255,0.85)` + `opacity: 1` (vorher 0.7 × 0.5 = ~0.35)
+- `.device-grid-container.is-custom-view .device-card .device-name`: `rgba(255,255,255,1)` + `opacity: 1` (vorher 0.95 × 0.6 = ~0.57)
+- `.device-grid-container.is-custom-view .device-card .device-state`: `rgba(255,255,255,0.85)` + `opacity: 1`
+- Gradient-Truncate-Effekt (`-webkit-background-clip: text`) bleibt erhalten
+
+### Effekt
+
+In der Benutzerdefiniert-Ansicht sind die Card-Texte (z.B. "Kein Raum", "Zeitpläne Übersicht", "5 Feeds") jetzt deutlich heller und gut lesbar auf den farbigen Tile-Backgrounds. Andere Ansichten (Geräte, Sensoren, Aktionen) sind unverändert.
+
+### Files touched
+
+- `src/components/SearchField.jsx`
+- `src/components/SearchField/components/GroupedDeviceList.jsx`
+- `src/components/DeviceCard/DeviceCardGridView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
 ## Version 1.1.1298 - 2026-04-29
 
 **Title:** News-Suchleiste fadet sanft ein/aus statt instant zu erscheinen
