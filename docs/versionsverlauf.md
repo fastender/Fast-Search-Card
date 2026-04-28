@@ -1,5 +1,51 @@
 # Versionsverlauf
 
+## Version 1.1.1301 - 2026-04-29
+
+**Title:** Versionsverlauf: Suchfeld + zwei-zeilige Filter-Leiste (Zeitfenster + Tags) wie bei News
+**Hero:** none
+**Tags:** Versionsverlauf, Filter, Suche, UI
+
+### Why
+
+Bei wachsender Anzahl Releases wird die flache Versionsliste unübersichtlich. User-Wunsch: Suchen nach Versionsnummer / Titel und Filtern nach Zeitraum + Tag — analog zur News-View die das Pattern bereits hat.
+
+### Changes
+
+**[index.js](src/system-entities/entities/versionsverlauf/index.js)**: neuer Action-Button `search` zwischen `back` und `refresh`. Erscheint im Top-Header der Detail-View.
+
+**[TabNavigation.jsx](src/components/DetailView/TabNavigation.jsx)**: `case 'search'` ergänzt um `isVersionsverlaufView`-Branch — ruft `window._versionsverlaufViewRef.handleToggleSearch()` auf.
+
+**[VersionsverlaufView.jsx](src/system-entities/entities/versionsverlauf/VersionsverlaufView.jsx)**:
+- Neue States: `searchOpen`, `searchQuery`, `timeFilter` ('all' | '1w' | '2w' | '4w'), `tagFilter` (string | null)
+- `handleToggleSearch()` toggelt die Suchleiste, leert Query beim Schließen
+- `useEffect([searchOpen])`: auto-focus auf das Input wenn die Suche geöffnet wird
+- `handleBackNavigation` schließt jetzt auch die Suche wenn sie offen ist
+- `allTags` (memo): aggregiert alle Tags über alle Versionen, sortiert nach Häufigkeit absteigend
+- `filteredVersions` (memo): wendet Time-Window + Tag-Filter + Such-Substring (auf title + version + tags + content) an
+
+**[VersionsList.jsx](src/system-entities/entities/versionsverlauf/components/VersionsList.jsx)** — komplett rewrite:
+- Search-Bar als `AnimatePresence` + `motion.div` (fade-in/out wie in News-View)
+- Filter-Bar: zwei horizontal scroll-bare Reihen
+  - **Zeile 1 — Zeitfenster:** Pills `Alle / Vor 1W / Vor 2W / Vor 4W` (iOS-blue active)
+  - **Zeile 2 — Tags:** Chips `Alle Tags / <Tag1> <count> / <Tag2> <count> / …` (weiß+schwarz active, sortiert nach Häufigkeit)
+- Empty-State zeigt "🔍 Keine Treffer" wenn Filter aktiv sind, sonst "📋 Keine Versionen"
+
+**[VersionsverlaufView.css](src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css)** — neue Styles:
+- `.versionsverlauf-search-row` + `-search` + `-search-icon` + `-search-input` + `-search-clear`
+- `.versionsverlauf-filter-bar` + `-filter-row` (overflow-x scroll)
+- `.versionsverlauf-filter-pill` (Zeitfenster) — iOS-blue active
+- `.versionsverlauf-filter-chip` (Tags) — weiß+schwarz active, mit `-chip-count` Badge
+
+### Files touched
+
+- `src/system-entities/entities/versionsverlauf/index.js` — search actionButton
+- `src/system-entities/entities/versionsverlauf/VersionsverlaufView.jsx` — state + filtering
+- `src/system-entities/entities/versionsverlauf/components/VersionsList.jsx` — UI rewrite
+- `src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css` — styles
+- `src/components/DetailView/TabNavigation.jsx` — handleToggleSearch wiring
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1300 - 2026-04-29
 
 **Title:** Darstellung-Settings: Sub-View-Wechsel ohne Item-Flicker beim Zurück-Navigieren
