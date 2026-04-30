@@ -1,5 +1,133 @@
 # Versionsverlauf
 
+## Version 1.1.1332 - 2026-05-01
+
+**Title:** Antipattern-Fix: `window._fooViewRef` durch React-Context ersetzt — 7 Views + 3 Konsumenten umgestellt
+**Hero:** none
+**Tags:** Refactoring, Architecture, Antipattern-Fix
+
+### Why
+
+Seit Anbeginn wurden Toolbar-Handler von 7 System-Entity-Views (news, todos, weather, integration, printer, versionsverlauf, allSchedules) als globale `window._fooViewRef = {...}` Properties exposed, damit die Konsumenten (`<TabNavigation>`, `<DetailView>`, `<TodoFormDialog>`) Back-Button + Refresh + andere Toolbar-Actions an die passende View weiterleiten konnten.
+
+Probleme mit dem Antipattern:
+- **Globale window-Properties:** schwer testbar, leak-anfällig
+- **Keine Type-Safety, keine Lint-Warnungen** bei Tippfehlern (`window._newsViewRf` würde silent failen)
+- **Race-Conditions** bei View-Wechsel (alter Ref noch da, neuer überschreibt)
+- **Cleanup via `delete window._foo`** ist Sync-Order-Sensitive
+
+### Lösung — `ViewRefContext`
+
+**Neuer File: [ViewRefContext.jsx](src/contexts/ViewRefContext.jsx)** (~110 LOC):
+
+```jsx
+export function ViewRefProvider({ children }) {
+  const [viewRefs, setViewRefs] = useState({});
+  const register = useCallback((key, handlers) => { ... }, []);
+  const unregister = useCallback((key) => { ... }, []);
+  return <ViewRefContext.Provider value={{ viewRefs, register, unregister }}>{children}</ViewRefContext.Provider>;
+}
+
+export function useViewRefs() { ... }
+
+// Convenience hook für Views: registriert bei mount, unregistriert bei unmount.
+// Nutzt Ref-Trick um Handler-Closures aktuell zu halten ohne re-register-Spam.
+export function useRegisterViewRef(key, handlers, deps = []) { ... }
+```
+
+Plus Provider-Mount im App-Root ([index.jsx](src/index.jsx)):
+```jsx
+<ViewRefProvider>
+  <DataProvider hass={hass} config={config}>
+    {/* ...rest of App */}
+  </DataProvider>
+</ViewRefProvider>
+```
+
+### Migrations-Pattern
+
+**Vorher (überall):**
+```jsx
+useEffect(() => {
+  window._newsViewRef = { handleBackNavigation, handleRefresh, ... };
+  return () => { delete window._newsViewRef; };
+}, [...deps]);
+```
+
+**Nachher:**
+```jsx
+useRegisterViewRef('news', { handleBackNavigation, handleRefresh, ... }, [...deps]);
+```
+
+Konsumenten-Pattern:
+```jsx
+// Vorher
+const isNewsView = window._newsViewRef;
+if (isNewsView && window._newsViewRef.handleBackNavigation) { ... }
+
+// Nachher
+const { viewRefs } = useViewRefs();
+if (viewRefs.news?.handleBackNavigation) { ... }
+```
+
+### Migrierte Files
+
+**Views (7 — alle nutzen jetzt `useRegisterViewRef`):**
+- `NewsView.jsx`
+- `TodosView.jsx`
+- `VersionsverlaufView.jsx`
+- `AllSchedulesView.jsx`
+- `IntegrationView.jsx`
+- `Printer3DDeviceView.jsx`
+- `EnergyDashboardDeviceView.jsx` (registriert auch unter 'printer'-Key, weil EnergyDashboard und Printer3D dieselbe Toolbar-API teilen — nur eine View ist gleichzeitig gemountet)
+
+**Konsumenten (3 — alle nutzen jetzt `useViewRefs`):**
+- `TabNavigation.jsx` — ~70 References auf `viewRefs.foo` umgestellt; switch-Statement deutlich kompakter
+- `DetailView.jsx` — ~10 References umgestellt
+- `TodoFormDialog.jsx` — 1 Reference umgestellt
+
+**Plus** Provider gemountet in `index.jsx`.
+
+### Bonus-Vereinfachung in TabNavigation
+
+Beim Refactoring ist mir aufgefallen: das alte switch-Statement in `handleActionClick` hatte für jede Action 5-7 if/else-if-Branches mit Boilerplate (`if (isNewsView && window._newsViewRef.handleX) window._newsViewRef.handleX();`). Mit dem Context-Pattern und Optional-Chaining (`?.`) zusammen kompakt:
+
+```jsx
+case 'back':
+  if (news?.handleBackNavigation) news.handleBackNavigation();
+  else if (todos?.handleBackNavigation) todos.handleBackNavigation();
+  // ...
+  else onBack?.();
+  break;
+```
+
+Plus `useRegisterViewRef`'s Ref-Proxy-Trick: registriert wird nur EINMAL bei mount, intern werden die latest-Handler via Ref gelesen. Dadurch: keine Re-Registrierungen bei jedem Render der View.
+
+### Files touched
+
+- `src/contexts/ViewRefContext.jsx` — **neu** (~110 LOC)
+- `src/index.jsx` — `<ViewRefProvider>` mountet, 1 Import
+- `src/system-entities/entities/news/NewsView.jsx` — useEffect → useRegisterViewRef
+- `src/system-entities/entities/todos/TodosView.jsx` — same
+- `src/system-entities/entities/versionsverlauf/VersionsverlaufView.jsx` — same
+- `src/system-entities/entities/all-schedules/AllSchedulesView.jsx` — same
+- `src/system-entities/entities/integration/IntegrationView.jsx` — same
+- `src/system-entities/entities/integration/device-entities/views/Printer3DDeviceView.jsx` — same
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx` — same (auch unter 'printer'-Key)
+- `src/components/DetailView/TabNavigation.jsx` — alle window._-Refs auf viewRefs umgestellt, switch-Statement kompaktiert
+- `src/components/DetailView.jsx` — alle window._-Refs auf viewRefs umgestellt
+- `src/system-entities/entities/todos/components/TodoFormDialog.jsx` — `window._todosViewRef` → `viewRefs.todos`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Impact
+
+- **0 verbleibende `window._*ViewRef`-Aufrufe** im src/ (außer in Comments)
+- **Type-safer**: Tippfehler in `viewRefs.news` werden vom JSX-Bundler gemeldet
+- **Test-bar**: Tests können den Context mit Mock-viewRefs füllen, kein window-Mocking nötig
+- **Race-Condition-Sicherer**: register/unregister läuft im React-Lifecycle, nicht in setTimeout-Order
+- **Keine User-sichtbare Verhaltens-Änderung** — reine Architektur-Migration
+
 ## Version 1.1.1331 - 2026-05-01
 
 **Title:** EnergyDashboardSettingsView Splitting Phase 5 — main + circular-overview Sub-Views extrahiert + Dangling-Reference-Bug aus Phase 3 behoben
