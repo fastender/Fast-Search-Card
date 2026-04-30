@@ -1,5 +1,104 @@
 # Versionsverlauf
 
+## Version 1.1.1329 - 2026-04-30
+
+**Title:** EnergyDashboardSettingsView Splitting Phase 4 — `sensors`-SubView extrahiert (~648 LOC raus, Settings 1072 → 436 LOC)
+**Hero:** none
+**Tags:** Refactoring, Architecture, Energy-Dashboard
+
+### Why
+
+Nach Phase 3 (1328) war `EnergyDashboardSettingsView.jsx` mit 1072 LOC das neue größte File im Modul. Innerhalb hatte es 4 Sub-Views via AnimatePresence + slideVariants — die `settingsView === 'sensors'` Branch war mit ~648 LOC die mit Abstand größte. Phase 4 zielt nur auf diese eine Sub-View.
+
+### Überraschung beim Lesen
+
+Vorab-Annahme: die sensors-SubView braucht `energySensors` useMemo + `handleSensorSelect` + `sensorNames` + `sensorInfos` + `currentSensor` etc. — alles aus dem Settings-Function-Body.
+
+Tatsächlich: nur 10 Props nötig. Die SubView ist primär Display + Trigger:
+- Liste von Sensor-Slot-Buttons (Grid Import, Solar, Battery, Tariffs, etc.)
+- Jeder Klick öffnet die SensorSelection-Modal (via `setShowSensorSelection(true)` + setSensorSelectionType + setSensorSelectionSource)
+- Plus Info-Overlay-Trigger (i-Buttons) + Back-Navigation
+
+Die eigentliche Sensor-List-Logik (energySensors useMemo + handleSensorSelect) ist NUR in der `SensorSelection`-Modal-Component (extrahiert in 1327) — die sensors-SubView triggert nur die Modal-Anzeige und sieht die Modal-Logik gar nicht.
+
+### Was extrahiert wurde
+
+**[EnergyDashboardSensorsConfigView.jsx](src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorsConfigView.jsx)** (NEU, ~687 LOC inkl. Header):
+
+Props (10):
+```
+currentLang, t, settingsScrollRef, isSettingsHovered,
+setShowSensorSelection, setSensorSelectionType, setSensorSelectionSource,
+setSettingsView, setShowInfoOverlay, setInfoSensorType
+```
+
+Component renders Fragment (`<>...</>`) mit 3 sibling-Elements:
+1. iOS-Navbar (mit Back-Button → `setSettingsView('main')`)
+2. Settings-View mit den Sensor-Slot-Cards
+3. CustomScrollbar
+
+### Was sich im Settings-File ändert
+
+- 1 Import dazu (`EnergyDashboardSensorsConfigView`)
+- Inner content der `<motion.div key="sensors">` (Lines 257-904, ~648 Zeilen) durch 12-Zeilen Component-Call ersetzt
+- Die `motion.div`-Wrapper bleibt für AnimatePresence-Animation-Tracking erhalten:
+  ```jsx
+  ) : settingsView === 'sensors' ? (
+    <motion.div key="sensors" custom={1} variants={slideVariants} ...>
+      <EnergyDashboardSensorsConfigView
+        currentLang={currentLang}
+        t={t}
+        ...10 props...
+      />
+    </motion.div>
+  )
+  ```
+
+### Impact
+
+**EnergyDashboardSettingsView.jsx: 1072 → 436 LOC** (-636, -59%)
+
+Kumulativ über alle 4 Phasen seit Splitting-Start:
+- Phase 0: EnergyDashboardDeviceView.jsx war 2138 LOC + (`Settings`-Code als Inline-Branch)
+- Phase 1-3: Main-File auf 763 LOC, Settings als 1072-LOC-Component extrahiert
+- Phase 4: Settings auf 436 LOC, sensors-SubView als 687-LOC-Component extrahiert
+
+**Stand nach Phase 4 — kein File mehr über 800 LOC im EnergyDashboard-Bereich:**
+
+```
+device-entities/views/
+├── EnergyDashboardDeviceView.jsx           (763 LOC)
+├── EnergyDashboardSensorsConfigView.jsx    (687 LOC)  ← NEU
+├── EnergyDashboardSettingsView.jsx         (436 LOC)
+├── EnergyDashboardSensorSelectionView.jsx  (165 LOC)
+├── EnergyDashboardCameraView.jsx           (155 LOC)
+├── EnergyDashboardImageView.jsx            (130 LOC)
+├── EnergyDashboardSensorUtils.js           (70 LOC)
+├── Printer3DDeviceView.jsx                 (770 LOC)
+└── WeatherDeviceView.jsx                   (373 LOC)
+```
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorsConfigView.jsx` — **neu**
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSettingsView.jsx` — Inner-Content der sensors motion.div ersetzt + 1 Import
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Was noch offen ist
+
+**Innerhalb von Settings (Phase 5+ wenn man konsequent zu Ende splittet):**
+- `settingsView === 'main'` (~70 LOC innerhalb Settings)
+- `settingsView === 'circular-overview'` (~70 LOC)
+- `settingsView === 'circular-detail'` (~? LOC)
+- Plus die Info-Overlay (separate AnimatePresence)
+
+Aber: Settings ist mit 436 LOC jetzt navigierbar. Die 4 verbleibenden inner-Branches sind klein (~70 LOC jeweils). Weitere Splittung wäre Kosmetik, kein konkreter Maintainability-Win mehr.
+
+**Bigger items:**
+- `EnergyDashboardDeviceEntity` splitten (1294 LOC, Heavy-Calculations + Formatter in Helper-Files)
+- `window._integrationViewRef` / `_printerViewRef` durch React-Context ersetzen (Antipattern)
+
 ## Version 1.1.1328 - 2026-04-30
 
 **Title:** EnergyDashboardDeviceView Splitting Phase 3 — Settings-View extrahiert (~987 LOC raus). Main-File 1722 → 763 LOC, kumulativ 2138 → 763 (-64%).
