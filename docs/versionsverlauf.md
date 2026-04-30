@@ -1,5 +1,88 @@
 # Versionsverlauf
 
+## Version 1.1.1327 - 2026-04-30
+
+**Title:** EnergyDashboardDeviceView Splitting Phase 2 — SensorSelection-View extrahiert + Shared-Utils ausgelagert
+**Hero:** none
+**Tags:** Refactoring, Architecture, Energy-Dashboard
+
+### Why
+
+Phase 1 (1326) hat Camera + Image extrahiert und Main-File auf 1880 LOC reduziert. Phase 2 zielt auf den **SensorSelection-Branch** (~146 LOC). Vorbedingung: drei Inline-Definitionen mussten erst in eine Util-Datei ausgelagert werden, weil sie sowohl von SensorSelection als auch vom (noch im Main-File verbleibenden) Settings-Branch genutzt werden.
+
+### Was ausgelagert wurde
+
+**[EnergyDashboardSensorUtils.js](src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorUtils.js)** (NEU, ~70 LOC):
+
+- **`sensorTypeConfig`** (Pure-Config-Object): Map von Sensor-Type-ID → Filter-Config (`attr`, `units`, `deviceClass`). Definiert was als gültige HA-Entity für jeden Sensor-Slot durchgeht.
+- **`getValueLabel(valueType, lang)`** (Pure-Function): i18n-Label-Mapper. Vorher las `currentLang` aus Closure → jetzt expliziter `lang`-Parameter.
+
+Beide werden von Settings (im Main-File) UND SensorSelection (neue Sub-View) genutzt. Sharing via Util-File ist sauberer als Prop-Drilling oder Code-Duplication.
+
+### Was extrahiert wurde
+
+**[EnergyDashboardSensorSelectionView.jsx](src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorSelectionView.jsx)** (NEU, ~165 LOC):
+
+- Komplette `if (showSensorSelection) { ... }` Branch ausgeschnitten und als eigene Component implementiert.
+- **Bonus-Fix:** der `useMemo` für `energySensors` war vorher inside dem Conditional-Branch im Main-Component — gleiche Rules-of-Hooks-Violation wie bei Camera in Phase 1. Jetzt top-level der Sub-Component → Compliance.
+- Props: `entity, hass, currentLang, sensorSelectionType, onSensorSelect, onBack`. Alle State-Setter (`setShowSensorSelection`, `setSensorSelectionSource`, `setSettingsView`) sind im `onBack`-Callback gebündelt — die Sub-Component sieht nur das Fertige API.
+
+### Was sich im Main-File ändert
+
+- 4 Imports dazu (`EnergyDashboardSensorSelectionView`, `sensorTypeConfig`, `getValueLabelUtil`)
+- Inline-`sensorTypeConfig`-Definition (~17 Zeilen) entfernt — kommt jetzt aus dem Util-Import
+- Inline-`getValueLabel`-Function (~20 Zeilen) durch Thin-Wrapper ersetzt:
+  ```js
+  const getValueLabel = (valueType) => getValueLabelUtil(valueType, currentLang);
+  ```
+  Damit müssen alle Aufrufstellen im Main-File nicht angepasst werden — sie rufen weiterhin `getValueLabel(type)` ohne lang-Argument.
+- `if (showSensorSelection) { ... }` Branch (~146 Zeilen) durch 17-Zeilen Component-Call ersetzt:
+  ```jsx
+  if (showSensorSelection) {
+    return (
+      <EnergyDashboardSensorSelectionView
+        entity={entity}
+        hass={hass}
+        currentLang={currentLang}
+        sensorSelectionType={sensorSelectionType}
+        onSensorSelect={handleSensorSelect}
+        onBack={() => {
+          setShowSensorSelection(false);
+          setSensorSelectionSource(null);
+          setSettingsView('sensors');
+        }}
+      />
+    );
+  }
+  ```
+
+### Impact
+
+Main-File: **1880 → 1722 LOC** (-158 LOC, -8% zur Phase 1)
+
+Kombiniert mit Phase 1: **2138 → 1722 LOC** (-416 LOC, -19%) seit der Splitting-Initiative startete.
+
+Plus zwei Rules-of-Hooks-Violations behoben (Camera in 1326, SensorSelection in 1327).
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorUtils.js` — **neu**
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorSelectionView.jsx` — **neu**
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx` — 4 Imports rein, 3 Inline-Defs raus, 1 Branch durch Component-Call ersetzt
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Was noch offen ist — Phase 3
+
+**Settings-Branch (`if (showSettings)`)** ist mit ~987 LOC der mit Abstand größte verbleibende Branch. Hat 4 nested sub-views (`main`, `sensors`, `circular-overview`, `circular-detail`) die als eigene Sub-Components extrahiert werden könnten — wäre der größte LOC-Win wenn das gemacht wird.
+
+Das ist aber komplexer:
+- Mehr State-Coupling (`circularConfig`, `selectedCircularType`, `settingsView` etc.)
+- Slide-Variants für AnimatePresence-Übergänge
+- Verschachtelte sensor-Auswahl-Logik die mit der schon extrahierten SensorSelection-View interagiert
+
+Eigene Session wert wenn es soweit ist.
+
 ## Version 1.1.1326 - 2026-04-30
 
 **Title:** EnergyDashboardDeviceView Splitting Phase 1 — Camera + Image Sub-Views extrahiert (~258 LOC raus, plus Rules-of-Hooks-Bugfix)
