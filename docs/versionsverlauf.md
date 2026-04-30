@@ -1,5 +1,101 @@
 # Versionsverlauf
 
+## Version 1.1.1322 - 2026-04-30
+
+**Title:** Stufe 2 Konsolidierung — `weather/` und `printer3d/` Top-Level-Verzeichnisse aufgelöst, Device-Files ziehen nach `integration/device-entities/`
+**Hero:** none
+**Tags:** Refactoring, Architecture, Cleanup, Structural
+
+### Why
+
+Nach 1321 (Stufe 1: tote Singleton-Entities gelöscht) waren die Verzeichnisse `weather/` und `printer3d/` nur noch Hilfs-Files (Views + Components) für die echten Multi-Instance-Entities in `integration/device-entities/`. Mental-Model-Kollision: ein Top-Level-Verzeichnis suggeriert eine eigene System-Entity, war aber nur Material für eine Entity die woanders lebt.
+
+Plus: `printer3d/components/PrinterDetailView.css` wurde auch von Energy-Tabs genutzt — der printer-spezifische Name war eine Lüge.
+
+### Datei-Umzüge
+
+| Von | Nach |
+|---|---|
+| `weather/WeatherView.jsx` | `integration/device-entities/views/WeatherDeviceView.jsx` (umbenannt — passt zu `WeatherDeviceEntity`) |
+| `weather/components/HourlyForecast.jsx` | `integration/device-entities/components/weather/HourlyForecast.jsx` |
+| `weather/components/WeatherSummary.jsx` | `integration/device-entities/components/weather/WeatherSummary.jsx` |
+| `weather/components/AnimatedNumber.jsx` | `integration/device-entities/components/weather/AnimatedNumber.jsx` |
+| `weather/components/TemperatureBar.jsx` | `integration/device-entities/components/weather/TemperatureBar.jsx` |
+| `weather/components/WeatherIcons.jsx` | `src/components/icons/WeatherIcons.jsx` (echtes shared component — wird auch von StatsBar genutzt) |
+| `printer3d/components/ExpandableCard.jsx` + `.css` | `integration/device-entities/components/ExpandableCard.jsx` + `.css` |
+| `printer3d/components/PrinterDetailView.css` | `integration/device-entities/styles/DeviceDetailView.css` (**umbenannt** — wird auch von Energy genutzt) |
+| `system-entities/styles/WeatherView.css` | `integration/device-entities/styles/WeatherDeviceView.css` |
+
+10 File-Moves + 4 leere Verzeichnisse aufgelöst (`weather/`, `weather/components/`, `printer3d/components/`, `printer3d/`).
+
+### Import-Updates (~12 Stellen)
+
+- `WeatherDeviceView.jsx` (intern): WeatherIcons, TemperatureBar, HourlyForecast, AnimatedNumber, CSS — alle Pfade neu
+- `HourlyForecast.jsx`: WeatherIcons-Import auf neues shared-icon-component-Path
+- `WeatherDeviceEntity.js`: `viewComponent: () => import('./views/WeatherDeviceView.jsx')` (war `'../../weather/WeatherView.jsx'`)
+- `DeviceCardIntegration.jsx`: `getWeatherIcon` aus `'../../components/icons/WeatherIcons'` (war `'../entities/weather/components/WeatherIcons'`)
+- `StatsBar.jsx`: `getWeatherIcon` aus `'./icons/WeatherIcons'` (war system-entities-pfad)
+- `Printer3DDiagnosticsTab.jsx`: `ExpandableCard` aus `'../components/ExpandableCard'` (war `'../../../printer3d/components/...'`)
+- 5× Tab-Files (3× Printer3D, 2× Energy): `DeviceDetailView.css` aus `'../styles/DeviceDetailView.css'` (war `'../../../printer3d/components/PrinterDetailView.css'`)
+
+### Endergebnis
+
+```
+src/system-entities/entities/
+├── (kein weather/, kein printer3d/ mehr)
+├── integration/
+│   └── device-entities/
+│       ├── WeatherDeviceEntity.js
+│       ├── Printer3DDeviceEntity.js
+│       ├── EnergyDashboardDeviceEntity.js
+│       ├── views/
+│       │   └── WeatherDeviceView.jsx              (NEU — von oben)
+│       ├── components/
+│       │   ├── ExpandableCard.jsx + .css           (NEU — von printer3d/)
+│       │   ├── PrinterMiscList.jsx
+│       │   ├── PrinterSensorsList.jsx
+│       │   ├── PrinterDiagnosticsList.jsx
+│       │   ├── EnergyChartsView.jsx
+│       │   └── weather/                            (NEU)
+│       │       ├── HourlyForecast.jsx
+│       │       ├── WeatherSummary.jsx
+│       │       ├── AnimatedNumber.jsx
+│       │       └── TemperatureBar.jsx
+│       ├── styles/                                 (NEU)
+│       │   ├── DeviceDetailView.css                (umbenannt von PrinterDetailView.css)
+│       │   └── WeatherDeviceView.css
+│       └── tabs/                                   (existierte)
+└── (5 echte System-Entities: settings, news, todos, all-schedules, versionsverlauf, integration, pluginstore)
+
+src/components/icons/
+├── ActionTypeIcon.jsx                              (existierte)
+└── WeatherIcons.jsx                                (NEU — echtes shared component)
+```
+
+### Impact
+
+- **Datei-Struktur matcht mental Model:** alles Device-Related liegt in `integration/device-entities/`
+- **Top-Level `entities/`** enthält jetzt nur noch echte System-Entities
+- **`PrinterDetailView.css` → `DeviceDetailView.css`:** Name ehrlich, statt nur „Printer" sondern allen Devices
+- **`WeatherIcons.jsx` ist jetzt echtes shared component** in `components/icons/` — wird von 2 nicht-device-Stellen (DeviceCardIntegration, StatsBar) genutzt, gehört dort hin
+- **Keine Verhaltens-Änderung** für User — reine Strukturänderung, alle Cross-Imports nachgezogen
+
+### Build-Verifikation
+
+Vollständiger Build erfolgreich durchgelaufen — keine broken imports, alle Referenzen aufgelöst.
+
+### Files touched
+
+- 10 Files gemovt + umbenannt (siehe Tabelle oben)
+- 4 leere Verzeichnisse aufgelöst (`weather/`, `weather/components/`, `printer3d/`, `printer3d/components/`)
+- ~12 Import-Statements aktualisiert in 9 Files
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Nächste Schritte
+
+**Stufe 3** — `pluginstore` klären: existiert in `entities/`, ist aber nicht im Auto-Discovery von `registry.js`. Entweder anders registriert oder auch toter Code. Eigene Analyse-Runde.
+
 ## Version 1.1.1321 - 2026-04-30
 
 **Title:** Toter Code aufgeräumt — Standalone-Singleton-Entities Weather + Printer3D entfernt (~2000 LOC), nicht-genutzte Render-Pfade gelöscht
