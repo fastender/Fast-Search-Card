@@ -1,5 +1,89 @@
 # Versionsverlauf
 
+## Version 1.1.1317 - 2026-04-30
+
+**Title:** LiquidGlassSwitch — Press-Rubberband mit 100-ms-Delay; verhindert Jump-Artifakt bei schnellen Mausklicks
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Bugfix, Animation
+
+### Why
+
+Nach 1316 (Animation-Reset-Hack entfernt) blieb noch **ein Jump** beim Klick OFF→ON. Tiefere Ursache: das Press-and-Hold-Rubberband im LiquidGlassSwitch wird auf JEDEN `pointerdown` sofort aktiviert — auch bei schnellen Mausklicks (< 100 ms), wo es nur einen Jump-Artifakt produziert ohne haptisches Feedback zu liefern.
+
+### Was beim schnellen Klick OFF→ON passiert (vor diesem Fix)
+
+```
+t=0     pointerdown   → JSX addet 'is-pressed' sofort
+                        CSS: .switch.is-pressed .switch-dot-glass {
+                          transform: scaleX(1.29);   ← Knob streckt sich nach RECHTS
+                          transform-origin: left center;
+                          transition: .12s
+                        }
+t=0-50  Press läuft → bei normalem Mausklick (~50 ms) ist Knob bei scaleX(~1.12)
+t=50    pointerup → JSX removed 'is-pressed' → CSS rule weg
+                    Default-Transition .35s startet von scaleX(1.12) zurück zu scale(1)
+t=50    click event → input.checked false→true
+                      CSS-Selector :checked → animation: dot-on .55s startet
+                      Frame 0: scale(1) translateX(0)
+                      Knob JUMPED sofort von scaleX(1.12) auf scale(1) translateX(0)
+t=50-600 Animation läuft normal
+```
+
+### Was der User visuell wahrnimmt
+
+1. **Press:** Knob streckt sich rechtswärts → wirkt wie „Pre-Move zur ON-Position" = **„ein"**
+2. **Release/Click:** Animation überschreibt laufende Retract-Transition mit `frame 0 = translateX(0)` → Knob springt zurück auf normale Größe an links = **„aus"**
+3. **Animation läuft:** Knob slidet zur ON-Position = **„ein"**
+
+Drei Zustände in Millisekunden = exakt das vom User gemeldete „ein → aus → ein".
+
+### Lösung — 100-ms-Delay vor is-pressed-Add
+
+```jsx
+const PRESS_DELAY_MS = 100;
+const press = (e) => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  if (disabled) return;
+  pressTimer = setTimeout(() => {
+    el.classList.add('is-pressed');
+    pressTimer = null;
+  }, PRESS_DELAY_MS);
+};
+const release = () => {
+  if (pressTimer) {
+    clearTimeout(pressTimer);
+    pressTimer = null;
+  }
+  el.classList.remove('is-pressed');
+};
+```
+
+**Schneller Klick (< 100 ms):** Timer wird gestartet, dann von `release` gecleared, bevor `is-pressed` jemals gesetzt wird → Rubberband nie aktiv → kein Jump. Click triggert `dot-on` Animation; frame 0 = `scale(1) translateX(0)` matcht den aktuellen Dot-State → smooth Animation ohne Jump.
+
+**Langer Press (> 100 ms):** Timer feuert → `is-pressed` wird gesetzt → Rubberband aktiviert sich normal als haptisches Feedback (Touch-typisch). Bei `release` wird Rubberband retracted, dann triggert die Animation. Hier ist der visuelle Übergang akzeptabel weil der User bewusst gehalten hat.
+
+### Changes
+
+**[LiquidGlassSwitch.jsx](src/components/common/LiquidGlassSwitch.jsx)** — Press-Handler mit `setTimeout(..., 100)` + Cleanup in Release-Handler. `useEffect`-Cleanup räumt Timer beim Unmount auf.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.jsx` — Delayed Press-Rubberband
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Damit endgültig abgeschlossen — LiquidGlassSwitch-Saga
+
+Heute 16 Iterations (1302 → 1317), die finalen Bugfixes hatten alle versteckte tiefere Ursachen die erst nach echtem User-Test sichtbar wurden:
+
+- **1313:** `appearance: none` für native Form-Controls (Knob-Width-Shift bei Hover)
+- **1314:** Optimistic Update gegen React-Reconciliation-Revert
+- **1315:** Pending-Lock gegen HA-Polling-Race
+- **1316:** Animation-Reset-Hack entfernt (Vanilla-JS-Snippet-Pattern, in Preact bug-induzierend)
+- **1317:** Press-Rubberband mit 100-ms-Delay (kein Jump bei schnellen Mausklicks)
+
+Pattern-Lehre: jeder direkte DOM-Manipulations-Trick aus einem Vanilla-JS-Snippet sollte in Controlled-Component-Architekturen (React/Preact) **gegen den Lifecycle geprüft** werden — viele werden überflüssig, einige werden bug-induzierend.
+
 ## Version 1.1.1316 - 2026-04-30
 
 **Title:** LiquidGlassSwitch — Animation-Reset-Hack entfernt: er war die Quelle des „ein → aus → ein"-Jump-Cycles in Millisekunden
