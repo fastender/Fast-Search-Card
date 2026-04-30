@@ -1,5 +1,68 @@
 # Versionsverlauf
 
+## Version 1.1.1321 - 2026-04-30
+
+**Title:** Toter Code aufgeräumt — Standalone-Singleton-Entities Weather + Printer3D entfernt (~2000 LOC), nicht-genutzte Render-Pfade gelöscht
+**Hero:** none
+**Tags:** Cleanup, Refactoring, Architecture
+
+### Why
+
+Bei der System-Entity-Analyse aufgefallen: zwei Architektur-Generationen leben parallel im Repo. Die alte Singleton-Architektur (`weather/index.js`, `printer3d/index.js`) wurde bei der Migration auf das neue Multi-Instance-Pattern (`integration/device-entities/*DeviceEntity.js`) nie gelöscht. Konkret nicht mehr verwendet:
+
+- **`weather/index.js`** Singleton-Entity (~660 LOC) — nicht im Auto-Discovery-Loader von `registry.js` registriert. WeatherDeviceEntity hat eigene Implementierung pro Location.
+- **`printer3d/`** komplettes Standalone-Verzeichnis (~1354 LOC, 5 Files) — explizit deaktiviert in `registry.js:312` (Comment: „import.meta.glob includes ALL files, even deactivated ones like printer3d. So we rely only on manual imports above"). Printer3DDeviceEntity hat eigene Implementierung pro Drucker.
+- **`weather:` Domain-Renderer** in `DeviceCardIntegration.jsx` — referenzierte den toten Singleton via `getEntityByDomain('weather')`, der seit der Migration immer den Fallback `'partly-cloudy'` zurückgegeben hatte. Multi-Instance-Wetter wird durch `weather_device:` gerendert.
+
+### Was nicht gelöscht wurde
+
+Cross-References von außerhalb der toten Verzeichnisse müssen erhalten bleiben:
+
+- `weather/WeatherView.jsx` — wird von `WeatherDeviceEntity.viewComponent` lazy-imported
+- `weather/components/WeatherIcons.jsx` — wird von `DeviceCardIntegration` und `StatsBar` genutzt
+- `weather/components/*` (HourlyForecast, WeatherSummary, AnimatedNumber, TemperatureBar) — von WeatherView.jsx genutzt
+- `printer3d/components/ExpandableCard.jsx` + `.css` — wird von `Printer3DDiagnosticsTab` genutzt
+- `printer3d/components/PrinterDetailView.css` — wird von 5 Tab-Files (3× Printer3D-Tabs, 2× Energy-Tabs) genutzt
+
+Diese Cross-References sind eine Konsolidierungs-Aufgabe für später (Stufe 2): geteilte Files in `integration/device-entities/components/` umziehen, dann die Verzeichnisse `weather/` + `printer3d/` komplett auflösen.
+
+### Changes
+
+**Gelöschte Files:**
+
+- `src/system-entities/entities/weather/index.js` (~660 LOC, Singleton-Entity)
+- `src/system-entities/entities/printer3d/index.js` (~250 LOC, Singleton-Entity)
+- `src/system-entities/entities/printer3d/PrinterView.jsx` (~700 LOC, View-Component)
+- `src/system-entities/entities/printer3d/components/PrinterDetailView.jsx` (~250 LOC, Sub-View)
+- `src/system-entities/entities/printer3d/components/PrinterSettingsView.jsx` (~150 LOC, Sub-View)
+- `src/system-entities/entities/printer3d/styles/PrinterView.css` (View-CSS)
+- `src/system-entities/entities/printer3d/styles/` (jetzt leer, Verzeichnis entfernt)
+
+**Geänderte Files:**
+
+- `src/system-entities/integration/DeviceCardIntegration.jsx` — `weather:` Domain-Renderer-Block entfernt (rief `getEntityByDomain('weather')` auf, das immer null zurückgab)
+
+### Impact
+
+- ~2000 LOC weniger toten Code
+- Weniger Confusion welche Architektur „aktuell" ist (Standalone vs. Integration)
+- Build-Time leicht schneller (weniger Files zum durchgehen)
+- Keine Verhaltens-Änderung für User (alle gelöschten Pfade waren nachweislich nicht ausgeführt)
+
+### Files touched
+
+- 6 Files gelöscht (oben)
+- 1 Verzeichnis gelöscht (printer3d/styles/)
+- `src/system-entities/integration/DeviceCardIntegration.jsx` — toter weather:-Block entfernt
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Nächste Schritte (separate Versionen)
+
+**Stufe 2 (Konsolidierung):** geteilte Files (`WeatherView`, `WeatherIcons`, `ExpandableCard`, `PrinterDetailView.css`) nach `integration/device-entities/` umziehen, dann `weather/` und `printer3d/` Verzeichnisse komplett auflösen. Klarere Struktur: alles Device-relevante an einem Ort.
+
+**Stufe 3 (`pluginstore` klären):** wird in `registry.js:autoDiscover()` nicht aufgeführt, aber existiert im `entities/` Verzeichnis — entweder anders registriert oder auch tot. Eigene Analyse-Runde wert.
+
 ## Version 1.1.1320 - 2026-04-30
 
 **Title:** IOSToggle vollständig durch LiquidGlassSwitch ersetzt — 38 Component-Usages + 4 Inline-Markup-Usages migriert, IOSToggle.jsx + Legacy-CSS gelöscht
