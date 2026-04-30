@@ -1,5 +1,97 @@
 # Versionsverlauf
 
+## Version 1.1.1331 - 2026-05-01
+
+**Title:** EnergyDashboardSettingsView Splitting Phase 5 — main + circular-overview Sub-Views extrahiert + Dangling-Reference-Bug aus Phase 3 behoben
+**Hero:** none
+**Tags:** Refactoring, Architecture, Energy-Dashboard, Bugfix
+
+### Why
+
+Beim Vorbereiten der mini-SubView-Extraction ist ein **Bug aus Phase 3 (1328) aufgefallen**: `EnergyDashboardSettingsView.jsx` hatte 3 Dangling-References auf Helper-Funktionen, die im Parent (`EnergyDashboardDeviceView.jsx`) als `useCallback`/`useMemo` definiert sind, aber bei der Settings-Extract nicht durch Props gereicht wurden:
+
+- `getCircularTypeLabel(type)` — Lokalisiertes Label für Circular-Type
+- `getCircularSensorMapping(type)` — Sensor-Mapping pro Circular-Type
+- `enabledCirculars` — useMemo-Array der aktiven Circulars
+
+Beim Rendern der `circular-overview` SubView hätte das **Runtime-Crash** (`ReferenceError`) ergeben. Nicht aufgefallen, weil der User vermutlich nach Phase 3 noch nicht die Circular-Sub-View geöffnet hatte. Das jetzt mit-fixen.
+
+Plus: die mini-SubView-Extraction (kosmetisch, hat aber den Vorteil dass die Settings-Datei klar wird).
+
+### Was extrahiert wurde
+
+**[EnergyDashboardSettingsHomeView.jsx](src/system-entities/entities/integration/device-entities/views/EnergyDashboardSettingsHomeView.jsx)** (NEU, ~95 LOC) — die `settingsView === 'main'` Branch. Settings-Landing-Page mit zwei Navigation-Cards: "Werte" → sensors-SubView, "Circular" → circular-overview-SubView.
+
+Props: `currentLang, settingsScrollRef, isSettingsHovered, setSettingsView, enabledCirculars` (5 Props).
+
+**[EnergyDashboardCircularOverviewView.jsx](src/system-entities/entities/integration/device-entities/views/EnergyDashboardCircularOverviewView.jsx)** (NEU, ~100 LOC) — die `settingsView === 'circular-overview'` Branch. Liste aller 4 Circular-Typen (verbrauch/nettonutzung/solarerzeugung/batterie) mit Toggle pro Type.
+
+Props: `currentLang, settingsScrollRef, isSettingsHovered, setSettingsView, circularConfig, getCircularSensorMapping, getCircularTypeLabel, updateCircularConfig` (8 Props).
+
+### Bug-Fix: 3 dangling refs durch-gepropst
+
+Settings-Component-Signatur erweitert um 3 Props:
+```jsx
+export const EnergyDashboardSettingsView = ({
+  ...18 existing props,
+  // v1.1.1331: 3 Helpers aus dem Parent durchgereicht (waren seit Phase 3 dangling refs)
+  enabledCirculars,
+  getCircularSensorMapping,
+  getCircularTypeLabel,
+}) => { ... }
+```
+
+Plus Main-File: alle 3 Props in den Settings-Component-Call ergänzt:
+```jsx
+<EnergyDashboardSettingsView
+  ...18 existing props
+  enabledCirculars={enabledCirculars}
+  getCircularSensorMapping={getCircularSensorMapping}
+  getCircularTypeLabel={getCircularTypeLabel}
+/>
+```
+
+### Impact
+
+- **Settings-File: 437 → 351 LOC** (-86, -20%)
+- **Bug behoben** der seit 1328 stillschweigend lauerte
+- 2 saubere mini-SubView-Files im views/ Verzeichnis
+
+### Endstand EnergyDashboard-Architektur
+
+```
+device-entities/
+├── EnergyDashboardDeviceEntity.js              (1069)
+├── energyDashboardCalculations.js              (~265 — pure helpers)
+└── views/
+    ├── EnergyDashboardDeviceView.jsx           (763)
+    ├── EnergyDashboardSensorsConfigView.jsx    (687)
+    ├── EnergyDashboardSettingsView.jsx         (351 — Wrapper + AnimatePresence)
+    ├── EnergyDashboardSensorSelectionView.jsx  (165)
+    ├── EnergyDashboardCameraView.jsx           (155)
+    ├── EnergyDashboardImageView.jsx            (130)
+    ├── EnergyDashboardCircularOverviewView.jsx (~100, NEU)
+    ├── EnergyDashboardSettingsHomeView.jsx     (~95, NEU)
+    └── EnergyDashboardSensorUtils.js           (70)
+```
+
+Alle Files navigierbar (kein File >800 LOC bei den Views, Entity bei 1069). Splitting-Sequenz vollständig.
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSettingsHomeView.jsx` — **neu**
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardCircularOverviewView.jsx` — **neu**
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSettingsView.jsx` — 2 Imports rein, 2 Branches durch Component-Calls ersetzt, 3 Props zur Component-Signatur ergänzt
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx` — 3 Props an Settings-Component-Call ergänzt
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Lehre — Component-Extraction & Closure-Hidden-Refs
+
+Bei der Phase-3-Extraction (1328) wurde ein 987-Zeilen-Block aus dem Parent in eine eigene Component verschoben. Der inner-Code referenziert via Closure `getCircularTypeLabel`, `getCircularSensorMapping`, `enabledCirculars` aus dem Parent-Scope. Nach Move in eine separate Component sind diese Refs **dangling** — der Linter/Compiler fängt das nicht, weil JavaScript ist dynamisch typed; nur ein Render-Versuch hätte den Crash gezeigt.
+
+**Pattern-Erkenntnis:** beim Extract-Refactoring **immer einmal komplett durchgreppen** nach allen Identifiern die im extracted-Block verwendet werden, gegen die Liste der definierten Props matchen. Was übrig ist, sind die Dangling-Refs.
+
 ## Version 1.1.1330 - 2026-05-01
 
 **Title:** EnergyDashboardDeviceEntity Refactoring — 5 Calculation-Helpers in Module-Datei extrahiert (Entity 1294 → 1069 LOC)
