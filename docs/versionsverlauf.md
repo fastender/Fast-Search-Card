@@ -1,5 +1,77 @@
 # Versionsverlauf
 
+## Version 1.1.1323 - 2026-04-30
+
+**Title:** Pluginstore komplett gelöscht — Code, Loader, Icon, UI-Refs, Translations, Animations (~1700 LOC weg)
+**Hero:** none
+**Tags:** Cleanup, Refactoring, Architecture
+
+### Why
+
+Bei der System-Entity-Analyse aufgefallen: Pluginstore war im **Limbo-Zustand**. Code war voll vorhanden (Entity-Definition, View-Component, Loader-Mechanismus, UI-Support an 13 Stellen) — aber **nicht im `registry.js:autoDiscover()` Loader registriert**, also im Normalbetrieb nie sichtbar oder klickbar. Der Hardcoded-Fallback in `initialization.js` hätte den Pluginstore nur theoretisch (wenn Registry nicht initialisiert) angezeigt — aber ohne `viewComponent` und damit broken.
+
+User-Entscheidung: komplett löschen statt aktivieren oder im Limbo lassen.
+
+### Gelöschte Files
+
+- `src/system-entities/entities/pluginstore/index.js` (~570 LOC, PluginStoreEntity-Class mit Plugin-Install/Upload/Updates/Manifest-Validation)
+- `src/system-entities/entities/pluginstore/PluginStoreView.jsx` (~430 LOC, View-Component)
+- `src/system-entities/entities/pluginstore/styles/PluginStoreView.css` (~100 LOC)
+- `src/system-entities/entities/pluginstore/styles/` (leeres Verzeichnis)
+- `src/system-entities/entities/pluginstore/` (leeres Verzeichnis)
+- `src/system-entities/utils/SystemEntityLoader.js` (~290 LOC, Plugin-Loader mit URL/GitHub/ZIP/Manifest-Funktionen — wurde NUR vom Pluginstore + dem nicht-importierten `installPlugin`-Handler genutzt)
+- `src/assets/icons/other/PluginStore.jsx` (~30 LOC, Icon-Component)
+
+### Geänderte Files (UI-Refs entfernt)
+
+- `src/system-entities/initialization.js` — `system.pluginstore` aus Hardcoded-Fallback raus
+- `src/components/SearchSidebar.jsx` — `'pluginstore'` aus DEFAULT_SHORTCUT_IDS raus
+- `src/components/SearchField/utils/searchFilters.js` — 4 Stellen: `['settings', 'pluginstore']` → `'settings'`-domain-Check, `apps`-Subkategorie-Filter ohne pluginstore-Spezial-Pfad
+- `src/components/DetailView/DetailHeader.jsx` — 2× `systemDomains`-Array ohne `'pluginstore'`
+- `src/system-entities/integration/DeviceCardIntegration.jsx` — `PluginStore`-Import + `'pluginstore'` aus systemDomains + `pluginstore: PluginStore` aus iconMap raus
+- `src/assets/icons/iconRegistry.js` — `PluginStore`-Import + `pluginstore`-Spezialbehandlung raus
+- `src/system-entities/config/appearanceConfig.js` — `PluginStore`-Import + `pluginstore`-Appearance-Block (~55 LOC) raus
+- `src/utils/animations/components.js` — `pluginstoreItemVariants` Animation-Definition raus
+- `src/utils/animationVariants.js` — 3× `pluginstoreItemVariants` aus Imports/Exports raus
+- `src/utils/translations/languages/de.js` — `pluginstore: 'Plugin Store'` raus
+- `src/utils/translations/languages/en.js` — `pluginstore: 'Plugin Store'` raus
+- `src/components/DeviceCard/DeviceCardGridView.jsx` — toter `.device-card.pluginstore-card` CSS-Block (Class wurde nirgends im JSX gesetzt) raus
+- `src/system-entities/integration/DataProviderIntegration.js` — `installPlugin`-Handler (toter Code, nirgends importiert) raus
+- `src/system-entities/registry.js` — `registerPlugin`-Method raus (wurde nur vom gelöschten SystemEntityLoader gerufen)
+- `src/components/SearchField.jsx` — Comment-Reference auf pluginstore aktualisiert
+
+### Was bewusst NICHT gelöscht wurde
+
+- `this.plugins`-Map + `getPlugin`/`getAllPlugins` in `registry.js` — defensive Plugin-Map-Infrastruktur, klein und nicht broken. Falls in Zukunft ein Plugin-System wieder kommt, ist der Storage-Slot da.
+- `pluginManifest`-Property auf `SystemEntity` (Z. 27 + 61) — ist ein passives Property das nirgends gesetzt wird. Zu klein um aufzuräumen.
+
+### Impact
+
+- ~1700 LOC weniger toter Code
+- 14 Files vereinfacht
+- 6 Files + 2 Verzeichnisse + 1 Icon komplett gelöscht
+- Build-Time leicht schneller, Bundle-Size minimal kleiner
+- Klarere Architektur: keine „Plugin-System-Reste" mehr die suggerieren dass es ein Plugin-System gibt
+
+### Files touched
+
+- 7 Files gelöscht (oben)
+- 2 leere Verzeichnisse aufgelöst
+- 14 Files modifiziert (UI-Refs entfernt)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Lehre
+
+System-Entities die im Auto-Discovery nicht gelistet sind, leben in einem Schein-Zustand: Code da, UI bereitet sich auf sie vor, aber die zentrale Registrierung fehlt. Im Code-Review sollte ein Pattern eingebaut werden: jede `entities/<name>/index.js` muss in `registry.js:autoDiscover()` erscheinen — sonst ist sie tot oder gehört aktiv deaktiviert (mit Begründung im Comment, wie es für `printer3d` damals dokumentiert war).
+
+Damit ist auch die System-Entity-Analyse-Trilogie (Stufe 1 + 2 + 3) abgeschlossen:
+- **1321 (Stufe 1):** Toter Code (Standalone-Entity-Reste Weather/Printer3D) gelöscht — ~2000 LOC
+- **1322 (Stufe 2):** Konsolidierung (`weather/`/`printer3d/` Verzeichnisse aufgelöst, Files nach `integration/device-entities/` umgezogen)
+- **1323 (Stufe 3):** Pluginstore komplett gelöscht — ~1700 LOC
+
+Total: **~3700 LOC gestrichen + 11 Files weniger + klarere Verzeichnis-Struktur** in 3 Versionen.
+
 ## Version 1.1.1322 - 2026-04-30
 
 **Title:** Stufe 2 Konsolidierung — `weather/` und `printer3d/` Top-Level-Verzeichnisse aufgelöst, Device-Files ziehen nach `integration/device-entities/`
