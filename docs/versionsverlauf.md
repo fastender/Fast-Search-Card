@@ -1,5 +1,84 @@
 # Versionsverlauf
 
+## Version 1.1.1318 - 2026-04-30
+
+**Title:** LiquidGlassSwitch — Press-Rubberband-Transform entfernt; Press-Feedback nur noch via Track-Opacity-Dim. Strukturell jump-frei, egal wie lang der Klick.
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Bugfix, Animation
+
+### Why
+
+1317 hat den Jump für **schnelle Klicks (< 100 ms)** behoben via setTimeout-Delay vor `is-pressed`. User-Feedback: bei normalen Maus-Klicks (100-200 ms) bleibt der Jump trotzdem.
+
+Tiefer-Analyse: das Problem ist strukturell. Der Press-Rubberband-Transform und die `dot-on` / `dot-off` CSS-Animationen überschreiben sich auf der gleichen `transform`-Property:
+
+```css
+/* Press-Rubberband (vor 1318) */
+.switch.is-pressed .switch-dot-glass {
+  transform: scaleX(calc(...));
+  transform-origin: left center;
+  transition: transform .12s;
+}
+
+/* Animation hat hardcoded Frame-0-Reset */
+@keyframes dot-on {
+  0%   { transform: scale(1) translateX(0) rotateY(0deg); }  /* ← Reset */
+  12%  { transform: scale(1.55) translateX(0) rotateY(-30deg) }
+  ...
+}
+```
+
+Beim pointerup wechselt der CSS-Selector → Animation startet → Frame 0 setzt `scale(1) translateX(0)` → Knob springt aus der Rubberband-Position **zurück auf Ruhe-OFF**. Bei jedem Klick > Press-Delay: sichtbarer Jump.
+
+### Lösung
+
+Press-Rubberband-Transform und die `animation: none`-Press-Overrides komplett entfernt. Press-Feedback bleibt nur noch via Track-Opacity-Dim (`.switch.is-pressed .switch-slider::after { opacity: .35 }`).
+
+```css
+/* GELÖSCHT in 1318: */
+.switch.is-pressed .switch-dot-glass { transform: scaleX(...); ... }
+.switch.is-pressed input:checked ~ .switch-dot-glass { transform: ...; ... }
+.switch.is-pressed input:checked ~ .switch-dot-glass { animation: none }
+.switch.is-pressed input:not(:checked) ~ .switch-dot-glass.is-prim { animation: none }
+
+/* BEHALTEN: */
+.switch.is-pressed .switch-slider::after { opacity: .35 }
+```
+
+Damit gibt es keinen Transform-Konflikt mehr: `dot-on` Animation überschreibt nur ihre eigene Property-Sequenz, der Knob hat zwischen den States genau einen sauberen Animation-Pfad.
+
+### Konsequenz für JSX
+
+`setTimeout(... 100ms)` aus 1317 ist obsolet — die Verzögerung war nur dazu da, das Rubberband bei schnellen Klicks zu unterdrücken. Bei opacity-only Press-Feedback gibt es nichts zu unterdrücken, `is-pressed` kann sofort gesetzt werden. Code zurück auf den simplen 1306-Stil.
+
+### Snippet-Treue
+
+User-Snippet hatte den Rubberband 1:1, aber im Vanilla-JS-Kontext ohne den 1316-Animation-Reset-Hack-Bug (der den Konflikt erst sichtbar machte). Im Preact-Kontext ist die Kombination Rubberband-Transform + Animation-Override + Hardcoded-Frame-0-Reset strukturell defekt — Snippet-Treue an dieser Stelle bewusst aufgegeben für UX-Smoothness.
+
+### Changes
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — vier `.is-pressed`-Regeln entfernt, eine behalten (Track-Opacity-Dim).
+
+**[LiquidGlassSwitch.jsx](src/components/common/LiquidGlassSwitch.jsx)** — `setTimeout`-Delay aus 1317 raus, Press-Handler wieder simpel (sofort `is-pressed` setzen / entfernen).
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.css` — Press-Rubberband-Block entfernt
+- `src/components/common/LiquidGlassSwitch.jsx` — Press-Handler simplifiziert
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis — Nächster Schritt: Printer-Refactoring
+
+Tiefere Analyse zeigt strukturelle Schwächen in der Printer-Entity / PrinterMiscList die in den letzten Versionen umarbeiteten:
+
+- **Doppeltes Polling:** `Printer3DDeviceEntity` polled selbst alle 2 s, `PrinterMiscList` zusätzlich alle 5 s + bei jedem hass-Tick → 3 Polling-Quellen parallel
+- **`useEffect[entity, hass]`** feuert bei jedem hass-Backend-Tick (= 10×/Minute), nicht nur bei eigener Entity-Änderung
+- **PrinterMiscList ist 350-Zeilen-Mega-Component** mit switch/range/number/button alles inline + viele Inline-Styles
+- **Keine Memoization:** alle Handler werden bei jedem Render neu erstellt
+
+Wird in einem separaten v1.1.1319 als Refactoring angegangen.
+
 ## Version 1.1.1317 - 2026-04-30
 
 **Title:** LiquidGlassSwitch — Press-Rubberband mit 100-ms-Delay; verhindert Jump-Artifakt bei schnellen Mausklicks
