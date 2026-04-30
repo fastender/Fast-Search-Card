@@ -1,5 +1,119 @@
 # Versionsverlauf
 
+## Version 1.1.1328 - 2026-04-30
+
+**Title:** EnergyDashboardDeviceView Splitting Phase 3 — Settings-View extrahiert (~987 LOC raus). Main-File 1722 → 763 LOC, kumulativ 2138 → 763 (-64%).
+**Hero:** none
+**Tags:** Refactoring, Architecture, Energy-Dashboard
+
+### Why
+
+Phase 3 — der größte verbleibende Brocken aus der EnergyDashboardDeviceView-Splitting-Initiative: der `if (showSettings)`-Branch mit ~987 LOC. Inhalt: 4 nested Sub-Views via AnimatePresence + slideVariants:
+- `settingsView === 'main'` → Settings-Home (Tarif-Sensoren, Helligkeit etc.)
+- `settingsView === 'sensors'` → Sensor-Configuration-Liste (BIG, ~660 LOC)
+- `settingsView === 'circular-overview'` → Circular-Slideshow-Übersicht
+- `settingsView === 'circular-detail'` → Circular-Type-Detail-Settings
+
+Plus separater Info-Overlay-AnimatePresence-Block.
+
+Genau wie Camera (1326) und SensorSelection (1327) hatte der Branch eigene `useMemo`-Inside-Conditional Rules-of-Hooks-Violation (`energySensors`) — durch Extraction jetzt top-level der Sub-Component.
+
+### Strategie
+
+Statt die 4 Sub-Views einzeln zu extrahieren (4× Component-Boundaries + viel State-Coupling), wird Settings als **eine** Component extrahiert. Die internen Sub-View-Branches bleiben drinnen.
+
+Vorteil: Saubere Boundary, ein Schritt, niedriges Risiko. Nachteil: die neue Datei ist mit ~1070 LOC selbst groß. Künftige Splittung der 4 Sub-Views innerhalb der Settings-Component wäre eigene Session.
+
+### Was extrahiert wurde
+
+**[EnergyDashboardSettingsView.jsx](src/system-entities/entities/integration/device-entities/views/EnergyDashboardSettingsView.jsx)** (NEU, ~1072 LOC):
+
+- Komplette `if (showSettings) { ... }` Branch ausgeschnitten
+- `slideVariants` als Modul-Top-Level-Const (war im Main-Component nur für Settings)
+- 18 Props bei der Component-Boundary (entity, hass, currentLang, t, plus 13 State + Setters für die Sub-Views, plus updateCircularConfig + 3 Sensor-Selection-Setter für die Modal-Auslösung):
+  ```
+  entity, hass, currentLang, t,
+  circularConfig, setCircularConfig,
+  settingsView, setSettingsView,
+  selectedCircularType, setSelectedCircularType,
+  showInfoOverlay, setShowInfoOverlay,
+  infoSensorType, setInfoSensorType,
+  isSettingsHovered, setIsSettingsHovered,
+  settingsScrollRef,
+  setShowSensorSelection, setSensorSelectionType, setSensorSelectionSource,
+  updateCircularConfig
+  ```
+- Plus thin `getValueLabel(valueType)` Wrapper damit die internen JSX-Aufrufe nicht alle currentLang als 2. Argument durchreichen müssen
+
+### Was sich im Main-File ändert
+
+- 1 Import dazu (`EnergyDashboardSettingsView`)
+- `slideVariants`-Definition (~16 Zeilen) entfernt — lebt jetzt als Modul-Top-Level in der neuen Component
+- `if (showSettings) { ... }` Branch (~987 Zeilen) durch 26-Zeilen Component-Call ersetzt:
+  ```jsx
+  if (showSettings) {
+    return (
+      <EnergyDashboardSettingsView
+        entity={entity}
+        hass={hass}
+        currentLang={currentLang}
+        t={t}
+        circularConfig={circularConfig}
+        setCircularConfig={setCircularConfig}
+        settingsView={settingsView}
+        setSettingsView={setSettingsView}
+        ...
+        updateCircularConfig={updateCircularConfig}
+      />
+    );
+  }
+  ```
+
+### Impact
+
+Main-File: **1722 → 763 LOC** (-959 LOC, -56% in dieser Phase)
+
+Kumulativ über alle 3 Phasen:
+- Phase 0 (Start): 2138 LOC
+- Phase 1 (1326, Camera+Image): 1880 LOC
+- Phase 2 (1327, SensorSelection+Utils): 1722 LOC
+- Phase 3 (1328, Settings): **763 LOC**
+- **Gesamtreduktion: -1375 LOC, -64%** seit Splitting-Start
+
+Plus drei Rules-of-Hooks-Violations behoben (Camera, SensorSelection, Settings — alle hatten `useMemo` inside conditional `if`-Branches).
+
+### Endergebnis Datei-Struktur
+
+```
+device-entities/views/
+├── EnergyDashboardDeviceView.jsx       (763 LOC, Coordination + Overview)
+├── EnergyDashboardCameraView.jsx       (~155 LOC, Phase 1)
+├── EnergyDashboardImageView.jsx        (~130 LOC, Phase 1)
+├── EnergyDashboardSensorSelectionView.jsx (~165 LOC, Phase 2)
+├── EnergyDashboardSettingsView.jsx     (~1072 LOC, Phase 3)
+├── EnergyDashboardSensorUtils.js       (~70 LOC, Phase 2 — shared utils)
+├── Printer3DDeviceView.jsx             (770 LOC)
+└── WeatherDeviceView.jsx               (373 LOC)
+```
+
+Settings-View ist mit 1072 LOC das neue größte File — könnte später in 4 Sub-Views (main/sensors/circular-overview/circular-detail) weitergesplittet werden, wenn der Bedarf da ist. Aber: das Main-File ist jetzt navigierbar (763 LOC mit klaren Component-Boundaries für jeden View-Modus).
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSettingsView.jsx` — **neu**
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx` — Settings-Branch (~987 LOC) durch Component-Call ersetzt, slideVariants entfernt, 1 Import dazu
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Damit ist die EnergyDashboard-Splitting-Trilogie abgeschlossen
+
+Was noch theoretisch möglich wäre (für sehr lange Sessions):
+- **Settings-Sub-Views einzeln splitten** — vor allem `settingsView === 'sensors'` (~660 LOC innerhalb der Settings-Component) ist ein eigener Brocken
+- **`window._integrationViewRef` / `_printerViewRef`** durch React-Context ersetzen (Antipattern)
+- **EnergyDashboardDeviceEntity splitten** (1294 LOC, Heavy-Calculations + Formatter in Helper-Files)
+
+Aber für die Maintainability ist die View-Splittung jetzt in einem guten Stand — drei klar abgegrenzte Sub-Views (Camera, Image, Settings, SensorSelection) plus Shared-Utils, Main-File auf einem navigierbaren 763-LOC.
+
 ## Version 1.1.1327 - 2026-04-30
 
 **Title:** EnergyDashboardDeviceView Splitting Phase 2 — SensorSelection-View extrahiert + Shared-Utils ausgelagert
