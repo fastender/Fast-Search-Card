@@ -1,5 +1,75 @@
 # Versionsverlauf
 
+## Version 1.1.1306 - 2026-04-30
+
+**Title:** LiquidGlassSwitch — 1:1-Port des user-designed switch-snippet.html (parametrisierte CSS-Vars, 4 Größen, Press-and-Hold-Morph, Lens-Flash + Specular-Shimmer)
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Liquid-Glass, Animation, Rewrite
+
+### Why
+
+Nach 1305 (klassischer iOS-Slider in Blau) hat der User ein eigenes Snippet `switch-snippet.html` designed und „1:1 wie im Snippet" als finales Verhalten festgelegt. Das ist die endgültige Version der LiquidGlass-Iteration über 1302→1306.
+
+### Was das Snippet besser macht (über die Original-Pen + 1302 hinaus)
+
+1. **Vollständig parametrisiert:** CSS-Vars `--w / --h / --pad / --dot-w / --dot-h / --travel / --accent` — keine fest verdrahteten Pixel-Werte mehr. `--accent-d` wird automatisch aus `--accent` mit `color-mix(in oklab, ...)` 12 % dunkler abgeleitet.
+2. **4 Größen-Varianten** (`s-sm 64×30`, `s-md 86×38` default, `s-lg 128×56`, `s-xl 200×88`) auf einer Klasse.
+3. **Press-and-Hold Morph-Effekt** — beim Halten stretcht der Knob horizontal Richtung Gegenseite (`scaleX ≈1.36`), Track-Akzent dimmt auf opacity `.35`. Gibt physisches Rubberband-Feel vor dem eigentlichen Toggle.
+4. **Animation-Reset-Hack** — `is-prim`-Klasse als Gate (verhindert dot-off-Animation auf initial-Render) plus `style.animation = 'none' → offsetWidth → ''` Force-Restart pro Change. Macht die Flip-Animation wiederholbar selbst bei rapidem Toggle.
+5. **Accessibility:** `:focus-within`-Outline mit accent-tint, Input mit `position:absolute; opacity:0; pointer-events:none` statt `display:none` — keyboard-tabable, Space-Bar toggelt.
+
+### Changes
+
+**[LiquidGlassSwitch.jsx](src/components/common/LiquidGlassSwitch.jsx)** — neu strukturiert:
+- Markup matcht Snippet 1:1: `<label class="switch ...">` → `<input>` + `.switch-slider` + `.switch-dot-glass` mit drei nested layers (`-filter`, `-overlay`, `-specular`)
+- **Neue Props:** `size: 'sm'|'md'(default)|'lg'|'xl'` und `accent: string` (CSS-Color für `--accent`-Override)
+- **Preact-Hook 1:** `useEffect` für Pointer-Events (`pointerdown/up/cancel/leave`) → toggelt `.is-pressed`-Klasse auf der Label
+- **Preact-Hook 2:** `useCallback` Change-Handler — fügt `.is-prim` zum Dot, setzt `style.animation = 'none'`, forciert Reflow via `offsetWidth`, setzt `style.animation = ''` zurück → CSS-Animation re-triggert clean
+- 150-ms-Dedupe + `stopPropagation`-Support unverändert (Drop-in mit IOSToggle-API)
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — kompletter Rewrite, 1:1 vom Snippet:
+- CSS-Vars + Default-Werte
+- `.switch-slider::before/::after` für OFF/ON-Gradient-Crossfade
+- `.switch-dot-glass`-Choreografie: `dot-on/dot-off`-Keyframes (4 Stops: scale 1.55, rotateY ±30°, alpha-bg-cycle 0.15→0.75→1)
+- `filter-flash` + `spec-flash` Sub-Keyframes parallel (12-80 % Plateau, 0/100 % null)
+- `.is-pressed`-Rule mit shorter `transition .12s` für snappier Press-Feedback
+- 4 Größen-Varianten
+
+**[LiquidGlassFilterDefs.jsx](src/components/common/LiquidGlassFilterDefs.jsx)** — wieder hergestellt nach Lösch-Detour in 1304/1305:
+- SVG-`<filter id="mini-liquid-lens">` mit `feImage` (radial-gradient als pseudo-normal-map, off-center via `x="20" y="-66"`) + `feDisplacementMap scale="8"`
+- Data-URI properly URL-encoded (`%25` für `%`, `%23` für `#`) — Safari-safe
+
+**[index.jsx](src/index.jsx)** — `<LiquidGlassFilterDefs />` wieder global gemountet neben `WallpaperModeOverlay`.
+
+**[PrinterMiscList.jsx](src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx)** — keine Änderung nötig. Component-API bleibt drop-in-kompatibel. Default-Größe ist jetzt aber `s-md` (86×38 statt vorher 51×31), Default-Akzent ist Grün.
+
+### Verifikation
+
+Im Vite-Dev-Server mit Demo-Toggles in allen 4 Größen + 3 Akzent-Farben (grün default, blau `#0a84ff`, orange `#ff9500`):
+
+- **Statische States:** OFF (gray-Gradient + Knob links), ON (Akzent-Gradient + Knob rechts) rendern sauber in allen Größen
+- **Press-and-Hold-Morph:** `is-pressed`-Klasse aktiviert → Knob stretcht horizontal um Faktor ~1.36 Richtung Gegenseite, Akzent-Track dimmt auf `.35` opacity. Sichtbar bei OFF (stretch nach rechts) und ON (stretch nach links).
+- **Flip-Choreografie:** 6 Phasen (0/18/32/50/72/100 %) in Pause-Frames inspiziert — Squish-Anticipation, Slide, Settle alle korrekt mit den Pen-typischen Werten.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.jsx` — kompletter Rewrite
+- `src/components/common/LiquidGlassSwitch.css` — kompletter Rewrite (Snippet 1:1)
+- `src/components/common/LiquidGlassFilterDefs.jsx` — neu erstellt (war in 1304/1305 gelöscht)
+- `src/index.jsx` — Re-import + Re-mount der Filter-Defs
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+Damit ist die LiquidGlass-Iteration **abgeschlossen**. Pfad über 1302 (erste-Version) → 1303 (Smoothness-Pass) → 1304 (clip-path-Liquid-Reveal Detour) → 1305 (klassischer Slider in Blau Detour) → 1306 (user-designed Snippet als finale Form). Die Component ist jetzt:
+- parametrisiert (Größe + Akzent über Props)
+- mit Press-and-Hold-Morph (über vorherige Iterationen hinaus)
+- snippet-faithful (User hat selbst designed)
+
+Wenn der Toggle in PrinterMiscList in `s-sm` (64×30) und Blau (`#0a84ff`) gewünscht ist statt Default `s-md` Grün, dann
+`<LiquidGlassSwitch size="sm" accent="#0a84ff" ... />` in PrinterMiscList einfügen — die Component unterstützt es.
+
 ## Version 1.1.1305 - 2026-04-30
 
 **Title:** LiquidGlassSwitch zurück auf klassisches iOS-Slider-Design (Blau-Akzent statt Grün, alle Liquid-Glass-Effekte raus)
