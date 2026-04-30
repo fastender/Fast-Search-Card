@@ -1,5 +1,68 @@
 # Versionsverlauf
 
+## Version 1.1.1314 - 2026-04-30
+
+**Title:** PrinterMiscList: Optimistic Update beim Switch-Toggle (verhindert Multi-Animation durch React-controlled-mode Reconciliation)
+**Hero:** none
+**Tags:** 3D-Drucker, Toggle, UI, Bugfix, State-Management
+
+### Why
+
+User-Bug-Report: „wenn ich switch klicke, triggert es mehrfach... es ist nicht flüssig einmal, sondern 2-3x".
+
+Ablauf-Analyse beim Klick (vor diesem Fix):
+
+1. Browser togglet `<input type="checkbox">` von `checked=false` → `true` im DOM
+2. `handleChange` feuert → Animation-Reset-Hack triggert `dot-on` (Animation #1)
+3. `onChange(!checked)` → `handleToggle` in PrinterMiscList → nur `callService`, **kein lokaler State-Update**
+4. React reconciliation: Input-DOM (`checked=true`) ≠ Prop (`checked={false}`) → Input wird auf den Prop-Wert zurückgesetzt → CSS-Selector wechselt von `:checked` auf `:not(:checked)` → `dot-off` Animation läuft (Animation #2)
+5. 500 ms später kommt HA-Refresh aus `callService`'s `setTimeout` → `setMiscData` → Prop `checked=true` → Input flippt erneut → `dot-on` Animation läuft (Animation #3)
+
+Result: 2-3 Animationen pro Klick, springender Knob.
+
+Das ist ein klassischer Bug bei React-controlled-Components ohne Optimistic-Update: zwischen User-Click und HA-Confirmation gibt es eine Lücke, in der React den DOM-Stand auf den (alten) Prop-Wert zurückzwingt. Bei jedem Mismatch fired das CSS-Animation-System.
+
+### Lösung
+
+`handleToggle` macht jetzt einen Optimistic Update — der lokale `miscData`-State flippt SYNCHRON mit dem Browser-Toggle:
+
+```jsx
+const handleToggle = (key, currentState, entityObj) => {
+  if (!entityObj) return;
+
+  const isOn = currentState === 'on' || currentState === true;
+  const newValue = !isOn ? 'on' : 'off';
+
+  // Optimistic Update — sofort lokal flippen, HA-Echo bestätigt später.
+  setMiscData(prev => ({ ...prev, [key]: newValue }));
+
+  const domain = entityObj.entity_id.split('.')[0];
+  const service = !isOn ? 'turn_on' : 'turn_off';
+  callService(domain, service, entityObj.entity_id);
+};
+```
+
+Damit läuft React reconciliation glatt durch: Input-DOM (true) matched Prop (true), kein Revert, eine saubere `dot-on` Animation. HA-Echo bestätigt im 500 ms / 5 s Polling-Tick — bei Match keine weitere Animation, bei Mismatch (Service rejected, Hardware-Failure) flippt der Toggle zurück und der User sieht das als visuelles Feedback.
+
+### Changes
+
+**[PrinterMiscList.jsx](src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx)** — `handleToggle` mit `setMiscData` davor.
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx` — Optimistic Update
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Lehre
+
+In HA-Custom-Cards mit controlled-mode-Switches: **Local-State immer optimistic flippen, HA-Confirmation kommt im Polling.** Sonst gibt es zwingend einen visuellen Revert-Cycle. Pattern für andere Toggle-Use-Cases im Repo:
+
+1. User-Click → `setLocalState(target)` (sync, vor service-call)
+2. `hass.callService(...)` (async)
+3. Polling-Refresh überschreibt local nur wenn HA-State stable ist
+4. Bei Service-Failure flippt HA-State zurück → User sieht Mismatch als Feedback
+
 ## Version 1.1.1313 - 2026-04-30
 
 **Title:** LiquidGlassSwitch — `appearance: none` ergänzt: `width:0/height:0` allein reicht nicht für native Form-Controls (Knob wanderte sonst beim Hover nach links)
