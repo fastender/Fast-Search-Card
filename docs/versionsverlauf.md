@@ -1,5 +1,83 @@
 # Versionsverlauf
 
+## Version 1.1.1326 - 2026-04-30
+
+**Title:** EnergyDashboardDeviceView Splitting Phase 1 — Camera + Image Sub-Views extrahiert (~258 LOC raus, plus Rules-of-Hooks-Bugfix)
+**Hero:** none
+**Tags:** Refactoring, Architecture, Energy-Dashboard
+
+### Why
+
+`EnergyDashboardDeviceView.jsx` war mit 2136 LOC das größte File im integration-Modul (3× WeatherDeviceView, fast 3× Printer3DDeviceView). Eine 2000-Zeilen-Component zu navigieren ist Schmerz, plus es enthielt eine **Rules-of-Hooks-Violation**:
+
+```jsx
+if (showCamera) {
+  // ... lots of code
+  const imageSrc = useMemo(() => { ... }, [...]);  // ← Hook conditionally aufgerufen
+  return <div>...</div>;
+}
+```
+
+`useMemo` innerhalb eines `if`-Branches im Component-Body — wenn `showCamera` zwischen Renders flippt, ändert sich die Hook-Aufruf-Reihenfolge, was React/Preact Hook-Tracking durcheinanderbringt. Stille Bug-Quelle.
+
+### Splitting-Strategie
+
+Der Component hat 5 große Render-Branches (Conditional-Returns):
+
+| Branch | Lines | Komplexität |
+|---|---|---|
+| `showSensorSelection` | ~146 | mittel — viele Dependencies (sensorTypeConfig, getValueLabel, handleSensorSelect) |
+| **`showSettings`** | **~987** | hoch — 4 nested sub-views |
+| `showCamera` | ~136 | niedrig — self-contained + Rules-of-Hooks-Fix |
+| `showImage` | ~54 | niedrig — pure JSX-Render |
+| Main / Overview | ~66 | niedrig |
+
+**Pragmatische 3-Phasen-Strategie** statt Big-Bang:
+
+- **Phase 1 (1326, diese Version):** Camera + Image extrahiert — die zwei einfachsten und niedrigst-gekoppelten Branches. Plus Rules-of-Hooks-Fix als Bonus.
+- **Phase 2 (geplant):** SensorSelection extrahieren — erfordert Shared-Utils-Extraction (`sensorTypeConfig`, `getValueLabel`, `handleSensorSelect`) in eigene Util-Datei, weil sowohl SensorSelection als auch Settings sie nutzen.
+- **Phase 3 (geplant):** Settings-Branch (987 LOC mit nested sub-views) — komplexester Schritt, eigene Session.
+
+### Changes
+
+**Neue Files:**
+
+- **[EnergyDashboardCameraView.jsx](src/system-entities/entities/integration/device-entities/views/EnergyDashboardCameraView.jsx)** (~155 LOC) — Camera-Branch extrahiert. Props: `entity, hass, currentLang, cameraImageTimestamp`. `useMemo` jetzt top-level → keine Rules-of-Hooks-Violation mehr.
+- **[EnergyDashboardImageView.jsx](src/system-entities/entities/integration/device-entities/views/EnergyDashboardImageView.jsx)** (~130 LOC) — Image-Branch extrahiert. Props: `entity, hass, currentLang`. Pure JSX-Render mit hass.states-Lookup für `image.{serial}_titelbild`.
+
+**Geändertes File:**
+
+- **[EnergyDashboardDeviceView.jsx](src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx)** — 2136 → 1880 LOC (-258 LOC, -12%). Die 2 Branches durch je eine Zeile Component-Call ersetzt:
+  ```jsx
+  if (showCamera) {
+    return <EnergyDashboardCameraView entity={entity} hass={hass} currentLang={currentLang} cameraImageTimestamp={cameraImageTimestamp} />;
+  }
+  if (showImage) {
+    return <EnergyDashboardImageView entity={entity} hass={hass} currentLang={currentLang} />;
+  }
+  ```
+
+### Impact
+
+- **-258 LOC** im Main-File (1880 statt 2138)
+- **Rules-of-Hooks-Bug behoben** in der Camera-Sub-View (useMemo jetzt unconditional top-level)
+- **Re-Render-Lokalität verbessert** — wenn Slideshow-State im Main-Component sich ändert, re-rendert Camera/Image-Sub-View nicht mehr (eigene Component-Boundary)
+- **Keine Verhaltens-Änderung** für User — beide Sub-Views funktionieren identisch wie vorher
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardCameraView.jsx` — **neu**
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardImageView.jsx` — **neu**
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx` — 2 Branches ersetzt + 2 Imports
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Was noch offen ist
+
+**Phase 2:** SensorSelection extrahieren. Vorbedingung: Shared-Utils (sensorTypeConfig, getValueLabel, handleSensorSelect) in eigene Datei ziehen — sind in Settings UND SensorSelection genutzt.
+
+**Phase 3:** Settings-Branch splitten. Hat 4 sub-views (`main`, `sensors`, `circular-overview`, `circular-detail`) die als eigene Sub-Components extrahiert werden könnten. Größter LOC-Win wenn das gemacht wird.
+
 ## Version 1.1.1325 - 2026-04-30
 
 **Title:** Plugin-Pattern für Device-Types — `deviceTypeRegistry.js` als Single Source of Truth, 3 hardcoded Switch-Stellen aufgelöst
