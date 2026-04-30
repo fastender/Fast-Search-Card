@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1307 - 2026-04-30
+
+**Title:** LiquidGlassSwitch in PrinterMiscList: kleiner (s-sm), blau (#0a84ff), OFF-Track auf translucent-gray gegen Row-Hover-Konflikt
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Bugfix
+
+### Why
+
+User-Feedback zu 1306 in der echten HACS-Installation:
+1. **Toggle ändert sich beim Hover über die Row** — Row-Hover-Effekt der `.ios-item` setzt `background: rgba(255,255,255,0.95) !important` + scale 1.02. Damit wird der Snippet-OFF-Gradient `#e8e8eb → #d6d6db` (helles Grau) gegen den fast-weißen Hover-Hintergrund **unsichtbar** — Toggle wirkt als „verschwindet" beim Hover
+2. **Toggle zu groß** — Default `s-md` (86×38) ist deutlich größer als die ursprüngliche 51×31-Inline-Version, dominiert die Row visuell zu stark
+3. **Falsche Farbe** — Default Grün passt nicht zum Use-Case, User will Blau
+
+### Changes
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — `.switch-slider::before` umgestellt:
+- Vorher: `linear-gradient(145deg, #e8e8eb 0%, #d6d6db 100%)` (helles Grau, snippet-original)
+- Nachher: `rgba(120, 120, 128, 0.32)` (iOS-System-Pattern, translucent)
+- Translucent-Layer ist auf JEDEM Hintergrund (dark/light/white-hover) als „leicht-dunkler-als-Parent" sichtbar → Bg-unabhängig
+- Kleiner Trade-off: subtle Gradient-Tiefe verloren, aber Hover-Sichtbarkeit gewonnen
+- Snippet-Treue an dieser Stelle bewusst aufgegeben weil Hover-Konflikt sonst nicht lösbar ohne den Hover-Effekt der gesamten Settings-View zu deaktivieren
+
+**[PrinterMiscList.jsx](src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx)** — `<LiquidGlassSwitch>` mit zwei neuen Props aufgerufen:
+- `size="sm"` → 64×30 (statt Default 86×38), näher an iOS-Standard 51×31, passt wieder ins Row-Layout
+- `accent="#0a84ff"` → iOS dark-mode Blau (statt Default Grün `#3ccb60`)
+- `--accent-d` wird automatisch via `color-mix(in oklab, ...)` zu `#0972dc` (88 % Blue + 12 % Black) für den ON-Gradient
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.css` — OFF-Track auf translucent-gray
+- `src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx` — size + accent props
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+Component-Default bleibt `s-md` Grün — andere Use-Cases (z.B. wenn jemand den Switch als Hero-Element irgendwo einbaut) profitieren weiterhin vom snippet-Default. Nur PrinterMiscList overridet beide Props.
+
+Falls der Hover-Konflikt in anderen Settings-Views auch auftritt (Todos, News etc. nutzen aktuell aber `IOSToggle`-Text-Variant statt `LiquidGlassSwitch`), kann dieselbe `size="sm" accent="..."` Prop-Kombi dort eingesetzt werden.
+
 ## Version 1.1.1306 - 2026-04-30
 
 **Title:** LiquidGlassSwitch — 1:1-Port des user-designed switch-snippet.html (parametrisierte CSS-Vars, 4 Größen, Press-and-Hold-Morph, Lens-Flash + Specular-Shimmer)
