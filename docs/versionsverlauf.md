@@ -1,5 +1,60 @@
 # Versionsverlauf
 
+## Version 1.1.1311 - 2026-04-30
+
+**Title:** LiquidGlassSwitch — Row hovert wieder, aber subtil (0.18 statt 0.95 Weiß) — Toggle-Schatten werden vom Bg-Sprung nicht mehr getriggert
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Bugfix
+
+### Why
+
+1310 hatte Row-Hover komplett unterdrückt → User: „es klappt nicht, jetzt hovert das item nicht". Genauere Analyse warum der **alte `.ios-toggle`** keinen Konflikt hat und der **neue `.switch`** schon:
+
+| | Alter `.ios-toggle` (51×31) | Neuer `.switch` (s-sm 64×30) |
+|---|---|---|
+| Track OFF | `rgba(255,255,255,0.2)` solid-look | `rgba(120,120,128,0.36)` translucent |
+| Track ON | solid `rgb(52,199,89)` | solid blau-Gradient |
+| Knob-Schatten | `box-shadow: 0 2px 4px rgba(0,0,0,0.2)` (klein) | `drop-shadow(0 1px 1px) drop-shadow(0 2px 4px)` filter (zwei Layer) + V4-Inset-Border `inset 0 0 0 1px rgba(0,0,0,0.12)` |
+| Verhalten bei `bg: rgba(255,255,255,0.95)` | Solid Track verdeckt Bg, kleiner box-shadow ist auf jedem Bg gleich subtil | Translucent Track lässt Bg durch (off-state); Drop-Shadow + Inset-Border auf dunklem Default-Bg dark-on-dark fast unsichtbar, auf weißem 0.95-Bg plötzlich klar sichtbar → **Knob bekommt visuell Tiefe die er vorher nicht hatte → Eindruck „Toggle hat sich verändert"** |
+
+`scale(1.02)` ist NICHT die Hauptursache — der alte Toggle wird genauso skaliert und das stört nicht. Auch nicht der translucent OFF-Track allein (Bug zeigt sich auch im ON-State, der solid ist). **Kern-Trigger ist der harte Bg-Sprung von dunkel auf 0.95-Weiß.**
+
+### Lösung
+
+Statt Suppression: Hover-Bg für Switch-Rows abmildern auf `rgba(255,255,255,0.18)` + subtileren Box-Shadow. Damit:
+
+- Row hovert sichtbar (scale 1.02 + lift-shadow + leicht hellerer Bg)
+- Bg bleibt dunkel genug, dass Knob-Drop-Shadow + V4-Inset-Border weiterhin dark-on-dark fast unsichtbar bleiben
+- Keine Color-Overrides auf Labels/Icons (die brauchen wir nur wenn Bg fast weiß ist)
+
+Active-State der Row braucht kein eigenes Override mehr — `rgba(255,255,255,0.08)` Default-Bg gilt automatisch wenn Row gepresst wird.
+
+### Changes
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — Suppression-Block aus 1310 ersetzt durch dezentes Hover-Override:
+
+```css
+@media (hover: hover) {
+  .ios-item:has(.switch):hover:not(:active) {
+    background: rgba(255, 255, 255, 0.18) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.18) !important;
+  }
+  /* color: inherit für Labels/Subtitles/Values + SVG-Icons */
+}
+```
+
+`transform: scale(1.02)` aus der Default-Row-Regel ([iOSSettingsView.css:158](src/system-entities/entities/news/components/iOSSettingsView.css:158)) wird **nicht** überschrieben → Row scaliert weiterhin mit. Das ist OK weil 2% Skalierung beim alten `.ios-toggle` auch gilt und dort nicht stört.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.css` — Hover-Override-Block (subtle Bg + Shadow statt Suppression)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+Falls der Effekt noch zu stark wirkt, lassen sich `0.18` (Bg) und Shadow-Werte feiner justieren. Wenn er zu schwach wirkt (Hover kaum spürbar), kann der Bg auf `0.25-0.35` hoch — solange der Bg dunkel genug bleibt, bleibt der Knob-Schatten dark-on-dark unsichtbar.
+
 ## Version 1.1.1310 - 2026-04-30
 
 **Title:** LiquidGlassSwitch — Row-Hover/Active der `.ios-item` darf den Toggle nicht mehr verändern (Component-owned Suppression statt nur V4-Borders)
