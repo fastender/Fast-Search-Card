@@ -1,5 +1,60 @@
 # Versionsverlauf
 
+## Version 1.1.1304 - 2026-04-30
+
+**Title:** LiquidGlassSwitch — kompletter Rewrite zu „Liquid-in-Glass"-Metapher (clip-path-Reveal aus Figma-iOS-26-Toggle-Referenz)
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Liquid-Glass, Animation, Rewrite
+
+### Why
+
+User-Feedback nach 1303: das fühlt sich nicht wie iOS 26 an. Referenz-Vergleich mit der Figma-Community-Datei „[iOS 26 Toggle (Liquid Glass)](https://www.figma.com/de-de/community/file/1519712588579681470/ios-26-toggle-liquid-glass)" zeigte: der iOS-26-Toggle ist konzeptionell **kein Slider mit Knob auf einer Track** — er ist eine **transparente Glas-Kapsel** in der **grünes Liquid fließt**. Der Knob existiert nicht als separates Element; das Grün IST das bewegte Element, mit organischer Liquid-Form.
+
+1303 war eine polished Slider-Variante. 1304 ist die richtige Metapher.
+
+### Changes
+
+**[LiquidGlassSwitch.jsx](src/components/common/LiquidGlassSwitch.jsx)** — komplett neu strukturiert. Markup von 4 nested Knob-Layern (`switch-dot-glass`, `-filter`, `-overlay`, `-specular`) auf 1 Liquid-Element (`<span class="liquid-switch-fill">`) reduziert. API unverändert (`checked`/`onChange`/`disabled`/`stopPropagation`/`className`/`style`/150ms-Dedupe).
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — kompletter Rewrite:
+- **`.liquid-switch` (Glas-Kapsel):** 51×31, `border-radius: 99px`, `background: rgba(120,120,128,0.18)` als sehr leichter Glass-Tint, `backdrop-filter: blur(10px) saturate(180%)` — refraktiert was hinter dem Toggle ist, gibt das echte „Glas-Pille"-Gefühl auf farbigen/glasigen Hintergründen
+- **`::before`-Pseudo (Top-Sheen):** halb-elliptischer weißer Gradient auf dem oberen Drittel der Kapsel, mit `filter: blur(0.5px)` — wie Licht das auf der Glas-Oberfläche reflektiert. Macht den 3D-Glas-Look.
+- **`::after`-Pseudo (Glas-Rand-Highlight):** drei-Layer inset-box-shadow — heller Top-Edge, dunklerer Bottom-Edge, dünner Border-Highlight. Liegt auf z-index 2 ÜBER dem Liquid → der Liquid wirkt „im" Glas.
+- **`.liquid-switch-fill` (Liquid):** ist immer voll-sized (`inset: 0`), wird via **`clip-path: circle()`** kontrolliert. OFF: `circle(0% at 92% 50%)` (unsichtbar). ON: `circle(150% at 92% 50%)` (groß genug um die ganze Kapsel zu überdecken). Die Animation ist eine **kreisförmige Reveal-Welle** die vom rechten Tap-Punkt nach außen wächst — sieht aus wie Tinte in Wasser, organisch-kurvig statt rechteckig-skaliert.
+- **Easing:** `cubic-bezier(0.32, 0.72, 0, 1)` (iOS-Standard fast-attack slow-decel), Duration 0.42 s.
+- **GPU:** `will-change: clip-path` hint für Compositor-Layer.
+- **`prefers-reduced-motion`:** kürzere Duration (0.18 s) + lineare Easing.
+
+**[index.jsx](src/index.jsx)** — `<LiquidGlassFilterDefs />` und der Import entfernt. Der SVG-feDisplacementMap-Filter wird in 1304 nicht mehr gebraucht.
+
+**[LiquidGlassFilterDefs.jsx]** — Datei gelöscht.
+
+**[PrinterMiscList.jsx](src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx)** — keine Änderung. Die LiquidGlassSwitch-API ist unverändert, drop-in.
+
+### Verifikation
+
+Im Vite-Dev-Server mit Demo-Toggles bei verschiedenen `clip-path`-Werten (paused frames bei 0% / 30% / 50% / 80% / 120% / 150%):
+
+- **OFF:** leere Glas-Kapsel, dunkel-transparent, dezenter Top-Sheen, Glas-Border sichtbar — wie eine kleine Glas-Pille
+- **flight 20-50%:** Grün als kurvige Blob-Form von rechts wachsend — klar erkennbar als „Liquid spreading"
+- **flight 75%+:** Grün füllt fast die ganze Kapsel, leichte gerundete Ausbeulung am linken Ende
+- **ON:** vollflächiges Grün mit Top-Sheen darüber, sieht aus wie Liquid hinter Glas
+
+Live-Klick-Test: Animation triggert sauber, kein Flackern, ein einziges glattes Reveal-Movement statt 2-3 separaten Phasen.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.jsx` — kompletter Rewrite
+- `src/components/common/LiquidGlassSwitch.css` — kompletter Rewrite
+- `src/components/common/LiquidGlassFilterDefs.jsx` — gelöscht (nicht mehr benötigt)
+- `src/index.jsx` — Import + Mount entfernt
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+Die Architektur ist jetzt deutlich einfacher als 1302/1303 (1 Liquid-Layer + 2 Pseudo-Elemente statt 4 nested Knob-Layern + SVG-Filter). Performance besser: ein Compositor-Layer pro Toggle, `clip-path` ist GPU-beschleunigt, kein `feDisplacementMap` mehr (das war die teuerste Operation in 1302).
+
 ## Version 1.1.1303 - 2026-04-30
 
 **Title:** LiquidGlassSwitch — Flicker-Fix (Knob bleibt opak, dezenter Squish, GPU-Promotion, kein `whileTap`-Konflikt)
