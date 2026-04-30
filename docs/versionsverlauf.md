@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.1303 - 2026-04-30
+
+**Title:** LiquidGlassSwitch — Flicker-Fix (Knob bleibt opak, dezenter Squish, GPU-Promotion, kein `whileTap`-Konflikt)
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Liquid-Glass, Animation, Bugfix
+
+### Why
+
+User-Feedback nach 1302: die Animation flackert „2-3 mal" und fühlt sich nicht flüssig an. Diagnose ergab vier Quellen:
+
+1. **Knob-Background-Color-Cycle:** das Pen-Original animiert die Knob-`background-color` von alpha 1 → 0.1 → 0.7 → 1 über die Animation. Auf einem flachen Pen-Hintergrund liest sich das als „flüssiges Glas-Tröpfchen". Auf unserem farbigen Glass-Background mit Druckraum-Foto dahinter wirkt der Alpha-Drop wie 2-3 separate Flicker.
+2. **`whileTap` auf der Label** mit `perspective: 600px`: framer-motion's inline `transform: scale(0.96)` ändert mid-Animation den 3D-Rendering-Context für den Knob → sichtbarer Stutter beim Klick-Loslassen.
+3. **Doppelfilter:** `backdrop-filter: blur(0.5px)` + `filter: url(#mini-liquid-lens)` auf demselben Element forcieren Doppel-Rasterisierung pro Frame.
+4. **Keine GPU-Layer-Promotion:** Browser entscheidet ad-hoc wo composited wird, oft fällt's auf CPU-Painting zurück → Frame-Drops.
+
+### Changes
+
+**[LiquidGlassSwitch.jsx](src/components/common/LiquidGlassSwitch.jsx)** — `motion.label` + `whileTap={{ scale: 0.96 }}` komplett entfernt. Plain `<label>` mit der CSS-Choreografie als alleinigem Press-Feedback. Auch der framer-motion-Import ist weg.
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — Smoothness-Pass:
+- **Knob-Bg bleibt durchgehend `#ffffff`** — `background-color`-Keyframes komplett raus aus `lgs-dot-on/off`. Kein Flicker mehr durch Alpha-Cycle.
+- **3-Keyframe-Transform statt 4** (0 % / 45 % / 100 %) — gleichmäßigere Easing-Kurve, sauberer Peak.
+- **Squish dezenter:** `scale(1.4)` statt `1.6`, `rotateY(±25°)` statt `±33°` — näher am echten iOS-26-Toggle, weniger comicartig.
+- **Easing umgestellt** auf `cubic-bezier(0.32, 0.72, 0, 1)` (iOS-Standard-Spring-Decel) statt der spitzeren `(0.16, 1, 0.3, 1)`. Auch Track-Crossfade nutzt jetzt diese Easing.
+- **Duration 0.42 s** statt 0.5 s — snappier, weniger sichtbares Wackeln, immer noch wahrnehmbar Liquid.
+- **GPU-Promotion:** `will-change: transform` + `transform: translateZ(0)` auf Knob, `will-change: opacity` auf Filter-Layer. Compositor packt's auf eigene Layer, Transformationen werden cheap.
+- **`backdrop-filter` raus** vom `.liquid-switch-dot-glass-filter` — nur noch SVG-Lens. Eine Filter-Pass weniger pro Frame.
+- **`overflow: hidden` und `transform-style: preserve-3d` raus** vom Knob — kein Nested-3D nötig, Lens-Verzerrung ist klein genug um nicht zu clipping zu zwingen.
+- **Specular-Keyframes konsolidiert** auf `20%, 80%` Sammelpunkt statt zwei separater Stops — identisches Verhalten, weniger Keyframes.
+- **`pointer-events: none`** auf Filter/Overlay/Specular — nur die Label/Slider sind klickbar, keine Klick-Verluste auf den Pseudo-Layern.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.jsx` — `motion.label` → `<label>`, framer-motion-Import raus
+- `src/components/common/LiquidGlassSwitch.css` — komplett überarbeitet (Smoothness-Pass)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Verifikation
+
+Im Vite-Dev-Server mit Demo-Toggle Sample-Punkte über die Animation gemessen (`getComputedStyle` an mehreren `animationDelay`-Werten):
+
+| t | scaleY | translateX |
+|---|--------|------------|
+| 0.0 | 1.000 | 0 |
+| 0.1 | 1.288 | 9.3 |
+| 0.25 | 1.387 | 13.4 |
+| 0.45 | 1.400 | 14.0 (peak) |
+| 0.60 | 1.074 | 19.5 |
+| 0.75 | 1.014 | 19.9 |
+| 1.0 | 1.000 | 20.0 |
+
+Werte monoton-stetig, Peak-Squish exakt bei 45 %, danach iOS-typisches Slow-Decel-Settling. Keine Diskontinuitäten in den Keyframes.
+
 ## Version 1.1.1302 - 2026-04-30
 
 **Title:** 3D-Drucker (Bambu) Sonstiges-Tab: neue `LiquidGlassSwitch`-Component (iOS-26 Liquid Glass) ersetzt Inline-Slider-Markup
