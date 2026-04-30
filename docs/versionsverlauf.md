@@ -1,5 +1,68 @@
 # Versionsverlauf
 
+## Version 1.1.1312 - 2026-04-30
+
+**Title:** LiquidGlassSwitch — echter Bugfix: hidden Input bekommt `width:0; height:0` (verhinderte Layout-Shift bei Hover, der den Toggle ~20 % breiter machte)
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Bugfix
+
+### Why
+
+User-Screenshot von 1311 zeigt: **Toggle wird beim Hover sichtbar breiter.** Plus User-Wunsch: weißer Hover-Bg muss zurück (1311 hatte ihn auf 0.18 abgemildert).
+
+Echte Wurzel beim Vergleich mit dem alten `.ios-toggle`:
+
+```css
+/* alter ios-toggle */
+.ios-toggle input { opacity: 0; width: 0; height: 0; }   ← defensiv 0×0
+
+/* neuer switch (vor 1312) */
+.switch input { position: absolute; opacity: 0; pointer-events: none }  ← KEIN width/height
+```
+
+In `iOSSettingsView.css` Zeile 232-237 steht eine Hover-Regel:
+```css
+.ios-item:hover:not(:active) .ios-toggle,
+.ios-item:hover:not(:active) button,
+.ios-item:hover:not(:active) input {
+  position: relative;   ← überschreibt position:absolute des Inputs
+  z-index: 11;
+}
+```
+
+Das überschreibt beim Hover die `position: absolute` des hidden `.switch input` zu `position: relative`. Der hidden Input wird **layout-relevant** und nimmt seine Default-Checkbox-Breite (~13 px) ein. Da das Label `display: inline-flex` ist, schiebt der Input das Slider-Element nach rechts → **Toggle wird ~20 % breiter beim Hover**.
+
+Beim alten `.ios-toggle input` ist `width: 0; height: 0` gesetzt — defensiv genau gegen diesen Fall. Beim neuen `.switch input` fehlte das. Genau dieselbe Defensive einziehen.
+
+Damit ist auch klar warum der Toggle in den vorherigen User-Bildern „verändert" wirkte: nicht nur der Bg-Sprung, sondern primär die Breitenänderung. Mit dem Fix kann der ursprüngliche weiße 0.95-Hover-Bg wieder uneingeschränkt rein — die V4-Track-Border + Knob-Inset-Border aus 1309 sind genau dafür da, den Toggle auf weißem Bg sichtbar zu halten.
+
+### Changes
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — zwei minimale Änderungen:
+
+**1. `.switch input` bekommt `width: 0; height: 0` (Zeile 51):**
+```css
+.switch input {
+  position: absolute; opacity: 0; pointer-events: none;
+  width: 0; height: 0;   /* ← neu, defensiv wie alter ios-toggle */
+}
+```
+
+**2. Hover-Override-Block aus 1311 komplett gelöscht.**
+Default-Row-Hover (weißer Bg `rgba(255,255,255,0.95)`, scale 1.02, Lift-Shadow) gilt wieder uneingeschränkt für Switch-Rows. V4-Borders aus 1309 halten den Toggle visuell sichtbar.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.css` — `width:0; height:0` ergänzt + 1311-Block entfernt
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Lehre
+
+Der echte Bug war ein simpler Layout-Shift via Cascade-Override, der seit 1302 latent vorhanden war. Die Versionen 1307-1311 haben um das Symptom herumgefixt (translucent Track, V4-Borders, Suppression, abgemilderter Bg) — alle waren entweder Pflaster oder kaschierten andere Aspekte. Mit dem 0×0-Fix ist die Wurzel adressiert und alle V4-Maßnahmen aus 1309 funktionieren wieder so wie ursprünglich gedacht.
+
+User-Beobachtung „bei dem alten Button gibt es keinerlei Konflikte" war damit goldwert — der Vergleich hat den 0×0-Pattern beim alten Toggle aufgedeckt, ohne den der neue Toggle den Layout-Shift bekommt.
+
 ## Version 1.1.1311 - 2026-04-30
 
 **Title:** LiquidGlassSwitch — Row hovert wieder, aber subtil (0.18 statt 0.95 Weiß) — Toggle-Schatten werden vom Bg-Sprung nicht mehr getriggert
