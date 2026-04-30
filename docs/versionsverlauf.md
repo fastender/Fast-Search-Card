@@ -1,5 +1,98 @@
 # Versionsverlauf
 
+## Version 1.1.1315 - 2026-04-30
+
+**Title:** PrinterMiscList: Pending-Lock gegen Polling-Race — optimistische Updates können nicht mehr von hass-Tick oder 500-ms-Refresh überschrieben werden
+**Hero:** none
+**Tags:** 3D-Drucker, Toggle, UI, Bugfix, State-Management
+
+### Why
+
+User-Feedback nach 1314: „hat teilweise das Problem gelöst" — also ist das Multi-Animation-Problem reduziert, aber nicht weg. Tiefere Analyse zeigt zwei verbleibende Race-Conditions:
+
+**Race A — useEffect-on-hass:**
+
+```jsx
+useEffect(() => {
+  const fetchMiscData = async () => { ... };
+  fetchMiscData();
+  const interval = setInterval(fetchMiscData, 5000);
+  return () => clearInterval(interval);
+}, [entity, hass]);
+```
+
+`hass` ist in HA-Custom-Cards ein Objekt das bei JEDER state-Änderung im Backend (auch von fremden Entities) ein neues Reference bekommt — oft 10-mal pro Minute. Jede Reference-Änderung re-fired die useEffect → cleanup interval → neue `fetchMiscData` mit neuem hass-Closure → sofortiger Aufruf. Wenn HA unsere `turn_on`-Anweisung noch nicht verarbeitet hat, liest `executeAction('getPrinterData')` den alten Stand `'off'` → `setMiscData({...prev, key: 'off'})` → unsere optimistische `'on'` wird überschrieben → CSS wechselt `:checked` → `:not(:checked)` → `dot-off` Animation feuert (= Animation #2).
+
+**Race B — 500-ms-Refresh nach callService:**
+
+```jsx
+setTimeout(async () => {
+  const data = await entity.executeAction('getPrinterData', { hass });
+  if (data) setMiscData(data);
+}, 500);
+```
+
+Echte Bambu-Hardware (Kamera, Beleuchtung) braucht oft 500 ms-2 s bis HA die State-Änderung registriert hat. Der 500-ms-Refresh liest dann immer noch `'off'` → setMiscData überschreibt → Animation #3.
+
+### Lösung — Pending-Lock pro Key
+
+Jeder optimistisch geschriebene Key wird für 2 Sekunden gegen Überschreiben gesperrt. Polling-Refreshes (egal aus welcher Quelle) werden durch `mergePendingPreserved` gefiltert:
+
+```jsx
+const pendingRef = useRef({}); // { [key]: { value, expiresAt } }
+
+const mergePendingPreserved = (incoming) => {
+  const now = Date.now();
+  const merged = { ...incoming };
+  Object.entries(pendingRef.current).forEach(([key, info]) => {
+    if (info.expiresAt < now) {
+      delete pendingRef.current[key];                 // Lock abgelaufen
+    } else if (incoming[key] === info.value) {
+      delete pendingRef.current[key];                 // HA confirmed — Lock früh dropping
+    } else {
+      merged[key] = info.value;                       // Optimistic erhalten
+    }
+  });
+  return merged;
+};
+```
+
+Anschließend wird `mergePendingPreserved` an JEDEM Punkt aufgerufen wo `setMiscData` mit HA-Daten passiert (intervall-Polling, hass-Tick-Refresh, callService-Refresh).
+
+`handleToggle` schreibt zusätzlich zum optimistischen Wert auch den Pending-Lock-Eintrag mit `expiresAt = now + 2000 ms`.
+
+### Verhalten in den drei Szenarien
+
+| Szenario | Vorher (1314) | Nachher (1315) |
+|---|---|---|
+| HA schnell (< 200 ms) | OK, 1 Animation | OK, 1 Animation, Lock confirmed early |
+| HA mittel (500 ms-1 s) | Refresh überschreibt → 2-3 Animations | Lock hält → 1 Animation, Lock confirmed within window |
+| HA langsam (> 2 s) | Multiple Reverts → 3+ Animations | Lock läuft ab → wenn HA dann doch confirmed: 1 Animation. Wenn HA failed: Toggle springt zurück (= ehrliches Failure-Feedback) |
+
+### Changes
+
+**[PrinterMiscList.jsx](src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx):**
+- `pendingRef = useRef({})` als Lock-Map
+- `mergePendingPreserved(incoming)` filtert pending-locked Keys
+- `fetchMiscData` und `callService`-Refresh nutzen `mergePendingPreserved`
+- `handleToggle` schreibt Lock-Eintrag synchron mit Optimistic Update
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx` — Pending-Lock + merge-Helper
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Lehre — Pattern für HA-Custom-Card-Switches
+
+Drei Mechanismen müssen zusammenarbeiten:
+
+1. **Optimistic Update** — sync Local-State mit Browser-Toggle (verhindert Reconciliation-Revert)
+2. **Pending-Lock** — verhindert dass HA-State-Reads (egal aus welcher Quelle: hass-Tick, Polling-Tick, Refresh-Tick) den optimistischen Wert während HA-Latenz überschreiben
+3. **HA-Confirmation-Drop** — wenn HA-State und optimistischer Wert matchen, kann der Lock früh aufgelöst werden (sonst hält er bis Timeout)
+
+Pattern ist applicable auf alle anderen Toggle-Use-Cases in HA-Custom-Cards, wo Hardware-Latenz > Polling-Frequenz sein kann (Lichter mit Dimmern, Heizung, Klimaanlage, Garagentore).
+
 ## Version 1.1.1314 - 2026-04-30
 
 **Title:** PrinterMiscList: Optimistic Update beim Switch-Toggle (verhindert Multi-Animation durch React-controlled-mode Reconciliation)
