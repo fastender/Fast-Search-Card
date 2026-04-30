@@ -1,5 +1,148 @@
 # Versionsverlauf
 
+## Version 1.1.1325 - 2026-04-30
+
+**Title:** Plugin-Pattern für Device-Types — `deviceTypeRegistry.js` als Single Source of Truth, 3 hardcoded Switch-Stellen aufgelöst
+**Hero:** none
+**Tags:** Refactoring, Architecture, Integration, Plugin-Pattern
+
+### Why
+
+Vor 1325 war ein neuer Device-Type 4 Stellen Anpassung wert:
+
+1. **`DeviceEntityFactory.js`:** switch-Case mit `new XyzDeviceEntity(...)`
+2. **`IntegrationView.jsx renderSetupFlow()`:** switch-Case mit `<XyzSetup ... />`
+3. **`IntegrationView.jsx`:** manueller Import des Setup-Components
+4. **`CategorySelectionView.jsx`:** Eintrag im hardcoded `DEVICE_CATEGORIES`-Array (mit name_de, name_en, description_de, description_en, icon, available)
+
+Plus: drei verschiedene Sources of Truth für die gleiche Information (welche Device-Types gibt es, wie heißen sie, was ist der Status). Synchron zu halten ist Wartungs-Schmerz.
+
+### Lösung — `deviceTypeRegistry.js` als zentrale Map
+
+Ein neues File definiert pro Type alle Metadaten + Implementierungs-Hooks:
+
+```js
+export const deviceTypeRegistry = {
+  printer3d: {
+    icon: '🖨️',
+    label: { de: '3D-Drucker', en: '3D Printer' },
+    description: { de: 'Bambu Lab & andere 3D-Drucker', en: 'Bambu Lab & other 3D printers' },
+    EntityClass: Printer3DDeviceEntity,
+    SetupComponent: Printer3DSetup,
+  },
+  energy_dashboard: { ... },
+  weather: { ... },
+
+  // Coming-soon (nur Metadaten, kein EntityClass/SetupComponent)
+  oven: { icon: '🍳', label: ..., description: ... },
+  dishwasher: { ... },
+  vacuum: { ... },
+  coffee: { ... },
+  shower: { ... },
+};
+```
+
+**Available-Logik via Pattern:** wenn `EntityClass` UND `SetupComponent` gesetzt sind → der Type ist „verfügbar". Sonst „coming soon".
+
+### Helper-Functions
+
+```js
+getDeviceTypeMeta(typeId)     // → DeviceTypeMeta | undefined
+isDeviceTypeAvailable(typeId) // → boolean (EntityClass + SetupComponent vorhanden?)
+listDeviceTypes()             // → normalisierte Array für UI: [{id, icon, label, description, available}]
+```
+
+### Konsumenten-Anpassungen
+
+#### **DeviceEntityFactory.js** — switch raus, registry-lookup rein
+
+```js
+// Vorher: 30 Zeilen switch-statement mit 3 cases + 5 TODOs
+// Nachher:
+export function createDeviceEntity(deviceConfig) {
+  const meta = getDeviceTypeMeta(deviceConfig.category);
+  if (!meta || !meta.EntityClass) {
+    console.error(`Unknown or unimplemented device category: ${deviceConfig.category}`);
+    return null;
+  }
+  return new meta.EntityClass(deviceConfig);
+}
+```
+
+#### **IntegrationView.jsx renderSetupFlow()** — 60 Zeilen → 20 Zeilen
+
+```js
+// Vorher: switch mit 3 verschachtelten JSX-Blöcken (je ~15 Zeilen)
+// Nachher:
+const renderSetupFlow = () => {
+  const meta = getDeviceTypeMeta(selectedCategory);
+  if (!meta || !meta.SetupComponent) {
+    return <div className="integration-error">...</div>;
+  }
+  const SetupComponent = meta.SetupComponent;
+  return (
+    <SetupComponent
+      key={selectedCategory}
+      hass={hass}
+      lang={lang}
+      onComplete={handleDeviceAdded}
+      onCancel={() => { setCurrentView('selection'); setSelectedCategory(null); }}
+    />
+  );
+};
+```
+
+Plus: 3 Setup-Component-Imports oben aus IntegrationView.jsx raus — die werden jetzt im Registry-File gehalten.
+
+#### **CategorySelectionView.jsx** — DEVICE_CATEGORIES-Array (~80 Zeilen) raus
+
+```js
+// Vorher: hardcoded Array mit 8 Einträgen × 6 Properties = ~80 Zeilen
+// Nachher:
+const categories = useMemo(() => listDeviceTypes(), []);
+```
+
+Plus: JSX-Lookup von `category.name_de` / `category.name_en` auf `category.label[lang]`-Pattern umgestellt (uniformer + funktioniert für jede Sprache die im Registry definiert ist).
+
+### Endergebnis — neuer Device-Type hinzufügen
+
+**Vorher:** 4 Stellen ändern + 3 neue Files anlegen.
+
+**Nachher:**
+1. Entity-Class (`OvenDeviceEntity.js`) + Setup-Component (`OvenSetup.jsx`) anlegen
+2. **Eine Zeile** im `deviceTypeRegistry`-Eintrag von `oven` ergänzen:
+   ```js
+   oven: {
+     icon: '🍳',
+     label: { de: 'Backofen', en: 'Oven' },
+     description: { de: 'Smart Backöfen & Herde', en: 'Smart ovens & stoves' },
+     EntityClass: OvenDeviceEntity,    // ← NEU
+     SetupComponent: OvenSetup,         // ← NEU
+   },
+   ```
+3. Fertig.
+
+DeviceEntityFactory, IntegrationView, CategorySelectionView ziehen automatisch nach.
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/deviceTypeRegistry.js` — **neu** (~140 Zeilen Single-Source-of-Truth)
+- `src/system-entities/entities/integration/device-entities/DeviceEntityFactory.js` — switch entfernt, registry-lookup
+- `src/system-entities/entities/integration/IntegrationView.jsx` — `renderSetupFlow()` umgestellt + 3 Setup-Imports raus
+- `src/system-entities/entities/integration/components/CategorySelectionView.jsx` — DEVICE_CATEGORIES-Array entfernt, `listDeviceTypes()` + label/description-Pattern
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Verhaltens-Änderung für User
+
+**Keine.** Reine Architektur-Refaktorierung. Die 3 verfügbaren Device-Types (Energy Dashboard, 3D-Drucker, Wetter) sind weiterhin nutzbar, die 5 Coming-soon-Types werden weiterhin disabled angezeigt.
+
+### Was noch offen ist
+
+- **EnergyDashboardDeviceView splitten** (2136 LOC) — größter Maintainability-Win, aber großer Eingriff in user-kritischen Code
+- **EnergyDashboardDeviceEntity splitten** (1294 LOC) — Heavy-Calculations + Formatter in Helper-Files
+- **`window._integrationViewRef` / `_printerViewRef`** durch React-Context ersetzen — Antipattern fixen
+
 ## Version 1.1.1324 - 2026-04-30
 
 **Title:** Integration Quick Wins — alle 3 Device-Views in `views/`, EnergyChartsView.css in `styles/`, hass-Ref-Pattern für PrinterSensorsList + PrinterDiagnosticsList
