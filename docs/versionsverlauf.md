@@ -1,5 +1,114 @@
 # Versionsverlauf
 
+## Version 1.1.1319 - 2026-04-30
+
+**Title:** PrinterMiscList Refactoring — hass via useRef, Memoization, doppelte renderControl-Calls weg
+**Hero:** none
+**Tags:** 3D-Drucker, Refactoring, Performance, State-Management
+
+### Why
+
+Tiefere Analyse nach 1318 zeigte vier strukturelle Schwächen in `PrinterMiscList`, die in den vorherigen Versionen nicht adressiert wurden:
+
+1. **Polling-Effect feuerte bei JEDEM `hass`-Backend-Tick neu** (über `useEffect[entity, hass]`-Dependency). In einem aktiven HA-Setup heißt das ~10× pro Minute Cleanup-und-Neustart des Polling-Intervals + sofortiges `fetchMiscData`. Hohe CPU-Last, viele Re-Renders.
+2. **Handler wurden bei jedem Render neu erstellt** (`handleToggle`, `handleNumberChange`, `handleButtonPress` waren plain Functions, keine `useCallback`). Auf jedem Render ändern sich die Closure-References → `<LiquidGlassSwitch onChange>` bekommt neue Function bei jedem Polling-Tick.
+3. **`controlItems` wurde bei jedem Render neu erstellt** (literal Array). Ändert sich nur mit `lang`, sollte memoized sein.
+4. **`renderControl(item)` wurde für Range-Items 2× pro Render aufgerufen** — einmal für `.value`, einmal für `.slider`. Doppelte Berechnung des linear-gradient-Strings, doppelte JSX-Erstellung pro Slider-Item.
+
+### Changes
+
+**[PrinterMiscList.jsx](src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx):**
+
+#### 1. hass via useRef-Pattern
+
+```jsx
+const hassRef = useRef(hass);
+useEffect(() => { hassRef.current = hass; }, [hass]);
+
+// Polling liest hass aus Ref:
+useEffect(() => {
+  const fetchMiscData = async () => {
+    const currentHass = hassRef.current;
+    if (!entity || !currentHass) return;
+    const data = await entity.executeAction('getPrinterData', { hass: currentHass });
+    ...
+  };
+  fetchMiscData();
+  const interval = setInterval(fetchMiscData, POLL_INTERVAL_MS);
+  return () => clearInterval(interval);
+}, [entity, mergePendingPreserved]);  // ← keine hass-Dependency mehr
+```
+
+Polling läuft nur noch alle 5 s + 1× bei entity-Wechsel. Backend-State-Änderungen erscheinen mit max. 5 s Verzögerung in der UI — akzeptabel für Printer-Settings (Kamera/Licht/Ton-Toggles).
+
+Plus: `cancelled` flag + cleanup verhindert Race wenn entity ändert während async fetch läuft.
+
+#### 2. Handler mit useCallback
+
+```jsx
+const callService = useCallback(async (domain, service, entityId, extraData = {}) => { ... }, [entity, mergePendingPreserved]);
+const handleToggle = useCallback((key, currentState, entityObj) => { ... }, [callService]);
+const handleButtonPress = useCallback((entityObj) => { ... }, [callService]);
+const handleNumberChange = useCallback((entityObj, value) => { ... }, [callService]);
+```
+
+Handler sind jetzt referentiell stabil über Polling-Refreshs — nur bei tatsächlichem Dependency-Wechsel re-erstellt.
+
+#### 3. controlItems mit useMemo
+
+```jsx
+const controlItems = useMemo(() => [
+  { key: 'cameraEnabled', type: 'switch', label: ... },
+  ...
+], [lang]);
+```
+
+Array wird nur neu erstellt wenn `lang` sich ändert.
+
+#### 4. renderControl 1× pro Item
+
+```jsx
+{controlItems.map((item, index) => {
+  const rendered = renderControl(item);   // ← einmal aufrufen
+  return (
+    <div key={item.key}>
+      {item.type === 'range' ? (
+        <>
+          ...{rendered.value}
+          {rendered.slider}
+        </>
+      ) : (...{rendered}...)}
+    </div>
+  );
+})}
+```
+
+Vorher 2× für Range, jetzt 1×.
+
+### Impact
+
+- **Polling-Frequenz:** 1×/5s + bei entity-Wechsel (statt ~10×/Minute + 5-s-Polling parallel)
+- **Re-Render-Stabilität:** LiquidGlassSwitch sieht stable Prop-References zwischen Polling-Ticks → keine ungewollten Reconciliation-Cycles
+- **CPU-Last:** Range-Slider-Berechnung halbiert pro Render
+
+### Was NICHT in diesem Refactoring ist
+
+Component-Splittung (`<MiscSwitchRow>`, `<MiscRangeRow>`, `<MiscNumberRow>`, `<MiscButtonRow>`) ist hier bewusst nicht gemacht — wäre größerer Umbau mit Memoization-Wrapper-Logic, hätte aber für die User-sichtbare Smoothness keinen weiteren Effekt. Falls in Zukunft die Mega-Component-Wartbarkeit zum Problem wird, kann das als separater Refactoring-Schritt erfolgen.
+
+Auch das Inline-Style-Migration in eine eigene `PrinterMiscList.css` wurde aus dem gleichen Grund verschoben — die Styles funktionieren, sind nur unästhetisch im JSX.
+
+Auch das Entity-eigene 2-Sekunden-Polling (`Printer3DDeviceEntity.onMount`) bleibt bewusst drin — wird vom Device-Card woanders gelesen, Eingriff hätte Side-Effects auf andere Components.
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx` — Refactoring
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Lehre
+
+Das Pattern „hass als useEffect-Dependency" ist in HA-Custom-Cards extrem teuer. `hass` ist ein neues Object-Reference bei JEDEM Backend-Event (auch von fremden Entities). Jedes useEffect das `hass` als Dep hat, feuert dauernd. Pattern für künftige HA-Card-Components: **immer `hassRef = useRef(hass)` + Update-Effect, dann hass aus Ref lesen.** Polling läuft sauber im Interval, Service-Calls bekommen immer den aktuellen hass.
+
 ## Version 1.1.1318 - 2026-04-30
 
 **Title:** LiquidGlassSwitch — Press-Rubberband-Transform entfernt; Press-Feedback nur noch via Track-Opacity-Dim. Strukturell jump-frei, egal wie lang der Klick.
