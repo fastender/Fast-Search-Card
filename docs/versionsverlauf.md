@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1305 - 2026-04-30
+
+**Title:** LiquidGlassSwitch zurück auf klassisches iOS-Slider-Design (Blau-Akzent statt Grün, alle Liquid-Glass-Effekte raus)
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Simplification
+
+### Why
+
+User-Feedback nach 1304: ein Referenz-Screenshot zeigt einen schlichten klassischen iOS-Slider in Blau (gray track + blue active state + weißer Knob). Die ganze Liquid-Glass-Iteration über 1302/1303/1304 (Squish + Lens-Filter, dann clip-path-Reveal in Glas-Kapsel) war visuell zu elaboriert. Zurück zum bewährten iOS-Slider-Pattern, nur mit Blau statt Grün als Active-Color.
+
+### Changes
+
+**[LiquidGlassSwitch.jsx](src/components/common/LiquidGlassSwitch.jsx)** — Markup neu: zwei `<span>`-Children (Track + Knob) statt vorheriger Liquid-Fill-Layer.
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — kompletter Rewrite:
+- **`.liquid-switch-track`:** Pill mit `background: rgba(120,120,128,0.32)` (OFF) bzw `#007AFF` (ON, iOS-Blue), `transition: background-color 0.3s` mit iOS-Easing
+- **`.liquid-switch-knob`:** weißer 27×27-Kreis, `box-shadow` für subtile Elevation, `transition: transform 0.3s` für Slide auf 20 px translateX bei ON
+- Alle Liquid-Effekte raus: kein `clip-path`, kein `backdrop-filter`, kein Top-Sheen, keine Pseudo-Elemente
+- Unter 60 Zeilen CSS gesamt — drastisch einfacher als 1304
+
+**Component-Name bleibt** historisch `LiquidGlassSwitch` weil PrinterMiscList importiert ihn so. Funktional ist es jetzt aber ein klassischer iOS-Toggle mit Blau-Akzent.
+
+**Keine Änderung an** `PrinterMiscList.jsx` (gleiche Component-API).
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.jsx` — Markup vereinfacht
+- `src/components/common/LiquidGlassSwitch.css` — kompletter Rewrite, drastisch reduziert
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+Damit ist die Liquid-Glass-Iteration für die Bambu-Sonstiges-Toggles abgeschlossen. Falls in Zukunft jemand wieder den Liquid-Glass-Look will, sind die 1302-1304-Iterationen in den Versionsverlauf-Einträgen samt Begründung dokumentiert.
+
 ## Version 1.1.1304 - 2026-04-30
 
 **Title:** LiquidGlassSwitch — kompletter Rewrite zu „Liquid-in-Glass"-Metapher (clip-path-Reveal aus Figma-iOS-26-Toggle-Referenz)
