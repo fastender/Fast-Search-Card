@@ -1,5 +1,73 @@
 # Versionsverlauf
 
+## Version 1.1.1330 - 2026-05-01
+
+**Title:** EnergyDashboardDeviceEntity Refactoring — 5 Calculation-Helpers in Module-Datei extrahiert (Entity 1294 → 1069 LOC)
+**Hero:** none
+**Tags:** Refactoring, Architecture, Energy-Dashboard
+
+### Why
+
+Nach der View-Splitting-Quadrologie (1326-1329) war `EnergyDashboardDeviceEntity.js` mit 1294 LOC das nächste große File im Modul. Bei genauerer Analyse: die letzten ~230 LOC sind **5 private Helper-Funktionen** (`_fetchStatistics`, `_aggregateHistory`, `_getPeriodMilliseconds`, `_calculatePeriodDates`, `_getISOWeek`) die als `private` Functions innerhalb des `actions: { ... }` Blocks der Entity-Klasse definiert waren und über `this._foo(...)` cross-gerufen wurden.
+
+**Befund:** alle 5 sind pure Functions — kein eigener Instance-State, nur arithmetische und Daten-Transformations-Logik. Die `this`-Bezüge waren **ausschließlich** interne Cross-Calls zwischen den 5 Helpers. Perfekte Kandidaten für Module-Level-Extraction.
+
+### Was extrahiert wurde
+
+**[energyDashboardCalculations.js](src/system-entities/entities/integration/device-entities/energyDashboardCalculations.js)** (NEU, ~265 LOC):
+
+```js
+export function getPeriodMilliseconds(period)              // hour=3.6e6, day=8.64e7, month=~2.59e9
+export function getISOWeek(date)                            // ISO 8601 week number 1-53
+export function aggregateHistory(history, period, ...)      // Bucket-Aggregation für History-API-Fallback
+export function calculatePeriodDates(type, idx, lang)       // Day/Week/Month/Year start/end/label
+export async function fetchStatistics(params)               // HA Statistics API + History API fallback
+```
+
+Aus `this._aggregateHistory(...)` wird `aggregateHistory(...)` (direkter Module-Call statt this-Method-Call). Plus die internen Cross-Calls werden auch direkt: `aggregateHistory` ruft `getPeriodMilliseconds` direkt, `calculatePeriodDates` ruft `getISOWeek` direkt, `fetchStatistics` ruft `aggregateHistory` direkt.
+
+### Was sich im Entity ändert
+
+- 1 Import dazu: `import { calculatePeriodDates, fetchStatistics } from './energyDashboardCalculations.js';` (nur die zwei werden direkt von den public actions gerufen, die internen Cross-Calls sind im Helper-File selbst gelöst)
+- 5 Helper-Definitionen (~230 LOC, lines 909-1140) durch einen 6-zeiligen Marker-Comment ersetzt
+- 10 Call-Sites umgestellt:
+  - 3× `this._calculatePeriodDates(...)` → `calculatePeriodDates(...)` (in `getHistoricalPeriod`, `getCurrentPeriodConsumption`, `getChartData`)
+  - 7× `this._fetchStatistics(...)` → `fetchStatistics(...)` (in `getCurrentPeriodConsumption`, `getChartData`)
+
+### Impact
+
+**EnergyDashboardDeviceEntity.js: 1294 → 1069 LOC** (-225 LOC, -17%)
+
+Plus die Helper-Funktionen sind jetzt:
+- **Pure Functions** — testbar ohne Entity-Instance-Mock
+- **Wiederverwendbar** — falls eine andere Component die Period-Date-Berechnung braucht (z.B. eine Future-PriceProjection-Component), kann sie `calculatePeriodDates` direkt importieren
+- **Lesbarer aufgrund klarer Function-Boundary** — was vorher als Method-on-actions-context fließend war, ist jetzt explizit als Module-API
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/energyDashboardCalculations.js` — **neu** (~265 LOC)
+- `src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceEntity.js` — 5 Helpers raus, 10 Call-Sites umgestellt, 1 Import dazu
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Heute (Phase 2 Session-Stand)
+
+**21 Releases** v1.1.1310 → v1.1.1330. Auch bekannt als „die Nacht in der die LOC-Bilanz gekippt ist":
+- Switch-Bug-Welle (1310-1318): jump-frei ab 1318
+- IOSToggle-Replacement (1320): 38 Sites, 80 LOC Legacy-CSS raus
+- System-Entity-Cleanup-Trilogie (1321-1323): ~3700 LOC tot raus
+- Plugin-Pattern (1325): 3 Switch-Stellen → 1 Registry-Eintrag
+- EnergyDashboardDeviceView 4-Phasen-Splitting (1326-1329): Monolith → 7 Files, kein File über 800 LOC
+- Plus EnergyDashboardDeviceEntity Refactoring (1330): 1294 → 1069 LOC, 5 pure Functions extrahiert
+
+### Was noch offen ist
+
+**Innerhalb von Settings (kosmetisch, kein konkreter Win):**
+- 3 verbleibende mini-SubViews (`main`, `circular-overview`, `circular-detail`) — Settings ist mit 436 LOC navigierbar
+
+**Big refactor:**
+- **`window._integrationViewRef` / `_printerViewRef` / `_newsViewRef` / etc.** durch React-Context oder Provider ersetzen — Antipattern, von TabNavigation für Back-Button-Logic genutzt. Touches multiple files, höheres Risiko.
+
 ## Version 1.1.1329 - 2026-04-30
 
 **Title:** EnergyDashboardSettingsView Splitting Phase 4 — `sensors`-SubView extrahiert (~648 LOC raus, Settings 1072 → 436 LOC)
