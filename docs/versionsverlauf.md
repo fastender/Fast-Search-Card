@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1308 - 2026-04-30
+
+**Title:** LiquidGlassSwitch: Row-Hover-Suppression + Keyboard-Only Focus-Outline (Hover- & Click-Outline-Bugs gefixt)
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Bugfix, A11y
+
+### Why
+
+User-Feedback in HACS-Test mit 4 Screenshots dokumentiert:
+
+- **Bild 1 (normal):** Toggles sehen OK aus — translucent-gray OFF, blau ON, klein
+- **Bild 2 (hover):** Row turnt fast-weiß durch `.ios-item:hover:not(:active) → background: rgba(255,255,255,0.95) !important`. Der translucent-gray Track + weißer Knob verschmelzen mit dem weißen Hintergrund — Toggle wirkt „aufgequollen-elongiert" (tatsächlich nur die Drop-Shadow-Halos sichtbar)
+- **Bild 3 (click):** Beim Click bekommt das Input Focus → Snippet's `.switch:focus-within` triggert 3 px-Outline. Der blaue Outline-Ring wirkt zusammen mit dem hellen Row-bg wie ein „Selektion-Box"
+- **Bild 4 (post-release):** Row geht zurück auf default (weiß weg), aber der **blaue Focus-Outline bleibt haften**. Browser-Default: Focus bleibt auf dem zuletzt geklickten Element bis User woanders hin clickt. Sehr störend.
+
+### Changes
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — zwei Fixes:
+
+**1. Focus-Outline jetzt nur bei Keyboard-Navigation:**
+- Vorher: `.switch:focus-within { outline: 3px solid ... }`
+- Nachher: `.switch:has(input:focus-visible) { outline: 3px solid ... }`
+- `:focus-visible` triggert nur bei Keyboard-Focus (Tab-Navigation), nicht bei Maus-Click. Browser-Heuristik unterscheidet automatisch. A11y für Tab-User bleibt erhalten, Maus-User sehen nichts.
+- `:has()` als Parent-Selector um den Outline auf der `.switch`-Label statt nur auf dem Input zu rendern.
+
+**2. Row-Hover für Switch-Rows unterdrückt:**
+- Neue Regel: `@media (hover: hover) { .ios-item:has(.switch):hover:not(:active) { transform: none !important; background: rgba(255,255,255,0.08) !important; box-shadow: none !important; } }`
+- Zusatz: Label/Subtitle/Value-Color-Override (`color: inherit !important`)
+- Effekt: Rows mit `.switch` drin behalten ihren Default-Look auch beim Hover — kein scale 1.02, kein weißer bg, keine schwarze Schrift, keine elevation-Shadow
+- Begründung: der Toggle hat eigene Hover- & Press-Feedback-Mechanismen (CSS `.is-pressed`-Morph + Flip-Animation). Row-Hover wäre redundant und produziert den weißen-bg-Konflikt mit dem translucent-gray Track.
+
+### Browser-Support
+
+`:has()` benötigt:
+- Safari 15.4+ (März 2022 — alle aktuellen iPad/iPhone-Geräte)
+- Chrome 105+ (August 2022)
+- Firefox 121+ (Dezember 2023)
+
+Für HACS-Nutzer in 2026 universell verfügbar.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.css` — `:focus-within` → `:has(input:focus-visible)`, neue `.ios-item:has(.switch)`-Hover-Suppression-Regeln
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+Die Slider-Thumbs (Zieltemperatur Düse / Druckbett) in der gleichen View haben in Bild 4 ähnliche blaue Ringe — das ist der Browser-Default-`:focus`-Outline auf den native `<input type="range">`-Slidern. Nicht durch diesen Fix abgedeckt — wäre ein separater Fix in der `.range-slider-input`-CSS (`outline: none` oder eigene `:focus-visible`-Behandlung). Falls dich das auch stört, sag Bescheid.
+
 ## Version 1.1.1307 - 2026-04-30
 
 **Title:** LiquidGlassSwitch in PrinterMiscList: kleiner (s-sm), blau (#0a84ff), OFF-Track auf translucent-gray gegen Row-Hover-Konflikt
