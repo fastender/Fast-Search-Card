@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1302 - 2026-04-30
+
+**Title:** 3D-Drucker (Bambu) Sonstiges-Tab: neue `LiquidGlassSwitch`-Component (iOS-26 Liquid Glass) ersetzt Inline-Slider-Markup
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Liquid-Glass
+
+### Why
+
+In der Bambu-Lab-Detail-View (Sonstiges-Tab) liefen die Toggles bisher als Inline-`<div>`-Slider-Markup direkt in `PrinterMiscList.jsx` — deshalb hatte sie auch die `IOSToggle`-Migration auf Text "An/Aus" (v1.1.1292) nicht erreicht. Inspiriert von [maxuiux/qEdxbrY](https://codepen.io/maxuiux/pen/qEdxbrY) extrahieren wir das Slider-Pattern in eine eigene Component mit echtem iOS-26-"Liquid Glass"-Effekt: SVG-Lens-Verzerrung + Specular-Schimmer + Anticipation-Squish während des Wechsels. Bewusst nur in der Printer-View, nicht global — der Effekt braucht den farbigen Glass-Hintergrund um zu wirken, in flachen Settings-Listen wäre er Lärm.
+
+### Changes
+
+**Neu: [LiquidGlassSwitch.jsx](src/components/common/LiquidGlassSwitch.jsx)** — Drop-in-kompatibel zu `IOSToggle` (`checked` / `onChange(newValue, event)` / `disabled` / `stopPropagation` / `className` / `style`). Wrappt das CSS-animierte Markup in `<motion.label whileTap={{scale: 0.96}}>` für Tap-Press-Feedback (orthogonal zur CSS-Choreografie). 150 ms Dedupe wie bei `IOSToggle`.
+
+**Neu: [LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — Pen-Choreografie 1:1 übernommen, Maße auf iOS-Standard 51×31 / 27×27 angepasst (translateX 20 px statt 28 px der Pen-86×38-Variante). Easing `cubic-bezier(0.16, 1, 0.3, 1)`, Duration 0.5 s.
+- `lgs-dot-on/off`: 4-stop-Keyframes mit `scale(1.6)` Squish + `rotateY(±33deg)` Anticipation, `translateX` Slide, `background-color`-Fade auf alpha 0.1 bei 82 % → 0.7 bei 90 % → 1 bei 100 % (Liquid-Drop-Reform-Effekt)
+- `lgs-filter-on/off`: Opacity 0→1 bei 12 %, →0 bei 100 % (Lens nur mid-flight sichtbar)
+- `lgs-specular-on/off`: 4-component-`box-shadow`-Keyframes (grünlicher Top-Edge, dunkler Bottom-Edge, weißer Glow, dimmer Bottom-Right)
+- Track-Crossfade via zwei `::before` (off, gray rgba(120,120,128,0.32)) + `::after` (on, linear-gradient(145deg, #3ccb60, #42ba64)) — sauberer als `background-color`-Transition
+- `prefers-reduced-motion`: Filter wird komplett ausgeblendet, Animation auf 0.2 s gekürzt
+
+**Neu: [LiquidGlassFilterDefs.jsx](src/components/common/LiquidGlassFilterDefs.jsx)** — SVG-`<filter id="mini-liquid-lens">` mit `feImage` (radial-gradient als pseudo-normal-map, off-centered via `x="20" y="-66"`) + `feDisplacementMap` (`scale="8"`). Wird in [index.jsx](src/index.jsx) einmal global gemountet neben `WallpaperModeOverlay`. `#` in `url(#invmap)` als `%23` URL-encoded für Safari-Kompatibilität in der Data-URI.
+
+**Geändert: [PrinterMiscList.jsx](src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx)** — die ~28 Zeilen Inline-`<div className="ios-toggle">`-Markup für `item.type === 'switch'` durch `<LiquidGlassSwitch checked={isOn} disabled={!isAvailable} onChange={...} />` ersetzt (10 Zeilen). Betrifft 4 Toggles in der Steuerung-Sektion: Kamera aktivieren, Bildsensorkamera verwenden, Aufforderungston zulassen, Druckraumbeleuchtung.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.jsx` (neu)
+- `src/components/common/LiquidGlassSwitch.css` (neu)
+- `src/components/common/LiquidGlassFilterDefs.jsx` (neu)
+- `src/index.jsx` — `<LiquidGlassFilterDefs />` global gemountet
+- `src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx` — Inline-Markup → Component
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+Bewusst kein flächiges Replacement von `IOSToggle` — die Text-"An/Aus"-Variante (v1.1.1292) bleibt für alle Settings-Listen die Standard-Komponente. `LiquidGlassSwitch` ist eine Spezial-Komponente für visuelle Hero-Kontexte mit farbigem/glasigem Hintergrund. Damit drei Toggle-Komponenten im Repo: `IOSToggle` (text), `PowerToggle` (icon, circular slider) und `LiquidGlassSwitch` (visual pill).
+
 ## Version 1.1.1301 - 2026-04-29
 
 **Title:** Versionsverlauf: Suchfeld + zwei-zeilige Filter-Leiste (Zeitfenster + Tags) wie bei News
