@@ -1,5 +1,66 @@
 # Versionsverlauf
 
+## Version 1.1.1309 - 2026-04-30
+
+**Title:** LiquidGlassSwitch V4 — Track-Border + Knob-Border + Track 36 % (User-getestete Mockup-Variante, Hover-resistent ohne Row-Hover-Suppression)
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Bugfix
+
+### Why
+
+User-Feedback nach 1308: Row-Hover-Suppression hat das Verhalten zu radikal geändert — User wollte dass die Row weiterhin weiß hovert (das ist der erwartete iOS-Look), nur soll der Toggle dabei sichtbar bleiben statt zu verschmelzen.
+
+**Lösungsansatz neu:** statt den Row-Hover zu unterdrücken, machen wir den Toggle visuell hover-resistent — er ist auf JEDEM Hintergrund (dunkel default + weiß hovered) erkennbar.
+
+User hat aus einem 6-Varianten-Mockup `V4 (Combined)` gewählt: Track bekommt einen sichtbaren Border, Knob bekommt einen Inset-Border, Track-Bg geht von 0.32 → 0.36 alpha. Damit haben Track-Pille UND Knob-Kreis auf jedem Hintergrund klare Konturen.
+
+### Changes
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — drei kleine, konsistente Anpassungen:
+
+**1. Track-Border verstärkt (1308 → 1309):**
+- Vorher: `inset 0 0 0 1px rgba(0,0,0,0.04)` (snippet-original, fast unsichtbar)
+- Nachher: `inset 0 0 0 1.5px rgba(0,0,0,0.16)` — definiert die Pillen-Form auf weißem Bg, ist auf dunklem Bg dark-on-dark fast unsichtbar
+
+**2. Track-Background-Alpha von 0.32 → 0.36:**
+- Subtile Erhöhung. Ergänzt die Border, kein dramatischer Kontrast-Sprung.
+
+**3. Knob-Inset-Border zur Specular-Layer hinzugefügt:**
+- Neuer 5. Stack-Element: `inset 0 0 0 1px rgba(0,0,0,0.12)`
+- Definiert den weißen Knob als Kreis auf weißem Hover-Bg
+- Auf dunklem Bg ist 12 %-Schwarz auf weißem Knob fast unsichtbar (white-on-dark mit subtler Inset-Linie)
+- **WICHTIG:** Diese Border musste auch in alle drei `spec-flash`-Keyframe-Stops (0 %, 12-80 %, 100 %) als Static-Element nachgepflegt werden — sonst würde die Border während der 0.55 s Flip-Animation für die Dauer der Specular-Animation wegblitzen
+
+**4. Row-Hover-Suppression aus 1308 entfernt:**
+- Die `.ios-item:has(.switch):hover:not(:active) { transform: none ... }`-Regel ist gelöscht
+- Row hovert wieder normal weiß wie in 1306-Verhalten — User-Wunsch
+
+**Behalten aus 1308:**
+- `.switch:has(input:focus-visible)` statt `:focus-within` — kein Click-Outline-Bleibe-Bug, Tab-A11y bleibt erhalten
+
+### Verifikation
+
+User-getestet im Standalone-Mockup `switch-mockup-v1308-decision.html` mit allen 6 Varianten (V0-V5). User hat V4 nach Hover-Test ausgewählt.
+
+| Kontext | V4-Verhalten |
+|---|---|
+| Default-Row (dark glass bg) | Track als translucent-gray Pille, Knob als weißer Kreis mit kaum sichtbarer Inset-Linie — sieht aus wie iOS-Toggle |
+| Row-Hover (white-95% bg) | Track-Border definiert die Pille klar, Knob-Inset definiert den Kreis klar — Toggle bleibt erkennbar |
+| Mid-Animation (Flip) | Static-Borders bleiben durchgehend, Specular-Highlights animieren wie gewohnt darüber |
+| Press-and-Hold | Rubberband-Stretch unbeeinflusst, Borders skalieren mit |
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.css` — V4-Visibility-Fixes + Row-Hover-Suppression entfernt
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+Damit ist das Hover-Sichtbarkeits-Problem direkt gelöst: nicht durch Suppression des erwünschten Row-Hover-Effekts, sondern durch hover-resistenten Toggle.
+
+Slider-Thumbs (Zieltemperatur Düse/Druckbett) haben weiterhin den Browser-Default-Focus-Ring — separate Component, separater Fix wenn gewünscht.
+
 ## Version 1.1.1308 - 2026-04-30
 
 **Title:** LiquidGlassSwitch: Row-Hover-Suppression + Keyboard-Only Focus-Outline (Hover- & Click-Outline-Bugs gefixt)
