@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.1310 - 2026-04-30
+
+**Title:** LiquidGlassSwitch — Row-Hover/Active der `.ios-item` darf den Toggle nicht mehr verändern (Component-owned Suppression statt nur V4-Borders)
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Bugfix
+
+### Why
+
+Live-Test in HACS nach 1309 zeigt: Trotz V4-Track-Border + Knob-Inset-Border verändert sich der Toggle beim Hover über die Row sichtbar. Drei Ursachen die wir in 1309 nicht gefixt hatten:
+
+1. **`transform: scale(1.02)` auf `.ios-item:hover`** skaliert den ganzen Inhalt der Row mit — auch den Toggle. Der wirkt 2 % größer/leicht versetzt.
+2. **`background: rgba(255,255,255,0.95) !important`** verändert den Track-Bg-Kontext. Der LiquidGlassSwitch-Track ist translucent (`rgba(120,120,128,0.36)`), also scheint der Row-Bg DURCH den Track. V4-Borders mildern das ab, ändern aber nicht den durchscheinenden Look.
+3. **Box-Shadow `0 8px 24px ...`** lässt die Row visuell anspringen — Toggle hüpft optisch mit.
+
+User-Direktive: „der hover auf das item (nicht button) darf das aussehen oder animation vom button nicht verändern".
+
+User-Hinweis dazu: der alte `.ios-toggle` (51×31, simpler iOS-Slider mit solid-colored Track) hat genau diese Konflikte NICHT — weil sein Track-Bg solid ist (festes Grau OFF / Blau ON), scheint nichts vom Row-Bg durch. Der LiquidGlassSwitch ist bewusst translucent (Snippet-Design) und braucht deshalb die Suppression um dasselbe konflikt-freie Verhalten zu bekommen.
+
+### Changes
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — neue Suppression-Regeln am Ende der Datei (Component-owned, nicht in `iOSSettingsView.css`):
+
+```css
+@media (hover: hover) {
+  .ios-item:has(.switch):hover:not(:active) {
+    transform: none !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: none !important;
+  }
+  /* + color: inherit für labels/subtitles/values + svg-icons */
+}
+.ios-item:has(.switch):active {
+  transform: none !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+```
+
+Effekt: Rows die einen `.switch` enthalten behalten beim Hover und Active genau ihren Default-Look. Kein Scale, kein weißer Bg, kein Shadow, kein Color-Override auf Labels/Icons. Switch hat eigene Press-/Hover-Mechanismen (is-pressed Rubberband + dot-on/off Flip-Animation), Row-Hover wäre redundant.
+
+### Browser-Support
+
+`:has()` benötigt Safari 15.4+ / Chrome 105+ / Firefox 121+ — für HACS 2026 universell.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.css` — Suppression-Block ergänzt + 1309-Hinweis-Kommentar ersetzt
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Hinweis
+
+V4-Track-Border (1.5 px @ 0.16 alpha) + Knob-Inset-Border (1 px @ 0.12 alpha) aus 1309 bleiben drin. Im Default-Bg-Kontext sind sie kaum sichtbar (dark-on-dark / black-on-white in subtle alpha). Falls jemand den Switch außerhalb einer `.ios-item`-Row auf einen weißen Bg setzt, definieren die Borders weiterhin Track + Knob klar — A11y-Reserve.
+
 ## Version 1.1.1309 - 2026-04-30
 
 **Title:** LiquidGlassSwitch V4 — Track-Border + Knob-Border + Track 36 % (User-getestete Mockup-Variante, Hover-resistent ohne Row-Hover-Suppression)
