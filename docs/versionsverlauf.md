@@ -1,5 +1,108 @@
 # Versionsverlauf
 
+## Version 1.1.1320 - 2026-04-30
+
+**Title:** IOSToggle vollständig durch LiquidGlassSwitch ersetzt — 38 Component-Usages + 4 Inline-Markup-Usages migriert, IOSToggle.jsx + Legacy-CSS gelöscht
+**Hero:** none
+**Tags:** Component, Refactoring, UI, Cleanup
+
+### Why
+
+Auf User-Wunsch: zwei Toggle-Components nebeneinander (IOSToggle Text "An/Aus" + LiquidGlassSwitch visuell) → eine Toggle-Component (LiquidGlassSwitch). Vereinheitlicht das UI, eliminiert die Text-Variante komplett.
+
+### Mapping vor/nach
+
+**Vor 1320:**
+- `IOSToggle` — Text "An"/"Aus", `<button>`-basiert, in 8 Files (38 Usages)
+- `LiquidGlassSwitch` — Visual Pill, `<label>`+`<input>`-basiert, nur in PrinterMiscList (4 Usages)
+- Inline `<label class="ios-toggle"><input><span class="ios-toggle-slider"></span></label>` — Legacy iOS-Slider-Markup, 4 Usages (3× Printer3DDeviceView, 1× PrivacySettingsTab)
+
+**Nach 1320:**
+- `LiquidGlassSwitch` — die einzige Toggle-Component, 46 Usages
+- `IOSToggle.jsx` — gelöscht
+- Inline-Markup — gelöscht
+
+### LiquidGlassSwitch Default-Anpassung
+
+Defaults geändert um Replacement drop-in-fähig zu machen:
+
+```jsx
+// Vor 1320: size='md', accent (kein Default = grün)
+// Nach 1320:
+size = 'sm',           // 64×30 — matcht IOSToggle-Kompaktheit
+accent = '#0a84ff',    // iOS-System-Tint (Blau)
+```
+
+PrinterMiscList kann jetzt die expliziten `size="sm"` + `accent="#0a84ff"` Props weglassen — werden aus den Defaults genommen.
+
+### Migration der 8 Component-Usages
+
+Mechanische Replacement via sed in:
+- `EnergyDashboardDeviceView.jsx` (1)
+- `Printer3DDeviceView.jsx` (6)
+- `iOSSettingsView.jsx` (3, news)
+- `TodosSettingsView.jsx` (7)
+- `ToastSettingsTab.jsx` (2)
+- `GeneralSettingsTab.jsx` (8)
+- `StatsBarSettingsTab.jsx` (11)
+- `AppearanceSettingsTab.jsx` (4)
+
+```bash
+# Pattern (per file):
+sed -i '' 's|<IOSToggle|<LiquidGlassSwitch|g' "$f"
+sed -i '' "s|import { IOSToggle } from '\(.*\)/common/IOSToggle';|import { LiquidGlassSwitch } from '\1/common/LiquidGlassSwitch';|g" "$f"
+```
+
+Drop-in-kompatibel: keine einzige Verwendung nutzte custom `onLabel`/`offLabel` (vorher gegrept). Alle Calls verwenden nur die gemeinsame Basis-API (`checked`, `onChange`, evtl. `disabled`/`stopPropagation`).
+
+### Migration der 4 Inline-Markup-Usages
+
+Diese 4 Stellen verwendeten direkt `<label className="ios-toggle">` ohne Component-Wrapper:
+
+**Printer3DDeviceView.jsx (3 Toggles)** — waren uncontrolled (`defaultChecked`, kein `onChange`), Browser hat State intern verwaltet. Bei Migration zu controlled LiquidGlassSwitch lokalen State eingeführt:
+
+```jsx
+const [printFinishedNotif, setPrintFinishedNotif] = useState(true);
+const [errorNotif, setErrorNotif] = useState(true);
+const [debugMode, setDebugMode] = useState(false);
+// ...
+<LiquidGlassSwitch checked={printFinishedNotif} onChange={setPrintFinishedNotif} />
+```
+
+Diese 3 Toggles sind weiterhin nicht persisted und nicht an HA-Service-Calls angeschlossen — Verhalten identisch zur alten uncontrolled Variante (toggelt visuell, ohne Side-Effect). Funktionalität wäre als Folge-Task implementierbar (localStorage / hass.callService).
+
+**PrivacySettingsTab.jsx (1 Toggle)** — war disabled (`pointerEvents: none`, `disabled`-Attribut). Direkt durch `<LiquidGlassSwitch checked={true} disabled />` ersetzt.
+
+### CSS-Cleanup
+
+Aus `iOSSettingsView.css` entfernt (~80 Zeilen):
+- `.ios-toggle-text` (+ Hover-Overrides für is-on-Color)
+- `.ios-toggle` / `.ios-toggle input` / `.ios-toggle-slider` / `.ios-toggle-slider:before` (Legacy iOS-Slider-Markup)
+- `:checked`-State-Styles für die Legacy-Variante
+- `.ios-toggle` aus dem `.ios-item:hover` Cascade-Selector raus (war historisch die Wurzel des 1313-Layout-Shift-Bugs — LiquidGlassSwitch hat eigene Defensive)
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.jsx` — Defaults `size='sm'` + `accent='#0a84ff'`
+- `src/components/common/IOSToggle.jsx` — **gelöscht**
+- `src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx` — redundante Props weg
+- `src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceView.jsx` — Component-Replacement
+- `src/system-entities/entities/integration/device-entities/Printer3DDeviceView.jsx` — Component-Replacement + 3 Inline-Markup-Replacements + lokaler State
+- `src/system-entities/entities/news/components/iOSSettingsView.jsx` — Component-Replacement
+- `src/system-entities/entities/news/components/iOSSettingsView.css` — `.ios-toggle*`-CSS gelöscht, Hover-Cascade angepasst
+- `src/system-entities/entities/todos/components/TodosSettingsView.jsx` — Component-Replacement
+- `src/components/tabs/SettingsTab/components/ToastSettingsTab.jsx` — Component-Replacement
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` — Component-Replacement
+- `src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx` — Component-Replacement
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — Component-Replacement
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx` — Inline-Markup-Replacement
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Visueller Effekt für den User
+
+Alle Toggles im UI tauschen die Text-Darstellung („An"/„Aus") gegen die visuelle Pill mit blauem Akzent. Konsistenter iOS-Look, eine Component, ein Verhalten überall. Plus alle Stability-Fixes aus 1313-1318 (Layout-Shift-Defensive, Optimistic-Update-Flow, Press-Rubberband-jump-frei) gelten ab sofort für jede einzelne Toggle-Stelle in der App.
+
 ## Version 1.1.1319 - 2026-04-30
 
 **Title:** PrinterMiscList Refactoring — hass via useRef, Memoization, doppelte renderControl-Calls weg
