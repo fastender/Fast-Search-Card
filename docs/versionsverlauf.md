@@ -1,5 +1,67 @@
 # Versionsverlauf
 
+## Version 1.1.1313 - 2026-04-30
+
+**Title:** LiquidGlassSwitch — `appearance: none` ergänzt: `width:0/height:0` allein reicht nicht für native Form-Controls (Knob wanderte sonst beim Hover nach links)
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Bugfix
+
+### Why
+
+1312 hatte den 0×0-Fix eingebaut, aber User-Test zeigt: Knob wandert beim Hover trotzdem nach links, Track wird trotzdem breiter — der Bug ist nicht weg, nur abgeschwächt.
+
+Genauere Analyse: Browser-UA-Stylesheets ignorieren `width`/`height` auf nativen Form-Controls (`<input type="checkbox">`) solange `appearance: auto` gilt. Der Checkbox rendert seine intrinsische Default-Breite (~13 px) trotz `width: 0`. Erst `appearance: none` deaktiviert das native Sizing und macht width/height effektiv.
+
+**Wirkungskette ohne `appearance: none`:**
+1. `iOSSettingsView.css:235` setzt beim Row-Hover `.ios-item:hover input { position: relative }`
+2. Der hidden `.switch input` wird damit layout-relevant im Flex-Container
+3. Ohne `appearance: none` rendert der Browser ihn an ~13 px Default-Breite trotz CSS-`width: 0`
+4. Das `.switch`-Label (display: inline-flex) wird 13 px breiter, Slider rückt 13 px nach rechts
+5. Der Knob (`position: absolute` innerhalb des Sliders) folgt mit nach rechts — aber relativ zum verschobenen Slider erscheint er vom Auge **leftward** weil die Slider-Ränder als Referenz dienen
+
+**Warum der alte `.ios-toggle` nicht betroffen ist (Korrektur zur 1312-Erklärung):** nicht weil sein Input `width: 0; height: 0` hat, sondern weil sein Knob als `::before`-Pseudo-Element auf dem `.ios-toggle-slider` rendert (NICHT als eigener Flex-Child). Der Slider füllt das ganze Label (`position: absolute; top:0; left:0; right:0; bottom:0`), egal wie breit das Label durch einen sichtbaren Input wird. Das Label kann auf 77 px wachsen, der Slider füllt diese 77 px aus, Knob (`::before` mit `left: 2px`) bleibt in Relation richtig.
+
+Beim neuen `.switch` ist die Architektur anders: der Slider ist ein eigener Flex-Child mit fixer Breite (`width: var(--w)` = 64 px), der Knob ist ein anderer absolut-positionierter Child. Wenn der Input layout-relevant wird, schiebt er den Slider — Knob folgt mit, scheint aber vom Auge nach links versetzt.
+
+### Changes
+
+**[LiquidGlassSwitch.css](src/components/common/LiquidGlassSwitch.css)** — `.switch input` voll defensiv ausgestattet:
+
+```css
+.switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+```
+
+`appearance: none` + `-webkit-appearance: none` deaktivieren das native Form-Control-Sizing. Margin/padding/border auf 0 entfernen UA-Stylesheet-Default-Spacing — auch wenn ein Browser den Checkbox doch noch rendert, beansprucht er null Layout-Space.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.css` — `.switch input`-Block voll defensiv
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Lehre
+
+Native Form-Controls (input/button/select) ignorieren explizite Größen-Werte solange `appearance` auf `auto` steht. Pattern für hidden Form-Controls in Custom-UIs:
+- `position: absolute` (raus aus Flow)
+- `opacity: 0` (unsichtbar)
+- `pointer-events: none` (keine Interaktion)
+- `width: 0; height: 0` (Größe minimal)
+- `appearance: none; -webkit-appearance: none` (UA-Sizing aus)
+- `margin: 0; padding: 0; border: 0` (UA-Spacing aus)
+
+Diese sechs Eigenschaften zusammen machen den Input layout-immun gegen jede Cascade-Override.
+
 ## Version 1.1.1312 - 2026-04-30
 
 **Title:** LiquidGlassSwitch — echter Bugfix: hidden Input bekommt `width:0; height:0` (verhinderte Layout-Shift bei Hover, der den Toggle ~20 % breiter machte)
