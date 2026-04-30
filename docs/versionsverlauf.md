@@ -1,5 +1,115 @@
 # Versionsverlauf
 
+## Version 1.1.1324 - 2026-04-30
+
+**Title:** Integration Quick Wins — alle 3 Device-Views in `views/`, EnergyChartsView.css in `styles/`, hass-Ref-Pattern für PrinterSensorsList + PrinterDiagnosticsList
+**Hero:** none
+**Tags:** Refactoring, 3D-Drucker, Architecture, Performance, State-Management
+
+### Why
+
+Bei der Integration-Modul-Analyse aufgefallen:
+
+- **Stufe 2 unvollständig:** der `views/` Subfolder existierte, aber **nur WeatherDeviceView** wurde dorthin verschoben (in 1322). Printer3DDeviceView und EnergyDashboardDeviceView lagen noch top-level im `device-entities/`-Verzeichnis.
+- **CSS-Lokalitäts-Inkonsistenz:** `EnergyChartsView.css` lag in `components/`, aber `WeatherDeviceView.css` und `DeviceDetailView.css` in `styles/`. Verschiedene Konventionen.
+- **Veraltetes Polling-Pattern in 2 Components:** `PrinterSensorsList` und `PrinterDiagnosticsList` hatten weiterhin `useEffect[entity, hass]` — feuern damit bei jedem hass-Backend-Tick (~10×/Minute). PrinterMiscList wurde in 1319 schon refactored, aber die Schwester-Components nicht.
+
+### Changes
+
+#### A) Views-Konsolidierung
+
+```
+device-entities/Printer3DDeviceView.jsx     → device-entities/views/Printer3DDeviceView.jsx
+device-entities/EnergyDashboardDeviceView.jsx → device-entities/views/EnergyDashboardDeviceView.jsx
+```
+
+Plus Import-Pfad-Update in den 2 Entity-Files:
+- `Printer3DDeviceEntity.js`: `viewComponent: () => import('./views/Printer3DDeviceView.jsx')`
+- `EnergyDashboardDeviceEntity.js`: `viewComponent: () => import('./views/EnergyDashboardDeviceView.jsx')`
+
+Endergebnis: **alle 3 Device-Views konsistent in `views/`**.
+
+#### B) CSS-Lokalität
+
+```
+device-entities/components/EnergyChartsView.css → device-entities/styles/EnergyChartsView.css
+```
+
+Plus Import-Pfad-Update in `EnergyChartsView.jsx`: `import '../styles/EnergyChartsView.css'`.
+
+Endergebnis: **alle Device-CSS-Files konsistent in `styles/`**.
+
+#### C) hass-Ref-Pattern (1319-Pattern)
+
+**[PrinterSensorsList.jsx](src/system-entities/entities/integration/device-entities/components/PrinterSensorsList.jsx):**
+
+```jsx
+// Vorher
+useEffect(() => {
+  const fetchSensors = async () => { ... };
+  fetchSensors();
+  const interval = setInterval(fetchSensors, 5000);
+  return () => clearInterval(interval);
+}, [entity, hass]);  // ← hass-Tick triggert Re-Effect bei jedem Backend-Event
+
+// Nachher
+const hassRef = useRef(hass);
+useEffect(() => { hassRef.current = hass; }, [hass]);
+
+useEffect(() => {
+  let cancelled = false;
+  const fetchSensors = async () => {
+    if (cancelled) return;
+    const currentHass = hassRef.current;
+    if (!entity || !currentHass) return;
+    const data = await entity.executeAction('getPrinterData', { hass: currentHass });
+    if (cancelled) return;
+    if (data) setSensorData(data);
+  };
+  fetchSensors();
+  const interval = setInterval(fetchSensors, POLL_INTERVAL_MS);
+  return () => {
+    cancelled = true;
+    clearInterval(interval);
+  };
+}, [entity]);  // ← nur bei entity-Wechsel + alle 5s
+```
+
+**[PrinterDiagnosticsList.jsx](src/system-entities/entities/integration/device-entities/components/PrinterDiagnosticsList.jsx):** identisches Pattern angewendet.
+
+**EnergyChartsView.jsx** wurde geprüft — hat das hassRef-Pattern bereits seit längerem (Zeile 81-87, ohne dass eine Versions-Notiz das dokumentiert hat). Alle fetch-useEffects nutzen `hassRef.current`. Kein Eingriff nötig.
+
+### Impact
+
+- **Polling-Frequenz** für PrinterSensorsList + PrinterDiagnosticsList: 1×/5s + bei entity-Wechsel (statt ~10×/Minute durch hass-Tick + 5-s-Polling parallel)
+- **Konsistente Datei-Struktur** im integration/-Modul: alle Views in `views/`, alle Device-CSS in `styles/`
+- **Zero Verhaltens-Änderung** für User — reine Strukturänderung + Polling-Optimierung
+
+### Files touched
+
+- `src/system-entities/entities/integration/device-entities/Printer3DDeviceView.jsx` → moved to `views/`
+- `src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceView.jsx` → moved to `views/`
+- `src/system-entities/entities/integration/device-entities/components/EnergyChartsView.css` → moved to `styles/`
+- `src/system-entities/entities/integration/device-entities/Printer3DDeviceEntity.js` — viewComponent-Pfad
+- `src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceEntity.js` — viewComponent-Pfad
+- `src/system-entities/entities/integration/device-entities/components/EnergyChartsView.jsx` — CSS-Import-Pfad
+- `src/system-entities/entities/integration/device-entities/components/PrinterSensorsList.jsx` — hass-Ref-Pattern
+- `src/system-entities/entities/integration/device-entities/components/PrinterDiagnosticsList.jsx` — hass-Ref-Pattern
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Was noch offen ist (für separate Versionen)
+
+**Medium effort:**
+- **EnergyDashboardDeviceView splitten** (2136 LOC) in mehrere Sub-Components — Kandidaten: Header, Stats, Charts-Container, Settings-Section etc.
+- **EnergyDashboardDeviceEntity splitten** (1294 LOC) — Heavy-Calculations + Formatter in eigene Helper-Files
+
+**Big refactor:**
+- **Plugin-Pattern für Device-Types:** statt hardcoded Switch-Statements in `DeviceEntityFactory.js` + `IntegrationView.renderSetupFlow()` + manueller Imports, eine Registry pro Device-Type. Neuer Type → 1 Eintrag + 3 Files (Entity, View, Setup) statt 4 Stellen ändern.
+- **`window._integrationViewRef` / `_printerViewRef`** durch React-Context oder Provider ersetzen — globale window-Properties sind Antipattern.
+
+Damit hat das integration/-Modul jetzt eine saubere Verzeichnis-Basis und reduzierte Polling-Last in 2 weiteren Components.
+
 ## Version 1.1.1323 - 2026-04-30
 
 **Title:** Pluginstore komplett gelöscht — Code, Loader, Icon, UI-Refs, Translations, Animations (~1700 LOC weg)
