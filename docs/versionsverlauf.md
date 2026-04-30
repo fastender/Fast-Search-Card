@@ -1,5 +1,75 @@
 # Versionsverlauf
 
+## Version 1.1.1316 - 2026-04-30
+
+**Title:** LiquidGlassSwitch — Animation-Reset-Hack entfernt: er war die Quelle des „ein → aus → ein"-Jump-Cycles in Millisekunden
+**Hero:** none
+**Tags:** Component, 3D-Drucker, Toggle, UI, Bugfix, Animation
+
+### Why
+
+User-Bug nach 1314+1315: „wenn ich von aus auf ein drücke: es schaltet ein dann aus dann wieder ein innerhalb weniger ms".
+
+1314 (Optimistic Update) und 1315 (Pending-Lock) haben das State-Management fixiert — die Multi-Animation durch HA-Polling-Race ist weg. Aber der **lokale Knob-Jump-Cycle** war nicht im State-Management, sondern im Animation-Reset-Hack der Component selbst.
+
+### Was der Hack beim Klick OFF→ON ausgelöst hat
+
+Synchroner Ablauf in `handleChange` (Zeilen 73-79 vor 1316):
+
+```jsx
+dot.classList.add('is-prim');
+dot.style.animation = 'none';     // ← KILLT die laufende CSS-Animation
+void dot.offsetWidth;             // ← Force Reflow
+dot.style.animation = '';         // ← CSS-Animation neu starten
+```
+
+**Was sichtbar passiert:**
+
+1. **t=0:** Browser togglet `input.checked: false → true` (DOM). CSS-Selektor `:checked` matcht jetzt → CSS-Regel sagt `transform: translateX(var(--travel))` (rechts) UND CSS-Animation `dot-on` startet (Frame 0 = `translateX(0)` = links).
+2. **t=0+ms:** `handleChange` läuft. `style.animation = 'none'` setzt — die laufende `dot-on`-Animation wird **gekillt**. Element fällt auf seine CSS-Regel-Transform zurück: `translateX(var(--travel))` → **Knob springt nach RECHTS**.
+3. **t=0+ms:** `void offsetWidth` flusht Layout (forciert browser reflow).
+4. **t=0+ms:** `style.animation = ''` setzt — CSS-Animation `dot-on` wird neu angewendet, startet bei Frame 0 = `translateX(0)` → **Knob springt zurück nach LINKS**.
+5. **t=0-550ms:** Animation läuft normal von links nach rechts ab.
+
+**User sieht:** links → **rechts (Jump 1)** → **links (Jump 2)** → animiert nach rechts. Drei sichtbare Übergänge in Millisekunden = exakt „ein → aus → ein innerhalb weniger ms".
+
+### Warum der Hack im Original-Snippet keinen Bug erzeugt hat
+
+Im User-designten Vanilla-JS-`switch-snippet.html` war der Input direkt interaktiv (uncontrolled mode). Der Hack war für **Rapid-Click-Re-Trigger** gedacht: wenn der User schnell mehrmals klickt, soll die Animation jedes Mal sauber von Frame 0 neu starten.
+
+In Preact mit 150-ms-Dedupe sind Rapid-Re-Triggers schon unterdrückt — der Hack ist nicht nur überflüssig, er produziert den Jump-Cycle. CSS-Animation triggert natürlich beim Selector-Wechsel `:not(:checked)` → `:checked`, ohne dass `style.animation` manipuliert werden muss.
+
+### Changes
+
+**[LiquidGlassSwitch.jsx](src/components/common/LiquidGlassSwitch.jsx)** — Hack komplett entfernt aus `handleChange`. `is-prim`-Class-Add bleibt erhalten (Gate für `dot-off`-Animation bei späteren OFF-Toggles, ohne den der OFF-Flip kein Animation-Feedback hat).
+
+```jsx
+const dot = dotRef.current;
+if (dot && !dot.classList.contains('is-prim')) {
+  dot.classList.add('is-prim');
+}
+
+if (typeof onChange === 'function') {
+  onChange(!checked, e);
+}
+```
+
+Drei Zeilen `style.animation`-Manipulation + `offsetWidth`-Reflow weg. CSS-Animation läuft natürlich beim Selector-Wechsel.
+
+### Files touched
+
+- `src/components/common/LiquidGlassSwitch.jsx` — Animation-Reset-Hack entfernt
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+- `src/system-entities/entities/versionsverlauf/index.js` — version bump
+
+### Lehre — Vanilla-JS-Snippet ≠ Preact-Component
+
+Das User-Snippet hatte den Hack als Pflaster für ein Problem der Vanilla-JS-Architektur (uncontrolled input, Rapid-Click). Der 1:1-Port hat den Hack mit übernommen, ohne zu prüfen ob er in der React/Preact-Architektur noch nötig oder schädlich ist.
+
+Pattern für zukünftige Snippet-Ports: jeden direkten DOM-Manipulations-Hack aus Vanilla-JS gegenüber dem Preact-Lifecycle prüfen — viele werden in Controlled-Components überflüssig oder gar bug-induzierend, weil React/Preact die State-Synchronisation und Animation-Triggering von sich aus übernimmt.
+
+Damit ist die LiquidGlassSwitch-Saga (1302→1316) jetzt **wirklich** abgeschlossen: parametrisierte Vars + 4 Größen + V4-Borders aus 1309 + 0×0/appearance:none-Layout-Fix aus 1313 + Optimistic Update + Pending-Lock + Animation-Reset-Hack-Entfernung. 14 Iterations, finale Form jetzt stabil.
+
 ## Version 1.1.1315 - 2026-04-30
 
 **Title:** PrinterMiscList: Pending-Lock gegen Polling-Race — optimistische Updates können nicht mehr von hass-Tick oder 500-ms-Refresh überschrieben werden
