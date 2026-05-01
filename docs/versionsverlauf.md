@@ -1,5 +1,80 @@
 # Versionsverlauf
 
+## Version 1.1.1358 - 2026-05-01
+
+**Title:** UniversalEntityList — interaktive Controls für select/number/time/text (vorher nur switch interaktiv, Rest read-only)
+**Hero:** none
+**Tags:** Feature, Universal-Builder, Interactive-Controls
+
+### Bug
+
+User-Feedback: "unter sonstiges kann im backend neben der switch auch sliden oder auch auswahl aus verschiedenen punkten treffen; im frontend geht nur der switch"
+
+Konkretes Beispiel: Roborock-Vacuum-Konfiguration (Sonstiges-Tab) hat:
+- `select.roborock_qrevo_s_ausgewaehlte_karte` (Map 1 / Map 2 / …)
+- `switch.roborock_qrevo_s_bitte_nicht_storen` ✅ (toggle ging schon)
+- `time.roborock_qrevo_s_bitte_nicht_storen_beginn` (22:00)
+- `time.roborock_qrevo_s_bitte_nicht_storen_ende` (8:00)
+- `number.roborock_qrevo_s_lautstaerke` (90 %, 0–100, slider)
+- `select.roborock_qrevo_s_wisch_intensitaet` (Hoch / Mittel / Niedrig)
+- `select.roborock_qrevo_s_wisch_modus` (Standard / Eco / …)
+
+Im HA-Backend sind das alles interaktive Widgets. Im Universal-Frontend wurden sie nur als read-only Text angezeigt (Wert ohne Click-Handler).
+
+### Fix — 4 neue Sub-Controls in `UniversalEntityList.EntityRow`
+
+```js
+const isSelect = item.domain === 'select' || item.domain === 'input_select';
+const isNumber = item.domain === 'number' || item.domain === 'input_number';
+const isTime   = item.domain === 'time' || item.domain === 'input_datetime';
+const isText   = item.domain === 'text' || item.domain === 'input_text';
+```
+
+**`<SelectControl>`** — natives `<select>` mit `attributes.options` als `<option>`-Liste, ruft `select.select_option { entity_id, option }` bei Wechsel.
+
+**`<NumberSliderControl>`** — natives `<input type="range">` mit `min`/`max`/`step` aus attributes, iOS-Blue-Gradient als Track-Fill, ruft `number.set_value { entity_id, value }`.
+
+**`<TimeControl>`** — natives `<input type="time">` (HH:MM), `colorScheme: 'dark'`, ruft `time.set_value { entity_id, time: 'HH:MM:00' }` (oder `input_datetime.set_datetime` für `input_datetime`-Domain).
+
+**`<TextControl>`** — natives `<input type="text">`, ruft `text.set_value`/`input_text.set_value`.
+
+### Layout-Anpassung — Wide-Control-Mode
+
+Number-Slider braucht horizontale Breite die nicht in eine ios-item-right-Zelle passt. Plus Time/Text-Inputs brauchen auch mehr Platz.
+
+Lösung: `isWideControl` flag. Wenn true → ios-item rendert **zweizeilig**:
+- Zeile 1: Label links, aktueller Wert rechts (z.B. „Lautstärke … 90 %")
+- Zeile 2: Control full-width
+
+Switch und Select bleiben einzeilig (klassisches ios-item Layout).
+
+### Service-Calls
+
+Alle Controls nutzen `hass.callService(domain, service, data)` direkt — kein Wrapping über entity.executeAction nötig (UniversalEntityList hat hass schon im scope). `event.stopPropagation` auf alle controls damit Click in einem Slider/Select nicht den umgebenden ios-item-clickable triggert.
+
+### Files
+
+- `system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx`:
+  - + `hass`-prop in EntityRow durchgereicht
+  - + Domain-Checks für select/number/time/text (mit input_-Varianten)
+  - + Wide-Control-Mode für number/time/text Items
+  - + 4 neue Sub-Components: SelectControl, NumberSliderControl, TimeControl, TextControl
+
+### UX
+
+Roborock-Vacuum-Sonstiges-Tab zeigt jetzt:
+- „Ausgewählte Karte" → Dropdown mit allen Karten-Optionen
+- „Bitte nicht stören" → Switch (wie vorher)
+- „Bitte nicht stören Beginn" → Time-Input (HH:MM)
+- „Bitte nicht stören Ende" → Time-Input
+- „Lautstärke" → Slider 0–100% mit Wert oben rechts
+- „Wisch-Intensität" → Dropdown (Hoch/Mittel/Niedrig)
+- „Wisch-Modus" → Dropdown (Standard/Eco/…)
+
+1:1 wie im HA-Frontend-Backend.
+
+---
+
 ## Version 1.1.1357 - 2026-05-01
 
 **Title:** Bugfix Universal Auto-Gruppierung — Diagnostic/Config-Entities ohne State wurden komplett rausgefiltert
