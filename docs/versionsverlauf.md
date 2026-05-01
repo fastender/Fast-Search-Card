@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1360 - 2026-05-01
+
+**Title:** Universal Device-View — `ios-settings-container` outer wrap (dunkler abgerundeter Container, consistent margins, analog UniversalSetup)
+**Hero:** none
+**Tags:** Visual-Polish, Universal-Builder, Container
+
+### Why
+
+User: "vielleicht sollte wie bei settings aus ein runder dunkler container mit gleichen abständen zum rand erstellt werden"
+
+Im Setup-Wizard wird der Inhalt in `.ios-settings-container` gewrappt (background `#00000040`, border-radius 24px, overflow hidden) — visuell ein abgerundeter dunkler Container mit konsistenten Abständen zum Rand. Die echte Universal-Device-View war aber edge-to-edge ohne Container — visueller Bruch zwischen Setup-Visual und Real-View.
+
+### Fix
+
+`UniversalDeviceView` outer-div bekommt jetzt zusätzlich die `ios-settings-container`-Klasse:
+
+```diff
+- <div className="universal-device-view" style={{
++ <div className="ios-settings-container universal-device-view" style={{
+    display: 'flex',
+    flexDirection: 'column',
++   maxHeight: 'none',  // override 555px-Cap aus .ios-settings-container
+    height: '100%',
+    position: 'relative',
+  }}>
+    <UniversalControlsTab ... />
+  </div>
+```
+
+`maxHeight: 'none'` Override damit die Device-View nicht auf 555px gecapped wird (System.Settings hat das Cap weil es als kleines Settings-Sheet rendert; Universal-Device fillt aber den ganzen Detail-Panel-Bereich).
+
+### Resultat
+
+Universal-Device-View hat jetzt:
+- Dunkler Hintergrund (`background: #00000040`)
+- Abgerundete Ecken (`border-radius: 24px`)
+- Consistent margins zum Rand des Detail-Panels
+- Visuell konsistent mit UniversalSetup, GeneralSettingsTab, und allen anderen System-Settings-Views
+
+### Files
+
+- `system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` — outer-div mit `ios-settings-container`-Klasse + maxHeight-Override
+
+---
+
 ## Version 1.1.1359 - 2026-05-01
 
 **Title:** Universal — Select-Picker als Sub-View mit Hakenauswahl + Time-Picker mit TimePickerWheel (analog Schedules)
