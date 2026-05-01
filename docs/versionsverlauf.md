@@ -1,5 +1,77 @@
 # Versionsverlauf
 
+## Version 1.1.1353 - 2026-05-01
+
+**Title:** Universal — Icon im Suchpanel sichtbar (DeviceCardIntegration `universal_device`-Renderer) + PreviewCard nutzt jetzt UniversalControlsTab direkt für 1:1-Match
+**Hero:** none
+**Tags:** Bugfix, Universal-Builder, Icon-Rendering, Preview
+
+### Bug 1 — Icon erscheint nicht im Suchpanel
+
+**Root Cause:** `getSystemEntityIcon` in `DeviceCardIntegration.jsx` hat eine hardcoded `iconMap` keyed by `domain`. Es gab keinen Eintrag für `universal_device` → returnt `null` → Suchpanel rendert default fallback ohne Icon. Plus: die existing iconMap-Entries lesen NICHT aus `device.attributes.icon` (mein gespeichertes SVG) — sie haben alle hardcoded SVGs pro Domain. Selbst wenn ich ein icon im deviceData hätte, würde es ignoriert.
+
+**Fix:** Neuer `universal_device`-Renderer der dynamisch `device.attributes.icon` liest:
+
+```js
+universal_device: () => {
+  const customIconSvg = device?.attributes?.icon;
+  if (customIconSvg && typeof customIconSvg === 'string' && customIconSvg.includes('<svg')) {
+    // Resize SVG (replace width/height attrs to match requested size)
+    const sized = customIconSvg
+      .replace(/width="[^"]*"/, `width="${size}"`)
+      .replace(/height="[^"]*"/, `height="${size}"`);
+    return <span style={{ display: 'flex', color: 'white' }}
+                 dangerouslySetInnerHTML={{ __html: sized }} />;
+  }
+  // Fallback: generic device-icon
+  return <svg width={size} height={size} ...>...</svg>;
+}
+```
+
+Jetzt wird das in der iconCatalog gespeicherte SVG-string aus `attributes.icon` korrekt gelesen, dynamisch auf die gewünschte Größe gesetzt (z.B. 48px im Suchpanel, 64px in Cards) und gerendert.
+
+### Bug 2 — Preview "noch das alte Design"
+
+**Root Cause:** Mein `UniversalPreviewCard` hatte ein eigenes Mini-Layout (Mini-Hero-Circle 120px + 48px Tab-Buttons). Das war anders als die echte Device-View die `UniversalControlsTab` mit 72px-Buttons + CircularSlider nutzt. Visual-Drift zwischen Preview und Real-View.
+
+**Fix:** PreviewCard rendert jetzt **direkt UniversalControlsTab** mit einem Mock-Entity:
+
+```jsx
+const mockEntity = useMemo(() => ({
+  id: `preview_${haDeviceId}`,
+  domain: 'universal_device',  // KRITISCH: triggers getControlConfig switch
+  name: name,
+  attributes: {
+    ha_device_id: haDeviceId,
+    hero: deviceConfig?.hero,
+    hidden_entities: deviceConfig?.hidden_entities,
+  },
+  executeAction: async () => ({ success: true }),  // no-op für preview
+  updateAttributes: () => {},
+}), [...]);
+
+return (
+  <div style={{ height: '500px', borderRadius: '20px', overflow: 'hidden' }}>
+    <div className="mini-header">{name + manufacturer/model/area}</div>
+    <UniversalControlsTab item={mockEntity} hass={hass} lang={lang}
+                          onServiceCall={() => {}} />
+  </div>
+);
+```
+
+**Win:** Preview ist jetzt visuell **identisch** zur echten Device-View — selbe ControlButtons (72px round), selber CircularSlider, selbe Layout-CSS, selbe Animations. Wenn der User später Änderungen am Real-View macht, propagiert es automatisch zur Preview.
+
+**Mock-Entity-Sicherheit:** `executeAction` ist no-op, sodass User in der Preview nicht versehentlich echte HA-Calls auslöst (Toggle/Press macht visuell nichts).
+
+### Files
+
+| File | Change |
+|---|---|
+| `system-entities/integration/DeviceCardIntegration.jsx` | + `universal_device` case in iconMap, liest `device.attributes.icon` und renderet inline mit dynamic-size |
+| `system-entities/entities/integration/components/UniversalPreviewCard.jsx` | Komplett neu (~95 LOC statt ~250): rendert UniversalControlsTab mit Mock-Entity statt eigener Mini-Layout |
+
+---
+
 ## Version 1.1.1352 - 2026-05-01
 
 **Title:** Universal Builder — 3 Fixes: Umbennen-Bug, collapsible Vorschau, Icon-Picker mit kuratiertem SVG-Catalog
