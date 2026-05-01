@@ -1,5 +1,108 @@
 # Versionsverlauf
 
+## Version 1.1.1352 - 2026-05-01
+
+**Title:** Universal Builder — 3 Fixes: Umbennen-Bug, collapsible Vorschau, Icon-Picker mit kuratiertem SVG-Catalog
+**Hero:** none
+**Tags:** Bugfix, Feature, Universal-Builder, Icon-Picker
+
+### Was passiert
+
+User-Feedback nach v1.1.1351:
+1. **Bug**: Nachträglich Umbenennen funktioniert nicht
+2. Vorschau noch im alten Design (lila Badge), soll **aufklappbar** sein
+3. Icon-Auswahl möglich (aus den im System verwendeten SVG-Icons)
+
+### Fix 1 — Umbenennen-Bug
+
+`IntegrationEntity.updateDevice` propagierte nur `slots`/`layout` als attribute updates, NICHT `name` (das war direct via `ent.name = ...`). DataProvider lauscht aber nur auf `system-entity-updated` Events mit attributes-payload — `ent.name` direkt zu setzen reicht NICHT um die Card-Übersicht zu aktualisieren.
+
+Plus: Universal nutzt `hero`/`hidden_entities` statt `slots` — die wurden auch nicht propagiert.
+
+```diff
+  const attrUpdates = {};
+  if (updates.slots !== undefined) attrUpdates.slots = updates.slots;
+  if (updates.layout !== undefined) attrUpdates.layout = updates.layout;
++ if (updates.hero !== undefined) attrUpdates.hero = updates.hero;
++ if (updates.hidden_entities !== undefined) attrUpdates.hidden_entities = updates.hidden_entities;
++ if (updates.icon !== undefined) {
++   attrUpdates.icon = updates.icon;
++   ent.icon = updates.icon;
++ }
+  if (updates.name !== undefined) {
+    ent.name = updates.name;
++   attrUpdates.friendly_name = updates.name;  // ← propagiert zur Card-Übersicht
+  }
+```
+
+Jetzt funktioniert Umbenennen + Hero-Wechsel + Hidden-Update + Icon-Wechsel im Edit-Mode.
+
+### Fix 2 — Vorschau aufklappbar + lila Badge weg
+
+**a) Lila VORSCHAU-Badge in `UniversalPreviewCard` entfernt** — der Section-Header über der Card sagt schon „VORSCHAU" im System.Settings-Stil, zweiter Badge wäre redundant.
+
+**b) Vorschau-Section in Step 2 ist jetzt collapsible:**
+
+```jsx
+<div className="ios-section">
+  <div className="ios-card">
+    <motion.div className="ios-item ios-item-clickable" onClick={togglePreview}>
+      <div className="ios-item-label">Vorschau</div>
+      <div className="ios-item-subtitle">Tippen zum Anzeigen</div>
+      <span style={{ transform: previewExpanded ? 'rotate(0)' : 'rotate(-90deg)' }}>▼</span>
+    </motion.div>
+  </div>
+  <AnimatePresence>
+    {previewExpanded && <motion.div><UniversalPreviewCard ... /></motion.div>}
+  </AnimatePresence>
+</div>
+```
+
+Default = collapsed. Click auf header → expand/collapse mit motion-Animation.
+
+### Fix 3 — Icon-Picker
+
+**Neuer File `iconCatalog.js`** (~250 LOC) mit kuratiertem Set von 30 line-art SVG-Icons in 9 Kategorien:
+- General: generic / settings / power
+- Light: lightbulb / desklamp / spotlight
+- Cover: garage / shutter / door / window
+- Security: lock / siren / camera / motion
+- Media: music / tv / speaker
+- Climate: climate / heater / fan
+- Appliance: washingmachine / dishwasher / oven / vacuum / coffee / fridge
+- Vehicle: car / bike
+- Other: printer3d / energy / switch
+
+Format: `{ key, label: {de,en}, category, svg }`. Bewusst NICHT die komplexen multi-color React-Components aus `/assets/icons/` — die passen nicht zum line-art Stil der Toolbar. Stattdessen einheitliche 24x24 stroke-currentColor Icons (gleiche Optik wie die Tab-Icons).
+
+**Neue Sub-View `'icon-picker'`** in UniversalSetup:
+- Section "Standard" oben (kein Icon = Default-Generic)
+- Pro Kategorie eine Section mit Grid (2-3 Spalten responsive) der Icons
+- Click → `setIconKey(key)` und zurück zu Step 3
+- Selected: iOS-Blau Background + Border
+
+**Step 3 Erweiterung:** neuer ios-section "ICON" mit ios-item-clickable das die aktuelle Auswahl zeigt (SVG inline + Label) und in den icon-picker navigiert.
+
+**Storage:** `iconKey` ist nur State im Wizard. Beim `handleFinish` wird `getIconSvg(iconKey)` aufgerufen → SVG-string → in `deviceData.icon`. UniversalDeviceEntity nutzt `icon` direkt im constructor (super({ icon: ... })) — keine API-Änderung nötig.
+
+**Edit-Mode:** beim Mount versucht der Wizard den `iconKey` aus dem existing `device.icon` SVG-string zu rekonstruieren via `ICON_CATALOG.find(i => i.svg === existingDevice.icon)`. Funktioniert solange der User nicht händisch ein anderes SVG injiziert hat.
+
+### Files
+
+| File | Change |
+|---|---|
+| `system-entities/entities/integration/iconCatalog.js` | NEU (~250 LOC) — kuratierter SVG-Icon-Catalog mit 30 Icons in 9 Kategorien |
+| `system-entities/entities/integration/index.js` | updateDevice propagiert jetzt name (als friendly_name), hero, hidden_entities, icon zu attribute updates |
+| `system-entities/entities/integration/components/UniversalPreviewCard.jsx` | Lila VORSCHAU-Badge entfernt |
+| `system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` | + iconKey State + icon-picker Sub-View + Icon-ios-item in Step 3 + collapsible Vorschau in Step 2 |
+
+### Was offen
+
+- Vorschau-Collapse auch in Step 3 (aktuell nur Step 2 collapsible — Step 3 zeigt Vorschau immer noch, kommt im nächsten Patch falls gewünscht)
+- Suche im Icon-Picker (bei 30 Icons noch OK, bei 100+ wäre eine Suche hilfreich)
+
+---
+
 ## Version 1.1.1351 - 2026-05-01
 
 **Title:** UniversalSetup-Pattern korrekt — `.ios-view-wrapper` mit `.ios-navbar` (statt custom back-button), CustomScrollbar funktioniert + Bug: 'controls'-Tab kehrt aus Edit-Mode zurück
