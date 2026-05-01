@@ -1,5 +1,88 @@
 # Versionsverlauf
 
+## Version 1.1.1357 - 2026-05-01
+
+**Title:** Bugfix Universal Auto-Gruppierung — Diagnostic/Config-Entities ohne State wurden komplett rausgefiltert
+**Hero:** none
+**Tags:** Bugfix, Universal-Builder, entityGrouping
+
+### Bug
+
+User-Feedback: "obwohl als sichtbare entitäten viele diagnostics items erkannt worden sind, werden sie in der übersicht nicht aufgeführt"
+
+Konkretes Beispiel: Roborock-Vacuum-Device hat ~10 Entities mit `entity_category: 'diagnostic'` (Batterie, aktueller Raum, etc.) und `entity_category: 'config'` (bitte_nicht_storen, ausgewählte_karte, etc.). Im Visibility-Picker (Setup) sieht User alle korrekt mit Badges. Aber im Diagnose-Tab der echten View: **"Keine Entitäten in dieser Gruppe"** trotz aktiver Toggles.
+
+### Root Cause
+
+`resolveEntityForGroup` in `entityGrouping.js` filterte Entities komplett raus wenn `hass.states[entityId]` undefined war:
+
+```js
+const state = hass.states?.[entityId];
+if (!state) return null;  // ← Entity verschwindet aus jeder Gruppe
+```
+
+Diagnostic/Config-Entities sind häufig im Status `unavailable` oder ihr State wird vom HA-Polling-Loop verzögert geliefert. Der `state` ist dann `null`/undefined → `resolveEntityForGroup` returnt null → entityGrouping skippt die Entity → Tab leer.
+
+Im Visibility-Picker (Setup-Wizard) ist der gleiche Filter NICHT angewendet — dort werden Entities aus `hass.entities` gelesen ohne state-check, daher zeigte er alle Diagnostic/Config korrekt an. Diskrepanz zwischen Setup-Anzeige und Real-View-Anzeige verwirrte den User.
+
+### Fix
+
+`resolveEntityForGroup` ist jetzt defensiver:
+
+```diff
+- const state = hass.states?.[entityId];
+- if (!state) return null;
+- 
+- const a = state.attributes || {};
++ const state = hass.states?.[entityId];
++ const a = state?.attributes || {};
++ const stateValue = state?.state ?? 'unavailable';
++
++ // Friendly-Name-Fallback-Kette: state.attributes.friendly_name →
++ // registry.name → registry.original_name → entity_id
++ const friendlyName =
++   a.friendly_name ||
++   registryEntry.name ||
++   registryEntry.original_name ||
++   entityId;
+
+  return {
+    entity_id: entityId,
+    domain,
+-   state: state.state,
+-   friendly_name: a.friendly_name || entityId,
++   state: stateValue,
++   friendly_name: friendlyName,
+    ...
+-   is_on: state.state === 'on',
+-   is_unavailable: state.state === 'unavailable' || state.state === 'unknown',
++   is_on: stateValue === 'on',
++   is_unavailable: !state || stateValue === 'unavailable' || stateValue === 'unknown',
+    ...
+  };
+```
+
+**Verbesserungen:**
+1. Entity wird auch ohne `state` zurückgegeben (nicht null)
+2. State-Fallback auf `'unavailable'`
+3. Friendly-Name-Fallback-Kette nutzt jetzt `registry.name` und `registry.original_name` als Zwischenstufen — Entity hat oft im Registry einen Namen, auch wenn der State noch nicht da ist
+4. `is_unavailable` true wenn entweder kein state-object existiert oder state explizit unavailable/unknown ist
+
+### Resultat
+
+Roborock-Vacuum mit 10 Diagnostic-Entities zeigt jetzt im Diagnose-Tab:
+- Batterie · `unavailable` (wenn HA noch nicht gepollt hat)
+- Aktueller Raum · `Wohnzimmer`
+- ... etc.
+
+Statt: "Keine Entitäten in dieser Gruppe"
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/views/entityGrouping.js` — `resolveEntityForGroup` returnt jetzt auch ohne state ein vollständiges Objekt mit unavailable-Markierung
+
+---
+
 ## Version 1.1.1356 - 2026-05-01
 
 **Title:** Defensive `system-entities-refresh`-Event in updateDevice — Icon-Updates jetzt garantiert live (kein Refresh mehr nötig)
