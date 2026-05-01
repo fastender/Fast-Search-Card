@@ -1,5 +1,93 @@
 # Versionsverlauf
 
+## Version 1.1.1344 - 2026-05-01
+
+**Title:** Universal Builder nutzt jetzt UniversalControlsTab DIREKT — visuell garantiert 1:1 wie Printer3D
+**Hero:** none
+**Tags:** Refactor, Universal-Builder, Bambu-Match, Reuse
+
+### Why
+
+Mein selbstgebautes Universal-Layout (v1.1.1341-1343) war wiederholt visuell anders als Bambu — auch nach mehreren Iterationen. Grund: ich habe Bambu-Patterns "nachgebaut" mit eigenem JSX, statt die existierende Component zu nutzen. Padding, Spacing, Animation-Timings, ControlButton-CSS waren immer ein bisschen daneben.
+
+User-Feedback: "ES IST NOCH IMMER NICHT 1:1"
+
+### Solution — UniversalControlsTab direkt verwenden
+
+Statt eigenes Layout zu bauen, plugged Universal jetzt in die existierende `UniversalControlsTab.jsx` ein — die selbe Component die `Printer3DDeviceView` nutzt. Damit ist das Visual **garantiert identisch**, weil es dieselbe Component ist (mit demselben CSS, denselben Animations, demselben ControlButton, demselben CircularSlider).
+
+**4 minimale Änderungen am bestehenden Code:**
+
+**1. `getControlConfig` neuer case `'universal_device'`** (in `deviceConfigs.js`)
+
+Returnt 4 Tab-Buttons (Steuerung/Sensoren/Diagnose/Sonstiges) mit den exakten SVG-Icons aus printer3d_device (Sun/Wave/Wrench/Dots). Alle 4 als `expandable: true` mit `renderCustom: true` — die expanded-Liste kommt aus der Universal-spezifischen Component.
+
+**2. `getSliderConfig` neuer case `'universal_device'`** (in `deviceConfigs.js`)
+
+Returnt einen read-only progress-Slider als Default. Der echte Hero-State wird in UniversalControlsTab überschrieben.
+
+**3. `UniversalControlsTab` minor Patch** (~25 LOC neu in der sliderConfig-useMemo)
+
+Wenn `item.domain === 'universal_device'` UND `item.attributes.hero` gesetzt ist: liest `hass.states[heroId]` live, packt state/unit/friendly_name in den sliderConfig. Numerische Werte werden als Wert + Unit angezeigt, Text-States als displayValue.
+
+Analog wie der existierende `energy_dashboard_device`-Special-Case — selbe Stelle, gleiches Pattern.
+
+**4. `PresetButtonsGroup` neuer Case** (~3 LOC)
+
+```js
+} : group.renderCustom && item?.domain === 'universal_device'
+    && ['controls', 'sensors', 'diagnostics', 'misc'].includes(group.id) ? (
+  <UniversalEntityList entity={item} hass={hass} lang={lang} groupId={group.id} />
+) : ...
+```
+
+### Neue Component — `UniversalEntityList.jsx` (~210 LOC)
+
+Analog `PrinterSensorsList` + `PrinterMiscList` aber generisch:
+
+- Holt items aus `groupEntitiesByCategory(hass, ha_device_id, {hidden, hero})` für die jeweilige Gruppe (controls/sensors/diagnostics/misc)
+- Rendert mit `.ios-card` / `.ios-item` / `.ios-item-left` / `.ios-item-right` / `.ios-divider` (selbe Klassen wie Printer-Listen)
+- Toggleable Items: `<LiquidGlassSwitch>` (mit Optimistic-Update + Pending-Lock-Pattern aus 1315-1318)
+- Pressable Items (button/scene/script/automation): grüner ios-Button "Ausführen"
+- Read-only Items (sensor): Wert + Unit rechtsbündig
+- `<CustomScrollbar>` außen am Scroll-Container
+- Section-Header uppercase (STEUERUNG/SENSOREN/DIAGNOSE/SONSTIGES)
+- Empty-State falls Gruppe leer
+
+### UniversalDeviceView drastisch vereinfacht — von 510 LOC auf 130 LOC
+
+Vorher: ich hatte komplett eigenes Layout (Header/Hero/Tabs/Liste) mit ~510 LOC custom-JSX.
+
+Jetzt: nur noch der editingMode-Branch (UniversalSetup im Edit-Mode) + ViewRefContext-Routing + `<UniversalControlsTab item={entity} ... />`. Die ganze Visual-Logic übernimmt UniversalControlsTab.
+
+```jsx
+return (
+  <UniversalControlsTab
+    item={entity}
+    hass={hass}
+    lang={lang}
+    onServiceCall={onServiceCall}
+    slideShowKey={updateBump}
+  />
+);
+```
+
+### Lehre
+
+Wenn User "1:1 wie X" sagt und es eine bestehende Component X gibt: **die Component nutzen, nicht nachbauen**. Padding/Spacing/Animations sind hand-poliert über vergangene Versionen, da reproduzieren mit eigenem JSX führt zu Visual-Drift. Reuse > Reconstruct.
+
+### Files
+
+| File | Change |
+|---|---|
+| `utils/deviceConfigs.js` | + getControlConfig case 'universal_device' (~50 LOC), + getSliderConfig case 'universal_device' (~20 LOC) |
+| `components/tabs/UniversalControlsTab.jsx` | + 25 LOC Hero-State-Lookup für universal_device |
+| `components/controls/PresetButtonsGroup.jsx` | + UniversalEntityList-Import + 4-fach renderCustom-Case |
+| `system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx` | NEU (~210 LOC) — analog PrinterSensorsList/PrinterMiscList |
+| `system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` | -380 LOC: drastisch vereinfacht, nutzt UniversalControlsTab direkt |
+
+---
+
 ## Version 1.1.1343 - 2026-05-01
 
 **Title:** Universal Builder visuell 1:1 wie Bambu — iOS-Blau-Tabs, ios-card/ios-item Liste, LiquidGlassSwitch, Header oben links, Layout-Switch beim Tab-Open
