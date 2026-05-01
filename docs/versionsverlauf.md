@@ -1,5 +1,89 @@
 # Versionsverlauf
 
+## Version 1.1.1334 - 2026-05-01
+
+**Title:** Device-Config persistence migrated from `localStorage` to HA `frontend/set_user_data` — cross-device sync, in HA backups, foundation for upcoming Universal Builder
+**Hero:** none
+**Tags:** Architecture, Persistence, Refactoring, ViewRefContext-Foundation
+
+### Why
+
+Until now all Integration-Device configs (3D printers, Energy Dashboard, Weather instances) were persisted via `localStorage` only. That caused three growing pains:
+
+1. **Browser-bound, not user-bound.** A user opening the card on phone + tablet + desktop had to re-configure each device on each device.
+2. **No backup.** Clearing browser storage = configs gone.
+3. **Doesn't scale to upcoming Universal Builder.** When users start composing custom device cards (Tesla, washing machines, anything HA exposes), losing those configs to a browser cache clear becomes a real pain.
+
+### Solution — `deviceConfigStorage.js`
+
+New module `src/system-entities/entities/integration/deviceConfigStorage.js` (~250 LOC) wraps Home Assistant's `frontend/set_user_data` / `frontend/get_user_data` WebSocket API. This is the official HA mechanism for frontend tools that want user-bound state without their own backend integration.
+
+**Architecture: cache + sync read + async write**
+
+The existing 7 call sites all read configs synchronously (`useState(() => loadConfig())`, `getIntegrationEntityIds()` in render paths, sync `_loadConfig` actions). To avoid converting all of them to async, the new module uses an in-memory cache:
+
+- **Bootstrap (once at boot):** `bootstrapDeviceConfig(hass)` runs in `IntegrationEntity.onMount()` BEFORE `loadSavedDevices()`. It loads from HA, falls back to localStorage migration if HA is empty, fills the cache.
+- **Sync reads:** `getDeviceConfig()` / `getEnergySensors()` return from cache. Pre-bootstrap fallback reads localStorage directly so render paths still work during the brief window before mount.
+- **Async writes:** `setDeviceConfig(hass, config)` updates cache + writes to HA + mirrors to localStorage as offline fallback.
+
+**Schema with versioning baked in:**
+```json
+{
+  "schema_version": 1,
+  "devices": [...]
+}
+```
+
+The `schema_version` field is there from day one so future migrations (when the Universal Builder introduces new fields like `ha_device_id`, `slots`, `layout`) can be done cleanly.
+
+### Migration
+
+One-shot, automatic, transparent to the user. On first boot of v1.1.1334:
+
+1. Try HA `frontend/get_user_data` → empty
+2. Try `localStorage.getItem('integration_config')` → has data → migrate it to HA, fill cache
+3. localStorage is left intact as a backup (not deleted) so users who roll back to ≤1.1.1333 don't lose their configs
+
+Same logic for the separate `energy_dashboard_sensors` key.
+
+### Persistence Strategy
+
+- **HA `frontend/set_user_data`**: Source of truth. User-bound, in HA backups, cross-device.
+- **localStorage**: Mirror-write on every save as offline fallback. If HA is briefly unavailable on next boot, the cache can still bootstrap from the local mirror.
+
+### Refactored Call Sites (7 files, 10 sites)
+
+| File | Change |
+|---|---|
+| `system-entities/entities/integration/index.js` | `_loadConfig`/`_saveConfig` now delegate to `deviceConfigStorage`. `onMount` calls `bootstrapDeviceConfig(hass)` first. |
+| `system-entities/entities/integration/IntegrationView.jsx` | `loadIntegrationConfig`/`saveIntegrationConfig` thinned to one-line wrappers. |
+| `system-entities/entities/integration/device-entities/DeviceEntityFactory.js` | `loadDeviceEntities()` reads from cache. |
+| `system-entities/entities/integration/device-entities/EnergyDashboardDeviceEntity.js` | `loadSensorConfig`/`saveSensorConfig` use `getEnergySensors`/`setEnergySensors`. `saveSensorConfig` signature extended with `hass`. |
+| `system-entities/entities/integration/components/setup-flows/WeatherSetup.jsx` | Sync reader uses cache. |
+| `system-entities/entities/integration/components/setup-flows/Printer3DSetup.jsx` | Sync reader uses cache. |
+| `utils/patternMatching.js` | `getIntegrationEntityIds()` reads from cache. |
+
+Net code change: **+250 LOC new storage module / -90 LOC duplicated localStorage boilerplate** removed across 7 files. Less duplication, single source of truth for the persistence layer.
+
+### Foundation for Universal Builder (next step)
+
+This refactor is the prerequisite for the upcoming Universal Builder feature. The new schema is ready to extend:
+
+```js
+{
+  id: 'uuid',
+  type: 'universal',          // ← new device type
+  name: 'My Tesla',
+  ha_device_id: 'abc123',     // ← which HA device drives the card
+  layout: 'vehicle',          // ← template choice
+  slots: { hero: '...', strip: [...], tabs: [...] }
+}
+```
+
+When the Universal Builder ships, the configs will already be in HA storage from day one — no migration needed for the new feature.
+
+---
+
 ## Version 1.1.1333 - 2026-05-01
 
 **Title:** TDZ-Bugfix in `useRegisterViewRef`-Calls — News, Todos, Versionsverlauf and AllSchedules failed to open
