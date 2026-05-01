@@ -1,5 +1,70 @@
 # Versionsverlauf
 
+## Version 1.1.1343 - 2026-05-01
+
+**Title:** Universal Builder visuell 1:1 wie Bambu — iOS-Blau-Tabs, ios-card/ios-item Liste, LiquidGlassSwitch, Header oben links, Layout-Switch beim Tab-Open
+**Hero:** none
+**Tags:** Bugfix, Universal-Builder, Bambu-Match, iOS-Style
+
+### Bug
+
+User-Feedback: "die buttons unten sind anders, circle ist anders, anordnung ist anders, warum hast du neu gestaltet? wir haben doch eine vorlage 3d printer!"
+
+Mein bisheriges Universal-Design hatte das Bambu-Pattern nicht 1:1 kopiert sondern "inspiriert von" — falsches Visual. Konkret:
+- Aktiver Tab-Button: lila statt iOS-Blau
+- Item-Liste: custom rgba-Backgrounds statt `.ios-card` / `.ios-item`
+- Toggles: eigene AN/AUS-Buttons statt LiquidGlassSwitch
+- Header: zentriert statt links-oben
+- Anordnung: Tabs immer unten, statt nach oben zu fliegen wenn Tab expanded
+- Kein CustomScrollbar, keine `.ios-section-header`-Uppercase-Labels
+
+### Fix — UniversalDeviceView komplett auf Bambu-Pattern
+
+Match `Printer3DDeviceView` + `PrinterSensorsList` + `PrinterMiscList` exakt:
+
+**Header (links oben, NICHT zentriert):**
+- Zeile 1 (groß, fett, 20px): Hero-state + unit (oder Device-Name als Fallback)
+- Zeile 2 (klein, 13px): Auto-Sub-Info aus den ersten 2 numerischen Sensors als "Label: Value | Label: Value"
+- Zeile 3 (sehr klein, 11px): `manufacturer · model · area_name`
+
+**Hero-Circle (Mitte):**
+- Großer Wert in der Mitte (`clamp(36px, 9vw, 56px)`)
+- Donut-Visualisierung wenn Hero ein Battery ist (state-aware Color)
+- Wird ausgeblendet wenn Tab expanded ist
+
+**4 Tab-Buttons:**
+- Aktiver Tab: `rgb(0, 122, 255)` (iOS-Blau, **NICHT mehr lila**)
+- 56px round mit 1.5px stroke-icon
+- Item-Counter unter dem Label
+- **Layout-Switch via `motion layout`**: ohne expanded Tab schweben sie unten am Rand; bei expanded fliegen sie hoch direkt unter den Header (spring-animated)
+
+**Expanded Tab-Liste:**
+- `.ios-settings-view` als Scroll-Container mit `CustomScrollbar` außen
+- `.ios-section` mit Uppercase-Header (z.B. "STEUERUNG")
+- `.ios-card` als Container, `.ios-item` mit `.ios-item-left` (Label) und `.ios-item-right` (Value/Toggle)
+- `.ios-divider` zwischen Items
+- Empty-State falls Gruppe leer: dezenter Hinweis statt leerer Liste
+
+**Toggles & Buttons:**
+- Toggleable Items (switch/light/fan/etc.): `<LiquidGlassSwitch>` (analog `PrinterMiscList`)
+- Pressable Items (button/scene/script/automation): grüner ios-Button "Ausführen"
+- Read-only Items (sensor/binary_sensor): Wert + Unit rechtsbündig wie `PrinterSensorsList`
+
+**Optimistic Update + Pending-Lock:**
+- Pattern 3 aus HA-Card-Patterns (siehe v1.1.1315-1318): pendingRef pro Entity, 2s TTL, drop wenn HA confirmed, merge in incoming polling-data
+
+### Files
+
+| File | Change |
+|---|---|
+| `device-entities/views/UniversalDeviceView.jsx` | Komplett neu auf Bambu-Pattern (LiquidGlassSwitch + ios-* + iOS-Blue + Layout-Switch) |
+
+### Lehre
+
+Wenn User sagt "1:1 wie Bambu", dann **kopieren**, nicht "inspirieren von". Das Bambu-Pattern war hand-poliert über v1.1.1313-1320 — es hat seine Gründe (Layout-Switch beim Tab-Open vermeidet Hero-Reflow, ios-Klassen sorgen für visuelle Konsistenz mit Settings, LiquidGlassSwitch hat den ganzen Switch-Bug-Sweep aus 1313-1318 schon eingebaut).
+
+---
+
 ## Version 1.1.1342 - 2026-05-01
 
 **Title:** Universal Builder Bugfixes — Area-Name aus HA-Backend anzeigen + Device sofort im Raum nach Add (kein Refresh mehr nötig)
