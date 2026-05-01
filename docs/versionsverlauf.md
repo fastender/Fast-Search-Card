@@ -1,5 +1,94 @@
 # Versionsverlauf
 
+## Version 1.1.1365 - 2026-05-01
+
+**Title:** LiquidGlassSlider — alle 5 verbleibenden nativen `<input type="range">` migriert (Dark-Variante für Device-Views)
+**Hero:** none
+**Tags:** Feature, UI, LiquidGlass, Universal-Builder, Printer3D, Energy, Consistency
+
+### Why
+
+User: "alle sollen migrieren"
+
+Nach v1.1.1363/1364 hatten Settings den Liquid-Glass-Look, aber 5 Stellen in dunklen Device-Views (Universal/Printer3D/Energy) nutzten weiterhin native `<input type="range">` mit `linear-gradient`-Hacks. Visuell inkonsistent — User klickt zwischen Settings und Device, sieht zwei verschiedene Slider-Stile.
+
+### Fix
+
+**1. Dark-Variant für LiquidGlassSlider** (`variant="dark"` prop):
+
+```js
+const SHADOWS = {
+  light: '0 1px 8px 0 rgba(0,30,63,.10), 0 0 2px 0 rgba(0,9,20,.10)',
+  dark:  '0 2px 10px 0 rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.04)',
+};
+```
+
+CSS-Override für Track-Background (`--track-bg: rgba(255,255,255,0.15)`) plus stärkerer Box-Shadow-Preset (inline via motion value, weil framer-motion's inline style CSS-box-shadow überschreibt). Default bleibt `light` für Backwards-Compat.
+
+**2. UniversalEntityList NumberSliderControl** — wichtigste Migration weil Universal-Devices alle möglichen `number`-Configs haben (Volume, Brightness, etc). Jeder Slider ist jetzt:
+- LiquidGlassSlider mit `variant="dark"`
+- HA-Service-Call (`hass.callService('number', 'set_value')`) ist trailing-edge debounced 150ms — 60×/sec Backend-Calls würden HA-Queue überfluten
+- `onChangeEnd` flushed sofort (cleared den Debounce-Timeout, schreibt finalen Wert)
+
+```jsx
+const onChange = (newVal) => {
+  if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
+  callTimeoutRef.current = setTimeout(() => {
+    callTimeoutRef.current = null;
+    persistValue(newVal);
+  }, 150);
+};
+const onChangeEnd = (newVal) => {
+  if (callTimeoutRef.current) {
+    clearTimeout(callTimeoutRef.current);
+    callTimeoutRef.current = null;
+  }
+  persistValue(newVal);
+};
+```
+
+**3. PrinterMiscList Number-Controls** — gleiches Pattern, aber per-entity Debounce-Map (mehrere Slider gleichzeitig auf der Page möglich):
+
+```js
+const numberCallTimeoutsRef = useRef({});
+const handleNumberChange = useCallback((entityObj, value) => {
+  const id = entityObj.entity_id;
+  if (numberCallTimeoutsRef.current[id]) clearTimeout(numberCallTimeoutsRef.current[id]);
+  numberCallTimeoutsRef.current[id] = setTimeout(() => {
+    delete numberCallTimeoutsRef.current[id];
+    callService('number', 'set_value', id, { value: parseFloat(value) });
+  }, 150);
+}, [callService]);
+```
+
+Plus `accent="#30d158"` (grüner Bambu-Accent statt iOS-Blau).
+
+**4. Printer3DControlsTab + EnergyControlsTab** — Print Speed (50-200) + Fan Speed (0-100) auf LiquidGlassSlider-dark umgestellt. Service-Calls sind aktuell noch Stub (`console.log`), Migration ist rein visuell — wenn Service-Calls implementiert werden, brauchen sie auch Debouncing.
+
+**5. Printer3DDeviceView Camera-Refresh-Interval-Slider** (5-15 Sek) — `accent="#30d158"`, `variant="dark"`, plus 200ms Debounce für `localStorage.setItem('bambulab_camera_refresh_interval')` + `dispatchEvent('cameraRefreshIntervalChanged')`. Live-Update der CameraView über Event bleibt instant für Visual; Persistenz debounced.
+
+### Architektur am Ende
+
+13 native `<input type="range">` aus Card komplett entfernt. Alle Slider laufen über `LiquidGlassSlider`:
+
+| Variant | Track-bg | Verwendung |
+|---|---|---|
+| `light` (default) | `#d6d6da` | Settings (helle iOS-Backdrops) |
+| `dark` | `rgba(255,255,255,0.15)` | Device-Views (Bambu/Universal/Energy/Printer3D) |
+
+Für jeden Use-Case mit teurem onChange-Handler (HA-Service-Call, localStorage-Write):
+1. Live Visual via motion value (instant) — bleibt im Slider
+2. React-State via `useRafThrottle` wo Parent-Re-Render teuer ist (Settings)
+3. Persistenz/Service-Call via `setTimeout`-Debounce (150-200ms)
+
+### Pattern-Lehren
+
+- **Shadow-Variants müssen inline gesetzt werden** wenn die Component framer-motion motion-values für boxShadow nutzt — CSS-Override greift nicht.
+- **Per-Entity-Debounce-Map** für Listen mit N parallelen Slidern: ein einzelner Debounce-Timeout würde Calls für andere Entities blockieren.
+- **Klare onChange/onChangeEnd-Trennung**: onChange = visuelles Feedback (debounced ok), onChangeEnd = garantierter finaler Write (immediate, cleared pending debounce).
+
+---
+
 ## Version 1.1.1364 - 2026-05-01
 
 **Title:** LiquidGlassSlider — Performance-Fix für Drag (war "Katastrophe", jetzt flüssig)
