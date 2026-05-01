@@ -1,5 +1,73 @@
 # Versionsverlauf
 
+## Version 1.1.1350 - 2026-05-01
+
+**Title:** UniversalSetup — Padding analog System.Settings (32px statt 40px) + CustomScrollbar
+**Hero:** none
+**Tags:** Visual-Match, Universal-Builder, Padding, CustomScrollbar
+
+### Bug
+
+User-Feedback nach v1.1.1349:
+1. Abstände nach links/rechts zu klein im Vergleich zu System.Settings
+2. CustomScrollbar fehlt
+
+### Root Cause
+
+**Padding-Verschachtelung war doppelt:**
+
+In v1.1.1349 hatte ich `style={{ paddingLeft: 0, paddingRight: 0 }}` auf der inner `.ios-settings-view` gesetzt — das überschrieb das Default-Padding von 20px horizontal. Dann habe ich inner content-divs mit eigenem `padding: '0 20px 20px'` gewrappt. Resultat: nur 20px horizontal (vom inner div) statt 32px wie System.Settings (20px ios-settings-view + 12px ios-section).
+
+**CustomScrollbar fehlte komplett** — System.Settings + alle Premium-Devices nutzen `<CustomScrollbar scrollContainerRef={scrollRef} isHovered={isHovered} />` für die Scroll-Indikator-Optik. Hatte ich nie eingebaut.
+
+### Fix
+
+**1. Padding-Defaults nutzen:**
+
+```diff
+- <div className="ios-settings-view" style={{ paddingLeft: 0, paddingRight: 0, paddingTop: '20px' }}>
+-   <div style={{ padding: '0 20px 20px' }}>
+-     <div className="ios-section">...</div>
+-   </div>
+- </div>
++ <div className="ios-settings-view" style={{ paddingTop: '20px' }}>
++   <div className="ios-section">...</div>
++ </div>
+```
+
+`.ios-settings-view` hat im default `padding: 0 20px 20px 20px` — nutze ich jetzt ohne Override. Plus `.ios-section` hat eigenes `padding: 0 12px`. Total horizontal padding zur ios-card: **32px** (= System.Settings).
+
+Für den main-step header: `padding: '20px 20px 12px'` → `paddingTop: '20px', paddingBottom: '12px'` (horizontal kommt aus default).
+
+**2. CustomScrollbar in allen 3 Render-Pfaden:**
+
+```diff
++ const scrollRef = useRef(null);
++ const [isHovered, setIsHovered] = useState(false);
+
+  <motion.div
+    className="ios-settings-container"
++   onMouseEnter={() => setIsHovered(true)}
++   onMouseLeave={() => setIsHovered(false)}
+  >
+-   <div className="ios-settings-view" ...>
++   <div ref={scrollRef} className="ios-settings-view" ...>
+      ...content...
+    </div>
++   <CustomScrollbar scrollContainerRef={scrollRef} isHovered={isHovered} />
+  </motion.div>
+```
+
+Pattern analog `PrinterSensorsList` / `PrinterMiscList`.
+
+### Files
+
+| File | Change |
+|---|---|
+| `system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` | + scrollRef + isHovered State, alle 3 Render-Paths mit `onMouseEnter`/`onMouseLeave` + `ref` + CustomScrollbar, paddingLeft:0/paddingRight:0 entfernt, redundante padding-wrapper-divs entfernt |
+
+---
+
 ## Version 1.1.1349 - 2026-05-01
 
 **Title:** UniversalSetup-Container dunkel + rund (`.ios-settings-container`) + PreviewCard mit Bambu-Style-Tab-Buttons
