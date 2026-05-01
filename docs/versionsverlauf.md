@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1361 - 2026-05-01
+
+**Title:** Universal — Container nur um Entity-Liste (nicht ganze View) — Header + Hero + Tab-Buttons bleiben edge-to-edge wie Bambu
+**Hero:** none
+**Tags:** Visual-Polish, Universal-Builder, Container-Scope
+
+### Why
+
+User-Korrektur nach v1.1.1360: "nur die unterbuttons im container; also bspw. alles ab sonstiges inkl."
+
+In v1.1.1360 hatte ich die ganze UniversalDeviceView in `ios-settings-container` gewrappt — also Header, Hero-Circle, 4 Tab-Buttons UND die expanded Liste. User wollte aber nur den unteren Teil (die Liste der Items unter "SONSTIGES") im Container — Header und Tab-Buttons sollten weiterhin edge-to-edge bleiben (analog Bambu-Stil).
+
+### Fix
+
+**1. v1.1.1360 zurückgenommen:** UniversalDeviceView outer-div hat keinen `ios-settings-container` mehr, ist wieder edge-to-edge.
+
+**2. Container nur am UniversalEntityList:** der `printer-sensors-wrapper` outer-div bekommt jetzt rounded-dark Container styling:
+
+```diff
+  <div
+    className="printer-sensors-wrapper"
+    onMouseEnter={...}
+    onMouseLeave={...}
+-   style={{ position: 'relative' }}
++   style={{
++     background: 'rgba(0, 0, 0, 0.25)',
++     borderRadius: '20px',
++     border: '1px solid rgba(255, 255, 255, 0.06)',
++     position: 'relative',
++     margin: '0 8px',
++     overflow: 'hidden',
++   }}
+  >
+```
+
+So bekommt nur die expanded Liste der Tab-Items (z.B. "SONSTIGES"-Items) den dunklen rounded Container — Header oben, Hero-Circle in der Mitte, 4 Tab-Buttons darunter bleiben edge-to-edge.
+
+`margin: '0 8px'` schiebt den Container leicht von den Rändern, damit nicht edge-to-edge.
+
+### Resultat
+
+- Header "Active / Gerade Eben" (oben links): edge-to-edge wie vorher
+- Toolbar (oben rechts): edge-to-edge
+- Hero-Circle (Mitte): edge-to-edge
+- 4 Tab-Buttons (Steuerung/Sensoren/Diagnose/Sonstiges): edge-to-edge
+- Expanded Tab-Inhalt (Section-Header + Item-Liste): in dunklem rounded Container
+
+Visuell: nur die "ausklappbare" Sektion ist als eigene "Karte" abgesetzt, der Rest des Device-Headers bleibt im Detail-Panel-Style.
+
+### Files
+
+- `system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` — v1.1.1360 zurückgenommen, outer-div ohne ios-settings-container
+- `system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx` — outer printer-sensors-wrapper bekommt background/border-radius/border/margin/overflow
+
+---
+
 ## Version 1.1.1360 - 2026-05-01
 
 **Title:** Universal Device-View — `ios-settings-container` outer wrap (dunkler abgerundeter Container, consistent margins, analog UniversalSetup)
