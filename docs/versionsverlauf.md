@@ -1,5 +1,66 @@
 # Versionsverlauf
 
+## Version 1.1.1354 - 2026-05-01
+
+**Title:** Universal Edit-Bug — `icon` wurde im handleEditComplete nicht durchgereicht (Icon-Wechsel war weder live noch nach Refresh sichtbar)
+**Hero:** none
+**Tags:** Bugfix, Universal-Builder, Icon-Update
+
+### Bug
+
+User-Feedback nach v1.1.1353: "Änderung des Icons wird nicht sofort sichtbar, auch nicht bei refresh"
+
+### Root Cause
+
+Der Wizard speichert `iconKey` und reicht beim Save `icon: getIconSvg(iconKey)` als SVG-string in den `updatedDevice`-payload. ABER: in `UniversalDeviceView.handleEditComplete` wurde nur `name`/`hero`/`hidden_entities` an `updateDevice` weitergereicht — **`icon` fehlte komplett im updates-Object**.
+
+```js
+// vorher (kaputt)
+await integrationEntity.executeAction('updateDevice', {
+  deviceId: updatedDevice._deviceId,
+  updates: {
+    name: updatedDevice.name,
+    hero: updatedDevice.hero,
+    hidden_entities: updatedDevice.hidden_entities,
+    // ← icon fehlt!
+  },
+});
+```
+
+Folge:
+- **Live nicht sichtbar:** weil `attrUpdates.icon` nie gesetzt wurde → kein `system-entity-updated`-Event mit Icon
+- **Nach Refresh nicht sichtbar:** weil `merged = {...config.devices[idx], ...updates}` das alte Icon behielt → deviceConfigStorage speicherte das alte icon → nach Refresh re-create entity mit altem Icon
+
+In v1.1.1352 hatte ich `updateDevice` schon so erweitert dass es Icon korrekt verarbeitet. In v1.1.1353 hatte ich `getSystemEntityIcon` für `universal_device` korrekt implementiert. Aber die Pipeline war zwischen Wizard-Save und updateDevice-Call unterbrochen — der Caller hat icon einfach nicht weitergegeben.
+
+### Fix
+
+```diff
+  await integrationEntity.executeAction('updateDevice', {
+    deviceId: updatedDevice._deviceId,
+    updates: {
+      name: updatedDevice.name,
+      hero: updatedDevice.hero,
+      hidden_entities: updatedDevice.hidden_entities,
++     ...(updatedDevice.icon !== undefined ? { icon: updatedDevice.icon } : {}),
+    },
+  });
+```
+
+Plus identische Korrektur im Fallback-Pfad (direkter `entity.updateAttributes`-Call wenn IntegrationEntity nicht im Registry).
+
+Conditional spread (`...(updatedDevice.icon !== undefined ? {icon: ...} : {})`) damit bei "kein Icon gewählt" (iconKey=null → getIconSvg returnt null → icon ist nicht im payload) NICHT `icon: undefined` ins updates leakt — das würde bei `merged` das existing icon nicht entfernen aber die undefined würde am Entity gesetzt.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` — `handleEditComplete` reicht `icon` durch (beide Pfade: integrationEntity.executeAction + entity.updateAttributes-Fallback)
+
+### Lehre
+
+Bei Edit-Flows mit mehreren Update-Stufen (Wizard → Caller → Entity-Action → DataProvider): jede Stufe muss alle relevanten Felder durchreichen. Wenn auch nur eine Stufe ein Feld vergisst, ist es weg. **Pattern für künftige Felder:** mit Object-Spread `...(updates ?? {})` oder explizit jedes neue Feld an JEDER Pipeline-Stufe adden.
+
+---
+
 ## Version 1.1.1353 - 2026-05-01
 
 **Title:** Universal — Icon im Suchpanel sichtbar (DeviceCardIntegration `universal_device`-Renderer) + PreviewCard nutzt jetzt UniversalControlsTab direkt für 1:1-Match
