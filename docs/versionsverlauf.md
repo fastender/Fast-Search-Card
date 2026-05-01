@@ -1,5 +1,94 @@
 # Versionsverlauf
 
+## Version 1.1.1338 - 2026-05-01
+
+**Title:** Universal Builder Layout-Templates — drei wählbare Visual-Stile (Default, Compact, Stats) statt One-Layout-fits-all
+**Hero:** none
+**Tags:** Feature, Universal-Builder, Layouts, Plugin-Pattern
+
+### Why
+
+Bisher sahen alle Universal-Devices identisch aus: Hero-Karte oben, Strip horizontal, lange Liste unten. Das passt für viele Cases, aber nicht alle:
+
+- **Smart-Plug** mit nur 3-4 Werten: lange Liste fühlt sich überdimensioniert an
+- **Sensor-Hub** mit 10 numerischen Werten: Hero-Highlight ist irrelevant, User will alle Werte gleichberechtigt sehen
+- **Tesla / Komplex-Devices**: passt gut mit Hero (Battery)
+
+Layout-Templates lösen das mit drei wählbaren Visual-Stilen, einem für jeden Hauptanwendungsfall.
+
+### Solution — Plugin-Pattern für Layouts
+
+Analog zum `deviceTypeRegistry`-Pattern (v1.1.1325): Single Source of Truth in einer Registry, neue Layouts ergänzen via 1-Eintrag.
+
+**1. Layout-Components als pure Render-Components** (~150-200 LOC each):
+
+| Layout | Visual | Use-Case |
+|---|---|---|
+| 📋 **Default** | Hero (52px) + Strip + komplette Liste mit Toggle-Buttons | Universal-Karte (Status quo) |
+| 🎯 **Compact** | Hero + Strip + Quick-Action-Buttons-Grid (statt Liste) | Smart-Plugs, Thermostate, reduzierte Anzeigen |
+| 📊 **Stats** | Kein Hero-Highlight, Strip als 2-Spalten-Grid mit großen Karten, Liste tabellarisch | Sensor-Hubs, Multi-Sensor-Geräte |
+
+Alle drei nehmen das gleiche `{hero, strip, all, device, lang, optimisticOverrides, onToggle}` Interface — austauschbar an der gleichen Render-Stelle.
+
+**2. `universalLayouts.js`** — Registry:
+
+```js
+export const universalLayouts = {
+  default: { icon: '📋', label, description, Component: DefaultLayout },
+  compact: { icon: '🎯', label, description, Component: CompactLayout },
+  stats:   { icon: '📊', label, description, Component: StatsLayout },
+};
+export function getLayoutComponent(layoutId) { ... }
+export function listLayouts() { ... }
+```
+
+**3. UniversalDeviceView massiv vereinfacht** (-180 LOC):
+
+```diff
+- // 180 Zeilen Hero+Strip+List render-code
++ const LayoutComponent = getLayoutComponent(entity?.attributes?.layout || 'default');
++ <LayoutComponent device={device} hero={hero} strip={strip} all={all} ... />
+```
+
+**4. UniversalSetup — Layout-Picker in Step 3:**
+
+Neue Section direkt vor der Live-Preview. Radio-Buttons mit Icon + Label + Description. Lila-Highlight auf gewähltem Layout.
+
+**5. UniversalPreviewCard layout-aware:**
+
+Zeigt das gewählte Layout als Mini-Variante. Stats rendert 2-Cols-Grid, Compact zeigt Quick-Action-Buttons statt Liste, Default bleibt wie gehabt. Plus ein Layout-Badge oben rechts neben dem "VORSCHAU"-Label damit klar ist welches Template gerade angezeigt wird.
+
+**6. Edit-Flow vollständig:** updateDevice action propagiert jetzt auch das `layout`-Field. User kann Layout nachträglich wechseln ohne Remove + Re-Add.
+
+### Architektur-Win — Erweiterbarkeit
+
+Neuer Layout-Type braucht jetzt:
+1. Component anlegen unter `views/layouts/<NewLayout>.jsx`
+2. Eintrag in `universalLayouts.js`
+3. Fertig — Setup, Preview, View pickup it automatisch
+
+Wie beim `deviceTypeRegistry`-Pattern: keine Switch-Statements mehr in 4 verschiedenen Files.
+
+### Files
+
+| File | Change |
+|---|---|
+| `views/layouts/DefaultLayout.jsx` | NEU (~190 LOC) — extracted aus UniversalDeviceView |
+| `views/layouts/CompactLayout.jsx` | NEU (~150 LOC) — Hero + Strip + Quick-Actions |
+| `views/layouts/StatsLayout.jsx` | NEU (~180 LOC) — 2-Cols-Grid + tabellarische Liste |
+| `views/layouts/universalLayouts.js` | NEU (~70 LOC) — Registry + Helpers |
+| `views/UniversalDeviceView.jsx` | -180 LOC (Layout-Logic ausgelagert) |
+| `components/UniversalPreviewCard.jsx` | + layout-prop, conditional Render-Pfade für Stats vs Hero-based |
+| `components/setup-flows/UniversalSetup.jsx` | + Layout-Picker in Step 3, selectedLayout-State |
+
+### Was noch offen
+
+- **Drag-Reorder im Strip** — aktuell ist Strip-Reihenfolge durch Click-Order definiert
+- **Bulk-Edit** — mehrere Universal-Devices auf einmal umbenennen / Layout wechseln
+- **Mehr Layouts** — z.B. 'vehicle' (Battery-Donut prominent), 'appliance' (Programm + Restzeit), 'media' (Cover-Art-Style) — Framework steht, jeder neue Layout ist 1 Component + 1 Registry-Eintrag
+
+---
+
 ## Version 1.1.1337 - 2026-05-01
 
 **Title:** Universal Builder Live-Preview — User sieht beim Auswählen sofort wie die Karte aussehen wird
