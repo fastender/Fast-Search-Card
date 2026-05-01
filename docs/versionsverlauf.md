@@ -1,5 +1,97 @@
 # Versionsverlauf
 
+## Version 1.1.1362 - 2026-05-01
+
+**Title:** Visibility-Picker — Entities gruppiert nach Steuerung/Sensoren/Diagnose/Sonstiges (statt einer flachen Liste)
+**Hero:** none
+**Tags:** Feature, Universal-Builder, Visibility-Picker, Auto-Grouping
+
+### Why
+
+User: "und bei den sichtbaren nochmal gruppieren nach sensoren, diagnostics, usw."
+
+Die Visibility-Sub-View im UniversalSetup zeigte alle Entities in einer flachen Liste mit kleinen `· DIAGNOSTIC` / `· CONFIG`-Badges in der subtitle. Bei Devices mit vielen Entities (z.B. Roborock-Vacuum mit 30+ Entities) wurde das unübersichtlich. User wollte die selben 4 Gruppen wie in der echten Device-View — Steuerung/Sensoren/Diagnose/Sonstiges.
+
+### Fix
+
+**1. Neue `groupedVisibleEntities` useMemo** in UniversalSetup mit der selben Klassifikations-Logik wie `entityGrouping.js`:
+
+```js
+const groupedVisibleEntities = useMemo(() => {
+  const groups = { controls: [], sensors: [], diagnostic: [], misc: [] };
+  for (const e of deviceEntities) {
+    if (e.entity_id === heroEntity) continue;
+    if (e.entity_category === 'diagnostic') groups.diagnostic.push(e);
+    else if (e.entity_category === 'config') groups.misc.push(e);
+    else if (CONTROL_DOMAINS.has(e.domain)) groups.controls.push(e);
+    else if (SENSOR_DOMAINS.has(e.domain)) groups.sensors.push(e);
+    else groups.misc.push(e);
+  }
+  return groups;
+}, [deviceEntities, heroEntity]);
+```
+
+Identisch zu entityGrouping.js — User sieht im Setup dieselben 4 Gruppen wie in der Device-View.
+
+**2. renderVisibilityView neu** — pro Gruppe eine eigene `.ios-section` mit eigenem Header (STEUERUNG/SENSOREN/DIAGNOSE/SONSTIGES) + ios-card mit Items. Leere Gruppen werden NICHT gerendert (kein leerer Section-Header). `entity_category`-Badge ist raus aus dem subtitle (redundant zur Section-Zuordnung).
+
+```jsx
+const sections = [
+  { key: 'controls',   label: 'STEUERUNG',  items: groupedVisibleEntities.controls },
+  { key: 'sensors',    label: 'SENSOREN',   items: groupedVisibleEntities.sensors },
+  { key: 'diagnostic', label: 'DIAGNOSE',   items: groupedVisibleEntities.diagnostic },
+  { key: 'misc',       label: 'SONSTIGES',  items: groupedVisibleEntities.misc },
+];
+
+sections.map(section => {
+  if (section.items.length === 0) return null;
+  return (
+    <div className="ios-section">
+      <div className="ios-section-header">{section.label}</div>
+      <div className="ios-card">
+        {section.items.map(e => <Item ... />)}
+      </div>
+    </div>
+  );
+})
+```
+
+Plus Empty-State wenn ALLE Gruppen leer sind: "Keine Entitäten verfügbar".
+
+### UX
+
+**Vorher:** Eine flache Liste "ENTITÄTEN" mit allen 30+ Items, jedes mit `· DIAGNOSTIC` / `· CONFIG`-Badge im subtitle.
+
+**Nachher:** 4 Sektionen
+```
+STEUERUNG
+  Obergeschoss            [toggle ON]
+
+SENSOREN
+  Aktueller Raum          [toggle ON]
+  Batterie                [toggle ON]
+  ... (weitere)
+
+DIAGNOSE
+  Signalstärke            [toggle ON]
+  ... (weitere)
+
+SONSTIGES
+  Ausgewählte Karte       [toggle ON]
+  Bitte nicht stören      [toggle ON]
+  ... (weitere)
+```
+
+### Files
+
+- `system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx`:
+  - + `groupedVisibleEntities` useMemo (klassifiziert deviceEntities nach 4 Gruppen)
+  - renderVisibilityView komplett neu (4 Sektionen statt eine flache Liste)
+  - subtitle-Badge `· DIAGNOSTIC/CONFIG` entfernt (redundant zur Section)
+  - Empty-State wenn alle Gruppen leer
+
+---
+
 ## Version 1.1.1361 - 2026-05-01
 
 **Title:** Universal — Container nur um Entity-Liste (nicht ganze View) — Header + Hero + Tab-Buttons bleiben edge-to-edge wie Bambu
