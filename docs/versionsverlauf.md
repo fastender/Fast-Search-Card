@@ -1,5 +1,73 @@
 # Versionsverlauf
 
+## Version 1.1.1349 - 2026-05-01
+
+**Title:** UniversalSetup-Container dunkel + rund (`.ios-settings-container`) + PreviewCard mit Bambu-Style-Tab-Buttons
+**Hero:** none
+**Tags:** Visual-Match, Universal-Builder, ios-Style
+
+### Bug
+
+User-Feedback nach v1.1.1348:
+1. Container nicht dunkel + nicht so rund wie System.Settings
+2. Vorschau zeigt noch das alte Button-Design (kleine Counter-Bubbles statt Bambu-Tab-Buttons)
+
+### Root Cause
+
+**1. Fehlender outer-container:** Die ios-* Pattern hat zwei Ebenen:
+- `.ios-settings-container` — outer-Box mit `background: #00000040`, `border-radius: 24px`, `overflow: hidden` (definiert das dunkle, abgerundete Visual)
+- `.ios-settings-view` — inner-scroll-container mit `overflow-y: auto` (für Scrollverhalten)
+
+Mein UniversalSetup hatte nur die inner `.ios-settings-view` ohne die outer `.ios-settings-container`. Daher kein dunkler Background, keine 24px-Rundungen.
+
+**2. PreviewCard-Mismatch:** Die UniversalPreviewCard rendert nur kleine 34px Counter-Bubbles statt der echten Bambu-Tab-Buttons. Die Vorschau spiegelt damit nicht das echte Visual.
+
+### Fix
+
+**1. UniversalSetup mit outer container wrappen** — alle 3 Render-Pfade (hero-picker, visibility, main):
+
+```diff
+  <motion.div
+-   className="ios-settings-view"
++   className="ios-settings-container"
+    initial={...}
+    ...
+-   style={{ height: '100%', overflowY: 'auto' }}
+  >
++ <div className="ios-settings-view" style={{ paddingLeft: 0, paddingRight: 0 }}>
+    {content}
++ </div>
+  </motion.div>
+```
+
+Outer = `.ios-settings-container` (background, border-radius, overflow:hidden), inner = `.ios-settings-view` (scroll). Padding-Left/Right auf 0 weil mein content schon eigenes Padding hat.
+
+**2. PreviewCard-Tab-Buttons im Bambu-Stil:**
+
+```diff
+- {/* 34px counter-bubble */}
+- <div style={{ width: '34px', ... }}>{tab.count}</div>
++ {/* 48px round mit SVG-Icon (analog UniversalControlsTab/ControlButton) */}
++ <div style={{ width: '48px', height: '48px', borderRadius: '50%',
++   background: isFirst ? 'rgb(0, 145, 255)' : 'rgba(255,255,255,0.1)',
++   border: isFirst ? '1px solid rgba(0, 145, 255, 0.5)' : '...' }}
++   dangerouslySetInnerHTML={{ __html: PREVIEW_TAB_ICONS[tab.id] }}
++ />
+```
+
+Erstes Tab (controls) wird als 'expanded' markiert (iOS-Blau `rgb(0, 145, 255)`) um den default-active state der echten View zu spiegeln. Andere Tabs `rgba(255,255,255,0.1)` mit `opacity: 0.4` wenn count=0.
+
+Plus: Tab-Label zeigt jetzt `Steuerung 16` statt nur die Zahl alleine — wie in der echten View.
+
+### Files
+
+| File | Change |
+|---|---|
+| `system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` | 3 Render-Pfade auf `.ios-settings-container` outer + `.ios-settings-view` inner |
+| `system-entities/entities/integration/components/UniversalPreviewCard.jsx` | + PREVIEW_TAB_ICONS (4 SVGs analog deviceConfigs.js), 48px round Bambu-Style-Buttons mit erstem Tab als active |
+
+---
+
 ## Version 1.1.1348 - 2026-05-01
 
 **Title:** UniversalSetup im System.Settings-Stil — ios-section / ios-card / ios-item Pattern + Sub-Views (Hero-Picker, Visibility)
