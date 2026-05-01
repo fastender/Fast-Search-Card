@@ -1,5 +1,83 @@
 # Versionsverlauf
 
+## Version 1.1.1337 - 2026-05-01
+
+**Title:** Universal Builder Live-Preview — User sieht beim Auswählen sofort wie die Karte aussehen wird
+**Hero:** none
+**Tags:** Feature, Universal-Builder, UX, Live-Preview, DRY-Refactor
+
+### Why
+
+Im UniversalSetup-Wizard musste der User bisher "blind" Hero/Strip/All auswählen und konnte erst NACH dem Add sehen wie die Karte aussieht. Wenn die Smart-Defaults nicht passten oder die Auswahl ungünstig war, hieß es: zurück, neu wählen, nochmal Add. Mit Live-Preview sieht User den Effekt jeder Auswahl sofort — direkter UX-Win, keine Trial-and-Error-Schleifen.
+
+### Solution — DRY-Refactor + neue Mini-Component
+
+**1. Neuer File `views/universalRenderHelpers.js`** (~80 LOC) — Pure Functions extrahiert aus UniversalDeviceView:
+
+- `resolveEntity(hass, entityId)` — entity_id → normalisiertes Plain-Object
+- `resolveSlots(hass, slots)` — komplette Slot-Auflösung
+- `formatHeroValue(e)` / `formatStripValue(e)` — Magnitude-aware numeric Formatter
+- `TOGGLEABLE_DOMAINS` Set
+
+Pure Functions, keine Hooks, keine JSX → triviale Wiederverwendung in beiden Render-Paths (View + Preview).
+
+**2. Neuer File `components/UniversalPreviewCard.jsx`** (~180 LOC) — read-only Mini-Vorschau:
+
+- Props: `{ hass, slots, name, lang, maxAllItems = 3 }`
+- Rendert kompakt: Hero (28px statt 52px) + Strip (kleinere Karten) + max 3 List-Items + "+N more"-Hint
+- Empty-Slot-Placeholders ("Kein Hero gewählt") wenn Slots leer
+- Lila "VORSCHAU"-Badge oben links damit klar dass es nicht die echte Karte ist
+- KEIN Toggle-Button (Preview ist nur Anzeige)
+
+**3. UniversalDeviceView.jsx auf Helpers umgestellt** (~60 LOC weniger duplizierte Code):
+
+```diff
+- function resolveEntity(hass, entityId) { ... }
+- function formatHeroValue(e) { ... }
+- function formatStripValue(e) { ... }
++ import { resolveSlots, formatHeroValue, formatStripValue } from './universalRenderHelpers.js';
+```
+
+Snapshot-useMemo nutzt jetzt direkt `resolveSlots(hass, slots)` — eine Zeile statt acht.
+
+**4. UniversalSetup.jsx mit Preview integriert:**
+
+- **Step 2:** optionaler Preview-Toggle ganz oben (Default: an im Edit-Mode, aus im Add-Mode — sonst zu viel Visual-Lärm beim Onboarding). Collapsible mit AnimatePresence-Animation.
+- **Step 3:** Live-Preview ersetzt die alte Text-Summary. Statt "· Hero: sensor.x · Strip: 4 Werte · Liste: 12 Entitäten" zeigt jetzt die Mini-Karte echte Werte.
+
+`previewSlots` ist ein useMemo der heroEntity/stripEntities/allEntities zu einem `{hero, strip, all}`-Object kombiniert — die Preview re-rendert sofort bei jedem Klick.
+
+### UX-Flow
+
+```
+Add-Mode:
+  Step 1 (Device-Picker)
+    → Step 2 (Entity-Selection)
+      ↑ Preview-Toggle (default: aus, User kann einblenden)
+      → Step 3 (Naming + finale Preview, IMMER sichtbar)
+
+Edit-Mode:
+  Step 2 (Entity-Selection mit Preview default: AN)
+    → Step 3 (Save mit Preview)
+```
+
+### Files
+
+| File | Change |
+|---|---|
+| `device-entities/views/universalRenderHelpers.js` | NEU (~80 LOC, Pure Functions) |
+| `components/UniversalPreviewCard.jsx` | NEU (~180 LOC) |
+| `device-entities/views/UniversalDeviceView.jsx` | -50 LOC (Helpers extrahiert) |
+| `components/setup-flows/UniversalSetup.jsx` | + Preview-Toggle in Step 2, + Live-Preview in Step 3 |
+
+### Was noch offen
+
+- **Layout-Templates** (Vehicle / Appliance / Sensor-Hub) — andere visuelle Layouts wählbar, Preview würde das Template-Layout zeigen
+- **Bulk-Edit** — mehrere Universal-Devices auf einmal umbenennen / Layout wechseln
+- **Drag-Reorder** im Strip — User kann Strip-Reihenfolge ändern (aktuell durch Click-Order definiert)
+
+---
+
 ## Version 1.1.1336 - 2026-05-01
 
 **Title:** Universal Builder Edit-Flow — bestehende Devices in-place bearbeiten ohne Remove + Re-Add
