@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.1355 - 2026-05-01
+
+**Title:** DeviceCard memo-comparator — `icon`/`name`-Updates für System-Entities (Universal-Devices) jetzt live sichtbar
+**Hero:** none
+**Tags:** Bugfix, Universal-Builder, DeviceCard, memo
+
+### Bug
+
+User-Feedback nach v1.1.1354: "icon aktualisiert erst nach refresh"
+
+### Root Cause
+
+Der `deviceCardPropsAreEqual` custom-comparator von `memo(DeviceCard)` prüft nur eine Whitelist von Properties:
+- entity_id, state, last_updated
+- attributes.friendly_name, brightness, current_temperature, temperature, hvac_action
+
+`attributes.icon` ist NICHT in dieser Liste. Das war OK für HA-Backend-Entities (sie bekommen `last_updated` bei jedem state-change → comparator returnt `false` → re-render). Aber **System-Entities haben kein `last_updated`** — das wird nur vom HA-Backend für echte Entities gesetzt.
+
+Folge: Wenn `updateDevice` die Universal-Entity-Attributes aktualisiert (inkl. icon) und der DataProvider die entities-Liste neu setzt, sieht der memo-comparator:
+- entity_id gleich ✓
+- state gleich ✓
+- last_updated beide undefined → gleich ✓
+- friendly_name eventuell gleich ✓
+- brightness/temperature/etc. → undefined gleich ✓
+
+→ comparator returnt `true` ("keine relevante Änderung") → DeviceCard re-rendert nicht → altes Icon bleibt sichtbar bis Page-Refresh (dann wird die Card neu gemounted und liest aktuelles Icon aus storage).
+
+### Fix
+
+```diff
+  if (aAttr.hvac_action !== bAttr.hvac_action) return false;
++ // System-Entities haben kein last_updated → explizit Icon/Name-Updates checken
++ if (aAttr.icon !== bAttr.icon) return false;
++ if (a.icon !== b.icon) return false;
++ if (a.name !== b.name) return false;
+  return true;
+```
+
+`a.icon !== b.icon` (top-level) zur Sicherheit, falls die Entity das Icon nicht in attributes hat sondern direkt am Object. `a.name !== b.name` für Umbenennungen analog.
+
+### Wer noch betroffen war
+
+Andere System-Entity-Types die ihr Icon dynamisch ändern könnten — z.B. Weather-Devices wenn ein neues Wetter-Icon gerendert würde. Aktuell macht das aber nur Universal-Devices via Edit-Mode.
+
+### Files
+
+- `src/components/DeviceCard.jsx` — `deviceCardPropsAreEqual` um icon (attribute + top-level) und name erweitert
+
+### Lehre
+
+`memo`-Comparators mit Whitelist-Approach sind perf-optimiert aber fehleranfällig wenn neue update-fähige Properties dazukommen. Für System-Entities ohne `last_updated`-Bump muss jede neu propagierte Property explizit in der Comparator-Liste sein. **Pattern für künftige Properties:** wenn ein neues attribute live updaten soll → DeviceCard-Comparator erweitern.
+
+---
+
 ## Version 1.1.1354 - 2026-05-01
 
 **Title:** Universal Edit-Bug — `icon` wurde im handleEditComplete nicht durchgereicht (Icon-Wechsel war weder live noch nach Refresh sichtbar)
