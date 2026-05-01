@@ -1,5 +1,94 @@
 # Versionsverlauf
 
+## Version 1.1.1339 - 2026-05-01
+
+**Title:** Universal Builder — zwei Smart-Layouts: 🚗 Vehicle (Battery-Bar) + 🎵 Media (Cover-Art)
+**Hero:** none
+**Tags:** Feature, Universal-Builder, Smart-Layouts, Vehicle, Media
+
+### Why
+
+v1.1.1338 brachte das Layout-Framework mit drei generischen Templates (Default/Compact/Stats). v1.1.1339 nutzt das Framework jetzt für zwei spezialisierte Layouts mit Smart-Visualisierung — die zeigen wirklich was möglich ist wenn man Layout-Logik plus HA-Attribute kombiniert.
+
+User hatte als Beispiele genannt: 3D-Drucker (Premium-Type), **Tesla** (jetzt: Vehicle-Layout) und Waschmaschine (kommt später als Appliance). Plus Media-Player ist ein offensichtlicher Universal-Use-Case der eigene Visual-Behandlung verdient.
+
+### Solution
+
+**1. 🚗 Vehicle Layout** (`VehicleLayout.jsx`, ~220 LOC)
+
+Smart-Detection: wenn Hero-Entity `device_class: battery` oder `unit_of_measurement: '%'` oder Name enthält "battery"/"akku"/"charge" hat, wird der Wert als **horizontaler Battery-Bar** gerendert statt als reine Zahl. Bar-Color ist State-aware:
+- > 50%: grün → cyan Gradient
+- 20-50%: orange → amber Gradient
+- < 20%: rot → red Gradient
+
+Strip wird als **3-Spalten-Grid** prominent dargestellt (statt horizontal-scroll), Spillover (>3) als kompakte Pillen darunter. Toggleable Items aus All werden zu **2-Cols-Bottom-Row mit großen Buttons** (cyan-highlight bei "on"). Non-toggleable Rest kompakt darunter.
+
+**Use-Case:** Tesla, BMW Connected Drive, Akku-Sensoren mit Status-Anzeige. Das Battery-Visual ist der WIN — User sieht sofort "65%" als Bar statt nur als Zahl.
+
+**2. 🎵 Media Layout** (`MediaLayout.jsx`, ~210 LOC)
+
+Smart-Detection: wenn Hero-Entity `entity_picture` hat (Standard für media_player), wird die Cover-Art als **Background-Image im 1:1-Aspect-Ratio** gerendert. Title kommt aus `media_title` (override des friendly_name), Subtitle aus `media_artist` oder `media_album_name` oder state. Gradient-Overlay bottom-up sorgt für Text-Lesbarkeit.
+
+Status-Badge oben rechts (grün wenn playing). Strip als kompakte **Pillen-Row** (z.B. "Album: …", "Quelle: …"). Toggleable Items werden zu **Player-Control-Buttons** in einem auto-fit-Grid (110px-min) mit pink→lila-Gradient bei "on".
+
+Fallback ohne entity_picture: einfaches Hero-Display mit pink-getöntem Gradient + Title/Subtitle, Rest funktioniert weiter.
+
+**Use-Case:** Spotify, Sonos, Plex, AppleTV. Cover-Art-Display ist der visuelle WIN den ein generisches Layout nicht erreichen kann.
+
+### universalRenderHelpers erweitert
+
+`resolveEntity()` reicht jetzt Media-spezifische Felder durch (default null wenn nicht vorhanden):
+- `entity_picture` — Cover-Art-URL
+- `media_title` — Track-Titel
+- `media_artist` — Künstler
+- `media_album_name` — Album
+
+Die anderen Layouts ignorieren diese Felder einfach — sie sind für MediaLayout reserviert. Layouts können defensiv prüfen (`hero.entity_picture && ...`).
+
+### Architektur-Win sichtbar
+
+Diese Iteration hat **2 neue Layouts hinzugefügt mit insgesamt 4 Code-Änderungen:**
+
+1. `VehicleLayout.jsx` (neu)
+2. `MediaLayout.jsx` (neu)
+3. `universalLayouts.js` — 2 Einträge im Registry
+4. `universalRenderHelpers.js` — 4 neue Felder in resolveEntity
+
+UniversalDeviceView, UniversalSetup, UniversalPreviewCard, IntegrationView — **alle nicht angefasst.** Sie lesen aus dem Registry, der Layout-Picker zeigt automatisch die zwei neuen Optionen, der Edit-Flow funktioniert sofort. Genau das was das Plugin-Pattern verspricht.
+
+### UX-Flow
+
+User legt einen Tesla an:
+1. Add Universal Device → wählt sein Tesla-Device
+2. Smart-Defaults wählen Battery als Hero, Range/Temp/Standort als Strip
+3. Step 3: wählt Layout "🚗 Fahrzeug"
+4. Live-Preview zeigt schon das Vehicle-Layout
+5. Save → Karte hat Battery-Bar prominent, 3-Karten-Strip-Grid, Climate-Toggles als Bottom-Row
+
+User legt einen Spotify-Player an:
+1. Add Universal → wählt Spotify-Player-Device
+2. Smart-Defaults wählen media_player als Hero, Album/Quelle als Strip, Play/Pause-Scripts als All
+3. Step 3: wählt Layout "🎵 Media-Player"
+4. Save → Karte zeigt Cover-Art als großes Background, Title+Artist als Overlay, Play/Pause als prominente Pink-Buttons
+
+### Files
+
+| File | Change |
+|---|---|
+| `views/layouts/VehicleLayout.jsx` | NEU (~220 LOC) — Battery-Bar Smart, Strip-Grid, Toggle-Bottom-Row |
+| `views/layouts/MediaLayout.jsx` | NEU (~210 LOC) — Cover-Art-Background, Player-Controls |
+| `views/layouts/universalLayouts.js` | + vehicle + media Einträge |
+| `views/universalRenderHelpers.js` | + entity_picture, media_title, media_artist, media_album_name in resolveEntity |
+
+### Was noch offen
+
+- **Appliance Layout** — für Waschmaschine: Programm als Hero, Restzeit als großer Counter darunter, Steuerung-Buttons. Braucht Smart-Detection für duration-state-Entities
+- **Climate Layout** — Thermostat: Setpoint vs Aktuelle Temp, Mode-Switch, Fan-Speed
+- **Drag-Reorder im Strip** — Strip-Reihenfolge ändern
+- **Bulk-Edit** — mehrere Devices gleichzeitig
+
+---
+
 ## Version 1.1.1338 - 2026-05-01
 
 **Title:** Universal Builder Layout-Templates — drei wählbare Visual-Stile (Default, Compact, Stats) statt One-Layout-fits-all
