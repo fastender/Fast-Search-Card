@@ -1,5 +1,93 @@
 # Versionsverlauf
 
+## Version 1.1.1335 - 2026-05-01
+
+**Title:** Universal Device Builder — generische Karten für JEDES HA-Device (Tesla, Waschmaschine, Smart-Plugs, alles)
+**Hero:** none
+**Tags:** Feature, Integration, Universal-Builder, Long-Tail-Coverage
+
+### Why
+
+Bisher hatte die Card 3 Premium-Device-Types mit hand-codierten Custom-Views (Printer3D, Energy Dashboard, Weather). Jeder neue Type bedeutet: Entity-Class + Setup-Wizard + maßgeschneiderte View — typisch 600-2000 LOC. Für die hunderten anderen Geräte-Arten in HA (Tesla, Miele-Waschmaschinen, Smart-Coffee, Vakuum-Roboter, Smart-Plugs, …) ist das nicht skalierbar.
+
+Universal Builder schließt diese Long-Tail-Lücke: User wählt ein beliebiges HA-Device aus seiner Installation, picks Entitäten in einer geführten Auswahl, kriegt eine fertige Karte. Premium-Types bleiben unangetastet (sie sind investiert, hochpoliert, und für Power-User die volle Magie wert).
+
+### Solution
+
+Drei neue Files (~1100 LOC), 1 Registry-Eintrag.
+
+**1. `UniversalDeviceEntity.js`** (~200 LOC)
+Generischer Wrapper um ein HA-Device. Speichert in der Config:
+```js
+{
+  ha_device_id: 'abc123',     // welches HA-Device
+  layout: 'default',          // Template-Wahl (Phase 3 erweiterbar)
+  slots: {
+    hero: 'sensor.tesla_battery',         // 1 Hero
+    strip: ['sensor.tesla_range', ...],   // 3-5 Strip-Werte
+    all: ['sensor.tesla_...', ...]        // alle übrigen
+  }
+}
+```
+Auflösung der Slots passiert lazy aus `hass.states`. Toggle-Action für steuerbare Domains (switch, light, input_boolean, fan, automation, script, siren, remote, humidifier).
+
+**2. `UniversalSetup.jsx`** (~600 LOC)
+3-Step-Wizard:
+- **Schritt 1 — Device Picker:** Liste aus `hass.devices`, mit Search nach Name/Manufacturer/Model/Area. Bereits hinzugefügte Geräte werden disabled markiert.
+- **Schritt 2 — Entity Selection:** alle Entities des Devices (gefiltert auf nicht-disabled, nicht-hidden). User wählt Hero (1), Strip (max 5), All-Liste (rest).
+- **Schritt 3 — Naming:** Display-Name, Summary mit Übersicht.
+
+**Smart Defaults via `device_class`:**
+- Hero-Priorität: `battery → power → energy → temperature → speed`
+- Strip-Priorität: `temperature → humidity → battery → power → energy → voltage → current → pressure → speed → distance`
+- Fallback: erstes `sensor.*` Entity als Hero, restliche als Strip/All
+
+**3. `UniversalDeviceView.jsx`** (~300 LOC)
+Drei Sections:
+- **Hero**: 52px-Display in einem Gradient-Card mit Manufacturer/Model-Header
+- **Status-Strip**: horizontal-scroll-row mit kompakten Karten (Name + großer Wert + Unit)
+- **All-Liste**: alle restlichen Entities. Toggleable Domains kriegen einen AN/AUS-Button mit **Optimistic-Update + Pending-Lock-Pattern** (siehe HA-Card-State-Management Patterns, Pattern 3 — verhindert Flackern bei React-Reconciliation-Revert + HA-Latency-Race).
+
+**Reaktivität via hass-Ref-Pattern** (Pattern 1): Snapshot wird mit `useMemo[hass]` berechnet, kein useEffect-Polling-Storm bei Backend-Ticks.
+
+**4. Registry-Eintrag in `deviceTypeRegistry.js`**
+```js
+universal: {
+  icon: '🧩',
+  label: { de: 'Universal Gerät', en: 'Universal Device' },
+  description: { de: 'Beliebiges HA-Gerät — Tesla, Waschmaschine, alles', en: '...' },
+  EntityClass: UniversalDeviceEntity,
+  SetupComponent: UniversalSetup,
+}
+```
+Dank dem 1325-Plugin-Pattern war das eine 1-Eintrag-Änderung — `DeviceEntityFactory`, `IntegrationView.renderSetupFlow` und `CategorySelectionView` lesen automatisch aus dem Registry.
+
+### Coexistence — kein Replace
+
+Die 3 Premium-Types (printer3d, energy_dashboard, weather) bleiben komplett unverändert. Universal sitzt daneben in der Type-Auswahl. Nutzer-Flow bleibt:
+1. Integration öffnen → "Add Device"
+2. Type wählen — wenn Premium-Type passt (Bambu-Drucker, Energy-Dashboard, Wetter-Standort), nimm den
+3. Wenn nicht, nimm Universal → wähle dein HA-Device
+
+Persistenz baut auf v1.1.1334 (`deviceConfigStorage` mit HA-User-Data) auf — Universal-Devices sind cross-device synced + in HA-Backups enthalten.
+
+### Was später kommt
+
+- **Phase 3 — Layout-Templates:** Vehicle / Appliance / Sensor-Hub als zusätzliche Layout-Wahl im Setup-Schritt 3, mit jeweils anderem Visual-Style
+- **Live-Preview im Setup:** während Step 2 schon eine Mini-Preview der Karte zeigen
+- **Edit-Flow:** existierende Universal-Devices bearbeiten (Slots umordnen, Entities tauschen) ohne Re-Add
+
+### Files
+
+| File | LOC | Was |
+|---|---|---|
+| `device-entities/UniversalDeviceEntity.js` | ~200 | NEU — generische Entity |
+| `components/setup-flows/UniversalSetup.jsx` | ~600 | NEU — 3-Step-Wizard |
+| `device-entities/views/UniversalDeviceView.jsx` | ~300 | NEU — Hero+Strip+List |
+| `device-entities/deviceTypeRegistry.js` | +18 | Registry-Eintrag |
+
+---
+
 ## Version 1.1.1334 - 2026-05-01
 
 **Title:** Device-Config persistence migrated from `localStorage` to HA `frontend/set_user_data` — cross-device sync, in HA backups, foundation for upcoming Universal Builder
