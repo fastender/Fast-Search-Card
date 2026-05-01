@@ -1,5 +1,72 @@
 # Versionsverlauf
 
+## Version 1.1.1363 - 2026-05-01
+
+**Title:** Liquid-Glass-Slider — System.Settings sliders replaced with framer-motion-driven liquid-glass component (smaller size + onChange dedup)
+**Hero:** none
+**Tags:** Feature, UI, Liquid-Glass, Settings, Framer-Motion
+
+### Why
+
+User: "den slider will ich ändern, habe das gefunden" (HTML reference: Liquid Glass Slider mit Framer Motion). Plus: "zB bei system settings sind slider. diese ersetzen mit Liquid-Glass-Slider". Plus: "1:1 übernehmen, nichts ändern" (Liquid-Lens-Filter). Plus follow-up: "verkleiner bisschen die größe".
+
+The 8 native `<input type="range">` sliders in System.Settings (Allgemein → Vorschläge: confidence/timeWindow/maxSuggestions; Darstellung → Hintergrund: brightness/blur/contrast/saturation/grayscale) used custom `bambu-slider` styling or inline linear-gradient backgrounds — visually inconsistent with the rest of the app and lacking the liquid-glass design language.
+
+### Fix
+
+**1. New `LiquidGlassSlider` component** (`src/components/common/LiquidGlassSlider.jsx` + `.css`, ~210 LOC) — 1:1 port from user's HTML reference with all framer-motion physics:
+
+- Spring-Morph during drag (scaleX 1.18, scaleY 0.92)
+- Background fade-out + 3 liquid layers visible (filter, overlay, specular) with `opacity` motion value
+- Spring-release with overshoot (`{ stiffness: 380, damping: 14 }`)
+- Native pointer-drag, keyboard support (Arrows, PageUp/Down, Home/End), full ARIA
+- SVG `mini-liquid-lens` filter (feDisplacementMap with normalMap radial gradient) injected once into `document.body` on first mount via `ensureFilterInjected()` — multiple slider instances share the same filter
+
+**2. Sizes reduced ~80%** vs HTML original (per user request "verkleiner bisschen"):
+- Track height: 10px → 8px
+- Thumb: 65×42 → 52×34
+- Border-radius unchanged (999px) — proportions preserved
+
+**3. onChange dedup optimization** — the original HTML fired `onChange` on every animation frame (~60×/sec) even when the snapped step value was unchanged. With heavy handlers (Brightness writes DOM filter + localStorage on every call), this caused stutter:
+
+```js
+const lastEmittedRef = useRef(initialValue);
+
+useMotionValueEvent(progress, 'change', (p) => {
+  const raw = min + p * range;
+  const v = step ? snap(raw) : raw;
+  if (v === lastEmittedRef.current) return;  // skip duplicate ints
+  lastEmittedRef.current = v;
+  setInternalValue(v);
+  if (!disabled && onChange) onChange(v);
+});
+```
+
+For a 100-step slider during a 1s sweep: before ~60 onChange calls (most duplicates), after ≤100 unique-int calls — significantly fewer DOM mutations per frame.
+
+**4. Replaced 8 sliders** with new component — all min/max/value/onChange contracts preserved:
+- `GeneralSettingsTab.jsx` — Confidence (40-90), Zeitfenster (15-120 step 15), Maximale Anzahl (5-20)
+- `AppearanceSettingsTab.jsx` — Deckkraft (0-100), Weichzeichner (0-50), Kontrast (0-200), Sättigung (0-200), Schwarz & Weiß (0-100)
+
+### Verification
+
+- All 8 sliders render with track + progress + 52×34 pill-thumb + 3 liquid layers (filter/overlay/specular)
+- SVG filter injected once (`#liquid-glass-slider-filter`)
+- Drag tested: Confidence 80→50 at 20% click position (= exact 40 + 0.2×50), Deckkraft 100→50 at 50% click
+- ARIA `aria-valuenow` updates live during drag
+- Computed sizes: trackHeight 8px, thumbWidth 52px, thumbHeight 34px (verified via `getComputedStyle`)
+- Disabled state respected (predictiveSuggestions: false → 3 sliders greyed out + non-interactive)
+- No console errors, no build errors
+
+### Pattern
+
+Bei nativen `<input type="range">` mit custom CSS in iOS-styled UIs → vorgefertigte motion-value-driven Component statt CSS-only ist sinnvoller, weil:
+1. Visual besser kontrollierbar (kein WebKit-Pseudo-Element-Hack)
+2. Spring-Physik macht Touch/Drag fühlbar premium
+3. Performance: motion values updaten direkt CSS ohne React-Renders, plus dedup auf Step-Änderungen verhindert spam
+
+---
+
 ## Version 1.1.1362 - 2026-05-01
 
 **Title:** Visibility-Picker — Entities gruppiert nach Steuerung/Sensoren/Diagnose/Sonstiges (statt einer flachen Liste)
