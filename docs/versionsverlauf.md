@@ -1,5 +1,86 @@
 # Versionsverlauf
 
+## Version 1.1.1340 - 2026-05-01
+
+**Title:** Bugfix: TabNavigation active-tab indicator (white pill) verschwand für alle Multi-Instance-Devices nach dem v1.1.1332 ViewRefContext-Refactor — stale closure auf viewRefs
+**Hero:** none
+**Tags:** Bugfix, TabNavigation, ViewRefContext, Stale-Closure
+
+### Bug
+
+Seit v1.1.1332 fehlte der animierte aktive-Tab-Indikator (die weiße Pill) bei den Action-Button-Toolbars von Multi-Instance-Devices. Konkret:
+- 3D-Drucker-Card: 4 runde Toolbar-Buttons (Übersicht/Settings/Camera/Image) hatten keine Active-Markierung mehr
+- News, Todos, Versionsverlauf, AllSchedules, Integration, Energy Dashboard, Weather, Universal-Devices: gleicher Defekt
+- System-Settings funktionierte weiter (anderer Render-Pfad: `activeTab === index` statt `getActiveButton()`)
+
+### Root Cause — Stale closure auf React-Context-State
+
+In v1.1.1332 wurde `window._fooViewRef` durch `useViewRefs()` aus dem React-Context ersetzt. Das Active-Button-Polling in `TabNavigation.jsx` aber blieb strukturell identisch:
+
+```js
+// In TabNavigation v1.1.1332 (kaputt):
+const { viewRefs } = useViewRefs();
+
+useEffect(() => {
+  const checkActiveButton = () => {
+    const viewRef = viewRefs.printer || viewRefs.news || ...;  // ← stale!
+    const currentActive = viewRef?.getActiveButton?.();
+    if (currentActive !== activeButtonState) {
+      setActiveButtonState(currentActive);
+    }
+  };
+  // RAF-Loop polled checkActiveButton 60Hz
+  ...
+}, [actionButtons, activeButtonState]);  // ← viewRefs FEHLT in deps
+```
+
+Das useEffect-Closure capturet `viewRefs` aus dem ersten Render — typischerweise `{}`, weil `TabNavigation` rendert BEVOR die View darunter mountet und sich registriert. Bei `window._printerViewRef`-Pattern war das egal: die globale `window`-Property wurde live ausgelesen, kein Closure-Problem. Bei React-Context wurde der initial leere State eingefroren.
+
+Resultat: Polling lief 60Hz, las immer `viewRefs={}` → kein viewRef → `getActiveButton()` nie aufgerufen → `activeButtonState` blieb `null` → keine `.active`-Klasse → keine Pill.
+
+### Fix — Mirror-Ref-Pattern + Functional Update
+
+```diff
++ const viewRefsRef = useRef(viewRefs);
++ viewRefsRef.current = viewRefs;  // bei jedem Render aktualisieren
+
+  useEffect(() => {
+    const checkActiveButton = () => {
+-     const viewRef = viewRefs.printer || ...;  // stale
++     const vr = viewRefsRef.current;            // immer current
++     const viewRef = vr.printer || ...;
+      const currentActive = viewRef?.getActiveButton?.();
+-     if (currentActive !== activeButtonState) {
+-       setActiveButtonState(currentActive);
+-     }
++     setActiveButtonState(prev => prev !== currentActive ? currentActive : prev);
+    };
+    ...
+- }, [actionButtons, activeButtonState]);
++ }, [actionButtons]);  // viewRefs/activeButtonState raus → kein RAF-Restart
+  });
+```
+
+Plus: `isActive`-Render-Logic auf `activeButtonState` umgestellt statt `viewRef.getActiveButton()` parallel im Render zu rufen — sonst können Slider-Position und active-Class auseinanderlaufen.
+
+### Pattern für andere ViewRefContext-Konsumenten
+
+**Wenn ein useEffect/useMemo/useCallback einen Closure auf `viewRefs` (oder ein anderes Context-Value) hat und der Effect nicht bei jedem Context-Update neu starten soll:** nutze ein Mirror-Ref-Pattern:
+
+```js
+const viewRefsRef = useRef(viewRefs);
+viewRefsRef.current = viewRefs;  // bei jedem Render
+// Im Effect: viewRefsRef.current statt viewRefs lesen
+```
+
+Das ist die generische Lösung für "ich brauche Live-Read auf ein Context-Value, will aber nicht den Effect re-runnen".
+
+### Files
+
+- `src/components/DetailView/TabNavigation.jsx` — Mirror-Ref + Functional-Update + isActive aus activeButtonState
+
+---
+
 ## Version 1.1.1339 - 2026-05-01
 
 **Title:** Universal Builder — zwei Smart-Layouts: 🚗 Vehicle (Battery-Bar) + 🎵 Media (Cover-Art)
