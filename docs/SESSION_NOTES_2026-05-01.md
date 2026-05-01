@@ -1,6 +1,6 @@
 # Session Notes — 2026-05-01
 
-**Stand am Ende:** v1.1.1359. **27 Releases an einem Tag** (v1.1.1333 → v1.1.1359).
+**Stand am Ende:** v1.1.1362. **30 Releases an einem Tag** (v1.1.1333 → v1.1.1362).
 
 Mit Abstand die längste Session des Projekts. Schwerpunkt-Bogen:
 
@@ -16,7 +16,7 @@ Mit Abstand die längste Session des Projekts. Schwerpunkt-Bogen:
 
 ---
 
-## 1. Release-Übersicht in 6 Blöcken
+## 1. Release-Übersicht in 7 Blöcken
 
 ### Block A — Cleanup/Foundation (1333-1334)
 
@@ -85,6 +85,14 @@ User: "in den settings das gleiche design wie bei system.settings"
 | **1357** | Bugfix Universal Auto-Gruppierung: Diagnostic/Config-Entities ohne State wurden komplett rausgefiltert. resolveEntityForGroup returnte null wenn hass.states[entityId] undefined → Diagnose-Tab leer trotz aktiver Visibility-Toggles. Fix: Entity wird auch ohne State zurückgegeben (markiert als unavailable), friendly-Name-Fallback-Kette via registry.name/original_name. |
 | **1358** | UniversalEntityList interaktive Controls für select/number/time/text. Vorher waren config-Items nur read-only Display, jetzt 4 neue Sub-Components (SelectControl/NumberSliderControl/TimeControl/TextControl) die hass.callService direkt rufen. Wide-Control-Mode für number/time/text — zweizeilig mit Label oben, Control full-width unten. Roborock-Vacuum-Sonstiges-Tab zeigt jetzt 1:1 wie HA-Backend. |
 | **1359** | **Select/Time als Sub-Views.** Statt inline native Browser-Widgets jetzt: select öffnet Sub-View mit ios-card-Liste + Checkmark beim aktiven Wert (analog System.Settings Sprach-Picker), time öffnet Sub-View mit TimePickerWheel (analog Schedules) inkl auto-save 500ms-Debounce nach Wheel-Stop. EntityRow rendert select/time als ios-item-clickable mit Chevron. |
+
+### Block G — Container-Scope + Visibility-Gruppierung (1360-1362)
+
+| Version | Was |
+|---|---|
+| 1360 | **Erster Versuch** Universal-Device-View bekommt `ios-settings-container` als outer-wrap (dunkler abgerundeter Container, consistent margins). User-Wunsch: visuelle Konsistenz mit Setup-Wizard. **Übersteuert** — User wollte den Container nur um die Item-Liste, nicht um die ganze View. In 1361 zurückgenommen. |
+| **1361** | **Container-Scope korrigiert.** v1.1.1360 zurückgenommen, stattdessen UniversalEntityList outer-wrapper bekommt rounded-dark styling (`background: rgba(0,0,0,0.25)`, `border-radius: 20px`, `margin: 0 8px`). Header + Hero-Circle + 4 Tab-Buttons bleiben edge-to-edge wie Bambu, nur die expanded Liste der Items im Container. |
+| **1362** | **Visibility-Picker gruppiert nach 4 Auto-Gruppen.** Statt einer flachen Liste "ENTITÄTEN" mit 30+ Items zeigt der Visibility-Picker jetzt 4 separate ios-sections — Steuerung/Sensoren/Diagnose/Sonstiges — identisch zur Klassifikation in der echten Device-View. Neue `groupedVisibleEntities` useMemo nutzt selbe Logik wie entityGrouping.js. Leere Gruppen nicht gerendert, redundanter `· DIAGNOSTIC/CONFIG`-Badge im subtitle entfernt. |
 
 ---
 
@@ -160,6 +168,18 @@ Mein originales `slots: {hero, strip, all}`-Schema war eine Erfindung die HAs Ba
 
 Mehrere Caching/memo-Mechanismen verlassen sich auf `last_updated` für Re-Render-Triggering. System-Entities (von SystemEntity.toEntity erzeugt) haben das nicht. Daher müssen explizit alle update-fähigen Properties in memo-Comparators enthalten sein (icon, name, friendly_name, etc.).
 
+### g) Container-Scope: nicht zu früh wrappen
+
+In v1.1.1360 wrappte ich die ganze UniversalDeviceView in `ios-settings-container` weil User "Container wie Settings" wollte. Falsch interpretiert — User wollte den Container nur um die Item-Liste, nicht um Header+Hero+Tab-Buttons. v1.1.1361 zurückgenommen.
+
+**Pattern:** Bei "Container wie Settings"-Wünschen IMMER nachfragen welcher Scope: ganze View (wie Setup-Wizard mit Header inside) oder nur eine Sub-Section (wie ein einzelnes Card-Element). Wenn unklar — kleineren Scope nehmen, User kann erweitern.
+
+### h) Konsistente Klassifikation in mehreren Views nutzen
+
+Die Auto-Gruppierung (controls/sensors/diagnostic/misc) wurde in v1.1.1341 für die Device-View eingeführt — aber bis v1.1.1362 hatte der Visibility-Picker noch eine flache Liste. Inkonsistenz wurde erst beim Test mit großen Devices (Roborock 30+ Entities) sichtbar.
+
+**Pattern:** Wenn eine Klassifikations-Logik in einem View neu eingeführt wird, alle anderen Views/Picker die dieselben Entities zeigen mit-refactoren — sonst Drift.
+
 ---
 
 ## 4. Was offen bleibt
@@ -174,8 +194,27 @@ Mehrere Caching/memo-Mechanismen verlassen sich auf `last_updated` für Re-Rende
 
 ## 5. Erkenntnis-Summe
 
-27 Releases an einem Tag. Vorherige Spitze war 23 (v1.1.1310-1332 am 2026-04-30/05-01). Heute also persönlicher Rekord.
+**30 Releases an einem Tag.** Vorherige Spitze war 23 (v1.1.1310-1332 am 2026-04-30/05-01). Heute also persönlicher Rekord mit deutlichem Abstand.
 
-Stand am Ende: Universal Device Builder ist **funktional komplett** und visuell konsistent mit dem Rest der Card. User kann beliebige HA-Devices mit 3-Klick-Wizard als Card hinzufügen, mit Auto-Gruppierung nach HA-Backend, Icon aus 30er-Catalog, alle config-entities (select/number/time/text/switch/button/scene/script) sind interaktiv mit den richtigen iOS-Style-Pickern.
+Stand am Ende: Universal Device Builder ist **funktional komplett + visuell poliert** und konsistent mit dem Rest der Card. User kann beliebige HA-Devices mit 3-Klick-Wizard als Card hinzufügen, mit:
+
+- Auto-Gruppierung nach HA-Backend (Steuerung/Sensoren/Diagnose/Sonstiges) — sowohl in der Device-View als auch im Visibility-Picker (1362)
+- Icon aus 30er-SVG-Catalog mit 9 Kategorien
+- Alle config-entities interaktiv: switch (LiquidGlassSwitch), number (slider), text (input), select (Sub-View mit Hakenauswahl analog Sprach-Picker), time (Sub-View mit TimePickerWheel analog Schedules), button/scene/script (Ausführen-Button)
+- Edit-Flow in-place ohne Remove+Re-Add
+- Live-Preview im Setup mit echtem UniversalControlsTab-Render
+- Container-Scope korrekt: nur die Item-Liste im rounded Container, Header+Hero+Tab-Buttons edge-to-edge
+- Live-Updates ohne Refresh nötig (defensives `system-entities-refresh`-Event in updateDevice)
 
 Das Universal-Card kann jetzt grundsätzlich JEDES HA-Device repräsentieren — was v1.1.1335 als ursprüngliches Ziel hatte. Die 3 Premium-Types (Printer3D, EnergyDashboard, Weather) bleiben unverändert für ihre spezialisierten Use-Cases.
+
+### Pattern-Lehren als Reference für künftige Sessions
+
+1. "1:1 wie X" → Component DIREKT nutzen, nicht "inspirieren"
+2. Multi-Instance-Bugs sind oft latent seit Längerem
+3. Defensive `*-refresh`-Events als valid Backup wenn Smart-Merges Edge-Cases haben
+4. Pipeline-Updates: jede Stufe muss alle relevanten Felder weitergeben
+5. Auto-Gruppierung nach Backend > Manuelle Slot-Erfindung
+6. System-Entities haben kein `last_updated` → memo-Comparators explizit erweitern
+7. Container-Scope: nicht zu früh wrappen, im Zweifel kleinen Scope wählen
+8. Klassifikations-Logik in einem View → ALLE anderen Views mit-refactoren
