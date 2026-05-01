@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.1333 - 2026-05-01
+
+**Title:** TDZ-Bugfix in `useRegisterViewRef`-Calls — News, Todos, Versionsverlauf and AllSchedules failed to open
+**Hero:** none
+**Tags:** Bugfix, ViewRefContext, TDZ
+
+### Bug
+
+After the ViewRefContext refactor (v1.1.1332), opening **News**, **Todos**, **Versionsverlauf**, or **AllSchedules** crashed with `ReferenceError: Cannot access 'J' before initialization`. Four core system-entity views were unusable.
+
+### Root Cause — Temporal Dead Zone
+
+The 1332 refactor passed toolbar handlers into `useRegisterViewRef('key', { handler1: handler1, ... }, [deps])`. Several handlers were declared as `const handleX = async () => {...}` LOWER in the same component body. JavaScript evaluates the object literal synchronously, so the `const` identifier is read before its declaration → ReferenceError.
+
+Inline arrow wraps like `handleX: () => doX()` are safe (arrow body is lazy). Direct assignments `handleX: handleX` and shorthand `handleX,` are not.
+
+### Audit of all 7 Views
+
+| View | TDZ | Affected handlers |
+|---|---|---|
+| IntegrationView | clean | 0 (all inline) |
+| EnergyDashboardDeviceView | clean | 0 (`handleRefresh` L405, before hook L419) |
+| Printer3DDeviceView | clean | 0 (`handleRefresh` L97, before hook L108) |
+| **NewsView** | BUG | 1 (`handleRefresh` L420 after hook L223) |
+| **TodosView** | BUG | 1 (`handleRefresh` L360 after hook L241) |
+| **VersionsverlaufView** | BUG | 1 (`handleRefresh` L163 after hook L62) |
+| **AllSchedulesView** | BUG | 5 (`handleOverview`, `handleOpenSettings`, `handleToggleSearch`, `handleRefresh`, `handleBackNavigation`) |
+
+### Fix
+
+All TDZ-prone direct references replaced with lazy wraps:
+
+```diff
+- handleRefresh: handleRefresh,
++ handleRefresh: (...args) => handleRefresh(...args),
+```
+
+Plus a doc-comment hint added to [ViewRefContext.jsx](src/contexts/ViewRefContext.jsx) JSDoc example warning about the TDZ trap.
+
+### Files
+
+- `src/system-entities/entities/news/NewsView.jsx` — 3 wraps (handleRefresh + 2 already-OK refs for consistency)
+- `src/system-entities/entities/todos/TodosView.jsx` — 2 wraps
+- `src/system-entities/entities/versionsverlauf/VersionsverlaufView.jsx` — 2 wraps
+- `src/system-entities/entities/all-schedules/AllSchedulesView.jsx` — 5 wraps
+- `src/contexts/ViewRefContext.jsx` — JSDoc warning added
+
+### Lesson
+
+For `useRegisterViewRef` and similar hooks that take object literals of function refs: **always use the lazy-wrap pattern**, even when the handler is currently declared above the hook. Future refactors can move the hook up or move the handler down — the lazy wrap makes it TDZ-immune.
+
+---
+
 ## Version 1.1.1332 - 2026-05-01
 
 **Title:** Antipattern-Fix: `window._fooViewRef` durch React-Context ersetzt — 7 Views + 3 Konsumenten umgestellt
