@@ -1,5 +1,126 @@
 # Versionsverlauf
 
+## Version 1.1.1341 - 2026-05-01
+
+**Title:** Universal Builder Refactor — Auto-Gruppierung nach HA-Backend (Steuerung/Sensoren/Diagnose/Sonstiges) im Bambu-Stil mit Hero-Circle + 4 expandable Tabs
+**Hero:** none
+**Tags:** Refactor, Universal-Builder, Auto-Grouping, Schema-Migration, Breaking-Change
+
+### Why
+
+Das alte `slots: {hero, strip, all}`-Schema war eine Erfindung des Universal-Builders die HAs eigene Backend-Gruppierung ignoriert hat. HA gruppiert jedes Device automatisch in **Steuerung / Sensoren / Diagnose / Konfiguration** — anhand `entity_category` und `domain`. Mein Builder zwang den User, das manuell nochmal zu machen.
+
+User wollte: HA-native Gruppierung, im Visual-Stil des handgebauten 3D-Drucker-Layouts (CircularSlider + 4 Tab-Buttons mit Icons).
+
+### Solution
+
+**1. Neuer Helper `entityGrouping.js`** (~190 LOC)
+
+`groupEntitiesByCategory(hass, deviceId, options)` liefert:
+- **controls** — Domains: `switch`, `light`, `fan`, `cover`, `lock`, `climate`, `media_player`, `vacuum`, `button`, `scene`, `script`, `automation`, `humidifier`, `water_heater`, `siren`, `remote`, `valve`, `input_boolean/button/number/select/text/datetime` (ohne `entity_category`)
+- **sensors** — Domains: `sensor`, `binary_sensor`, `weather`, `image`, `camera`, `sun`, `person`, `device_tracker`, `calendar` (ohne `entity_category`)
+- **diagnostic** — alle Entities mit `entity_category === 'diagnostic'`
+- **misc** — alle Entities mit `entity_category === 'config'` + sub-devices via `via_device_id`
+
+`entity_category` hat Priorität über Domain-Klassifikation (so wie HA es macht).
+
+**2. Schema-Migration**
+
+```diff
+- slots: { hero, strip, all }
+- layout: 'default' | 'compact' | 'stats' | 'vehicle' | 'media'
++ hero: 'sensor.x'        // optional, einzelnes Hero-Entity
++ hidden_entities: []     // optional, was NICHT zeigen
+```
+
+Migration in `deviceConfigStorage.ensureSchema()`:
+- `slots.hero → hero` (1:1)
+- `slots.strip + slots.all` → ignoriert (Auto-Gruppierung übernimmt)
+- `layout` → entfernt (nur noch ein Layout)
+
+Migration ist idempotent + automatisch beim Bootstrap. Existing Universal-Devices behalten ihre `hero`-Wahl, der Rest wird automatisch eingruppiert.
+
+**3. UniversalDeviceView komplett neu im Bambu-Stil** (~510 LOC, vorher ~440)
+
+Layout:
+- **Hero-Circle** oben: visueller Circle mit Hero-Wert. Wenn Hero ein Battery ist (device_class=battery, unit=%, name enthält "battery/akku/charge"), wird der Circle als **Donut mit Battery-Bar** gerendert (conic-gradient, state-aware Color: grün >50%, orange 20-50%, rot <20%)
+- **4 Bottom-Tab-Buttons** (54px round): Steuerung / Sensoren / Diagnose / Sonstiges, mit den exakten SVG-Icons aus `deviceConfigs.js:222-228` (Sun/Wave/Wrench/Dots) — also IDENTISCH zum 3D-Drucker
+- Item-Counter pro Tab als kleine Zahl unter dem Label (z.B. "Steuerung 4")
+- Click → Tab klappt Liste auf mit Hover/Active-Animation (rgba(175,82,222,0.35))
+- Toggleable Items mit AN/AUS-Button + Optimistic-Update + Pending-Lock (Pattern 3)
+- Pressable Items (button/scene/script/automation) mit ▶-Button
+
+**4. Breaking Change: Layout-System entfernt**
+
+5 alte Layout-Files gelöscht:
+- ❌ `views/layouts/DefaultLayout.jsx`
+- ❌ `views/layouts/CompactLayout.jsx`
+- ❌ `views/layouts/StatsLayout.jsx`
+- ❌ `views/layouts/VehicleLayout.jsx`
+- ❌ `views/layouts/MediaLayout.jsx`
+- ❌ `views/layouts/universalLayouts.js` (Registry)
+- ❌ `views/layouts/` (Verzeichnis)
+
+Sie waren auf das alte `slots`-Schema gebaut und nutzten Strip/All-Konzepte die jetzt obsolet sind. Falls künftig wieder spezielle Visual-Variants gewünscht (Vehicle/Media), kommen sie als **Hero-Display-Varianten** zurück — nicht als komplett anderes Layout. Das aktuelle Hero-Circle hat schon die Battery-Erkennung eingebaut, das ist 90% des Vehicle-Layouts.
+
+**5. UniversalSetup vereinfacht**
+
+Step 2 reduziert von "Hero-Dropdown + Strip-Checkboxes (max 5) + All-Checkboxes" auf:
+- Hero-Dropdown (optional, Default = leer)
+- Hidden-Entities-Checkbox-Liste (Default = alle sichtbar)
+
+Step 3 reduziert: Layout-Picker entfernt (es gibt nur noch ein Layout). Bleibt: Naming + Live-Preview.
+
+Smart-Default für Hero: erstes `sensor.*`-Entity mit primary `device_class` (z.B. battery, temperature). Wenn keins gefunden: Hero bleibt leer (User wählt manuell oder lässt's leer = nur Tabs).
+
+**6. PreviewCard auf neues Schema**
+
+Neue Mini-Vorschau im Bambu-Stil:
+- Mini-Hero-Circle (120px) mit Wert + Battery-Bar (wenn Battery)
+- 4 kleine Counter-Bubbles für die 4 Tab-Gruppen (zeigt nur Counts, keine Details)
+- Wenn Hero leer: "Kein Hero"-Placeholder
+
+API-Change: `slots`-prop entfernt, neuer `deviceConfig`-prop mit `{ha_device_id, hero, hidden_entities}`.
+
+### UX-Vergleich
+
+**Vorher (v1335-1339):**
+```
+Setup Step 2: Hero (1) + Strip (max 5) + All-Liste (alles andere)
+              → 3 Sektionen mit Checkboxes, viel Klick-Arbeit
+View:         Hero + scroll-Strip + flat List
+```
+
+**Nachher (v1341):**
+```
+Setup Step 2: Hero (optional) + Hidden-Liste (Default leer)
+              → 2 Sektionen, fast nur "Weiter" klicken
+View:         Hero-Circle + 4 expandable Tabs (auto-gruppiert wie HA)
+```
+
+User-Setup-Aufwand: ~70% weniger Klicks pro Universal-Device.
+
+### Files
+
+| File | Change |
+|---|---|
+| `device-entities/views/entityGrouping.js` | NEU (~190 LOC) — Auto-Gruppierung-Helper |
+| `device-entities/UniversalDeviceEntity.js` | Schema-Refactor: slots/layout entfernt, hero/hidden_entities neu |
+| `deviceConfigStorage.js` | Migration old slots → new hero in ensureSchema() |
+| `components/setup-flows/UniversalSetup.jsx` | Step 2 vereinfacht (~430 LOC, vorher ~600) |
+| `device-entities/views/UniversalDeviceView.jsx` | Komplett neu im Bambu-Stil (~510 LOC) |
+| `components/UniversalPreviewCard.jsx` | Neu auf deviceConfig-API + Mini-Hero-Circle |
+| `device-entities/views/layouts/*` | GELÖSCHT (6 Files + Verzeichnis) |
+
+### Was noch offen
+
+- **Settings-Mode in der View** ist noch der alte UniversalSetup im Edit-Mode. Könnte später eine inline-Settings-Sheet werden statt Full-Page-Wizard
+- **Hero-Klick-Action** (z.B. großer Hero-Wert klick → Edit oder Detail) — aktuell rein visuell
+- **Sub-Devices Sichtbarkeit** — `groups.subDevices` wird gesammelt aber noch nicht angezeigt. Könnte als 5. Tab "Verbundene Geräte" oder als Sub-Section in "Sonstiges" erscheinen
+- **Long-Press-Edit** für Entity-Liste — User möchte Entity ausblenden ohne den Settings-Wizard zu öffnen
+
+---
+
 ## Version 1.1.1340 - 2026-05-01
 
 **Title:** Bugfix: TabNavigation active-tab indicator (white pill) verschwand für alle Multi-Instance-Devices nach dem v1.1.1332 ViewRefContext-Refactor — stale closure auf viewRefs
