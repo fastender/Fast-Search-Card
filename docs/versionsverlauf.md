@@ -1,5 +1,84 @@
 # Versionsverlauf
 
+## Version 1.1.1351 - 2026-05-01
+
+**Title:** UniversalSetup-Pattern korrekt — `.ios-view-wrapper` mit `.ios-navbar` (statt custom back-button), CustomScrollbar funktioniert + Bug: 'controls'-Tab kehrt aus Edit-Mode zurück
+**Hero:** none
+**Tags:** Bugfix, Universal-Builder, ios-Style, navbar-Pattern
+
+### Bug
+
+User-Feedback nach v1.1.1350:
+1. Padding noch immer nicht wie System.Settings (links/rechts)
+2. CustomScrollbar nicht sichtbar
+3. Back-Design im Untermenu nicht wie System.Settings
+4. **Bug**: Click auf "Übersicht" während im Settings → nichts passiert
+
+### Root Cause
+
+**Strukturelles Problem:** Mein UniversalSetup hatte `.ios-settings-container` INSIDE jedes view's motion.div. System.Settings hat das umgekehrt:
+- `.ios-settings-container` ist **outer + konstant** (animiert nicht)
+- AnimatePresence inside switched zwischen Views
+- Jede View ist `.ios-view-wrapper` (display:flex; flex-direction:column; full-height)
+- Sub-Views haben `.ios-navbar` (62px height, padding 0 20px) mit `.ios-navbar-back` button + `.ios-navbar-title` centered
+- Content in `.ios-settings-view` mit ref → CustomScrollbar nach view innerhalb container
+
+Mein custom back-button (mit "BackChevron" + custom styling) war NICHT die `.ios-navbar-back`-Klasse — daher anderes Visual.
+
+CustomScrollbar wurde gerendert aber im falschen Container — `.ios-settings-container` hat `overflow:hidden`, das verstecke sie wenn sie position:absolute war.
+
+**Bug #4:** UniversalDeviceEntity actionButtons hatte `controls` mit `action: 'noop'` — also passiert beim Click nichts. Im Edit-Mode konnte der User damit nicht zurück zur Device-View. Fix: `action: 'overview'` damit der bestehende handleOverview-Handler in UniversalDeviceView aufgerufen wird (setzt editingMode=false).
+
+### Fix
+
+**1. Komplette Restrukturierung von UniversalSetup auf System.Settings-Pattern:**
+
+```jsx
+<div className="ios-settings-container"
+     onMouseEnter onMouseLeave style={{position:'relative'}}>
+  <AnimatePresence mode="wait">
+    {step === 'hero-picker' ? (
+      <motion.div key="hero-picker" className="ios-view-wrapper" variants={slideVariants}>
+        <div className="ios-navbar">
+          <button className="ios-navbar-back" onClick={...}>
+            <NavbarBackIcon />
+            <span>Zurück</span>
+          </button>
+          <div className="ios-navbar-title">Hauptanzeige</div>
+        </div>
+        <div ref={scrollRef} className="ios-settings-view">
+          <div className="ios-section">...</div>
+        </div>
+      </motion.div>
+    ) : ...}
+  </AnimatePresence>
+  <CustomScrollbar scrollContainerRef={scrollRef} isHovered={isHovered} />
+</div>
+```
+
+Outer container ist konstant. Pro View ein eigener `.ios-view-wrapper`. Sub-Views haben `.ios-navbar` mit den richtigen System.Settings-Klassen. Back-Button ist `.ios-navbar-back` mit dem korrekten Chevron-SVG (analog GeneralSettingsTab Zeile 944-948).
+
+**2. Bug-Fix für 'controls'-Action:**
+
+```diff
+  actionButtons: [
+-   { id: 'controls', action: 'noop', title: 'Steuerung' },
++   { id: 'controls', action: 'overview', title: 'Steuerung' },
+    ...
+  ]
+```
+
+`handleActionClick(action)` in TabNavigation hat schon einen 'overview'-Case der `viewRef.handleOverview()` ruft. Das Sun-Burst-Icon (Controls) ersetzt den Back-Button nicht nur visuell sondern auch funktional → klickt aus Settings zurück zur Device-Übersicht.
+
+### Files
+
+| File | Change |
+|---|---|
+| `system-entities/entities/integration/device-entities/UniversalDeviceEntity.js` | controls-action: 'noop' → 'overview' |
+| `system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` | Komplett neu strukturiert auf ios-view-wrapper + ios-navbar pattern, AnimatePresence inside konstantem ios-settings-container, slideVariants analog GeneralSettingsTab, CustomScrollbar konstant am container |
+
+---
+
 ## Version 1.1.1350 - 2026-05-01
 
 **Title:** UniversalSetup — Padding analog System.Settings (32px statt 40px) + CustomScrollbar
