@@ -1,5 +1,100 @@
 # Versionsverlauf
 
+## Version 1.1.1342 - 2026-05-01
+
+**Title:** Universal Builder Bugfixes — Area-Name aus HA-Backend anzeigen + Device sofort im Raum nach Add (kein Refresh mehr nötig)
+**Hero:** none
+**Tags:** Bugfix, Universal-Builder, Area, Race-Condition
+
+### Bug 1 — Area-Name fehlte in PreviewCard und View-Header
+
+**Symptom:** PreviewCard zeigte nur den Device-Namen (z.B. "Backofen"), die Universal-View nur `manufacturer · model`. HAs Raumzuordnung war nirgends sichtbar.
+
+**Fix:** Header in beiden Components zeigt jetzt `manufacturer · model · area_name` (mit Pipe-Trenner). PreviewCard hat zusätzlich einen sub-line unter dem Namen mit derselben Info.
+
+### Bug 2 — Race-Condition beim Add: Device erschien nicht im Raum ohne Refresh
+
+**Symptom:** Nach dem "Hinzufügen"-Klick im Setup landete das neue Universal-Device in der Card-Übersicht ohne Area-Zuordnung. User musste die Card schließen und neu öffnen damit die Area erkannt wurde.
+
+**Root Cause:** In `IntegrationEntity.addDevice`:
+
+```js
+// Vorher (kaputt):
+const deviceEntity = createDeviceEntity(deviceData);
+systemRegistry.register(deviceEntity);  // ← emittet 'entity-registered' SOFORT
+                                         //   → DataProvider lädt Entity ohne area_id
+if (systemRegistry.isInitialized && this._hass) {
+  await deviceEntity.onMount({...});    // ← onMount setzt area_id, aber zu spät —
+                                         //   DataProvider hat schon ohne area gerendert
+}
+```
+
+**Plus:** Der `register()`-Call in der Registry triggert bereits selbst `onMount` wenn `isInitialized` (siehe `registry.js:114-118`) — der explizite zweite `await onMount()` war ein **doppelt-Mount-Bug**, läuft also seit längerem 2× pro Add.
+
+**Fix:** Area aus `hass.devices` SYNCHRON setzen BEVOR `register()` aufgerufen wird:
+
+```js
+const deviceEntity = createDeviceEntity(deviceData);
+if (deviceEntity) {
+  // Area sofort aus HA-Backend lesen (synchron — hass.devices/areas sind live)
+  if (this._hass) {
+    const haDeviceId = deviceData.ha_device_id;
+    const entityId = deviceData.entity_id;
+    let area_id = null;
+    if (haDeviceId && this._hass.devices?.[haDeviceId]) {
+      area_id = this._hass.devices[haDeviceId].area_id;
+    }
+    // Fallback für entity-based devices (Weather)
+    if (!area_id && entityId && this._hass.entities?.[entityId]) {
+      const entReg = this._hass.entities[entityId];
+      if (entReg.area_id) area_id = entReg.area_id;
+      else if (entReg.device_id) {
+        area_id = this._hass.devices?.[entReg.device_id]?.area_id;
+      }
+    }
+    if (area_id) {
+      deviceEntity.area_id = area_id;
+      if (this._hass.areas?.[area_id]) {
+        deviceEntity.area = this._hass.areas[area_id].name;
+      }
+    }
+  }
+  // Jetzt registrieren — entity hat schon area_id, DataProvider lädt korrekt.
+  // register() triggert auch onMount (kein zweiter expliziter await mehr nötig).
+  systemRegistry.register(deviceEntity);
+}
+```
+
+Funktioniert für alle 4 Device-Type-Pfade:
+- **Universal** + **Printer3D** + **EnergyDashboard** → `ha_device_id` aus deviceData
+- **Weather** → `entity_id` aus deviceData, area via entity_registry oder device_registry-Fallback
+
+Der explizite `await deviceEntity.onMount(...)` wurde ENTFERNT — register() triggert es schon selbst, und vorher war es ein Doppel-Mount.
+
+### UX vorher vs. nachher
+
+**Vorher:**
+1. Setup → "Hinzufügen" klicken
+2. Card schließt Setup, kehrt zur Übersicht zurück
+3. Neues Device erscheint **unter "Sonstige" / ohne Raum**
+4. User: Card schließen, neu öffnen
+5. Jetzt erst korrekt im Raum
+
+**Nachher:**
+1. Setup → "Hinzufügen" klicken
+2. Card schließt Setup, kehrt zur Übersicht zurück
+3. Neues Device erscheint **direkt im richtigen Raum** ✓
+
+### Files
+
+| File | Change |
+|---|---|
+| `system-entities/entities/integration/index.js` | addDevice: Area sync setzen vor register(), doppel-mount entfernt |
+| `system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` | Header-Zeile mit area_name |
+| `system-entities/entities/integration/components/UniversalPreviewCard.jsx` | Header mit Manufacturer/Model/Area subline + resolveDeviceMeta-Import |
+
+---
+
 ## Version 1.1.1341 - 2026-05-01
 
 **Title:** Universal Builder Refactor — Auto-Gruppierung nach HA-Backend (Steuerung/Sensoren/Diagnose/Sonstiges) im Bambu-Stil mit Hero-Circle + 4 expandable Tabs
