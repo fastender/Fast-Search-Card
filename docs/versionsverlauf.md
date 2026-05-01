@@ -1,5 +1,77 @@
 # Versionsverlauf
 
+## Version 1.1.1356 - 2026-05-01
+
+**Title:** Defensive `system-entities-refresh`-Event in updateDevice — Icon-Updates jetzt garantiert live (kein Refresh mehr nötig)
+**Hero:** none
+**Tags:** Bugfix, Universal-Builder, DataProvider, Defensive-Refresh
+
+### Bug
+
+User-Feedback nach v1.1.1355: "noch immer bug vorhanden: erst bei refresh wird das icon angezeigt im device card wenn ich aus detail view rausgehe."
+
+Trotz mehrerer Fixes (v1.1.1352 updateDevice propagiert icon, v1.1.1353 getSystemEntityIcon liest icon, v1.1.1354 handleEditComplete reicht icon durch, v1.1.1355 DeviceCard memo-comparator checkt icon) — Icon-Update kam noch immer nicht live durch.
+
+### Root Cause
+
+Das `system-entity-updated`-Event-Handling in DataProvider macht einen attribute-merge:
+
+```js
+attributes: {
+  ...newEntities[entityIndex].attributes,  // alte
+  ...attributes  // neue (this.attributes vom emitter)
+}
+```
+
+Das funktioniert für die meisten Properties, aber für `icon` gibt es subtile Probleme — möglicherweise weil `icon` bei toEntity initial aus `this.icon` (top-level) kommt und nicht aus `this.attributes`. Die exakte Wurzel war schwer zu isolieren ohne live debugging.
+
+Die Pipeline war theoretisch korrekt aufgesetzt aber hatte einen Edge-Case der Icon-Updates verschluckte.
+
+### Fix — defensives full-refresh-Event
+
+Statt sich auf den fragilen attribute-merge zu verlassen, dispatche ich nach jedem `updateDevice` ein `system-entities-refresh`-Event. DataProvider hat dafür einen neuen Listener der einen kompletten `getAsHomeAssistantEntities()`-Reload triggert:
+
+```js
+// In IntegrationEntity.updateDevice (nach updateAttributes)
+window.dispatchEvent(new CustomEvent('system-entities-refresh', {
+  detail: { source: 'updateDevice', deviceId }
+}));
+
+// In DataProvider (neuer Listener)
+const handleSystemEntitiesRefresh = () => {
+  setEntities(prevEntities => {
+    const systemEntities = systemRegistry.getAsHomeAssistantEntities();
+    const nonSystemEntities = prevEntities.filter(e => !e.is_system);
+    return [...systemEntities, ...filterExcludedEntities(nonSystemEntities)];
+  });
+};
+window.addEventListener('system-entities-refresh', handleSystemEntitiesRefresh);
+```
+
+Beim full-refresh läuft jede System-Entity frisch durch `toEntity()`. Das setzt `attributes.icon = this.icon` (das in updateDevice via `ent.icon = updates.icon` aktualisiert wurde). Garantiert konsistent.
+
+### Warum dieser Ansatz funktioniert
+
+- `ent.icon` (top-level) wird in updateDevice **direkt gesetzt** (nicht nur via attributes)
+- `toEntity()` liest `this.icon` als Source-of-Truth
+- Full-refresh erstellt komplett neue plain entity objects mit korrekten Attributen
+- DeviceCard-Comparator (v1.1.1355) erkennt icon-change → re-render
+
+Trade-off: full-refresh ist etwas teurer als der Smart-merge (alle System-Entities werden neu gebaut). Aber System-Entities sind eine kleine Liste (typisch <20), und Icon-Edit ist ein seltener User-Trigger. Der Performance-Impact ist vernachlässigbar.
+
+### Konsequenz für andere Update-Scenarios
+
+Dieser Refresh-Mechanismus wird jetzt von updateDevice genutzt — er kann später auch von anderen Pfaden benutzt werden falls ähnliche Caching-Probleme auftreten (z.B. bei Plugin-Konfigurations-Updates).
+
+### Files
+
+| File | Change |
+|---|---|
+| `system-entities/entities/integration/index.js` | + dispatch `system-entities-refresh` event in updateDevice |
+| `providers/DataProvider.jsx` | + listener für `system-entities-refresh` der getAsHomeAssistantEntities reloaded |
+
+---
+
 ## Version 1.1.1355 - 2026-05-01
 
 **Title:** DeviceCard memo-comparator — `icon`/`name`-Updates für System-Entities (Universal-Devices) jetzt live sichtbar
