@@ -1,5 +1,90 @@
 # Versionsverlauf
 
+## Version 1.1.1348 - 2026-05-01
+
+**Title:** UniversalSetup im System.Settings-Stil — ios-section / ios-card / ios-item Pattern + Sub-Views (Hero-Picker, Visibility)
+**Hero:** none
+**Tags:** Visual-Match, Universal-Builder, ios-Style, Sub-Views
+
+### Why
+
+User-Wunsch: UniversalSetup soll exakt das selbe Visual-Pattern haben wie System.Settings (GeneralSettingsTab) — also `.ios-section` mit Uppercase-Header, `.ios-card` mit `.ios-item`-Liste, Sub-Views mit Back-Chevron für Picker.
+
+Mein bisheriges UniversalSetup hatte custom inline styles, eigene Dropdowns und Checkbox-Listen — visuell anders als das restliche Settings-System.
+
+### Solution
+
+UniversalSetup komplett auf das ios-* Pattern umgebaut.
+
+**Step 1 — Device-Picker:**
+- Search-input bleibt oben (input-Element, nicht ios-item)
+- Liste der Devices als `.ios-section` mit Header "GERÄTE" + `.ios-card` voller `.ios-item-clickable` Items
+- Pro Device: Name als label, `manufacturer · model · area_name` als subtitle, Chevron rechts
+- Bereits hinzugefügte Devices: opacity 0.5, "bereits hinzugefügt"-Badge, kein Chevron
+
+**Step 2 — Anzeige anpassen (NEU strukturiert wie GeneralSettingsTab):**
+Statt direkter Dropdown + Checkboxes jetzt 2 ios-items mit Chevron, die Sub-Views öffnen:
+
+```
+┌─ HAUPTANZEIGE ─────────────────────┐
+│ Hauptanzeige           Sensor X › │  ← öffnet hero-picker Sub-View
+└────────────────────────────────────┘
+┌─ ANZEIGE ──────────────────────────┐
+│ Sichtbare Entitäten   12 von 15 › │  ← öffnet visibility Sub-View
+└────────────────────────────────────┘
+┌─ VORSCHAU ─────────────────────────┐
+│ [UniversalPreviewCard]            │
+└────────────────────────────────────┘
+```
+
+**Sub-Views (Step 'hero-picker' / 'visibility'):**
+- Header mit Back-Chevron + Title (analog Language-Picker in GeneralSettingsTab)
+- Sub-View 'hero-picker': Liste aller Entities als `.ios-item-clickable` mit `✓` rechts beim aktuell gewählten. Plus "Keine Hauptanzeige"-Option oben.
+- Sub-View 'visibility': Liste aller Entities mit `<LiquidGlassSwitch>` rechts (sichtbar/versteckt — invertiert von hidden_entities). Hero-Entity wird ausgeblendet.
+
+**Step 3 — Naming + Vorschau:**
+- `.ios-section` "NAME" mit `.ios-card` enthält ein input-Field als ios-item (transparent background, full-width)
+- `.ios-section` "VORSCHAU" mit UniversalPreviewCard
+
+**Step-Indicator** auf iOS-Blau geändert (`rgb(0, 122, 255)` statt lila).
+
+### State-Machine
+
+`step` ist jetzt ein union: `1 | 2 | 3 | 'hero-picker' | 'visibility'`. Sub-Views haben ihren eigenen Render-Pfad ohne Step-Indicator (analog System.Settings sub-views).
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` — komplette Umstrukturierung auf ios-section/ios-card/ios-item Pattern + Sub-Views
+
+### UX-Flow
+
+```
+Add-Mode:
+  Step 1 (Device-Picker, ios-card-Liste mit Chevron)
+    → click device → Step 2
+  Step 2 (Anzeige anpassen)
+    → click "Hauptanzeige" → Sub-View hero-picker → click entity → zurück Step 2
+    → click "Sichtbare Entitäten" → Sub-View visibility → toggles → zurück Step 2
+    → "Weiter" → Step 3
+  Step 3 (Naming + Vorschau)
+    → "Hinzufügen"
+```
+
+Edit-Mode startet direkt bei Step 2.
+
+### Visual-Match zu GeneralSettingsTab
+
+| Komponente | UniversalSetup | GeneralSettingsTab |
+|---|---|---|
+| Section-Container | `.ios-section` | `.ios-section` |
+| Section-Header | `.ios-section-header` (uppercase) | `.ios-section-header` (uppercase) |
+| Card-Container | `.ios-card` | `.ios-card` |
+| Item-Click-Pattern | `.ios-item.ios-item-clickable` mit Chevron | identisch |
+| Sub-View-Pattern | back-chevron + title + ios-section liste | identisch (Sprach-Picker, Currency-Picker, etc.) |
+| Toggles | `<LiquidGlassSwitch>` | `<LiquidGlassSwitch>` |
+
+---
+
 ## Version 1.1.1347 - 2026-05-01
 
 **Title:** Universal Toolbar — Standard-Tab-Icons (Controls/Schedule/History/Context) + Settings, Back/Refresh entfernt
