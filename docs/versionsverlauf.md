@@ -1,5 +1,91 @@
 # Versionsverlauf
 
+## Version 1.1.1364 - 2026-05-01
+
+**Title:** LiquidGlassSlider — Performance-Fix für Drag (war "Katastrophe", jetzt flüssig)
+**Hero:** none
+**Tags:** Bugfix, Performance, LiquidGlassSlider, Settings, Framer-Motion
+
+### Why
+
+User: "es ist katastrophe; es ist nicht in echtzeit und auch nicht flüssig!!!! was hast du gemacht?"
+
+In v1.1.1363 hatte ich das LiquidGlassSlider-Component eingeführt, aber 3 kritische Perf-Bugs übersehen die im Original-HTML-Demo nicht auffielen weil dort die onChange-Handler trivial waren (`setHero(v)`). In Production:
+- **Spring-Animation kämpfte gegen den User-Pointer** während Drag
+- **localStorage-Writes auf jedem Frame** (60×/sec) blockierten Main-Thread
+- **Parent-Re-Render der ganzen AppearanceSettingsTab** auf jedem onChange-Tick
+
+### Fix
+
+**1. draggingRef gate für controlled-value sync** in `LiquidGlassSlider.jsx`:
+
+Bei controlled Mode (`value={...}` prop) lief der useEffect auf jeder Prop-Änderung. Während Drag:
+1. User-Pointer setzt `progress.set(p)` instant
+2. onChange feuert → Parent setState → neuer prop `value=X`
+3. useEffect lief und triggerte `animate(progress, X, spring)` — **Spring fightet den User-Drag**
+
+Fix: `draggingRef` checkt vor sync, useEffect bailt während Drag. Nach Drag-Ende läuft sync normal.
+
+**2. setInternalValue removed, aria imperatively updated** — vermeidet React-Render auf jedem Motion-Frame:
+
+```js
+useMotionValueEvent(progress, 'change', (p) => {
+  const v = step ? snap(min + p * range) : (min + p * range);
+  if (trackRef.current) {
+    trackRef.current.setAttribute('aria-valuenow', String(Math.round(v)));
+  }
+  if (v === lastEmittedRef.current) return;
+  lastEmittedRef.current = v;
+  if (!disabled && onChange) onChange(v);
+});
+```
+
+Dragging-state wurde von `useState` auf `useRef` umgestellt — kein Render bei Drag-Start/End. Visual läuft ausschließlich über motion values.
+
+**3. localStorage-Debounce in saveBackgroundSettings + persistPredictiveSetting** (200ms trailing edge):
+
+`updateSystemSettingsSection` macht `localStorage.getItem` + `JSON.parse` + `JSON.stringify` + `localStorage.setItem` des gesamten Settings-Blobs. Synchroner blockierender I/O 60×/sec = mehrere hundert ms Block-Time pro Sek. Drag.
+
+Fix: CSS-Variablen werden weiterhin instant in `applyBackgroundSettings(settings)` gesetzt (Live-Filter-Feedback bleibt). Aber localStorage-Write läuft erst 200ms nach dem letzten Tick → einmaliger Write pro Drag-Operation.
+
+**4. RAF-Throttle für Parent-setState** via neuem `useRafThrottle`-Hook (`src/hooks/useRafThrottle.js`):
+
+Auch ohne localStorage-Write triggert jeder onChange einen Re-Render der gesamten AppearanceSettingsTab (5 Slider + iOS-Scrollbar + AnimatePresence + viele weitere Components). Bei 60+ onChange-Calls/sec überlappten die Renders, der Main-Thread wurde nie idle.
+
+```js
+export function useRafThrottle(callback) {
+  const cbRef = useRef(callback);
+  cbRef.current = callback;
+  const stateRef = useRef({ raf: 0, pending: undefined, hasPending: false });
+  return (value) => {
+    stateRef.current.pending = value;
+    stateRef.current.hasPending = true;
+    if (stateRef.current.raf) return;
+    stateRef.current.raf = requestAnimationFrame(() => { /* ... commit latest only */ });
+  };
+}
+```
+
+Wrappt `setBackgroundSettings`, `setLocalConfidenceThreshold`, `setLocalTimeWindow`, `setLocalMaxSuggestions`. Mehrere Calls innerhalb eines Frames werden zu einem zusammengefasst — max. 1 Re-Render pro Frame statt 60+.
+
+### Architektur am Ende
+
+3-Layer-Update-Strategie für Slider mit teuren Persist/Render-Pfaden:
+
+| Schicht | Frequenz | Beispiel |
+|---|---|---|
+| **Live Visual (instant)** | jeder pointermove | CSS-Variable, motion value |
+| **React State (RAF-throttled)** | max 60×/sec | Label "60%" Update |
+| **Persistenz (debounced)** | 200ms nach last change | localStorage / HA |
+
+Pattern wiederverwendbar für jeden zukünftigen Slider mit Live-Feedback (z.B. CircularSlider in DeviceView).
+
+### Pattern-Lehre
+
+Bei controlled Components mit teuren onChange-Handlern: NIE annehmen dass das Original-Demo-Verhalten in der Production-Umgebung performant ist. Original-HTML-Demos haben oft `setState(v)` als einzigen Side-Effect — Production hat localStorage-Writes, DOM-Mutations, große Parent-Trees. Drei Schichten brauchen drei verschiedene Throttle-Strategien (instant / RAF-throttle / debounce).
+
+---
+
 ## Version 1.1.1363 - 2026-05-01
 
 **Title:** Liquid-Glass-Slider — System.Settings sliders replaced with framer-motion-driven liquid-glass component (smaller size + onChange dedup)
