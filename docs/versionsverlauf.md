@@ -1,5 +1,96 @@
 # Versionsverlauf
 
+## Version 1.1.1359 - 2026-05-01
+
+**Title:** Universal — Select-Picker als Sub-View mit Hakenauswahl + Time-Picker mit TimePickerWheel (analog Schedules)
+**Hero:** none
+**Tags:** Feature, Universal-Builder, Sub-Views, TimePickerWheel
+
+### Why
+
+User: "für select bitte untermenu machen (so wie in system settings) mit hakenauswahl, für time bitte den picker benutzer (so wie bei schedules)"
+
+Inline-`<select>` und `<input type="time">` aus v1.1.1358 funktionierten technisch, sahen aber wie native Browser-Widgets aus statt im iOS-Look. User wollte konsistente UX:
+- Select → Sub-View mit `ios-card`-Liste + ✓ beim aktiven Wert (analog System.Settings Sprach-Picker)
+- Time → eigene Sub-View mit `TimePickerWheel` (analog Schedules)
+
+### Solution
+
+**1. Picker-Sub-View State in `UniversalEntityList`**
+
+```js
+const [pickerEntity, setPickerEntity] = useState(null);
+// null = list view, { type: 'select'|'time', entity_id } = picker open
+
+// Early return wenn Picker offen
+if (pickerEntity?.type === 'select') return <SelectPickerView .../>;
+if (pickerEntity?.type === 'time')   return <TimePickerView .../>;
+```
+
+Wenn ein Picker offen ist, wird die Entity-Liste komplett ersetzt durch die Sub-View — analog System.Settings beim Sprach-Picker.
+
+**2. EntityRow für select/time wird `ios-item-clickable`**
+
+Statt inline `<select>` / `<input type="time">` rendern select+time jetzt einen klickbaren Row mit aktuellem Wert + Chevron rechts:
+
+```jsx
+<motion.div className="ios-item ios-item-clickable" onClick={() => onOpenPicker('select', entity_id)}>
+  <ios-item-label>Wisch-Intensität</ios-item-label>
+  <ios-item-right>
+    <span className="ios-item-value">Hoch</span>
+    <Chevron />
+  </ios-item-right>
+</motion.div>
+```
+
+**3. `<SelectPickerView>` — Hakenauswahl analog Sprach-Picker**
+
+- `.ios-navbar` mit Back-Button + zentriertem Title (entity friendly_name)
+- `.ios-section` "OPTIONEN"
+- `.ios-card` mit `.ios-item-clickable` pro Option
+- ✓ rechts beim aktuellen Wert (iOS-Blue, 20px)
+- Click → `hass.callService('select', 'select_option', {entity_id, option})` → 200ms delay → zurück zur Liste
+
+**4. `<TimePickerView>` — TimePickerWheel mit auto-save**
+
+- `.ios-navbar` mit Back-Button + Title
+- `<TimePickerWheel>` aus `/components/picker/` (selber Component wie ScheduleTab)
+- `format="auto"` (folgt globaler 24h/AM-PM Setting)
+- `minuteStep={1}` (volle Minutenauflösung, nicht 5er-Schritte wie bei Schedules)
+- **Auto-save mit Debounce:** jede onChange → 500ms-Timer → `hass.callService('time', 'set_value', {entity_id, time: 'HH:MM:00'})` (oder `input_datetime.set_datetime` für input_datetime-Domain)
+- Beim Schließen via Back-Button: pending Timer wird sofort durchgeführt + cleanup
+- `lastSavedRef` verhindert duplicate calls
+
+**5. Wide-Control-Mode angepasst**
+
+`isWideControl` enthält jetzt nur noch `number` und `text` — `time` und `select` sind raus weil sie eigene Sub-Views haben (zeitspannen die ganze Höhe statt nur eine Row im Wide-Mode).
+
+### UX-Vergleich
+
+**Vorher (v1.1.1358):**
+- Inline `<select>` Dropdown — natives Browser-Widget
+- Inline `<input type="time">` — natives Browser-Widget
+- Visual-Bruch zur restlichen iOS-Settings-Optik
+
+**Nachher (v1.1.1359):**
+- Select: Tap auf Row → Sub-View slidet rein → Liste der Optionen mit ✓ → Tap → zurück
+- Time: Tap auf Row → Sub-View slidet rein → TimePickerWheel → scrollen → auto-save 500ms nach letztem Wheel-Stop
+- Konsistent mit System.Settings + ScheduleTab
+
+### Files
+
+- `system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx`:
+  - + `pickerEntity` state + `handleOpenPicker`/`handleClosePicker`
+  - + early return für select/time picker sub-views
+  - + `Chevron`/`NavbarBackIcon` Helper-Components
+  - EntityRow: select/time werden zu `ios-item-clickable` mit Chevron, calling `onOpenPicker`
+  - inline `SelectControl` und `TimeControl` Komponenten entfernt (dead code)
+  - + `<SelectPickerView>` Sub-View
+  - + `<TimePickerView>` Sub-View
+  - + Import: `motion` von framer-motion, `TimePickerWheel`
+
+---
+
 ## Version 1.1.1358 - 2026-05-01
 
 **Title:** UniversalEntityList — interaktive Controls für select/number/time/text (vorher nur switch interaktiv, Rest read-only)
