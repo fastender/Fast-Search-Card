@@ -1,5 +1,94 @@
 # Versionsverlauf
 
+## Version 1.1.1346 - 2026-05-01
+
+**Title:** Multi-Instance-Bug behoben — `getEntityByDomain` returnt erstes Match, ID-basierter Lookup nötig (zweites Universal-Device zeigte Daten vom ersten)
+**Hero:** none
+**Tags:** Bugfix, Multi-Instance, SystemEntityLazyView, Critical
+
+### Bug
+
+User-Feedback nach v1.1.1345: "leider noch immer keine lösung (im zweiten gerät werden die werte vom ersten gerät 1:1 übernommen, obwohl beim setup anders angezeigt wird)"
+
+Der `key={item.id}`-Fix in DetailView (v1.1.1345) hatte den richtigen Reflex aber nicht die richtige Wurzel — das Problem lag tiefer.
+
+### Root Cause — `getEntityByDomain` returnt erstes Match
+
+In `SystemEntityLazyView.jsx` (Zeile 23):
+
+```js
+// Get the actual SystemEntity instance from registry
+const entityInstance = systemRegistry.getEntityByDomain(entity.domain);
+```
+
+`getEntityByDomain('universal_device')` returnt die **erste** Entity mit dieser Domain — nicht die zum übergebenen `entity`-prop passende. Wenn 2 Universal-Devices registriert sind, kommt immer Device 1 zurück.
+
+Dann Zeile 104:
+
+```js
+return (
+  <LoadedView
+    entity={entityInstance || entity}  // ← entityInstance gewinnt!
+    ...
+  />
+);
+```
+
+Das LoadedView (UniversalDeviceView) bekommt `entity = entityInstance` — also **immer das erste Universal-Device**, egal welches der User in der Übersicht angeklickt hat. Die `entity`-prop von DetailView wird komplett ignoriert wenn die Registry ein Match findet.
+
+Mein `key={item.id}`-Fix hat zwar Preact zum Remount gezwungen — aber `SystemEntityLazyView` hat dann beim frischen Mount wieder das erste Universal-Device geladen. Daher der Bug-Fix war wirkungslos für Multi-Instance-Devices.
+
+Bei der Setup-Vorschau passierte das nicht, weil `<UniversalPreviewCard>` ohne den `SystemEntityLazyView`-Lookup direkt die config-props verwendet.
+
+### Fix — ID-basierter Lookup
+
+```diff
+- // Get the actual SystemEntity instance from registry
+- const entityInstance = systemRegistry.getEntityByDomain(entity.domain);
++ // ID-Lookup mit Prefix-Strip (entity.id kommt mit 'system.' / 'plugin.' aus toEntity)
++ const internalId = entity?.id?.replace(/^(system|plugin)\./, '');
++ const entityInstance = (internalId && systemRegistry.getEntity(internalId))
++   || systemRegistry.getEntityByDomain(entity.domain);
+```
+
+Logik:
+1. **Erstwahl:** Suche nach exakter ID (`getEntity(internalId)`) — funktioniert für alle Multi-Instance-Devices
+2. **Fallback:** `getEntityByDomain(entity.domain)` für legacy paths / single-instance entities ohne id-mismatch
+
+### Erklärung der Prefix-Strip-Logik
+
+`SystemEntity.toEntity()` packt das prefix drauf:
+```js
+const entityId = this.isPlugin ? `plugin.${this.id}` : `system.${this.id}`;
+return { entity_id: entityId, id: entityId, ... };
+```
+
+Aber die Registry speichert intern OHNE Prefix:
+```js
+this.entities.set(entity.id, entity);  // entity.id = 'universal_xxx_yyy_zzz'
+```
+
+Also vor `getEntity()` Aufruf den Prefix wegmachen.
+
+### Bonus — wirkt für ALLE Multi-Instance-Types
+
+Der Bug betraf nicht nur Universal-Devices. Alle anderen Multi-Instance-System-Entities (Printer3D, EnergyDashboard, Weather) hatten denselben latenten Bug:
+- 2 Bambu-Drucker: zweiter zeigte Daten vom ersten
+- 2 EnergyDashboards: zweites zeigte Daten vom ersten
+- 2 Wetter-Standorte: zweiter zeigte Daten vom ersten
+
+In der Praxis ist das selten aufgefallen weil die meisten User nur 1 Drucker/Dashboard/Wetter haben. Mit Universal kommen jetzt regelmäßig 2+ vor. Der Fix in `SystemEntityLazyView` löst das für alle Types auf einmal.
+
+### Files
+
+- `src/components/SystemEntityLazyView.jsx` — `getEntity(internalId)` mit prefix-strip + `getEntityByDomain` Fallback
+
+### Lehre
+
+`getEntityByDomain` ist explizit "first match by domain" — das war OK für single-instance system-entities (Settings/News/Todos haben nur eine Instanz, ID = Domain). Sobald Multi-Instance-Devices via Integration kamen (Printer3D in v1.1.1192+), war das ein latenter Bug. Universal hat ihn nun ans Licht gebracht.
+
+---
+
 ## Version 1.1.1345 - 2026-05-01
 
 **Title:** Bugfix: zweites Universal-Device zeigte Daten vom ersten — fehlender `key`-prop in DetailView's System-Entity-View
