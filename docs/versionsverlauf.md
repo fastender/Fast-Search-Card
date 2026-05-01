@@ -1,5 +1,83 @@
 # Versionsverlauf
 
+## Version 1.1.1336 - 2026-05-01
+
+**Title:** Universal Builder Edit-Flow — bestehende Devices in-place bearbeiten ohne Remove + Re-Add
+**Hero:** none
+**Tags:** Feature, Universal-Builder, Edit-Flow
+
+### Why
+
+Direkt nach v1.1.1335 (Universal Builder Add-Flow) war klar: jeder User wird nach dem ersten Add sagen "Eigentlich will ich noch X als Strip statt Y, und Z aus der Liste raus." Bisher: Device removen + komplett neu aufsetzen. Schlecht. v1.1.1336 löst das mit einem Edit-Flow direkt aus dem UniversalDeviceView heraus.
+
+### Solution
+
+**1. `IntegrationEntity.updateDevice` — neue Action**
+
+```js
+updateDevice: async function({ deviceId, updates }) {
+  // 1. Persist via deviceConfigStorage
+  // 2. Propagate via entity.updateAttributes() → emittet system-entity-updated
+  //    Event → DataProvider re-rendert die View
+}
+```
+
+Live-entity wird in-place mit den neuen Slots/Name aktualisiert. Kein Re-Mount nötig — die View pickt die neuen Attributes über den Event-Listener auf.
+
+**2. `UniversalSetup` — Edit-Mode**
+
+Zwei neue Props: `mode='add'|'edit'` und `existingDevice`. Im Edit-Mode:
+- Step 1 (Device-Picker) wird übersprungen — Initial-Step ist 2
+- Alle States (heroEntity, stripEntities, allEntities, deviceName) werden aus `existingDevice` prefilled
+- Step-Indicator zeigt nur 2 Steps statt 3
+- Header: "Speichern" statt "Hinzufügen"
+- Final-Submit gibt `{...existingDevice, name, slots, _isEdit: true, _deviceId}` an `onComplete` — Caller erkennt am `_isEdit`-Flag dass es ein Update ist
+
+**3. `UniversalDeviceView` — Settings-Toggle + ViewRefContext**
+
+- Neuer State `editingMode`. Wenn true: rendert UniversalSetup statt der normalen Hero+Strip+List-View
+- `useRegisterViewRef('printer', {...})` registriert die Toolbar-Handler unter dem geteilten `printer`-Key (analog Printer3D + EnergyDashboard)
+- Settings-Button öffnet Edit-Mode, Back-Button im Edit-Mode kehrt zur Normal-View zurück
+- Lazy-Wraps gegen TDZ (siehe v1.1.1333 Lehre): `handleRefresh: (...args) => handleRefresh(...args)`
+
+**4. Reaktivität nach In-Place-Update**
+
+Damit View nach `updateDevice` die neuen Slots zeigt:
+- View hört auf `system-entity-updated` Event von `updateAttributes()`
+- Event mit matchender entity_id → `setUpdateBump(b => b + 1)`
+- `useMemo([entity, hass, updateBump])` re-computed Snapshot
+
+Sauberer als entity-Reference-Wechsel (der nicht garantiert ist) und sauberer als Re-Mount (der View-State zerstören würde).
+
+### UX
+
+```
+Universal-Device öffnen
+  → Settings-Button (Toolbar oben rechts)
+    → UniversalSetup im Edit-Mode (2 Steps statt 3)
+      → Slots umbauen (Hero-Dropdown, Strip-Checkboxes, All-Checkboxes)
+      → "Speichern"
+    → Live-Update der View mit neuen Slots
+```
+
+Cancel-Button im Step 2 (statt "Zurück") und in Step 3 ("Zurück" zu Step 2). Kein Datenverlust falls der User abbricht.
+
+### Files
+
+| File | Change |
+|---|---|
+| `system-entities/entities/integration/index.js` | + `updateDevice` action (~50 LOC) |
+| `system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` | + Edit-Mode (`mode`, `existingDevice` props), Step-Skip, Save-Button-Variant |
+| `system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` | + editingMode-State, useRegisterViewRef, system-entity-updated Listener, Edit-Render-Pfad |
+
+### Was noch offen
+
+- **Layout-Templates** (Vehicle / Appliance / Sensor-Hub) — Phase 3 aus dem Plan
+- **Live-Preview** während Step 2 — zeigt schon eine Mini-Card der ausgewählten Slots
+- **Bulk-Edit** — mehrere Universal-Devices auf einmal umbenennen / Layout wechseln
+
+---
+
 ## Version 1.1.1335 - 2026-05-01
 
 **Title:** Universal Device Builder — generische Karten für JEDES HA-Device (Tesla, Waschmaschine, Smart-Plugs, alles)
