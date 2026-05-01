@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1347 - 2026-05-01
+
+**Title:** Universal Toolbar — Standard-Tab-Icons (Controls/Schedule/History/Context) + Settings, Back/Refresh entfernt
+**Hero:** none
+**Tags:** Feature, Universal-Builder, Toolbar, Visual-Match-Normal-Devices
+
+### Why
+
+User-Wunsch: Universal-Devices sollen die selbe Toolbar haben wie normale Devices (Light, Rolladen) — also die 4 Standard-Tab-Icons (Sun-burst/Clock/Grid/Layers) plus Settings. Back-Button und Refresh sollen weg, weil:
+- Auto-Update läuft sowieso — Refresh überflüssig
+- Back ersetzt durch das erste Tab-Icon (Sun-burst = Controls)
+
+### Solution
+
+**1. UniversalDeviceEntity actionButtons komplett ersetzt**
+
+```diff
+  actionButtons: [
+-   { id: 'back', action: 'back', title: 'Zurück' },
+-   { id: 'refresh', action: 'refresh', title: 'Aktualisieren' },
++   { id: 'controls', action: 'noop', title: 'Steuerung' },
++   { id: 'schedule', action: 'noop', title: 'Plan' },
++   { id: 'history',  action: 'noop', title: 'Verlauf' },
++   { id: 'context',  action: 'noop', title: 'Kontext' },
+    { id: 'settings', action: 'settings', title: 'Einstellungen' },
+  ]
+```
+
+`action: 'noop'` für die 4 Tab-Icons — der `handleActionClick`-Switch in TabNavigation hat keinen Case dafür, also passiert nichts beim Click. Settings funktioniert wie gehabt → öffnet UniversalSetup im Edit-Mode.
+
+**2. TabNavigation `getActionIcon` erweitert** mit 4 neuen Cases (`controls`/`schedule`/`history`/`context`) — die SVGs sind 1:1 die `defaultTabIcons` aus `tabIcons.jsx` (selbe Sun-burst/Clock/Grid/Layers wie bei normalen Devices).
+
+**3. UniversalDeviceView initial activeButton** auf `'controls'` geändert (statt `'overview'`) — sonst hätte das Default-Pattern keine Active-Pill, weil es keinen `'overview'`-Button mehr gibt. Nach Cancel im Edit-Mode springt der active state auch auf `'controls'` zurück.
+
+### UX
+
+Vorher: 3 Buttons in der Toolbar (`<` Back · ↻ Refresh · ⚙ Settings)
+Nachher: 5 Buttons (☀ Controls · ⏱ Schedule · ▦ History · ▢ Context · ⚙ Settings)
+
+Default-active: Controls (ersetzt Back-Button visuell). Sun-burst hat den weißen Pill-Indicator. Nur Settings ist click-funktional, die 4 Tab-Icons sind erstmal nur visuell (Click-Handler kommt später wenn der User die Inhalte definiert).
+
+### Files
+
+| File | Change |
+|---|---|
+| `system-entities/entities/integration/device-entities/UniversalDeviceEntity.js` | actionButtons komplett ersetzt |
+| `components/DetailView/TabNavigation.jsx` | + 4 neue Cases in getActionIcon (controls/schedule/history/context, SVGs aus defaultTabIcons) |
+| `system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` | initial activeButton 'controls' statt 'overview', Cancel-Reset auf 'controls' |
+
+### Was offen
+
+- Click-Handler für die 4 Tab-Icons — User definiert später was beim Click passieren soll (Tab-Inhalte switchen, andere Views, etc.)
+- Wenn die Bottom-Tabs (Steuerung/Sensoren/Diagnose/Sonstiges) später durch Top-Tabs ersetzt werden sollen, wäre das ein weiteres Refactor
+
+---
+
 ## Version 1.1.1346 - 2026-05-01
 
 **Title:** Multi-Instance-Bug behoben — `getEntityByDomain` returnt erstes Match, ID-basierter Lookup nötig (zweites Universal-Device zeigte Daten vom ersten)
