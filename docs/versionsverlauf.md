@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.1345 - 2026-05-01
+
+**Title:** Bugfix: zweites Universal-Device zeigte Daten vom ersten — fehlender `key`-prop in DetailView's System-Entity-View
+**Hero:** none
+**Tags:** Bugfix, Universal-Builder, DetailView, React-Key, Component-Reuse
+
+### Bug
+
+Wenn User zwei Universal-Devices hintereinander anlegt, zeigt das zweite Device die Daten vom ersten (Hero/Tab-Items/Entity-Liste). Im Setup-Wizard ist die Vorschau noch korrekt — der Bug tritt erst auf wenn die fertige Karte gerendert wird.
+
+### Root Cause — Component-Reuse ohne `key`
+
+In `DetailView.jsx` (Zeile 532-555) werden `<SystemEntityLazyView>` und `<ViewComponent>` **ohne `key`-prop** gerendert. Wenn der User von Universal-Device A zu Universal-Device B navigiert, sieht Preact:
+- Selber Component-Type (`UniversalDeviceView`)
+- Selbe Position im VDOM
+- → **Reused die Component-Instanz**, übernimmt nur die neuen `entity`/`hass` props
+
+Die `entity`-prop ist neu, aber **interne Hooks-States überleben den Reuse**:
+- `useState` Werte (z.B. `editingMode`, `activeButton` in UniversalDeviceView)
+- `useRef` Caches (`pendingRef`, `optimisticOverrides` in UniversalEntityList)
+- States in `UniversalControlsTab`: `localPowerState`, `lastBrightness`, `lockState`, `liveEnergyValue`, `currentKwhValue`, `midnightKwhValue`, `expandedControl`, `activePreset`
+- States in `useEntityStateSync` Hook
+
+`useMemo[item, hass]` recomputed zwar (neue `item`-Reference), aber alle State-Werte aus useState/useRef bleiben am ersten Device hängen. Resultat: Tab-Items werden für das neue Device geladen, aber die Pending-Locks, Optimistic-Overrides und Hero-Live-Werte zeigen weiter den ersten Device-Stand.
+
+Bei der Setup-Vorschau passiert das nicht weil `<UniversalPreviewCard>` keinen problematischen internen State hat — sie ist read-only und re-rendered korrekt bei jedem prop-Wechsel.
+
+### Fix
+
+`key={item.id || item.entity_id}` an `<SystemEntityLazyView>` und `<ViewComponent>`. Das zwingt Preact zu **komplettem Unmount + frischem Mount** wenn `item.id` wechselt — alle internen States werden zurückgesetzt.
+
+```diff
+  return (
+    <SystemEntityLazyView
++     key={item.id || item.entity_id}
+      viewLoader={SystemViewComponent}
+      entity={item}
+      ...
+    />
+  );
+```
+
+Identisch für die direkte ViewComponent-Variante. Funktioniert für ALLE System-Entity-Views, nicht nur Universal — auch bei Wechsel zwischen 2 Bambu-Druckern oder 2 Wetter-Standorten. Da diese Bugs vorher vermutlich auch existierten aber selten getestet wurden (man hat normalerweise nur 1 Drucker), waren sie nicht aufgefallen.
+
+### Lehre
+
+**Multi-Instance-System-Entities brauchen unique key.** Single-Instance-Entities wie Settings/News/Todos haben keine zwei Instanzen → kein key nötig. Aber sobald User mehrere von einem Type anlegt (Universal, Printer3D, EnergyDashboard, Weather), MUSS der Wrapper unterscheidbare Keys an die View geben. DetailView macht das jetzt automatisch über `item.id`.
+
+### Files
+
+- `src/components/DetailView.jsx` — `key` prop an beide Render-Pfade
+
+---
+
 ## Version 1.1.1344 - 2026-05-01
 
 **Title:** Universal Builder nutzt jetzt UniversalControlsTab DIREKT — visuell garantiert 1:1 wie Printer3D
