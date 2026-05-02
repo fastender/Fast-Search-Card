@@ -1,5 +1,120 @@
 # Versionsverlauf
 
+## Version 1.1.1367 - 2026-05-02
+
+**Title:** Integration ManagementView — 3 Polish-Fixes (Scrollbar, Hover, Such-Pill)
+**Hero:** none
+**Tags:** Bugfix, UI, Integration, ManagementView
+
+### Why
+
+User-Feedback nach v1.1.1366: "kein customscroll; auch kein hover bei edit, suchleiste auch nicht dunkel wie bei system settings"
+
+Drei Pain-Points im Big-Bang-Re-Skin der Integration:
+1. CustomScrollbar wurde gerendert aber war unsichtbar/funktionslos
+2. Edit-/Trash-Buttons hatten kein wirkungsvolles Hover-Feedback (verschwanden auf weißer Hover-Row)
+3. Such-Feld blendete in den umgebenden ios-card statt sich als eigenes dunkles Pill abzuheben
+
+### Fix
+
+**1. CustomScrollbar — Flex-Chain reparieren**
+
+Mein ManagementView-Wrapper war `<div style={{ position: 'relative' }}>` ohne `display: flex` / `height: 100%`. Damit konnte das innere `<div className="ios-settings-view">` sein `flex: 1; overflow-y: auto` nicht ausspielen — es überflog stattdessen den Container. `scrollRef` zeigte zwar auf das richtige Element, aber `scrollHeight === clientHeight` weil overflow nie aktiviert wurde → CustomScrollbar berechnete Thumb-Höhe = Track-Höhe → unsichtbar.
+
+Fix: Wrapper auf `ios-view-wrapper` umgestellt (das hat `display: flex; flex-direction: column; height: 100%` aus iOSSettingsView.css). `position: relative` als Inline-Style behalten für CustomScrollbar-Anchoring.
+
+```jsx
+<div className="ios-view-wrapper" style={{ position: 'relative' }}>
+  <NavBar ... />
+  <div ref={scrollRef} className="ios-settings-view"> ...
+  <CustomScrollbar scrollContainerRef={scrollRef} isHovered={isHovered} />
+</div>
+```
+
+**2. Hover-States für Action-Buttons**
+
+`.ios-item:hover` schlägt die ganze Row auf weiß (`rgba(255,255,255,0.95)`) plus alle `ios-item-left` SVGs auf schwarz. Aber meine Action-Buttons sind in `ios-item-right` und behielten ihre dark-mode Farben (`background: rgba(255,255,255,0.08)`, `color: rgba(255,255,255,0.7)`) — wurden auf weißer Row unsichtbar.
+
+Fix in IntegrationView.css: doppelte Hover-Pyramide
+
+```css
+@media (hover: hover) {
+  /* Default (dark row): brightern + leicht skalieren */
+  .integration-action-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 1);
+    transform: scale(1.06);
+  }
+  .integration-action-btn-danger:hover {
+    background: rgba(255, 59, 48, 0.22);
+    color: rgb(255, 99, 91);
+  }
+
+  /* Wenn die Row weiß wird, Buttons auf dark-on-light umstellen */
+  .ios-item:hover:not(:active) .integration-action-btn {
+    background: rgba(0, 0, 0, 0.06) !important;
+    color: rgba(0, 0, 0, 0.65) !important;
+  }
+  .ios-item:hover:not(:active) .integration-action-btn:hover {
+    background: rgba(0, 0, 0, 0.12) !important;
+    color: rgba(0, 0, 0, 0.95) !important;
+  }
+  .ios-item:hover:not(:active) .integration-action-btn-danger:hover {
+    background: rgba(255, 59, 48, 0.18) !important;
+    color: rgb(255, 59, 48) !important;
+  }
+}
+```
+
+Buttons sind jetzt in beiden Zuständen klar sichtbar (Edit + Trash), reagieren auf eigenen Hover mit scale + bg-change. Trash hat zusätzlich rote Tint auf hover (success vs destructive Visual-Hierarchie).
+
+Plus: Größe 30→32px für besser klickbare Targets.
+
+**3. Such-Pill statt ios-card-Row**
+
+Vorher saß die Search-Row IN einem ios-section + ios-card (bekam dadurch den hellen `rgba(255,255,255,0.08)`-Card-Background, blendete in die Section).
+
+Jetzt eigenes Pill-Element analog `news-search` aus NewsView.css:
+
+```css
+.integration-search-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  margin-bottom: 18px;
+  background: rgba(0, 0, 0, 0.28);     /* deutlich dunkler als ios-card */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;                  /* Pill-Form */
+}
+.integration-search-pill:focus-within {
+  background: rgba(0, 0, 0, 0.38);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+```
+
+Plus Clear-Button als 18px-runder kleiner Pill (war vorher offene X-Button-only).
+
+JSX-Anpassung: ios-section + ios-card-Wrapper raus, Pill steht direkt im scroll-view:
+
+```jsx
+{showSearch && (
+  <div className="integration-search-pill">
+    <span className="integration-search-icon"><SearchIcon /></span>
+    <input className="integration-search-input" ... />
+    {search && <button className="integration-search-clear"><ClearIcon /></button>}
+  </div>
+)}
+```
+
+### Pattern-Lehren
+
+- **Flex-Chain ist fragil**: ein Wrapper-Div ohne `display: flex` zwischen `ios-view-wrapper` und `ios-settings-view` bricht die overflow-Berechnung. Wenn ein Container `flex: 1` hat, MUSS der Parent-Container `display: flex` mit definierter Höhe haben — sonst ist `flex: 1` no-op und der Inhalt überflog statt zu scrollen.
+- **Action-Buttons in tvOS-Hover-Cards**: globale Row-Hover (white card) + nested action buttons brauchen explizite dark-on-light Override-Regeln. Sonst verschwinden die Buttons in der Hover-Stage.
+- **Search-Field-Position**: Spotlight-Style-Suche (rounded pill, dunkel) gehört NICHT in einen ios-card — eigener Container mit eigenem Background. ios-card ist für strukturierte Settings-Items, nicht für Suchfelder.
+
+---
+
 ## Version 1.1.1366 - 2026-05-02
 
 **Title:** Integration App — Big Bang Re-Skin (iOS-Settings-Pattern + Edit-Action + Suche/Gruppierung + Toasts)
