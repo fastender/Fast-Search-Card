@@ -1,5 +1,101 @@
 # Versionsverlauf
 
+## Version 1.1.1366 - 2026-05-02
+
+**Title:** Integration App — Big Bang Re-Skin (iOS-Settings-Pattern + Edit-Action + Suche/Gruppierung + Toasts)
+**Hero:** none
+**Tags:** Feature, Refactor, Integration, UX, iOS-Settings-Pattern
+
+### Why
+
+User: "F: Big Bang ok"
+
+Die Integration App war seit ihrer Erstauslieferung visuell und strukturell von der restlichen Card abgekoppelt: eigenes Design-System (`integration-category-card`, `integration-management-button`), Emoji-Icons (`🍳`, `🚿`, `🧹`, `☕`, `🧽`), `<h2>`-zentrierte Header statt iOS-Navbar, eigener Bottom-Manage-Button statt Toolbar-Pattern, Edit-Action im Management gar nicht vorhanden, Coming-Soon-Cards die seit v1.1.1325 angezeigt aber nie implementiert wurden, kein Feedback bei Add/Remove. Der User wollte Konsistenz mit dem Rest der Card und volles Polish-Level wie System.Settings.
+
+### Fix — Komplettrenovation der Integration App in 5 Bausteinen
+
+**1. deviceTypeRegistry.js** — SVG-Icons als Single Source of Truth, Coming-Soon entfernt:
+
+```js
+const I = (svgInner) =>
+  `<svg width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">${svgInner}</svg>`;
+
+energy_dashboard: { icon: I('<path d="M13 3L4 14H11L11 21L20 10H13L13 3Z" .../>'), ... }
+printer3d:        { icon: I('<path d="M6 18H4C2.9 18..." .../>'), ... }
+weather:          { icon: I('<path d="M7 18C4.79 18..." .../>'), ... }
+universal:        { icon: I('<path d="M19.5 12.5C18.4 11.4..." .../>'), editable: true }
+```
+
+Plus neuer Helper `isDeviceTypeEditable(typeId)` der Setup-Flow-Edit-Mode-Support reflektiert (aktuell nur Universal — UniversalSetup unterstützt mode='edit' seit v1.1.1336). Coming-soon-Types (oven/dishwasher/vacuum/coffee/shower) komplett raus — Universal deckt alle generischen HA-Devices ab. Vorher 9 Einträge (4 implemented + 5 stubs), jetzt nur die 4 echten.
+
+**2. IntegrationView.jsx** — `ios-settings-container` Pattern + AnimatePresence-Slide-Übergänge zwischen 3 Views (selection/management/setup). Toast-Feedback via `showSuccessToast`/`showInfoToast` bei jedem Add/Remove/Update. Edit-Mode-Tracking via `editingDevice`-State: wenn Setup vom Management aus geöffnet wird, läuft die Setup-Flow mit `mode='edit'` + `existingDevice`-Prop. Back-Navigation respektiert: Setup → Management (im Edit-Flow) bzw. Setup → Selection (im Add-Flow).
+
+```jsx
+const handleEditDevice = (device) => {
+  if (!isDeviceTypeEditable(device.category)) {
+    showInfoToast('Bearbeitung nur über die Geräte-Ansicht möglich');
+    return;
+  }
+  setSelectedCategory(device.category);
+  setEditingDevice(device);
+  setCurrentView('setup');
+};
+```
+
+**3. CategorySelectionView.jsx** — Komplett auf `ios-section/ios-card/ios-item-clickable` umgestellt:
+- Hero-Title (22px) + Subtitle ersetzen den `<h2>Gerät hinzufügen</h2>`-Header
+- Manage-Card als eigene `ios-section` (nur wenn Geräte vorhanden) mit `integration-item-icon-accent` (iOS-Blau)
+- Available-Types als `ios-card` mit allen Items + `ios-divider` zwischen ihnen
+- SVG-Icons aus Registry via `dangerouslySetInnerHTML` (32×32 rounded-square Container, 18×18 SVG inside)
+- Tipp-Footer in `ios-section-footer`: "Mit 'Universal Gerät' lässt sich jedes HA-Gerät einbinden"
+- Vertikales Layout statt Grid — passt iOS-Settings-Pattern besser
+
+**4. ManagementView.jsx** — Größtes Re-Engineering:
+- `ios-navbar` mit Back-Chevron + Title (analog Hintergrund-Sub-View in AppearanceSettings)
+- **Gruppierung nach Device-Type** in eigene `ios-section` pro Type, Header zeigt Type-Label + `· N` Counter
+- **Such-Feld** ab >5 Devices als eigene `ios-card`-Row mit Search-Icon, Input, Clear-Button
+- **Live-Filter** über name/category/serial/deviceType
+- Pro Item: Edit-Button (nur wenn `isDeviceTypeEditable(category)` → aktuell nur Universal) + Trash-Button mit Confirm-Inline (Cancel/Remove) — kein zentriertes Bestätigen-Sheet mehr
+- Empty-State mit großem rounded-square Icon + Titel + Subtitle
+- "Keine Treffer"-State bei leerer Suche
+- Order der Type-Sections folgt deviceTypeRegistry-Reihenfolge (energy_dashboard / printer3d / weather / universal)
+
+**5. CSS** — Alte 343-Zeilen `IntegrationView.css` durch ~140-Zeilen Helper-CSS ersetzt. Layout/Cards/Section-Header kommen jetzt komplett aus `iOSSettingsView.css`. Eigene Klassen nur für Integration-spezifische Elemente:
+- `.integration-hero` / `-title` / `-subtitle`
+- `.integration-item-icon` (32×32 rounded-square mit currentColor-SVG)
+- `.integration-item-icon-accent` (iOS-Blue für Manage-CTA)
+- `.integration-action-btn` (Edit/Remove-Buttons im Item-Row, 30×30, hover-states)
+- `.integration-action-btn-danger` (red-tint hover für Trash)
+- `.integration-confirm-row` (Inline-Cancel+Remove statt Modal)
+- `.integration-search-row/-input/-icon/-clear`
+- `.integration-empty/-icon/-title/-subtitle`
+- `.integration-group-count` (subtle " · N" badge in section-header)
+
+Keine Emojis mehr, keine flache Liste, keine eigenen Card-Backgrounds. Alles via iOS-Settings-Tokens.
+
+### Architektur am Ende
+
+```
+IntegrationView (ios-settings-container + AnimatePresence)
+├── selection      → CategorySelectionView (ios-section pro Card-Group)
+├── management     → ManagementView        (gruppiert + Suche + Edit + Remove)
+└── setup          → SetupComponent aus Registry (mode: 'add' | 'edit')
+```
+
+Edit-Pipeline: Management.onDeviceEdit → IntegrationView.handleEditDevice → SetupComponent mit mode='edit'+existingDevice → SetupComponent.onComplete schickt `_editMode:true`+`_deviceId` zurück → IntegrationView ruft updateDevice statt addDevice → DataProvider event refresh → Toast.
+
+### Was offen bleibt
+
+- **Edit für Printer3D/Weather/EnergyDashboard** — diese Setup-Flows haben aktuell keinen mode='edit'-Support. Edit-Button wird in Management nicht angezeigt; User sieht Toast "Bearbeitung nur über die Geräte-Ansicht möglich". Wenn später gewünscht: 1× Setup-Flow erweitern + `editable: true` im Registry setzen.
+- **Bulk-Operations** (mehrere Geräte gleichzeitig löschen / Layout wechseln)
+- **Sortierung** innerhalb einer Type-Gruppe (aktuell add-order)
+
+### Pattern-Lehre
+
+Wenn ein Sub-System (hier: Integration) sein eigenes Design-System hat das vom Rest der App abweicht, ist Big-Bang-Re-Skin oft schneller als inkrementelle Polish-Runden. Voraussetzung: ein etabliertes Design-Token-System (hier: iOSSettingsView.css mit ios-section/ios-card/ios-item) existiert bereits an einer anderen Stelle. Dann ist die Migration mechanisch — alte Cards/Buttons/Headers durch ios-Klassen ersetzen, Helpers nur für domain-spezifische Elemente (z.B. integration-action-btn) eigenständig halten.
+
+---
+
 ## Version 1.1.1365 - 2026-05-01
 
 **Title:** LiquidGlassSlider — alle 5 verbleibenden nativen `<input type="range">` migriert (Dark-Variante für Device-Views)
