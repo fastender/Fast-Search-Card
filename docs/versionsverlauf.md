@@ -1,5 +1,132 @@
 # Versionsverlauf
 
+## Version 1.1.1368 - 2026-05-03
+
+**Title:** Climate-Bereich Big-Bang-Rewrite — Settings-Picker funktioniert jetzt tatsächlich (Live-State, echte Service-Calls, Auto-Commit) + auto/heat_cool HVAC-Modi
+**Hero:** none
+**Tags:** Bugfix, Feature, Refactor, Climate, ClimateSettingsPicker, deviceConfigs
+
+### Why
+
+Bei Analyse des Climate-Bereichs (User-Wunsch: vor Universal-Layouts erst Climate sauber machen) sind kritische Bugs ans Licht gekommen die seit Erstauslieferung im Code stehen:
+
+1. **Apply-Button machte NICHTS** — `console.log('Climate settings:', ...)` und ein TODO-Kommentar "Here you could call a service to update the climate entity". Keine `hass.callService` calls. User dreht am Wheel, klickt Apply → silently nothing.
+2. **Picker-Optionen hardcodiert** — `FAN_SPEED_OPTIONS = ['Auto', '1', '2', '3', '4', '5']`, hardcoded German `HORIZONTAL_OPTIONS = ['Auto', 'Links', '2', '3', '4', 'Rechts', 'Split', 'Swing']`. Das Device hat aber `attributes.fan_modes` mit gerätespezifischen Werten (Daikin: `['quiet', 'auto', 'high']`, Tado: `['silent', 'medium', 'turbo']`). User sah immer fake values.
+3. **State nicht ans Entity gebunden** — `useState('Auto')` hardcoded. Picker startete IMMER auf "Auto" auch wenn HA-State `fan_mode='high'` war.
+4. **Hardcoded German Service-Werte** — selbst wenn der Apply-Button verkabelt wäre, würde HA `set_swing_mode: { swing_mode: 'Links' }` mit "unknown swing mode" rejecten — HA-Spec ist `'horizontal'`/`'vertical'`/`'both'`/`'off'`.
+5. **HVAC-Modi unvollständig** — nur heat/cool/dry/fan_only, fehlten `auto` und `heat_cool` (typische AC-Modi)
+6. **Kein preset_mode-Support** — eco/sleep/away/comfort/boost komplett fehlend
+7. **DOM-Manipulation per `document.getElementById`** + `picker.animate(...)` — Anti-Pattern in Preact, fragile bei multiple Climate-Devices
+
+### Fix
+
+**1. ClimateSettingsPicker.jsx komplett neu (~290 LOC)**
+
+```jsx
+const stateObj = hass?.states?.[item?.entity_id] || null;
+const attrs = stateObj?.attributes || item?.attributes || {};
+
+// Verfügbare Modi LIVE aus dem Entity (statt hardcoded)
+const fanModes              = attrs.fan_modes              || [];
+const swingModes            = attrs.swing_modes            || [];
+const swingHorizontalModes  = attrs.swing_horizontal_modes || [];
+const presetModes           = attrs.preset_modes           || [];
+const supportsHumidity      = attrs.min_humidity != null && attrs.max_humidity != null;
+
+// Aktuelle Werte LIVE aus dem Entity (statt useState('Auto'))
+const currentFanMode = attrs.fan_mode ?? null;
+// etc.
+```
+
+Architektur:
+- **Main-View**: `ios-section/ios-card` mit einer Row pro unterstütztem Setting (Fan / Swing / Swing-Horizontal / Preset / Humidity). Jede Row zeigt Label + aktuellen Wert + Chevron, klick öffnet Sub-View. Nicht-unterstützte Settings werden NICHT gerendert — kein leerer "Auto"-Picker mehr für Devices ohne fan_modes.
+- **Sub-Views**: AnimatePresence-Slide-Übersetzung (analog UniversalSetup). Jede Sub-View hat Back-Button-Header + zentralen Title + Content (PickerWheel für enum-Werte, LiquidGlassSlider für humidity).
+- **Auto-Commit**: User dreht das Wheel → onChange feuert → 300ms Debounce-Timeout → `hass.callService('climate', 'set_fan_mode', { entity_id, fan_mode })`. Pro Setting eigener Timeout damit verschiedene Settings nicht kollidieren. Pending-Indicator (animierter blauer Punkt) neben dem Wert während Debounce läuft.
+- **Cleanup-Effect** für alle Pending-Timeouts on unmount.
+
+```jsx
+const commitDebounced = (key, fn) => {
+  if (commitTimeoutsRef.current[key]) clearTimeout(commitTimeoutsRef.current[key]);
+  setPending(key);
+  commitTimeoutsRef.current[key] = setTimeout(async () => {
+    delete commitTimeoutsRef.current[key];
+    try { await fn(); } finally {
+      setPending(prev => prev === key ? null : prev);
+    }
+  }, 300);
+};
+```
+
+**2. deviceConfigs.js — auto + heat_cool HVAC-Buttons ergänzt**
+
+Bisher generierte `case 'climate'` nur Buttons für `['heat', 'cool', 'dry', 'fan_only']`. `auto` und `heat_cool` fehlten obwohl typische AC-Modi:
+
+```js
+const hvacModeConfig = {
+  heat:      { icon: hvacModeIcons.heat,    label: t('heating')  },
+  cool:      { icon: hvacModeIcons.cool,    label: t('cooling')  },
+  auto:      { icon: autoIcon,              label: t('auto')     },
+  heat_cool: { icon: heatCoolIcon,          label: t('heatCool') },
+  dry:       { icon: hvacModeIcons.dry,     label: t('drying')   },
+  fan_only:  { icon: hvacModeIcons.fan_only,label: t('fanOnly')  }
+};
+['heat', 'cool', 'auto', 'heat_cool', 'dry', 'fan_only'].forEach(mode => {
+  if (availableHvacModes.includes(mode) && hvacModeConfig[mode]) {
+    hvacButtons.push({ id: `hvac_${mode}`, ... });
+  }
+});
+```
+
+Inline-SVG-Icons für `auto` (sun-circle) und `heat_cool` (thermometer + arrows).
+
+**3. PresetButtonsGroup.jsx — hass an Picker durchreichen**
+
+Vorher: `<ClimateSettingsPicker item={item} lang={lang} />` — Picker hatte nur einen statischen `item.attributes`-Snapshot.
+Jetzt: `<ClimateSettingsPicker item={item} hass={hass} lang={lang} />` — Picker liest live aus `hass.states[entity_id]`, reagiert auf externe State-Changes (Voice-Command, anderes Frontend).
+
+**4. ClimateSettingsPicker.css als eigene Datei (~110 LOC)**
+
+300+ Zeilen inline `<style>{...}</style>` aus dem Component raus. Vorher wurde der Style-Tag bei jedem Mount neu in den DOM injiziert. Jetzt einmal via `import './ClimateSettingsPicker.css'`.
+
+**5. Dependencies**
+
+- `PickerWheel` (existing, für enum-Werte) — onChange feuert auf scroll-end, schon debounced intern
+- `LiquidGlassSlider variant="dark"` (v1.1.1365, für humidity)
+- `createSlideVariants('100%')` für AnimatePresence (analog UniversalSetup Sub-Views)
+- `translateUI('climate.{fanMode|swingMode|presetMode|humidity}')` — Translation-Keys existieren schon in de.js/en.js (Schema unter `climate: { ... }`)
+
+### Was funktional jetzt geht
+
+| Vorher | Jetzt |
+|---|---|
+| Apply-Button → console.log | Auto-Commit nach 300ms via hass.callService |
+| Hardcoded `['Auto','1','2','3','4','5']` | `attrs.fan_modes` aus Entity |
+| Picker startet immer auf "Auto" | Picker startet auf `attrs.fan_mode` |
+| `'Links'`, `'Rechts'` (de) als Service-Wert | echte HA-Werte (`'horizontal'`/`'vertical'`/`'both'`) |
+| Nur Fan/Horizontal/Vertical Picker | Fan + Swing + Swing-Horizontal + Preset + Humidity, dynamisch nur was Device kann |
+| 4 HVAC-Modi (heat/cool/dry/fan_only) | 6 HVAC-Modi (+ auto + heat_cool) |
+| Keine Live-Reactivity | Reagiert auf externe HA-State-Changes |
+| Generic Apply für alle 3 Pickers gleichzeitig | Per-Setting Auto-Commit, jedes Setting eigener Debounce-Timer |
+| Kein preset_mode | preset_mode mit allen Werten aus `attrs.preset_modes` |
+| Kein humidity-Setting | LiquidGlassSlider mit `min_humidity`/`max_humidity` Range |
+
+### Pattern-Lehren
+
+- **Hardcoded options sind ein Smell**: wenn die Option-Liste pro Device variieren KANN, IMMER aus `attrs.{x}_modes` lesen. Hardcoded Listen sind nur OK wenn die Domain wirklich global fixiert ist (z.B. binary states on/off).
+- **Apply-Button vs Auto-Commit**: für single-value Settings (1 Picker = 1 Wert) ist Auto-Commit nach Debounce iOS-konform und User-freundlicher. Apply-Button macht Sinn nur wenn mehrere Werte als atomarer Batch committet werden müssen (z.B. Schedule-Editor).
+- **Live-State-Binding via hass.states**: `item.attributes` ist ein Snapshot vom Mount-Zeitpunkt. Wenn das Entity sich extern ändert (Voice-Command etc.), bleibt der Snapshot stale. Immer durch `hass.states[entity_id].attributes` lesen für reactive UIs.
+- **Per-Setting-Debounce-Map**: bei N parallelen Settings einer Component (Fan + Swing + Preset + Humidity gleichzeitig drag-bar) braucht jedes Setting einen EIGENEN Debounce-Timeout, sonst überschreibt der nächste den ersten und Calls gehen verloren.
+- **Translation-Keys existierten schon**: `de.js` hatte `climate.fanMode`/`swingMode`/`presetMode`/`auto`/`heatCool` bereits — der alte Picker nutzte sie nur nicht weil seine Optionen hardcoded waren.
+
+### Was offen bleibt
+
+- **Cover-Art für media_player** (analog Spotify-Style) — separates Feature, nicht Climate-relevant
+- **Climate-Layout im Universal-Builder** — der ursprüngliche Plan, jetzt zurückgestellt. Mit dem reparierten Climate-Bereich + auto/heat_cool ist der Universal-Climate-Layout später deutlich einfacher (nur "primary climate-Entity finden + UniversalControlsTab routen")
+- **Multi-zone Climate** (mehrere climate.* Entities pro Device) — primary-Entity reicht erstmal
+- **Custom-Service-Calls** (z.B. Mitsubishi-spezifische Schwenk-Modi via `script.*`) — können später als Override-Mechanismus rein
+
+---
+
 ## Version 1.1.1367 - 2026-05-02
 
 **Title:** Integration ManagementView — 3 Polish-Fixes (Scrollbar, Hover, Such-Pill)
