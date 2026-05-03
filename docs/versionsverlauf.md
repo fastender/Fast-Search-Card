@@ -1,5 +1,74 @@
 # Versionsverlauf
 
+## Version 1.1.1370 - 2026-05-03
+
+**Title:** fan-Domain bekommt Buttons (Oscillate + Direction + Preset-Modes + Settings-Picker)
+**Hero:** none
+**Tags:** Feature, Domains, Fan, deviceConfigs
+
+### Why
+
+`fan` hatte nur `getSliderConfig` (Speed-Slider mit Power-Toggle), aber **keine `getControlConfig`** — also keine Buttons. User mit Smart-Fans (Dyson, Vornado, Deckenventilator) konnten weder Schwenken aktivieren noch Preset-Modus (Sleep/Auto/Boost/Natural) wählen, obwohl HA die Services dafür hat (`fan.oscillate`, `fan.set_preset_mode`, `fan.set_direction`).
+
+### Fix
+
+**1. `getControlConfig('fan')` ergänzt** (~75 LOC). Buttons werden DYNAMISCH generiert je nach Capability:
+
+| Attribute | Button |
+|---|---|
+| `attributes.oscillating !== undefined` | Oscillate-Toggle (active wenn schwenkt, klick → `fan.oscillate` mit invertiertem Wert) |
+| `attributes.direction !== undefined` | Direction-Toggle (forward ↔ reverse, label zeigt aktuelle Richtung, klick → `fan.set_direction`) |
+| `attributes.preset_modes` | bis zu 3 Buttons direkt (active je nach `preset_mode`), klick → `fan.set_preset_mode` |
+| `preset_modes.length > 3` | + Settings-Button öffnet FanSettingsPicker |
+
+Wenn ein "plain fan" nur `percentage` kann (kein Oscillate, kein Direction, keine Presets) → `primary: []`. User hat den Slider und das ist genug. Kein leerer Buttons-Container.
+
+**2. `FanSettingsPicker.jsx`** (~150 LOC, neue Datei). Identisches Pattern zu HumidifierSettingsPicker / VacuumSettingsPicker — copy-paste mit anderem service-call. Zeigt Preset-Mode-Picker mit allen `preset_modes`. Pattern komplett etabliert: Live-State, Auto-Commit nach 300ms, ios-section/ios-card Main-View, AnimatePresence Sub-View mit PickerWheel, Pending-Pulse.
+
+CSS wieder aus `ClimateSettingsPicker.css` — keine eigene Datei nötig.
+
+**3. `PresetButtonsGroup.jsx`** wired:
+
+```jsx
+group.id === 'settings' && item?.domain === 'fan' ? (
+  <FanSettingsPicker item={item} hass={hass} lang={lang} />
+) : ...
+```
+
+**4. Translations** in de.js + en.js (controls):
+- `oscillate`/`forward`/`reverse`/`preset`
+
+### Verification — 3 Test-Szenarien
+
+| Szenario | Erwartung | Live-Eval |
+|---|---|---|
+| **Dyson** (oscillate + 4 Presets) | oscillate + 3 Preset-Buttons + Settings | ✅ 5 Buttons: `oscillate, preset_auto, preset_sleep, preset_natural, settings`, preset_auto active |
+| **Deckenventilator** (direction + 2 Presets) | direction + 2 Preset-Buttons, kein Settings | ✅ 3 Buttons: `direction, preset_breeze, preset_whoosh`, label="Vorwärts" |
+| **Plain Fan** (nur percentage) | 0 Buttons | ✅ `primary: []` |
+
+### Status der Domain-Inventur jetzt
+
+| Domain | getControl | getSlider | Picker | Status |
+|---|---|---|---|---|
+| light | ✅ | ✅ | – | ok |
+| climate | ✅ (+auto+heat_cool) | ✅ | ✅ ClimateSettingsPicker | rich |
+| media_player | ✅ | ✅ | – | basic (kein Cover-Art) |
+| lock | ✅ | ✅ | – | ok |
+| cover | ✅ | – | – | basic |
+| fan | ✅ NEU | ✅ | ✅ FanSettingsPicker NEU | rich |
+| humidifier | ✅ | ✅ | ✅ HumidifierSettingsPicker | rich |
+| vacuum | ✅ | ✅ | ✅ VacuumSettingsPicker | rich |
+
+**4 Domains laufen jetzt nach dem Climate-Pattern**: Climate / Humidifier / Vacuum / Fan. Pattern-Reuse-Faktor: Settings-Picker je ~150 LOC, alle teilen sich `ClimateSettingsPicker.css`.
+
+### Was als nächstes Sinn macht
+
+- **media_player** auf das Niveau bringen — Cover-Art-Hero + Sound-Mode-Picker + Shuffle/Repeat
+- **cover** ausbauen — getSliderConfig fehlt (aktuell nur Position-Buttons), Position-Slider wäre intuitiver
+- **Universal-Layouts** — durch climate/humidifier/vacuum/fan jetzt deutlich einfacher (alle sind reguläre Domains)
+
+---
+
 ## Version 1.1.1369 - 2026-05-03
 
 **Title:** humidifier + vacuum Domains neu — komplett implementiert (Hero-Slider + Buttons + Settings-Picker)
