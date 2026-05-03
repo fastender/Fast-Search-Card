@@ -1,5 +1,133 @@
 # Versionsverlauf
 
+## Version 1.1.1369 - 2026-05-03
+
+**Title:** humidifier + vacuum Domains neu — komplett implementiert (Hero-Slider + Buttons + Settings-Picker)
+**Hero:** none
+**Tags:** Feature, Domains, Humidifier, Vacuum, deviceConfigs
+
+### Why
+
+Bei der Domain-Inventur nach Climate-Big-Bang (v1.1.1368) zwei kritische Lücken gefunden:
+
+| Domain | getControl | getSlider | Picker | Status |
+|---|---|---|---|---|
+| **humidifier** | ❌ | ❌ | ❌ | komplett fehlend |
+| **vacuum** | ❌ | ❌ | ❌ | komplett fehlend |
+
+Wenn der User direkt einen `humidifier.bautrockner` oder `vacuum.roborock` aus der Geräte-Liste öffnete, kam der generic-Fallback (leere Buttons-Reihe, kein Hero, keine Funktion). Beide gehören zu den häufigsten Smart-Home-Devices die User erwarten.
+
+### Fix — beide Domains gebaut analog Climate-Pattern
+
+**1. `homeAssistantService.js`** — humidifier-Service-Definitionen ergänzt (vacuum war schon da):
+
+```js
+humidifier: {
+  turn_on:  { parameters: [] },
+  turn_off: { parameters: [] },
+  toggle:   { parameters: [] },
+  set_humidity: { parameters: ['humidity'] },
+  set_mode:     { parameters: ['mode'] },
+}
+```
+
+**2. `deviceConfigs.js` — `getControlConfig` für humidifier**
+
+Erste Reihe = Power-Toggle, danach Mode-Buttons aus `attributes.available_modes` (max 4, Rest im Settings-Picker). Settings-Button öffnet HumidifierSettingsPicker:
+
+```js
+const buttons = [
+  { id: 'power', icon: hvacModeIcons.off, action: state==='on'?'turn_off':'turn_on', active: state==='on' },
+  ...availableModes.slice(0, 4).map(mode => ({
+    id: `mode_${mode}`, icon: ..., action: 'set_mode', data: { mode },
+    active: currentMode === mode,
+  })),
+  { id: 'settings', icon: controlIcons.settings_climate, expandable: true },
+];
+```
+
+**3. `deviceConfigs.js` — `getControlConfig` für vacuum**
+
+5 Buttons je nach State: Start/Pause (toggle wenn cleaning), Stop, Return-to-Base, Locate, Settings (nur wenn `fan_speed_list` vorhanden). Inline-SVG-Icons für die 4 Buttons (Stop = solid square, Dock = Haus, Locate = concentric circles).
+
+```js
+const startPauseButton = state === 'cleaning'
+  ? { id: 'pause', icon: controlIcons.pause, action: 'pause' }
+  : { id: 'start', icon: controlIcons.play, action: 'start' };
+```
+
+**4. `deviceConfigs.js` — `getSliderConfig` für humidifier**
+
+Hero zeigt Target-Humidity-Dial mit Range aus `min_humidity`/`max_humidity`, Color `#3DB8E5` (water-blue), `current_humidity` im subValue, showPower mit echtem `state==='on'`. Wenn aus → grau + readOnly + progressMode.
+
+**5. `deviceConfigs.js` — `getSliderConfig` für vacuum**
+
+Hero zeigt Battery-Donut mit State-Aware-Color (rot < 20%, orange < 50%, grün >= 50%), `displayValue` ist der State-Text (`'Reinigt'`/`'Geparkt'`/`'Pausiert'`/...) übersetzt via `t('vacuum_${state}')`, `subValue` = Battery-%. Nicht-interaktiv (Battery ist read-only, Steuerung läuft über Buttons).
+
+**6. `sliderHandlers.js`** — humidifier-Handler ergänzt (vacuum hat keinen Slider-Handler weil read-only):
+
+```js
+humidifier: (item, value, ..., handleServiceCall) => {
+  const humidity = Math.round(value);
+  if (item.attributes) item.attributes.humidity = humidity;
+  handleServiceCall('set_humidity', { humidity });
+}
+```
+
+**7. `HumidifierSettingsPicker.jsx`** (~150 LOC, neue Datei)
+
+Settings = Mode-Picker für ALLE `available_modes` (auch die nicht als Buttons rendern weil > 4). Pattern 1:1 von ClimateSettingsPicker (v1.1.1368): ios-section/ios-card/ios-item-clickable Main-View, AnimatePresence Sub-View mit PickerWheel, Auto-Commit nach 300ms via `hass.callService('humidifier', 'set_mode', { mode })`. Pending-Indicator-Pulse.
+
+CSS-Wiederverwendung: `import '../climate/ClimateSettingsPicker.css'` — alle `.csp-*` Helper-Klassen sind generisch, keine Climate-spezifika.
+
+**8. `VacuumSettingsPicker.jsx`** (~150 LOC, neue Datei)
+
+Settings = Fan-Speed-Picker aus `fan_speed_list`. Service: `hass.callService('vacuum', 'set_fan_speed', { fan_speed })`. Auto-Commit-Debounce 300ms. Sonst identisch zum HumidifierSettingsPicker.
+
+**9. `PresetButtonsGroup.jsx`** — beide neuen Pickers wired:
+
+```jsx
+{group.renderCustom && group.id === 'settings' && item?.domain === 'climate'    ? <ClimateSettingsPicker    .../> :
+ group.renderCustom && group.id === 'settings' && item?.domain === 'humidifier' ? <HumidifierSettingsPicker .../> :
+ group.renderCustom && group.id === 'settings' && item?.domain === 'vacuum'     ? <VacuumSettingsPicker     .../> :
+ ...}
+```
+
+**10. Translations** in de.js + en.js (controls-section):
+
+- `start`/`returnToBase`/`locate` für vacuum buttons
+- `targetHumidity` für humidifier slider label
+- `vacuum_cleaning/docked/paused/idle/returning/error/unknown` für vacuum state-text im displayValue
+- `mode` für Mode-Picker-Label
+
+### Verification
+
+Live-Eval im Dev (mit synthetic state-objects):
+
+| Test | Ergebnis |
+|---|---|
+| `getControlConfig({ domain:'humidifier', attrs:{available_modes:['normal','eco','baby']}, state:'on' })` | 5 Buttons: power, mode_normal, mode_eco, mode_baby, settings ✅ |
+| `getControlConfig({ domain:'vacuum', attrs:{fan_speed_list:['quiet','balanced','turbo']}, state:'cleaning' })` | 5 Buttons: pause, stop, return_to_base, locate, settings ✅ |
+| `getSliderConfig` humidifier on | label='Ziel-Feuchte', color=#3DB8E5, subValue='Luftfeuchtigkeit: 45%' ✅ |
+| `getSliderConfig` vacuum cleaning, battery=65 | color=#30D158 (grün), displayValue='Reinigt', subValue='65%' ✅ |
+| Picker-Module-Imports | OK, keine Console-Errors ✅ |
+
+### Pattern-Lehren
+
+- **Domain-Pattern hat sich etabliert**: Climate-Picker → Humidifier-Picker → Vacuum-Picker waren jeweils ~150 LOC mit dem gleichen Skelett (live attrs, ios-section, sub-view, debounce, callService). Das Skelett ist jetzt copy-paste-fähig für jede künftige Domain (alarm_panel, water_heater, etc.).
+- **CSS-Wiederverwendung über Domains**: ClimateSettingsPicker.css mit den `.csp-*`-Klassen ist domain-agnostisch und wird jetzt von 3 Pickers gemeinsam genutzt. Bei zukünftigen Pickers einfach `import '../climate/ClimateSettingsPicker.css'`.
+- **Service-Definition ist optional aber gut**: homeAssistantService.js's Domain-Map ist nicht streng nötig (hass.callService klappt direkt), aber dokumentiert die unterstützten Services und Parameters für Schedule-Editor + Suggestion-Engine.
+- **State-Aware Color-Mapping** (Battery rot<20% / orange<50% / grün): konsistente Visual-Hierarchie über Domains hinweg (Climate hat Temperatur-Color, Vacuum hat Battery-Color, Humidifier hat fixe Water-Blau-Color).
+
+### Was offen bleibt
+
+- **media_player Cover-Art Hero** (separates Feature)
+- **fan-Domain Buttons** (aktuell nur Slider, keine Preset/Oscillation/Direction Buttons)
+- **Universal-Layouts** (climate/media_player/dehumidifier/vacuum) — der ursprüngliche Plan, deutlich einfacher jetzt da humidifier + vacuum als reguläre Domains existieren
+- **vacuum-Map-Display** (Roborock-Map als Bild) — komplexes Feature, später
+
+---
+
 ## Version 1.1.1368 - 2026-05-03
 
 **Title:** Climate-Bereich Big-Bang-Rewrite — Settings-Picker funktioniert jetzt tatsächlich (Live-State, echte Service-Calls, Auto-Commit) + auto/heat_cool HVAC-Modi
