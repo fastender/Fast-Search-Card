@@ -1,5 +1,138 @@
 # Versionsverlauf
 
+## Version 1.1.1371 - 2026-05-03
+
+**Title:** media_player Big-Bang — Cover-Art Hero + Title/Artist + Shuffle/Repeat + Source/Sound-Mode-Picker
+**Hero:** none
+**Tags:** Feature, Domains, MediaPlayer, deviceConfigs, CircularSlider
+
+### Why
+
+`media_player` war funktional aber visuell + Feature-mäßig spartanisch:
+- **Hero zeigte 75%-Volumen-Zahl groß** statt Cover-Art / Track-Info — kein Apple-Music-Feeling
+- **Source-Picker als inline 8er-Liste** mit 📻-Emoji-Icons — bricht bei Sonos/Plex (oft 15+ Quellen) und sieht primitiv aus
+- **Shuffle und Repeat fehlten komplett** obwohl HA `attributes.shuffle` + `attributes.repeat` und `shuffle_set`/`repeat_set` Services hat
+- **Sound-Mode (`sound_mode_list`) fehlte** — relevant für Receiver/Soundbars (Movie/Music/Night/Voice)
+
+### Fix
+
+**1. CircularSliderDisplay — `coverImage`-Prop neu** (~25 LOC)
+
+Optional URL eines Cover-Bildes. Wird als 60-80px circular-cropped Element ÜBER dem Title gerendert. Hat Vorrang vor `centerIcon` (legacy fallback). Subtile box-shadow + 1px white border für Tiefe.
+
+```jsx
+{coverImage && (
+  <motion.div
+    className="circular-cover-image"
+    style={{
+      width: size < 200 ? '60px' : '80px',
+      height: ...,
+      borderRadius: '50%',
+      backgroundImage: `url("${coverImage}")`,
+      backgroundSize: 'cover',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)',
+    }}
+  />
+)}
+```
+
+CircularSlider bekommt `coverImage`-Prop und reicht durch zu CircularSliderDisplay. UniversalControlsTab spreaded `{...sliderConfig}` → coverImage geht automatisch durch sobald sliderConfig es enthält. Keine weitere Wiring nötig.
+
+**2. `getSliderConfig('media_player')` rewrite**
+
+Volume bleibt als Slider-Value (Drag setzt Lautstärke). Aber Center zeigt jetzt:
+
+```js
+displayValue = isActive && mediaTitle      // "Bohemian Rhapsody"
+subValue    = isActive && mediaArtist      // "Queen"
+coverImage  = isActive ? coverUrl : null   // /api/media_player_proxy/...
+```
+
+Wenn idle/standby/off: displayValue zeigt State-Text statt Title. Cover wird nicht gerendert (verhindert stale Cover bei Pause).
+
+URL-Resolving: HA-`entity_picture` ist typisch `/api/media_player_proxy/...` (relativ). Prefixe mit `window.location.origin` damit das Bild im Browser auflöst:
+
+```js
+let coverUrl = attributes.entity_picture || attributes.media_image_url || null;
+if (coverUrl?.startsWith('/') && typeof window !== 'undefined') {
+  coverUrl = window.location.origin + coverUrl;
+}
+```
+
+`showUnit: !displayValue` — Volume-% nur zeigen wenn KEIN Title gerendert wird (sonst doppelt belegt).
+
+**3. `getControlConfig('media_player')` erweitert**
+
+Vorher: 4 Buttons fest (play, prev, next, source-expandable mit inline-Liste).
+Jetzt: dynamisch je nach Capability.
+
+| Attribute | Button |
+|---|---|
+| Always | Play/Pause (toggle nach state), Previous, Next |
+| `attributes.shuffle !== undefined` | Shuffle-Toggle (aktiv wenn `shuffle === true`, klick → `shuffle_set { shuffle: !current }`) |
+| `attributes.repeat !== undefined` | Repeat-Cycle (off → all → one → off, Icon ändert sich für "one"-mode mit "1" eingebaut) |
+| `source_list.length > 0 \|\| sound_mode_list.length > 0` | Settings-Button öffnet MediaPlayerSettingsPicker |
+
+Source ist nicht mehr inline — das skalieren die alten 8 Slots nicht (Sonos/Plex haben oft 15+). Settings-Picker zeigt alle.
+
+**4. `MediaPlayerSettingsPicker.jsx`** (~190 LOC, neue Datei)
+
+Pattern komplett identisch zu Climate/Humidifier/Vacuum/Fan. ios-section/ios-card Main-View mit 1-2 Rows (Source / Sound-Mode), Sub-View pro Row mit PickerWheel, Auto-Commit nach 300ms via `hass.callService('media_player', 'select_source'|'select_sound_mode', ...)`.
+
+Sources werden NICHT prettified — `'Spotify'`, `'Radio Eins'` sind schon korrekt formattiert von HA.
+
+CSS aus `ClimateSettingsPicker.css` wiederverwendet (5 Pickers teilen sich jetzt diese Datei).
+
+**5. `PresetButtonsGroup.jsx`** wired:
+
+```jsx
+group.id === 'settings' && item?.domain === 'media_player'
+  ? <MediaPlayerSettingsPicker item={item} hass={hass} lang={lang} />
+  : ...
+```
+
+**6. Translations** in de.js + en.js (controls):
+- `shuffle`/`repeat`/`repeatAll`/`repeatOne`/`soundMode`/`idle`
+
+### Verification — Live-Eval mit Sonos-Sample
+
+Test-Item: `Sonos Living Room` playing Spotify, shuffle=on, repeat=all, 5 sources, 4 sound-modes.
+
+| Test | Ergebnis |
+|---|---|
+| `getControlConfig` Buttons | ✅ play, previous, next, shuffle (active), repeat (active), settings |
+| `getControlConfig` expandable | ✅ `[{id: 'settings'}]` mit renderCustom |
+| `getSliderConfig` displayValue | ✅ `'Bohemian Rhapsody'` |
+| `getSliderConfig` subValue | ✅ `'Queen'` |
+| `getSliderConfig` coverImage | ✅ absolut prefixed: `'http://localhost:5173/api/media_player_proxy/...'` |
+| `getSliderConfig` showUnit | ✅ false (weil displayValue gesetzt) |
+| `getSliderConfig` value | ✅ 65 |
+| Idle device displayValue | ✅ `'Bereit'` (i18n), coverImage null |
+| MediaPlayerSettingsPicker import | ✅ |
+
+### Domain-Status nach dieser Runde
+
+| Domain | getControl | getSlider | Picker | Hero-Special |
+|---|---|---|---|---|
+| light | ✅ | ✅ | – | – |
+| climate | ✅ | ✅ | ✅ | Temperatur-Color |
+| **media_player** | ✅ erweitert | ✅ neu | ✅ neu | **Cover-Art neu** |
+| lock | ✅ | ✅ | – | – |
+| cover | ✅ | – | – | – |
+| fan | ✅ | ✅ | ✅ | – |
+| humidifier | ✅ | ✅ | ✅ | – |
+| vacuum | ✅ | ✅ | ✅ | Battery-Color |
+
+5 Domains mit reichem Settings-Picker (Climate / Humidifier / Vacuum / Fan / MediaPlayer), alle teilen sich `ClimateSettingsPicker.css`. media_player + climate + vacuum haben Hero-Specials (Cover-Art / Temperature-Color / Battery-Color).
+
+### Was als nächstes Sinn macht
+
+- **cover** — `getSliderConfig` fehlt (nur Position-Buttons, kein interaktiver Slider)
+- **Universal-Layouts** (climate/media_player/dehumidifier/vacuum) — alle Domains sind jetzt regulär implementiert, das Universal-Layout-System wäre nur noch ein Routing-Wrapper
+- **Cover-Art Background** des gesamten Detail-Views (nicht nur als kleiner Center-Circle) — größere visuelle Aufwertung à la Apple Music
+
+---
+
 ## Version 1.1.1370 - 2026-05-03
 
 **Title:** fan-Domain bekommt Buttons (Oscillate + Direction + Preset-Modes + Settings-Picker)
