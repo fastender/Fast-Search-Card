@@ -1,5 +1,134 @@
 # Versionsverlauf
 
+## Version 1.1.1372 - 2026-05-03
+
+**Title:** cover-Domain Position-Slider als Hero + Cover-Art-Background für media_player (Apple-Music-Style)
+**Hero:** none
+**Tags:** Feature, Domains, Cover, MediaPlayer, DetailView
+
+### Why
+
+Zwei separate Polish-Items aus der Domain-Inventur:
+
+1. **cover-Domain**: hatte zwar Buttons (open/stop/close + Position-Presets), aber **keinen interaktiven Position-Slider als Hero** — User mit Smart-Rolladen konnten nicht einfach drag-to-position. Hero zeigte einen statischen lila Donut mit der Zahl.
+2. **media_player**: hatte nach v1.1.1371 zwar Cover-Art im Center-Circle (klein), aber das volle "Apple-Music"-Feeling fehlte — die ganze Detail-View hätte den Cover-Art als blurred Background haben können.
+
+### Fix
+
+#### Phase 1 — cover Position-Slider (~30min)
+
+`getSliderConfig('cover')` — Position als Hero mit State-Aware-Color:
+
+```js
+const currentPos = attributes.current_position;  // 0=closed, 100=open
+let position;
+if (typeof currentPos === 'number')      position = currentPos;
+else if (state === 'open')               position = 100;
+else if (state === 'closed')             position = 0;
+else                                     position = 50;
+
+const color = isMoving ? '#FF9500'      // orange wenn opening/closing
+            : position > 0 ? '#FFD60A'  // gold wenn offen
+            : '#9E9E9E';                // grau wenn zu
+
+return {
+  value: position,
+  displayValue: isOpening ? 'Öffnet…' : isClosing ? 'Schließt…' : null,
+  color,
+  showPower: false,                         // Cover hat kein on/off
+  interactive: typeof currentPos === 'number',  // nur draggable bei Position-Support
+  progressMode: typeof currentPos !== 'number', // ohne Position-Support nur Progress-View
+  readOnly: typeof currentPos !== 'number',
+};
+```
+
+Cover-Slider-Handler in `sliderHandlers.js` existierte bereits — ruft `set_cover_position`. Drag funktioniert aus dem Stand.
+
+**Bug während der Arbeit:** Es existierte bereits ein simpler `case 'cover'` (lila #9C27B0, ohne State-Logic) — JavaScript switch greift den ERSTEN matching case → mein neuer am Ende wurde nie erreicht. Den alten ersetzt, dann kicked die neue Logic ein.
+
+3 Test-Szenarien live verifiziert:
+- Position-Cover (65%, open) → gold, interactive ✅
+- Binary-Cover (kein current_position) → grau, readOnly + progressMode ✅
+- Opening (30%) → orange, displayValue "Öffnet…", kein % ✅
+
+#### Phase 2 — Cover-Art Background für media_player (~1h)
+
+Erweiterung der `detail-left`-Background-Layer in `DetailView.jsx`. Bisher gab es:
+- `.detail-left-video-background` (für system-entities mit video)
+- `.detail-left-news-image` (für news-articles)
+
+Neu: `.detail-left-cover-art` für media_player im playing/paused-State.
+
+**JSX in DetailView.jsx**:
+
+```jsx
+let mediaCoverUrl = null;
+if (liveItem?.domain === 'media_player' && (liveItem.state === 'playing' || liveItem.state === 'paused')) {
+  let url = liveItem.attributes?.entity_picture || liveItem.attributes?.media_image_url || null;
+  if (url?.startsWith('/') && typeof window !== 'undefined') {
+    url = window.location.origin + url;
+  }
+  mediaCoverUrl = url;
+}
+const hasMediaCover = !!mediaCoverUrl;
+
+<div className={`detail-left ${hasMediaCover ? 'has-cover-art' : ''}`}>
+  ...
+  {hasMediaCover && (
+    <img className="detail-left-cover-art" src={mediaCoverUrl} alt="" />
+  )}
+
+  <EntityIconDisplay
+    ...
+    hideIcon={!!newsArticleImageUrl || hasMediaCover}  /* Icon weg, Cover IST das Visual */
+  />
+</div>
+```
+
+**CSS in DetailView.css**:
+
+```css
+.detail-left-cover-art {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 35px 0 0 35px;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(40px) brightness(0.55) saturate(1.15);
+  transform: scale(1.15);  /* leichter Overflow weil blur die Kanten beschneidet */
+  animation: cover-art-fade-in 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+}
+```
+
+**Scope-Isolation**: bewusst getrennt von User-konfigurierbarem `--background-blur`/`--background-brightness` (aus AppearanceSettings → Hintergrund) — der Cover-Art-Effekt (blur 40px, brightness 0.55, saturate 1.15) kommt ON TOP, beeinflusst nicht die globalen Background-Filter und wird auch nicht von ihnen beeinflusst (eigener Layer).
+
+**Image-Quality-Optimierung**: Bei einem 60×60px-Cover-Thumbnail würde 40px-Blur extrem pixelig aussehen. Browser handhabt das mit der `transform: scale(1.15)` + großen Radius-Blur akzeptabel — der unscharfe Effekt versteckt die Pixel-Quelle. Bei 600×600px+ Covern (typisch von Spotify/Apple-Music via HA-Proxy) sieht es perfekt aus.
+
+**Cleanup**: bei Pause/Idle/Off keine Cover-Art mehr (nur `playing` + `paused` triggern). Bei Wechsel des Tracks: `key={mediaCoverUrl}` triggert Remount → fade-in-Animation läuft wieder, smooth crossfade ohne Flackern.
+
+### Status
+
+| Domain | getControl | getSlider | Picker | Hero-Special |
+|---|---|---|---|---|
+| light | ✅ | ✅ | – | – |
+| climate | ✅ | ✅ | ✅ | Temperatur-Color |
+| media_player | ✅ | ✅ | ✅ | **Cover-Art-Center + Cover-BG** ✨ |
+| lock | ✅ | ✅ | – | – |
+| **cover** | ✅ | ✅ NEU | – | **State-Color (gold/orange/grau) + interactive Position** |
+| fan | ✅ | ✅ | ✅ | – |
+| humidifier | ✅ | ✅ | ✅ | – |
+| vacuum | ✅ | ✅ | ✅ | Battery-Color |
+
+Domain-Inventur jetzt vollständig — alle 8 Standard-HA-Domains haben Hero + Buttons + (wo sinnvoll) Settings-Picker.
+
+### Was offen bleibt
+
+- **Universal-Layouts** (climate/media_player/dehumidifier/vacuum) — ursprüngliche Vision, weiter zurückgestellt. Bleibt als nächste große Iteration.
+- **Cover-Art Hero-Mode für media_player auf MOBILE** — die kleine 60×60-cover im Slider-Center könnte auf Mobile durch das Cover-BG ersetzt werden (redundant)
+
+---
+
 ## Version 1.1.1371 - 2026-05-03
 
 **Title:** media_player Big-Bang — Cover-Art Hero + Title/Artist + Shuffle/Repeat + Source/Sound-Mode-Picker
