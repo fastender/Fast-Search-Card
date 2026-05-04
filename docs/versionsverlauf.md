@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1377 - 2026-05-04
+
+**Title:** 🧹 Dead-Code Cleanup — 4 Rounds, ~3800 LOC removed across system-entities, demo-plugins, and components
+**Hero:** none
+**Tags:** Refactor, Cleanup, DeadCode, Maintenance
+
+### Why
+
+After v1.1.1374's plugin-infrastructure removal (`isInitialized`-tot since v1.1.1323) and the recent split-files migrations, a lot of dead scaffolding remained — orphan files, unused exports, broken barrels, and a 1892-line `.backup` file. This sweep removed all of it without changing any user-facing behavior.
+
+### What changed (4 cleanup rounds)
+
+**Round 1 — system-entities/ deletions + dead-method strip (-861 LOC, -3 files)**
+
+- `system-entities/integration/DataProviderIntegration.js` (146 LOC, doc-stub never imported)
+- `system-entities/integration/DetailViewIntegration.jsx` (285 LOC, doc-stub never imported)
+- `system-entities/utils/SimplePluginLoader.js` (111 LOC, dead since plugin-store removal)
+- `registry.js`: 8 dead methods + plugin-storage maps + `window.debugRegistry` (508 → ~390 LOC)
+- `SystemEntity.js`: 6 dead methods (`getRoute`, `hasPermission`, `loadView`, `getContext`, `clone`, `toJSON`) + `pluginManifest` + `_config` (378 → ~270 LOC)
+- Stripped redundant `export` keywords from internal-only helpers in `iconCatalog.js`, `universalRenderHelpers.js`, `entityGrouping.js`, `energyDashboardCalculations.js`
+
+**Round 2 — system-entities/ wrappers + comment cleanup (-109 LOC, -2 files)**
+
+- `registry.js`: 30-LOC commented-out "Strategy 2" glob-discovery block removed
+- `todos/TodoAddDialog.jsx` (35 LOC) — pass-through wrapper, inlined into `TodosView.jsx`
+- `todos/TodoDetailView.jsx` (35 LOC) — pass-through wrapper, inlined into `TodosView.jsx`
+
+**Round 3 — demo-plugins/ removal (-602 LOC, -5 files)**
+
+The `src/demo-plugins/hello-world/` directory was the demo for the long-dead Plugin Store. Zero imports anywhere in `src/`, zero references in build configs.
+
+**Round 4 — components/ deletions + dead exports (-2224 LOC, -2 files)**
+
+- `tabs/ScheduleTab.jsx.backup` (1892 LOC) — pre-refactor monolith
+- `controls/CircularIcon.jsx` (105 LOC) — null external imports
+- `SearchField/hooks/index.js` (6 LOC) — broken barrel referencing files that don't exist
+- `WeatherIcons.jsx`: removed dead default-export + unused `getTemperatureTrend` + unused `TemperatureUp/DownIcon` (~70 LOC); stripped `export` from 6 internal-only icons
+- `EnergyIcons.jsx`: stripped `export` from 5 internal-only icons (`SunnyIcon`, `CloudyIcon`, `RainyIcon`, `SnowyIcon`, `PartlyCloudyIcon`)
+- `categoryConfig.jsx`: removed 3 dead exports (`categoryMetadata`, `getCategoryKeys`, `getCategoryIcon`)
+- `SettingsTab/constants.jsx`: stripped `export` from 4 internal-only constants
+
+### Total
+
+- **−3796 LOC**
+- **−12 files**
+- **0 functional changes**
+
+### Verify
+
+All four rounds verified via Vite HMR + Browser-Eval: 6 system entities load, page renders, no resolution errors. External imports of `WeatherIcons`/`EnergyIcons` (`getWeatherIcon`, `HumidityIcon`, `WindIcon`, `PressureIcon`, `WeatherIcon`) and Todos dialog (Add/Edit modes via `TodoFormDialog`) still work.
+
+### Lesson
+
+Dead-code audit by symbol — `grep -rln "EXPORT_NAME" src --include="*.js" --include="*.jsx" | grep -v defining_file` — finds 5+ wins per minute on a mature codebase. Before any deletion: re-grep at edit time, not just at audit time (per v1.1.1374 lesson). After deletion: sanity-grep all removed symbols across `src/` again before build.
+
+---
+
 ## Version 1.1.1376 - 2026-05-04
 
 **Title:** 🚨 HOTFIX — entity.area Property in v1.1.1374-Refactor entfernt → fast alle Devices verschwanden aus dem Geräte-View
