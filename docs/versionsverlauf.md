@@ -1,5 +1,154 @@
 # Versionsverlauf
 
+## Version 1.1.1374 - 2026-05-04
+
+**Title:** Domain-Pipeline Cleanup-Round 2 — Live+Schedule unified, homeAssistantService dead-code weg, printer3d-Helper extrahiert
+**Hero:** none
+**Tags:** Refactor, Cleanup, DomainSettingsPicker, ScheduleTab, homeAssistantService
+
+### Why
+
+Nach v1.1.1373 (1. Refactor-Runde, -800 LOC) drei verbleibende Pain-Points aus der Analyse:
+
+1. **DomainSettingsPicker und ClimateScheduleSettings hatten gleiches UI-Pattern aber separate Implementierungen** — der eine für Live-Mode (hass.callService), der andere für Schedule-Mode (callback). Plus: nur climate hatte einen Schedule-Picker. Light/cover/humidifier/etc hatten zwar scheduleSettings im Schedule-Editor, aber UI war climate-only.
+2. **homeAssistantService.js war 743 LOC mit massivem Dead-Code** — DOMAIN_SERVICES (200 LOC) + HAServices (115 LOC) + isServiceAvailable + getServiceParameters + enrichEntityWithArea (~50 LOC) + default-export → alle exportiert, aber nirgends importiert.
+3. **printer-status-translation lag in deviceConfigs.js** (Z. 12-39) — domain-spezifischer Helper in der generischen Domain-Configs-Datei.
+
+### Fix — 4 Phasen
+
+#### Phase 1: DomainSettingsPicker dual-mode
+
+Component erweitert um `mode='live' | 'schedule'`-Prop:
+
+```jsx
+<DomainSettingsPicker
+  mode="live"           // OR "schedule"
+  item={item}
+  hass={hass}
+  lang={lang}
+  serviceDomain="climate"
+  settings={[...]}
+
+  // Schedule-mode-only:
+  value={currentSettings}
+  onChange={(newSettings) => ...}
+/>
+```
+
+**Live-Mode** (unverändert): Werte werden 300ms-debounced via `hass.callService` committed. Liest aktuelle Werte aus `hass.states[entity_id].attributes`.
+
+**Schedule-Mode** (neu): Werte werden in `value`-Objekt gesammelt und via `onChange(newValue)` an Schedule-Backend gegeben — KEINE Service-Calls (passieren erst bei Trigger-Time durch den Scheduler). Liest aktuelle Werte aus `value`-Prop.
+
+Capability-Attrs (Optionen, Min/Max für Slider) kommen in beiden Modi aus dem Device-Snapshot — gleiche Logic.
+
+#### Phase 2: domainSettingsConfigs split
+
+Neue Schema: pro Domain `liveSettings` + `scheduleSettings` Arrays:
+
+```js
+climate: {
+  serviceDomain: 'climate',
+  // Live: Settings-Button am Slider (Hero macht Target-Temp)
+  liveSettings: [fan_mode, swing_mode, swing_horizontal, preset_mode, humidity],
+  // Schedule: zusätzlich hvac_mode + temperature (im Live-Mode sind das Hero/Buttons)
+  scheduleSettings: [hvac_mode, temperature, fan_mode, swing_mode, preset_mode, humidity],
+},
+```
+
+**Neue Domains für Schedule-Mode:**
+- `light`: brightness_pct (0-100%) + color_temp_kelvin (Slider mit min/max aus device)
+- `cover`: position (0-100%)
+- `humidifier`: humidity (Slider) + mode (Picker)
+- `fan`: percentage (Speed-Slider) + preset_mode
+- `media_player`: volume_level + source + sound_mode
+
+Light + Cover hatten vorher `liveSettings: []` (eigenes UI in deviceConfigs), bekommen jetzt scheduleSettings für den Schedule-Editor.
+
+Convenience-Helpers: `getLiveSettings(domain)`, `getScheduleSettings(domain)`, `hasLiveSettingsPicker(domain)`, `hasScheduleSettingsPicker(domain)`, `getServiceDomain(domain)`.
+
+#### Phase 3: ClimateScheduleSettings.jsx weg
+
+- `SchedulePickerTable.jsx`: ClimateScheduleSettings-Usage durch DomainSettingsPicker mode='schedule' ersetzt. Gating jetzt `hasScheduleSettingsPicker(item.domain)` statt `item.domain === 'climate'`.
+- `useScheduleForm.js`: Reducer-Action-Payload `isClimate` → `hasDomainSettings` (generisch). Initial-State `showClimateSettings` jetzt für alle Domains mit scheduleSettings true.
+- `ScheduleTab.jsx`: Dead-Import `ClimateScheduleSettings` entfernt.
+- `src/components/climate/` Verzeichnis komplett gelöscht.
+
+**User-Effect**: User kann jetzt im Schedule-Editor für jedes unterstützte Device die Schedule-Settings wählen — nicht mehr nur climate. Z.B.: Schedule für Wohnzimmer-Lampe um 18:00 → kann Brightness=70% + Color-Temp=3000K vorgeben statt nur "anschalten".
+
+#### Phase 4: homeAssistantService.js Dead-Code-Cleanup
+
+Inventur der Importer:
+
+| Export | Importer | Status |
+|---|---|---|
+| `formatServiceData` | UniversalControlsTab | KEEP |
+| `callHAService` | DetailViewWrapper | KEEP (Validierung-Call raus) |
+| `loadAreasFromHA` / `loadDeviceRegistry` / `loadEntityRegistry` | DataProvider | KEEP |
+| `enrichAllEntitiesWithAreas` | DataProvider | KEEP |
+| `loadEntityHistory` | DetailView | KEEP |
+| `DOMAIN_SERVICES` | – | **REMOVED (~200 LOC)** |
+| `isServiceAvailable` | – | **REMOVED** |
+| `getServiceParameters` | – | **REMOVED** |
+| `HAServices` | – | **REMOVED (~115 LOC)** |
+| `enrichEntityWithArea` | – | **REMOVED (~50 LOC)** |
+| `default` export | – | **REMOVED** |
+
+`callHAService`-Validierung gegen `isServiceAvailable(domain, service)` entfernt — DOMAIN_SERVICES war incomplete (Custom-Integrations fehlten), führte zu false-negatives. HA gibt selbst Fehler bei nicht-existenten Services zurück, also brauchen wir die client-seitige Validierung nicht.
+
+`enrichEntityWithArea` (Single-Entity) war exportiert aber nur intern in `enrichAllEntitiesWithAreas` benötigt → inlined in der Bulk-Variante (eliminiert function-call-overhead pro Entity).
+
+**LOC-Bilanz**: 743 → 299, **-444 LOC**.
+
+#### Phase 5: printer-status-translate extrahiert
+
+Aus `deviceConfigs.js` Z. 12-39 nach `src/system-entities/entities/integration/device-entities/printer3dHelpers.js`. Domain-spezifischer Helper für Bambu/3D-Drucker-States — gehört nicht in den generischen `deviceConfigs.js`.
+
+`deviceConfigs.js` importiert ihn jetzt von dort. Logic identisch.
+
+### Verification
+
+| Test | Ergebnis |
+|---|---|
+| 7 Domains in `DOMAIN_SETTINGS_CONFIGS` | ✅ climate / humidifier / vacuum / fan / media_player / light / cover |
+| `hasLiveSettingsPicker('light')` | ✅ false (light hat kein Settings-Button) |
+| `hasScheduleSettingsPicker('light')` | ✅ true (im Schedule-Editor sichtbar) |
+| `hasScheduleSettingsPicker('switch')` | ✅ false (kein Eintrag) |
+| `climateScheduleSettings` | ✅ 6 Einträge: hvac_mode, temperature, fan_mode, swing_mode, preset_mode, humidity |
+| `lightScheduleSettings` | ✅ 2 Einträge: brightness_pct, color_temp_kelvin |
+| `homeAssistantService` Dead-Exports weg | ✅ DOMAIN_SERVICES/isServiceAvailable/HAServices/etc. undefined |
+| `homeAssistantService` Live-Exports da | ✅ formatServiceData/callHAService/loadX/etc. |
+| `translatePrinterStatus('idle','de')` | ✅ "Leerlauf" |
+| `translatePrinterStatus('ready','en')` | ✅ "Ready" |
+| `getControlConfig('climate')` | ✅ 3 buttons (mit hvac_modes:['heat','cool']) |
+
+### LOC-Bilanz
+
+| Was | Vorher | Nachher |
+|---|---|---|
+| ClimateScheduleSettings.jsx | ~200 | 0 (gelöscht) |
+| DomainSettingsPicker.jsx | ~250 | ~280 (mode-prop dazu) |
+| domainSettingsConfigs.js | ~150 | ~265 (split + neue Domains) |
+| homeAssistantService.js | 743 | 299 |
+| deviceConfigs.js | 1233 | 1198 (printer-helper raus) |
+| printer3dHelpers.js | – | ~40 |
+| **Net change** | | **~-440 LOC** |
+
+Gesamt nach 2 Refactor-Runden (v1.1.1373 + v1.1.1374): **~-1240 LOC weniger im Codebase**, ohne Funktionalität zu verlieren.
+
+### Pattern-Lehren
+
+- **Mode-Prop für dual-purpose Components**: wenn UI-Pattern identisch ist aber Side-Effect anders (live vs. callback), `mode`-Prop + interne Branch-Logic in Handlern ist cleaner als 2 separate Components mit duplizierter Render-Logic.
+- **Dead-Code-Audit per `grep -rln EXPORT src/`**: einfaches Script kann jeden export gegen tatsächliche Importe checken. 5 von 12 Exports in homeAssistantService.js waren dead — sehr typisch für gewachsene Codebase.
+- **Validierung gegen Hardcoded-Lists vermeiden**: client-side service-name-validation gegen DOMAIN_SERVICES ist false-negatives-anfällig (Custom Integrations, neue HA-Versionen). Lieber durchreichen und Backend-Errors handhaben.
+- **Domain-Helpers in Domain-Verzeichnis** (printer3dHelpers.js neben Printer3DDeviceEntity.js): nicht in `utils/`. Erleichtert späteres Refactoring (Domain-Aware Suchen).
+
+### Was offen bleibt
+
+- **Translation-Fallbacks `t('xxx') || 'XXX'`** noch da (risky cleanup, brauchen Translation-Audit)
+- **Universal-Layouts** weiter zurückgestellt — die ursprüngliche Vision
+
+---
+
 ## Version 1.1.1373 - 2026-05-04
 
 **Title:** Domain-Pipeline Big-Bang-Refactor — 5 SettingsPickers → 1 Generic, SVG-Icons konsolidiert (~1000 LOC weg, kein Verhalten geändert)
