@@ -1,5 +1,152 @@
 # Versionsverlauf
 
+## Version 1.1.1375 - 2026-05-04
+
+**Title:** Pattern-Validation — water_heater-Domain + aux_heat (climate) + tilt_position (cover) + neuer toggle-Type
+**Hero:** none
+**Tags:** Feature, Domains, Validation, DomainSettingsPicker
+
+### Why
+
+Nach v1.1.1374 wollten wir das etablierte Refactor-Pattern (1 Map-Eintrag pro Domain/Setting) **in Production validieren** — wirklich nur ~5 LOC pro Erweiterung? Plus dabei drei sinnvolle Erweiterungen ausgerollt:
+
+1. **water_heater** — eine komplette neue HA-Domain (Boiler / Wärmepumpe), bisher kein Support
+2. **aux_heat** — Climate Notheizung-Toggle der oft gefragt wird (Backup-Heater bei Wärmepumpen)
+3. **tilt_position** — Lamellenwinkel für Venetian-Blinds, bisher konnten User nur Position aber nicht Tilt schedulen
+
+### Was wirklich gebaut wurde
+
+#### A. Neuer `toggle`-Type im DomainSettingsPicker (~40 LOC)
+
+Bisher gab es nur `'picker'` (PickerWheel-Sub-View) und `'slider'` (LiquidGlassSlider-Sub-View). Für Boolean-Settings (aux_heat, away_mode) war keiner der beiden ideal — wir wollen einen INLINE-Switch direkt in der Row, nicht eine Sub-View mit Picker.
+
+Neuer Type rendert `LiquidGlassSwitch` direkt rechts in der Row (kein Chevron, kein Sub-View). Click toggelt instant ohne Debounce (User-Klick = klare Intent, anders als Wheel-Drehen wo Idle abgewartet werden muss).
+
+```js
+{
+  key: 'aux_heat', type: 'toggle',
+  labelKey: 'climate.auxHeat', labelFallback: 'Notheizung',
+  service: 'set_aux_heat', dataKey: 'aux_heat',
+  valueAttr: 'aux_heat',
+  requireAttrs: ['aux_heat'],   // gating: nur wenn Device es kann
+}
+```
+
+DomainSettingsPicker entscheidet im renderMainView ob die Row clickable ist (picker/slider → ja, toggle → nein, Switch übernimmt) und ob ein Chevron + Wert-Anzeige rendert oder ein inline Switch.
+
+#### B. water_heater-Domain (~70 LOC)
+
+**File 1: `deviceConfigs.js`** — Hero-Slider + Buttons:
+- `getControlConfig('water_heater')`: Power-Toggle + bis zu 3 Operation-Modes + Settings-Button. Operation-List kommt aus `attributes.operation_list` (off/eco/electric/gas/heat_pump/high_demand/performance).
+- `getSliderConfig('water_heater')`: Hero zeigt Target-Temperature-Dial, Color via `getTemperatureColor()` (analog Climate, heiß=rot kalt=blau). State 'off' → grau + readOnly. `current_temperature` im subValue. min_temp / max_temp als Range.
+
+**File 2: `domainSettingsConfigs.js`** — Live + Schedule Settings:
+```js
+water_heater: {
+  serviceDomain: 'water_heater',
+  liveSettings: [
+    { key:'operation_mode', type:'picker', service:'set_operation_mode',
+      valueAttr:'operation_mode', optionsAttr:'operation_list', ... },
+    { key:'away_mode', type:'toggle', service:'set_away_mode', ... },
+  ],
+  scheduleSettings: [
+    { key:'temperature', type:'slider', minAttr:'min_temp', maxAttr:'max_temp', ... },
+    { key:'operation_mode', type:'picker', ... },
+    { key:'away_mode', type:'toggle', ... },
+  ],
+}
+```
+
+**File 3: `sliderHandlers.js`** — Drag-Handler für Target-Temp:
+```js
+water_heater: (item, value, ..., handleServiceCall) => {
+  const temperature = Math.round(value);
+  if (item.attributes) item.attributes.temperature = temperature;
+  handleServiceCall('set_temperature', { temperature });
+}
+```
+
+#### C. aux_heat-Setting für climate (~7 LOC in domainSettingsConfigs.js)
+
+Eine Zeile (well, ein Objekt-Eintrag) im `climate.liveSettings`-Array:
+```js
+{
+  key: 'aux_heat', type: 'toggle',
+  labelKey: 'climate.auxHeat', labelFallback: 'Notheizung',
+  service: 'set_aux_heat', dataKey: 'aux_heat',
+  valueAttr: 'aux_heat',
+  requireAttrs: ['aux_heat'],
+}
+```
+
+Settings-Picker zeigt jetzt einen Notheizung-Toggle bei Climate-Devices die das Attribute haben (Wärmepumpen). Toggle commits sofort via `climate.set_aux_heat { aux_heat: bool }`.
+
+#### D. tilt_position-Setting für cover (~7 LOC in domainSettingsConfigs.js)
+
+Im `cover.scheduleSettings`-Array:
+```js
+{
+  key: 'tilt_position', type: 'slider',
+  labelKey: 'controls.tilt', labelFallback: 'Lamellenwinkel',
+  service: 'set_cover_tilt_position', dataKey: 'tilt_position',
+  valueAttr: 'current_tilt_position',
+  min: 0, max: 100, unit: '%', step: 1,
+  requireAttrs: ['current_tilt_position'],
+}
+```
+
+User kann jetzt im Schedule-Editor für Jalousien zusätzlich zur Position auch den Lamellenwinkel (Tilt) vorgeben.
+
+#### E. Translations DE+EN
+
+- `climate.auxHeat` (DE: Notheizung)
+- `controls.tilt` (DE: Lamellenwinkel / EN: Tilt)
+- `controls.awayMode` (DE: Abwesend-Modus / EN: Away mode)
+
+### Verification
+
+| Test | Ergebnis |
+|---|---|
+| `getControlConfig('water_heater')` | ✅ 5 Buttons: power, op_eco (active), op_electric, op_heat_pump, settings |
+| `getSliderConfig('water_heater')` | ✅ Target-Temp 55°C, color #F44336 (rot/heiß), subValue "Aktuell: 50°C" |
+| `getLiveSettings('water_heater')` | ✅ operation_mode (picker) + away_mode (toggle) |
+| `getScheduleSettings('water_heater')` | ✅ temperature + operation_mode + away_mode |
+| aux_heat Setting in climate.liveSettings | ✅ type='toggle', requireAttrs=['aux_heat'] |
+| tilt_position Setting in cover.scheduleSettings | ✅ type='slider', requireAttrs=['current_tilt_position'] |
+
+### LOC-Bilanz — Pattern-Validation
+
+Versprochen war (aus Pattern-Doku v1.1.1374):
+- Neue Standard-HA-Domain → 2 Files, ~50 LOC, 10min
+- Neuer Live-Setting → 1 File, ~7 LOC, 2min
+- Neuer Schedule-Setting → 1 File, ~7 LOC, 2min
+
+Tatsächlich:
+
+| Erweiterung | Files | LOC | Status |
+|---|---|---|---|
+| water_heater Domain | 3 (deviceConfigs + domainSettings + sliderHandlers) | ~80 | ✅ +30 LOC weil ich noch sliderHandler vergessen hatte im Pattern, jetzt nachgetragen |
+| aux_heat Setting | 1 | ~7 | ✅ exakt wie versprochen |
+| tilt_position Setting | 1 | ~7 | ✅ exakt wie versprochen |
+| `toggle`-Type Erweiterung | 1 (DomainSettingsPicker) | ~40 | (one-time, ermöglicht aux_heat + away_mode) |
+
+**Gesamt: ~135 LOC für 1 neue Domain + 2 neue Settings + 1 neuer Type.**
+
+### Pattern-Lehren (validated)
+
+- **Pattern hält Stand**: 5-7 LOC pro Setting-Eintrag, ~50-80 LOC pro Domain (inkl. Hero/Buttons via deviceConfigs). Versprochen-vs-Realität checked.
+- **`toggle`-Type war nötig** weil Boolean-Settings als Picker (`['on', 'off']`) clunky sind und als Slider (0/1) sinnlos. Inline-Switch ist iOS-natives Pattern.
+- **`requireAttrs`-Gating funktioniert universell**: aux_heat, away_mode, tilt_position werden nur gerendert wenn das Device die Attribute liefert. Kein Code-Branch nötig — Konfig macht's.
+- **Universal-Wrapper bekommt's gratis**: Universal-Devices die ein climate.* / water_heater.* / cover.* Entity einbinden, kriegen automatisch die neuen Settings — weil DomainSettingsPicker die Konfig liest.
+
+### Was offen bleibt
+
+- **Translation-Fallbacks** weiter nicht angefasst (risikoreiches Cleanup)
+- **Universal-Layouts** weiter zurückgestellt
+- **Add-on**: `service-Definitionen` für water_heater im (gesäuberten) homeAssistantService.js NICHT nötig — wir validieren nicht mehr client-side, hass.callService geht direkt durch
+
+---
+
 ## Version 1.1.1374 - 2026-05-04
 
 **Title:** Domain-Pipeline Cleanup-Round 2 — Live+Schedule unified, homeAssistantService dead-code weg, printer3d-Helper extrahiert
