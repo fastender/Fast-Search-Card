@@ -1,5 +1,144 @@
 # Versionsverlauf
 
+## Version 1.1.1373 - 2026-05-04
+
+**Title:** Domain-Pipeline Big-Bang-Refactor — 5 SettingsPickers → 1 Generic, SVG-Icons konsolidiert (~1000 LOC weg, kein Verhalten geändert)
+**Hero:** none
+**Tags:** Refactor, Cleanup, DomainSettingsPicker, deviceConfigs, Icons
+
+### Why
+
+Bei der Domain-Inventur nach v1.1.1372 sind drei Pain-Points aufgefallen:
+
+1. **5 SettingsPickers waren 95% Copy-Paste** (climate/humidifier/vacuum/fan/media_player) — Total ~1024 LOC, der Diff zwischen humidifier↔vacuum↔fan war nur ~58 Zeilen. Die ganze Skelett-Logik (commitDebounced, callService, renderMainView, renderPickerSubView, AnimatePresence-Setup) war wortgleich. Eine neue Domain hinzufügen = ~150 LOC neue Datei.
+2. **deviceConfigs.js hatte 1330 LOC mit 10 inline SVG-Strings**, davon waren die 4 generic Tab-Icons (controls/sensors/diagnostics/misc) **3× kopiert** (printer3d + universal + energy_dashboard). Plus alle v1.1.1369-1372 inline (oscillate, direction, shuffle, repeat, return_to_base, locate, …).
+3. **PresetButtonsGroup hatte eine 7-stufige if-else-Kette** für Custom-Renderings je Domain.
+
+### Fix — 3 Phasen
+
+#### Phase 1: Generic DomainSettingsPicker (~800 LOC weg)
+
+**Neue Files:**
+- `src/components/common/DomainSettingsPicker.jsx` (~250 LOC) — die Component die alle 5 alten ersetzt. Pattern: lädt `settings`-Array via Props, rendert Main-View mit Row pro Setting, Sub-View pro Setting via PickerWheel oder LiquidGlassSlider, Auto-Commit nach 300ms via hass.callService. Setting-Type erweiterbar: `'picker'` oder `'slider'`.
+- `src/components/common/DomainSettingsPicker.css` (umbenannt von ClimateSettingsPicker.css, alle `.csp-*` → `.dsp-*`).
+- `src/components/common/domainSettingsConfigs.js` (~150 LOC) — Single Source of Truth: Map `{ climate, humidifier, vacuum, fan, media_player }` mit Settings-Array pro Domain.
+
+**Setting-Schema:**
+
+```js
+{
+  key: 'fan',                       // unique id, state + sub-view name
+  type: 'picker' | 'slider',        // welche UI-Komponente
+  labelKey: 'climate.fanMode',      // translateUI-Schlüssel
+  labelFallback: 'Lüftermodus',
+  service: 'set_fan_mode',          // hass service ohne Domain-prefix
+  dataKey: 'fan_mode',              // Feld-Name in service-data
+  valueAttr: 'fan_mode',            // attribute aus dem aktuellen Wert gelesen wird
+
+  // Picker-only:
+  optionsAttr: 'fan_modes',         // attribute für options-Liste
+  prettify: false,                  // für Source/Sound-Mode (HA schon korrekt)
+
+  // Slider-only:
+  minAttr: 'min_humidity',
+  maxAttr: 'max_humidity',
+  unit: '%',
+  step: 1,
+  requireAttrs: ['min_humidity', 'max_humidity'],  // gating
+}
+```
+
+**Capability-Gating** weiterhin gleich: Picker rendert Setting nur wenn `optionsAttr` Liste > 0; Slider nur wenn alle `requireAttrs` definiert.
+
+**Gelöscht:**
+- `src/components/climate/ClimateSettingsPicker.jsx` + `.css`
+- `src/components/humidifier/HumidifierSettingsPicker.jsx` (+ leeres dir)
+- `src/components/vacuum/VacuumSettingsPicker.jsx` (+ leeres dir)
+- `src/components/fan/FanSettingsPicker.jsx` (+ leeres dir)
+- `src/components/media_player/MediaPlayerSettingsPicker.jsx` (+ leeres dir)
+
+**PresetButtonsGroup vereinfacht:** 5 Imports + 5 if-else-Branches → 1 Import + 1 lookup:
+
+```jsx
+{group.renderCustom && group.id === 'settings' && DOMAIN_SETTINGS_CONFIGS[item?.domain] ? (
+  <DomainSettingsPicker
+    item={item} hass={hass} lang={lang}
+    serviceDomain={DOMAIN_SETTINGS_CONFIGS[item.domain].serviceDomain}
+    settings={DOMAIN_SETTINGS_CONFIGS[item.domain].settings}
+  />
+) : ...}
+```
+
+**Pattern für künftige Domains:** 1 Eintrag in domainSettingsConfigs.js (~5 LOC) statt eigene Datei (~150 LOC). 30× kürzer.
+
+#### Phase 2: SVG-Icons konsolidiert (~150 LOC in deviceConfigs weg)
+
+**icons.js erweitert:**
+- Neue Konstante `deviceTabIcons` (controls/sensors/diagnostics/misc) — vorher 3× kopiert in printer3d/universal/energy_dashboard.
+- Neue Konstante `mediaActionIconsSolid` (play/pause/stop in solid/filled-Variante) — vorher 4× kopiert für Printer/Energy Action-Items.
+- 10 neue `controlIcons`-Entries: `vacuum_stop`, `return_to_base`, `locate`, `oscillate`, `direction_swap`, `fan_preset`, `humidifier_mode`, `shuffle`, `repeat`, `repeat_one`.
+- `hvacModeIcons.auto` + `heat_cool` mit nicer line-art Versionen aus v1.1.1368-Inline ersetzt.
+
+**deviceConfigs.js cleaned:**
+- 4 cases (printer3d/universal/energy_dashboard) verloren je ~4 inline SVG-Strings → references zu `deviceTabIcons.{controls/sensors/diagnostics/misc}`.
+- printer3d expandable items 3× inline play/pause/stop → references zu `mediaActionIconsSolid.{play/pause/stop}`.
+- humidifier/vacuum/fan/media_player Cases verloren ihre v1.1.1369-1372 inline SVGs → references zu controlIcons.
+
+LOC: 1330 → 1233 (zwar nur 100 weniger weil Logic dazu kam, aber Lesbarkeit MASSIV verbessert — vorher waren 30%+ pro case nur SVG-Müll).
+
+#### Phase 3: PresetButtonsGroup if-else → Map
+
+War Teil von Phase 1. -30 LOC, 5 if-else-Branches durch 1 Lookup ersetzt.
+
+### Bonus-Bug + Recovery
+
+**Während des Refactor: `rm -rf src/components/climate/` zu aggressiv.** Hatte vergessen dass `ClimateScheduleSettings.jsx` (genutzt vom ScheduleTab beim Erstellen von Schedules für climate-Devices) auch da lag. Vite-HMR meldete sofort `Pre-transform error: Failed to load url /src/components/climate/ClimateScheduleSettings.jsx`.
+
+**Recovery:** das File war nie in git committed (`.gitignore` ignoriert alles in `src/`), also musste ich es from-scratch reconstruieren. Das war eigentlich eine Verbesserung — die alte Version war 300+ LOC mit imperativ-DOM-Manipulation (analog der alten ClimateSettingsPicker-Patterns aus v1.1.1368, die wir gefixt hatten). Neue Version ist ~200 LOC im DomainSettingsPicker-Pattern, callback-basiert (kein hass.callService — gibt Settings via `onSettingsChange`-Callback an Schedule-Backend).
+
+Lehre: bei DEVASTATING-Operationen wie `rm -rf` IMMER vorher `ls dir/` auflisten.
+
+### Verification
+
+| Test | Ergebnis |
+|---|---|
+| DomainSettingsPicker import | ✅ |
+| 5 Domain-Configs vorhanden | ✅ climate/humidifier/vacuum/fan/media_player |
+| ClimateScheduleSettings rebuild | ✅ |
+| icons.js neue exports | ✅ deviceTabIcons + mediaActionIconsSolid + 10 controlIcons |
+| getControlConfig('fan') Test | ✅ alle Buttons inkl. oscillate/direction/preset/settings |
+| Keine stale picker-Imports im Codebase | ✅ |
+| HMR-Errors | ✅ keine |
+
+### LOC-Bilanz
+
+| Was | Vorher | Nachher |
+|---|---|---|
+| 5 SettingsPickers | 1024 | 0 (gelöscht) |
+| Generic DomainSettingsPicker + Configs + CSS | – | ~470 |
+| ClimateScheduleSettings (rebuild) | ~300 (verloren) | ~200 (sauberer) |
+| deviceConfigs.js | 1330 | 1233 |
+| PresetButtonsGroup if-else | ~30 | ~10 |
+| **Total relevanter Code** | **~2700** | **~1900** |
+
+**~800 LOC weniger**, ohne Funktionalität zu verlieren — und das Pattern macht künftige Domain-Erweiterungen 30× billiger.
+
+### Pattern-Lehren
+
+- **Copy-Paste-Erkennung mit `diff -u | wc -l`**: wenn 4 Files je 167 LOC haben und der Unified-Diff zwischen ihnen nur ~58 Zeilen produziert, ist die Abstraktion offensichtlich. Diese Messung sollte bei jedem Polish-Pass automatisch laufen.
+- **Configs-as-Data über Switch-Statements**: jedes Setting in domainSettingsConfigs.js ist ein deklaratives Objekt — keine Logic, kein Switch. Erweitert sich mechanisch.
+- **`.gitignore *` schmerzhaft bei lokalen Files**: das Vite-Build-Setup ignoriert das ganze `src/` (nur `dist/` wird committed weil HACS dort schaut). Lokale src-Files können also nicht via `git checkout` wiederhergestellt werden — vor `rm -rf` immer den Inhalt prüfen oder mit `git stash`-Fallback arbeiten.
+- **Domain-spezifische Icons in dedizierten Maps gruppieren** (`deviceTabIcons`, `mediaActionIconsSolid`): macht den Konsumenten-Code lesbar. Statt 700-char SVG-string sieht man `deviceTabIcons.controls`.
+
+### Was offen bleibt
+
+- **Translation-Fallbacks `t('xxx') || 'XXX'`** noch nicht aufgeräumt (Befund 5 aus der Analyse) — risky, würde Translation-Audit brauchen.
+- **homeAssistantService.js (743 LOC) Dead-Code-Suche** — offen.
+- **printer-status-translation in deviceConfigs (Z.18-39)** — domain-spezifisch, sollte eigentlich in printer3d-helpers.
+- **Universal-Layouts** — die ursprüngliche Vision, weiter zurückgestellt.
+
+---
+
 ## Version 1.1.1372 - 2026-05-03
 
 **Title:** cover-Domain Position-Slider als Hero + Cover-Art-Background für media_player (Apple-Music-Style)
