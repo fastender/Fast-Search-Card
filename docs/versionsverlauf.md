@@ -1,5 +1,119 @@
 # Versionsverlauf
 
+## Version 1.1.1376 - 2026-05-04
+
+**Title:** 🚨 HOTFIX — entity.area Property in v1.1.1374-Refactor entfernt → fast alle Devices verschwanden aus dem Geräte-View
+**Hero:** none
+**Tags:** Hotfix, Bugfix, Critical, DataProvider, Areas
+
+### Why
+
+User-Report: "wir haben einen riesenbug; bereits bei v1.1.1374 schon vorhanden, aber nicht bei v1.1.1373 — und zwar werden nur diese geräte angezeigt (nach langer Wartezeit)".
+
+Screenshot zeigte: nur 6 Devices, die meisten in "Kein Raum" — von zuvor (v1.1.1373) Hunderten von Devices in vielen verteilten Räumen (Anziehraum, Arbeitszimmer, Küche, Wohnzimmer, etc.). Filter-Chips von 9 auf 4 reduziert.
+
+### Root-Cause
+
+In v1.1.1374 hatte ich `enrichAllEntitiesWithAreas` in `homeAssistantService.js` "geinlined" um die Single-Entity-Variante `enrichEntityWithArea` (50 LOC, nirgends importiert) zu eliminieren. Dabei habe ich die Logic neu aus dem Gedächtnis geschrieben — und EINE KRITISCHE PROPERTY VERGESSEN.
+
+```js
+// Vorher (v1.1.1374, BROKEN):
+if (areaId) {
+  const area = areaMap.get(areaId);
+  if (area) {
+    enriched.area_id = areaId;
+    enriched.area_name = area.name;
+    // ❌ enriched.area FEHLT
+  }
+}
+```
+
+`DataProvider.jsx:589` filtert mit:
+```js
+let relevantHAEntities = filteredByPatterns
+  .filter(entity => entity.area != null && entity.area !== '')  // <-- entity.area, nicht area_id!
+```
+
+Da `enriched.area` nie gesetzt wurde, wurden ALLE Entities (außer System-Entities) rausgeworfen. Plus auch:
+- `SubcategoryBar.jsx` (Z. 233/248): `item.area === subcat`
+- `searchFilters.js` (Z. 124/163/193): `device.area === selectedSubcategory`
+- `useRelatedDevices.js` (Z. 64/86): `entity.area || 'Wohnzimmer'`
+- `searchIndex.js` (Z. 38): `entity.area`
+- `mockDataGenerator.js` (Z. 10): `entity.area || 'Wohnzimmer'`
+
+→ ÜBERALL `entity.area` als String erwartet, von mir aber nie gesetzt.
+
+### Fix
+
+In `enrichAllEntitiesWithAreas` zusätzlich `enriched.area = area.name` setzen + Device-Metadaten (`device_id` / `device_name` / `device_manufacturer` / `device_model`) anreichern:
+
+```js
+if (entityReg?.device_id) {
+  device = deviceMap.get(entityReg.device_id);
+  if (!areaId) areaId = device?.area_id;
+
+  enriched.device_id = entityReg.device_id;
+  if (device) {
+    enriched.device_name = device.name_by_user || device.name || null;
+    enriched.device_manufacturer = device.manufacturer || null;
+    enriched.device_model = device.model || null;
+  }
+}
+
+if (areaId) {
+  const area = areaMap.get(areaId);
+  if (area) {
+    enriched.area_id = areaId;
+    enriched.area_name = area.name;
+    enriched.area = area.name;  // ← KRITISCH: war in v1.1.1374 vergessen
+  }
+}
+```
+
+### Verification
+
+Test mit synthetischem Setup:
+
+```js
+const enriched = enrichAllEntitiesWithAreas(
+  [{ entity_id: 'light.kueche_einbauleuchte_1', state: 'on', attributes: {} }],
+  [{ area_id: 'kueche', name: 'Küche' }],
+  [{ id: 'dev_kueche', name: 'Küchenlichter', manufacturer: 'Philips', model: 'Hue', area_id: 'kueche' }],
+  [{ entity_id: 'light.kueche_einbauleuchte_1', device_id: 'dev_kueche', area_id: null }],
+);
+
+// → enriched[0]:
+//   area: 'Küche'                  ← der bug-fix
+//   area_id: 'kueche'
+//   area_name: 'Küche'
+//   device_name: 'Küchenlichter'
+//   device_manufacturer: 'Philips'
+```
+
+DataProvider-Filter `e.area != null && e.area !== ''` → light durchläuft, switch-ohne-device wird rausgefiltert (richtig).
+
+### Lehre
+
+**Inlined-Refactor ohne Code-Sicht ist gefährlich.** Ich hatte das alte `enrichEntityWithArea` (~50 LOC) "aus dem Gedächtnis" reconstruiert, weil `.gitignore` `src/` ignoriert und ich keine Reference hatte. Die Property `enriched.area` (String, nicht ID) ist easy zu vergessen weil:
+- Es duplicate-looks-redundant zu `area_id` und `area_name`
+- HA selbst hat im entityRegistry kein `area`-Field (nur `area_id`)
+- Wenige Stellen testen direkt darauf — die Tests im DataProvider, SubcategoryBar etc. failed silent (Filter-Output = leer)
+
+**Future-Proof**: bei Refactor von kritischen Funktionen ohne git-Referenz IMMER vorher die NUTZUNG der Output-Properties grep'en (`grep -rn "entity\\.area" src/`) bevor man neue Logic schreibt. Hätte den Bug VOR dem Push aufgedeckt.
+
+### Was war in v1.1.1374 noch refactoriert
+
+Falls etwas anderes broken ist (was wir nicht erwarten):
+- DomainSettingsPicker dual-mode → keine Auswirkung auf Entity-Loading
+- domainSettingsConfigs split → reine Map-Definition
+- ClimateScheduleSettings.jsx → Schedule-only, lädt keine Entities
+- homeAssistantService.js Dead-Code → bestätigt: `formatServiceData`/`callHAService`/Area-Loading-Functions intakt
+- printer-status-translation extraction → reines Move
+
+→ Wenn nach v1.1.1376 noch was kaputt ist, ist der Verdacht KEIN Refactor sondern Side-Effect.
+
+---
+
 ## Version 1.1.1375 - 2026-05-04
 
 **Title:** Pattern-Validation — water_heater-Domain + aux_heat (climate) + tilt_position (cover) + neuer toggle-Type
