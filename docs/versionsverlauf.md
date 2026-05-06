@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1383 - 2026-05-06
+
+**Title:** 🧹 Round 10 — Dead helpers + src/ structure cleanup
+**Hero:** none
+**Tags:** Refactor, Cleanup, DeadCode, Structure
+
+### Why
+
+After the deep audit rounds, two more dead helper batches surfaced via per-symbol grep, plus the `src/` folder had stale documentation `.txt` files at the top level and a single-file subfolder (`utils/chartjs/`) that was a leftover from earlier organization.
+
+### What changed
+
+**Dead code (-61 LOC):**
+- `assets/icons/iconRegistry.js`: removed `getStaticIcon` (never called externally, ~12 LOC including JSDoc)
+- `system-entities/config/appearanceConfig.js`: removed `getEntityIcon`, `getEntityColor`, `getDetailViewConfig` + dead default export (~49 LOC)
+
+**Structure:**
+- Moved `src/dokumentation.txt` and `src/dokumentation_chartjs.txt` to `docs/` (renamed `*_archive.txt`) — they were never imported, just legacy text reference docs that polluted `src/`
+- Flattened `src/utils/chartjs/chartConfig.js` → `src/utils/chartConfig.js` (the subfolder contained only one file). Updated 2 import paths.
+- Cleaned all 14 `.DS_Store` files from `src/` (cosmetic — already gitignored, but visible in editor file trees)
+
+### After
+
+`src/` top-level is now: 11 functional folders + `index.jsx`. No floating doc files, no single-file subfolders. Each top-level dir has clear purpose:
+- `assets/` — icon SVG components
+- `components/` — Preact UI
+- `contexts/` — React Context providers
+- `data/` — mock devices for dev
+- `hooks/` — shared React hooks
+- `providers/` — DataProvider + MockDataMigration
+- `services/` — domain services (energyDashboard, user)
+- `styles/` — global CSS (toast, perceived speed)
+- `system-entities/` — internal entity framework
+- `utils/` — pure helpers + transformations
+
+### Total
+
+- **−61 LOC** (dead code)
+- **−1 subfolder** (`utils/chartjs/`)
+- **−2 stale `.txt` files** moved out
+- **−14 `.DS_Store` files** cleaned
+- **0 functional changes**
+
+---
+
 ## Version 1.1.1382 - 2026-05-06
 
 **Title:** 🧹 Round 9 — translations API streamlined (-164 LOC across index.js + helpers.js)
