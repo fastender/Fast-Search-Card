@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1386 - 2026-05-06
+
+**Title:** 🧹 Round 13 — broad dead-export sweep across services/icons/system-entities (~−500 LOC, −4 files)
+**Hero:** none
+**Tags:** Refactor, Cleanup, DeadCode, Icons, Services
+
+### Why
+
+Cross-cutting symbol-grep audit found 17 dead symbols and 4 orphan icon files spread across services, system-entities, and assets that previous rounds didn't touch.
+
+### What changed
+
+**Orphan files deleted (4 files, 318 LOC):**
+- `assets/icons/actions/AutomationOn.jsx` (66 LOC)
+- `assets/icons/actions/AutomationOff.jsx` (69 LOC)
+- `assets/icons/actions/SceneOn.jsx` (69 LOC)
+- `assets/icons/actions/ScriptOn.jsx` (114 LOC)
+
+These 4 icon files were imported in `iconRegistry.js` but never referenced inside it (`grep -c` showed 1 occurrence = the import line only). After delete: 4 import lines stripped from registry too.
+
+**Dead functions deleted (~150 LOC):**
+- `AnimatedDeviceIcons.jsx`: `getStaticDomainIcon` + dead default export (-22 LOC)
+- `DeviceEntityFactory.js`: `loadDeviceEntities`, `registerDeviceEntities`, default export (-50 LOC, file 86 → 33 LOC)
+- `deviceConfigStorage.js`: `isBootstrapped`, default export (-19 LOC)
+- `SettingsView.jsx`: `createSettingsView`
+- `profileColors.js`: `getColorNameById`
+- `profileParser.js`: `removeProfiles`, `hasProfiles`
+- `DeviceCardIntegration.jsx`: `getSystemEntityColor`, `migrateDeviceCardLogic`, default export, JSDoc usage example (-67 LOC)
+- `energyDashboardService.js`: `getPowerSensorFromEnergy` (-23 LOC)
+- `userService.js`: `clearUserProfilePictureCache`
+- `searchHelpers.js`: `highlightName` (-32 LOC)
+
+**Internal-only `export` strips:**
+- `AnimatedDeviceIcons` (used internally only by getDeviceIcon)
+- `deviceTypeRegistry.isDeviceTypeAvailable`
+- `energyDashboardService.js`: `getEnergyConfig`, `extractEnergySensors`, `getTodayEnergyStatistics`, `calculateEnergyCost`
+- `userService.fetchUserProfilePicture`
+
+### Total
+
+- **−4 files** (orphan icons)
+- **~−500 LOC**
+- **0 functional changes** — all removed functions had zero call sites verified via 3-stage grep
+
+### Lesson
+
+Default-export objects (`export default { foo, bar, baz }`) often hide dead exports. Several of the deleted symbols were only "used" inside their default-export bundle — but no consumer imported the default. The default-export pattern was leftover convention, not actual API.
+
+---
+
 ## Version 1.1.1385 - 2026-05-06
 
 **Title:** 🧹 Round 12 — DetailView/DeviceCard/SearchField scope cleanup (-247 LOC)
