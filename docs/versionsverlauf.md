@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1385 - 2026-05-06
+
+**Title:** 🧹 Round 12 — DetailView/DeviceCard/SearchField scope cleanup (-247 LOC)
+**Hero:** none
+**Tags:** Refactor, Cleanup, DeadCode, UnusedImports
+
+### Why
+
+User-requested deep audit of the DetailView/, DeviceCard/, SearchField/ subtrees plus the top-level component files (SearchField.jsx, SearchSidebar.jsx, StatsBar.jsx, SubcategoryBar.jsx, SystemEntityLazyView.jsx, WallpaperModeOverlay.jsx). Found a 218-LOC orphan demo component, a debug-only useEffect with write-only `window.DEBUG_*` properties, and 11 unused imports across 4 files.
+
+### What changed
+
+**`DeviceCard.jsx`: 794 → 574 LOC (-220)**
+
+- Deleted `DeviceCardsDemo` component (218 LOC, lines 577-794) — never imported anywhere, leftover demo code
+- Removed 3 unused imports: `motion`, `deviceCardVariants as cardVariants`, `translateUI`
+
+**`SearchField.jsx`: 1104 → 1081 LOC (-23)**
+
+- Deleted debug useEffect (~20 LOC) that wrote `window.DEBUG_groupedFilteredDevices`, `DEBUG_filteredDevices`, `DEBUG_activeCategory`, `DEBUG_selectedSubcategory`, `DEBUG_isExpanded`, `DEBUG_showDetail` — none of these globals were ever read, the corresponding `console.log` had been commented out previously
+- Removed 4 unused imports: `DeviceCard` (rendered by GroupedDeviceList child, not directly), `AIModeInterface` (used via AIModeSection wrapper), `getPlaceholder`, `highlightName`
+
+**`DetailView.jsx`: 763 → 761 LOC (-2)**
+
+- Removed 3 unused imports: `translateUI`, `getIconForDomain`, `getBackgroundStyle`
+
+**`SearchField/utils/computeSuggestion.js`: 141 → 139 LOC (-2)**
+
+- Removed unused `resolveDomainSynonym` import
+
+**`SearchField/utils/searchEventHandlers.js`: 498 LOC (no change)**
+
+- Stripped `export` from `acceptSuggestion` — used internally only (line 207 calls it within the same file)
+
+### Verify
+
+3-stage grep per symbol: external imports = 0, internal-only confirmed, sanity-grep across `src/` clean. Production build clean.
+
+### Total
+
+- **−247 LOC**
+- **0 functional changes**
+
+---
+
 ## Version 1.1.1384 - 2026-05-06
 
 **Title:** 🗂️ Round 11 — Folder structure cleanup (3 empty dirs, misplaced CSS, single-file subfolder)
