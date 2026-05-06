@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1381 - 2026-05-06
+
+**Title:** 🌍 Translations cleanup — 8 unused languages removed (DE+EN only)
+**Hero:** none
+**Tags:** Cleanup, Translations, i18n
+
+### Why
+
+The app's `LANGUAGE_CODES = ['de', 'en']` constant restricted UI selection to German and English, but the translations bundle still loaded fr/es/it/nl/pt/ru/tr/zh. User confirmed only DE+EN are intended targets — the 8 extra language files were dead weight in the bundle.
+
+### What changed
+
+- **Deleted 8 language files**: `fr.js` (345), `es.js` (324), `it.js` (223), `nl.js` (204), `pt.js` (200), `ru.js` (200), `tr.js` (200), `zh.js` (200)
+- **Updated `translations/index.js`**: removed 8 imports + 8 entries from translations map
+- **Updated `translations/helpers.js`**: trimmed `getAvailableLanguages()` to return only `[{de}, {en}]` — `detectBrowserLanguage()` now correctly falls back to 'de' for any other browser language
+
+### Total
+
+- **−1896 LOC** across 8 deleted files + 14 LOC in index/helpers (1910 total)
+- **−8 files**
+
+If a future feature wants French support, the helpers infrastructure (`getTranslation`, `interpolate`, `deepMerge`) is fully intact — just add a new file under `languages/` and 2 lines in `index.js`.
+
+---
+
 ## Version 1.1.1380 - 2026-05-06
 
 **Title:** 🧹 Round 7 — utils/ Dead-Export Sweep + Cascade Cleanup (~500 LOC across 11 files)
