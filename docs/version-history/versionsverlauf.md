@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1392 - 2026-05-07
+
+**Title:** 🐛 MA search fix — config_entry_id is required (was missing → search returned 400)
+**Hero:** none
+**Tags:** Bugfix, MusicAssistant
+
+### Why
+
+Live testing v1.1.1391 against a real Music Assistant install surfaced:
+
+```
+[MA] search failed: {code: 'invalid_format', message: "required key not provided @ data['config_entry_id']"}
+```
+
+The MA `search` service requires `config_entry_id` since MA 2.x — the doc-based assumption that it was optional was wrong. `play_media` and `get_queue` don't need it (they're targeted by `entity_id`), only the global `search` does.
+
+### What changed
+
+- `src/utils/musicAssistant.js`: new `getMusicAssistantConfigEntryId(hass)` — fetches via `config_entries/get` WS-API filtered by `domain: music_assistant`, prefers entries in state `loaded`, returns the first match.
+- `searchMusicAssistant(hass, query, opts)` now accepts `opts.configEntryId` and includes it in the service data when provided.
+- `src/components/controls/MusicAssistantPanel.jsx`: lookup runs once on mount, result stored in `configEntryId` state (with `configReady` flag). Search effect waits for `configReady` before firing. Two new empty-state cases:
+  - **Spinner** while config is being resolved and the user is already typing
+  - **"Music-Assistant-Integration nicht gefunden"** if lookup completes but no MA entry exists
+
+### Lesson
+
+When wrapping a third-party HA integration's services, the docs aren't always exhaustive about which arguments became required between versions. **Hit it once against a real instance before declaring the integration done** — the failure mode here was `code: invalid_format`, which a doc-only review would never have caught. Multi-instance installs (rare) get the first `loaded` entry; that's a known limitation worth flagging if it ever bites.
+
+---
+
 ## Version 1.1.1391 - 2026-05-06
 
 **Title:** 🎵 Music Assistant integration — Search + Queue panel for `media_player` (6th icon, replaces Settings on MA-players)
