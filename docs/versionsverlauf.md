@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1382 - 2026-05-06
+
+**Title:** 🧹 Round 9 — translations API streamlined (-164 LOC across index.js + helpers.js)
+**Hero:** none
+**Tags:** Refactor, Cleanup, DeadCode, i18n, Translations
+
+### Why
+
+After R8 deleted 8 unused languages, audit of the translation API surface revealed massive cascade dead code: the `useTranslation` React hook was never used (no consumers), and the 8 helpers it depended on (`detectBrowserLanguage`, `normalizeLanguageCode`, `getAvailableLanguages`, `formatTimeSince`, `translateDomain`, `deepMerge`, `getTranslation` re-export, `interpolate` re-export) cascaded into deletion. Real consumers only use 6 symbols from the barrel.
+
+### What changed
+
+**`utils/translations/index.js`: 132 → 46 LOC** (-86)
+
+- Deleted `useTranslation` React hook (~55 LOC) — zero consumers
+- Deleted standalone `t()` function — only consumer was `translateUI()`, now inlined directly
+- Deleted default export of `translations` object — never imported as default
+- Removed 8 dead barrel re-exports: `translateDomain`, `formatTimeSince`, `normalizeLanguageCode`, `getAvailableLanguages`, `detectBrowserLanguage`, `deepMerge`, `getTranslation`, `interpolate`
+
+**`utils/translations/helpers.js`: 438 → 360 LOC** (-78)
+
+Cascade dead after barrel cleanup:
+- `translateDomain` (4 LOC) — fully unused
+- `formatTimeSince` (20 LOC) — fully unused
+- `detectBrowserLanguage` (8 LOC) — caller (useTranslation) deleted
+- `normalizeLanguageCode` (5 LOC) — only used by detectBrowserLanguage
+- `getAvailableLanguages` (6 LOC) — only used by detectBrowserLanguage
+- `deepMerge` (19 LOC) — fully unused
+- `isObject` (3 LOC) — only used by deepMerge
+
+### Real translation API now
+
+Public surface = 6 symbols only: `formatSensorValue`, `getSensorCategory`, `getSensorAdvice`, `isEntityActive`, `translateState` (wrapper), `translateUI` (wrapper). Plus `translations` map for internal cross-reference. Total dependency tree is now clean and minimal.
+
+### Total
+
+- **−164 LOC**
+- **0 functional changes** — all consumers verified intact via 3-stage symbol grep
+
+### Lesson
+
+When auditing barrel-style modules: list real consumers (`grep -rh "from.*module"` excluding barrel itself), then everything not on that list is dead. The cascade chain in `helpers.js` formed naturally once the dead `useTranslation` hook was removed — 5 helpers became orphan in sequence.
+
+---
+
 ## Version 1.1.1381 - 2026-05-06
 
 **Title:** 🌍 Translations cleanup — 8 unused languages removed (DE+EN only)
