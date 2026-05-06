@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1384 - 2026-05-06
+
+**Title:** 🗂️ Round 11 — Folder structure cleanup (3 empty dirs, misplaced CSS, single-file subfolder)
+**Hero:** none
+**Tags:** Refactor, Cleanup, Structure
+
+### Why
+
+Final structural review after the dead-code rounds revealed three empty directories from earlier refactors, a CSS file misplaced one level up from its consumer, and a single-file `formatters/` subfolder that mirrored the chartjs flatten from R10.
+
+### What changed
+
+**Empty dirs removed:**
+- `src/system-entities/entities/integration/device-entities/views/layouts/`
+- `src/components/tabs/ScheduleTab/components/settings/`
+- `src/components/tabs/ScheduleTab/components/pickers/`
+
+**CSS relocation:**
+- `src/system-entities/styles/AllSchedulesView.css` → `src/system-entities/entities/all-schedules/styles/AllSchedulesView.css`. The CSS now sits next to its consumer JSX, matching the per-entity `styles/` convention used by `news/`, `versionsverlauf/`, `integration/`. Removed the now-empty `src/system-entities/styles/` parent.
+
+**Subfolder flatten:**
+- `src/utils/formatters/timeFormatters.js` → `src/utils/timeFormatters.js`. Single-file subfolder eliminated, 1 import path updated. Mirrors the R10 `utils/chartjs/` flatten.
+
+### Final src/ shape
+
+11 functional top-level folders + `index.jsx`. No empty dirs anywhere in `src/`. Per-entity styles consistently inside the entity folder. No floating CSS at framework-root level.
+
+Single-file subfolders that remain are intentional semantic namespaces:
+- `system-entities/base/` (base class)
+- `system-entities/config/`, `system-entities/integration/` (system-entity infrastructure)
+- `components/charts/`, `components/ai/` (component categories)
+- `entities/*/styles/` (per-entity CSS — project convention)
+
+### Total
+
+- **−3 empty dirs**
+- **−1 misplaced CSS dir** (`system-entities/styles/`)
+- **−1 single-file subfolder** (`utils/formatters/`)
+- **+1 entity-aligned styles dir** (`entities/all-schedules/styles/`)
+- **0 functional changes**
+
+---
+
 ## Version 1.1.1383 - 2026-05-06
 
 **Title:** 🧹 Round 10 — Dead helpers + src/ structure cleanup
