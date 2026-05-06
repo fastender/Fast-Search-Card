@@ -1,11 +1,11 @@
 # Session Notes — 2026-05-06
 
-**Stand am Ende:** v1.1.1383. **6 Releases** an einem Tag (v1.1.1378 → v1.1.1383).
+**Stand am Ende:** v1.1.1386. **9 Releases** an einem Tag (v1.1.1378 → v1.1.1386).
 
-Schwerpunkt: **Phase 2 des Dead-Code-Cleanups**. Phase 1 (R1-R4) war am 05-04 in `system-entities/`, `demo-plugins/`, `components/`. Heute Phase 2 in `utils/` (verschachteltes Cascade-Dead-Code), `translations/` (Multi-Language-Bereinigung) und `src/`-Strukturpflege.
+Schwerpunkt: **Phase 2-4 des Dead-Code-Cleanups**. Phase 1 (R1-R4) war am 05-04 in `system-entities/`, `demo-plugins/`, `components/`. Heute Phase 2 (R5-R10) in `utils/`, `translations/`, src-Struktur. Phase 3 (R11) Struktur-Tidy. Phase 4 (R12-R13) DetailView/DeviceCard/SearchField + broad services-und-icons-Sweep.
 
-**Gesamt-Bilanz Phase 2 (heute): ~−3536 LOC, −8 Files, −1 Subfolder, 0 funktionale Bugs.**
-**Gesamt seit Audit-Start (R1-R10, 05-04 → 05-06): ~−7332 LOC, −20 Files.**
+**Gesamt-Bilanz heute (R5-R13): ~−4536 LOC, −12 Files, 0 funktionale Bugs.**
+**Gesamt seit Audit-Start (R1-R13, 05-04 → 05-06): ~−8082 LOC, −24 Files.**
 
 ---
 
@@ -57,9 +57,27 @@ Schwerpunkt: **Phase 2 des Dead-Code-Cleanups**. Phase 1 (R1-R4) war am 05-04 in
 |---|---|
 | **1383** | **Round 10: Dead helpers + src/ Struktur-Cleanup (−61 LOC + Struktur)**. `iconRegistry.js`: getStaticIcon (12 LOC). `appearanceConfig.js`: getEntityIcon, getEntityColor, getDetailViewConfig + dead default export (49 LOC). Struktur: `src/dokumentation.txt` (180KB) + `src/dokumentation_chartjs.txt` (5KB) → `docs/*_archive.txt` (waren nie importiert). `src/utils/chartjs/chartConfig.js` → `src/utils/chartConfig.js` (Single-File-Subfolder eliminiert, 2 Imports updated). 14 `.DS_Store` Files gelöscht. |
 
+### Block G — Folder Structure Tidy (1384, R11)
+
+| Version | Was |
+|---|---|
+| **1384** | **Round 11: Empty dirs + misplaced CSS + single-file subfolder**. 3 leere Verzeichnisse gelöscht (`integration/device-entities/views/layouts/`, `ScheduleTab/components/settings/`, `ScheduleTab/components/pickers/`). `system-entities/styles/AllSchedulesView.css` (eine Ebene zu hoch) → `entities/all-schedules/styles/AllSchedulesView.css` (per-Entity-Convention). `utils/formatters/timeFormatters.js` → `utils/timeFormatters.js` (Single-File-Subfolder geflattet, mirror R10). **Build-Fail-Lesson**: timeFormatters.js hatte `import '../historyConstants'` der nach Move broken war — Production-Compile fängt's, HMR nicht zwingend. Bei jedem File-Move auch interne relative Imports updaten. |
+
+### Block H — DetailView/DeviceCard/SearchField (1385, R12)
+
+| Version | Was |
+|---|---|
+| **1385** | **Round 12: User-requested deep audit (−247 LOC)**. `DeviceCard.jsx`: `DeviceCardsDemo` 218-LOC Demo-Komponente gelöscht (null Importer, Test-Demo-Leftover) + 3 unused imports. `SearchField.jsx`: `window.DEBUG_*` write-only useEffect (~20 LOC, 6 globals nie gelesen) + 4 unused imports. `DetailView.jsx`: 3 unused imports. `computeSuggestion.js`: 1 unused import. `searchEventHandlers.js`: `acceptSuggestion` export-strip. Lesson: Component-Files mit hoher LOC-Anzahl sind oft Hot-Spots für Demo-Komponenten und Debug-Code. |
+
+### Block I — Broad Sweep services/icons/system-entities (1386, R13)
+
+| Version | Was |
+|---|---|
+| **1386** | **Round 13: Cross-cutting symbol-grep (~−500 LOC, −4 Files)**. **4 orphan Icon-Files** gelöscht (AutomationOn 66, AutomationOff 69, SceneOn 69, ScriptOn 114 LOC) — in iconRegistry imported aber nie referenced. **17 Dead Functions** gelöscht: `getStaticDomainIcon`, `loadDeviceEntities`, `registerDeviceEntities`, `isBootstrapped`, `createSettingsView`, `getColorNameById`, `removeProfiles`, `hasProfiles`, `getSystemEntityColor`, `migrateDeviceCardLogic`, `getPowerSensorFromEnergy`, `clearUserProfilePictureCache`, `highlightName`, plus 4 default-exports. **9 Internal-only `export`-Strips**. **Lesson**: Default-Export-Objekte (`export default { foo, bar }`) maskieren tote Exports — Symbole erschienen "verwendet" weil sie im Default-Export-Objekt gebündelt waren, aber kein Konsument importiert den Default. |
+
 ---
 
-## 2. LOC-Bilanz Phase 2
+## 2. LOC-Bilanz Phase 2-4
 
 | Runde | Version | Bereich | Δ LOC | Δ Files |
 |---|---:|---|---:|---:|
@@ -69,7 +87,10 @@ Schwerpunkt: **Phase 2 des Dead-Code-Cleanups**. Phase 1 (R1-R4) war am 05-04 in
 | R8 | 1381 | translations (8 languages) | −1910 | −8 |
 | R9 | 1382 | translations API | −164 | 0 |
 | R10 | 1383 | misc + structure | −61 | 0 (+structure) |
-| **Phase 2 total** | | | **~−3536** | **−8** |
+| R11 | 1384 | folder structure tidy | 0 | −3 empty dirs, −2 subfolders |
+| R12 | 1385 | DetailView/DeviceCard/SearchField | −247 | 0 |
+| R13 | 1386 | broad services/icons/system-entities | ~−500 | −4 |
+| **Phase 2-4 total** | | | **~−4283 LOC** | **−12 src files** |
 
 Plus 0 funktionale Regressionen. Production-Builds clean, alle 6 System-Entities laden weiter.
 

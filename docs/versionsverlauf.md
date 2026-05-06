@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1387 - 2026-05-06
+
+**Title:** 🧹 Round 14 — DataProvider.jsx clean (4 commented log blocks + 1 unused import, -17 LOC)
+**Hero:** none
+**Tags:** Refactor, Cleanup, DeadCode, DataProvider
+
+### Why
+
+DataProvider.jsx is the largest file in the codebase (1297 LOC). Cross-cutting audit revealed minimal dead code — the file is tight production-managed React state machinery — but had 4 commented-out `console.log` debug blocks marked `TEMPORARILY DISABLED to reduce console spam` and 1 unused import.
+
+### What changed
+
+**`providers/DataProvider.jsx`: 1297 → 1280 LOC (-17)**
+
+Removed 4 commented-out console.log blocks (all debug-only, never planned to be re-enabled):
+- Line 277-284 (state changed log, 8 lines)
+- Line 1027-1031 (updating entity state, 5 lines)
+- Line 1047-1048 (entity updated, 2 lines)
+- Line 1068-1069 (new entity added, 2 lines)
+
+Removed 1 unused import: `matchesPattern` from `patternMatching.js` (only `filterExcludedEntities` from same module is used).
+
+### Verify
+
+Sanity-grep: 0 occurrences of `TEMPORARILY DISABLED` or `matchesPattern` left in DataProvider.jsx. Production build clean.
+
+### Total
+
+- **−17 LOC**
+- **0 functional changes**
+
+### Note
+
+DataProvider.jsx remains 1280 LOC and contains the bulk of the app's state machinery. Deeper refactoring would require splitting it into multiple providers (entities, settings, suggestions, notifications) — that's an architectural change, not dead-code cleanup. Out of scope for this initiative.
+
+---
+
 ## Version 1.1.1386 - 2026-05-06
 
 **Title:** 🧹 Round 13 — broad dead-export sweep across services/icons/system-entities (~−500 LOC, −4 files)
