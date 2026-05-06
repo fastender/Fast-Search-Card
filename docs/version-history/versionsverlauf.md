@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1391 - 2026-05-06
+
+**Title:** 🎵 Music Assistant integration — Search + Queue panel for `media_player` (6th icon, replaces Settings on MA-players)
+**Hero:** none
+**Tags:** Feature, MediaPlayer, MusicAssistant
+
+### Why
+
+Music Assistant (https://www.music-assistant.io) bundles Spotify / Tidal / Apple Music / YT Music / local files / radio behind one HA `media_player.*` entity. The card already controlled transport + volume + source, but the killer feature of MA — full-text search across all providers + queue manipulation — was only reachable via MA's own web UI. This release brings it into the card's media-player detail-view.
+
+### What changed
+
+**New files:**
+- `src/utils/musicAssistant.js` — detection helper (`isMusicAssistantPlayer`) + service wrappers (`searchMusicAssistant`, `playOnMusicAssistant`, `getMusicAssistantQueue`) + result/queue normalizers
+- `src/components/controls/MusicAssistantPanel.jsx` — Search + Queue tab-switcher panel with debounced search, action buttons (Play now / Play next / Add to queue), queue polling
+- `src/components/controls/MusicAssistantPanel.css` — orange-accented panel styling
+
+**Modified files:**
+- `src/utils/icons.js` — new `controlIcons.music_search` icon (magnifying glass with note symbol)
+- `src/utils/deviceConfigs.js` — `media_player` case detects MA-players via `attributes.app_id === 'music_assistant'` or `attributes.mass_player_id`; replaces the Settings icon with the Music-Search icon on MA-players (max 6 icons preserved)
+- `src/components/controls/PresetButtonsGroup.jsx` — new render branch for `group.id === 'ma_search'` → `<MusicAssistantPanel>`
+- `src/utils/translations/languages/de.js` + `en.js` — new `controls.musicSearch` string
+
+### Architecture decision: Music replaces Settings on MA-players
+
+On MA-players, the standard HA `source_list` is semantically redundant — MA does provider selection itself. So the 6th icon slot is reused: Settings disappears for MA, replaced by Music-Search. Non-MA media_players keep the existing Settings icon. This keeps the icon count at max 6 (no mobile-layout breakage) and surfaces the more valuable feature on the players that have it.
+
+### Detection logic
+
+```js
+const isMA = !!attrs.mass_player_id || attrs.app_id === 'music_assistant';
+```
+
+The MA HA-services (`music_assistant.search`, `play_media`, `get_queue`) are called via WebSocket `call_service` with `return_response: true` — `hass.callService` doesn't surface the response variable consistently in this card version, the WS path does.
+
+### Panel features
+
+- **Search tab**: 250 ms debounce, hits `music_assistant.search` with `limit: 6`, results flattened across tracks/albums/artists/playlists/radio. Each result card has Play / Next / Add buttons.
+- **Queue tab**: lists upcoming items, current track highlighted in orange, polls every 7 s for live updates (no WebSocket subscription yet — Phase 2).
+- **Feedback bubble**: brief confirmation after each action (Wird gespielt / Als Nächstes / Zur Queue).
+
+### Lesson
+
+The `music_assistant.search` service returns a structured response (`{ tracks, albums, artists, playlists, radio }`) rather than a flat list. Flattening at the boundary in `flattenSearchResults()` keeps the UI dumb — single render path for all media types, with a small `type` badge for visual disambiguation. Cleaner than five separate result-list components.
+
+---
+
 ## Version 1.1.1390 - 2026-05-06
 
 **Title:** 💡 New System Entity: Tipps — Apple-Tips-style lessons gallery (DE/EN, GitHub-sourced)
