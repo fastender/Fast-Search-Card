@@ -1,5 +1,49 @@
 # Versionsverlauf
 
+## Version 1.1.1390 - 2026-05-06
+
+**Title:** 💡 New System Entity: Tipps — Apple-Tips-style lessons gallery (DE/EN, GitHub-sourced)
+**Hero:** none
+**Tags:** Feature, SystemEntity, Documentation
+
+### Why
+
+`docs/lessons/` holds curated patterns distilled from session notes — they were useful but invisible to the running app. This release adds a system entity that fetches `lessons.{de,en}.md` from GitHub and renders them Apple-Tips-style inside the card, mirroring the existing Versionsverlauf flow 1:1.
+
+### What changed
+
+**New files** (`src/system-entities/entities/tipps/`):
+- `index.js` — entity definition, parser for the `## Tipp <slug> - <Category>` markdown format, GitHub fetch + 5-min localStorage cache (per-language key)
+- `TippsView.jsx` — list/detail navigation, search, category-filter, tag-filter
+- `components/TippsList.jsx` — feed view with category + tag chips
+- `components/TippDetail.jsx` — markdown-rendered detail with `marked` + `dompurify`
+- `styles/TippsView.css` — orange brand color (iOS lightbulb feel), matching versionsverlauf layout
+
+**Wiring:**
+- `src/system-entities/registry.js` — registered `tipps` between versionsverlauf and integration
+- `src/components/DetailView/TabNavigation.jsx` — wired tipps into back/search/refresh/settings action handlers + active-button polling
+
+**Content:**
+- Reformatted `docs/lessons/lessons.{de,en}.md` from free-form to the parser-compatible `## Tipp <slug> - <Category>` structure with `**Title/Hero/Tags:**` headers
+- 7 initial tipps each (DE + EN) covering Audit, Refactor, Build, HomeAssistant categories, distilled from R5–R16 session notes
+
+### Architecture
+
+| Aspect | Versionsverlauf | Tipps |
+|---|---|---|
+| Source | `docs/version-history/versionsverlauf.md` | `docs/lessons/lessons.{de,en}.md` |
+| Per-item id | Version number | Slug |
+| First filter row | Time window (1W/2W/4W/All) | Category |
+| Second filter row | Tags | Tags |
+| Cache key | `versionsverlauf_cache` | `tipps_cache_{de,en}` |
+| Brand color | Raycast Purple | iOS Orange |
+
+### Lesson
+
+Apple-Tips-style cards work best when the source format is constrained: `## <slug> - <Category>` + `**Title/Hero/Tags:**` headers means a 12-line regex can parse the whole doc with no edge cases. Free-form Markdown would have required either a real Markdown AST walk or per-tipp file boundaries — both heavier than warranted for a 7-entry doc.
+
+---
+
 ## Version 1.1.1389 - 2026-05-06
 
 **Title:** 🧹 Round 16 — 3 large component files audit (SubcategoryBar/StatsBar/UniversalControlsTab) — minimal cleanup, files mostly clean
