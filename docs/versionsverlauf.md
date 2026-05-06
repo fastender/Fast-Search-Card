@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1388 - 2026-05-06
+
+**Title:** 🧹 Round 15 — SearchField deep clean (-105 LOC, 30 unused imports + 8 orphan icons)
+**Hero:** none
+**Tags:** Refactor, Cleanup, DeadCode, SearchField, Icons
+
+### Why
+
+Deep audit of `SearchField/` revealed massive accumulated dead code in `SearchField.jsx`: 30 unused imports that survived earlier moves of subcomponents (icons, animation variants, getSensorCategory, AnimatePresence). After removing those imports, 8 icons in `Icons.jsx` cascaded into orphan status.
+
+### What changed
+
+**`SearchField.jsx`: 1081 → 1050 LOC (-31)**
+
+30 unused imports removed across 4 import blocks:
+- `AnimatePresence` (framer-motion) — never used (only `motion`)
+- `getSensorCategory` (translations) — never used
+- 12 animation variants (`aiButtonVariants`, `buttonHoverVariants`, `filterContainerVariants`, `filterGroupVariants`, `filterButtonVariants`, `filterButtonHoverVariants`, `mainFilterButtonVariants`, `categoryContainerVariants`, `categoryButtonVariants`, `categoryButtonHoverVariants`, `getCategoryButtonActiveVariants`, `clearButtonHoverVariants`) — all moved to subcomponents (FilterControlPanel, CategoryButtonsPanel, SearchInputSection) but parent imports left behind
+- 17 icon imports (`AIBrainIcon`, `ChevronDownIcon`, `ChevronUpIcon`, `ChevronLeftIcon`, `MagnifyingGlassIcon`, `ClearIcon`, `FilterIcon`, `DevicesIcon`, `ScenesIcon`, `ActionsIcon`, `SettingsIcon`, `SearchIcon`, `GridViewIcon`, `ListViewIcon`, `TypesIcon`, `FilterMainIcon`, `AreasIcon` partial) — moved to subcomponents
+- Removed debug `console.log('🔧 AI-Mode aktiviert - Panel wird expanded')`
+
+**`SearchField/components/Icons.jsx`: 163 → 89 LOC (-74)**
+
+After removing SearchField.jsx imports, 8 icons became completely orphan and got deleted:
+- `ChevronDownIcon`, `ChevronUpIcon`, `MagnifyingGlassIcon`, `FilterIcon`, `DevicesIcon`, `ScenesIcon`, `ActionsIcon`, `SettingsIcon`
+
+The 17-icon Icons.jsx is now 9 icons. Remaining icons (`AIBrainIcon`, `ChevronLeftIcon`, `ClearIcon`, `SearchIcon`, `GridViewIcon`, `ListViewIcon`, `CategoriesIcon`, `AreasIcon`, `TypesIcon`, `FilterMainIcon`) are all used by subcomponents.
+
+**`SearchField/components/DetailViewWrapper.jsx`: 225 LOC unchanged**
+
+Removed unused `AnimatePresence` import (only `motion` actually used).
+
+### Total
+
+- **−105 LOC** (31 SearchField.jsx + 74 Icons.jsx)
+- **0 functional changes**
+
+### Lesson
+
+Sub-component refactors leave imports behind in parent files. When you split a 1000-line component into smaller pieces and the original component file shrinks dramatically, the import block doesn't shrink automatically — IDE auto-import may drop unused symbols, but only on save and only for the active file. **Run a strict-grep audit (`grep -v import-block`) on parent files after major refactors.**
+
+---
+
 ## Version 1.1.1387 - 2026-05-06
 
 **Title:** 🧹 Round 14 — DataProvider.jsx clean (4 commented log blocks + 1 unused import, -17 LOC)
