@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1389 - 2026-05-06
+
+**Title:** 🧹 Round 16 — 3 large component files audit (SubcategoryBar/StatsBar/UniversalControlsTab) — minimal cleanup, files mostly clean
+**Hero:** none
+**Tags:** Refactor, Audit, Cleanup
+
+### Why
+
+Audit of 3 component files >500 LOC. Confirmed they're mostly tight production-managed UI code with no large dead-code patches. Found minimal cleanup opportunities.
+
+### Audited
+
+| Datei | LOC | Findings |
+|---|---:|---|
+| `SubcategoryBar.jsx` | 655 | ✅ Clean — alle State-Vars used (read+write), keine unused imports, alle Helpers active, keine commented-out code blocks |
+| `StatsBar.jsx` | 598 → 597 | 🟡 1 unused `GridReturnIcon` import |
+| `UniversalControlsTab.jsx` | 601 → 600 | 🟡 1 commented `// console.log('📊 Current value (raw):', value)` |
+
+### What changed
+
+- `StatsBar.jsx`: removed unused `GridReturnIcon` import (-1 LOC)
+- `UniversalControlsTab.jsx`: removed commented debug log (-1 LOC)
+
+### Total
+
+- **−2 LOC**
+- **0 functional changes**
+
+### Lesson
+
+Once cascade-dead-code patterns (Plugin infrastructure, language files, animation barrels, demo components, default-export bundles) are cleaned, what remains in production component files is genuine UI logic. **The audit-effort returns drop sharply after the 5th-6th round** — file-by-file Symbol-Grep on >500 LOC files now finds 1-2 LOC instead of dozens. Diminishing returns mean the cleanup phase is essentially done for these areas.
+
+---
+
 ## Version 1.1.1388 - 2026-05-06
 
 **Title:** 🧹 Round 15 — SearchField deep clean (-105 LOC, 30 unused imports + 8 orphan icons)
