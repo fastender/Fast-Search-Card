@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1379 - 2026-05-06
+
+**Title:** 🧹 Round 6 — Animations Barrel Audit (~660 LOC: 22 dead variants + dead default-export across animations/*)
+**Hero:** none
+**Tags:** Refactor, Cleanup, DeadCode, Animations, FramerMotion
+
+### Why
+
+The `animationVariants.js` barrel re-exported ~50 Framer Motion variants from 4 sub-files. Auditing each variant by symbol-grep across `src/` (excluding the barrel itself, which doesn't count as "use") found 22 variants with zero consumer code, plus an entirely unused default export block.
+
+### What changed
+
+**`utils/animationVariants.js`: 224 → 66 LOC**
+
+- Default export object (`export default {...}`) — never imported anywhere via `import variants from ...` — removed in full (~136 LOC)
+- 22 dead variants stripped from named-export blocks
+
+**`utils/animations/base.js`: 296 → 79 LOC**
+
+Removed 9 dead variants: `fadeVariants`, `fadeInUpVariants`, `fadeInDownVariants`, `scaleVariants`, `scaleUpVariants`, `slideInLeftVariants`, `slideInRightVariants`, `backdropVariants`, `getReducedMotionVariants`. Kept: `easings`, `durations`, `createSlideVariants`, `panelVariants`.
+
+**`utils/animations/buttons.js`: 368 → 314 LOC**
+
+Removed 3 dead variants: `controlButtonContainerVariants`, `buttonIconVariants`, `buttonLabelVariants`.
+
+**`utils/animations/components.js`: 501 → 409 LOC**
+
+Removed 3 dead variants: `circularSliderProgressVariants`, `settingsItemVariants`, `marketplaceItemVariants`.
+
+**`utils/animations/layout.js`: 359 → 218 LOC**
+
+Removed 7 dead variants: `glassHoverVariants`, `staggerContainerVariants`, `staggerItemVariants`, `tabVariants`, `tabContentVariants`, `categoryIndicatorVariants`, `expandablePresetsVariants`.
+
+### Total
+
+- **−662 LOC** in 5 files
+- **0 functional changes** — all removed variants had zero call sites verified via barrel-aware grep
+
+### Verify
+
+3-stage grep per variant: external imports excluding both the defining sub-file AND the barrel re-exports = 0. Live variants spot-checked still resolve in 3-9 consumer files each.
+
+### Lesson
+
+Barrel files mask dead-code: a re-export looks like a use but isn't. The proper grep pattern is `grep -rln SYM src/ | grep -v defining_file | grep -v barrel_file`. In an animation library where the barrel re-imports for a default export AND re-exports named, each dead symbol shows up 3 times — exclude both barrel reads to find real consumers.
+
+---
+
 ## Version 1.1.1378 - 2026-05-06
 
 **Title:** 🧹 Round 5 — utils/ Dead-Code Cleanup (~260 LOC removed in scheduleUtils, actionUtils, deviceHelpers)
