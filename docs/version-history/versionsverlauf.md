@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1394 - 2026-05-07
+
+**Title:** ✨ MA panel quick-wins bundle — type filter pills, round-robin sort, queue actions, larger result set
+**Hero:** none
+**Tags:** Feature, MusicAssistant, UX
+
+### Why
+
+After the v1.1.1393 stability fix the MA panel worked, but the UX had four obvious gaps:
+
+1. Searching "Tarkan" returned 6 tracks → had to scroll down to find the Album/Artist hits
+2. Tracks always came first (block-by-block), Albums and Artists buried at the bottom
+3. The Queue tab was read-only — visible but not usable
+4. 6 results per type was too few for popular searches
+
+This release closes all four in one shot.
+
+### What changed
+
+**A · Type-filter pills** above the result list (Alle / Titel / Alben / Künstler / Playlists / Radio) with per-type counts. Active pill highlighted in MA-orange. Filter resets to "Alle" automatically when the search query changes.
+
+**B · Round-robin interleaving** in `flattenSearchResults()`. Position 1 = top track, position 2 = top album, position 3 = top artist, position 4 = top playlist, position 5 = top radio, position 6 = 2nd track, ... — the most relevant hit per type always sits in the first viewport, no scrolling needed.
+
+**C · Queue actions:**
+- **Tap a queue item** → `music_assistant.queue_command(command='play_index', queue_item_id=...)` jumps the player to that track
+- **Trash icon on each non-current item** → `music_assistant.queue_command(command='delete', queue_item_id=...)` removes it
+- Both are best-effort against MA 2.x API; on older MA versions where `queue_command` isn't exposed they fail silently with a "Nicht unterstützt" feedback bubble (no crash)
+- Queue auto-refreshes 400-600 ms after a successful action, so the UI converges with the player state
+
+**D · Result limit** raised from 6 to 8 per media type — exposed as `MA_SEARCH_LIMIT_PER_TYPE` constant for future tuning. Total possible results now 40 (5 types × 8) — interleaving + filter pills make navigation cheap.
+
+### Files
+
+- `src/utils/musicAssistant.js`: split out `normalizeSearchItem()`, rewrote `flattenSearchResults()` for round-robin, added `queueCommandMusicAssistant()` wrapper, exported `MA_SEARCH_LIMIT_PER_TYPE`
+- `src/components/controls/MusicAssistantPanel.jsx`: `typeFilter` state, type-counts memoized, `loadQueue` extracted as `useCallback` so queue actions can refresh after they fire, `QueueCard` extended with `onPlay`/`onRemove` props + Trash icon
+- `src/components/controls/MusicAssistantPanel.css`: `.ma-type-filter-row`, `.ma-type-pill[.active]`, `.ma-type-pill-count`, `.ma-queue-card.is-clickable`, `.ma-queue-remove`
+
+### Lesson
+
+Round-robin interleave is one of those tiny algorithmic moves that completely changes the perceived quality of a search UI — costs ~10 lines of code, transforms "I have to scroll" into "I see what I want at a glance." The grouped-by-type sort that came naturally from the API shape was wrong from the start; flatness with type-badges does the disambiguation work better than spatial separation.
+
+For the queue actions, the trade-off was: spec the exact MA service behavior (would have meant cross-version testing in the user's setup) vs. ship best-effort with explicit fallback feedback. Best-effort wins for a single-user iteration loop — if `queue_command` fails on the user's MA version we'll know within minutes and can adjust, instead of stalling on doc archaeology.
+
+---
+
 ## Version 1.1.1393 - 2026-05-07
 
 **Title:** 🐛 MA panel scroll-jump + crash fix — hass-ref pattern + UI stability
