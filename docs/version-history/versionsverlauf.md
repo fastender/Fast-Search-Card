@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1393 - 2026-05-07
+
+**Title:** 🐛 MA panel scroll-jump + crash fix — hass-ref pattern + UI stability
+**Hero:** none
+**Tags:** Bugfix, MusicAssistant, Pattern
+
+### Why
+
+Live test of v1.1.1392 surfaced two issues that turned out to be the same root cause:
+
+1. **Scroll-jump:** Scrolling down in search results bounced back to the top after a couple of seconds — every time.
+2. **Crash:** After enough re-fires the card became unresponsive.
+
+Both caused by `hass` sitting in three `useEffect` dependency arrays. Every HA backend tick (a few seconds apart) gives a new `hass` reference → effects re-fire → `setSearching(true)` hides the result list (because of `{!searching && results.map(...)}`) → list unmounts → on `setSearching(false)` it remounts, scroll = 0. The endless re-fetch loop also accumulated in-flight requests until the card froze.
+
+**Direct violation of tip `hass-ref` from the lessons doc.** Ironic.
+
+### What changed
+
+`src/components/controls/MusicAssistantPanel.jsx`:
+- New `hassRef` updated on every render, used inside async callbacks instead of the closure value
+- `hass` removed from all three `useEffect` dependency arrays (config-entry lookup, search effect, queue poller)
+- `handleAction` reads from `hassRef.current` too
+- Result list **stays mounted during re-search** — spinner became a small inline indicator stuck to the top-right of the list (sticky), no longer an empty-state replacement that swaps out the children. Empty/status states only render when `results.length === 0`.
+
+`src/components/controls/MusicAssistantPanel.css`:
+- New `.ma-spinner-small` and `.ma-inline-spinner` (sticky pill, top-right, dark backdrop)
+
+### Lesson
+
+The `hass-ref` pattern isn't optional discipline — it's a hard correctness requirement for any component that fetches asynchronously inside an effect. Putting `hass` in deps means **every backend tick triggers your effect**, and if that effect mutates display state mid-fetch, the UI flashes/jumps every few seconds. Either: (a) `hass` in a ref read by callbacks but never in deps, or (b) effects that don't fire UI-visible side effects until after their async work resolves.
+
+The UI part of the fix matters too: even with the hass-ref fix, **toggling between empty-state and list mid-re-search still unmounts** and resets scroll. Display the list always; show progress as an overlay, not a replacement.
+
+---
+
 ## Version 1.1.1392 - 2026-05-07
 
 **Title:** 🐛 MA search fix — config_entry_id is required (was missing → search returned 400)
