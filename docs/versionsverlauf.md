@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1378 - 2026-05-06
+
+**Title:** 🧹 Round 5 — utils/ Dead-Code Cleanup (~260 LOC removed in scheduleUtils, actionUtils, deviceHelpers)
+**Hero:** none
+**Tags:** Refactor, Cleanup, DeadCode, Maintenance
+
+### Why
+
+Follow-up to v1.1.1377's cleanup sweep. The earlier audit had flagged 3 specific candidates in `utils/` with high confidence: dead exports never imported anywhere AND never called internally. This release removes them.
+
+### What changed
+
+**`utils/scheduleUtils.js` (-126 LOC)**
+
+- `fetchAllSchedules` (46 LOC) — orphan, never called externally or internally
+- `updateSchedule` (29 LOC) — orphan
+- `toggleSchedule` (28 LOC) — orphan
+
+The remaining `createSchedule` / `deleteSchedule` / `fetchSchedules` are all alive and used.
+
+**`utils/actionUtils.js` (-96 LOC)**
+
+- `isValidAction` (9 LOC) — never called
+- `getActionDescription` (25 LOC) — never called
+- `formatLastTriggered` (23 LOC) — never called
+- `debugActionRelevance` (12 LOC) — never called
+- Stripped `export` from `calculateRelevance` and `getIconForAction` (used internally by `transformToActionObject` only)
+
+**`utils/deviceHelpers.js` (-37 LOC)**
+
+- `getTemperatureGradient` — never called externally, never called internally. Standalone with no dependents.
+
+### Total
+
+- **−259 LOC** in 3 files
+- **0 functional changes** — all removed functions had zero call sites
+
+### Verify
+
+Each symbol verified via 3-stage grep before deletion: external imports (0), internal calls in defining file (0 except for the 2 stripped-but-kept), then sanity-grep of all removed symbols across `src/` after deletion. All clean.
+
+---
+
 ## Version 1.1.1377 - 2026-05-04
 
 **Title:** 🧹 Dead-Code Cleanup — 4 Rounds, ~3800 LOC removed across system-entities, demo-plugins, and components
