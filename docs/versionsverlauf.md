@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.1380 - 2026-05-06
+
+**Title:** 🧹 Round 7 — utils/ Dead-Export Sweep + Cascade Cleanup (~500 LOC across 11 files)
+**Hero:** none
+**Tags:** Refactor, Cleanup, DeadCode, ChartConfig, Toast, Constants
+
+### Why
+
+Comprehensive symbol-grep audit of all remaining `utils/*.js` files (excluding translations + animations from earlier rounds). Found 20+ dead exports plus a cascade chain in `chartjs/chartConfig.js` where the only consumed API is the named `ChartJS` export — every other helper (visionOSColors, defaultChartOptions, chartPresets, createChartConfig, destroyChart) was internal-only chained dead code.
+
+### What changed
+
+**`utils/chartjs/chartConfig.js`: 283 → 64 LOC** (largest single-file win)
+
+The cascade: `createChartConfig → chartPresets → defaultChartOptions → visionOSColors`. None of these are imported externally. `ChartComponents.jsx` defines its own local `visionOSColors`. Removed the entire helper hierarchy + dead default export. Kept only ChartJS module setup + named export.
+
+**`utils/toastNotification.js`: 318 → 195 LOC**
+
+Removed 6 unused toast helpers + cascade: `clearAllToasts`, `showProgressToast`, `showActionToast`, `getActiveToastCount`, `testAllToasts` (and `showWarningToast` which was only called from `testAllToasts`).
+
+**`utils/actionConstants.js`** — 4 dead constants: `TOAST_MESSAGES`, `ACTION_DOMAINS`, `DEFAULT_MIN_RELEVANCE`, `ANIMATION_DURATION` (~30 LOC)
+
+**`utils/historyConstants.js`** — 3 dead exports: `PATTERN_TYPES`, `STATS_THRESHOLDS`, `getTimeframeLabel` (~30 LOC)
+
+**`utils/scheduleConstants.js`** — 2 dead exports: `WEEKDAY_PRESETS`, `TIMER_PRESETS` (~17 LOC)
+
+**`utils/squircle.js`** — `SQUIRCLE_LABELS` (~7 LOC)
+
+**`utils/hassRetryService.js`** — `resetHassCache` (test helper) + `isHassReady` (~20 LOC)
+
+**`utils/systemSettingsStorage.js`** — `setSystemSettingsValue` (~14 LOC)
+
+**`utils/toastSettings.js`** — `TOAST_EVENT_KEYS` (~9 LOC)
+
+**Group B: `export` keyword strips (no LOC reduction, just API hygiene)**
+
+Stripped `export` from internal-only helpers across: `perfMarks.js` (perfMeasure, perfReset), `excludedPatternPresets.js` (DEFAULT_SEED_PATTERNS), `domainHandlers.js` (powerToggleHandlers), `sliderHandlers.js` (sliderChangeHandlers), `systemSettingsStorage.js` (readSystemSettings, writeSystemSettings), `scheduleUtils.js` (createSchedule), `indexedDB.js` (DB_NAME, DB_VERSION), `squircle.js` (SQUIRCLE_STYLES), `searchSynonyms.js` (SYNONYMS, CATEGORY_SYNONYMS), `pendingActionTracker.js` (PENDING_TIMEOUT_MS), `videoHelpers.js` (7 internal helpers).
+
+### Total
+
+- **~−500 LOC** across 11 files
+- **0 functional changes**
+
+### Verify
+
+3-stage grep per symbol: external imports = 0, internal calls verified, then sanity-grep all removed symbols across `src/` confirms no orphan references.
+
+### Lesson
+
+Cascade dead code is the highest-ROI find: when an external API is fully unused, the entire internal helper tree below it is also dead. The chartConfig cascade saved 219 LOC from a single file because one root function (`createChartConfig`) was unused — pulling it deletes 4 dependents, each unused too.
+
+---
+
 ## Version 1.1.1379 - 2026-05-06
 
 **Title:** 🧹 Round 6 — Animations Barrel Audit (~660 LOC: 22 dead variants + dead default-export across animations/*)
