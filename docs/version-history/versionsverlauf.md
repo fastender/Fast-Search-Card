@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1413 - 2026-05-08
+
+**Title:** 🎨 Different ring colors per slide — Volume orange, Position cyan-blue
+**Hero:** none
+**Tags:** Polish, MediaPlayer, UI
+
+### Why
+
+User asked for different colors per slide so the active mode is recognizable at a glance, not just by reading the label. Volume + Position both used the same orange ring before — visually identical except for the slider value.
+
+### What changed
+
+`src/utils/deviceConfigs.js`:
+- Slide 1 (Position) `color`: `#FF6B35` (orange) → `#34C8FF` (cyan-blue)
+- Slide 0 (Volume) keeps `#FF6B35` — orange remains the brand color for active interactive elements
+
+### Visual result
+
+- **Volume slide** → orange ring matches the rest of the orange UI accents (knob highlight, page-dots active, MA-search button etc.)
+- **Position slide** → cyan-blue ring, clearly distinct, matches the "progress" semantic of time-based controls (similar to how iOS Music uses different track-bar colors)
+
+The contrast also makes the auto-advance switch visually obvious — even from peripheral vision you notice the slide changed.
+
+### Lesson
+
+A 5-character CSS color change can do as much UX work as a full feature. Two visually identical UI states are functionally indistinguishable; one color flip per state turns "I have to read the label" into "I see at a glance which mode I'm in."
+
+For follow-on work: if a third slide gets added later, pick a third hue (purple? green?) — keep the colors max-distinct rather than a gradient, since hue-spectrum-position isn't intuitive for non-technical users.
+
+---
+
 ## Version 1.1.1412 - 2026-05-07
 
 **Title:** 🔧 Versionsverlauf URL fix — was pointing to old `docs/versionsverlauf.md`, no entries shown after v1.1.1389 reorg
