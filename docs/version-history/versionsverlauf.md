@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1395 - 2026-05-07
+
+**Title:** ✨ MA panel: now-playing mini header + recent-searches chips
+**Hero:** none
+**Tags:** Feature, MusicAssistant, UX
+
+### Why
+
+Two follow-on UX gaps after the v1.1.1394 quick-wins bundle:
+
+1. **You couldn't see what was playing inside the search/queue panel.** Cover-art was on the detail-view background but no compact "currently playing" reference inside the panel itself. Pause-toggling required leaving the panel.
+2. **Empty search-state was passive.** "Tippe einen Suchbegriff ein..." gave no shortcut to repeat a recent search.
+
+### What changed
+
+**Now-Playing-Mini header** above the tabs, visible only when player is `playing` or `paused`:
+- 38×38 cover-art thumbnail (entity_picture / media_image_url)
+- Track-title + "artist · album" subtitle, both ellipsis-truncated
+- Mini play/pause button (orange brand-color circle) → dispatches standard `media_player.media_play` / `media_pause` (no MA-specific call needed)
+- Auto-hides for `idle` / `off` / `unavailable` states
+
+**Recent-Searches** in the search-tab empty state (when query is empty):
+- localStorage-backed (`ma_search_history` key, max 8 entries, deduped case-insensitively)
+- Saved automatically when a search returns ≥ 1 hit
+- Rendered as chips with a × per chip + "Alle löschen" header button
+- Tap chip → puts query back in the input → search re-fires
+- × on chip removes single entry; "Alle löschen" wipes localStorage too
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx`:
+  - New `NowPlayingMini` component (reads live from `item.attributes`, props update on each parent re-render via `useEntityStateSync` chain)
+  - New `recent` state initialized lazily from localStorage; saved inside the search debounce callback after a successful response
+  - `removeRecent(q)` + `clearAllRecent()` helpers
+  - Empty-state branch in search-tab swapped: shows recent-chips block when history exists, otherwise the original placeholder paragraph
+  - New `PauseIcon` SVG component
+- `src/components/controls/MusicAssistantPanel.css`:
+  - `.ma-now-playing` + sub-elements (cover, text, btn) with orange-tinted background
+  - `.ma-empty-with-recent` + `.ma-recent-header` + `.ma-recent-row` + `.ma-recent-pill` + `.ma-recent-pill-x`
+
+### Lesson
+
+The Now-Playing-Mini doesn't need its own state subscription — it relies on the parent component's `useEntityStateSync` re-render flow. That re-render reaches the panel via prop change to `item`, but **doesn't re-fire the panel's own useEffects** (deps unchanged after the v1.1.1393 hass-ref fix), so the search list and queue stay mounted. Live data + stable lists = a free re-render budget you can spend on prominent live UI without paying scroll-jump.
+
+For the recent-searches: writing to localStorage inside the same async block that called `setResults` keeps the two consistent — no separate effect needed, no race between "results arrived" and "history saved." Effect-free state coupling beats orchestrated effects.
+
+---
+
 ## Version 1.1.1394 - 2026-05-07
 
 **Title:** ✨ MA panel quick-wins bundle — type filter pills, round-robin sort, queue actions, larger result set
