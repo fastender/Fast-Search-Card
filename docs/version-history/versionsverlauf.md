@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1400 - 2026-05-07
+
+**Title:** 🔥 Hotfix: ReferenceError `_maLibraryDisabled is not defined` (left over from v1.1.1399 sessionStorage refactor)
+
+**Hero:** none
+**Tags:** Bugfix, Critical, MusicAssistant
+
+### Why
+
+v1.1.1399 replaced module-level `let _maLibraryDisabled = false` with a `sessionStorage`-backed `isMusicAssistantLibraryDisabled()` helper. One reference inside `getMusicAssistantLibrary()` itself still pointed at the deleted `let`. Result: `Uncaught (in promise) ReferenceError: _maLibraryDisabled is not defined` on every panel mount, preventing the library probe from running at all.
+
+The user's session was effectively broken — couldn't see search results, couldn't enter library tab without React error boundary triggering.
+
+### What changed
+
+- `src/utils/musicAssistant.js:417`: `if (_maLibraryDisabled) return [];` → `if (isMusicAssistantLibraryDisabled()) return [];`
+
+### Lesson
+
+When refactoring a module-scope variable to a function-based access pattern, **grep the module after the refactor** before declaring done. A single `grep -n '_maLibraryDisabled' src/utils/musicAssistant.js` would have caught this in 2 seconds. Pattern reinforcement: tip `cascade-detection` from the lessons doc applies just as much to refactor-leftovers as to dead-code cleanup.
+
+---
+
 ## Version 1.1.1399 - 2026-05-07
 
 **Title:** 🐛 MA library probe: sessionStorage cache + readable service-list logging
