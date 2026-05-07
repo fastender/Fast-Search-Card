@@ -1,5 +1,51 @@
 # Versionsverlauf
 
+## Version 1.1.1398 - 2026-05-07
+
+**Title:** 🐛 MA library: stop spam + add diagnostics + try fallback service names
+**Hero:** none
+**Tags:** Bugfix, MusicAssistant, Diagnostics
+
+### Why
+
+Live test of v1.1.1397's library tab returned errors stacked 8× in the console — `[MA] get_library_<type> failed: Object` for each of playlists/albums/artists/radios on every panel re-mount. Two underlying issues:
+
+1. **API mismatch.** The user's MA version doesn't expose `music_assistant.get_library_*` services. Without knowing exactly which services it _does_ expose, I had to ship blind in v1.1.1397.
+2. **No cache for the negative result.** Every panel re-mount kicked off the loadBrowse again → 8 mounts × 4 categories = 32 failed calls.
+
+### What changed
+
+**Util** (`src/utils/musicAssistant.js`):
+- New module-scope flags `_maLibraryDisabled` + `_maServicesLogged`
+- Exported helpers: `isMusicAssistantLibraryDisabled()`, `setMusicAssistantLibraryDisabled(v)`, `resetMusicAssistantLibraryProbe()`
+- `getMusicAssistantLibrary()` now tries **two service-name variants** before giving up:
+  1. `music_assistant.get_library_<type>` (what we tried in v1.1.1397)
+  2. `music_assistant.library_<type>` (variant without `get_` prefix — common naming in HA integrations)
+- On both-fail: logs `err.code` + `err.message` (instead of bare error object that printed as "Object"), and **once per session** dumps the actual list of available `music_assistant` services from `hass.services.music_assistant` — diagnostic for figuring out what the user's MA version exposes
+- Downgraded from `console.error` to `console.warn` — these aren't crash-level
+
+**Panel** (`src/components/controls/MusicAssistantPanel.jsx`):
+- `loadBrowse` checks `isMusicAssistantLibraryDisabled()` first; if true, skips fetching, sets `browseLoaded = true`, returns
+- After a load where all 4 categories returned empty: marks library as disabled for the session — no more retry on tab re-mount
+- Refresh button now calls `resetMusicAssistantLibraryProbe()` so user can explicitly retry
+- Empty-state text updated: "Bibliothek nicht verfügbar in dieser MA-Version" + secondary line pointing user to console for available services
+
+### What the user should do next
+
+1. Open the panel once → look at console
+2. The first failed library probe will print `[MA] Available music_assistant services: [...]` listing what the MA integration actually exposes
+3. Send that list back — I can then point the helper at the real service names
+
+Subsequent panel-opens will be silent (cached "disabled" state). One refresh-button-tap re-runs the probe if the user wants to retry.
+
+### Lesson
+
+Negative-result caching matters as much as positive-result caching. When you make a probe and it fails, the natural instinct is "try again next time" — which is right for transient errors but wrong for "service genuinely doesn't exist" errors. The two failure modes look identical to the caller; you have to assume "doesn't exist" until proven otherwise to avoid spam. Plus: when you ship a feature that calls third-party APIs, **dump the list of what's actually available on first failure**. That diagnostic line is worth more than a thousand stack traces.
+
+The fallback-name pattern (`get_library_<type>` → `library_<type>`) is also worth keeping as a default for any HA-integration call. Service names get renamed across versions; trying the most likely variants is cheap.
+
+---
+
 ## Version 1.1.1397 - 2026-05-07
 
 **Title:** ⚡ MA panel: WebSocket queue subscription + library drilldown (album/artist/playlist tracks)
