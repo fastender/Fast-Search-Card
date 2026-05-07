@@ -1,5 +1,49 @@
 # Versionsverlauf
 
+## Version 1.1.1396 - 2026-05-07
+
+**Title:** 📚 MA panel: Library browse tab — Playlists / Albums / Artists / Radio
+**Hero:** none
+**Tags:** Feature, MusicAssistant, Library
+
+### Why
+
+Search + Queue covered "I know what I want" and "what's next." The missing third use-case was **discover what's already in my library** — Apple-Music-style horizontal-scrolling sections with cover-art thumbnails. This release adds a third tab "Bibliothek" (Library) that does exactly that.
+
+### What changed
+
+**New util** in `src/utils/musicAssistant.js`:
+- `getMusicAssistantLibrary(hass, type, opts)` — generic loader for one of `playlists` / `albums` / `artists` / `tracks` / `radios`. Calls `music_assistant.get_library_<type>` via WS with `return_response: true`. Tries multiple response shapes (`{ items }` / `{ <type> }` / array) for cross-version tolerance.
+- `normalizeLibraryItem(plural, it)` — collapses different MA response shapes to our standard `{ type, uri, name, subtitle, image }` card shape. Handles per-type subtitles (album → artist, playlist → owner, radio → provider).
+
+**Panel changes** (`MusicAssistantPanel.jsx`):
+- New tab button "Bibliothek" / "Library" between Search and Queue
+- New state: `browseData = { playlists, albums, artists, radios }`, `browseLoading`, `browseLoaded` (caches result, refresh-button invalidates)
+- `loadBrowse()` callback fires 4 `get_library_*` calls in parallel (`Promise.all`) with `limit: 12` each
+- New `BrowseSection` + `BrowseCard` components — section header with title + count, horizontal-scroll row of 110×110px cover cards with title + subtitle below
+- Tap on card → `playOnMusicAssistant(..., enqueue: 'replace')` — straight to playback
+- Refresh button at bottom of browse content invalidates the cache
+
+**Layout** (`MusicAssistantPanel.css`):
+- `.ma-browse-content` — vertical scroll container holding the sections
+- `.ma-browse-row` — horizontal scroll with `scroll-snap-type: x proximity` for clean swipe stops
+- `.ma-browse-card` — 110×110 cover, 2-line title clamp, hover-zoom on cover
+- `.ma-browse-refresh` — orange chip-style button at the end
+
+### Failure modes (graceful)
+
+- If MA version doesn't expose `get_library_*` services → the WS call throws, helper returns `[]`, section renders nothing, browse-tab shows "Bibliothek leer oder von dieser MA-Version nicht unterstützt"
+- If only some categories return data (e.g. playlists ja, albums nein) → empty sections silently disappear, others show normally
+- Console errors are logged but don't crash the panel
+
+### Lesson
+
+Loading 4 parallel `Promise.all`-fetched lists is dramatically simpler than orchestrating sequential or staggered loads — the user perceives the whole tab as ready at once instead of items popping in one by one. The cost is one bigger network burst on tab open, but for 12-item-per-section payloads with cached cover URLs that's acceptable. The cache-flag (`browseLoaded`) means tab-switching back-and-forth doesn't re-fetch — only the explicit refresh button does.
+
+The `normalizeLibraryItem` indirection was worth its 20 LOC: future expansions (e.g. album-detail-view showing tracks) can reuse the same shape, and the BrowseCard component never needs to know which media-type it's rendering.
+
+---
+
 ## Version 1.1.1395 - 2026-05-07
 
 **Title:** ✨ MA panel: now-playing mini header + recent-searches chips
