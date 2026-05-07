@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1404 - 2026-05-07
+
+**Title:** 📡 MA Multi-Player-Transfer — AirPlay-style transfer button in Now-Playing header
+**Hero:** none
+**Tags:** Feature, MusicAssistant, Multi-Player
+
+### Why
+
+`music_assistant.transfer_queue` is one of the 6 services the user's MA exposes — and the only one we hadn't surfaced yet. Closes the multi-player loop: continue your current playback in another room with one tap.
+
+Per agreed Mockup option **A**: button visible only in the Now-Playing header (which itself only renders when player is `playing` or `paused`). Semantically right — you can only transfer something that's actively playing.
+
+### What changed
+
+**New utils** (`src/utils/musicAssistant.js`):
+- `isTransferQueueAvailable(hass)` — checks `hass.services.music_assistant.transfer_queue` existence
+- `getMusicAssistantPlayers(hass, excludeEntityId)` — scans `hass.states` for media_players with `attributes.mass_player_id` or `app_id === 'music_assistant'`, excludes the current one, sorts available-first then alphabetical
+- `transferMusicAssistantQueue(hass, source, target, opts)` — best-effort wrapper trying two service signatures (source_player+entity_id-target / target_player+entity_id-source) for cross-version compatibility, `auto_play: true` by default
+
+**Now-Playing-Mini** (`MusicAssistantPanel.jsx`):
+- New AirPlay-style SVG icon (rectangle + triangle, universally recognizable)
+- Transfer button rendered conditionally: only when `transferAvailable = isTransferQueueAvailable(hass) && otherPlayers.length > 0`
+- Tap toggles `transferOpen` state; player list slides down underneath the now-playing block via `framer-motion` (220ms ease)
+- Player list shows: speaker icon + friendly name + status (`›` chevron / "Offline" label / "…" pending)
+- Tap on available player → `transferMusicAssistantQueue()` → feedback bubble "Übertragen auf Küche"
+- Auto-collapse when player goes idle (avoids stuck-open list after transfer completes)
+- `onFeedback` prop wires the existing `showFeedback` from panel-level state
+
+**Styling**:
+- `.ma-np-btn-transfer` — secondary button (white-translucent, not orange) right of pause
+- `.ma-transfer-list` — orange-tinted box visually connected to the now-playing-header above (matching border + tint)
+- `.ma-transfer-item` — flex row with icon + name + status, hover highlight, disabled state for unavailable players
+- Pending state shows orange tint while transfer service-call is in flight
+
+### What you'll see
+
+When playing on the Wohnzimmer player:
+1. Now-Playing header has two buttons: **Pause** (orange filled) and **AirPlay icon** (white-translucent)
+2. Tap the AirPlay → header stays, list slides down
+3. List shows other MA-players (Küche, Schlafzimmer, ...) sorted available-first
+4. Tap any available player → spinner on that row → service call → feedback "Übertragen auf {name}" → list collapses
+5. After ~1-2 s the player goes idle (queue moved to target) and the now-playing-header itself auto-hides
+
+### Lesson
+
+Multi-player handoff is one of those features that's trivial to wire but high-impact for users with multiple speakers. The work here was 90% UX (where does the button live, when does it show, what happens after the transfer) and 10% service plumbing. The two-variant fallback in `transferMusicAssistantQueue` is the same pattern as the library loader — once you've established it once, every "MA service that might be named slightly differently between versions" gets the same treatment for free.
+
+The conditional rendering of the transfer button (`isTransferQueueAvailable && otherPlayers.length > 0`) is the right discipline: zero MA-other-players means "transfer to nothing," which is meaningless. Hide what doesn't apply.
+
+---
+
 ## Version 1.1.1403 - 2026-05-07
 
 **Title:** ⚡ MA cover loading — Image() preload + remove no-referrer + fade-in + larger eager-window
