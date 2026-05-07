@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1406 - 2026-05-07
+
+**Title:** 🐛 Two bugfixes — Power-toggle ghost border + Cover-art hidden under media_player video
+**Hero:** none
+**Tags:** Bugfix, MediaPlayer, UI
+
+### Why
+
+User screenshot from media_player detail-view showed two issues:
+
+1. **Power-toggle had a visible 1px white border** around the rounded rectangle, even though no border was defined in CSS.
+2. **Cover-art was invisible** in the detail-view background even though MA was streaming "Kuzu Kuzu" by Tarkan. User had enabled video for media_player domain in System-Entity Settings → the generic `media_player.mp4` background video was rendering on top of the cover-art.
+
+### Root causes
+
+**Bug 1 — framer-motion border auto-injection:**
+`<motion.span>` had `animate={{ background, borderColor }}`. Even though no `border-width` or `border-style` was defined, **framer-motion auto-injects `border-style: solid; border-width: 1px`** on elements where `borderColor` is animated. The visible border appeared because of the animation property, not the CSS.
+
+**Bug 2 — z-stack render order:**
+`detail-left` rendered three siblings absolute-positioned: `<video>`, `<img.detail-left-news-image>`, `<img.detail-left-cover-art>`. All conditioned on their respective truthy. For media_player with active playback AND video enabled, both `videoUrl` and `mediaCoverUrl` were truthy → both rendered → the video covered the cover-art (later sibling, but `<video>` element typically forces a stacking context).
+
+### What changed
+
+**`src/components/controls/PowerToggle.jsx`:**
+- Removed `borderColor` from `animate={{}}` (it served no visual purpose anyway — no border was intended)
+- Added explicit `border: 'none'` to `style={{}}` as belt-and-suspenders against any framer-motion default
+
+**`src/components/DetailView.jsx`:**
+- New computed `showVideoBackground = videoUrl && !hasMediaCover` — if a media_player has cover-art, video is suppressed entirely
+- Updated `<video>` render to gate on `showVideoBackground` instead of `videoUrl`
+- Updated wrapper `className` to use `showVideoBackground` for the `has-video` flag
+- Mobile divider visibility extended: hide divider only when video IS actually rendered (matching the new logic)
+
+### Visual result
+
+Power-toggle: clean rounded rectangle with smooth background-color transition, no border line.
+Detail-view background for active media_player: cover-art (Apple-Music-blurred-style) fully visible, no generic video underlay.
+
+For non-media_player entities or media_player in idle state, video background still works as before — only the active-playback case got the cover-priority logic.
+
+### Lesson
+
+framer-motion's auto-injection of `border-style: solid; border-width: 1px` when animating `borderColor` is undocumented surface noise. **If you only want to animate a color property, don't put it in `animate` unless the underlying CSS guarantees the property is meaningful.** Animating `borderColor` without an explicit border definition is the same kind of mistake as animating `transform: translateZ` on an element without `will-change` — works most of the time, but with weird side effects.
+
+For z-stack/render-order in absolute-positioned siblings: `<video>` and `<img>` of the same z-index level don't compose cleanly because `<video>` creates an implicit stacking context. **Suppress, don't layer.** When two background candidates compete, pick one based on data — don't trust CSS z-index to do the right thing across all browsers.
+
+---
+
 ## Version 1.1.1405 - 2026-05-07
 
 **Title:** 📣 MA Announcements — Megaphone button + TTS panel with recent history
