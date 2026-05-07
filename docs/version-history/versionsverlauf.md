@@ -1,5 +1,49 @@
 # Versionsverlauf
 
+## Version 1.1.1408 - 2026-05-07
+
+**Title:** 🔄 Revert PowerToggle v1.1.1407 + Disable cover-circle in CircularSliderDisplay
+**Hero:** none
+**Tags:** Bugfix, Revert, MediaPlayer
+
+### Why
+
+User-Feedback nach v1.1.1407 mit zwei Screenshots:
+
+1. **Power-Toggle "Bereit"-Screenshot OK, "Kuzu Kuzu"-Screenshot hat einen Kreis hinter dem Toggle.** Der "Kreis" ist nicht der PowerToggle-Track (den hatten wir schon transparent gemacht), sondern das `circular-cover-image`-Element vom CircularSliderDisplay, das seit v1.1.1372 als 80×80px-Kreis oben im Slider-Display gerendert wird wenn `coverImage`-Prop gesetzt ist.
+2. **Track-Title "Kuzu Kuzu" rückt zu weit nach unten** weil der Cover-Kreis Platz beansprucht und die Display-Spalte (Cover → Title → Subvalue → Label) länger wird als bei Idle (nur "Bereit" / "LAUTSTÄRKE").
+
+User-Wunsch: dieselbe kompakte Toggle+Title-Anzeige wie im "Bereit"-State, nur mit Track-Title statt "Bereit". Sharp-Cover bleibt im LeftView (v1.1.1407).
+
+### What changed
+
+**`src/components/controls/PowerToggle.jsx` (Revert v1.1.1407):**
+- `background` zurück in `animate={{}}` mit den ursprünglichen Werten (`rgba(255, 255, 255, 0.25)` on, `rgba(255, 255, 255, 0.1)` off)
+- `background: 'transparent'` aus `style={{}}` entfernt
+- `border: 'none'` bleibt (das war der Anti-framer-motion-Fix aus v1.1.1406, der ist weiterhin korrekt)
+- Toggle-Look ist jetzt wieder die kompakte iOS-Pille wie vor v1.1.1407
+
+**`src/utils/deviceConfigs.js`:**
+- `coverImage: isActive ? coverUrl : null` → `coverImage: null`
+- Der CircularSliderDisplay rendert keinen Cover-Kreis mehr im Slider-Zentrum. Die Anzeige ist wieder kompakt: Toggle → Title → Subvalue → Label, alles ohne Cover-Image dazwischen
+- Cover ist jetzt EXKLUSIV im LeftView (Sharp-Foreground aus v1.1.1407 bleibt)
+
+### Visual result
+
+**Toggle**: kompakte semi-transparente iOS-Pille wie im "Bereit"-Screenshot, identisch in allen States.
+
+**Slider-Center bei Playing**: Toggle direkt gefolgt von Track-Title ("Kuzu Kuzu"), drunter Artist ("Tarkan") als Subvalue, drunter "LAUTSTÄRKE" als Label. Kein 80×80-Cover-Kreis mehr dazwischen.
+
+**LeftView bei Playing**: weiterhin sharp Cover + Title + Artist als zentraler Foreground (v1.1.1407 unchanged) — Cover-Identität bleibt also prominent visible, nur eben nicht mehr im Slider-Display redundant doppelt.
+
+### Lesson
+
+When a user reports "I don't want this," the instinct is to fix the most recently changed thing. But the trigger can be a much older feature whose interaction with the new context produces the unwanted effect. Here: the cover-circle in CircularSliderDisplay was added in v1.1.1372, but only became annoying after v1.1.1407 added another cover-display in the LeftView — making the slider's cover-circle redundant.
+
+Two cover-displays for the same data is one too many. **Pick the more visible/useful one and disable the other.** The LeftView cover is bigger, more central, more Apple-Music-like. The CircularSliderDisplay's cover-circle was small (80×80) and squeezed between toggle and value — easy choice to drop it.
+
+---
+
 ## Version 1.1.1407 - 2026-05-07
 
 **Title:** ✨ Power-Toggle: Track komplett unsichtbar + Sharp Cover-Art + Track-Info im LeftView (Apple-Music-Style)
