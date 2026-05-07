@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1397 - 2026-05-07
+
+**Title:** ⚡ MA panel: WebSocket queue subscription + library drilldown (album/artist/playlist tracks)
+**Hero:** none
+**Tags:** Feature, MusicAssistant, Performance, UX
+
+### Why
+
+Two follow-on improvements after v1.1.1396 surfaced the right scaffolding to address them:
+
+1. **The 7-second queue polling was wrong on multiple axes.** Adding/removing a track in the queue had up to 7 s lag before the UI noticed; meanwhile the polling burned a network round-trip every 7 s even when nothing changed. Live updates via HA's event bus is the correct shape.
+2. **Tap-on-card-plays-instantly was too aggressive for albums/artists/playlists.** Apple-Music-style UX is "tap card → see contents → choose tracks or play all." Direct play is great for tracks and radio, but for containers you usually want to peek inside first.
+
+### What changed
+
+**E · WebSocket queue subscription** (replaces the polling):
+- New `subscribeMusicAssistantPlayerState(hass, entityId, onUpdate)` util — subscribes to HA's `state_changed` event bus filtered by `entity_id` client-side, returns an unsubscribe function
+- Queue effect in panel: `Promise<unsub>` chain handles the async-subscribe-during-mount ordering; cleanup unsubscribes properly
+- Refresh debounced to 800 ms (`QUEUE_DEBOUNCE_MS`) — `media_position` fires every second during playback, debouncing coalesces those into one queue refetch
+- Initial load on tab open still happens immediately (not waiting for the first event)
+- `queueIntervalRef` removed, `QUEUE_REFRESH_MS` constant retired
+
+**Detail · Library drilldown** for album/artist/playlist:
+- New `getMusicAssistantItemTracks(hass, type, uri, opts)` util — calls `music_assistant.get_<type>_tracks` (album/artist/playlist) with `return_response: true`, normalizes to track-card shape
+- New `BrowseDetail` component: large 96×96 cover, type badge ("ALBUM" / "KÜNSTLER" / "PLAYLIST" in MA-orange), title (2-line clamp), subtitle, prominent **Play / + Queue** buttons, tracks list (uses existing `ResultCard`)
+- New `browseDetail` state in `MusicAssistantPanel` (`{ type, uri, name, image, subtitle, tracks, loading } | null`)
+- `handleBrowseTap` is now type-aware:
+  - `track` / `radio` → direct play (unchanged)
+  - `album` / `artist` / `playlist` → opens drilldown, tracks load async
+- Back button returns to library list view; tab-switch resets the drilldown state automatically
+- "Play All" / "Add All" use the original container URI (so MA gets the full album/playlist, not a single track)
+
+### Files
+
+- `src/utils/musicAssistant.js`: added `getMusicAssistantItemTracks` + `subscribeMusicAssistantPlayerState`
+- `src/components/controls/MusicAssistantPanel.jsx`: queue effect rewrite, `browseDetail` state, `BrowseDetail` component, type-aware tap handler, container-action helper
+- `src/components/controls/MusicAssistantPanel.css`: `.ma-detail*` blocks (back-button, header, cover, type-badge, title, action buttons, tracks-list)
+
+### Risks
+
+- `get_<type>_tracks` services exist in MA 2.x but the response shape varies. Loader tries `{items}` / `{tracks}` / array fallback. If all return empty for an album you tested, send the console error.
+- `state_changed` events fire often (every `media_position` update). Without the 800 ms debounce we'd refetch the queue ~once per second during playback — debouncing keeps the network cost lower than the old polling.
+
+### Lesson
+
+The polling-to-subscription move is the kind of change that **costs more in plumbing than it saves in messages** if you do it naively. The win comes from two specific things: (a) debouncing burst updates so the subscription doesn't blow up the network, and (b) graceful unsubscribe-on-cleanup that doesn't leave dangling listeners between tab switches. Both get tested under Strict-Mode-style double-mount; both work correctly with the unsub-promise pattern (`then((unsub) => cancelled ? unsub() : (ref = unsub))`).
+
+For the drilldown: the right abstraction was making `handleBrowseTap` decide based on `mediaItem.type` rather than passing different click handlers from the BrowseCard for different types. One handler, one entry point, type-switch inside — keeps the card component dumb and consistent across all five media types.
+
+---
+
 ## Version 1.1.1396 - 2026-05-07
 
 **Title:** 📚 MA panel: Library browse tab — Playlists / Albums / Artists / Radio
