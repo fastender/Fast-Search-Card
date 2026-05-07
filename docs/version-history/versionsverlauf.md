@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.1407 - 2026-05-07
+
+**Title:** ✨ Power-Toggle: Track komplett unsichtbar + Sharp Cover-Art + Track-Info im LeftView (Apple-Music-Style)
+**Hero:** none
+**Tags:** Bugfix, MediaPlayer, UI
+
+### Why
+
+User-Feedback nach v1.1.1406:
+
+1. **Power-Toggle hatte immer noch eine "Umrandung"** — gemeint war nicht der CSS-Border (den hatte ich schon raus), sondern das halbtransparente weiße Rounded-Rectangle Track-Element. User wollte nur das Power-Symbol-Circle floating sehen, ohne Track-Hintergrund drumrum.
+
+2. **LeftView blieb leer** wenn ein media_player aktiv war — der blurry Cover-Background war zwar da (per v1.1.1372), aber kein **scharfes** Cover als Vordergrund + kein Track-Title sichtbar. User erwartete Apple-Music-Style "Now Playing"-Card mit großem Cover und Titel/Artist drunter.
+
+### What changed
+
+**`src/components/controls/PowerToggle.jsx`:**
+- `background` aus `animate={{}}` entfernt
+- `background: 'transparent'` explizit im `style={{}}` gesetzt
+- Track ist jetzt komplett unsichtbar — nur das Power-Symbol (rundes Element mit Circle + Power-Glyph) ist visible
+- Toggle-Funktion bleibt voll erhalten (Click + Drag funktioniert)
+
+**`src/components/DetailView.jsx`:**
+- Neuer JSX-Block: `<div className="detail-left-now-playing">` mit:
+  - `<img className="detail-left-cover-art-sharp">` — scharfe Version desselben mediaCoverUrl
+  - `<div>` mit Titel (`media_title`) + Subtitle (`media_artist · media_album_name`)
+- Nur sichtbar bei `hasMediaCover === true` (also Player playing/paused mit Cover-URL)
+- Eager-load damit das Cover sofort kommt
+
+**`src/components/DetailView.css`:**
+- `.detail-left-now-playing` — absolute centered, z-index 50 (über blurred bg, unter quick-stats), max-width 320px, fade-in 0.5s
+- `.detail-left-cover-art-sharp` — square 1:1 ratio, 14px rounded, drop-shadow für Apple-Music-Look
+- `.detail-left-now-playing-title` — 18px bold, ellipsis bei Overflow
+- `.detail-left-now-playing-artist` — 13px medium grey, ellipsis
+
+### Visual result
+
+**Power-Toggle** sieht jetzt aus wie ein floating round button — Power-Symbol-Circle ohne sichtbaren Track. Der Toggle-Mechanismus ist immer noch da (zieht den Circle nach rechts on/off), aber der Track ist unsichtbar bis du ziehst.
+
+**LeftView bei aktivem media_player** hat jetzt im Zentrum:
+- Großes scharfes Cover (≈70% Breite, max 320px), abgerundet, mit Schatten
+- Track-Title direkt darunter (groß, weiß)
+- "Artist · Album" als Subtitle (kleiner, leicht transparent)
+- Im Hintergrund weiterhin die blurry-version des Covers als atmospheric background (Apple-Music-Effekt)
+
+### Lesson
+
+Bei zwei aufeinanderfolgenden Bug-Reports ist die zweite Lesung des Reports oft präziser. v1.1.1406 hat den falschen Border weggemacht (framer-motion auto-injection), aber der User meinte ein ganz anderes "Border" — den fill des Track-Elements. **Beim Misverstehen lieber den User fragen "meintest du X oder Y?" als raten** — hätte beim ersten Mal direkt zur richtigen Lösung geführt.
+
+Für die Cover-Art-Foreground-Card: hatte die Library-Browse-Cards (v1.1.1402) bereits gezeigt, dass eine prominente bildbasierte UI deutlich besser wirkt als reine Text-Listen. Dieselbe Logik gilt fürs Detail-View — das **Cover ist der visuelle Anker** für ein media_player, nicht der Slider oder die Buttons. Diese sollten daher das größte zusammenhängende UI-Element bekommen.
+
+---
+
 ## Version 1.1.1406 - 2026-05-07
 
 **Title:** 🐛 Two bugfixes — Power-toggle ghost border + Cover-art hidden under media_player video
