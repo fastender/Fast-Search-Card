@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1399 - 2026-05-07
+
+**Title:** 🐛 MA library probe: sessionStorage cache + readable service-list logging
+**Hero:** none
+**Tags:** Bugfix, MusicAssistant, Diagnostics
+
+### Why
+
+v1.1.1398 still spammed 4× sets of errors per panel re-mount. Two issues:
+
+1. **Module-level vars not persistent enough.** The `let _maLibraryDisabled = false` flag in `musicAssistant.js` got reset between Card mounts — possibly because HACS re-evaluates the bundle on each card-mount, or because Custom Element lifecycle wipes module state. Either way, "session" cache via plain `let` doesn't work in this environment.
+2. **`Available music_assistant services: Array(6)`** showed up in the user's console folded — Chrome doesn't expand arrays inline. The user could see "6 services exist" but not their names. We need names to fix the calls.
+
+### What changed
+
+**sessionStorage as the cache backend** (`src/utils/musicAssistant.js`):
+- New keys `ma_library_disabled_v1` + `ma_services_logged_v1`
+- `isMusicAssistantLibraryDisabled()` / `setMusicAssistantLibraryDisabled(v)` / `resetMusicAssistantLibraryProbe()` now read/write sessionStorage instead of `let` vars
+- Try/catch around all storage calls so SSR/iframe contexts don't crash
+- Survives Card re-mount, JS bundle re-evaluation, and tab switches inside the same browser tab
+
+**Service-list logging readable** (same file):
+- `_haveLoggedServices()` / `_markServicesLogged()` helpers gate the log message via sessionStorage
+- Output format changed from `available` (array — Chrome folds to "Array(6)") to `'[MA] Available music_assistant services (6): search, play_media, get_queue, ...'` — comma-joined string, single line, always visible in default console
+
+### What the user should see after this release
+
+On first browse-tab open in a fresh tab/session:
+1. Four `[MA] library service for "<type>" not available: not_found ...` lines (one per category)
+2. **One** `[MA] Available music_assistant services (6): <names>` line — the actual names
+3. Cache locks. Subsequent panel re-mounts in the same browser tab → silent.
+
+User pastes the names back, I point the helper at the real services in v1.1.1400.
+
+### Lesson
+
+Custom-card runtimes (HACS-loaded shadow DOM cards) don't behave like regular SPA modules. Module-level state can survive mount cycles in some setups and be wiped in others, depending on bundling, custom-element registration timing, and the host's reload behavior. **For session-scoped caches in this environment, sessionStorage is the only reliable answer.** Module-level `let` is only safe for state that doesn't need to outlive a single component mount.
+
+For diagnostic logging: Chrome (and Firefox) fold arrays past a length threshold and show only `Array(N)` in the default view. Users hitting this in production won't click the disclosure triangle. **Always log diagnostic data as joined strings, never as raw arrays/objects, when you actually need the user to read it.**
+
+---
+
 ## Version 1.1.1398 - 2026-05-07
 
 **Title:** 🐛 MA library: stop spam + add diagnostics + try fallback service names
