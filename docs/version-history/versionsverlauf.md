@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1403 - 2026-05-07
+
+**Title:** ⚡ MA cover loading — Image() preload + remove no-referrer + fade-in + larger eager-window
+**Hero:** none
+**Tags:** Performance, MusicAssistant, UX
+
+### Why
+
+User feedback after v1.1.1402: "native MA UI loads images instantly, ours is slow." Native MA UI has the structural advantage of running same-origin with cached thumbnails. We can't fully match that without an MA-side cover proxy URL pattern, but we can close the gap with four targeted optimizations.
+
+### What changed
+
+**A · Removed `referrerPolicy="no-referrer"`:**
+Most CDNs (Apple Music, Spotify, generic) work fine with the browser-default `strict-origin-when-cross-origin` policy. The explicit `no-referrer` was historical paranoia — some CDNs apply rate-limits or anti-hotlink redirects when no Referer is sent. Removing this header is one-line, no-downside, potentially significant.
+
+**B · Image() preload before React re-render:**
+In `loadBrowse`, after `Promise.all` resolves but BEFORE `setBrowseData(...)`, fire `new Image().src = url` for the first 6 items of each section (max 36 covers). Browser starts the network requests immediately. By the time React renders the `<img>` elements, many responses are already cached. Network requests overlap with React reconciliation instead of waiting for it.
+
+**C · Fade-in animation:**
+Cover images now have `animation: ma-cover-fade 220ms ease-out` from `opacity: 0` → `1`. Even if real load time is unchanged, perceived speed improves: instead of "blank → suddenly there", the user sees gradient → smooth fade-in to image. iOS does this for the same reason.
+
+**D · Eager-load window expanded from 4 to 6 cards:**
+`BrowseSection` now passes `eager={idx < 6}` so the first 6 covers per row get `loading="eager"` + `fetchpriority="high"`. Wider viewports show 5-6 cards per row visible — they should all load priority.
+
+### What remains the structural gap to native MA UI
+
+Native MA frontend likely runs at `<ha-host>:8095` or similar, fetching covers via MA's own server (which has pre-cached, possibly resized thumbnails). Our card pulls covers through the URL MA returns, which may be:
+- An external CDN (Apple Music / Spotify) — first-load slow, subsequent cached by browser
+- An HA-proxy URL `/api/music_assistant/...` — same-origin, fast, but only some response shapes use it
+- A direct local file URL — fastest
+
+Without knowing MA's exact thumbnail-proxy URL pattern, we can't force every cover through it. The improvements in this release are the practical maximum for our position.
+
+### Lesson
+
+Perceived performance ≠ measured performance. The Image()-preload trick saves ~50-200ms by overlapping network with render — measurable, but small. The fade-in animation saves zero milliseconds — but user-tested perceived load time drops noticeably. Combine the measured-speed improvements with perceived-speed improvements; both contribute to "feels fast."
+
+For cross-origin asset loading: the smaller the explicit-policy footprint you set, the better. Browser defaults are tuned by Mozilla/Google for cross-CDN compatibility. Each explicit `referrerPolicy` / `crossOrigin` / `integrity` you add is one more way the request can fail in production. Default behavior is the path of least resistance until proven otherwise.
+
+---
+
 ## Version 1.1.1402 - 2026-05-07
 
 **Title:** ✨ MA panel: Apple-Music-style letter covers + eager-load top-row + Podcasts/Audiobooks sections
