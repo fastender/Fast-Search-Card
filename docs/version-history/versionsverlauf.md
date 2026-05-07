@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.1405 - 2026-05-07
+
+**Title:** 📣 MA Announcements — Megaphone button + TTS panel with recent history
+**Hero:** none
+**Tags:** Feature, MusicAssistant, TTS
+
+### Why
+
+`music_assistant.play_announcement` was the last MA service we hadn't surfaced. Use case: send a quick text message to the player as a TTS announcement (Klingelton voran → "Essen ist fertig!" → Musik geht weiter). With this release, all 6 MA-services exposed in the user's installation are now wired into the card.
+
+### What changed
+
+**Util** (`src/utils/musicAssistant.js`):
+- New `isAnnouncementAvailable(hass)` — checks `hass.services.music_assistant.play_announcement`
+- New `playAnnouncementMusicAssistant(hass, entityId, text, opts)` — best-effort wrapper that:
+  - Auto-detects URL (`text` starts with `http(s)://`) → sends as `url` parameter
+  - Otherwise sends as `message` for MA's built-in TTS handling
+  - Includes `use_pre_announce` (default true → small chime first) and optional `announce_volume`
+  - Falls back gracefully on failure (returns `false`, error logged)
+
+**Panel** (`MusicAssistantPanel.jsx`):
+- New megaphone-icon button right of the tab buttons (only shown when `isAnnouncementAvailable(hass)`)
+- Toggle with active-state highlight (orange when open)
+- Tap deactivates active tab indicator (so visually clear "we're in announce mode now")
+- New full-panel-content for announce mode: textarea + checkbox "Ton voranspielen" + send button + recent-announces list (localStorage, max 5 entries, deduped)
+- Recent entries clickable to refill textarea, × removes individual, "Alle löschen" wipes
+- Auto-focus textarea on open with 150ms delay (matches search-input pattern)
+- Successful send → auto-saves to recent, clears textarea, closes panel, feedback bubble "Ansage gesendet"
+
+**Tab interaction**:
+- Tapping any of Suche/Bibliothek/Queue while announce-panel is open closes the panel and switches tab
+- Tapping the megaphone again toggles back to whatever tab was active
+
+**Styling** (`MusicAssistantPanel.css`):
+- `.ma-announce-btn` — 36×32 fixed icon button, orange when active
+- `.ma-announce-panel` — vertical scroll container
+- `.ma-announce-textarea` — 70px min-height, focus glows orange border
+- `.ma-announce-toggle` — checkbox + label, accent-color orange
+- `.ma-announce-send` — orange pill button, disabled when text empty
+- `.ma-announce-recent-row` — text + × pair per recent entry
+
+### MA-integration status
+
+All six available services in the user's MA installation are now used:
+
+| Service | Surface |
+|---|---|
+| `search` | Suche-Tab |
+| `play_media` | Play/Next/Add buttons in Suche/Detail |
+| `get_queue` | Queue-Tab + WebSocket subscription |
+| `get_library` | Bibliothek-Tab (Playlists/Alben/Künstler/Podcasts/Hörbücher/Radio) |
+| `transfer_queue` | AirPlay button in Now-Playing-Header |
+| `play_announcement` | Megaphone button in Tab-Bar |
+
+The card is feature-complete with respect to MA's HA-service surface. Future work: WebSocket-direct queries for things HA doesn't expose (e.g. recently-played, top-tracks, episode-list-of-podcast).
+
+### Lesson
+
+The shape of a "send a quick message" UI is a textarea + presets + recent history. Recent history beats presets for short interactive sessions because the user's actual messages get more discoverable than developer-anticipated ones. Same pattern as search history (v1.1.1395) — and the same localStorage skeleton works for both. Two features, one implementation pattern, one CSS-class budget. Reuse compounds.
+
+The dual-mode `playAnnouncement` (URL vs message) is the right shape for an opaque TTS pipeline: detect URL by regex, send as `url`; otherwise send as `message` and trust MA's TTS provider chain to handle it. If the user's MA can't TTS server-side, they can paste a URL to a pre-generated audio file as a workaround. One function, two flows, no need to expose the choice in the UI.
+
+---
+
 ## Version 1.1.1404 - 2026-05-07
 
 **Title:** 📡 MA Multi-Player-Transfer — AirPlay-style transfer button in Now-Playing header
