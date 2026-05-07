@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1411 - 2026-05-07
+
+**Title:** 🐛 Position-Slider blieb bei 0 — HA pusht media_position nicht kontinuierlich, jetzt client-seitig getickt
+**Hero:** none
+**Tags:** Bugfix, MediaPlayer
+
+### Why
+
+User-Bug: Position-Ring blieb bei 0% obwohl Track lief und Sekunden vergingen ("Aperture 0:00 / 2:33"). Ursache: Home Assistant pusht `media_position` nicht jede Sekunde — nur bei Events (Seek, Pause, Track-Wechsel). Zwischen Events bleibt der Wert stale; das Card hat ihn 1:1 verwendet → keine Bewegung sichtbar.
+
+### What changed
+
+**`src/utils/deviceConfigs.js` (Slide-1-Logik):**
+- Position wird jetzt aus `media_position` (last reported) + `media_position_updated_at` (Timestamp wann reportet) + `Date.now() - updated_at` (verstrichene Sekunden seit Report) berechnet
+- Nur bei `state === 'playing'` wird elapsed addiert (bei Pause: stay-put)
+- `Math.min(reported + elapsed, duration)` schützt gegen Overflow am Track-Ende
+- `media_position_updated_at` kann Number (Unix-Sekunden) oder ISO-String sein — `Date.parse` deckt beide ab
+
+**`src/components/tabs/UniversalControlsTab.jsx`:**
+- Neuer State `mpPositionTick` als Counter
+- 1-Sekunden-`setInterval` wenn `mpSlide === 1` UND `state === 'playing'` — incrementiert den Counter
+- `mpPositionTick` in den `sliderConfig` `useMemo` Deps → React rechnet die Position pro Tick neu, Slider bewegt sich smooth
+- Bei Pause/anderem Slide: kein Interval → keine wasted re-renders
+
+### Visual result
+
+Position-Ring bewegt sich jetzt jede Sekunde sichtbar weiter, Subtitle "1:42 / 3:28" zählt mit. Beim Pause friert er ein. Beim Skip oder Seek aktualisiert HA die `media_position_updated_at` per WebSocket-Push — Card synchronisiert sich automatisch.
+
+### Lesson
+
+HA's `media_position` ist eines der typischen "Last-known + timestamp"-Patterns. Genauso wie `last_changed`, `last_updated`. Du musst client-seitig die elapsed time addieren, sonst zeigst du immer den Stand des letzten Events. Standard-Pattern überall im HA-Frontend (lovelace-mini-media-player macht's auch so).
+
+Pro 1s-Tick einen useState-update zu machen ist okay solange:
+- Der Tick-Effekt nur läuft, wenn der Slide aktiv ist (sonst wakeups verschwendet)
+- Der Counter nicht in andere render-Pfade einfließt (sonst paint-Storm bei jedem Tick)
+- `& 0x7fffffff` schützt vor Integer-Overflow bei extrem langer Session — overkill aber kostenlos
+
+---
+
 ## Version 1.1.1410 - 2026-05-07
 
 **Title:** 📍 Page-Dots ans untere Ende verschoben (analog Energy-Dashboard)
