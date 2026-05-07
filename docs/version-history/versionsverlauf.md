@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1402 - 2026-05-07
+
+**Title:** ✨ MA panel: Apple-Music-style letter covers + eager-load top-row + Podcasts/Audiobooks sections
+**Hero:** none
+**Tags:** Feature, MusicAssistant, UX, Performance
+
+### Why
+
+Live test of v1.1.1401 with screenshot showed library tab working — but two follow-up issues:
+
+1. **Slow image loading + grey blocks** for items without covers (custom playlists like "All favorited tracks" have no MA-side cover, render as empty grey).
+2. **Missing Podcasts and Audiobooks sections** — not in the original 4-section layout.
+
+### What changed
+
+**A · Apple-Music letter+gradient cover fallback:**
+- New `_stringHash()` + `colorForName()` helpers — name → consistent HSL gradient (35° hue shift)
+- New `firstLetter()` — strips/uppercases first character
+- New `CoverArt` component — wraps image with letter overlay underneath; if image is null or onError fires, the letter+gradient stays visible
+- Replaces all 4 cover-rendering blocks (`NowPlayingMini`, `ResultCard`, `QueueCard`, `BrowseCard`, `BrowseDetail`) with single `CoverArt` invocations — DRY
+- Per-container letter sizes via CSS: 14px (now-playing 38px) / 16px (result/queue 44px) / 32px (detail 96px) / 36px (browse-card 110px)
+
+**B · Eager-load first 4 cards in each browse row:**
+- New `eager` prop on `BrowseCard` → maps to `loading="eager"` + `fetchpriority="high"` on `<img>`
+- `BrowseSection` passes `eager={idx < 4}` so the visible covers (4 × 110px + gaps fits ~470px viewport-width) load immediately, off-screen ones lazy
+- Browser no longer queues all ~72 covers concurrently across 6 sections
+
+**C · Podcasts + Audiobooks library sections:**
+- `_pluralToSingular()`: added 'podcasts' → 'podcast' and 'audiobooks' → 'audiobook'
+- `normalizeLibraryItem` + `normalizeSearchItem`: per-type subtitles (publisher/author for podcasts, author for audiobooks)
+- `flattenSearchResults`: new buckets for podcast + audiobook (so search-tab also surfaces them when MA returns them)
+- `loadBrowse`: now fetches 6 categories in parallel (added podcasts + audiobooks)
+- Render: 6 `BrowseSection`s in order Playlists → Alben → Künstler → Podcasts → Hörbücher → Radio
+- Drilldown types extended: `['album', 'artist', 'playlist', 'podcast', 'audiobook']` — tap on podcast/audiobook opens detail with attempt to load tracks/episodes (graceful empty-state if MA-version doesn't expose `get_<type>_tracks`)
+- TYPE_ORDER, TYPE_LABELS_DE/EN, BrowseDetail typeLabel: all extended for new types
+
+### Visual result
+
+Items without covers (e.g. user's custom playlists "500 Random tracks" / "All favorited tracks") now show a colorful gradient with the first letter — no more grey blocks. The colors are deterministic per name so the same playlist always gets the same gradient. Items with covers render the image as an overlay; if cover-fetch fails or is slow, the gradient peeks through during the load.
+
+### Lesson
+
+The biggest UX leap from a single component refactor: **swap "missing image = grey block" for "missing image = colorful letter."** The first feels broken, the second feels designed. Apple Music, Spotify, Tidal all do this — for the same reason: cover-art is unreliable, fallbacks should look intentional, not like a bug.
+
+The eager-load split is small but real: with `loading="lazy"` only, browser sometimes queues all images at once (especially in horizontal scrollers where intersection-observer bounds get complicated). Explicit `eager` for the first viewport-row + lazy rest is a one-line fix that halves the perceived load time on broadband.
+
+For data-flexibility: the Podcasts + Audiobooks addition was nearly free because the loader is generic over `media_type`. The only edits were string mappings (singular/plural, subtitles per type) and an extra section in render. Worth keeping the loader generic from the start — type-specific code costs add up quickly.
+
+---
+
 ## Version 1.1.1401 - 2026-05-07
 
 **Title:** 🎯 MA library now uses `get_library` (single service + media_type) — matches user's MA version
