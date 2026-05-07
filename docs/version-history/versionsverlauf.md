@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1410 - 2026-05-07
+
+**Title:** 📍 Page-Dots ans untere Ende verschoben (analog Energy-Dashboard)
+**Hero:** none
+**Tags:** Polish, MediaPlayer, UI
+
+### Why
+
+User-Wunsch: Page-Dots sollen ganz unten erscheinen (wie beim Energy-Dashboard), nicht zwischen Slider und Buttons. v1.1.1409 hatte sie versehentlich an die mittlere Position gesetzt — passt nicht zur Konvention.
+
+### What changed
+
+`src/components/tabs/UniversalControlsTab.jsx`:
+- `<div className="mp-page-dots-wrap">` aus der Position **zwischen Slider und Buttons** entfernt
+- An die Position **nach den Buttons** (innerhalb von `device-control-design`) verschoben — ist jetzt das letzte In-Flow-Element
+
+`src/components/tabs/UniversalControlsTab.css`:
+- `margin: 4px auto 12px` → `margin: auto auto 16px` mit `padding-top: 8px`
+- `margin-top: auto` schiebt die Dots in der flex-column-Layout ans Container-Ende. Wenn die Buttons den Container nicht voll ausfüllen, bekommen die Dots den verbleibenden Platz und sitzen ganz unten
+
+### Lesson
+
+Layout-Position ist eine Detail-Entscheidung, die User mit Bezug auf Bestehendes leicht artikulieren ("wie beim Energy-Dashboard"). Das nimmt die Designentscheidung aus dem Backend → liefert die einfachste mögliche UX-Konvention. Nicht alles selbst entscheiden — wenn der User eine Referenz nennt, einfach kopieren.
+
+`margin-top: auto` in flex-column ist der idiomatische Weg, ein Element ans Ende zu pinnen ohne absolute Positionierung. Beim Energy-Dashboard nutzen sie absolute, was bei beliebiger Container-Höhe robuster ist; mein Ansatz funktioniert solange der Container `display: flex; flex-direction: column;` ist (was `device-control-design` ist).
+
+---
+
 ## Version 1.1.1409 - 2026-05-07
 
 **Title:** 🎚️ Media-Player Slideshow — Slide 1 Volume+Transport, Slide 2 Position+Mode/Search, Auto-Advance + Swipe
