@@ -1,5 +1,64 @@
 # Versionsverlauf
 
+## Version 1.1.1409 - 2026-05-07
+
+**Title:** 🎚️ Media-Player Slideshow — Slide 1 Volume+Transport, Slide 2 Position+Mode/Search, Auto-Advance + Swipe
+**Hero:** none
+**Tags:** Feature, MediaPlayer, Slideshow
+
+### Why
+
+User-Wunsch nach Energy-Dashboard-Pattern für media_player: zwei Slides, die zwischen Volume und Position wechseln, mit Page-Dots, Auto-Advance, und Swipe-Geste. Verschiedene Buttons pro Slide.
+
+### What changed
+
+**Slide-Aufteilung** (User-Spec):
+- **Slide 0** — Volume-Ring + Power-Toggle + Track-Title/Artist + Label "Lautstärke" → Buttons unten: **Zurück · Pause · Weiter**
+- **Slide 1** — Position-Ring (scrubable, drag → media_seek) + Power-Toggle + Track-Title + "1:42 / 3:28" + Label "Position" → Buttons unten: **Zufall · Wiederholen · Musik suchen** (oder Settings für non-MA-Player)
+
+**Slide-Mechanik:**
+- Auto-Advance alle 5s wenn Player playing/paused
+- Pause auf Hover (Mouse) oder Touch — wieder aktiv ~3s nach loslassen
+- Swipe horizontal ≥ 60px in < 500ms wechselt Slide manuell
+- Klick auf Page-Dot setzt Slide direkt
+- Slide-Reset auf 0 bei Player-Wechsel (`item.entity_id` ändert sich)
+
+**Files**:
+
+`src/utils/deviceConfigs.js`:
+- `getControlConfig(item, lang, slideIndex = 0)` — neuer Parameter; for media_player branchet zwischen slide 0 (Transport-Buttons) und slide 1 (Mode + MA-Search/Settings)
+- `getSliderConfig(item, lang, slideIndex = 0)` — neuer Parameter; slide 0 = Volume-Slider, slide 1 = Position-Slider mit `_mediaDuration` für Seek-Konvertierung
+- New `_formatTimeMS(seconds)` Helper für "1:42 / 3:28"-Format
+
+`src/utils/sliderHandlers.js`:
+- `executeSliderChange()` + `media_player`-Handler bekommen `slideIndex`-Parameter
+- Slide 0 → `volume_set`, Slide 1 → `media_seek` mit `seek_position` in Sekunden (Prozent → Sekunden via `attributes.media_duration`)
+
+`src/components/tabs/UniversalControlsTab.jsx`:
+- Neue State: `mpSlide` (0/1), `mpPaused`
+- Auto-Advance-Effekt mit `setInterval(5000)`, gated by `mpPaused` und Player-State
+- Touch-Handler: `onMpTouchStart` / `onMpTouchEnd` für Swipe
+- Mouse-Handler: `onMpMouseEnter` / `onMpMouseLeave` für Hover-Pause
+- `goToMpSlide(idx)` für Klick-Navigation auf Dots, mit ~3s pause-after-interaction
+- slideIndex an `getControlConfig`/`getSliderConfig`/`executeSliderChange` weitergereicht
+- Page-Dots zwischen Slider und Buttons gerendert (motion-animiert: 8px → 24px Pill auf Active)
+- ControlButton-Key auf `${mpSlide}-${index}` damit React beim Slide-Wechsel die Buttons unmounted/neu mountet (Animation klappt sauberer als bei in-place-Update)
+
+`src/components/tabs/UniversalControlsTab.css`:
+- `.mp-page-dots-wrap` + `.mp-page-dots` (orange-tinted backdrop-blur-Pille mit 8px-Dots)
+
+### Architektur-Note
+
+Die slide-spezifische Konfiguration (Volume vs Position, Transport vs Mode) wurde in `deviceConfigs.js` durch ein optionales `slideIndex`-Parameter realisiert statt durch eine separate `getMediaPlayerSlides()`-Funktion. Vorteile: minimal-invasiv (nur media_player-case betroffen), backwards-kompatibel (Default 0 = altes Verhalten), kein neues API-Surface. Nachteil: das Branching innerhalb der Funktion vermischt Slide-Logik mit Domain-Logik. Bei mehr als 2 Slides oder weiteren Domains mit Slideshow würde sich eine Refaktorierung lohnen.
+
+### Lesson
+
+Auto-Advance + Hover-Pause + Swipe sind drei separate Mechaniken, die zusammenspielen müssen. Der saubere Weg: `mpPaused`-State als zentrale Wahrheit, jede Interaktion setzt `mpPaused = true` und ein Timeout setzt es wieder auf `false`. Das Auto-Advance-Interval-Effekt rebuildet sich auf Pause-Änderung — `clearInterval` im Cleanup, neuer `setInterval` wenn unpaused. Das verhindert Race-Conditions zwischen "User klickt Dot" und "Interval feuert".
+
+Für die Page-Dots als motion-Komponenten lohnt es sich, `width` und `backgroundColor` ZUSAMMEN in `animate={{}}` zu animieren — beide springen synchron auf Aktiv-Wechsel. Mit zwei separaten Transitions würde es asynchron flackern.
+
+---
+
 ## Version 1.1.1408 - 2026-05-07
 
 **Title:** 🔄 Revert PowerToggle v1.1.1407 + Disable cover-circle in CircularSliderDisplay
