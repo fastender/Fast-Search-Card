@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1401 - 2026-05-07
+
+**Title:** 🎯 MA library now uses `get_library` (single service + media_type) — matches user's MA version
+**Hero:** none
+**Tags:** Bugfix, MusicAssistant, API
+
+### Why
+
+The diagnostic logging from v1.1.1399 paid off in v1.1.1400 testing:
+
+```
+[MA] Available music_assistant services (6): get_library, get_queue, play_announcement, play_media, search, transfer_queue
+```
+
+So the user's MA installation exposes:
+- `get_library` (NOT `get_library_<type>`) — single service with `media_type` parameter
+- No `queue_command` — meaning v1.1.1394's queue skip-to + remove buttons can't work on this MA version
+- `transfer_queue` — for future Phase 2 multi-player feature
+
+### What changed
+
+**Library loader** (`src/utils/musicAssistant.js`):
+- New `_pluralToSingular()` helper (playlists → playlist etc.)
+- `getMusicAssistantLibrary()` now tries 4 service-name+param variants in order:
+  1. `get_library` + `media_type: 'playlist'` (string singular — user's case)
+  2. `get_library` + `media_type: ['playlist']` (array singular — alt API)
+  3. `get_library_<plural>` (newer/different MA versions)
+  4. `library_<plural>` (alt naming convention)
+- First success wins. All-fail logs the diagnostic block once per session.
+
+**Queue command availability** (same file):
+- New `isQueueCommandAvailable(hass)` helper checking `hass.services.music_assistant.queue_command` existence
+
+**Queue tab** (`src/components/controls/MusicAssistantPanel.jsx`):
+- Wraps queue rendering in IIFE that calls `isQueueCommandAvailable(hass)` once
+- When unavailable → passes `undefined` for `onPlay` and `onRemove` to `QueueCard` → existing conditional rendering hides skip-to-clickable + trash button entirely (no more "Nicht unterstützt"-feedback flicker)
+
+**Probe-version reset**:
+- New `PROBE_VERSION_KEY` + `CURRENT_PROBE_VERSION` constants
+- IIFE at module load checks if version differs → clears `LIB_DISABLED_KEY` + `SERVICES_LOGGED_KEY`
+- Means v1.1.1400's "library disabled" cache from a failed probe gets auto-cleared, so the new working code probe runs fresh on first load
+
+### What you should see
+
+- Library tab now shows actual playlists / albums / artists / radios from your MA library
+- Queue tab cards are read-only (no clickable skip, no trash icon) — until you upgrade MA to a version that exposes `queue_command`
+- Console: silent on subsequent probes (success caches itself implicitly)
+
+### Lesson
+
+Diagnostic logging that the **user can read and copy back** is worth dramatically more than retries-with-better-error-handling. Without the "Available music_assistant services (6): ..."-line in v1.1.1399, I'd still be guessing. The 4-line variant-loop in `getMusicAssistantLibrary` is a permanent improvement: future MA-version-API-shifts get tried automatically without needing another release cycle.
+
+The conditional UI hiding (no `queue_command` → no clickable card / trash) is also UX wisdom: showing buttons that fail with "Not supported" trains users to ignore feedback. **Don't show what doesn't work.**
+
+---
+
 ## Version 1.1.1400 - 2026-05-07
 
 **Title:** 🔥 Hotfix: ReferenceError `_maLibraryDisabled is not defined` (left over from v1.1.1399 sessionStorage refactor)
