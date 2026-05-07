@@ -1,69 +1,91 @@
 # Versionsverlauf
 
+## Version 1.1.1412 - 2026-05-07
+
+**Title:** 🔧 Versionsverlauf URL fix — was pointing to old `docs/versionsverlauf.md`, no entries shown after v1.1.1389 reorg
+**Hero:** none
+**Tags:** Bugfix, SystemEntity
+
+### Why
+
+User reported the in-app Versionsverlauf entity hadn't shown any new entries after the docs reorg in v1.1.1389. Root cause: hardcoded `changelog_url` in `src/system-entities/entities/versionsverlauf/index.js` still pointed at `docs/versionsverlauf.md` (the pre-reorg path). Since v1.1.1389 the file lives at `docs/version-history/versionsverlauf.md`. The fetch returned 404, the entity fell back to its localStorage cache, so the user only ever saw the snapshot from before the reorg.
+
+### What changed
+
+`src/system-entities/entities/versionsverlauf/index.js`:
+- `changelog_url`: `docs/versionsverlauf.md` → `docs/version-history/versionsverlauf.md`
+
+Plus retroactive language cleanup of v1.1.1409–v1.1.1411 entries (all converted from German to English) per the existing convention "English from v1.1.1220 onwards" — those three entries had drifted to German.
+
+### Lesson
+
+When you reorganize file paths, grep the codebase for the old path before declaring the move done. A single `grep -rn 'docs/versionsverlauf' src/` would have caught this in 2 seconds at v1.1.1389 reorg time. Same lesson as the v1.1.1400 hotfix (refactor-leftovers): cascade-detection applies to file-path changes just as much as symbol-rename.
+
+For users on v1.1.1411 or earlier: the cache will refresh on the next library probe (5-min TTL) or when they hit the refresh button in the entity. The newly fixed code in v1.1.1412+ will fetch from the right URL going forward.
+
+---
+
 ## Version 1.1.1411 - 2026-05-07
 
-**Title:** 🐛 Position-Slider blieb bei 0 — HA pusht media_position nicht kontinuierlich, jetzt client-seitig getickt
+**Title:** 🐛 Position-slider stuck at 0 — HA doesn't push `media_position` continuously, now ticks client-side
 **Hero:** none
 **Tags:** Bugfix, MediaPlayer
 
 ### Why
 
-User-Bug: Position-Ring blieb bei 0% obwohl Track lief und Sekunden vergingen ("Aperture 0:00 / 2:33"). Ursache: Home Assistant pusht `media_position` nicht jede Sekunde — nur bei Events (Seek, Pause, Track-Wechsel). Zwischen Events bleibt der Wert stale; das Card hat ihn 1:1 verwendet → keine Bewegung sichtbar.
+User reported the position ring stayed at 0% even while a track was playing and seconds passed ("Aperture 0:00 / 2:33"). Root cause: Home Assistant doesn't push `media_position` every second — only on events (seek, pause, track change). Between events the value goes stale; the card was reading it 1:1 → no visible movement.
 
 ### What changed
 
-**`src/utils/deviceConfigs.js` (Slide-1-Logik):**
-- Position wird jetzt aus `media_position` (last reported) + `media_position_updated_at` (Timestamp wann reportet) + `Date.now() - updated_at` (verstrichene Sekunden seit Report) berechnet
-- Nur bei `state === 'playing'` wird elapsed addiert (bei Pause: stay-put)
-- `Math.min(reported + elapsed, duration)` schützt gegen Overflow am Track-Ende
-- `media_position_updated_at` kann Number (Unix-Sekunden) oder ISO-String sein — `Date.parse` deckt beide ab
+**`src/utils/deviceConfigs.js`** (slide-1 logic):
+- Position is now computed from `media_position` (last reported) + `media_position_updated_at` (timestamp) + `Date.now() - updated_at` (elapsed seconds since the report)
+- Only adds elapsed when `state === 'playing'` (paused → stay put)
+- `Math.min(reported + elapsed, duration)` clamps at track end
+- `media_position_updated_at` can be a number (Unix seconds) or ISO string — `Date.parse` handles both
 
 **`src/components/tabs/UniversalControlsTab.jsx`:**
-- Neuer State `mpPositionTick` als Counter
-- 1-Sekunden-`setInterval` wenn `mpSlide === 1` UND `state === 'playing'` — incrementiert den Counter
-- `mpPositionTick` in den `sliderConfig` `useMemo` Deps → React rechnet die Position pro Tick neu, Slider bewegt sich smooth
-- Bei Pause/anderem Slide: kein Interval → keine wasted re-renders
+- New `mpPositionTick` state counter
+- 1-second `setInterval` runs only when `mpSlide === 1` AND `state === 'playing'` — bumps the counter
+- `mpPositionTick` added to `sliderConfig` `useMemo` deps → recalculates per tick, slider moves smoothly
+- On pause / other slide: no interval → no wasted re-renders
 
 ### Visual result
 
-Position-Ring bewegt sich jetzt jede Sekunde sichtbar weiter, Subtitle "1:42 / 3:28" zählt mit. Beim Pause friert er ein. Beim Skip oder Seek aktualisiert HA die `media_position_updated_at` per WebSocket-Push — Card synchronisiert sich automatisch.
+Position ring now advances visibly each second; subtitle "1:42 / 3:28" counts up. Pause freezes it. Skip/seek triggers HA to update `media_position_updated_at` via WebSocket — card resyncs automatically.
 
 ### Lesson
 
-HA's `media_position` ist eines der typischen "Last-known + timestamp"-Patterns. Genauso wie `last_changed`, `last_updated`. Du musst client-seitig die elapsed time addieren, sonst zeigst du immer den Stand des letzten Events. Standard-Pattern überall im HA-Frontend (lovelace-mini-media-player macht's auch so).
+HA's `media_position` is one of the classic "last-known + timestamp" patterns, like `last_changed` / `last_updated`. You have to add elapsed-time client-side or you'll always show the snapshot from the last event. Standard pattern across the HA frontend (lovelace-mini-media-player does the same).
 
-Pro 1s-Tick einen useState-update zu machen ist okay solange:
-- Der Tick-Effekt nur läuft, wenn der Slide aktiv ist (sonst wakeups verschwendet)
-- Der Counter nicht in andere render-Pfade einfließt (sonst paint-Storm bei jedem Tick)
-- `& 0x7fffffff` schützt vor Integer-Overflow bei extrem langer Session — overkill aber kostenlos
+A 1-second tick driving a useState update is fine as long as: (a) the tick effect only runs while the slide is active, (b) the counter doesn't leak into unrelated render paths, (c) `& 0x7fffffff` masks against integer overflow on extremely long sessions — overkill but free.
 
 ---
 
 ## Version 1.1.1410 - 2026-05-07
 
-**Title:** 📍 Page-Dots ans untere Ende verschoben (analog Energy-Dashboard)
+**Title:** 📍 Page-Dots moved to bottom (matching Energy-Dashboard convention)
 **Hero:** none
 **Tags:** Polish, MediaPlayer, UI
 
 ### Why
 
-User-Wunsch: Page-Dots sollen ganz unten erscheinen (wie beim Energy-Dashboard), nicht zwischen Slider und Buttons. v1.1.1409 hatte sie versehentlich an die mittlere Position gesetzt — passt nicht zur Konvention.
+User wanted the page-dots at the very bottom of the controls area (same as the Energy-Dashboard slideshow), not between slider and buttons. v1.1.1409 had them in the middle position by accident — broke the existing convention.
 
 ### What changed
 
 `src/components/tabs/UniversalControlsTab.jsx`:
-- `<div className="mp-page-dots-wrap">` aus der Position **zwischen Slider und Buttons** entfernt
-- An die Position **nach den Buttons** (innerhalb von `device-control-design`) verschoben — ist jetzt das letzte In-Flow-Element
+- `<div className="mp-page-dots-wrap">` removed from its position **between slider and buttons**
+- Re-rendered **after the buttons** (still inside `device-control-design`) — now the last in-flow element
 
 `src/components/tabs/UniversalControlsTab.css`:
-- `margin: 4px auto 12px` → `margin: auto auto 16px` mit `padding-top: 8px`
-- `margin-top: auto` schiebt die Dots in der flex-column-Layout ans Container-Ende. Wenn die Buttons den Container nicht voll ausfüllen, bekommen die Dots den verbleibenden Platz und sitzen ganz unten
+- `margin: 4px auto 12px` → `margin: auto auto 16px` plus `padding-top: 8px`
+- `margin-top: auto` pushes the dots to the container's end in the flex-column layout. When the buttons don't fill the container, the dots receive the leftover space and sit at the bottom
 
 ### Lesson
 
-Layout-Position ist eine Detail-Entscheidung, die User mit Bezug auf Bestehendes leicht artikulieren ("wie beim Energy-Dashboard"). Das nimmt die Designentscheidung aus dem Backend → liefert die einfachste mögliche UX-Konvention. Nicht alles selbst entscheiden — wenn der User eine Referenz nennt, einfach kopieren.
+Layout positioning is a detail decision the user can phrase concisely by reference ("like the Energy-Dashboard"). That takes the design call off your back → simplest possible UX convention. Don't decide everything yourself — when the user names a reference, just copy it.
 
-`margin-top: auto` in flex-column ist der idiomatische Weg, ein Element ans Ende zu pinnen ohne absolute Positionierung. Beim Energy-Dashboard nutzen sie absolute, was bei beliebiger Container-Höhe robuster ist; mein Ansatz funktioniert solange der Container `display: flex; flex-direction: column;` ist (was `device-control-design` ist).
+`margin-top: auto` in flex-column is the idiomatic way to pin an element to the end without absolute positioning. The Energy-Dashboard uses absolute (more robust under arbitrary container heights); my approach works as long as the container is `display: flex; flex-direction: column;` (which `device-control-design` is).
 
 ---
 
@@ -75,54 +97,54 @@ Layout-Position ist eine Detail-Entscheidung, die User mit Bezug auf Bestehendes
 
 ### Why
 
-User-Wunsch nach Energy-Dashboard-Pattern für media_player: zwei Slides, die zwischen Volume und Position wechseln, mit Page-Dots, Auto-Advance, und Swipe-Geste. Verschiedene Buttons pro Slide.
+User wanted the Energy-Dashboard slideshow pattern applied to media_player: two slides that switch between Volume and Position, with page-dots, auto-advance, and swipe gesture. Different button rows per slide.
 
 ### What changed
 
-**Slide-Aufteilung** (User-Spec):
-- **Slide 0** — Volume-Ring + Power-Toggle + Track-Title/Artist + Label "Lautstärke" → Buttons unten: **Zurück · Pause · Weiter**
-- **Slide 1** — Position-Ring (scrubable, drag → media_seek) + Power-Toggle + Track-Title + "1:42 / 3:28" + Label "Position" → Buttons unten: **Zufall · Wiederholen · Musik suchen** (oder Settings für non-MA-Player)
+**Slide layout** (user spec):
+- **Slide 0** — Volume ring + power-toggle + track title/artist + label "Lautstärke" → buttons below: **Zurück · Pause · Weiter**
+- **Slide 1** — Position ring (scrubable, drag → `media_seek`) + power-toggle + track title + "1:42 / 3:28" + label "Position" → buttons below: **Zufall · Wiederholen · Musik suchen** (or Settings for non-MA players)
 
-**Slide-Mechanik:**
-- Auto-Advance alle 5s wenn Player playing/paused
-- Pause auf Hover (Mouse) oder Touch — wieder aktiv ~3s nach loslassen
-- Swipe horizontal ≥ 60px in < 500ms wechselt Slide manuell
-- Klick auf Page-Dot setzt Slide direkt
-- Slide-Reset auf 0 bei Player-Wechsel (`item.entity_id` ändert sich)
+**Slide mechanics:**
+- Auto-advance every 5s when player is playing/paused
+- Pause on hover (mouse) or touch — resumes ~3s after release
+- Horizontal swipe ≥ 60px in < 500ms switches slide manually
+- Page-dot click sets slide directly
+- Slide resets to 0 when `item.entity_id` changes (different player opened)
 
 **Files**:
 
 `src/utils/deviceConfigs.js`:
-- `getControlConfig(item, lang, slideIndex = 0)` — neuer Parameter; for media_player branchet zwischen slide 0 (Transport-Buttons) und slide 1 (Mode + MA-Search/Settings)
-- `getSliderConfig(item, lang, slideIndex = 0)` — neuer Parameter; slide 0 = Volume-Slider, slide 1 = Position-Slider mit `_mediaDuration` für Seek-Konvertierung
-- New `_formatTimeMS(seconds)` Helper für "1:42 / 3:28"-Format
+- `getControlConfig(item, lang, slideIndex = 0)` — new param; media_player branches between slide 0 (transport buttons) and slide 1 (mode + MA-search/settings)
+- `getSliderConfig(item, lang, slideIndex = 0)` — new param; slide 0 = volume slider, slide 1 = position slider with `_mediaDuration` for seek conversion
+- New `_formatTimeMS(seconds)` helper for the "1:42 / 3:28" format
 
 `src/utils/sliderHandlers.js`:
-- `executeSliderChange()` + `media_player`-Handler bekommen `slideIndex`-Parameter
-- Slide 0 → `volume_set`, Slide 1 → `media_seek` mit `seek_position` in Sekunden (Prozent → Sekunden via `attributes.media_duration`)
+- `executeSliderChange()` + the `media_player` handler accept `slideIndex`
+- Slide 0 → `volume_set`, slide 1 → `media_seek` with `seek_position` in seconds (percent → seconds via `attributes.media_duration`)
 
 `src/components/tabs/UniversalControlsTab.jsx`:
-- Neue State: `mpSlide` (0/1), `mpPaused`
-- Auto-Advance-Effekt mit `setInterval(5000)`, gated by `mpPaused` und Player-State
-- Touch-Handler: `onMpTouchStart` / `onMpTouchEnd` für Swipe
-- Mouse-Handler: `onMpMouseEnter` / `onMpMouseLeave` für Hover-Pause
-- `goToMpSlide(idx)` für Klick-Navigation auf Dots, mit ~3s pause-after-interaction
-- slideIndex an `getControlConfig`/`getSliderConfig`/`executeSliderChange` weitergereicht
-- Page-Dots zwischen Slider und Buttons gerendert (motion-animiert: 8px → 24px Pill auf Active)
-- ControlButton-Key auf `${mpSlide}-${index}` damit React beim Slide-Wechsel die Buttons unmounted/neu mountet (Animation klappt sauberer als bei in-place-Update)
+- New state: `mpSlide` (0/1), `mpPaused`
+- Auto-advance effect via `setInterval(5000)`, gated by `mpPaused` and player state
+- Touch handlers: `onMpTouchStart` / `onMpTouchEnd` for swipe
+- Mouse handlers: `onMpMouseEnter` / `onMpMouseLeave` for hover-pause
+- `goToMpSlide(idx)` for click-nav on dots, sets ~3s pause-after-interaction
+- slideIndex passed through to `getControlConfig` / `getSliderConfig` / `executeSliderChange`
+- Page-dots rendered between slider and buttons (motion-animated: 8px → 24px pill on active)
+- ControlButton key set to `${mpSlide}-${index}` so React unmounts/remounts buttons on slide-change (cleaner animation than in-place update)
 
 `src/components/tabs/UniversalControlsTab.css`:
-- `.mp-page-dots-wrap` + `.mp-page-dots` (orange-tinted backdrop-blur-Pille mit 8px-Dots)
+- `.mp-page-dots-wrap` + `.mp-page-dots` (orange-tinted backdrop-blur pill, 8px dots)
 
-### Architektur-Note
+### Architecture note
 
-Die slide-spezifische Konfiguration (Volume vs Position, Transport vs Mode) wurde in `deviceConfigs.js` durch ein optionales `slideIndex`-Parameter realisiert statt durch eine separate `getMediaPlayerSlides()`-Funktion. Vorteile: minimal-invasiv (nur media_player-case betroffen), backwards-kompatibel (Default 0 = altes Verhalten), kein neues API-Surface. Nachteil: das Branching innerhalb der Funktion vermischt Slide-Logik mit Domain-Logik. Bei mehr als 2 Slides oder weiteren Domains mit Slideshow würde sich eine Refaktorierung lohnen.
+The slide-specific config (volume vs position, transport vs mode) was implemented via an optional `slideIndex` parameter on the existing functions, not as a separate `getMediaPlayerSlides()` function. Trade-offs: minimal-invasive (only the media_player case is touched), backwards-compatible (default 0 = old behavior), no new API surface. Cost: branching inside the function mixes slide-logic with domain-logic. With more than 2 slides or other domains gaining slideshows, refactoring would be worthwhile.
 
 ### Lesson
 
-Auto-Advance + Hover-Pause + Swipe sind drei separate Mechaniken, die zusammenspielen müssen. Der saubere Weg: `mpPaused`-State als zentrale Wahrheit, jede Interaktion setzt `mpPaused = true` und ein Timeout setzt es wieder auf `false`. Das Auto-Advance-Interval-Effekt rebuildet sich auf Pause-Änderung — `clearInterval` im Cleanup, neuer `setInterval` wenn unpaused. Das verhindert Race-Conditions zwischen "User klickt Dot" und "Interval feuert".
+Auto-advance + hover-pause + swipe are three separate mechanics that have to interlock. The clean way: `mpPaused` state as the single source of truth, every interaction sets `mpPaused = true` and a timeout sets it back to `false`. The auto-advance interval effect rebuilds on pause-state change — `clearInterval` in cleanup, fresh `setInterval` when unpaused. Prevents race conditions between "user clicks dot" and "interval fires."
 
-Für die Page-Dots als motion-Komponenten lohnt es sich, `width` und `backgroundColor` ZUSAMMEN in `animate={{}}` zu animieren — beide springen synchron auf Aktiv-Wechsel. Mit zwei separaten Transitions würde es asynchron flackern.
+For motion-animated page-dots, animating `width` AND `backgroundColor` together inside `animate={{}}` keeps both transitions in sync on active-toggle. Two separate transitions would flicker out of phase.
 
 ---
 
