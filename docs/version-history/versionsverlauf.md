@@ -1,5 +1,63 @@
 # Versionsverlauf
 
+## Version 1.1.1414 - 2026-05-08
+
+**Title:** 🔧 Energy-Dashboard storage unified — all 14 sensors + slideshow config in one HA-key, cross-device sync, auto-migration from legacy
+**Hero:** none
+**Tags:** Bugfix, Refactor, EnergyDashboard, Persistence
+
+### Why
+
+Three persistence-related bugs/issues in the energy-dashboard storage layer:
+
+1. **Bug:** Only 3 of 14 sensors were restored on boot. The other 11 (`grid_return_sensor`, `consumption_sensor`, `solar_sensor`, `battery_*_sensor`, etc.) were saved to localStorage with per-sensor keys (`energy_<entityId>_<attr>`) but never read back at app start. After every browser reload the user had to remap them, and the slideshow circulars `verbrauch` / `solarerzeugung` / `batterie` were broken until they did.
+2. **Polish:** Slideshow config (`circularConfig` — which of the 4 circulars are enabled) was localStorage-only. Two browsers showed independent toggle states.
+3. **Refactor:** Three different storage patterns for the same feature — HA-User-Data for 3 essential sensors, plain localStorage with per-attr keys for the other 11, plain localStorage for slideshow toggles. Maintenance-heavy, sync gaps.
+
+### What changed
+
+**`src/system-entities/entities/integration/deviceConfigStorage.js`** (storage layer):
+- New unified key `HA_ENERGY_DASHBOARD_KEY = 'fast_search_card_energy_dashboard'` with schema_version 2
+- New schema: `{ schema_version: 2, sensors: { grid_import, grid_return, ..., purchase_tariff }, circulars: { verbrauch: {enabled}, ... } }` — all 14 sensor slots + 4 circular toggles in one object
+- New `migrateEnergyDashboardLegacy(hass)` function reads all three legacy storages (HA `fast_search_card_energy_sensors`, localStorage `energy_<id>_<attr>`, localStorage `energy_circular_config_v3`), merges them into v2 schema, writes the new key
+- New public API: `getEnergyDashboardConfig()` (sync read) + `setEnergyDashboardConfig(hass, partial)` (async write with deep-merge of `sensors` + `circulars` partial)
+- Bootstrap extended: after the existing devices + energy-sensors load, runs the new dashboard load with auto-migration if old key missing
+- Old `getEnergySensors` / `setEnergySensors` API kept for back-compat (deprecated comment) — internally backed by the new unified storage
+
+**`src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceEntity.js`** (entity logic):
+- `loadSensorConfig()` now reads from `getEnergyDashboardConfig()` and returns both legacy 3-sensor shape (for old code paths) AND the full `sensors` / `circulars` objects
+- `onMount` loops over all 14 `ENERGY_SENSOR_SLOTS` and applies `<slot>_sensor` to entity attributes — so the slideshow circulars work immediately after boot, no manual re-mapping needed
+- `updateSensorConfig` action now accepts any of the 14 slot keys (`grid_return_sensor`, etc.) plus the legacy camelCase keys; writes through to unified storage and updates entity attributes for live UI
+- New `updateCircularConfig` action — writes circular toggle state through unified storage
+
+**`src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx`** (view):
+- `circularConfig` initial state reads from `getEnergyDashboardConfig().circulars` instead of localStorage `energy_circular_config_v3` directly
+- `updateCircularConfig()` view-helper calls `entity.executeAction('updateCircularConfig', ...)` instead of `localStorage.setItem`
+- `handleSensorSelect()` simplified: removed the triple-write (entity.updateAttributes + localStorage.setItem + entity.executeAction). Now just calls `entity.executeAction('updateSensorConfig', {[attr]: sensorId})` — single source of truth, single write path
+
+### Migration
+
+Auto-runs on first boot of v1.1.1414. Reads:
+1. `fast_search_card_energy_sensors` (HA) — 3 sensors
+2. localStorage scan for `energy_<id>_<slot>_sensor` keys — 11 sensors
+3. `energy_circular_config_v3` (localStorage) — 4 toggles
+
+Merges into the new `fast_search_card_energy_dashboard` schema, writes once. Old keys are preserved (not deleted) for rollback safety. On subsequent boots, the unified key is the source of truth.
+
+### Visual / functional result
+
+- After Browser-Reload: all 14 sensors are immediately back, slideshow circulars work without manual re-config
+- Cross-device sync via HA-User-Data: open dashboard on phone + tablet → both see identical sensor mapping + slideshow toggles
+- Three storage patterns collapsed to one — single key, single write path, single migration story for future schema changes
+
+### Lesson
+
+When a feature accretes storage over time, you end up with N different mechanisms for N different fields, each with its own bug profile. The fix isn't to optimize each in isolation — it's to merge them into a single schema with versioned migration. The migration cost (one function, ~50 LOC) is paid once; the maintenance saving compounds.
+
+For the bug specifically (sensors not restored on boot): the symptom was visible for weeks but invisible to the user only because the slideshow circulars they actually use happened to be the 3 ones that ARE persisted (grid_import, kwh, pv_total). The 11 other sensors were dead-storage. **Always grep for symmetric read/write pairs after every storage write.** A `localStorage.setItem` without a matching reader on boot is dead weight.
+
+---
+
 ## Version 1.1.1413 - 2026-05-08
 
 **Title:** 🎨 Different ring colors per slide — Volume orange, Position cyan-blue
