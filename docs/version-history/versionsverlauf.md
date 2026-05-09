@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1436 - 2026-05-09
+
+**Title:** 🎵 Media-player Slide 1: "Musik suchen" → "Music Assistant" — playlist+note icon replaces magnifier
+**Hero:** none
+**Tags:** Polish, MediaPlayer, MusicAssistant, Icons
+
+### Why
+
+The button on Slide 1 of the media-player slideshow that opens the Music Assistant panel was labeled "Musik suchen" / "Search music" with a magnifier+note icon. That undersells what it does: the panel has Suche, Bibliothek, Queue, Announcements (4 surfaces, since v1.1.1405). The label "Music Assistant" matches the brand and signals that it's a hub, not just search.
+
+### What changed
+
+- `utils/icons.js` — `music_search` SVG replaced. Old: lupe (10.5,10.5,r=6.5) + diagonal handle + tiny note. New: 3 stacked horizontal lines (= playlist) + small music note in lower-right (`d="M20 18.5C..."`). Uses `currentColor` stroke so it picks up the button theme.
+- `utils/deviceConfigs.js` — fallback label string updated to "Music Assistant".
+- `utils/translations/languages/de.js` + `en.js` — `musicSearch:` value changed to `'Music Assistant'` (key kept for backwards-compat with the consumer in deviceConfigs; renaming the key would touch 4 files for no semantic gain since the key isn't user-visible).
+
+### Lesson
+
+When a button's responsibility grows beyond its original name (here: from "search" to "search + library + queue + announcements"), the label should grow with it. Brand names ("Music Assistant") communicate scope better than verbs ("Search") for hub-style entry points. Verbs work for single-action buttons; nouns work for surface-entries.
+
+---
+
 ## Version 1.1.1435 - 2026-05-09
 
 **Title:** ✨ Tipps icon — Apple-Tipps-style sparkle SVG added (was missing in iconMap, device card + sidebar showed blank)
