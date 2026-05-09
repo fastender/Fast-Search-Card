@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1437 - 2026-05-09
+
+**Title:** 🔊 Music Assistant announcement: TTS now works — bridge to HA tts.*_say service for plain-text input
+**Hero:** none
+**Tags:** Bugfix, MusicAssistant, TTS
+
+### Why
+
+User report: typing a plain text "hallo" in the MA Announcement panel and clicking "Abspielen" failed with `Die Aktion music_assistant/play_announcement konnte nicht ausgeführt werden. extra keys not allowed @ data['message']`.
+
+Root cause: HA Core's `music_assistant.play_announcement` service schema (in `homeassistant/components/music_assistant/services.py`) only accepts `entity_id, url, use_pre_announce, announce_volume`. The `message` parameter doesn't exist in this schema. My v1.1.1405 implementation tried `data.message = text` first with `data.url = text` as fallback, but the fallback only triggered when the input was already a URL — so plain text always died on the message-attempt.
+
+Plain-text TTS in HA goes through a separate service family: `tts.<engine>_say` (cloud_say, google_translate_say, piper_say, etc.) which generates audio AND plays it on a media_player in one call.
+
+### What changed
+
+`utils/musicAssistant.js` — `playAnnouncementMusicAssistant` rewritten to a clear two-path flow based on input type:
+
+- **URL input** (`https://…`) → `music_assistant.play_announcement` with `url` parameter (clean, supports `use_pre_announce` + `announce_volume`)
+- **Plain text input** → looks up `hass.services.tts` for any `*_say` service (prefers `cloud_say` for Nabu Casa users, falls back to first `*_say` available), calls it with `{message: text}` + `entity_id: media_player`
+
+If no TTS service is registered in HA, plain-text input fails with a clear console error explaining the requirement (Nabu Casa / Google / Piper / etc).
+
+`MusicAssistantPanel.jsx` — textarea placeholder updated to communicate the dual mode: `"Text (TTS) oder URL einer Audio-Datei (https://…)"`. The "Ton voranspielen" toggle now visually fades to 40% opacity when input is plain text (with title-tooltip explaining it only applies to URL-mode), since pre-announce is MA-specific and doesn't pass through the HA TTS bridge.
+
+### Lesson
+
+When wrapping a third-party HA integration's services, check the actual service schema (via `hass.services.<integration>.<service>.fields` or by reading HA Core source) instead of assuming "common" parameters work. Voluptuous validation is strict — extra keys produce loud errors with no graceful degradation. The right approach for cross-integration features (like TTS, which has many possible engines) is to compose multiple HA services rather than trying to find one service that does everything.
+
+---
+
 ## Version 1.1.1436 - 2026-05-09
 
 **Title:** 🎵 Media-player Slide 1: "Musik suchen" → "Music Assistant" — playlist+note icon replaces magnifier
