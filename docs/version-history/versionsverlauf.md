@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1432 - 2026-05-09
+
+**Title:** ⏸️ Media-player slideshow auto-advance pauses while ANY control group is expanded (Music Assistant, settings, mode picker, …)
+**Hero:** none
+**Tags:** Bugfix, MediaPlayer, Slideshow, UX
+
+### Why
+
+User report: when the Music Assistant button is clicked and the MA panel opens below the slider, the 5-second auto-advance kept rotating the upper area between Slide 0 (Volume + Transport) and Slide 1 (Position + Mode/Search). The buttons UNDER the slider switch with the slide — meaning while the user is searching/queueing in the MA panel, the controls they expect to see (search submit, queue actions) are silently swapped out by the rotation. "Komplikationen."
+
+The existing pause-conditions (`mpPaused = true` on hover/touch) didn't catch this case because the MA panel sits BELOW the slider area — opening it doesn't trigger the slider's mouseEnter.
+
+### What changed
+
+`UniversalControlsTab.jsx` — auto-advance `useEffect` gains one more early-return condition:
+
+```js
+if (expandedControl !== null) return;
+```
+
+Plus `expandedControl` added to the dep list so the interval gets cleared/recreated when the user opens or closes a sub-panel.
+
+The fix is broader than just MA — it also covers Settings, Climate-mode picker, and any other expanded preset group on a media_player. Same bug class: any expanded panel below the slider would have been disrupted by a rotation in the upper area.
+
+### Lesson
+
+Pause-on-interaction is one half of the story; pause-on-context-shift is the other. Whenever a UI exposes both an auto-rotating element and modal-ish sub-panels, the rotation needs to be aware of the panel state. Cleanest implementation: have the rotation check a "is anything actively in focus" flag, not separate flags per modal type. `expandedControl !== null` is exactly that flag — it covers all sub-panels with no per-panel maintenance.
+
+---
+
 ## Version 1.1.1431 - 2026-05-09
 
 **Title:** 🧭 Sidebar customizable — pick which shortcuts appear (Home, Energie, Zeitpläne, Settings, Todos, News, …) via new sub-view
