@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1445 - 2026-05-09
+
+**Title:** 🎴 Alternative Bento-Grid start screen (4 widgets, configurable per slot, optional via System Settings)
+**Hero:** none
+**Tags:** Feature, StartScreen, Bento, Widgets
+
+### Why
+
+User asked for an alternative home/start screen layout — search field collapsed at top, plus a Bento-Grid below with 4 widgets (1 large left, 1 medium top-right, 2 small bottom-right). Same glass-panel background as the expanded search panel. Each widget shows a configurable system entity; tap → opens that entity's detail view. Mobile: stack all 4 vertically.
+
+### What changed
+
+**`src/components/BentoStartView.jsx`** (new, ~155 LOC) — 4-widget Bento-Grid component:
+- Layout via CSS-grid `grid-template-areas: "w1 w2" / "w1 w34"` — W1 spans full height left, W2 top-right, W34 is a sub-grid with W3+W4 splitting bottom-right
+- Each widget is a `motion.button.glass-panel` with icon-bubble (entity brandColor) + name + optional subtitle
+- Three size variants — `large` (W1), `medium` (W2), `small` (W3+W4) — with proportional padding/icon/font scaling
+- Click → fires `onWidgetClick(entity)` (same handler as `SearchSidebar`, opens detail view)
+- Reactive via `startScreenSettingsChanged` event + `entity-registered`/`entity-unregistered` registry events
+- Empty-slot variant renders placeholder pill ("Widget nicht konfiguriert")
+
+**`src/components/BentoStartView.css`** (new, ~120 LOC) — grid + widget styles:
+- Desktop: 600px height, max-width 800px, grid-template-areas layout
+- Mobile: flex-column stack, 12px gaps, full-width
+- Widget glass-panel inherits `.glass-panel` from existing CSS so user's appearance settings (blur/saturation/brightness) apply automatically
+
+**`src/components/tabs/SettingsTab/components/StartScreenSettingsTab.jsx`** (new, ~210 LOC) — sub-view picker:
+- Slot-list view with 4 rows (W1/W2/W3/W4) + current selection display
+- Tap a slot → drills down to entity-picker with all available system-entities + "— Empty —" option
+- Selection auto-saves to `systemSettings.startScreen.widgets` array + dispatches `startScreenSettingsChanged`
+- Sub-back-nav: deeper picker view goes back to slot-list, top-level back exits to main settings
+
+**`GeneralSettingsTab.jsx`** — new "Startseite" section:
+- Toggle "Bento-Grid aktivieren" → writes `systemSettings.startScreen.bento`
+- Chevron link "Widgets konfigurieren" → opens `currentView === 'start-screen'` sub-view
+- New branch in `AnimatePresence` switcher rendering `<StartScreenSettingsTab>`
+
+**`SearchField.jsx`** — integration:
+- New `bentoEnabled` state + listener for `startScreenSettingsChanged` (event-as-bell pattern from v1.1.1433)
+- Effect: when `bentoEnabled` becomes true, force `position='top'` so search field sticks at top (otherwise it sits centered with grid awkwardly below)
+- Position-init also reads `systemSettings.startScreen.bento` for first-mount
+- BentoStartView renders after `.search-row` when: `bentoEnabled && !isExpanded && !showDetail && !aiMode`
+
+### Defaults
+
+If user enables Bento before configuring widgets, `DEFAULT_BENTO_WIDGETS = ['integration', 'all-schedules', 'todos', 'news']` populates the 4 slots. User can replace any of them via the picker.
+
+### Mobile
+
+`bento-grid--mobile` CSS variant flips the layout to a vertical flex-column. All 4 widgets render full-width sequentially. The bottom-row sub-grid (W3+W4) also flattens to vertical stack.
+
+### Lesson
+
+When adding an alternative-mode UI feature, three things scale separately and need independent toggles: (1) the mode toggle itself ("Bento-Grid aktivieren"), (2) per-instance content config ("Widgets konfigurieren" sub-view), (3) related state coordination (forcing position='top' here). Building all three together with consistent patterns (event-bus, sub-view drilldown, CSS-grid + glass-panel reuse) means future widget-types or slot-counts add as small extensions, not architectural rework.
+
+---
+
 ## Version 1.1.1444 - 2026-05-09
 
 **Title:** 🌊 Sidebar hover: framer-motion conversion — true Apple iOS26 spring physics (stiffness 380 / damping 32) instead of cubic-bezier approximation
