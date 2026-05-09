@@ -1,5 +1,57 @@
 # Versionsverlauf
 
+## Version 1.1.1444 - 2026-05-09
+
+**Title:** 🌊 Sidebar hover: framer-motion conversion — true Apple iOS26 spring physics (stiffness 380 / damping 32) instead of cubic-bezier approximation
+**Hero:** none
+**Tags:** Refactor, Animation, Sidebar, LiquidGlass
+
+### Why
+
+User pushed back on the v1.1.1442/1443 CSS-cubic-bezier approach: "wäre es besser mit framer motion? wieso willst du es nicht?"
+
+My initial recommendation was to stay with CSS because the cubic-bezier(0.32, 1.25, 0.42, 1) is "close enough" to Apple's spring. That was overly conservative. True spring physics via framer-motion's `transition: { type: 'spring', stiffness: 380, damping: 32 }` gives:
+
+- **Real velocity continuity** — interrupted hovers (mouse moves out then back in mid-animation) interpolate from current velocity instead of snapping
+- **Mass-based motion** — `mass: 1` gives physical-feeling deceleration, not a purely temporal curve
+- **Consistent overshoot** — cubic-bezier overshoot is hardcoded as a curve shape; spring overshoot is computed from stiffness/damping ratio (more "honest" to physics)
+
+Project already uses framer-motion heavily (~30 sites), so no bundle cost. The refactor was ~50 LOC, not the 80+ I'd estimated.
+
+### What changed
+
+**`SearchSidebar.jsx`** — converted to motion components:
+- New `useState(isHovered)` + `onMouseEnter`/`onMouseLeave` handlers (mobile excluded, no hover state)
+- Outer wrapper: `motion.div` with `style={{ y: '-50%' }}` + `animate={{ x: expanded ? 144 : 0 }}` — y stays constant for vertical centering, x animates the rightward translate
+- Glass panel: `motion.ul` with `animate={{ borderRadius: expanded ? 25.6 : 32 }}` — true spring on the radius morph
+- Each label: `motion.span` with `animate={{ opacity, width, marginLeft }}`
+- Spring constants extracted to module-scope `LIQUID_SPRING = { type: 'spring', stiffness: 380, damping: 32, mass: 1 }`
+- Stagger via per-property transition: `OPACITY_TRANSITION_OPEN = { ...spring, delay: 0.08 }` only when expanding (no delay when closing — text shouldn't hang in shrinking box)
+
+**`SearchField.css`** — cleanup:
+- Removed `transition: transform` from `.vision-pro-menu--desktop` (framer manages)
+- Removed `:hover` rule with transform translate (framer manages)
+- Removed CSS variables `--liquid-spring` + `--liquid-duration` (no longer referenced after framer takeover)
+- Removed `transition: border-radius` + `:hover` border-radius override on `.vpm-menu.glass-panel` + dropped `!important` so framer's inline style wins
+- Simplified `.vpm-label` to base styles only — opacity/width/marginLeft transitions all framer-driven
+- Kept the deblur effect on `::before` pseudo-element via CSS (pseudo-elements can't be JS-animated, that has to stay CSS-driven; CSS `:hover` selector still fires automatically alongside framer's onMouseEnter)
+
+### Result
+
+Hover-animation pipeline now hybrid:
+- **framer-motion** (true spring): transform-x, border-radius, label opacity/width/margin-left, with stagger
+- **CSS** (cubic-bezier 450ms): backdrop-filter blur (deblur), background tint — both on `::before` pseudo-element
+
+The two systems coordinate naturally because both fire on the same mouseenter/mouseleave event (framer via React handler, CSS via `:hover` selector).
+
+### Lesson
+
+When user asks "would it be better with X?" — and X is already in the project's stack — the right answer is usually yes, because the marginal cost is low (no new dependency) and the marginal quality gain compounds (better physics across all animations). My initial CSS-vs-framer hand-waving was wrong because I overweighted the "refactor cost" without recognizing the project already invested in framer-motion. Lesson: when evaluating tooling tradeoffs, factor in what the project ALREADY uses, not what it would have to add.
+
+For pseudo-elements specifically (`::before`/`::after`): framer-motion CAN'T animate them since they're not in the React tree. CSS stays mandatory there. Mixing CSS + framer is a legitimate pattern — fire on the same event, just animate different properties.
+
+---
+
 ## Version 1.1.1443 - 2026-05-09
 
 **Title:** 💧 Sidebar Liquid-Glass: deblur effect on hover (glass thins from 20px → 10px blur, saturation pumps to 240%)
