@@ -1,5 +1,65 @@
 # Versionsverlauf
 
+## Version 1.1.1425 - 2026-05-09
+
+**Title:** ⚡ Energy mapper rewritten for HA Storage v1.3 — auto-fills tariffs + grid power + solar power (8 slots instead of 2 for the user)
+**Hero:** none
+**Tags:** Feature, EnergyDashboard, AutoConfig
+
+### Why
+
+User asked: "the configured entities are stored somewhere in the HA backend, can't you just look there directly?" The answer was yes — `energy/get_prefs` IS the direct read of HA's `.storage/energy` file, but my mapper was written against an outdated TypedDict schema and silently ignored 6 of the 8 fields HA actually returns.
+
+The HA Core team landed three storage-rework PRs in late 2025 / early 2026:
+
+- **#153809** (2025-11): Power-sensor configuration added to Energy storage
+- **#160432** (2026-01): Non-standard power sensor support (Standard / Inverted / Two-sensors modes)
+- **#162200** (2026-02): Grid connections migrated from `flow_from[]`/`flow_to[]` arrays to flat single objects (bumped `STORAGE_MINOR_VERSION` 2 → 3)
+
+User is on 2026-current HA so they get the new flat schema with all the new fields populated. My mapper was reading from the legacy nested schema and missing everything that landed in the three PRs.
+
+### What changed
+
+`mapEnergyPrefsToSlots` in `EnergyDashboardSensorUtils.js` rewritten to handle the full v1.3 flat schema (current HA) with legacy nested-array schema as fallback (HA ≤ 2025.11):
+
+| Source field path (v1.3 flat) | Maps to slot |
+|---|---|
+| `grid.stat_energy_from` | `kwh` (already worked) |
+| `grid.stat_energy_to` | `grid_export_total` (already worked) |
+| `grid.entity_energy_price` | `purchase_tariff` (NEW) |
+| `grid.entity_energy_price_export` | `feed_in_tariff` (NEW) |
+| `grid.power_config.stat_rate_from` | `grid_import` (NEW, "Zwei Sensoren" mode) |
+| `grid.power_config.stat_rate_to` | `grid_return` (NEW, "Zwei Sensoren" mode) |
+| `solar.stat_energy_from` | `pv_total` (already worked) |
+| `solar.stat_rate` | `solar` (W) (NEW) |
+| `battery.stat_energy_to` | `battery_charged` (already worked) |
+| `battery.stat_energy_from` | `battery_discharged` (already worked) |
+| `gas.stat_energy_from` | `gas_total` (already worked) |
+| `water.stat_energy_from` | `water_total` (already worked) |
+
+### Deliberately NOT handled (documented in header)
+
+- `power_config.stat_rate` (Standard mode) and `stat_rate_inverted` (Inverted mode): single sign-based sensor for both directions; can't be split into our 2-slot grid_import/grid_return model without ambiguity.
+- `solar.config_entry_solar_forecast`: list of config entry IDs for forecast integrations. Resolution needs a separate `energy/solar_forecast` WS call → own release if `estimated_*` slots should auto-fill.
+- `battery.stat_rate` and `battery.power_config`: no battery-power slot in our card.
+- Battery percent (%): not in `get_prefs` at all (HA derives it elsewhere).
+- Gas/Water `stat_rate` (flow rate) and `entity_energy_price` (tariffs): no slots for these.
+
+### Expected coverage after update
+
+For the user (HA 2026.x with Smart Meter + SolarNet + Forecast.Solar configured):
+- Before v1.1.1425: 2 of 16 slots auto-resolved (kwh + grid_export_total)
+- After v1.1.1425: 8 of 16 slots auto-resolved (+ purchase_tariff + feed_in_tariff + grid_import + grid_return + solar + pv_total)
+- Plus battery_charged/discharged if Heimspeicher is configured.
+
+The remaining 8 slots (battery%, consumption W, estimated_power, estimated_energy_today, gas_total, water_total) either need separate APIs or the user doesn't have them configured.
+
+### Lesson
+
+When integrating with a third-party API whose schema is documented only as TypedDicts in the source repo, **fetch the actual current source code, don't rely on memorized field names from older versions**. Schema evolution is invisible to the consumer until they look. The HA team didn't announce these PRs in the changelog as breaking — they just landed, with on-disk migration baking them in. Pinning the schema understanding to a specific Git revision (with the file URL in the docstring) makes future schema-drift detectable.
+
+---
+
 ## Version 1.1.1424 - 2026-05-09
 
 **Title:** 🧹 Cleanup — removed v1.1.1422 diagnostic logging + orange status banners now that the auto-fill bug is fixed
