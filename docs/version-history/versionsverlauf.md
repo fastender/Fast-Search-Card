@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1422 - 2026-05-09
+
+**Title:** 🔍 Diagnostic release — verbose energy-prefs logging + always-visible status banner
+**Hero:** none
+**Tags:** Diagnostics, EnergyDashboard, Bugfix
+
+### Why
+
+User reports the v1.1.1421 "Auto (HA)" tags + summary banner don't appear, even though HA's Energy-Dashboard has Smart Meter + SolarNet configured (which should map to `kwh`, `grid_export_total`, `pv_total`). User confirmed it's not a HACS-cache issue.
+
+The auto-fill flow has 4 possible failure points:
+1. `loadEnergyPreferences` action never runs
+2. `energy/get_prefs` returns unexpected schema
+3. `mapEnergyPrefsToSlots` misses entries due to format mismatch
+4. `auto_resolved_sensors` set on entity but doesn't propagate to UI prop
+
+To pinpoint which one, this release adds verbose logging + an always-visible status banner with diagnostic messages.
+
+### What changed
+
+**`EnergyDashboardSensorUtils.js` `mapEnergyPrefsToSlots`:**
+- Logs raw `prefs` input (full JSON) at start
+- Logs each `energy_sources[i]` entry with type + raw data
+- Logs each successful mapping (`→ mapped X to Y = Z`)
+- Logs final output map
+- Warns on null/missing prefs, non-array `energy_sources`, unknown source types
+
+**`EnergyDashboardSensorsConfigView.jsx` `AutoFillSummary`:**
+- Three new diagnostic states (orange-tinted banners) instead of returning null:
+  - `auto_resolved_sensors` not set: "Auto-Map nicht initialisiert (loadEnergyPreferences nicht gelaufen?)"
+  - Map empty (0 entries): "HA Energy-Dashboard liefert 0 mappbare Sources. Console-Output checken."
+  - Map populated but no slot matches: "Auto-Map hat N Einträge, aber kein Slot matched. Sensoren wurden manuell überschrieben."
+- Normal blue banner only when ≥1 slot actually matches
+
+### How user should test
+
+1. Update to v1.1.1422 (HACS or manual)
+2. Open browser DevTools → Console tab
+3. Open the card, navigate to Energy-Dashboard → Settings → Werte konfigurieren
+4. Look for log lines starting with `[Energy]`:
+   ```
+   [Energy] mapEnergyPrefsToSlots input: {...}
+   [Energy] Processing N energy_sources...
+   [Energy] Source type=grid: {...}
+   [Energy] → mapped grid.flow_from to kwh = sensor.X
+   [Energy] mapEnergyPrefsToSlots output: { kwh: 'sensor.X', ... }
+   ```
+5. Plus check the colored banner at top of "Werte" page — its text tells which failure mode hit
+
+Whichever path is taken in the console + which banner color shows = exact diagnostic.
+
+### Lesson
+
+When a fix doesn't manifest visually, the diagnostic release buys more information per turn than guess-fixing. Verbose `console.log` for each branch + colored UI banners for each failure-state means the next user-report tells me exactly which of the 4 paths is broken, instead of "still not working."
+
+---
+
 ## Version 1.1.1421 - 2026-05-09
 
 **Title:** ✨ Energy: "Auto (HA)" tag on every slot + summary banner "🔗 X von 16 automatisch"
