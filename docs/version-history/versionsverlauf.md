@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1456 - 2026-05-09
+
+**Title:** 🔄 Sidebar: listen for `entity-registered` events — initial mount only showed Home (entities load async after first render)
+**Hero:** none
+**Tags:** Hotfix, Bugfix, Sidebar, RaceCondition
+
+### Why
+
+User report: at first load, sidebar showed only the Home button. All other items (Settings, News, Todos, etc.) appeared only after toggling any switch in System Settings — which forces a re-render via `sidebarSettingsChanged` event.
+
+Root cause: `systemRegistry.autoDiscover()` runs asynchronously during app boot. On the first render of SearchSidebar, the registry's `entities` Map may only have the entities that resolved before the sidebar mounted. `useMemo([lang, settingsTick])` runs once, computes the items list (only Home, which is built locally; other entities = undefined → skipped), caches the result. Later registrations don't trigger a re-compute because no React deps changed.
+
+The Settings-toggle workaround "worked" because it dispatched `sidebarSettingsChanged` → `settingsTick` increments → useMemo re-runs → entities by now ARE registered → all items appear.
+
+`BentoStartView` (which I wrote later in v1.1.1445) had this listener correctly. SearchSidebar was missing it from inception.
+
+### What changed
+
+`SearchSidebar.jsx` — added a second `useEffect` that subscribes to `systemRegistry.on('entity-registered')` and `'entity-unregistered'`, both incrementing `settingsTick`:
+
+```jsx
+useEffect(() => {
+  if (!systemRegistry?.on) return;
+  const handler = () => setSettingsTick((t) => t + 1);
+  systemRegistry.on('entity-registered', handler);
+  systemRegistry.on('entity-unregistered', handler);
+  return () => {
+    systemRegistry.off?.('entity-registered', handler);
+    systemRegistry.off?.('entity-unregistered', handler);
+  };
+}, []);
+```
+
+Now any registry change (boot-time async load, runtime device add via Integration setup, etc.) triggers re-compute → sidebar list always reflects current registry state.
+
+### Lesson
+
+When a component pulls data from an async-loading registry/store, subscribe to the registry's update events too — not just to your own settings event. The "settings change" event was masking the bug because it happened to fire after the registry was loaded; without it, the bug would have been "no items ever appear without manual interaction." This is the same pattern as v1.1.1445's BentoStartView which got it right; v1.1.1432 (SearchSidebar v1) was written before this lesson crystallized.
+
+---
+
 ## Version 1.1.1455 - 2026-05-09
 
 **Title:** 🪟 Bento sidebar JSX-restructure: rendered as direct child of .main-container (centers correctly without viewport-vs-card-area mismatch)
