@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1439 - 2026-05-09
+
+**Title:** 🔄 MA TTS multi-engine fallback + Queue diagnostic logging
+**Hero:** none
+**Tags:** Bugfix, Diagnostics, MusicAssistant, TTS
+
+### Why
+
+User reported after v1.1.1437/1438:
+
+1. **TTS still fails** — but now with a different error: `Die Aktion tts/cloud_say konnte nicht ausgeführt werden. Unable to retrieve info for http://192.168.0.13:8123/api/tts_proxy/...mp3 (Server returned 5XX Server Error reply)`. So my v1.1.1437 bridge correctly called `tts.cloud_say` — but cloud_say generated a TTS proxy URL that HA itself returned 5XX for when MA tried to fetch it. Likely a Nabu-Casa-cloud auth/quota issue specific to cloud_say.
+2. **Queue still empty** — my v1.1.1438 entity-keyed unwrap didn't fire. Means the response shape is yet another variant.
+
+### What changed
+
+**`utils/musicAssistant.js`** — `playAnnouncementMusicAssistant` plain-text path now tries ALL `*_say` services in priority order until one succeeds, instead of picking just one:
+
+1. `google_translate_say` first (free, no cloud auth, most robust)
+2. Other `*_say` services (piper_say, etc.)
+3. `cloud_say` last (requires Nabu Casa, can fail at proxy step)
+
+If the first service throws, log a warn and try the next. Only error+return if ALL services fail.
+
+**`MusicAssistantPanel.jsx`** — diagnostic-only console.log on first queue load (gated by module-scope `_queueShapeLogged` flag against console spam):
+
+```js
+console.log('[MA Queue] raw response:', raw);
+console.log('[MA Queue] entityId:', entityId);
+console.log('[MA Queue] keys at top level:', ...);
+```
+
+Once user pastes back the actual response shape, I can adjust the unwrap chain. This is the same diagnostic-release pattern as v1.1.1422 (which led to the v1.1.1423 grid-format fix).
+
+### Lesson
+
+For the TTS issue: when a service that takes a single engine choice fails server-side, fallback to alternative engines is more useful than detailed error messages. User has multiple TTS integrations configured — most will work; just one is broken. Cycle through them.
+
+For the queue: when a defensive multi-shape unwrap doesn't fire, the assumption about possible shapes is wrong. Don't add a 4th guess — log the actual shape and adjust based on truth. Fewer iterations, less guessing.
+
+---
+
 ## Version 1.1.1438 - 2026-05-09
 
 **Title:** 🎵 MA panel: Queue empty bug fixed (entity-keyed response shape) + new "Nächste" / "Up Next" tab
