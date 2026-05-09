@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1435 - 2026-05-09
+
+**Title:** ✨ Tipps icon — Apple-Tipps-style sparkle SVG added (was missing in iconMap, device card + sidebar showed blank)
+**Hero:** none
+**Tags:** Bugfix, Icons, Tipps
+
+### Why
+
+The Tipps system entity (introduced in v1.1.1391) defined an icon in its entity config but the `iconMap` in `getSystemEntityIcon` (`DeviceCardIntegration.jsx`) had no entry for the `tipps` domain. Since the device card + sidebar render via `getSystemEntityIcon`, both showed blank icon spots — visible in the user's screenshot as "Tipps" device card with empty top half + missing sidebar entry visual.
+
+### What changed
+
+- `DeviceCardIntegration.jsx`: new `tipps:` entry in iconMap rendering an Apple-Tipps-style sparkle SVG (open circle + 4-point star at 1 o'clock). White stroke for contrast on the orange brand background.
+- `entities/tipps/index.js`: replaced the old lightbulb-style entity icon SVG with the same sparkle design (using `currentColor` for stroke since this version is rendered in dynamic-color contexts). Both now match.
+
+### Lesson
+
+When introducing a new system entity, three icon paths need the matching entry: (1) the entity's own `icon:` field for self-rendering contexts, (2) the `iconMap` in `getSystemEntityIcon` for device-card and sidebar rendering, and (3) any other domain-keyed lookup. Forgetting (2) → silent blank icon. The audit pattern: search for the entity domain in DeviceCardIntegration.jsx after registering, like the identifier-grep audit catches missing imports.
+
+---
+
 ## Version 1.1.1434 - 2026-05-09
 
 **Title:** 🟡 Sidebar-items picker: yellow note-card + per-item info popups (Energy Dashboard "i"-button)
