@@ -1,5 +1,49 @@
 # Versionsverlauf
 
+## Version 1.1.1452 - 2026-05-09
+
+**Title:** 🔲 Bento bugs: widget-click now expands panel (StatsBar+Sidebar visible) + W3/W4 widgets are square
+**Hero:** none
+**Tags:** Bugfix, Bento, Layout
+
+### Why
+
+Two reports:
+
+1. Clicking a Bento widget directly (or sidebar item) opens DetailView but neither StatsBar nor Sidebar appear. Clicking the search bar first → expand → click → both visible. Inconsistent: the entry path shouldn't matter for whether StatsBar/Sidebar show.
+
+2. Bottom-right widgets (W3 + W4 — Aufgaben, Nachrichten) render as tall rectangles (~238×290) instead of squares. Aesthetically off-balance against the larger widgets.
+
+### What changed
+
+**Bug 1 — `SearchField.jsx` `handleSidebarItemClick`**:
+
+Added `setIsExpanded(true)` after setting `selectedDevice + showDetail`:
+
+```jsx
+if (match) {
+  setSelectedDevice(match);
+  setShowDetail(true);
+  setIsExpanded(true);   // ← NEW
+}
+```
+
+The search panel itself doesn't visually conflict because it has the existing `${showDetail ? 'hidden' : ''}` class — it's hidden behind the DetailView. But `isExpanded=true` activates the StatsBar visibility-flip (bento mode) and the Sidebar `(isExpanded || alwaysVisible)` condition. Result: consistent UI regardless of entry path.
+
+**Bug 2 — `BentoStartView.css`**:
+
+Two changes:
+- `.bento-grid--desktop` `grid-template-rows: 1fr 1fr` → `1fr auto`. The `auto` row (W2 second / W34) sizes to content. With aspect-ratio:1 widgets, content height = column width = squares.
+- `.bento-cell--w34 > .bento-widget` rule added: `aspect-ratio: 1; height: auto; min-height: 0;`. Override of `.bento-widget--small`'s `min-height: 90px` is needed (would otherwise force taller than aspect-ratio).
+
+Result: W3 + W4 are now ~238×238 square cells. W2 (top-right) gets the larger remaining vertical space (1fr). W1 (large left) still spans both rows = full container height. Total grid height stays 600px.
+
+### Lesson
+
+When state-dependent UI elements (StatsBar, Sidebar) gate on a flag like `isExpanded`, every action that opens a "rich content view" (DetailView via sidebar/widget click) should also set that flag — otherwise users get inconsistent chrome based on entry path. For aspect-ratio in CSS grid: combine `grid-template-rows: auto` for the row + `aspect-ratio: N` on children for self-sizing squares. `min-height: 0` override is necessary if children have inherited min-height that would override aspect-ratio.
+
+---
+
 ## Version 1.1.1451 - 2026-05-09
 
 **Title:** 👻 Bento-Mode: StatsBar invisible at start but space reserved — visible only when search expanded
