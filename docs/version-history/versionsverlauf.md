@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1429 - 2026-05-09
+
+**Title:** 🏷️ Sensor rows: pill (Auto/Manuell) moved to start of subtitle line — also shows "Manuell" for non-auto-resolved sensors
+**Hero:** none
+**Tags:** Polish, UX, EnergyDashboard
+
+### Why
+
+User feedback on v1.1.1428: the Auto pill should sit at the START of subtitle line 2 (entity_id line) instead of the END of line 3 (value line). Plus: when a sensor is NOT auto-resolved, show a "Manuell" pill instead of nothing — so the source of every configured sensor is unambiguous at a glance, not inferred from absence of a tag.
+
+### What changed
+
+`renderSensorSubtitle` in `EnergyDashboardSensorsConfigView.jsx`:
+- Pill moved from end-of-line-3 to start-of-line-2
+- Always renders when sensor is configured (was: only on isAuto)
+- Two visual variants:
+  - `Auto` — green pill (Energy brand color: `rgba(48, 209, 88, *)`)
+  - `Manuell` / `Manual` (per language) — neutral grey pill (`rgba(255, 255, 255, *)`)
+- Both pills share identical typography (10px / 600 / uppercase / pill-shape) — only colors differ
+- Line 3 simplified to just `value unit` (no more pill on the right)
+
+Layout net result for configured rows (3 lines):
+- L1: Label + Info-Button + Chevron
+- L2: `[Auto|Manuell] entity_id` (entity_id fades right when long)
+- L3: `value unit`
+
+Unconfigured rows unchanged: 2 lines (Label + "Nicht konfiguriert", no pill).
+
+### Lesson
+
+"Status by absence" UX (e.g. "no badge means it's manual") works only when users already know the convention. "Status by presence" (always show a badge, vary color/text by state) is self-documenting and removes one question on first viewing. Cost: every row gets a pill, but they're small and consistent so visual noise is minimal.
+
+---
+
 ## Version 1.1.1428 - 2026-05-09
 
 **Title:** 📐 Sensor-row layout: 3-line subtitle (entity_id on line 2, value + Auto-pill on line 3) — fixes chevron-overflow + value cutoff
