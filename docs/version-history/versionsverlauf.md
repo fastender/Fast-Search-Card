@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1430 - 2026-05-09
+
+**Title:** 🌡️ Climate slider: arc-displaced bug fixed — clamp value to [min, max] in `valueToAngle` + `getProgressOffset`
+**Hero:** none
+**Tags:** Bugfix, CircularSlider, Climate
+
+### Why
+
+User screenshot of MELCloud climate detail-view: the blue progress arc was visually offset from the centered text content. Header showed "18.5° → 10°C", target temperature 10°C. Root cause: HA's MELCloud integration reports `target_temperature=10` (left over from a heat-mode setting) while `min_temp=16` (current cool-mode minimum). My math:
+
+```js
+percentage = (10 - 16) / (30 - 16) = -0.428    // negative!
+getProgressOffset = circumference * 1.428      // > circumference
+valueToAngle = -90 + (-0.428 * 360) = -244°    // weird angle
+```
+
+SVG handles `stroke-dashoffset > stroke-dasharray` by wrapping the dash-pattern cycle: the visible portion of the dash starts somewhere mid-pattern instead of at the path origin. Visually, the arc appears to start and end at "wrong" positions, no longer concentric with the centered text content. Same class of bug would hit any HA integration that reports a target value outside its current range — IPP printers' job-progress reset between prints, fan-mode climates with no temp range, etc.
+
+### What changed
+
+`src/utils/circularSliderTransforms.js`:
+- New `clamp(val, min, max)` helper at module scope.
+- `valueToAngle` clamps `val` to [min, max] before percentage calc. Plus guard for `max <= min` (returns `-90` = top).
+- `getProgressOffset` clamps `currentValue` to [min, max] before percentage calc. Plus guard for `max <= min` (returns `circumference` = empty arc).
+
+`src/utils/deviceConfigs.js` (climate case):
+- `attributes.min_temp || 16` → `attributes.min_temp ?? 16` (and same for `max_temp`). Defends against integrations that report `min_temp=0` (theoretically valid for some HVAC modes) which `||` would mistakenly fall through to the default 16.
+
+### Result
+
+- Out-of-range target temperatures (e.g. 10°C target with min=16) now render the arc clamped to the visual minimum (= empty arc, handle at top). The numerical displayValue still shows "10°C" so the user sees the actual stale value.
+- No regression for in-range values — clamp is identity when `min ≤ val ≤ max`.
+
+### Lesson
+
+Slider math should always clamp inputs. SVG `stroke-dashoffset` doesn't fail loudly when the offset overflows — it silently shifts the dash-pattern cycle, producing a render that looks "almost right" enough to escape unit tests but visibly broken to users. Same for `valueToAngle` — JavaScript's `cos`/`sin` happily compute angles way outside [0, 360°], the visual just lands wherever the math says. Adding a `clamp()` at the input edge is one line per function and prevents an entire class of "but the data was weird" bugs.
+
+---
+
 ## Version 1.1.1429 - 2026-05-09
 
 **Title:** 🏷️ Sensor rows: pill (Auto/Manuell) moved to start of subtitle line — also shows "Manuell" for non-auto-resolved sensors
