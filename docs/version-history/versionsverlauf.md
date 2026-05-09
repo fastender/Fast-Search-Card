@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1442 - 2026-05-09
+
+**Title:** 💧 Sidebar hover-expand: iOS26 Liquid-Glass morphing — spring curve + glass-thickening + border-radius morph + label-fade staggering
+**Hero:** none
+**Tags:** Polish, Sidebar, Animation, LiquidGlass
+
+### Why
+
+After v1.1.1441's right-ward expansion fix, user asked for the iOS26 / Liquid Glass morphing aesthetic — Apple's WWDC25 design language where UI panels feel like fluid glass that smoothly morph between states rather than mechanically resize.
+
+### What changed
+
+`SearchField.css` — five coordinated tweaks across `.vision-pro-menu--desktop`, `.vpm-menu.glass-panel`, `.vpm-label`:
+
+1. **Spring-curve replacement.** All transitions now use `cubic-bezier(0.32, 1.25, 0.42, 1)` (CSS approximation of Apple's iOS26 spring with stiffness 380 / damping 32). Slight overshoot at the end gives the "settling" feel; quick start gives the responsive touch. Replaces the previous `ease-in-out`.
+2. **Unified duration.** All four animated properties (transform, width, margin-left, opacity) use `--liquid-duration: 450ms` so the motion reads as ONE morphing event rather than several independent transitions.
+3. **Border-radius morph.** Glass-panel `border-radius` interpolates from `2rem` (rounded pill, collapsed state) to `1.6rem` (slightly squarer, expanded state) — small but enough to feel like the shape is "settling" into its new form.
+4. **Glass thickening on hover.** The `::before` pseudo-element's `background` interpolates from `rgba(30, 30, 30, 0.4)` to `rgba(30, 30, 30, 0.55)` with stronger inner highlight — depth perception cue that the panel is now "elevated."
+5. **Label-fade staggering.** Opacity transition starts with `0.08s` delay vs the width transition. Result: the shape opens FIRST, then the text fades in. Without the stagger, text would appear instantly and look like it's "punched onto" the closed shape rather than emerging from it.
+
+CSS variables `--liquid-spring` + `--liquid-duration` defined on the parent so future child elements can inherit the same timing if more morph effects are added (e.g. icon scale on hover).
+
+### Lesson
+
+The "Liquid Glass" feeling isn't one effect — it's four small details that have to land together: spring timing, unified duration, shape morphing, and stagger. Any one alone produces an animation that feels "bouncy" or "glass-y" but not "liquid." Apple's iOS26 documentation makes a point of this — they describe the design as "an aggregate of micro-interactions, not a single transition style." For the sidebar this means: the animation works because all four cooperate, not because any one is the main event.
+
+---
+
 ## Version 1.1.1441 - 2026-05-09
 
 **Title:** ↪️ Sidebar hover-expand direction reversed — labels now overlap the search panel rightward (visionOS-style) instead of growing leftward into empty space
