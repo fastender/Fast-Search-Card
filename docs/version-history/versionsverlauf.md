@@ -1,5 +1,77 @@
 # Versionsverlauf
 
+## Version 1.1.1420 - 2026-05-09
+
+**Title:** ⚡ Energy Dashboard: Auto-Fill from HA Energy Prefs + Gas/Water slots + new circulars
+**Hero:** none
+**Tags:** Feature, EnergyDashboard, AutoConfig
+
+### Why
+
+User-Frage: "warum kann nicht direkt darauf zugegriffen werden?" — auf die HA-Energy-Dashboard-Konfiguration. HA hat im Backend bereits Sensoren für Stromnetz / PV / Heimspeicher / Gas / Wasser konfiguriert. Wir hatten die Konfiguration bisher nur als `entity.attributes.energy_prefs` gecached aber nicht ausgewertet — ein 14-Slot-Setup-UI, obwohl die Hälfte schon im HA-Backend stand.
+
+Diese Session: Auto-Fill für leere Slots aus `energy/get_prefs`, plus zwei neue Slots (Gas + Wasser) plus zwei neue Slideshow-Circulars dafür.
+
+### What changed
+
+**Schema-Erweiterung** (`src/system-entities/entities/integration/deviceConfigStorage.js`):
+- `ENERGY_SENSOR_SLOTS` += `gas_total`, `water_total` (jetzt 16 statt 14)
+- `CIRCULAR_TYPES` += `gas`, `wasser` (jetzt 6 statt 4)
+
+**Sensor-Type-Config** (`EnergyDashboardSensorUtils.js`):
+- Neue Slot-Definitionen mit Unit-Constraints:
+  - `gas_total`: m³ / ft³ / kWh / MWh / Wh, deviceClass: `gas`
+  - `water_total`: m³ / L / gal / CCF, deviceClass: `water`
+
+**Auto-Fill-Mapper** (`EnergyDashboardSensorUtils.js`):
+- Neue `mapEnergyPrefsToSlots(prefs)` Pure-Function. Mappt HA-`energy_sources` auf unsere Slot-IDs:
+  - `grid.flow_from[].stat_energy_from` → `kwh`
+  - `grid.flow_to[].stat_energy_to` → `grid_export_total`
+  - `solar.stat_energy_from` → `pv_total`
+  - `battery.stat_energy_to` → `battery_charged`
+  - `battery.stat_energy_from` → `battery_discharged`
+  - `gas.stat_energy_from` → `gas_total`
+  - `water.stat_energy_from` → `water_total`
+
+**Auto-Fill-Logik** (`EnergyDashboardDeviceEntity.js`):
+- `loadEnergyPreferences` nutzt jetzt den Mapper → speichert das Result als `entity.attributes.auto_resolved_sensors`
+- Plus: für jeden Slot OHNE User-Override (`entity.attributes.<slot>_sensor` leer) wird die Auto-Map-Sensor-ID auf das Attribut geschrieben
+- User-Overrides bleiben unangetastet — sie "gewinnen" auch nach Boot-Refresh
+- Nichts wird in den persistenten Storage geschrieben, nur in entity attributes
+
+**Slideshow** (`EnergyDashboardDeviceView.jsx`):
+- Default-`circularConfig` += `gas: { enabled: false }`, `wasser: { enabled: false }`
+- Type-Labels: Gas/Wasser (DE) oder Gas/Water (EN)
+- `getCircularSensorMapping`: gas und wasser nutzen `gas_total_sensor` bzw. `water_total_sensor` als primary UND secondary (existing slideshow gating wartet auf both, single-sensor circulars müssten sonst speziell behandelt werden — pragmatischer Workaround)
+
+**Settings-UI** (`EnergyDashboardSensorsConfigView.jsx`):
+- Neue Sektion "GAS / WASSER" am Ende mit 2 ios-item Rows (Gas-Verbrauch gesamt, Wasser-Verbrauch gesamt)
+- Subtitle zeigt "• Auto (HA)" Tag wenn der aktuelle Sensor aus den HA-Energy-Prefs auto-resolved wurde (vergleicht `attributes.<slot>_sensor` mit `attributes.auto_resolved_sensors[slot]`)
+- User-Click öffnet wie bei den anderen Slots die SensorSelectionView mit gefilterter HA-Sensor-Liste
+
+### What this means for users
+
+User der HA-Energy-Dashboard schon konfiguriert hat (häufig der Fall) bekommt jetzt **Zero-Config**:
+1. Card öffnen
+2. Bibliothek- / Slideshow-Toggles für Gas/Wasser/Verbrauch/Solar etc. aktivieren
+3. Werte erscheinen sofort — ohne dass er einen einzigen Sensor manuell pickt
+
+User der HA-Energy NICHT konfiguriert hat: identisches UI wie vorher (Slot-Picker), nur leere Auto-Map.
+
+### Limitations (bewusst nicht in dieser Session)
+
+- **W-Power-Sensoren** (`grid_import` (W), `solar` (W), `consumption` (W)) bleiben manuell — HA-Energy-Prefs hat nur kWh-LTS-Sensoren
+- **Tariff-Sensoren** (`feed_in_tariff`, `purchase_tariff`) bleiben manuell — kein HA-Standard
+- **Auto-Tag nur bei Gas/Wasser** sichtbar (für die 14 alten Slots wäre es 14× das gleiche Pattern in der Subtitle — ein "subtle UI-tag everywhere" Refactor lohnt sich nur wenn das Pattern stehen bleibt)
+
+### Lesson
+
+Wenn HA's Backend schon eine Konfiguration hat, ist es fast immer falsch eine eigene parallele zu pflegen. Die richtige Frage: "Was hat HA schon, was kann ich daraus ableiten?" — und nur das fragen was wirklich card-spezifisch ist (z.B. unsere W-Power-Live-Sensoren für die Slideshow-Circulars, die HA's energy-dashboard nicht braucht).
+
+Auto-Fill mit User-Override-Vorrang ist die saubere Trennung: Storage hält nur was der User EXPLIZIT überschrieben hat. Alles andere wird beim Boot aus Source-of-Truth (HA) abgeleitet. Resultat: User der HA-Konfig ändert → unser Card aktualisiert sich beim nächsten Refresh, ohne dass er bei uns nachkonfigurieren muss.
+
+---
+
 ## Version 1.1.1419 - 2026-05-09
 
 **Title:** 🔥 Hotfix #3: `getSensorDisplay` extracted to pure util — third bug from same v1.1.1329 extraction
