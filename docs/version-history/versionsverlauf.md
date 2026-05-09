@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1450 - 2026-05-09
+
+**Title:** 🪨 Bento-Mode: search bar stays at top after expand+collapse — slide-back-to-center disabled
+**Hero:** none
+**Tags:** Bugfix, Bento, SearchPanel
+
+### Why
+
+User report after v1.1.1449: in Bento mode, clicking the search bar (expand) works fine. But on close, the search bar slides DOWN to a centered position, overlapping Widget 1. Original `position='top'` is lost on collapse.
+
+Cause: existing slide-back logic (lines 270-285 in SearchField.jsx) sets `position='centered'` 400ms after collapse. This is intentional in default mode (panel returns to its centered home state) but wrong in Bento mode where the search bar must stay anchored at top so widgets below have predictable space.
+
+### What changed
+
+`SearchField.jsx` — slide-back useEffect condition extended with `!bentoEnabled`:
+
+```jsx
+if (prevIsExpanded && !isExpanded && !showCategories && position === 'top' && !bentoEnabled) {
+  setTimeout(() => setPosition('centered'), 400);
+}
+```
+
+Bento mode now skips the slide-back. Position remains 'top' permanently. Default mode unchanged.
+
+### Lesson
+
+Mode-conditional behaviors often need parallel guards in multiple effects. v1.1.1445 set `position='top'` on Bento enable; v1.1.1450 prevents the runtime slide-back from un-doing that. When a feature mode changes baseline assumptions about state, audit ALL effects that mutate that state — not just the initial setter.
+
+---
+
 ## Version 1.1.1449 - 2026-05-09
 
 **Title:** 🪨 Bento-Mode: StatsBar reversal — always-on instead of suppressed (eliminates click-jump differently)
