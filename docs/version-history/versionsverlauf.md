@@ -1,5 +1,51 @@
 # Versionsverlauf
 
+## Version 1.1.1455 - 2026-05-09
+
+**Title:** 🪟 Bento sidebar JSX-restructure: rendered as direct child of .main-container (centers correctly without viewport-vs-card-area mismatch)
+**Hero:** none
+**Tags:** Bugfix, Bento, Sidebar, JSXRefactor
+
+### Why
+
+v1.1.1454's `position: fixed; top: 50%` worked when the browser viewport matches the card area. In Lovelace dashboards where the card sits in a larger viewport (e.g., 1500px viewport vs 800px card), `50%` of viewport ≠ middle of the card content. Result: sidebar drifted to bottom-half or off the visible card area entirely.
+
+Plus an additional bug: sidebar was sometimes invisible until user toggled items in System Settings (forced re-render brought it back). Suggests a React render-tree issue.
+
+### Root cause
+
+Sidebar was rendered inside `.search-row`. `position: absolute; top: 50%` therefore resolves as 50% of `.search-row`'s height (~72px) — way too small for vertical centering. v1.1.1453 tried `top: 50vh` (viewport-relative); v1.1.1454 tried `position: fixed; top: 50%` (also viewport-relative). Both failed when viewport ≠ card area.
+
+The reference frame that's actually right: `.main-container` (the card content area, with `position: relative` and a height equal to StatsBar+search-row+bento-grid).
+
+### What changed
+
+**JSX restructure**: in Bento mode, sidebar is now rendered as a direct child of `.main-container` (sibling of `.search-row` + `.bento-grid`), NOT inside `.search-row`. With `position: absolute`, the sidebar's positioning context becomes `.main-container`. Original CSS works as intended:
+- `top: 50%` = 50% of `.main-container` height = middle of card content area
+- `right: 100%; margin-right: 12px` = sidebar's right edge at .main-container's left edge - 12px gap
+- Framer's `translateY(-50%)` shifts up by half-height → sidebar middle at .main-container middle
+
+CSS override from v1.1.1454 removed (no longer needed — defaults work).
+
+In default (non-Bento) mode, sidebar still rendered inside `.search-row` as before. Conditional in JSX:
+
+```jsx
+<div className="search-row">
+  {!bentoEnabled && sidebarSettings.enabled && ... && <SearchSidebar />}
+  <motion.div className="search-panel" />
+</div>
+
+{bentoEnabled && sidebarSettings.enabled && ... && <SearchSidebar />}  {/* outside search-row */}
+```
+
+### Lesson
+
+When `position: absolute` should anchor to a SPECIFIC ancestor's box, ensure the element lives DIRECTLY inside that ancestor (or that no other intermediate `position: relative` ancestor exists). Switching to `position: fixed` to "escape" the wrong ancestor is fragile — works when viewport = container, fails when they diverge (cards in dashboards, modals, iframes). The right fix is structural (move element to correct ancestor), not just CSS overrides.
+
+The previous-render visibility bug was likely a consequence of the same issue: with `position: fixed` outside the card's render-tree positioning, React's reconciliation for visibility states could get confused. Putting the element where it logically belongs (in `.main-container`) makes it part of the natural render tree and visibility behaves predictably.
+
+---
+
 ## Version 1.1.1454 - 2026-05-09
 
 **Title:** 🔧 Bento sidebar position: fixed (viewport-anchored) — v1.1.1453's `top: 50vh` clipped most icons
