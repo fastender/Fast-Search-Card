@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1433 - 2026-05-09
+
+**Title:** 🐛 Sidebar items not updating live — `event.detail` overwrite swallowed enabled/alwaysVisible flags
+**Hero:** none
+**Tags:** Hotfix, Bugfix, Sidebar, EventBus
+
+### Why
+
+User report after v1.1.1431: toggling items in the new "Einträge konfigurieren" sub-view didn't reflect in the sidebar in real-time. Only a page reload showed the change.
+
+### Root cause
+
+Two listeners share the `sidebarSettingsChanged` event:
+
+1. **`SearchField.jsx`** — was using `setSidebarSettings(event.detail)` (blind overwrite of state with whatever payload arrived).
+2. **`SearchSidebar.jsx`** — increments a tick to force its `useMemo([lang, settingsTick])` to re-read `systemSettings.sidebar.items` from localStorage.
+
+The two existing dispatchers (`GeneralSettingsTab.jsx` for the `enabled` and `alwaysVisible` toggles) sent `detail: { enabled, alwaysVisible }` — full payload, blind overwrite worked fine.
+
+The new dispatcher in v1.1.1431's `SidebarItemsSettingsTab.jsx` sent `detail: { items: next }` — only the items field, NOT enabled/alwaysVisible. SearchField's blind overwrite then turned `sidebarSettings` into `{ items: [...] }` with `enabled === undefined`. The conditional in JSX:
+
+```jsx
+{sidebarSettings.enabled && (isExpanded || sidebarSettings.alwaysVisible) && (
+  <SearchSidebar ... />
+)}
+```
+
+…falsied, the entire SearchSidebar **unmounted**. The unmount discarded the in-flight `setSettingsTick` re-render. On a page reload, `useState`'s init function read the (still-correct) localStorage and the sidebar re-appeared with the new items — so it looked like "only works after reload."
+
+### What changed
+
+`SearchField.jsx` — extracted the localStorage-read into a `readSidebarFlags()` helper. Both the initial `useState(() => readSidebarFlags())` AND the event handler now call it. The handler ignores `event.detail` entirely and treats the event as a "something in sidebar settings changed, re-read from authoritative storage" trigger.
+
+```js
+const handler = () => setSidebarSettings(readSidebarFlags());
+```
+
+This is robust to any future dispatcher sending partial detail payloads — localStorage is the single source of truth, the event is just a "bell" telling listeners to re-read.
+
+### Lesson
+
+When multiple producers share an event-bus and the event has a payload, every producer needs to send the SAME shape OR the listener needs to ignore the payload. Producer-side discipline ("always send full payload") doesn't scale — the next person who adds a dispatcher won't know the convention. Listener-side defense ("ignore payload, re-read from authoritative source") scales because new producers don't have to know anything.
+
+This is the same pattern as the v1.1.1414 unified-storage refactor: when "the storage" is the source of truth, intermediaries that pass partial state via events will eventually break it.
+
+---
+
 ## Version 1.1.1432 - 2026-05-09
 
 **Title:** ⏸️ Media-player slideshow auto-advance pauses while ANY control group is expanded (Music Assistant, settings, mode picker, …)
