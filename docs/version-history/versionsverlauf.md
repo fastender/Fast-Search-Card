@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1421 - 2026-05-09
+
+**Title:** ✨ Energy: "Auto (HA)" tag on every slot + summary banner "🔗 X von 16 automatisch"
+**Hero:** none
+**Tags:** Polish, EnergyDashboard, UX, Refactor
+
+### Why
+
+v1.1.1420 added auto-fill from HA Energy-Prefs but only showed "• Auto (HA)" on the 2 new Gas/Wasser slots. User wanted to see at a glance which of the 16 slots are auto-resolved vs. manually picked. This release extends the visual feedback to all slots + adds a summary banner at the top.
+
+### What changed
+
+**`EnergyDashboardSensorsConfigView.jsx`:**
+- New `renderSensorSubtitle(slot, entity, hass, lang)` helper at module scope — single source for subtitle rendering. Returns `"<sensor_name> • <value> <unit>"` plus `" • Auto (HA)"` if the active sensor matches `entity.attributes.auto_resolved_sensors[slot]`
+- Replaced 15 IIFE-Lambdas (one per slot subtitle) with `{renderSensorSubtitle(...)}`. Pattern was identical across all slots; consolidation saves ~75 LOC
+- New `AutoFillSummary` component at module scope — counts how many of the `ENERGY_SENSOR_SLOTS` are currently auto-resolved (sensor matches the auto-map). Renders nothing when zero (clean look for users without HA Energy config)
+- Banner placed at top of `ios-settings-view`, before the first sensor section. Style: blue-tinted card with `🔗` icon and "X von 16 Slots automatisch aus HA Energy-Dashboard"
+
+### Visual result
+
+For users with HA Energy-Dashboard configured (most users):
+- Top of settings page: blue banner "🔗 3 von 16 Slots automatisch aus HA Energy-Dashboard"
+- Each slot row: subtitle shows "{sensor_name} • {value} {unit} • Auto (HA)" if auto-resolved
+- User overrides (manually picked sensor different from auto-map) show without the "Auto (HA)" tag → clear visual distinction between auto and manual
+
+For users without HA Energy-Dashboard:
+- Banner hidden (count is 0)
+- Subtitles show without auto-tag (since `auto_resolved_sensors` is empty)
+- Same UX as before, no clutter
+
+### Architecture note
+
+The auto-detection logic is `auto_resolved_sensors[slot] === currentSensor`, not a separate `_source` flag. Reason: a user override that happens to match the HA-default would still show as "Auto" — which is correct: the value IS the same as HA's. Distinguishing "user explicitly picked this" from "auto picked the same" is unnecessary; both produce the same value, and the storage round-trips cleanly.
+
+### Lesson
+
+Visual indicators for auto-resolved configuration are critical for trust — without them, the auto-fill feature works but the user can't tell if it's doing anything. Two-level disclosure works well here: (1) summary banner gives the macro-view ("am I getting auto-help?"), (2) per-slot tag gives the micro-view ("which specific slot is auto?"). Both cheap to render, both high-information.
+
+The IIFE→helper refactor was a freebie alongside the feature: the existing 15 subtitle blocks were copy-paste, and once you're touching all 15 anyway, extracting a helper is a no-cost step that eliminates future diff-noise (any change to the subtitle format now happens in one place).
+
+---
+
 ## Version 1.1.1420 - 2026-05-09
 
 **Title:** ⚡ Energy Dashboard: Auto-Fill from HA Energy Prefs + Gas/Water slots + new circulars
