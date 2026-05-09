@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1434 - 2026-05-09
+
+**Title:** 🟡 Sidebar-items picker: yellow note-card + per-item info popups (Energy Dashboard "i"-button)
+**Hero:** none
+**Tags:** Polish, UX, Settings
+
+### Why
+
+Two requests for the v1.1.1431 sidebar-items picker:
+
+1. The intro description card (gray, low contrast) should use Apple-style yellow `rgb(255, 204, 0)` so it reads as a note/hint instead of dead text.
+2. The static footer hint about Energy Dashboard ("erscheint nur wenn unter Integrationen hinzugefügt") should move from a permanent footer card to an info `(i)` button next to the Energy Dashboard item itself, opening a modal popup on click. Cleaner layout + scales: future items can get their own info text without footer-bloat.
+
+### What changed
+
+`SidebarItemsSettingsTab.jsx`:
+- New `ITEM_INFO_TEXTS` lookup at module scope — keyed by item ID, returns `{de, en}` text. Currently only `energy_dashboard`. Adding more is a one-entry change.
+- Description card: `background: rgb(255, 204, 0)` + `color: rgba(0, 0, 0, 0.85)` + `font-weight: 500` for readability on the yellow.
+- Each item row: if `ITEM_INFO_TEXTS[item.id]` exists, render a small (i)-button next to the label. Click → sets `infoItemId` state.
+- Footer hint card: removed.
+- New AnimatePresence-wrapped modal at the bottom of the sub-view: backdrop + centered card showing the item name + info text. Click backdrop or × button to close. Same visual style as the EnergyDashboard's existing InfoOverlay (`rgba(30, 30, 30, 0.95)` card on `rgba(0, 0, 0, 0.5)` blurred backdrop, z-index 9999).
+
+### Pattern
+
+The (i)-button uses the same defensive `onPointerDown stopPropagation` + `onClick stopPropagation` + `preventDefault` triple that v1.1.1426 introduced for the Energy-Dashboard info-buttons. Same bug class would apply (parent row has its own pointer handlers via the LiquidGlassSwitch toggle area), same defense.
+
+---
+
 ## Version 1.1.1433 - 2026-05-09
 
 **Title:** 🐛 Sidebar items not updating live — `event.detail` overwrite swallowed enabled/alwaysVisible flags
