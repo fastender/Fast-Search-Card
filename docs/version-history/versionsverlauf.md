@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1443 - 2026-05-09
+
+**Title:** 💧 Sidebar Liquid-Glass: deblur effect on hover (glass thins from 20px → 10px blur, saturation pumps to 240%)
+**Hero:** none
+**Tags:** Polish, Sidebar, LiquidGlass, Animation
+
+### Why
+
+After v1.1.1442 added the iOS26 morph (spring + radius + glass thickening + label stagger), user asked for a deblur effect on top — the hallmark of Apple's Liquid Glass: glass becomes momentarily thinner and more vivid when touched, like a real liquid responding to interaction.
+
+Also discussed: would framer-motion be better than CSS for this? Conclusion stayed CSS — for a single hover-state morph, true spring physics via framer-motion gives marginally better feel but costs ~80 LOC of refactor + state-management overhead. Cubic-bezier(0.32, 1.25, 0.42, 1) approximation is good enough at this duration (450ms). Framer-motion would be the right answer for orchestrated multi-element animations or velocity-tracked interruptible transitions — neither applies here.
+
+### What changed
+
+`SearchField.css` — `.vpm-menu.glass-panel::before` `:hover` rule expanded:
+
+- **`backdrop-filter: blur(20px) → blur(10px)`** — glass becomes ~50% thinner. Content behind the panel (the search panel + background) shows through more crisply.
+- **`saturate(180% → 240%)`** — colors behind the glass pump up. Apple's iOS26 trick: when glass thins, the saturation rises to compensate for what would otherwise be a "washed out" look. Combined with reduced blur, gives the "vivid glass" feel.
+- **Background tint reduced** — `rgba(30, 30, 30, 0.4) → 0.32` (was 0.55 in v1.1.1442). Lighter tint matches the "less dense glass" feeling. Inner highlight slightly stronger (`rgba(255,255,255,0.14)` instead of `0.08`) for the Apple-typical sheen.
+- Both `backdrop-filter` and `-webkit-backdrop-filter` get the transition + override (Safari needs the prefix).
+
+### Result
+
+On hover, the morph now reads as: spring-curve transform (rightward shift) + width-grow (labels emerging) + border-radius-morph (2rem → 1.6rem) + **glass thinning** (blur 20→10) + **saturation pump** (180→240%) + label-stagger (text fades in 80ms after shape opens). Six coordinated micro-interactions = "Liquid Glass."
+
+### Lesson
+
+Apple's Liquid Glass design isn't a single visual effect — it's the *sequence* of: open-shape → thin-glass → pump-color → reveal-content. Each step on its own is subtle. Together they communicate a physical metaphor (the glass is liquid, your touch makes it respond). Adding them piecemeal (one per release) makes the effect feel "more polished" each time. The deblur is the step where it stops feeling like "a CSS animation" and starts feeling like "a physical material."
+
+---
+
 ## Version 1.1.1442 - 2026-05-09
 
 **Title:** 💧 Sidebar hover-expand: iOS26 Liquid-Glass morphing — spring curve + glass-thickening + border-radius morph + label-fade staggering
