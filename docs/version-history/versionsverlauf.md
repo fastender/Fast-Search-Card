@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.1453 - 2026-05-09
+
+**Title:** 📐 Bento-Mode: Sidebar vertically centered on viewport (was anchored to ~72px search-row → appeared at top)
+**Hero:** none
+**Tags:** Bugfix, Bento, Sidebar, Layout
+
+### Why
+
+User report: with sidebar "always visible" enabled in Bento mode, sidebar appeared at the TOP of viewport instead of vertically centered. In default mode it looked centered because search-row sits in the middle of viewport. In Bento, search-row sits at the top with collapsed height ~72px → `top: 50%` of search-row = ~36px from viewport top.
+
+### What changed
+
+`BentoStartView.css` — single-line override:
+
+```css
+.main-container--bento .vision-pro-menu--desktop {
+  top: 50vh;
+}
+```
+
+Mechanism: `top: 50vh` is viewport-relative regardless of parent. Framer's existing `style.y = '-50%'` then translates the element up by half its own height → middle of sidebar at viewport-middle. Horizontal positioning (`right: 100%` relative to .search-row) unchanged → sidebar stays anchored to .search-row's left edge.
+
+### Lesson
+
+`%` units in `top` are parent-relative; `vh` units are viewport-relative. When an element should be visually centered on viewport but its parent has limited height, switch to viewport units. Other unit-mismatch traps in CSS positioning to remember:
+- `%` for top/bottom = parent height
+- `%` for left/right = parent width
+- `vh`/`vw` = viewport
+- `em`/`rem` = font-size based
+- Mixing them across properties is fine but each property anchors to different ancestors.
+
+---
+
 ## Version 1.1.1452 - 2026-05-09
 
 **Title:** 🔲 Bento bugs: widget-click now expands panel (StatsBar+Sidebar visible) + W3/W4 widgets are square
