@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1462 - 2026-05-09
+
+**Title:** 📌 Bento sidebar: fixed pixel `top` instead of percentage — consistent position across all 3 states (start / DetailView / expanded)
+**Hero:** none
+**Tags:** Bugfix, Bento, Sidebar, Layout
+
+### Why
+
+User noticed sidebar position drifts ±15px between three states:
+- Start page: `.main-container` ≈ 750px → `top: 50%` = 375px
+- Widget → DetailView: `.main-container` ≈ 720px (min-height) → 360px
+- Suchleiste expanded: `.main-container` ≈ 732px → 366px
+
+Sidebar appears in slightly different vertical positions each time. Visually distracting.
+
+### What changed
+
+`BentoStartView.css` — sidebar `top` overridden from `50%` to fixed `360px`:
+
+```css
+.main-container--bento .vision-pro-menu--desktop {
+  top: 360px;
+}
+@media (max-width: 768px) {
+  .main-container--bento .vision-pro-menu--desktop {
+    top: 50%;  /* mobile fallback */
+  }
+}
+```
+
+360px = half of the 720px min-height = stable visual center regardless of which state main-container is in. Framer's `translateY(-50%)` then centers sidebar middle on y=360px from main-container's top.
+
+Mobile retains `top: 50%` because mobile doesn't have bento-grid (stack layout), and the percentage works fine there.
+
+### Lesson
+
+When a percentage-positioned element references a parent whose height varies subtly between states, switch to absolute pixel values for the dimension that needs consistency. Even small height differences (15px here) become visible position drift to attentive users. `min-height` keeps the parent FROM collapsing but doesn't prevent it from GROWING; the sidebar position needs both safeguards: min-height (so it doesn't get tiny) + fixed `top` (so it doesn't track the variable height).
+
+---
+
 ## Version 1.1.1461 - 2026-05-09
 
 **Title:** 📐 Bento DetailView: sidebar stays centered (was sliding to top because main-container shrank)
