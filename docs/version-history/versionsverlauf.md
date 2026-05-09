@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1427 - 2026-05-09
+
+**Title:** 🔥 Two follow-up bugs from v1.1.1426 — `sensorNames is not defined` ReferenceError + info-button still solid black on hover
+**Hero:** none
+**Tags:** Hotfix, Bugfix, EnergyDashboard, ExtractionDebt
+
+### Why
+
+Two issues surfaced after v1.1.1426 shipped:
+
+**Bug 1: Click on info button now crashes the whole card.** The v1.1.1426 pointerdown stopPropagation fix DID work — the click now reaches the InfoOverlay. But then it trips on `Uncaught ReferenceError: sensorNames is not defined` at `EnergyDashboardSettingsView.jsx:332`. Cause: `sensorNames` and `sensorInfos` are used inside the InfoOverlay JSX but not imported nor declared locally. They were defined as local consts inside `EnergyDashboardDeviceView.jsx` (the original parent component). When v1.1.1331 split `EnergyDashboardSettingsView` into its own file, the InfoOverlay JSX was carried along but the two constants were left behind — became dead code in DeviceView, undefined references in SettingsView. Latent for ~5 weeks because the InfoOverlay never actually rendered (v1.1.1417's `motion is not defined` crashed the parent before that, and v1.1.1426's pointerdown race blocked the click after).
+
+This is the FOURTH bug from the same v1.1.1331 extraction (after v1.1.1417 motion, v1.1.1418 entity, v1.1.1419 getSensorDisplay). Lesson from the SESSION_NOTES_2026-05-09 memo was literally "run identifier-grep against all extracted files" — I ran it against `EnergyDashboardSensorsConfigView.jsx` in v1.1.1419 but never against `EnergyDashboardSettingsView.jsx`. Did the grep this time before fixing — confirmed `sensorNames` and `sensorInfos` are the only remaining undeclared identifiers (no further hidden ReferenceErrors).
+
+**Bug 2: Info button still becomes a solid black circle on row-hover.** v1.1.1426's CSS override used `fill: revert !important` to preserve element-level fill attributes — wrong intuition. The CSS `revert` keyword reverts to the user-agent stylesheet default, which for SVG fill is `black`, NOT to the HTML element's `fill="none"` presentation attribute. Result: the outer ring (which has `fill="none"` in HTML) reverted to filled-black, and the line path likewise. Stack of three filled-black shapes = solid black circle.
+
+### What changed
+
+**`EnergyDashboardSensorUtils.js`**: New module-scope exports `sensorNames` and `sensorInfos` (verbatim port of the dead consts from DeviceView.jsx, plus updated docstring explaining the migration path). 14 entries each, keyed by sensor slot.
+
+**`EnergyDashboardSettingsView.jsx`**: Import line extended — `sensorNames, sensorInfos` added to the existing `EnergyDashboardSensorUtils` import.
+
+**`EnergyDashboardDeviceView.jsx`**: Removed ~120 LOC of dead `sensorNames` + `sensorInfos` definitions. Replaced with a 4-line breadcrumb comment pointing at the new module-scope home.
+
+**`iOSSettingsView.css`**: Rewritten v1.1.1426 override block with proper attribute-based selectors:
+- `circle[r="7"]` (outer ring) + `path` (vertical "i" line): `fill: none !important` — keeps them outline-only
+- `circle[r="0.75"]` (inner dot of the "i"): `fill: rgb(0, 90, 200) !important` — keeps the dot visible
+- All elements get the blue `stroke` and parent gets blue `color`
+
+### Lesson
+
+**Diagnostic tooling has a half-life if you don't ritualize it.** The Python identifier-grep that caught v1.1.1419's bug was documented in SESSION_NOTES_2026-05-09 as a "pattern to apply on every sub-component extraction." That was three days ago. I didn't apply it to `EnergyDashboardSettingsView.jsx` because the file wasn't actively being edited and the lesson hadn't crystallized into a checklist item yet. The right move (filed in the next session-notes' open items): commit the script as `scripts/check-extraction-debt.py` and run it as a build-step or pre-commit hook on every file with `from './...'` imports, so extraction debt can't accumulate silently.
+
+**About `revert` in CSS.** Three keywords look superficially similar but differ in subtle ways:
+- `initial`: property's spec-defined initial value (often something useless like `currentColor`/`auto`/`0`)
+- `inherit`: parent's computed value
+- `revert`: the value the property would have without ANY author/user CSS — i.e., the user-agent stylesheet default
+
+For SVG fill specifically, the user-agent default is `black`, NOT `none`. The `fill="none"` attribute on the parent `<svg>` is an HTML presentation attribute — it has cascade specificity LOWER than ANY CSS rule. So when an `!important` author rule sets `fill: revert`, the cascade resolves to "user-agent default = black", and the HTML attribute is silently outranked. Use attribute-selectors (`[r="7"]`) instead when you need element-specific fill behavior.
+
+---
+
 ## Version 1.1.1426 - 2026-05-09
 
 **Title:** 🐛 Energy "Werte" view — 5 polish bugs fixed (banner contrast, info-button click + hover, Auto-pill design, long-text fade)
