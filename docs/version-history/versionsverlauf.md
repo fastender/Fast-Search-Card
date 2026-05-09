@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1448 - 2026-05-09
+
+**Title:** 🪨 Bento-Mode: StatsBar suppressed when search panel expands — no more layout shift on click
+**Hero:** none
+**Tags:** Bugfix, Bento, StatsBar
+
+### Why
+
+User report: in Bento mode, clicking the search bar shifts it visually downward. Cause: StatsBar (weather/power/clock) is conditionally rendered when `isExpanded` becomes true; it sits in flow ABOVE search-row, pushing it down. In default mode this is intentional (StatsBar appears when user opens the search). In Bento mode the search bar should stay anchored at the top so the layout below (widgets) doesn't visually jolt.
+
+### What changed
+
+`SearchField.jsx` — StatsBar `show` prop extended:
+
+```jsx
+show={statsBarSettings.enabled && isExpanded && !bentoEnabled}
+```
+
+User's `statsBarSettings.enabled` setting is left untouched. When Bento is OFF, StatsBar reappears with their preference. When Bento is ON, it's never shown — users who want weather/energy info at-a-glance configure that as a Bento widget instead (Weather entity, Energy Dashboard entity, etc.).
+
+### Lesson
+
+Conditional rendering on a `mode` flag is cleaner than mutating user settings. `!bentoEnabled` as a render-gate preserves the user's StatsBar preference for when they switch modes back. Compare v1.1.1447 where I forced GreetingsBar OFF via migration — there the user's intent was permanent disable. Here the intent is mode-scoped suppression.
+
+---
+
 ## Version 1.1.1447 - 2026-05-09
 
 **Title:** 🔇 GreetingsBar default flipped to off + one-time migration disables it for existing users
