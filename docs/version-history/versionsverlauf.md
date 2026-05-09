@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1447 - 2026-05-09
+
+**Title:** 🔇 GreetingsBar default flipped to off + one-time migration disables it for existing users
+**Hero:** none
+**Tags:** Polish, Settings, Defaults
+
+### Why
+
+User: "greetings will ich vielleicht entfernen; kannst du es erstmal in system setting deaktiviert lassen dauerhaft" — wants the GreetingsBar permanently disabled while deciding whether to remove it entirely. Toggle should stay in Settings (so they can re-enable later if they change their mind).
+
+### What changed
+
+**`SearchField.jsx`** — `greetingsBarSettings` initial state:
+- Default flipped from `enabled !== false` (defaulted true) to `enabled === true` (defaults false)
+- Plus one-time migration: if `systemSettings.migrations.greetingsBarDefaultOff_v1447` flag is not set, write `appearance.greetingsBarEnabled = false` to localStorage AND set the migration flag. This disables the bar for existing users on first run of v1.1.1447 — without future-proofing-blocking the user's ability to re-enable later (toggle on after migration sticks because flag prevents re-disable).
+
+**`GeneralSettingsTab.jsx`** — `loadGreetingsBarSettings`:
+- Same default flip: `enabled !== false` → `enabled === true`. Settings page reads the new default, shows toggle as off after migration.
+
+### Behavior matrix
+
+| User state | After v1.1.1447 |
+|---|---|
+| Existing user with greeting enabled (default) | Migration runs once → off. Migration flag set. Toggle still visible in Settings. |
+| Existing user who explicitly disabled greeting before | Stays off (no change). Migration flag set. |
+| New user | Defaults to off. Migration flag NOT set initially, but doesn't matter (default is already false). |
+| User re-enables via toggle after migration | Stays on (migration flag already set, won't re-disable). |
+
+### Lesson
+
+When changing a default that affects existing user state, "default flip" alone is not enough — existing users with the old explicit value still see the old behavior. A version-keyed migration flag (here: `greetingsBarDefaultOff_v1447`) lets you do a one-time forced reset without permanently overriding user preferences. Pattern: check flag → if not set, apply migration + set flag. Future re-enables stick because the flag is already there.
+
+---
+
 ## Version 1.1.1446 - 2026-05-09
 
 **Title:** 📐 Bento start-screen layout fixes — wider grid (matches search panel), compact greetings, tighter top spacing
