@@ -1,5 +1,49 @@
 # Versionsverlauf
 
+## Version 1.1.1458 - 2026-05-09
+
+**Title:** 👋 Greeting toggleable in Bento mode — space always reserved (no layout shift on enable/disable)
+**Hero:** none
+**Tags:** Polish, Bento, Greeting
+
+### Why
+
+User wants to be able to enable the greeting in Bento mode (toggle in Settings was un-flippable due to v1.1.1447's permanent-disable migration), AND the search bar + widget positions must NOT change when greeting is toggled on or off.
+
+### Two problems
+
+1. **Greeting wouldn't render in Bento even when enabled.** The parent passes `isExpanded={isExpanded || position === 'top'}`, and Bento mode forces `position='top'` permanently → that prop was always `true` → GreetingsBar's internal `show && !isExpanded` check failed → never rendered.
+
+2. **Need space-reservation pattern** (same as v1.1.1451 StatsBar). If greeting renders only when enabled, toggling it on/off shifts the layout (search bar + widgets jump). Need to render greeting always in bento (taking its space) but visibility:hidden when disabled.
+
+### What changed
+
+`SearchField.jsx` — GreetingsBar render adjustments for Bento mode:
+
+```jsx
+<div style={bentoEnabled && !greetingsBarSettings.enabled ? { visibility: 'hidden' } : undefined}>
+  <GreetingsBar
+    ...
+    show={greetingsBarSettings.enabled || bentoEnabled}                       /* always show in bento */
+    isExpanded={bentoEnabled ? false : (isExpanded || position === 'top')}    /* override the position check in bento */
+    ...
+  />
+</div>
+```
+
+Effects:
+- Bento + greeting disabled: `show=true`, `isExpanded=false` → renders. Wrapper `visibility:hidden` → invisible. Layout space reserved.
+- Bento + greeting enabled: `show=true`, `isExpanded=false` → renders. Wrapper undefined → visible.
+- Default mode: behavior unchanged.
+
+Together with the v1.1.1446 `.main-container--bento .greetings-bar` compact styling (32px font, 8px margin), greeting takes a small fixed amount of space in Bento — same whether visible or hidden.
+
+### Lesson
+
+When two consumer-side conditions conspire to hide an element (here: `isExpanded || position === 'top'` plus `show=enabled`), and you want the element back in a new mode, override BOTH conditions. Mode-aware ternary on each prop is more localized than refactoring the consumer's render logic. Plus: the visibility-reserve pattern (v1.1.1451 StatsBar, v1.1.1458 GreetingsBar) is now the standard for "toggle without layout-shift in Bento mode" — established as a repeatable approach.
+
+---
+
 ## Version 1.1.1457 - 2026-05-09
 
 **Title:** ⚡ Bento widget click: no more search-panel flash before DetailView opens
