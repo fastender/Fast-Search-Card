@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.1428 - 2026-05-09
+
+**Title:** 📐 Sensor-row layout: 3-line subtitle (entity_id on line 2, value + Auto-pill on line 3) — fixes chevron-overflow + value cutoff
+**Hero:** none
+**Tags:** Polish, Layout, EnergyDashboard
+
+### Why
+
+User screenshot: when a sensor row has a long entity_id (e.g. `smart_meter_ts_65a_3_eingespeiste_wirkenergie`) plus a value (e.g. `35932.88 kWh`) plus the Auto pill, the single-line subtitle overflowed the row width. Two visible failures:
+- Chevron `>` jumped to its own line (broke the row's flex layout)
+- Value got truncated mid-number by the v1.1.1426 fade-mask
+
+User request: "die items nicht zweizeilig sondern 3 zeilig lieber" — use 3 lines per row instead of 2.
+
+### What changed
+
+`renderSensorSubtitle` in `EnergyDashboardSensorsConfigView.jsx` rewritten to a stacked-column layout:
+
+**Configured sensor rows** — now 3 lines:
+- Line 1 (label, parent): Label + Info-Button + Chevron (right)
+- Line 2 (subtitle row 1): `entity_id` — 12px, opacity 0.75, fade-mask on right if longer than the row
+- Line 3 (subtitle row 2): `value unit` (font-weight 500) + Auto-pill (right of value, only if isAuto)
+
+**Unconfigured rows** — unchanged 2 lines: Label + "Nicht konfiguriert".
+
+Net effect: the chevron stays vertically centered against the taller row, the value is fully visible, and the Auto pill no longer competes with the entity_id for horizontal space.
+
+### Lesson
+
+When fitting "label + truncatable identifier + value + status badge" into iOS settings rows, splitting onto two subtitle lines is more legible than a single fade-clipped line. Stacking lets each piece have its natural width without negotiating space with the others. Cost: rows are ~18px taller — acceptable trade for full visibility of all data.
+
+---
+
 ## Version 1.1.1427 - 2026-05-09
 
 **Title:** 🔥 Two follow-up bugs from v1.1.1426 — `sensorNames is not defined` ReferenceError + info-button still solid black on hover
