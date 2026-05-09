@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1417 - 2026-05-09
+
+**Title:** 🔥 Hotfix: `motion is not defined` in EnergyDashboardSensorsConfigView (latent since v1.1.1329)
+**Hero:** none
+**Tags:** Hotfix, Bugfix, EnergyDashboard
+
+### Why
+
+User opened the Energy-Dashboard Settings → "Werte konfigurieren" and got a hard error:
+
+```
+Uncaught (in promise) ReferenceError: motion is not defined
+  at L.CA [as constructor]
+  at L.U [as render]
+  ...
+custom:fast-search-card ReferenceError: motion is not defined
+```
+
+The view `EnergyDashboardSensorsConfigView.jsx` uses `<motion.div>` and `<motion.button>` heavily but **never imported `motion`** from `framer-motion`. The bug has been latent since the file was extracted in v1.1.1329 — likely never noticed because either (a) the user hadn't opened that specific sub-view, or (b) an older framer-motion version exposed `motion` globally as a side-effect.
+
+### What changed
+
+`src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorsConfigView.jsx`:
+- Added `import { motion } from 'framer-motion';` after the preact `h` import
+
+### Verification
+
+Bash-grep across all `Energy*.jsx` views to detect any other files using `motion.*` without importing it — none found, only this one file.
+
+### Lesson
+
+When extracting a file from a parent component (the v1.1.1329 refactor that pulled this view out of `EnergyDashboardSettingsView.jsx`), **the new file inherits zero context from the parent's imports**. Every external symbol the extracted JSX touches needs an explicit import in the new file. ESLint's `no-undef` would have caught this at lint-time; CI lint isn't part of this card's release flow, so the bug shipped.
+
+For future extractions: the audit step "after the move, run a build" — production-rollup typically catches `ReferenceError`-class issues at minify time, but `motion` happens to be a top-level identifier that minifies cleanly even when undefined; the error only fires at render time. **Cross-checking imports manually is the only sure defense.**
+
+---
+
 ## Version 1.1.1416 - 2026-05-09
 
 **Title:** ♻️ Refactor: extracted shared components — AppearanceSettingsTab −287 LOC, TodosSettingsView −75 LOC
