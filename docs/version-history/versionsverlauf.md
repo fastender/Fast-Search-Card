@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1457 - 2026-05-09
+
+**Title:** ⚡ Bento widget click: no more search-panel flash before DetailView opens
+**Hero:** none
+**Tags:** Bugfix, Bento, UX, Performance
+
+### Why
+
+User report: clicking a Bento widget showed the expanding search panel for ~1.2s BEFORE the DetailView appeared on top. UX expectation: DetailView opens immediately.
+
+Cause: v1.1.1452 added `setIsExpanded(true)` to `handleSidebarItemClick` so that StatsBar + Sidebar would become visible (they gated on `isExpanded`). But that also triggered the search-panel's expand animation: 200ms opacity transition (since `showDetail` adds `.hidden` class) + 400ms height grow (72→672px). User saw the panel growing-and-fading-out for those ~600ms before DetailView fully covered it.
+
+### What changed
+
+Removed `setIsExpanded(true)` from `handleSidebarItemClick`. Replaced with explicit `showDetail` checks in StatsBar + Sidebar visibility conditions:
+
+- **StatsBar wrapper**: `bentoEnabled && !isExpanded && !showDetail ? { visibility: 'hidden' } : undefined` (was: `bentoEnabled && !isExpanded`). Plus `show` prop: `(isExpanded || bentoEnabled || showDetail)`.
+- **SearchSidebar (default mode)**: `(isExpanded || sidebarSettings.alwaysVisible || showDetail)`.
+- **SearchSidebar (bento mode)**: same — `|| showDetail`.
+
+Now: clicking a widget → `setSelectedDevice + setShowDetail` only. `isExpanded` stays false → search panel never expands → no flash. DetailView renders immediately. StatsBar + Sidebar visible because `showDetail=true` matches their conditions.
+
+### Lesson
+
+When a state flag has multiple downstream effects, don't piggy-back on it just because the side-effect you want happens to be among them. v1.1.1452 used `isExpanded=true` to "make StatsBar visible" — but `isExpanded=true` ALSO meant "expand the search panel," which was unwanted. Better: add the orthogonal condition (`showDetail`) directly to the consumers that need it. Keeps state semantics clean and avoids cascading animations.
+
+---
+
 ## Version 1.1.1456 - 2026-05-09
 
 **Title:** 🔄 Sidebar: listen for `entity-registered` events — initial mount only showed Home (entities load async after first render)
