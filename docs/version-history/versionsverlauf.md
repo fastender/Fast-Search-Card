@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1418 - 2026-05-09
+
+**Title:** 🔥 Hotfix #2: `entity is not defined` in EnergyDashboardSensorsConfigView (also latent since v1.1.1329)
+**Hero:** none
+**Tags:** Hotfix, Bugfix, EnergyDashboard
+
+### Why
+
+After the v1.1.1417 motion-import fix, the same view threw a second latent error from the same v1.1.1329 extraction:
+
+```
+Uncaught (in promise) ReferenceError: entity is not defined
+  at L.CA [as constructor]
+```
+
+The view references `entity.attributes?.<slot>_sensor` 13× across all 14 sensor slots, but `entity` was **never destructured from props** when the file was extracted. The parent `EnergyDashboardSettingsView` does have `entity` as a prop (and uses it itself), but never forwarded it to the extracted child.
+
+Two errors in the same extracted view, both from the same v1.1.1329 refactor, both ReferenceErrors that production-rollup minifies cleanly without warning. Lesson: **after any extraction, render the new view in its actual call site at least once before declaring done.**
+
+### What changed
+
+`src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorsConfigView.jsx`:
+- Added `entity` to the destructured props list (after `motion` import in v1.1.1417)
+
+`src/system-entities/entities/integration/device-entities/views/EnergyDashboardSettingsView.jsx`:
+- Forwarded `entity={entity}` to the `<EnergyDashboardSensorsConfigView ... />` invocation
+
+### Verification
+
+Cross-checked all other identifiers used in the view body (`hass`, `sensorNames`, `sensorInfo`, etc.) — only `entity` was missing. Build passed first try.
+
+### Lesson
+
+The v1.1.1329 extraction had two separate gaps that didn't surface for ~88 releases because the user rarely opened that specific Settings sub-view. Both gaps would have been caught by:
+
+1. **Lint** (`no-undef` rule) at write-time
+2. **Manual click-through** of every extracted view's call path before merging
+
+This card has neither in its release flow. The right defensive move for the next extraction would be a 2-minute manual smoke-test: open the view, confirm it renders. Cheap, catches both kinds of "extracted-view forgot to wire X" bugs.
+
+---
+
 ## Version 1.1.1417 - 2026-05-09
 
 **Title:** 🔥 Hotfix: `motion is not defined` in EnergyDashboardSensorsConfigView (latent since v1.1.1329)
