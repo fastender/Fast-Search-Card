@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1454 - 2026-05-09
+
+**Title:** 🔧 Bento sidebar position: fixed (viewport-anchored) — v1.1.1453's `top: 50vh` clipped most icons
+**Hero:** none
+**Tags:** Hotfix, Bugfix, Bento, Sidebar
+
+### Why
+
+User report after v1.1.1453: "auf der startseite wird nur ein button home vom sidebar angezeigt" — sidebar visibility broken, only Home icon shown; on search-bar click sidebar disappears entirely.
+
+Root cause: `top: 50vh` on a `position: absolute` element resolves as 50% of viewport height ADDED to the closest positioned ancestor's top. With `.search-row` at viewport-y ≈ 80px (under reserved StatsBar space), the sidebar's anchor was at 80 + 50vh ≈ 480px on an 800px viewport. Framer's `translateY(-50%)` then shifted it up by half its height; depending on how many icons (8 items ≈ 400px tall), the bottom often spilled below the visible card area — and on shorter card viewports, only the topmost icon remained in view.
+
+### What changed
+
+Switched to **`position: fixed`** which is unambiguously viewport-relative regardless of any positioned ancestor:
+
+```css
+.main-container--bento .vision-pro-menu--desktop {
+  position: fixed;
+  top: 50%;
+  left: max(12px, calc(50vw - 560px));
+  right: auto;
+  margin-right: 0;
+}
+```
+
+- `top: 50%` with `position: fixed` resolves as 50% of viewport height (no ancestor offset added).
+- Framer's `translateY(-50%)` then completes vertical centering on viewport.
+- `left: max(12px, calc(50vw - 560px))` anchors sidebar near `.main-container`'s left edge (1000px max-width, centered) when viewport is wider than ~1024px; falls back to 12px from viewport edge on narrower screens.
+- `right: auto` + `margin-right: 0` neutralize the previous `right: 100%` anchor that doesn't apply to fixed positioning.
+
+### Lesson
+
+`position: absolute` + `top: 50vh`: `vh` value is calculated from viewport but the `top` PROPERTY is still relative to the closest positioned ancestor — the two compose unexpectedly. `position: fixed` + `top: 50%`: both viewport-relative, no ancestor interaction. When you want viewport-anchored layout, `position: fixed` is the unambiguous choice; `position: absolute` with vh values is a foot-gun.
+
+---
+
 ## Version 1.1.1453 - 2026-05-09
 
 **Title:** 📐 Bento-Mode: Sidebar vertically centered on viewport (was anchored to ~72px search-row → appeared at top)
