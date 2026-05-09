@@ -1,5 +1,64 @@
 # Versionsverlauf
 
+## Version 1.1.1423 - 2026-05-09
+
+**Title:** 🎯 Energy mapper now handles HA's grid-source format (stat_energy_from direct on source, not in flow_from[])
+**Hero:** none
+**Tags:** Bugfix, EnergyDashboard
+
+### Why
+
+The v1.1.1422 diagnostic release nailed the bug. User's `energy/get_prefs` console output showed:
+
+```json
+{
+  "energy_sources": [
+    {
+      "type": "grid",
+      "stat_energy_from": "sensor.smart_meter_ts_65a_3_bezogene_wirkenergie",
+      "stat_energy_to": "sensor.smart_meter_ts_65a_3_eingespeiste_wirkenergie",
+      ...
+    },
+    {
+      "type": "solar",
+      "stat_energy_from": "sensor.solarnet_energie_tag",
+      ...
+    }
+  ]
+}
+```
+
+HA delivers the `grid` source's sensor IDs **directly on the source object** (as `stat_energy_from` / `stat_energy_to`), not nested in `flow_from[].stat_energy_from` / `flow_to[].stat_energy_to` arrays as my mapper assumed. The `solar` source uses the direct format too — and works because that branch already used `src.stat_energy_from`.
+
+So only the `grid` branch was broken, returning 0 entries instead of 2 (kwh + grid_export_total). Result: only `pv_total` was auto-mapped → "1 Einträge (pv_total)" banner.
+
+The `flow_from[]/flow_to[]` array format does exist in some HA versions (newer / multi-source setups). Both formats now supported with the direct path winning when both are present.
+
+### What changed
+
+`src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorUtils.js` — `mapEnergyPrefsToSlots` for `type: 'grid'`:
+- Tries `src.stat_energy_from` (direct, this user's format) FIRST → maps to `kwh`
+- Falls back to `src.flow_from[0].stat_energy_from` (array, newer HA format) if direct missing
+- Same for export side: `src.stat_energy_to` → `grid_export_total`, fallback to `src.flow_to[0].stat_energy_to`
+- Verbose logging tells which path was taken (`(direct)` vs `flow_from[0].stat_energy_from`)
+
+### Expected result for this user after update
+
+Auto-Map should now contain 3 entries:
+- `kwh: 'sensor.smart_meter_ts_65a_3_bezogene_wirkenergie'`
+- `grid_export_total: 'sensor.smart_meter_ts_65a_3_eingespeiste_wirkenergie'`
+- `pv_total: 'sensor.solarnet_energie_tag'`
+
+Whether each MATCHES the currently-active sensor in `entity.attributes.<slot>_sensor` depends on what was previously stored:
+- If a slot was empty → auto-fill writes the auto-resolved value → match → blue banner + "• Auto (HA)" tag appears
+- If user manually picked something different → mismatch → that slot stays without tag (override semantics preserved)
+
+### Lesson
+
+When integrating with a third-party API whose schema is documented inconsistently (HA's `energy/get_prefs` shape is undocumented in the WebSocket API reference; only Python source defines it), **don't assume one format**. Try the most likely paths in order of likelihood, log which won, fall back gracefully. The verbose-logging release (v1.1.1422) bought exactly the diagnostic info needed to point at this in the next iteration — without it I'd have guessed for several more releases.
+
+---
+
 ## Version 1.1.1422 - 2026-05-09
 
 **Title:** 🔍 Diagnostic release — verbose energy-prefs logging + always-visible status banner
