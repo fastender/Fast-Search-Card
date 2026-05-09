@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1416 - 2026-05-09
+
+**Title:** ♻️ Refactor: extracted shared components — AppearanceSettingsTab −287 LOC, TodosSettingsView −75 LOC
+**Hero:** none
+**Tags:** Refactor, Cleanup, Components
+
+### Why
+
+Follow-up to v1.1.1415's quick-win cuts. The deferred component-extraction refactors (~400 LOC potential saving) were the next logical step: each duplicated JSX pattern collapses into a single helper component. Lower risk than it sounds because the underlying JSX is byte-for-byte identical across all instances, only the bound props differ.
+
+### What changed
+
+**`AppearanceSettingsTab.jsx`** (1251 → **964 LOC, −287**):
+- New `SettingsCheckOption` component (label/subtitle/selected/onClick props), defined at module scope above the main export
+- Replaced 9 nearly-identical `motion.div` + `motion.svg` ios-checkmark blocks across three sub-views:
+  - Dark Mode (3 options: automatic / light / dark)
+  - Grid Columns (2 options: 4 / 5)
+  - Squircle Style (4 options: standard / prominent / balanced / subtle)
+- Each block was ~30 LOC of identical animation, conditional rendering, and SVG markup; now ~5 LOC per usage
+
+**`TodosSettingsView.jsx`** (1535 → **1460 LOC, −75**):
+- Three new helper components at module scope:
+  - `ProfileNameSection` — name input + ios-card wrapper
+  - `ColorPickerSection` — color grid with checkmark overlay
+  - `TemplateTextSection` — textarea + ios-card wrapper
+- Replaced 6 instances across profile-add / profile-edit / template-add / template-edit views
+- The templates' textarea (~25 LOC each), profile name input (~25 LOC each), and PROFILE_COLORS grid (~50 LOC each) are now single-source-of-truth components
+
+### What was preserved
+
+All animations, props, event handlers, and visual behavior preserved. The extracted components capture the exact same JSX, just parametrized by the variable bits (label text, selected state, onClick callback). No CSS or styling changes.
+
+### Cumulative cleanup since v1.1.1415
+
+- v1.1.1415 quick-wins: ~110 LOC of dead code
+- v1.1.1416 component extraction: ~362 LOC of duplication
+- **Total: ~470 LOC removed across 2 releases**
+
+The bundle size is essentially the same (minifier was already deduplicating most of the JSX patterns), but the source is dramatically more maintainable. Future styling changes to the ios-checkmark touch one place instead of nine.
+
+### Lesson
+
+Visual-pattern duplication looks scary in raw LOC numbers, but the refactor is mechanical when the patterns are byte-for-byte identical. The 9× ios-checkmark blocks differed only in two places: the bound state variable (`darkMode === 'auto'` vs `gridColumns === 4` etc.) and the click handler. Everything else — the SVG, the spring transition, the animation timing, the wrapping divs — was copy-paste. **Pattern-duplication of N ≥ 3 is almost always worth extracting.** Below N=3, the abstraction overhead can outweigh the deduplication; at N=9, the maintenance saving compounds heavily.
+
+For pattern-extraction, defining the helper at module scope (above `export const Foo = ...`) keeps it private to the file. No need to export and re-import — and no risk of accidental re-use elsewhere with different intent.
+
+---
+
 ## Version 1.1.1415 - 2026-05-09
 
 **Title:** 🧹 Dead-code audit on top-5 largest files — ~110 LOC removed, cascade-cleaned 5 dead useState in SettingsTab
