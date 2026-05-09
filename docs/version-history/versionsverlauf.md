@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1459 - 2026-05-09
+
+**Title:** 👋 Greeting in Bento mode now an absolute-positioned overlay — search bar position truly unchanged
+**Hero:** none
+**Tags:** Hotfix, Bento, Greeting, Layout
+
+### Why
+
+User report after v1.1.1458: enabling Greeting in Bento mode pushed the search bar DOWN. v1.1.1458 had reserved space for greeting (visibility:hidden when off, visible when on) — but the reserved space ITSELF pushed the search bar down compared to without-greeting baseline. Two contradicting requirements: (a) greeting toggle-able, (b) zero layout impact.
+
+The only way to satisfy BOTH: greeting must be OUT OF FLOW. Position: absolute renders the element without affecting siblings' positions.
+
+### What changed
+
+`SearchField.jsx` — wrap GreetingsBar in a Bento-only overlay div (no flow space):
+
+```jsx
+<div className={bentoEnabled ? 'greetings-bento-overlay' : undefined}>
+  <GreetingsBar
+    show={greetingsBarSettings.enabled}                                       /* render only when enabled */
+    isExpanded={bentoEnabled ? false : (isExpanded || position === 'top')}    /* override so it actually renders */
+    ...
+  />
+</div>
+```
+
+`BentoStartView.css` — new overlay rule:
+
+```css
+.greetings-bento-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.greetings-bento-overlay > * { pointer-events: auto; }
+```
+
+Effects:
+- Bento + greeting disabled: GreetingsBar returns null (show=false). Wrapper exists but empty — zero space taken.
+- Bento + greeting enabled: GreetingsBar renders inside wrapper. Wrapper is position:absolute → out of flow → search bar position unaffected.
+- Default mode: no wrapper class, original behavior.
+
+`pointer-events` trick: wrapper is non-interactive (clicks pass through to search bar / widgets behind), but greeting itself is interactive (in case of future features).
+
+### Lesson
+
+When a UI element should APPEAR but NOT push other elements, the answer is always position:absolute (or fixed). Visibility-reservation patterns (v1.1.1451 StatsBar, v1.1.1458 attempt) work when the element should ALWAYS take space and just toggle visibility. They DON'T work when the element shouldn't take space at all (like an optional decorative overlay). For Bento greeting, the user wants zero footprint when disabled AND zero footprint when enabled — only out-of-flow positioning achieves both.
+
+---
+
 ## Version 1.1.1458 - 2026-05-09
 
 **Title:** 👋 Greeting toggleable in Bento mode — space always reserved (no layout shift on enable/disable)
