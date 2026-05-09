@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1461 - 2026-05-09
+
+**Title:** 📐 Bento DetailView: sidebar stays centered (was sliding to top because main-container shrank)
+**Hero:** none
+**Tags:** Bugfix, Bento, Sidebar, Layout
+
+### Why
+
+User report: clicking a Bento widget → DetailView opens → sidebar slides UP to the top of viewport instead of staying vertically centered.
+
+Cause: bento-grid is conditionally rendered (`!showDetail`). When DetailView opens, bento-grid hides, `.main-container` shrinks from ~756px (StatsBar+search-row+bento-grid) to ~150px (just StatsBar+search-row). Sidebar's `position: absolute; top: 50%` resolves as 50% of the now-tiny container = ~75px from top → sidebar centered on the small remaining content, near the viewport top.
+
+### What changed
+
+`BentoStartView.css` — added `min-height: 720px` to `.main-container--bento`:
+
+```css
+.main-container--bento {
+  min-height: 720px;
+}
+@media (max-width: 768px) {
+  .main-container--bento { min-height: auto; }
+}
+```
+
+Now `.main-container` keeps its tall footprint regardless of whether bento-grid is rendered. Sidebar's `top: 50%` always resolves to ~360px = vertical center of the stable card area.
+
+Mobile override resets to `auto` because mobile uses a stack-layout that doesn't need the same vertical reservation.
+
+### Lesson
+
+When `position: absolute` siblings depend on a parent's height for percentage-based positioning, ensure the parent has a STABLE height. Conditional children (here: `bento-grid` toggling on/off based on showDetail) can collapse the parent → percentage anchors recompute → siblings shift. `min-height` on the parent is the cleanest fix; alternative (give the conditional child a permanent placeholder) is more invasive.
+
+---
+
 ## Version 1.1.1460 - 2026-05-09
 
 **Title:** 👋 Greeting in Bento: hides when search expands or DetailView opens (was always visible)
