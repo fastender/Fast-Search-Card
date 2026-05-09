@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1424 - 2026-05-09
+
+**Title:** 🧹 Cleanup — removed v1.1.1422 diagnostic logging + orange status banners now that the auto-fill bug is fixed
+**Hero:** none
+**Tags:** Cleanup, EnergyDashboard
+
+### Why
+
+v1.1.1422 added verbose `console.log` calls in `mapEnergyPrefsToSlots` plus three orange diagnostic banner branches in `AutoFillSummary` (auto-map missing / empty / no-match). They served their purpose: the verbose log in v1.1.1422 produced exactly the JSON dump that pointed at the grid-format bug fixed in v1.1.1423. With the bug confirmed fixed and the user seeing the green "X von Y Slots automatisch aus HA Energy-Dashboard" banner, the diagnostic scaffolding is dead weight.
+
+### What changed
+
+- `EnergyDashboardSensorUtils.js` — `mapEnergyPrefsToSlots`: removed 6 `console.log` statements (entry/exit/per-source debug). Function now silent in production, dual-format grid support (direct `stat_energy_from`/`stat_energy_to` + flow_from[]/flow_to[] fallback) preserved.
+- `EnergyDashboardSensorsConfigView.jsx` — `AutoFillSummary`: removed three orange diagnostic banner variants (no auto_resolved_sensors / empty map / 0 matches). Reverted to the v1.1.1421 design: blue summary banner when ≥1 slot matches, `null` otherwise. Component shrank from ~105 lines to ~25.
+
+### Lesson
+
+Diagnostic scaffolding deserves the same lifecycle care as production code. When the bug it was diagnosing gets fixed, the next release should retire it — otherwise the noisy logs erode console signal-to-noise and the alarmist orange banners scare users with conditions that no longer apply. Keep a "diagnostic" tag on these releases so they're easy to find and unwind.
+
+---
+
 ## Version 1.1.1423 - 2026-05-09
 
 **Title:** 🎯 Energy mapper now handles HA's grid-source format (stat_energy_from direct on source, not in flow_from[])
