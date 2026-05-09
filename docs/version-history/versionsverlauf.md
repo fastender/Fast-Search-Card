@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1415 - 2026-05-09
+
+**Title:** 🧹 Dead-code audit on top-5 largest files — ~110 LOC removed, cascade-cleaned 5 dead useState in SettingsTab
+**Hero:** none
+**Tags:** Cleanup, Audit, DeadCode
+
+### Why
+
+User asked for a dead-code pass on the top-5 size contributors after the bundle-composition analysis. 5 parallel Explore-agents audited each file, returning kill-lists with line numbers. Quick-wins applied (low risk, no Refactor); CheckmarkOption-extraction in `AppearanceSettingsTab.jsx` (~300 LOC potential save) deferred for a separate refactor session.
+
+### What was killed
+
+**`src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx`** (1173 → 1101, **−72 LOC**):
+- 3 `<div className="ios-item" style={{ display: 'none' }}>` blocks marked "AUSGEBLENDET" (AI Mode / Animations / Sound Effects toggles, hidden permanently)
+- 6 unused destructured props (`aiModeEnabled`/`setAiModeEnabled`/`animations`/`setAnimations`/`soundEffects`/`setSoundEffects`)
+- 2 unused local handlers (`handleStatsBarToggle`, `handleUsernameChange` — `StatsBarSettingsTab` manages its own state)
+
+**`src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx`** (1313 → 1299, **−14 LOC**):
+- 1 unused import: `GridReturnIcon`
+- 1 unused state: `const [energyPrice, setEnergyPrice] = useState(...)`
+- 1 unused local handler: `handleEnergyPriceChange()` (9 LOC)
+- Cascade-dead imports: `getEnergyPrice`, `saveEnergyPrice`
+
+**`src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`** (1254 → 1251, **−3 LOC**):
+- 3 unused destructured props: `isDropdownOpen`, `setIsDropdownOpen`, `hass`
+
+**`src/system-entities/entities/todos/components/TodosSettingsView.jsx`** (1543 → 1535, **−8 LOC**):
+- `saveListCustomization()` — never called; the auto-persist via `applyListCustomization()` (added in v1.1.1297) replaced it. Comment explicitly noted "kept as a no-op fallback" — turns out nothing called it.
+
+**Cascade cleanup in parent `src/components/tabs/SettingsTab.jsx`** (~−13 LOC):
+- After cutting GeneralSettingsTab + AppearanceSettingsTab props, all 5 `useState` declarations for those props (`soundEffects`, `animations`, `aiModeEnabled`, `isDropdownOpen`, `isLangDropdownOpen`) became orphan and were removed
+- Call-sites for both child components trimmed to match new prop signatures
+
+### What was NOT done (deferred for separate refactor sessions)
+
+- **`AppearanceSettingsTab.jsx` CheckmarkOption extraction** — ~9 nearly-identical `motion.svg` checkmark blocks across the dark-mode/grid-columns/squircle-style sub-views. Extracting one shared component would save ~300 LOC but is a real refactor (touch points + JSX restructure), not a cut. Filed for a follow-up "Refactor session."
+- **`TodosSettingsView.jsx` color-grid + input duplication** — 3 pairs of duplicated JSX blocks across profile-add/profile-edit/template forms. ~100 LOC saving via component extraction. Same reasoning as above.
+- **`deviceConfigs.js`** — audit reported clean (~15-20 LOC of minor printer3d/universal_device pattern duplication). Skipped; not worth a refactor pass for that small a saving.
+
+### Methodology
+
+5 parallel Explore-agents read each file, applied symbol-grep dead-code detection (per the `symbol-grep` tip in `docs/lessons/lessons.{de,en}.md`), and returned line-numbered kill-lists in a structured format. I then verified each candidate via `grep -rn '<symbol>' src/` for cross-file references before applying the cut. After cuts, ran cascade-grep on the parent `SettingsTab.jsx` — found 5 cascade-dead `useState` declarations (props no longer needed → state initialization no longer needed). Build passed first try (no compile errors).
+
+### Lesson
+
+For top-N-largest-files cleanup, parallel Explore-agents are the right tool: each file is independent, the audit methodology is the same, and the synthesis step is mine alone. Reduces my context usage from "read 5 × 1300-line files = 6500 lines" to "read 5 × 400-word reports". Net throughput per session-minute roughly doubles.
+
+The cascade-cleanup pass is non-optional — every prop-signature change can trigger orphan state in the parent component. **Always re-grep after a prop cut.** If I'd skipped this, `SettingsTab.jsx` would still hold 5 unused state vars + their initializers (~20 LOC of dead but compiling code).
+
+---
+
 ## Version 1.1.1414 - 2026-05-08
 
 **Title:** 🔧 Energy-Dashboard storage unified — all 14 sensors + slideshow config in one HA-key, cross-device sync, auto-migration from legacy
