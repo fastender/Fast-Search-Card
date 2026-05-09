@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1460 - 2026-05-09
+
+**Title:** 👋 Greeting in Bento: hides when search expands or DetailView opens (was always visible)
+**Hero:** none
+**Tags:** Polish, Bento, Greeting
+
+### Why
+
+User refinement after v1.1.1459: greeting should appear ONLY on the actual start page (collapsed search panel + no DetailView). v1.1.1459 had `isExpanded={bentoEnabled ? false : ...}` — hardcoded false in Bento mode meant greeting stayed visible even when user expanded the search bar or opened a widget's DetailView.
+
+### What changed
+
+`SearchField.jsx` — `isExpanded` prop in Bento now reflects actual hide-triggers:
+
+```jsx
+isExpanded={bentoEnabled ? (isExpanded || showDetail) : (isExpanded || position === 'top')}
+```
+
+In Bento:
+- Collapsed + no DetailView (= start page) → isExpanded prop false → greeting renders
+- Search expanded → isExpanded prop true → greeting hides via internal `!isExpanded` check
+- Widget clicked → DetailView opens → showDetail true → greeting hides
+
+In default mode: unchanged.
+
+### Lesson
+
+When a component hides on a specific state (here: GreetingsBar's internal `!isExpanded`), the parent passes the right truth-value for that state. In Bento mode "is this still the start page?" needs to incorporate ALL the things that make it NOT the start page (expanded panel, open detail view, AI mode in some cases). Compose the boolean OR-chain at the prop site, not in the consumer.
+
+---
+
 ## Version 1.1.1459 - 2026-05-09
 
 **Title:** 👋 Greeting in Bento mode now an absolute-positioned overlay — search bar position truly unchanged
