@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1431 - 2026-05-09
+
+**Title:** 🧭 Sidebar customizable — pick which shortcuts appear (Home, Energie, Zeitpläne, Settings, Todos, News, …) via new sub-view
+**Hero:** none
+**Tags:** Feature, Sidebar, Settings, UX
+
+### Why
+
+The Sidebar (Vision-Pro-style shortcut rail next to the search panel) had a hardcoded list of items: `['settings', 'todos', 'news', 'versionsverlauf']`. User wanted (a) a sub-menu to configure WHICH items appear, plus (b) new options: Energie (Energy Dashboard), Zeitpläne (All Schedules), Home (back to start page).
+
+### What changed
+
+**`SearchSidebar.jsx`** — items now read from `systemSettings.sidebar.items` (with the existing 4-item list as fallback for users who haven't configured anything yet). Listens for `sidebarSettingsChanged` event so changes in the new sub-view propagate live without reload. New virtual `__home__` item with inline house-SVG icon.
+
+**`SearchField.jsx`** — `handleSidebarItemClick` checks for the special `__home__` ID first: closes detail view, clears selectedDevice, collapses the panel back to the home/start state. All other IDs go through the existing devices.find(...) lookup.
+
+**`SidebarItemsSettingsTab.jsx`** (new file, ~200 LOC) — sub-view rendered when user taps "Einträge konfigurieren" in the Sidebar settings section. Lists all available items as toggle rows:
+- Home (virtual, always available)
+- Every registered system-entity not hidden via `showInDetailView=false` — pulled live from `systemRegistry.entities` so dynamically-registered devices like Energy Dashboard appear automatically when the user adds them via Integrations
+- Each row: icon + name + subtitle + LiquidGlassSwitch toggle
+- Toggling writes `{ items: [...] }` into `systemSettings.sidebar` and dispatches `sidebarSettingsChanged` for live update
+
+**`GeneralSettingsTab.jsx`** — new "Einträge konfigurieren" row in the Sidebar section (chevron link) + new `'sidebar-items'` branch in the AnimatePresence sub-view switcher.
+
+### Default behavior change
+
+New default items list: `['__home__', 'settings', 'all-schedules', 'todos', 'news']` (was: `['settings', 'todos', 'news', 'versionsverlauf']`). Existing users who already have explicit settings don't see this change — only first-time installs (or users who haven't customized) get the new defaults. The new picker shows ALL available items so users can re-add removed defaults or add new ones.
+
+### Lesson
+
+When a configurable list lives in localStorage settings, the picker view should pull options dynamically from the runtime registry (not a static hardcoded list). This auto-includes new device entities the moment they're registered — Energy Dashboard appears in the picker the moment the user adds it via the Integrations flow, no separate hardcoded entry needed. Cost: the picker re-renders when registry changes, but `systemRegistry.on('entity-registered'/'entity-unregistered')` makes that explicit.
+
+---
+
 ## Version 1.1.1430 - 2026-05-09
 
 **Title:** 🌡️ Climate slider: arc-displaced bug fixed — clamp value to [min, max] in `valueToAngle` + `getProgressOffset`
