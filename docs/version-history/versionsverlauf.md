@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1440 - 2026-05-09
+
+**Title:** 🗣️ TTS engine picker in System Settings + language prop now passed (no more English accent on German UI)
+**Hero:** none
+**Tags:** Feature, Bugfix, MusicAssistant, TTS, Settings
+
+### Why
+
+After v1.1.1439 the user got TTS working but with an English accent — `tts.google_translate_say` was called without a `language` parameter, so it defaulted to English. User asked for two improvements:
+
+1. Pass the app's language to the TTS service so the accent matches.
+2. Add a System Settings option to choose which TTS engine to use as default (user has 3 engines available).
+
+### What changed
+
+**`utils/musicAssistant.js`** — `playAnnouncementMusicAssistant` opts extended:
+- `language` (ISO-639-1 like 'de', 'en') → passed as `data.language` in the TTS service call
+- `preferredEngine` (e.g. `'google_translate_say'`) → tried FIRST in the fallback chain. If it fails, the existing chain (google_translate → others → cloud_say) takes over.
+
+**`MusicAssistantPanel.jsx`** — `handleAnnounceSend` reads `systemSettings.tts.engine` from localStorage and passes both `language: lang` and `preferredEngine` to the helper. `'auto'` → no preferred engine, full fallback chain.
+
+**`GeneralSettingsTab.jsx`** — new "Text-to-Speech" section in the main view with chevron link "TTS-Engine" → opens new sub-view (`currentView === 'tts'`):
+- Yellow note card explains what's configured and that language follows the app language
+- List of all available `tts.*_say` services (read live from `hass.services.tts`) plus an "Auto (Fallback-Chain)" option
+- Tap → saves to `systemSettings.tts.engine` + auto-back-navigates
+- Display value on the parent row shows current selection (e.g. "google_translate" or "Auto")
+
+If user has no TTS integration configured in HA, the picker shows an empty-state message pointing them at HA's integration setup.
+
+### Lesson
+
+When wrapping a multi-engine API (TTS has 5+ possible providers per HA install), expose engine choice to the user rather than hardcoding priority. Auto-fallback is good as a default but breaks user expectations when a particular engine works best for their language/voice. The picker is 80 LOC; the alternative (everyone gets the same first-engine-that-works behavior) trains users to guess at why TTS sounds wrong.
+
+---
+
 ## Version 1.1.1439 - 2026-05-09
 
 **Title:** 🔄 MA TTS multi-engine fallback + Queue diagnostic logging
