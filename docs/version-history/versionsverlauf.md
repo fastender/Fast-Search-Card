@@ -1,5 +1,63 @@
 # Versionsverlauf
 
+## Version 1.1.1419 - 2026-05-09
+
+**Title:** 🔥 Hotfix #3: `getSensorDisplay` extracted to pure util — third bug from same v1.1.1329 extraction
+**Hero:** none
+**Tags:** Hotfix, Bugfix, EnergyDashboard, Refactor
+
+### Why
+
+Third sequential ReferenceError from the same broken v1.1.1329 extraction:
+
+```
+Uncaught (in promise) ReferenceError: getSensorDisplay is not defined
+```
+
+Used to be a closure inside `EnergyDashboardDeviceView` that captured `hass`. The v1.1.1329 extraction of `EnergyDashboardSensorsConfigView` referenced `getSensorDisplay(sensorId)` 13× without bringing the function with it.
+
+User pushed back hard ("KANNST DU PRÜFEN!") — rightly so. Instead of fixing the third bug as another one-off, this release adds a **systematic check** to prevent recurrence.
+
+### What changed
+
+**Refactor `getSensorDisplay` to a pure util** in `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorUtils.js`:
+- New exported pure function `getSensorDisplay(sensorId, hass)` — same logic as before but `hass` passed as second arg instead of captured from closure
+- Returns `{ value, unit }` formatted for display (W/kW/Wh→kWh conversion)
+
+**`EnergyDashboardDeviceView.jsx`**:
+- Imports `getSensorDisplay as getSensorDisplayUtil` from SensorUtils
+- Local `getSensorDisplay = (id) => getSensorDisplayUtil(id, hass)` thin wrapper preserves the existing call-site signature `getSensorDisplay(sensorId)`. No call-site changes needed in this file.
+- Old 22-LOC closure definition removed
+
+**`EnergyDashboardSensorsConfigView.jsx`**:
+- Imports `getSensorDisplay` from SensorUtils
+- Adds `hass` to destructured props (third missing prop in this file after `entity` and `motion`)
+- All 13 call sites updated: `getSensorDisplay(sensorId)` → `getSensorDisplay(sensorId, hass)`
+
+**`EnergyDashboardSettingsView.jsx`** (caller of SensorsConfigView):
+- Forwards `hass={hass}` to the sub-view (3rd prop forwarded after the v1.1.1418 `entity={entity}`)
+
+### Diagnostic methodology used
+
+Wrote a Python script that:
+1. Scans every `Energy*.jsx` view file
+2. Extracts destructured props + imports + local declarations
+3. Greps the body for all identifiers used as function-call (`X(`), member-access (`X.`), or JSX-component (`<X`)
+4. Subtracts: declared - used → undeclared list
+5. Filters out JS builtins, JSX tag names, event-handler arg names
+
+Result: **3 false positives** in SensorsConfigView (`stopPropagation`, `e`) and **1 real undeclared** (`getSensorDisplay`). All other Energy views came back clean (their flagged identifiers were all method-calls on objects, not free variables).
+
+### Lesson
+
+Three sequential ReferenceErrors from the same extraction means the v1.1.1329 refactor was not properly verified. The right defense for any future extraction is a **single render-test in actual call site** — open the extracted view at least once, watch for console errors. Costs ~30 seconds, prevents the "fix three weeks of latent bugs one-by-one" pattern that consumed three releases.
+
+The systematic Python script could become a permanent CI check (one for each `*View.jsx`, run on extraction-PRs). Out of scope for this card's current build flow; filed as a future-improvement.
+
+For closure-captured helpers like `getSensorDisplay`: when extracting, the right move is to **promote them to pure functions** in a util module BEFORE doing the JSX extraction, then both old + new sites import the same pure function. That's the pattern this hotfix retroactively applies.
+
+---
+
 ## Version 1.1.1418 - 2026-05-09
 
 **Title:** 🔥 Hotfix #2: `entity is not defined` in EnergyDashboardSensorsConfigView (also latent since v1.1.1329)
