@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1426 - 2026-05-09
+
+**Title:** 🐛 Energy "Werte" view — 5 polish bugs fixed (banner contrast, info-button click + hover, Auto-pill design, long-text fade)
+**Hero:** none
+**Tags:** Bugfix, Polish, EnergyDashboard, Refactor
+
+### Why
+
+Five issues reported on the v1.1.1425 "Werte" config view:
+
+1. Auto-fill summary banner (`X von 16 ...`) used `rgba(0, 122, 255, 0.10)` background + blue text on the dark backdrop → invisible.
+2. Info icon (i) buttons next to each sensor row turned solid black on row-hover instead of inverting nicely. Caused by an existing CSS rule (`iOSSettingsView.css:194`) that forces every SVG inside `.ios-item-left` to `color/stroke/fill: #000 !important` on hover — Info-buttons got swept up by that selector.
+3. Info button click stopped opening the InfoOverlay. Suspected cause: framer-motion gesture handlers on the inner button + the parent `motion.div.ios-item-clickable` were both responding to the same pointer event; `e.stopPropagation()` in `onClick` only stops React-synthetic-bubble for the click event, not the upstream pointerdown/pointerup that framer-motion gestures listen on.
+4. The "• Auto (HA)" tag appended to subtitles was plain inline text — visually indistinguishable from the rest of the subtitle.
+5. Long subtitle strings (e.g. `solarnet_leistung_netzeinspeisung • 8897.8 W • Auto (HA)`) overflowed the row width with a hard cut.
+
+### What changed
+
+`EnergyDashboardSensorsConfigView.jsx`:
+- **AutoFillSummary banner**: `background: rgba(255, 255, 255, 0.10)` + `color: rgba(255, 255, 255, 0.96)` + `backdrop-filter: blur(8px)` — readable on every background.
+- **`<InfoButton>` component extracted** (was 13 nearly-identical inline `motion.button` blocks, mix of multi-line and one-liner styles). One source of truth. Adds `onPointerDown={e => e.stopPropagation()}` defensively in addition to `onClick`'s stopPropagation+preventDefault — kills the click-bubble race regardless of which event family fires first.
+- **`renderSensorSubtitle` returns JSX** (was string). Auto badge is now a proper green pill (Energy-brand color `rgb(48, 209, 88)` at 18% bg + 35% border + bright text), positioned LEFT so it stays visible even when the entity_id text fades on the right.
+- **Subtitle text fade** via `mask-image: linear-gradient(to right, black 80%, transparent 100%)` on the subtitle wrapper (inline style — not on the global `.ios-item-subtitle` class which is shared across many views).
+
+`iOSSettingsView.css`:
+- New override block: `.ios-item:hover:not(:active) .info-icon-button { color: rgb(0, 90, 200) !important; }` plus stroke override on path/circle. Fill is `revert !important` to respect the outer ring's `fill="none"` (otherwise the ring would fill solid blue instead of staying outline-only).
+
+### Cleanup byproduct
+
+The `<InfoButton>` extraction removed ~270 lines of repetition. File dropped from 750 → 480 lines. Adding a 14th sensor row in the future is now `<InfoButton sensorType="..." />` instead of a 25-line inline block.
+
+### Lesson
+
+The CSS-cascade hover bug is a recurring pattern: a global rule with `!important` for one design intent (here: "make ios-item icons turn black on hover for visual feedback") collides with a sub-component (here: the info button) that needs different behavior. Solution is always the same — add a more specific override with `!important`, and the override should preserve as little as possible (here: don't blanket-set fill, use `revert` so element-level attributes still win).
+
+The pointerdown/click race is also recurring: when both a parent and child have framer-motion gesture handlers (`whileTap` etc.) and React event handlers (`onClick`), `e.stopPropagation()` in onClick alone is not enough — framer's gestures listen on pointerdown/pointerup which fire BEFORE click. Defensive: stopPropagation in pointerdown too.
+
+---
+
 ## Version 1.1.1425 - 2026-05-09
 
 **Title:** ⚡ Energy mapper rewritten for HA Storage v1.3 — auto-fills tariffs + grid power + solar power (8 slots instead of 2 for the user)
