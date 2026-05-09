@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1449 - 2026-05-09
+
+**Title:** 🪨 Bento-Mode: StatsBar reversal — always-on instead of suppressed (eliminates click-jump differently)
+**Hero:** none
+**Tags:** Bugfix, Bento, StatsBar, ReversalOfPriorRelease
+
+### Why
+
+User clarified after v1.1.1448: "nein auch bento mode soll statsbar nicht unterdrückt werden". They actually want StatsBar VISIBLE in Bento mode — both for the info (weather/power/clock) and to keep the search bar at the same vertical position throughout. The v1.1.1448 suppression eliminated the layout-jump-on-click but at the cost of removing the StatsBar entirely.
+
+The user's preferred fix: render StatsBar from the start of Bento mode (not gated on isExpanded). This way the search bar starts at the SAME y-position it would land at after expanding+collapsing — no layout-jump because nothing changes.
+
+### What changed
+
+`SearchField.jsx` — StatsBar `show` prop reversed:
+
+```jsx
+// v1.1.1448 (wrong direction): show={statsBarSettings.enabled && isExpanded && !bentoEnabled}
+// v1.1.1449:                     show={statsBarSettings.enabled && (isExpanded || bentoEnabled)}
+```
+
+In Bento mode: StatsBar visible from initial mount (no expand needed). Search bar starts below it. When user clicks search bar to expand → no layout shift because StatsBar was already there.
+
+In default mode: behavior unchanged. StatsBar still appears only on expand.
+
+### Lesson
+
+Layout-jump bugs have two solutions: (a) remove the thing that appears, (b) reserve its space from the start. (a) is simpler but loses functionality; (b) is the user-preferred answer when the thing is wanted. v1.1.1448 picked (a) without checking which the user wanted; v1.1.1449 corrects to (b). When fixing layout-shift, default to "reserve space" before "remove element" — preservation is usually what users actually want.
+
+---
+
 ## Version 1.1.1448 - 2026-05-09
 
 **Title:** 🪨 Bento-Mode: StatsBar suppressed when search panel expands — no more layout shift on click
