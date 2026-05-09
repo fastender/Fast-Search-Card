@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1451 - 2026-05-09
+
+**Title:** 👻 Bento-Mode: StatsBar invisible at start but space reserved — visible only when search expanded
+**Hero:** none
+**Tags:** Polish, Bento, StatsBar
+
+### Why
+
+User refinement after v1.1.1449/1450: in Bento mode, StatsBar shouldn't visually appear at start (cleaner aesthetic — just search bar + widgets). BUT search bar position must NOT change because of this — it should stay at the SAME y-position as if StatsBar were visible.
+
+Translation: reserve StatsBar's space, hide its content. So:
+- Initial bento: empty area where StatsBar would be (search bar at same y as v1.1.1449)
+- Click search → expanded: StatsBar fades into the reserved space → no jump
+- Collapse: StatsBar fades back out, space stays reserved → no jump
+
+### What changed
+
+`SearchField.jsx` — wrapped StatsBar in a conditional-visibility div:
+
+```jsx
+<div style={bentoEnabled && !isExpanded ? { visibility: 'hidden' } : undefined}>
+  <StatsBar ... show={statsBarSettings.enabled && (isExpanded || bentoEnabled)} ... />
+</div>
+```
+
+`visibility: hidden` (not `display: none`) preserves layout space while hiding content. So:
+- Bento + collapsed: StatsBar renders (taking its space) but visually invisible
+- Bento + expanded: visibility default → StatsBar visible
+- Non-bento: wrapper has no style; StatsBar renders only on expand (= existing behavior)
+
+### Lesson
+
+`visibility: hidden` and `display: none` are not interchangeable. Use `visibility: hidden` when you need to PRESERVE LAYOUT SPACE while hiding content (here: StatsBar's vertical room reserved so search bar position is stable). Use `display: none` when you need to REMOVE the element from layout entirely (here would have caused position shift on collapse). Same pattern applies to opacity transitions vs. mounting/unmounting.
+
+---
+
 ## Version 1.1.1450 - 2026-05-09
 
 **Title:** 🪨 Bento-Mode: search bar stays at top after expand+collapse — slide-back-to-center disabled
