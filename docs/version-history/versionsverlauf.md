@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1438 - 2026-05-09
+
+**Title:** 🎵 MA panel: Queue empty bug fixed (entity-keyed response shape) + new "Nächste" / "Up Next" tab
+**Hero:** none
+**Tags:** Bugfix, Feature, MusicAssistant
+
+### Why
+
+Two related issues:
+
+1. User confirmed the Queue tab in the Music Assistant panel was always empty, even though the native MA UI showed 242 items. So the data was there, my consumer just wasn't extracting it.
+2. User asked for a 4th tab next to Suche/Bibliothek/Queue showing "what comes next" — i.e. the upcoming tracks from the current playlist context.
+
+### Root cause (Queue empty)
+
+`getMusicAssistantQueue` calls `music_assistant.get_queue` with `return_response: true`. Newer MA versions wrap the response keyed by entity_id:
+
+```json
+{
+  "media_player.bad_2": {
+    "items": [...],
+    "current_item": {...},
+    "current_index": 7
+  }
+}
+```
+
+My `loadQueue` in `MusicAssistantPanel.jsx` looked for `raw?.items || raw?.queue?.items || raw?.queue_items` — none matched the entity-keyed shape, so `items` resolved to `[]` and the queue rendered as empty.
+
+### What changed
+
+`MusicAssistantPanel.jsx`:
+
+- `loadQueue` extended to unwrap entity-keyed shape: `raw?.[entityId] || raw?.queue || raw || {}`. Tries (a) entity-keyed (newer MA), (b) nested under `queue` (older), (c) flat (oldest). First match wins.
+- `current` resolution also now handles `current_index` integer position (the entity-keyed shape uses index instead of object reference).
+- New `'upnext'` tab in the tab-bar between Queue and the Megaphone button.
+- New render branch for `tab === 'upnext'`: filters `queue` to items AFTER `currentQueueItemId`. If no current → first 20 items as approximation. Empty-state message differentiates "nothing playing" vs "no more tracks in queue."
+- The same `loadQueue` effect now triggers for `tab === 'queue' || tab === 'upnext'` (same data source, just a client-side filter on render).
+
+### Lesson
+
+When wrapping a third-party HA service with `return_response: true`, the response shape can vary between integration versions. Defensive extraction (`raw?.[entityId] || raw?.queue || raw`) chains common shapes; first match wins. Same pattern as the v1.1.1423 grid-source format fix in `mapEnergyPrefsToSlots` and the v1.1.1425 schema-detection rewrite. Schema drift in HA-integration responses is a recurring class of bug — always assume the consumer may be on a newer or older version than the docs say.
+
+---
+
 ## Version 1.1.1437 - 2026-05-09
 
 **Title:** 🔊 Music Assistant announcement: TTS now works — bridge to HA tts.*_say service for plain-text input
