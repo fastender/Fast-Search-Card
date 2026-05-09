@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1446 - 2026-05-09
+
+**Title:** 📐 Bento start-screen layout fixes — wider grid (matches search panel), compact greetings, tighter top spacing
+**Hero:** none
+**Tags:** Polish, Bento, Layout
+
+### Why
+
+User feedback after v1.1.1445:
+- Bento widgets too narrow (max-width 800px) compared to search panel (1000px). Looked misaligned.
+- Greetings + search bar took too much vertical space — pushed widgets too far down, search bar visually overlapped Widget 1's top edge.
+- Needed cleaner spacing so the 4-widget grid sits below the search bar without crowding.
+
+### What changed
+
+**`BentoStartView.css`**:
+- `.bento-grid` max-width removed → fills full parent width (1000px = main-container max). Grid now matches search-panel width exactly.
+- `padding: 0` on grid (was 12px) → cells go edge-to-edge with the search row above.
+- `margin-top: 24px` (was 16px) → consistent breathing room below search bar.
+
+**`SearchField.jsx`**:
+- `main-container` div gets new modifier class `main-container--bento` when Bento mode is active. Used as a CSS-cascade root for layout-compaction overrides that apply only in Bento mode.
+
+**`BentoStartView.css`** (new override block):
+- `.main-container--bento .greetings-bar`: margin-top reduced from 48px → 8px, margin-bottom 16px → 4px.
+- `.main-container--bento .greetings-bar > div`: font-size from 63px → 32px (mobile: 35px → 22px), padding tightened.
+- `.main-container--bento .search-row`: margin-top: 0.
+
+Net effect: greeting + search bar now occupy ~80px instead of ~250px at the top, leaving the full 600px below for the Bento grid. No more overlap.
+
+### Lesson
+
+When a feature has an "alternative mode" (here: Bento home screen), layout-compaction often needs to apply to *related* siblings (here: greetings, search-row), not just to the new component itself. Using a parent-class marker (`main-container--bento`) plus scoped CSS-cascade overrides keeps the original layout untouched while compactly handling the alternative. No JS prop-drilling needed for layout adjustments.
+
+---
+
 ## Version 1.1.1445 - 2026-05-09
 
 **Title:** 🎴 Alternative Bento-Grid start screen (4 widgets, configurable per slot, optional via System Settings)
