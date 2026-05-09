@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1441 - 2026-05-09
+
+**Title:** ↪️ Sidebar hover-expand direction reversed — labels now overlap the search panel rightward (visionOS-style) instead of growing leftward into empty space
+**Hero:** none
+**Tags:** UX, Sidebar, Polish
+
+### Why
+
+User report: the sidebar's hover-expand grew leftward into empty viewport space. visionOS reference shows the menu popping into the content area (overlapping the search panel slightly). Cleaner visual: rail stays anchored, labels appear to slide INTO the content. Original truncation-on-collapse behavior kept — only the expansion direction changes.
+
+### What changed
+
+`SearchField.css` — `.vision-pro-menu--desktop` rule extended with a `:hover` transform:
+
+```css
+.vision-pro-menu--desktop {
+  /* …existing positioning (right: 100% + margin-right: 12px)… */
+  transform: translateY(-50%);
+  transition: transform 0.25s ease-in-out;
+}
+
+.vision-pro-menu--desktop:hover {
+  transform: translate(9rem, -50%);
+}
+```
+
+Mechanism: width still grows leftward via the `.vpm-label` opacity+width transition (8rem labels + 1rem margin-left = 9rem total). The hover-only `translate(9rem, …)` shifts the entire menu the same 9rem rightward. Net visual: the rail's left edge stays stable, the new label column appears on the right and slides into the search-panel area.
+
+### Lesson
+
+When you can't easily change which edge a CSS-positioned element grows from (here: anchored via `right: 100%`, growth always goes leftward), a coordinated `translate` on the same axis flips the apparent direction without restructuring the layout. The width-transition and transform-transition use the same duration (0.25s) so they animate as one motion.
+
+---
+
 ## Version 1.1.1440 - 2026-05-09
 
 **Title:** 🗣️ TTS engine picker in System Settings + language prop now passed (no more English accent on German UI)
