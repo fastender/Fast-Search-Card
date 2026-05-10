@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1469 - 2026-05-09
+
+**Title:** 🟦 Bento Favoriten cards: square (aspect-ratio 1), 2-col grid, hover doesn't clip + click reaches device DetailView reliably
+**Hero:** none
+**Tags:** Bugfix, Bento, DeviceCards
+
+### Why
+
+Three issues from v1.1.1468:
+
+1. **Hover-truncation**: Cards too narrow (auto-fit packed many per row), names cut off ("Syster" instead of "System Einstellungen"). Plus `overflow: hidden` on widget clipped the hover-scale animation.
+
+2. **Cards not square**: Cards were tall rectangles instead of squares. User wanted equal-aspect tiles.
+
+3. **Click might not open DetailView reliably**: DeviceCard's internal click handler + bubble-up to wrapper had ambiguous flow; potential double-fire or race.
+
+### What changed
+
+`BentoStartView.jsx`:
+- Wrapper uses `onClickCapture` (instead of regular onClick stopPropagation) to handle the click in the CAPTURE phase — fires BEFORE DeviceCard's internal handler, calls our onClick directly. DeviceCard's own onClick is set to a no-op so it doesn't double-fire. Single, reliable click path.
+
+`BentoStartView.css`:
+- `.bento-widget-cards-grid`: `grid-template-columns: repeat(2, 1fr)` (was auto-fit) — exactly 2 columns. Small widget: 1 column.
+- `.bento-widget-card-wrapper`: `aspect-ratio: 1` — every card is square.
+- `.bento-widget:has(.bento-widget-cards-grid) { overflow: visible }` — widgets with card grids don't clip the hover-scale animation. The `:has()` selector targets only widgets that have card grids, leaving non-favorites widgets with their default overflow:hidden.
+
+### Layout
+
+For Large widget (Favoriten): 2x3 grid of square cards = 6 favorites visible. "+N weitere" footer for the rest.
+
+### Lesson
+
+Two lessons:
+1. `onClickCapture` is the right hook when you want to intercept a child's click BEFORE the child's own handler runs — useful when you want to override the child's click behavior without modifying the child component.
+2. CSS `:has()` allows context-aware property overrides without polluting parent class names. Here it lets non-favorites widgets keep `overflow: hidden` while favorites widgets get `overflow: visible` for their hover animation.
+
+---
+
 ## Version 1.1.1468 - 2026-05-09
 
 **Title:** 🎴 Bento Favoriten/Vorschläge: real DeviceCards inside widget (1:1 same as expanded panel)
