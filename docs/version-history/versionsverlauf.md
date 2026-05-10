@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1477 - 2026-05-10
+
+**Title:** 🎯 Bento Carousel: CSS Grid mit minmax(0, 1fr) — 3 Cards endlich erzwungen
+**Hero:** none
+**Tags:** Fix, Bento, Carousel, CSS-Grid
+
+### Why
+
+v1.1.1476 setzte `flex: 0 0 calc(33.333% - 6px)` auf alle Wrapper-Größen — sollte 3 Cards pro Reihe geben. Tat es aber nicht: das W1 (large) Widget rendrte trotzdem nur 1 riesige Card. User-Screenshot war eindeutig.
+
+Root cause: flex-wrap mit calc()-Basis ist anfällig wenn das Kind eine eigene `min-width` hat (DeviceCardGridView setzt `min-width: 130px` in einem inline `<style>` Tag). Auch wenn der Wrapper auf 33.333% gerechnet wird, kann die innere Card sich wegen ihrer `min-width: 130 + container-type: inline-size` weiterhin breit machen — bei framer-motion-gewrappten Containers war's anscheinend nicht reproduzierbar zu lösen.
+
+### The fix
+
+**Switch von flex-wrap zurück zu CSS Grid mit `minmax(0, 1fr)`.**
+
+```css
+.bento-carousel-page {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  ...
+}
+```
+
+Der Trick: `minmax(0, 1fr)` (statt nur `1fr`) erlaubt Grid-Items unter ihre min-content-Größe zu schrumpfen. Das ist der bekannte Workaround für genau dieses Problem (Kind hat min-width, Grid berechnet sonst die min-content-basis hoch).
+
+### Other changes
+
+- `.bento-widget-card-wrapper { display: block }` (vorher flex) — Grid-Item soll sich exakt an die Cell-Größe halten.
+- Entfernt: die size-spezifischen `flex: 0 0 calc(...)` Regeln. Grid kümmert sich um alle Größen einheitlich.
+- `.device-card { max-width: 100% !important }` zusätzlich zu min-width:0 — Doppelte Absicherung gegen min-width Durchsetzung.
+- `cardsPerPage` bleibt unverändert (large 9, medium 6, small 3).
+
+### Lesson learned
+
+v1.1.1473 hatte CSS-Grid zugunsten flex-wrap aufgegeben weil `repeat(2, 1fr)` als 1-Spalte rendrte. Damals fehlte `minmax(0, 1fr)`. Mit dem Fix ist Grid wieder die richtige Wahl — robust gegen Kinder mit eigenen min-width Werten.
+
+---
+
 ## Version 1.1.1476 - 2026-05-10
 
 **Title:** 🎯 Bento Carousel: 3 cards per row for ALL widget sizes
