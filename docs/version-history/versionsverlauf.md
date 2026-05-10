@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1466 - 2026-05-09
+
+**Title:** ⭐ Bento widgets: Favoriten + Vorschläge as virtual options (with live counts, click → opens search filter)
+**Hero:** none
+**Tags:** Feature, Bento, Widgets, Favorites, Suggestions
+
+### Why
+
+User wants to surface favorites and AI-suggestions as configurable Bento widgets — alongside system-entities (Settings, Todos, etc) and Home. Tap → open the search panel pre-filtered to that category.
+
+### What changed
+
+**`BentoStartView.jsx`**:
+- New exports: `HOME_ITEM_ID`, `FAVORITES_WIDGET_ID = '__favorites__'`, `SUGGESTIONS_WIDGET_ID = '__suggestions__'`
+- Inline SVGs: `HOME_ICON_SVG` (house), `FAVORITES_ICON_SVG` (filled heart), `SUGGESTIONS_ICON_SVG` (sparkle)
+- New builders: `buildHomeItem`, `buildFavoritesItem(lang, count)`, `buildSuggestionsItem(lang, count)` — count → subtitle "X Geräte" / "X Empfehlungen"
+- New props: `favoritesCount`, `suggestionsCount` for live numbers
+- `useMemo` intercepts virtual IDs before falling through to systemRegistry lookup
+- BentoWidget renders virtual icons inline (was getSystemEntityIcon-only)
+- Brand colors: red (255,69,58) for favorites, indigo (94,92,230) for suggestions
+
+**`SearchField.jsx`**:
+- `handleSidebarItemClick` extended with two new branches:
+  - `__favorites__` → close detail, expand search panel, `setSelectedSubcategory('favoriten')`
+  - `__suggestions__` → close detail, expand search panel, `setSelectedSubcategory('suggestions')`
+- Passes `favoritesCount={favorites?.size ?? 0}` + `suggestionsCount={predictiveSuggestions?.length ?? 0}` to BentoStartView
+
+**`StartScreenSettingsTab.jsx`**:
+- `buildAvailableEntities(lang)` now prepends Home + Favoriten + Vorschläge as virtual options at the top of the picker list
+- Inline SVG fallback for virtual entities (since `getSystemEntityIcon` returns null for `__home__`/`__favorites__`/`__suggestions__` domains)
+
+### UX
+
+User picks "Favoriten" for Slot W2 → widget shows heart icon + "5 Geräte" → tap → search panel expands with Favoriten filter active → user sees their favorite devices without manually navigating.
+
+### Lesson
+
+When extending a slot-based widget system (here: Bento's 4 slots) with NON-entity options (filter shortcuts, virtual actions), the cleanest pattern is "virtual IDs that aren't in the entity registry." Each consumer (BentoStartView, picker, click-handler) intercepts the special IDs at its own layer. No need to invent fake entities or pollute systemRegistry. The pattern scales: future virtual widgets (e.g., "Recently Used", "All Lights") just add another `__id__` constant + builder + click-handler branch.
+
+---
+
 ## Version 1.1.1465 - 2026-05-09
 
 **Title:** 📐 Bento DetailView deckungsgleich mit Suchpanel — top:60 + height:672 erzwungen
