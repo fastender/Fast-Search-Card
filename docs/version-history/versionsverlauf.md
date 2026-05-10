@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1468 - 2026-05-09
+
+**Title:** 🎴 Bento Favoriten/Vorschläge: real DeviceCards inside widget (1:1 same as expanded panel)
+**Hero:** none
+**Tags:** Polish, Bento, DeviceCards
+
+### Why
+
+User: device list inside Favoriten/Vorschläge widget should look 1:1 like the cards in the expanded search panel — actual DeviceCard components with icon-on-top, area-name, device-name, state — not the simple dot+name list from v1.1.1467.
+
+### What changed
+
+`BentoStartView.jsx`:
+- Imported `DeviceCard` component
+- Replaced the `.bento-widget-preview` simple-list rendering with `<DeviceCard device={d} viewMode="grid" onClick={...} />` — same component, same visual style as the search panel
+- Each card wrapped in a div with `onClick + onPointerDown` `stopPropagation` to prevent click-bubble to the parent widget button (otherwise clicking a card would ALSO open the filter view)
+- Card click → `onClick(d)` → `handleSidebarItemClick(d)` falls through to `devices.find(d => d.entity_id === ...)` → opens that specific device's DetailView
+
+`BentoStartView.css`:
+- New `.bento-widget-cards-grid` with `grid-template-columns: repeat(auto-fit, minmax(80px, 1fr))` — packs as many cards as fit
+- Per-size variants: large=100px min, small=single column
+- Card-wrapper override: `min-width: 0 !important; width: 100% !important` — prevents DeviceCard's natural min-width from overflowing the widget cell
+
+### Behavior
+
+- Click on a DeviceCard inside Favoriten widget → opens THAT device's detail view (not the filter view)
+- Click on widget background (icon area, name, empty space) → opens the favorites filter in the search panel (existing behavior)
+- Two click targets per widget cleanly separated via stopPropagation
+
+### Lesson
+
+When embedding a clickable component inside another clickable component, both `onClick` AND `onPointerDown` need `stopPropagation` because framer-motion gestures (whileTap on the parent button) listen on pointer events that fire BEFORE click. Same defensive pattern as v1.1.1426 for the info-icon-button inside ios-item-clickable rows.
+
+---
+
 ## Version 1.1.1467 - 2026-05-09
 
 **Title:** ⭐ Bento Favoriten/Vorschläge: device list inside widget + filter-key fix ('favorites' instead of 'favoriten')
