@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1465 - 2026-05-09
+
+**Title:** 📐 Bento DetailView deckungsgleich mit Suchpanel — top:60 + height:672 erzwungen
+**Hero:** none
+**Tags:** Bugfix, Bento, Layout, DetailView
+
+### Why
+
+User report: in Bento mode the DetailView panel (opened by clicking a widget or sidebar item) doesn't visually align with the expanded search panel — neither in position (y) nor in height. Toggling between widget-DetailView and search-expanded showed visible jumps.
+
+### Math
+
+Search panel expanded:
+- top: 60px (sits below statsbar-bento-wrapper which has min-height 60px)
+- height: 672px
+- bottom: 732px
+
+DetailView before fix:
+- top: `statsBarHeight` (= 64 if enabled, 0 if disabled — different from 60!)
+- bottom: 0 of `.main-container` (extends to whatever min-height is, was 720)
+- height: variable (656–720)
+
+So DetailView was offset 4-60px from the search panel, with different heights.
+
+### What changed
+
+`BentoStartView.css`:
+- `.main-container--bento { min-height: 720 → 732 }` — fits DetailView's 60+672
+- `.main-container--bento .detail-panel-wrapper { top: 60px !important; height: 672px; bottom: auto; min-height: 0 }` — overrides the inline `top: ${statsBarHeight}px` from DetailViewWrapper.jsx with !important; sets fixed height matching search panel
+- `.main-container--bento .vision-pro-menu--desktop { top: 396px }` (was 400) — mathematical center of panel area (60 + 672/2 = 396), now exact
+
+### Lesson
+
+When two visually-similar panels need congruent placement (here: search panel and DetailView), don't let them compute their own top/height independently — both should derive from the same constants. CSS overrides with `!important` are acceptable when the alternative would be threading a `bentoMode` prop through a wrapper component that already has its own positioning logic. The `!important` is scoped to the parent class `.main-container--bento` so it can't leak into default mode.
+
+---
+
 ## Version 1.1.1464 - 2026-05-09
 
 **Title:** 📐 Bento polish: sidebar top 396→400px + StatsBar wrapper reserves space when toggled off
