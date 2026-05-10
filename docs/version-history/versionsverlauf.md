@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1474 - 2026-05-09
+
+**Title:** 🎯 Bento Carousel polish: 3-col desktop, dots centered, background non-clickable, icon clean
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, UX
+
+### Why
+
+User feedback on v1.1.1473 carousel:
+1. Dots not visually centered (sat left-aligned due to parent `align-items: flex-start`)
+2. Clicking the background of the widget accidentally opened the favoriten-filter — user wants only specific elements clickable
+3. Desktop large widget should fit 3 cards per row (was 2)
+4. Icon had a subtle box-shadow that looked like a border — wanted clean filled square with white SVG
+5. Name + subtitle had too much vertical gap
+
+### What changed
+
+`BentoStartView.jsx`:
+- Container changed from `motion.button` to `motion.div` — widget background NO LONGER captures click events.
+- Header is now its own inner `<button>` with `onClick={() => onClick(entity)}` → only the icon+title strip opens the favoriten filter.
+- Cards keep their `onClickCapture` for individual device clicks.
+- Dots keep their per-dot `onClick` for page navigation.
+- `cardsPerPage(large)`: 4 → 6 (for 3x2 layout).
+- `gridColsFor(large)`: 2 → 3.
+
+`BentoStartView.css`:
+- `.bento-carousel-icon { box-shadow: removed }` — clean filled rectangle, no border.
+- `.bento-carousel-titles { gap: 2px → 0; line-height: 1.15 }` — tighter title/subtitle spacing.
+- `.bento-carousel-page--large > .bento-widget-card-wrapper { flex: 0 0 calc(33.333% - 6px) }` — 3 columns instead of 2.
+- `.bento-carousel-dots { width: 100%; pointer-events: none }` — full width pushes dots to true center via `justify-content: center`. `pointer-events: none` on container + `auto` on individual dots means empty space around dots doesn't capture clicks (defensive layer beyond removing widget-level click).
+
+### Mechanics — making widget-background non-clickable
+
+Three-layer click model:
+1. **Widget background** (motion.div): no onClick → background clicks do nothing.
+2. **Header** (button): onClick → opens filter.
+3. **Cards** (with onClickCapture): opens specific device DetailView.
+4. **Dots** (with onClick per dot): switches page.
+
+Empty space between elements (gap area, padding area) does nothing. User can swipe through cards without fearing accidental filter-trigger.
+
+### Lesson
+
+For complex widgets with multiple click targets and "safe space", the cleanest pattern is: NOT one big clickable wrapper with stopPropagation islands inside, but a NON-clickable wrapper with explicit clickable children. Avoids stopPropagation race conditions and is more predictable for users.
+
+---
+
 ## Version 1.1.1473 - 2026-05-09
 
 **Title:** 🔧 Bento Carousel: switch from CSS-grid to flex-wrap — 2-column layout endlich erzwungen
