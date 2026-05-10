@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1475 - 2026-05-10
+
+**Title:** 🎯 Bento Carousel: clean heart icon, footer area, 3-col enforced
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, UX
+
+### Why
+
+User feedback on v1.1.1474 Favoriten widget:
+1. The heart icon was still inside a red rounded box ("rotes button") — user wanted only the heart itself, white, slightly larger.
+2. Cards were rendering 2 per row even though large size was configured for 3 — DeviceCard's `min-width: 130px` + container-type was preventing the third column.
+3. The page-dots area felt visually "loose" — user wanted a proper bottom footer section (mirror of the header) with the cards offset 15px from it.
+
+### What changed
+
+`BentoStartView.jsx`:
+- Removed `style={{ background: brandColor }}` from `.bento-carousel-icon` — the icon now has no background.
+- Bumped icon SVG size 20 → 24 ("etwas größer").
+- Wrapped page-dots in a new `.bento-carousel-footer` div (mirror of `.bento-carousel-header` semantic — own bottom section).
+
+`BentoStartView.css`:
+- `.bento-carousel-icon`: removed `width/height/border-radius` — now just a flex inline-element holding the SVG. Color stays white via `color: white`.
+- `.bento-carousel-footer { flex-shrink: 0; min-height: 16px }` — guarantees the footer always sits at the widget bottom regardless of how tall the cards-page is.
+- `.bento-carousel-page { margin-bottom: 15px }` — explicit 15px gap between last card row and the footer.
+- `.bento-carousel-dots`: removed `margin-top: 10px` (now controlled by footer + page margin).
+- `.bento-widget-card-wrapper`: added `width: 100%; box-sizing: border-box` for stable flex-basis.
+- `.bento-widget-card-wrapper .device-card`: added `padding: 12px !important` (was 20px from DeviceCardGridView) so 3-column cards (~145px wide) don't overflow their content. `min-width: 0 !important` already in place — combined with the smaller padding, 3 cards per row in the large widget renders cleanly.
+
+### Mechanics — three changes interlocking
+
+The "no red box" change is purely visual (drop background, drop border-radius). The "footer with 15px" change is a structural reorganisation of the dots into their own bottom bar (`flex-shrink: 0`) plus margin-bottom on the cards page. The 3-cards-per-row fix needed the `padding: 12px` reduction on the inner DeviceCard — the widget content area is ~464px wide (W1 large slot, 1000px container, 16px gap, 14px widget padding), 33.333% = ~155px per card, but the original 20px DeviceCard padding plus min-width: 130 was forcing the inner content past that limit. Reducing padding to 12px gives the card inner area enough room to stay within its allocated 145–155px slot.
+
+### Cross-context confirmation
+
+The User feedback "noch immer in einer reihe nur 2 device cards" confirms that the v1.1.1474 width-only change (`flex: 0 0 calc(33.333% - 6px)`) wasn't sufficient — the inner DeviceCard layout was the actual constraint, not the wrapper width. Reducing the inner padding addresses the right layer.
+
+---
+
 ## Version 1.1.1474 - 2026-05-09
 
 **Title:** 🎯 Bento Carousel polish: 3-col desktop, dots centered, background non-clickable, icon clean
