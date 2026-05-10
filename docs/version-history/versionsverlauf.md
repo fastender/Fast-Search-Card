@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1473 - 2026-05-09
+
+**Title:** 🔧 Bento Carousel: switch from CSS-grid to flex-wrap — 2-column layout endlich erzwungen
+**Hero:** none
+**Tags:** Hotfix, Bento, CSS
+
+### Why
+
+Nach v1.1.1472: Cards waren immer noch in 1-Column gestapelt trotz `grid-template-columns: repeat(2, 1fr)`. Vermutete Ursache: DeviceCard hat `min-width: 130px` + `container-type: inline-size`, was die grid-min-content-baseline hochsetzt → grid lieferte trotz `1fr` columns nur 1 column trotz Override.
+
+### What changed
+
+`BentoStartView.css` — `.bento-carousel-page` von `display: grid` auf `display: flex; flex-wrap: wrap` umgestellt:
+
+```css
+.bento-carousel-page {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bento-carousel-page--large > .bento-widget-card-wrapper,
+.bento-carousel-page--medium > .bento-widget-card-wrapper {
+  flex: 0 0 calc(50% - 4px);  /* 50% width minus half gap = 2 columns */
+  width: calc(50% - 4px);
+  max-width: calc(50% - 4px);
+}
+
+.bento-carousel-page--small > .bento-widget-card-wrapper {
+  flex: 0 0 100%;
+}
+```
+
+Explizite `width: calc(50% - 4px)` auf Items + `flex: 0 0` (no grow/shrink) garantiert exakt 2 Items pro Reihe. Plus `flex-wrap: wrap` füllt nächste Reihe wenn mehr Items.
+
+DeviceCard's `aspect-ratio: 1` greift weiterhin → Cards quadratisch (Höhe = Breite = ~210-220px).
+
+### Lesson
+
+CSS Grid ist eleganter aber empfindlich gegenüber children's `min-width` + `container-type` — kann unerwartet auf 1-Col degraden. Flex-wrap mit expliziten `calc(% - gap/2)` widths ist robuster für "exact N columns" Layouts wo children auch eigene min-content-baselines haben können.
+
+---
+
 ## Version 1.1.1472 - 2026-05-09
 
 **Title:** 🟦 Bento Carousel: Cards jetzt strikt quadratisch — height-Override entfernt + grid-rows auf auto
