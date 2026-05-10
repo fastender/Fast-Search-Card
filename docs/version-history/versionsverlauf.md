@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1463 - 2026-05-09
+
+**Title:** 📐 Bento grid height matches expanded search-panel — bottoms align (576px instead of 600px)
+**Hero:** none
+**Tags:** Polish, Bento, Layout
+
+### Why
+
+User feedback: bottom edge of Bento widgets and bottom edge of expanded search panel were ~24px out of alignment. Toggling between start (Bento) and search-expanded showed a visible jump of the card's bottom edge.
+
+### Math
+
+- Expanded search panel height: **672px** (from search-row top, set in motion.div animate.height)
+- Bento layout: search-row collapsed (72) + grid margin-top (24) + grid (X) = bottom at 96 + X from search-row top
+
+For bottoms to align: `96 + X = 672` → `X = 576`.
+
+### What changed
+
+`BentoStartView.css`:
+- `.bento-grid--desktop { height: 600px → 576px }` — bottoms now align exactly
+- `.main-container--bento .vision-pro-menu--desktop { top: 360px → 396px }` — sidebar visual center recomputed: ~60 (StatsBar) + half(72+24+576) = 60 + 336 = 396px
+
+### Lesson
+
+When two visual elements share screen real estate but live in different render paths (Bento grid vs expanded search panel), their HEIGHTS need to be derived from the same source-of-truth. Hardcoding both to "600 and 672 — close enough" produces a misalignment users will spot. Better: compute one as a function of the other (here: `bento-grid = expanded-panel - search-row-collapsed - margin-gap`). Or expose a CSS variable both consume.
+
+---
+
 ## Version 1.1.1462 - 2026-05-09
 
 **Title:** 📌 Bento sidebar: fixed pixel `top` instead of percentage — consistent position across all 3 states (start / DetailView / expanded)
