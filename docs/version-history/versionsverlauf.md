@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.1470 - 2026-05-09
+
+**Title:** 📦 Bento DeviceCards: passen jetzt in widget-bounds (max 4 cards 2x2 large, grid-rows fix)
+**Hero:** none
+**Tags:** Bugfix, Bento, Layout
+
+### Why
+
+User report: DeviceCards inside Favoriten widget overflowed widget bounds — extended above and below into other widgets' areas. v1.1.1469 had `aspect-ratio: 1` cards in 2-col layout with 6 cards max → 3 rows × 230px = 690px > available content area (~388px). Cards spilled out.
+
+### What changed
+
+`BentoStartView.jsx`:
+- `maxPreview` reduced: large 6→4, medium 4→2, small 2→1. Aligns with grid sizes (2x2 / 2x1 / 1x1).
+
+`BentoStartView.css`:
+- `.bento-widget--large .bento-widget-cards-grid`: `grid-template-rows: repeat(2, 1fr)` — exactly 2 rows, cards fill remaining height
+- Same pattern for medium (1 row) and small (1 row, 1 col)
+- `.bento-widget-cards-grid { flex: 1; min-height: 0 }` — grid stretches to fill space between icon-bubble and content
+- `.bento-widget-card-wrapper { width: 100%; height: 100%; min-height: 0 }` — cards fill grid cells, no min-content baseline forcing overflow
+- Removed `aspect-ratio: 1` (was forcing square cards regardless of cell height → overflow)
+- Removed `:has(.bento-widget-cards-grid) { overflow: visible }` — cards now fit strict in bounds, overflow:hidden is safe and prevents future regressions
+
+### Trade-off
+
+Cards are no longer strictly square — they fill grid cells, which may be slightly wider than tall. Trade for "fits in widget bounds" was worth it. User can still see device icon + name + state.
+
+### Lesson
+
+When using CSS grid + aspect-ratio together, aspect-ratio takes precedence over grid sizing → can break out of grid cell bounds. For "cards fill cell" behavior, use `width: 100%; height: 100%` and let grid handle sizing. Aspect-ratio only when grid cells themselves are flexible enough to accommodate it.
+
+---
+
 ## Version 1.1.1469 - 2026-05-09
 
 **Title:** 🟦 Bento Favoriten cards: square (aspect-ratio 1), 2-col grid, hover doesn't clip + click reaches device DetailView reliably
