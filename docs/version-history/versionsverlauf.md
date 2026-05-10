@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1478 - 2026-05-10
+
+**Title:** 🐛 Bento Carousel: real-device click jetzt korrekt verlinkt
+**Hero:** none
+**Tags:** Fix, Bento, Carousel, Click-Routing
+
+### Why
+
+In v1.1.1477 funktionierte die 3-Spalten-Anzeige im Favoriten-Widget — User konnte 9 Cards (3x3) sehen, swipen, Footer mit Dots sichtbar. ABER: Klick auf eine normale HA-Entity (Lampe, Klima etc.) öffnete keine DetailView. Nur die System-/Custom-Entities (Settings, Versionsverlauf, Aufgaben) reagierten richtig.
+
+### Root cause
+
+`handleSidebarItemClick` in `SearchField.jsx` (Zeile 267-269) nutzte eine OR-Bedingung im `find`:
+
+```js
+const match = devices.find(
+  d => (d.entity_id || d.id) === targetId || d.domain === systemEntity.domain
+);
+```
+
+Bei einem System-Entity (z.B. Settings) ist `systemEntity.domain` eindeutig (nur ein Device hat `domain: 'settings'`). Match war korrekt.
+
+Bei einem realen Device (z.B. `light.einbauleuchten`) gibt es viele Devices mit `domain: 'light'`. `find` returnt das ERSTE Element wo die Bedingung true ist — also das erste Light-Device im Array, NICHT zwingend `einbauleuchten`. Das geöffnete DetailView zeigte dann entweder ein falsches Device, oder gar nichts Sichtbares (je nach Reihenfolge/Filterung).
+
+### Fix
+
+Zwei-Stufen-Match: erst exact-match auf `entity_id`/`id`, dann domain-Fallback **nur wenn der erste Match fehlschlägt**.
+
+```js
+let match = devices.find(d => (d.entity_id || d.id) === targetId);
+if (!match && systemEntity.domain) {
+  match = devices.find(d => d.domain === systemEntity.domain);
+}
+```
+
+System-Entities verhalten sich weiter identisch (entity_id-match findet sie direkt, oder Fallback greift). Reale Devices werden jetzt eindeutig zugeordnet.
+
+### Lesson
+
+`find(predicate)` mit OR-Bedingung ist gefährlich wenn der zweite Operand auf einem Feld basiert das mehrere Items teilen können. Bei Click-Routing immer in Stufen denken: spezifisch → allgemein, nicht beides gleichzeitig.
+
+---
+
 ## Version 1.1.1477 - 2026-05-10
 
 **Title:** 🎯 Bento Carousel: CSS Grid mit minmax(0, 1fr) — 3 Cards endlich erzwungen
