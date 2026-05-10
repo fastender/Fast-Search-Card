@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1471 - 2026-05-09
+
+**Title:** 🎠 Bento Favoriten/Vorschläge: Carousel-Layout mit Swipe + Page-Dots — alle Devices erreichbar
+**Hero:** none
+**Tags:** Feature, Bento, Carousel
+
+### Why
+
+User wollte (a) strikt quadratische Cards und (b) ALLE favorites sehen können (nicht nur 4 von 7), notfalls per Swipe wie beim Media Player oder Energy Dashboard.
+
+### What changed
+
+`BentoStartView.jsx` — komplette Restrukturierung des BentoWidget-Renders für widgets mit `previewItems`:
+
+**Carousel-Layout** (statt Standard-Layout) wenn `entity.previewItems`:
+- **Compact Header oben**: kleines Brand-color icon (36×36) + Name + Subtitle. Nimmt nur ~50px statt 90px wie bei der Standard-icon-bubble.
+- **Page-Grid mittig**: `motion.div` mit `drag="x"` für swipe. Zeigt nur die Cards der aktuellen Page (4 für large, 2 für medium, 1 für small).
+- **Page Dots unten**: nur sichtbar wenn `totalPages > 1`. Active dot ist breiter pill-shape (Apple-Style).
+
+**Swipe-Detection**: `onDragEnd` mit threshold 40px. Drag links → next page, drag rechts → prev page. `dragConstraints` halten das Element in Position.
+
+**Page-Click-Navigation**: jeder Dot ist clickbar → setzt `currentPage` direkt.
+
+**Cards strikt quadratisch**: `aspect-ratio` ist nicht mehr nötig — die grid-rows in `.bento-carousel-page--large` (`repeat(2, 1fr)`) machen Cards automatisch square wenn das Widget 2x2 grid hat. Alternative: small widget hat 1x1 grid → Card füllt alles.
+
+**Click-Handler**: identisch zu v1.1.1469 (`onClickCapture` für single firing).
+
+`BentoStartView.css`:
+- Neue Klassen: `.bento-widget--carousel`, `.bento-carousel-header`, `.bento-carousel-icon`, `.bento-carousel-titles`, `.bento-carousel-name`, `.bento-carousel-sub`, `.bento-carousel-page--{large|medium|small}`, `.bento-carousel-dots`, `.bento-carousel-dot`
+- `touch-action: pan-y` auf page → vertikaler scroll bleibt möglich, horizontaler swipe wird abgefangen
+- Active dot: 6px → 18px width + pill border-radius (Apple-iOS pattern)
+
+### Behavior
+
+- Bento Favoriten widget mit 7 favorites → 2 pages (4 + 3 cards)
+- Page 1: Cards 1-4, dots `● ○`
+- Swipe links → Page 2: Cards 5-7, dots `○ ●`
+- Tap auf Card → öffnet die device DetailView
+- Tap auf Header/Background → öffnet Favoriten-Filter
+- Tap auf Dot → springt zu der Page
+
+### Lesson
+
+Für widget-internal pagination ist framer-motion's `drag="x"` mit `dragConstraints={{left:0, right:0}}` + `onDragEnd` der einfachste Weg — keine eigenen Touch-Handler nötig. `dragElastic` macht den drag fühlbar (bounce-back). `touch-action: pan-y` verhindert dass der horizontale drag mit dem vertikalen scroll des parent-containers konkurriert.
+
+---
+
 ## Version 1.1.1470 - 2026-05-09
 
 **Title:** 📦 Bento DeviceCards: passen jetzt in widget-bounds (max 4 cards 2x2 large, grid-rows fix)
