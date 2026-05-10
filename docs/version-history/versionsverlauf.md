@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1472 - 2026-05-09
+
+**Title:** 🟦 Bento Carousel: Cards jetzt strikt quadratisch — height-Override entfernt + grid-rows auf auto
+**Hero:** none
+**Tags:** Hotfix, Bento, Carousel, CSS
+
+### Why
+
+User report nach v1.1.1471: Cards in Favoriten-Carousel waren breit-rechteckig (full width × ~150px), nicht quadratisch.
+
+Cause: `.bento-widget-card-wrapper .device-card { height: 100% !important }` overschrieb DeviceCard's eigene `aspect-ratio: 1` (definiert in DeviceCardGridView.jsx als inline `<style>`). Plus `grid-template-rows: 1fr` stretched die grid-cells über die volle Höhe → cards füllten cell = rectangular.
+
+### What changed
+
+`BentoStartView.css`:
+- Entfernt `height: 100% !important` von `.device-card` Override → DeviceCard's eigene `aspect-ratio: 1` greift wieder
+- `grid-template-rows: repeat(2, 1fr)` → `grid-template-rows: auto auto` (für large) — rows nehmen Card-Höhe (= Card-Breite via aspect-ratio) statt 1fr-stretch
+- `justify-content: start` + `align-content: start` damit grid sich nicht aufbläht
+- Gap reduziert 10 → 8 für etwas mehr Platz
+
+### Result
+
+Cards sind jetzt:
+- Breite: cell-Breite (= page_width / cols - gap)
+- Höhe: gleich Breite (via aspect-ratio:1)
+- = strikt quadratisch
+
+Beispiel large widget (W1, ~452px content area, 2-col, gap 8):
+- Card-Breite: (452 - 8) / 2 = 222px
+- Card-Höhe: 222px (square)
+- Total page-grid 2 rows: 2×222 + 8 = 452px
+
+### Lesson
+
+Wenn child component (DeviceCardGridView) bereits `aspect-ratio: 1` setzt, NICHT mit `height` von außen überschreiben. height + aspect-ratio konkurrieren — height wins (later in cascade), broken square. Korrekt: nur `width: 100%` setzen + grid auf `auto` rows damit Höhe von aspect-ratio bestimmt wird.
+
+---
+
 ## Version 1.1.1471 - 2026-05-09
 
 **Title:** 🎠 Bento Favoriten/Vorschläge: Carousel-Layout mit Swipe + Page-Dots — alle Devices erreichbar
