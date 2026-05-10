@@ -1,5 +1,57 @@
 # Versionsverlauf
 
+## Version 1.1.1467 - 2026-05-09
+
+**Title:** ⭐ Bento Favoriten/Vorschläge: device list inside widget + filter-key fix ('favorites' instead of 'favoriten')
+**Hero:** none
+**Tags:** Bugfix, Feature, Bento, Favorites, Suggestions
+
+### Why
+
+Two issues from v1.1.1466:
+
+1. **Filter-key bug**: Click on Favoriten widget didn't activate the favorites filter. SubcategoryBar's `baseOptions.push('favorites')` uses English plural; my v1.1.1466 used German `'favoriten'`. Mismatch → SubcategoryBar didn't recognize the value as a known filter → no filter applied.
+
+2. **Empty widget content**: Widget showed only icon + title + count. User wanted to see the actual device names directly in the widget so they know WHICH favorites are there at a glance.
+
+### What changed
+
+**`SearchField.jsx`** — `handleSidebarItemClick` filter key fix:
+```jsx
+setSelectedSubcategory('favorites');  // was 'favoriten'
+```
+
+Plus passes `favoriteDevices` + `suggestionDevices` arrays as new props to BentoStartView.
+
+**`BentoStartView.jsx`**:
+- `buildFavoritesItem` / `buildSuggestionsItem` now accept and store a `previewItems` array (the devices to preview)
+- `BentoWidget` renders a `.bento-widget-preview` section between the icon-bubble and the name-content. Each preview item: small color dot + device name. Item count scales with widget size: `large=6, medium=4, small=2`. Plus "+N weitere" footer if the full list exceeds maxPreview.
+
+**`BentoStartView.css`** — new styles for `.bento-widget-preview`, `.bento-widget-preview-item`, `.bento-widget-preview-dot`, `.bento-widget-preview-name`, `.bento-widget-preview-more`. Font sizes scale per widget variant.
+
+### Result
+
+Favoriten widget on the Bento home now reads like:
+
+```
+[♥]
+  • Wohnzimmer Decke
+  • Schlafzimmer Lampe
+  • Küche Spüle
+  +2 weitere
+
+Favoriten
+3 Geräte
+```
+
+Click → opens search panel with favorites filter active (now actually works because the key matches `'favorites'`).
+
+### Lesson
+
+Two lessons from one bug pair: (1) when adding a new filter consumer, verify the EXACT key string the upstream consumer expects — language-mismatched keys ('favoriten' vs 'favorites') are silent failures because SubcategoryBar just doesn't recognize the value as a known option. (2) Tile widgets benefit hugely from showing PREVIEW CONTENT, not just metadata. A "5 Geräte" count tells nothing; the actual names tell the user whether to tap.
+
+---
+
 ## Version 1.1.1466 - 2026-05-09
 
 **Title:** ⭐ Bento widgets: Favoriten + Vorschläge as virtual options (with live counts, click → opens search filter)
