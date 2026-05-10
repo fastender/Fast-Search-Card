@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1464 - 2026-05-09
+
+**Title:** 📐 Bento polish: sidebar top 396→400px + StatsBar wrapper reserves space when toggled off
+**Hero:** none
+**Tags:** Polish, Bento, Layout
+
+### Why
+
+Two refinements:
+
+1. **Sidebar top tweak**: User suggested `400px` for slightly better visual centering on the opened DetailView panel. Previous 396px was off by a few pixels.
+
+2. **StatsBar toggle stability**: When user disabled StatsBar via the Settings toggle, search panel + sidebar shifted ~60px upward. Cause: `StatsBar` returns `null` when `statsBarSettings.enabled=false` → no DOM, no space taken → flow elements above moved up. In Bento mode this is a layout-jump bug.
+
+### What changed
+
+`SearchField.jsx` — StatsBar wrapper gains a CSS class in Bento mode:
+
+```jsx
+<div
+  className={bentoEnabled ? 'statsbar-bento-wrapper' : undefined}
+  style={bentoEnabled && !isExpanded && !showDetail ? { visibility: 'hidden' } : undefined}
+>
+  <StatsBar ... />
+</div>
+```
+
+`BentoStartView.css`:
+- `.main-container--bento .vision-pro-menu--desktop { top: 400px }` (was 396px)
+- New rule: `.statsbar-bento-wrapper { min-height: 60px }` — wrapper takes 60px of vertical space even when its child (StatsBar) returns null. Result: search-row position constant regardless of StatsBar's enabled state.
+
+### Lesson
+
+For "stable layout regardless of optional component" patterns: the OPTIONAL element returning null isn't enough — you need a parent wrapper with min-height matching the rendered child's typical height. Visibility:hidden alone preserves space ONLY when the child renders something; if the child renders null, even visibility:hidden has nothing to hide. The min-height on the wrapper is the actual space-reservation mechanism.
+
+---
+
 ## Version 1.1.1463 - 2026-05-09
 
 **Title:** 📐 Bento grid height matches expanded search-panel — bottoms align (576px instead of 600px)
