@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1476 - 2026-05-10
+
+**Title:** 🎯 Bento Carousel: 3 cards per row for ALL widget sizes
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Fix
+
+### Why
+
+v1.1.1475 only fixed the "3 cards per row" requirement for the `large` widget slot. But the user had configured Favoriten in a different slot (small or medium), where the carousel still rendered 1 card per row at full width. Screenshot evidence: huge "System Einstellungen" card filling the entire widget. Footer/slider was pushed below the visible area because the cards were too tall.
+
+User feedback was crisp: "3 karten pro reihe! nicht eine einzige karte! WAS SOLL DAS? und wo ist der footerbereich mit slider".
+
+### What changed
+
+`BentoStartView.jsx`:
+- `cardsPerPage`: large `6 → 9`, medium `2 → 6`, small `1 → 3` — all multiples of 3, all force 3 cards per row regardless of widget slot.
+- `gridColsFor` now returns 3 for all sizes (was 3/2/1).
+
+`BentoStartView.css`:
+- Consolidated `.bento-carousel-page--{large,medium,small} > .bento-widget-card-wrapper` into a single rule with `flex: 0 0 calc(33.333% - 6px)` — applies to all three size variants.
+- `.bento-carousel-footer { min-height: 24px }` (was 16) — guarantees the slider always has a visible footprint even when the cards page eats most of the widget height.
+
+### Why this is the right level
+
+The carousel layout intentionally has three widget-size variants so the typography/icon scale could adapt. But the 3-cards-per-row layout is the user's explicit preference regardless of size — pulling it out to a single rule that targets all three variants is the cleanest expression of that intent.
+
+Side effect: in a "small" slot (W3/W4 on desktop, ~230px wide), three cards become ~70px wide each — small but still legible thanks to DeviceCardGridView's `@container (max-width: 180px)` rules that already shrink fonts/sensor-values. The user has accepted this trade-off explicitly.
+
+---
+
 ## Version 1.1.1475 - 2026-05-10
 
 **Title:** 🎯 Bento Carousel: clean heart icon, footer area, 3-col enforced
