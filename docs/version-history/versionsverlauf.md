@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1479 - 2026-05-10
+
+**Title:** ✨ Bento Widgets zeigen jetzt Live-Daten via DeviceCard
+**Hero:** none
+**Tags:** Feature, Bento, Live-Data, DeviceCard
+
+### Why
+
+User-Feedback: "die widgets zeigen keine aktuellen informationen wie bei der expanded suchpanel ansicht". Die non-carousel Widgets (Versionsverlauf, Energie Dashboard, Vacuum etc.) zeigten nur statisches Icon + Name + statische Description aus der Registry. Im Suchpanel rendert dagegen die DeviceCard mit live state/attributes (aktueller Verbrauch, Vacuum-Status, etc.).
+
+User-Wunsch: Option A — komplette DeviceCard rendern.
+
+### What changed
+
+`SearchField.jsx`:
+- Übergibt jetzt `devices={devices}` an `<BentoStartView>`.
+
+`BentoStartView.jsx`:
+- Neue Prop `devices = []`.
+- `widgetEntities` macht jetzt Live-Device-Lookup für jeden Widget-Slot: erst exact-match auf `entity_id`/`id`, dann domain-Fallback. Wenn ein echtes HA-Shape-Device gefunden wird, hat es state/attributes — sonst fallback auf die statische Registry-Entity.
+- `BentoWidget` hat eine neue Verzweigung: `isLiveDevice = !entity.isVirtual && entity.entity_id && entity.state !== undefined`. Wenn true, wird `<DeviceCard device={entity} viewMode="grid" onClick={() => {}} />` in einem motion.div-Wrapper gerendert. Der äußere Wrapper hat den `onClick` der die DetailView öffnet; DeviceCard intern hat leeren handler → kein Toggle.
+- Carousel-Logik (Favoriten/Vorschläge) bleibt unverändert — virtual widgets haben kein `entity_id` → isLiveDevice = false → carousel-branch greift wie zuvor.
+- Fallback-Layout (altes Icon+Name) bleibt für virtual widgets ohne previewItems (z.B. Home) sowie für Registry-Entities ohne live device match.
+
+`BentoStartView.css`:
+- Neue Klasse `.bento-widget--live`: padding 0, cursor pointer.
+- `.bento-widget--live .device-card`: `aspect-ratio: auto`, `width/height: 100%`, `background: transparent`, `border-radius: inherit` — Card füllt das Widget komplett, übernimmt Bento-Glass-Background.
+- Per-Size Padding-Anpassung: large 24, medium 18, small 14 (statt fixe DeviceCard 20px).
+
+### Mechanics — Click-Routing
+
+1. Outer motion.div (Bento-Widget): `onClick={() => onClick(entity)}` → ruft `handleSidebarItemClick(entity)` → `setSelectedDevice + setShowDetail(true)`.
+2. Inner DeviceCard: `onClick={() => {}}` → kein internal Toggle (sonst würde z.B. eine Lampe getoggelt statt DetailView geöffnet).
+3. Click event bubblet vom inner zum outer; beide handler feuern; effektiv nur outer wirkt.
+
+### Lesson — extending vs replacing
+
+Wir hätten auch nur die description-Zeile live machen können (Option B). Aber DeviceCard rendering ist die robustere Wahl: alle existierenden Domain-spezifischen Renderings (news-headlines, todo-counts, sensor-values, vacuum-state, climate-target) werden ohne Code-Duplikation übernommen. Wenn DeviceCardGridView später neue Features bekommt, profitiert Bento automatisch.
+
+---
+
 ## Version 1.1.1478 - 2026-05-10
 
 **Title:** 🐛 Bento Carousel: real-device click jetzt korrekt verlinkt
