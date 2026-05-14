@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1487 - 2026-05-10
+
+**Title:** 🎯 Bento Widgets: glass-panel-Doppel-Container wieder entfernt
+**Hero:** none
+**Tags:** Fix, Bento, Revert
+
+### Why
+
+v1.1.1486 fügte `glass-panel` zu jedem Live-Widget-Wrapper hinzu, um den backdrop-filter-Layer hinter der DeviceCard zu erzeugen (Versuch das Suchpanel-Look zu matchen). Das hatte einen unerwünschten Side-Effekt: glass-panel hat `border: 1px solid` + `box-shadow: 0 8px 32px` → jedes Widget bekam einen sichtbaren Ring drumherum. User-Feedback: „jetzt sind die widgets in einem zweiten container; das sieht scheisse aus".
+
+### What changed
+
+`BentoStartView.jsx`: `glass-panel` Klasse wieder entfernt vom Live-Widget-Wrapper.
+
+`BentoStartView.css`: `.bento-widget--live` zurück zur v1.1.1485-Form (`all: unset` + nur die nötigsten styles).
+
+### Erkenntnis
+
+Im Suchpanel sitzt `glass-panel` auf dem **äußeren search-panel-Container**, nicht auf jeder einzelnen DeviceCard. Im Bento entspricht das dem main-container's glass-panel — das ist schon da und gilt für ALLE Widgets im Bento-Grid. Ein zusätzlicher glass-panel pro Widget ist also nicht nötig und produziert nur Doppel-Container.
+
+Wenn der Background-Look zwischen Bento- und Suchpanel-Klima sich noch unterscheidet, liegt's nicht am fehlenden glass-panel-Wrapper, sondern an einem subtileren Layer-Unterschied (vermutlich die Größe + Position des Parent-glass-panels relativ zur Card).
+
+---
+
 ## Version 1.1.1486 - 2026-05-10
 
 **Title:** 🎯 Bento Live-Widget: glass-panel-Layer hinter DeviceCard
