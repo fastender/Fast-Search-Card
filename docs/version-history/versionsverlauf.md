@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1480 - 2026-05-10
+
+**Title:** 🎯 Bento-Widget-Hover identisch zum Suchpanel
+**Hero:** none
+**Tags:** Polish, Bento, Hover, DeviceCard
+
+### Why
+
+In v1.1.1479 wurden die Bento-Widgets auf DeviceCard-Rendering umgestellt. ABER: der äußere motion.div hatte `whileHover={{ scale: 1.015 }}` + `whileTap={{ scale: 0.985 }}` — also scalierte das gesamte Widget bei Hover. Zusätzlich hatte mein CSS `background: transparent !important` auf der inneren DeviceCard, was den Card-eigenen Hover-Background-Lighten (`rgba(0.1) → rgba(0.18)`) blockierte. Resultat: Hover-Verhalten war anders als bei einer DeviceCard im expanded Suchpanel.
+
+User-Feedback: "wenn ich hovere auf den widgets soll es wie beim hover sein, wenn ich auf expanded suchpanel ein device item hovere".
+
+### What changed
+
+`BentoStartView.jsx`:
+- Outer-Wrapper für Live-Widgets: motion.div → plain `<div>`. Kein whileHover/whileTap/transition mehr — der Hover-Effekt kommt jetzt ausschließlich von der DeviceCard selbst.
+- `glass-panel`-Klasse entfernt vom Wrapper (würde sonst eine zusätzliche Glass-Layer über der Card legen).
+
+`BentoStartView.css`:
+- `.bento-widget--live`: `all: unset` + plain block-styles (cursor, border-radius, overflow:hidden, box-sizing).
+- `.bento-widget--live .device-card`: KEIN `background: transparent !important` mehr — Card behält ihren default `rgba(255,255,255,0.1)`. Die @media (hover: hover) Styles aus DeviceCardGridView greifen jetzt natürlich: Background → rgba(0.18) + ::before-gradient-overlay opacity 0→1. Exakt identisch zum Suchpanel.
+- `border-radius: 24px` explicit auf der Card (statt `inherit` vom Widget).
+
+### Mechanics — der eine Grund warum das so subtle ist
+
+DeviceCardGridView definiert ihren Hover via inline `<style>` Tag:
+```css
+.device-card::before {
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  opacity: 0;
+}
+@media (hover: hover) {
+  .device-card:hover::before { opacity: 1; }
+  .device-card:hover { background: rgba(255, 255, 255, 0.18); }
+}
+```
+
+Solange die Card-Klassen unverändert + nicht durch `background: transparent !important` blockiert sind, übernimmt sich der Hover-Effekt automatisch. Lesson: bei UI-Konsistenz-Wünschen NIE Styles am gleichen Komponent dupliziert anpassen — sondern den Komponent selbst (DeviceCard) in den neuen Kontext einsetzen und einfach in Ruhe lassen.
+
+---
+
 ## Version 1.1.1479 - 2026-05-10
 
 **Title:** ✨ Bento Widgets zeigen jetzt Live-Daten via DeviceCard
