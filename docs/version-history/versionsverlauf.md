@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1494 - 2026-05-10
+
+**Title:** 🎯 Favoriten-Carousel: L/R-Padding weiter erhöht (24→32)
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Padding
+
+### Why
+
+User: „erhöhe weiter das links und rechts in den favoriten widget". v1.1.1493 hatte 24px L/R — User möchte mehr.
+
+### What changed
+
+`BentoStartView.css` — `.bento-widget--carousel`: `padding: 14px 24px` → `padding: 14px 32px`.
+
+- Cards-Breite jetzt ~162px (statt 167px), 2 Reihen ~332px + 89px Overhead ≈ 421px. Passt weiterhin in 548px W1-Höhe.
+
+---
+
 ## Version 1.1.1493 - 2026-05-10
 
 **Title:** 🎯 Favoriten-Carousel: asymmetrisches Padding (L/R größer)
