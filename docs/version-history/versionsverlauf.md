@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1526 - 2026-05-10
+
+**Title:** 🐛 Slider Doppel-Container: :not() filter für Domain-Gradient-Rules
+**Hero:** none
+**Tags:** Fix, Bento, Slider, CSS
+
+### Why
+
+User: „jetzt sind zwei container vorhanden; das rote muss weg". Screenshot zeigte einen roten Rahmen (Apple-News-Gradient) um die orange Aufgaben-Card. Bug-Trigger: Track-Architecture rendert alle items gleichzeitig im DOM. CSS-Rule `.bento-widget--rich:has(.bento-rich-news) { background: red-gradient !important }` matched → outer Wrapper bekommt News-Rot, plus innen das aktive Item rendert seinen eigenen orange-Gradient.
+
+Mein v1.1.1525-Versuch `.bento-widget--rich-slider:has(...) { background: transparent !important }` hatte gleiche Spezifität wie die Domain-Rules → tie, file-order entscheidet, in dem Fall hat das Domain-Rule gewonnen.
+
+### What changed
+
+`BentoStartView.css` — die 4 Domain-Gradient-Rules bekommen `:not(.bento-widget--rich-slider)`:
+```css
+.bento-widget--rich:not(.bento-widget--rich-slider):has(.bento-rich-weather) {
+  background: linear-gradient(...) !important;
+  ...
+}
+```
+
+Damit greifen die Domain-Gradient-Rules NUR für single Rich-Widgets (Wetter/Todos/News/Versions direkt in W2 ohne Slider). Im Slider-Modus matched die Rule nicht mehr → outer Wrapper bleibt transparent. Inner `.bento-rich-slider` rendert seinen Gradient via inline-style.
+
+Plus die redundanten `.bento-widget--rich-slider:has(...)` transparent-Overrides aus v1.1.1525 entfernt — werden nicht mehr gebraucht.
+
+### Mechanics
+
+`:not(.bento-widget--rich-slider)` ist eine **negative Class-Selector** mit Spezifität 0,1,0 — addiert zu `.bento-widget--rich:has(...)` ergibt 0,3,0. Plus `!important`. Klar höher als jede mögliche Rule die Slider-only matchen könnte → wins deterministisch.
+
+### Lesson
+
+Bei `:has()`-basierten Multi-Match-Konflikten nicht weitere `:has()`-Overrides stapeln (Spec-Konflikte). Stattdessen: das ursprüngliche `:has()` mit `:not()` filtern um spezifische Kontexte auszuschließen.
+
+---
+
 ## Version 1.1.1525 - 2026-05-10
 
 **Title:** ✨ Slider: Track-Architecture mit iOS-style Page-Peek + Footer-Drag via dragControls
