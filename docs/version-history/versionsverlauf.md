@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1519 - 2026-05-10
+
+**Title:** 🎯 Slider: News/Todos Header weg, Counts in den Footer-Label
+**Hero:** none
+**Tags:** Polish, Bento, Slider, Layout
+
+### Why
+
+User: „im bottom header soll bei news '1. zeile: Nachrichten, 2.Zeile: 23 Neue Nachrichten' stehen, also das was bei header steht — header und icon daher entfernen; genauso auch bei aufgaben soll im bottom stehen statt 'Aufgaben / Aufgaben', '8 Aufgaben / 6 unerledigt, 1 überfällig'".
+
+Im Slider war der Footer-Label nur „Nachrichten / Nachrichten" (redundant). Plus der Header (Icon + Name + Count) war im Slider redundant zum Footer.
+
+### What changed
+
+**`BentoStartView.jsx` — Compact-Prop pattern:**
+- `BentoRichTodos`, `BentoRichNews` akzeptieren jetzt `compact = false`.
+- Wenn `compact === true`: Header (Icon + Title-Block + Count) wird nicht gerendert. Nur das Content (Liste/Featured + More).
+- Single-Widget (W2 ohne Slider) → `compact = false` (default) → Header bleibt.
+- Slider → `compact = true` → Header weg, Footer-Label übernimmt die Info.
+
+**`renderRichForDomain` erweitert:**
+```js
+const renderRichForDomain = (entity, lang, hass, options = {}) => {
+  // ...
+  case 'todos':
+    return <BentoRichTodos ... compact={options.compact} />;
+  case 'news':
+    return <BentoRichNews ... compact={options.compact} />;
+  // ...
+};
+```
+
+Im Slider: `renderRichForDomain(..., { compact: true })`.
+
+**`getSliderItemLabel` per-domain Counts:**
+- **News**: area = „Nachrichten", name = `{unread_count} neue Nachricht(en)`
+- **Todos**: area = `{total_todos} Aufgabe(n)`, name = `{incomplete} unerledigt[, {overdue} überfällig]`
+- **Wetter**: unverändert — area = „Wetter", name = entity.area || entity.name
+- **Default**: name + area
+
+Live attrs via `entity.attributes` (snapshot beim render, updated bei state-change).
+
+### Result im Slider-Footer
+
+- **Wetter-Slide**: „Wetter / Stein"
+- **News-Slide**: „Nachrichten / 23 neue Nachrichten"
+- **Aufgaben-Slide**: „8 Aufgaben / 6 unerledigt, 1 überfällig"
+
+(Mit „8 Aufgaben" als total_todos count und „6 unerledigt, 1 überfällig" als detail counts.)
+
+### Single-Widget bleibt unverändert
+
+Wenn der User in W2 direkt Nachrichten (statt Slider) wählt, rendert News mit Header wie gewohnt. compact-prop ist optional und default false — kein Breaking-Change.
+
+---
+
 ## Version 1.1.1518 - 2026-05-10
 
 **Title:** 🐛 Bento-Grid: minmax(0, ...) verhindert Spalten-Expansion durch Content
