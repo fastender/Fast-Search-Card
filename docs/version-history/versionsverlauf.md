@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1527 - 2026-05-10
+
+**Title:** 🐛 Slider-Doppel-Container: `bento-widget--rich` Klasse weglassen
+**Hero:** none
+**Tags:** Fix, Bento, Slider, CSS
+
+### Why
+
+User-Screenshot zeigte „Verschmelzung" von Wetter+News-Background mit roter News-Gradient außen + orange Inner. v1.1.1526's `:not(.bento-widget--rich-slider):has(...)` Filter griff nicht zuverlässig — vermutlich Browser-Inkonsistenz beim Kombinieren von `:not()` und `:has()` (beide sind relativ neue CSS-Features mit nicht-perfektem Cross-Browser-Support).
+
+### What changed
+
+Statt mit CSS-Pseudo-Class-Filtern zu kämpfen: **Klasse weglassen** beim Slider-Wrapper.
+
+`BentoStartView.jsx` — Slider-Branch:
+```jsx
+// Vorher:
+className={`bento-widget bento-widget--${size} bento-widget--live bento-widget--rich bento-widget--rich-slider`}
+
+// Nachher:
+className={`bento-widget bento-widget--${size} bento-widget--live bento-widget--rich-slider`}
+```
+
+`.bento-widget--rich` ist die Klasse die die `:has()`-Domain-Gradient-Rules triggert. Ohne sie matcht das outer Slider-Wrapper KEINE der Rules → kein Gradient außen.
+
+`BentoStartView.css`:
+- `:not(.bento-widget--rich-slider)` Filter aus den 4 Domain-Rules entfernt (nicht mehr nötig).
+- `.bento-widget--rich-slider` bekommt eigene explicit Styles (display:flex, padding 0, background transparent, border-radius 24, overflow hidden, color white) — vorher kam das von `.bento-widget--rich`.
+
+### Resultat
+
+Outer Slider-Wrapper ist transparent. Inner `.bento-rich-slider` rendert seinen Gradient via inline-style basierend auf currentEntity.domain. Sauber, ohne Cross-Browser-CSS-Quirks.
+
+### Lesson
+
+Bei `:has()`-Multi-Match-Konflikten: nicht versuchen mit `:not()` zu filtern (Browser-Support-Risiko + Spec-Komplexität) — sondern die **CSS-Selector-Trigger-Klasse** beim Rendern weglassen. Saubere Schicht-Trennung: single rich widgets bekommen `.bento-widget--rich`, slider nicht.
+
+---
+
 ## Version 1.1.1526 - 2026-05-10
 
 **Title:** 🐛 Slider Doppel-Container: :not() filter für Domain-Gradient-Rules
