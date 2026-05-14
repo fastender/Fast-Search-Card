@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1524 - 2026-05-10
+
+**Title:** 🎯 Todos Tabs/List größer + Drag auf Slider-Outer-Wrapper (Footer swipable)
+**Hero:** none
+**Tags:** Polish, Bento, Slider, Todos
+
+### Why
+
+User-Wünsche:
+1. „bisschen größer" — Todos-Tabs und Tasks-Liste waren visuell sehr klein (font 12px, padding 4×10).
+2. „bottom header soll swipe mit mouse ermöglichen; verwendest du framer motion für slide und swipe?" — ja, framer-motion, aber drag war nur auf der inner motion.div (Content). Footer hatte keinen drag → konnte nicht zum Swipen verwendet werden.
+
+### What changed
+
+**Tab/Liste-Sizing (`BentoStartView.css`):**
+- Tab: font 12 → **14**, padding 4×10 → **7×14**, border-radius 12 → **16**
+- Row: font 13 → **14.5**, gap 9 → **10**
+- Circle: 14×14 → **17×17**
+- Due-Pill: font 11 → **12.5**, padding 2/7 → **3/10**, radius 7 → **9**
+
+Mehr Touch-Target, klarer lesbar.
+
+**Slider-Drag auf Outer-Wrapper (`BentoStartView.jsx`):**
+
+Vorher:
+```jsx
+<div className="bento-rich-slider">
+  <motion.div drag="x" ...>{content}</motion.div>
+  <div className="bento-carousel-footer">{label + dots}</div>
+</div>
+```
+→ Footer war nicht drag-bar.
+
+Nachher:
+```jsx
+<motion.div className="bento-rich-slider" drag="x" ...>
+  <motion.div>{content}</motion.div>
+  <div className="bento-carousel-footer">{label + dots}</div>
+</motion.div>
+```
+
+drag/dragDirectionLock/dragConstraints/dragElastic/onDragEnd jetzt auf dem OUTER wrapper. Damit ist der ganze Slider (Content + Footer) per Mouse-Drag swipbar.
+
+Inner motion.div im AnimatePresence hat keinen drag mehr — würde sonst die Outer-Drag schlucken.
+
+### Architektur-Stack für Slider-Animation
+
+- **Slide-Transition** (zwischen Items): `AnimatePresence mode="wait"` + Inner motion.div mit `initial/animate/exit opacity` → Fade-Cross-Fade
+- **Background-Cycle** (Domain-Gradients): CSS `transition: background 0.5s ease` + `:has()`-Selektoren → smooth Cross-Fade der Gradients
+- **Swipe-Drag** (Maus + Touch): framer-motion `drag="x"` auf Outer Wrapper mit Distance/Velocity-Thresholds
+- **Auto-Advance**: `useEffect` + `setInterval` (10s, pause-on-hover via state)
+
+Alle vier laufen unabhängig zusammen.
+
+---
+
 ## Version 1.1.1523 - 2026-05-10
 
 **Title:** 🐛 Slider-Drag: Hover-Scale Konflikt + visible Drag-Feedback
