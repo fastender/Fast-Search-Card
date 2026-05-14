@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1505 - 2026-05-10
+
+**Title:** 📐 Favoriten-Carousel: 3×2, padding L/R -4, Header -4
+**Hero:** none
+**Tags:** Layout, Bento, Carousel
+
+### Why
+
+User: „die seitlichen abstände links und rechts vom .bento-carousel-page um 4px reduzieren und header ebenso. und dann nicht mehr 3-reihig sondern 2-reihig bauen". Layout-Reset auf einfachere Geometrie.
+
+### What changed
+
+`BentoStartView.jsx`:
+- `cardsPerPage(large)`: 9 → 6 (3×2 statt 3×3).
+
+`BentoStartView.css`:
+- `.bento-widget--carousel { padding: 14px 32px → 14px 28px }` (L/R -4px).
+- `.bento-carousel-header { min-height: 24px → 20px }` (-4px).
+- `.bento-carousel-page--large` Sonderfall-Block ENTFERNT (war für 3x3-Layout mit rectangular Cards). Mit 3×2 passen Cards mit ihrer Default-`aspect-ratio: 1` aus DeviceCardGridView sauber rein — kein Override mehr nötig.
+
+### Geometrie
+
+- W1 width: 565.6
+- Inner width: 565.6 - 56 (padding 14+14*2 → wait padding ist 14 28) = 509.6
+- Inner height: 576 - 28 = 548
+- Page-Höhe verfügbar: 548 - 20 (Header) - 15 (margin) - 54 (Footer) = 459
+- 3 cols × ((509.6 - 48 gap) / 3) = 153.87px Cards
+- aspect-ratio:1 → 153.87 high
+- 2 rows × 153.87 + 24 gap = 331.74 < 459 ✓
+
+Cards strikt quadratisch.
+
+---
+
 ## Version 1.1.1504 - 2026-05-10
 
 **Title:** 🎯 Favoriten-Carousel: gap symmetrisch (24px) + Footer 54px
