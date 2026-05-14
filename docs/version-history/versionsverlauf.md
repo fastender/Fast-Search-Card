@@ -1,5 +1,77 @@
 # Versionsverlauf
 
+## Version 1.1.1525 - 2026-05-10
+
+**Title:** ✨ Slider: Track-Architecture mit iOS-style Page-Peek + Footer-Drag via dragControls
+**Hero:** none
+**Tags:** Refactor, Bento, Slider, Drag
+
+### Why
+
+User: „bei sliden (wenn ich mouse drücke) entgleitet der text komplett aus dem widget; kannst du das slide besser machen?". Plus „bottom header soll swipe mit mouse ermöglichen".
+
+Beide Probleme stammten von der gleichen Architecture-Limit:
+- **AnimatePresence mit `mode="wait"`**: nur 1 Item zur Zeit mounted → beim drag ist nichts hinter dem aktuellen Item → wenn item nach links gedragged wird, ist rechts daneben „leer" → unsauber.
+- **Drag auf inner motion.div**: Footer ist Sibling außerhalb, kann nicht swipe-triggern.
+
+### What changed — Architecture-Refactor
+
+Slider wechselt von **AnimatePresence mode="wait"** zu **Track-Architecture** (analog iOS-Page-Slider):
+- Alle Items werden **side-by-side** im Track gerendert.
+- Track ist `width: items.length × 100%`, jede Page ist `width: 100/items.length %`.
+- Track translateX via `useMotionValue('0%')` + `animate(trackX, target)` bei Index-Wechsel.
+- Bei Drag bewegt der Track sich sichtbar → next/prev Page peekt rein wie auf iOS.
+
+**`useDragControls` für Footer-Swipable:**
+```jsx
+const dragControls = useDragControls();
+
+<motion.div onPointerDown={(e) => dragControls.start(e)}>
+  {/* outer wrapper — drag-trigger ist die ganze Fläche inkl. Footer */}
+  <motion.div drag="x" dragControls={dragControls} dragListener={false} ...>
+    {/* inner track — drag-effekt visuell hier, gesteuert via dragControls */}
+  </motion.div>
+  <Footer />
+</motion.div>
+```
+
+`onPointerDown` auf der outer-Wrapper startet drag via dragControls. inner Track hat `dragListener={false}` damit es nicht selber pointer-events handelt — drag wird extern via controls aktiviert. Damit: pointer-events vom Footer triggern auch drag auf den Track (Track bewegt sich visuell, Footer bleibt fix).
+
+**Gradient-Approach geändert:**
+Bei Track-Architecture sind alle Items gleichzeitig im DOM → `:has(.bento-rich-weather)` UND `:has(.bento-rich-todos)` UND `:has(.bento-rich-news)` matchen ALLE → CSS-Conflict.
+
+Lösung: Gradient via **JS-Map** + **inline-style** auf der Slider-Outer:
+```js
+const SLIDER_GRADIENTS = {
+  weather: 'linear-gradient(160deg, #4a90e2 0%, #2a6cb2 100%)',
+  todos:   'linear-gradient(160deg, #FF9F0A 0%, #C76C00 100%)',
+  news:    'linear-gradient(160deg, #FE3B30 0%, #B81E12 100%)',
+};
+style={{ background: getSliderGradient(currentEntity.domain) }}
+```
+
+Plus `transition: background 0.5s ease` für smooth Domain-Wechsel (Cross-Fade der Farben). `:has()`-Selektoren werden für Slider via `:has(...) { background: transparent !important }` deaktiviert.
+
+### Resultat
+
+- Drag fühlt sich an wie iOS-Page-Slider: aktuelles Item folgt der Maus, nächstes peekt von rechts/links rein.
+- Footer ist als Drag-Source verwendbar (onPointerDown → dragControls).
+- Background-Gradient cyclet smooth zwischen Apple-Farben beim Domain-Wechsel.
+- Velocity + Distance Thresholds bestimmen Page-Wechsel; sonst snap-back zur current page.
+
+### Stack-Übersicht Slider (final)
+
+| Aspekt | Mechanismus |
+|---|---|
+| Item-Sliding | framer-motion `animate(trackX, target)` (Tween) |
+| Drag visual | `drag="x"` + `dragElastic={0.2}` auf Track |
+| Footer-Drag-Source | `useDragControls()` + `onPointerDown` auf Outer |
+| Gradient-Cycle | CSS `transition: background` + inline-style |
+| Auto-Advance | `setInterval` + `setIdx` |
+| Pause-on-Hover | onMouseEnter/Leave state |
+
+---
+
 ## Version 1.1.1524 - 2026-05-10
 
 **Title:** 🎯 Todos Tabs/List größer + Drag auf Slider-Outer-Wrapper (Footer swipable)
