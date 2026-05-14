@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.1511 - 2026-05-10
+
+**Title:** ↩️ Carousel: Fade-Indikatoren entfernt
+**Hero:** none
+**Tags:** Revert, Bento, Carousel
+
+### Why
+
+User-Feedback nach v1.1.1510: „diesen schatten links und rechts entfernen, sieht scheisse aus".
+
+### What changed
+
+`BentoStartView.jsx`: die `<div className="bento-carousel-fade ...">` Elemente entfernt.
+`BentoStartView.css`: `.bento-carousel-fade*` Rules entfernt.
+
+Loop-Behaviour + Plus-Icon-Empty + Drag-Direction-Lock aus v1.1.1510 bleiben.
+
+---
+
 ## Version 1.1.1510 - 2026-05-10
 
 **Title:** ✨ Bento-Carousel: Plus-Empty, Drag-Lock, Loop + Fade-Indikatoren
