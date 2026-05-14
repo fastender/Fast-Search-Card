@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1521 - 2026-05-10
+
+**Title:** 🐛 Wetter-Widget: kein leerer State mehr nach Slider-Wechseln
+**Hero:** none
+**Tags:** Fix, Bento, Weather, State
+
+### Why
+
+User: „bug bei wetter; manchmal aktualisiert es nicht; vor allem wenn ich viel geslidert habe". Screenshot zeigte ein fast leeres Wetter-Widget — nur Icons oben, „—" als Temperatur, keine Location, keine Forecast. Trigger: nach mehrfachem schnellen Sliden.
+
+### Root cause (Drei zusammenhängende Probleme)
+
+1. **`useSystemEntityAttributes` Hook stale state**: useState init liest aus Registry einmal beim Mount. Bei AnimatePresence-Remount (jeder Slider-Wechsel = neuer Mount) re-initialisiert der Hook. Falls in dem Moment keine system-entity-update-event gefeuert wurde, bleibt der state null → liveAttrs null → `temp = null` → „—" wird gerendert.
+
+2. **Forecast async re-load**: `useEffect` triggert `hass.callWS` für hourly+daily forecast bei jedem Mount. ~500ms bis Daten zurück → leerer Strip in dieser Zeit. Bei rapid sliding mehrfacher Cancel/Restart.
+
+3. **Location-Text leer**: `entity.area || entity.name` — wenn beide vom system-entity async geladen werden (siehe WeatherDeviceEntity.area wird in getCurrentWeather gesetzt) und noch nicht da sind, blank.
+
+### What changed
+
+**`useSystemEntityAttributes.js`:**
+```js
+// Vorher: useState mit init aus Registry, update via Event
+// Nachher: tick-state als re-render-trigger, queries Registry direkt bei jedem Render
+return systemRegistry.getEntityByDomain(domain)?.attributes || null;
+```
+Damit: nie stale, immer aktuelle Registry-Daten. Event triggert nur re-render.
+
+**`BentoStartView.jsx` — BentoRichWeather:**
+
+- **Attrs-Fallback-Chain**: `liveAttrs || entity.attributes || {}` — kein null-state mehr möglich.
+- **Module-level Forecast-Cache**: `weatherForecastCache = new Map()` außerhalb der Component. Initial state aus Cache → instant display beim Remount. Erfolgreiches Load updated Cache.
+- **Location-Final-Fallback**: `entity.area || entity.name || 'Wetter'` — nie leer.
+
+### Mechanics — Cache-Lifecycle
+
+Cache überlebt Component-Remounts (gleicher JS-Heap, nicht state-bound). Bei jedem successful loadForecast wird der Eintrag updated. Bei Component-Mount wird Cache-Wert als initial state genommen → render zeigt sofort den letzten bekannten Forecast. Async load läuft trotzdem im Hintergrund → frische Daten überschreiben Cache nach ~500ms.
+
+Cache wird nicht invalidiert — re-fetch alle 10 Min sorgt für Frische. Multi-Tab-Issues sind irrelevant (Cache ist per-Tab-JS-Heap).
+
+### Lesson
+
+Pattern „useState init + Event-based updates" ist anfällig wenn der Component frequently remountet (z.B. AnimatePresence `mode="wait"`). Sicherer: read fresh source on every render + force re-render via tick state.
+
+Plus für async-loaded data: module-level cache + initial state aus cache ist der Standard-Trick um leere flashes zu vermeiden.
+
+---
+
 ## Version 1.1.1520 - 2026-05-10
 
 **Title:** 🎯 Todos: List-Tabs + scrollable + Slider-Dots rechts
