@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1499 - 2026-05-10
+
+**Title:** 🎯 Favoriten-Carousel: leerer Header-Spacer + Cards top-aligned
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Layout
+
+### Why
+
+User-Wunsch: „header soll doch sein, aber ohne icon oder text; dann vertikale zentrierung der karten nicht mehr machen". In v1.1.1497 hatten wir den Header komplett entfernt; v1.1.1498 hatte align-content:center für Cards. Beides revert.
+
+### What changed
+
+`BentoStartView.jsx`:
+- Leerer `<div className="bento-carousel-header" aria-hidden="true" />` als reiner Spacer am Top des Carousels.
+
+`BentoStartView.css`:
+- `.bento-carousel-header`: min-height 44px, flex-shrink:0, width 100% (kein Icon, kein Text — pure Spacer).
+- `.bento-carousel-page { align-content: start }` (statt center).
+
+### Layout
+
+```
+[ Header-Spacer 44px (leer) ]
+[ Cards 3×2 oben gepackt ]
+[ leere Höhe ]
+[ Footer 44px: Label links | Dots zentriert ]
+```
+
+---
+
 ## Version 1.1.1498 - 2026-05-10
 
 **Title:** 🎯 Favoriten-Carousel: 2-zeiliges Label im Footer (DeviceCard-Style)
