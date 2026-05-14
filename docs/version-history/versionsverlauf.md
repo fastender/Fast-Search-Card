@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.1482 - 2026-05-10
+
+**Title:** 🎯 Bento Live-Widget Hover = identisch zum Carousel
+**Hero:** none
+**Tags:** Fix, Bento, Hover, Reverse
+
+### Why
+
+In v1.1.1481 hatte ich den User-Wunsch falsch interpretiert. Statement war: „der hover wie es bei Waschraum Klima ist gefällt mir, der hover bei den Aufgaben (blau) ist anders". Ich verstand: „die Aufgaben sollen beim Hover ein Background-Lighten haben". Tatsächlich gemeint war: die Live-Widgets sollen sich **exakt wie die Cards im Favoriten-Carousel** verhalten — dort wird beim Hover **nur scaliert** (1.05) und der active-state-Look (Wohnzimmer weiß, Aufgaben blau) bleibt erhalten.
+
+User-Klärung mit 2 Screenshots des Carousel-Hover: „genau dieses hover effekt will ich auch haben bei den widgets".
+
+### Root cause meines vorherigen Fehlers
+
+1. CSS-Override `background-color: rgba(255,255,255,0.18) !important` beim Hover hat den nativen framer-motion-Hover (der bei active-cards die backgroundColor erhält) überschrieben. Resultat: aktive Cards verloren beim Hover ihren active-Look.
+2. `overflow: hidden` am Outer-Wrapper clippte die Scale-Animation der Card → Vergrößerung war visuell unterdrückt. Im Carousel haben Cards keinen overflow-Wrapper drumherum.
+
+### What changed
+
+`BentoStartView.css`:
+- `.bento-widget--live { overflow: hidden }` → ENTFERNT. Card kann jetzt frei beim Hover scalieren.
+- Komplettes `@media (hover: hover) { ... :hover { background-color: !important } }` aus v1.1.1481 → ENTFERNT.
+
+### Resultat
+
+Live-Widgets und Carousel-Cards haben jetzt identisches Hover-Verhalten: scale 1.05 + framer-motion-variant. Active system-entities (Aufgaben blau, Wohnzimmer weiß) behalten ihre Farbe beim Hover. Inactive Devices (Klima off) bekommen subtle background lighten (rgba(0.18)) wie bisher.
+
+### Lesson learned
+
+Bei UI-Konsistenz-Wünschen den Komponent in den neuen Kontext einsetzen und in Ruhe lassen. Jeder Override kann das Behavior in unerwartete Weise zerstören. Wenn ich's zweimal hintereinander erklärt bekommen muss, war mein Verständnis offensichtlich falsch — nicht weiter überlagern, sondern zurück auf null und neu zuhören.
+
+---
+
 ## Version 1.1.1481 - 2026-05-10
 
 **Title:** 🎯 Bento-Hover für System-Entities (Todos etc.) jetzt sichtbar
