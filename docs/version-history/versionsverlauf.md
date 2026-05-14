@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1517 - 2026-05-10
+
+**Title:** 🎯 Slider-Footer 1:1 wie Favoriten + Rich-Widget Width-Consistency
+**Hero:** none
+**Tags:** Polish, Bento, Slider, Layout
+
+### Why
+
+User-Feedback:
+1. „nachrichten widget hat eine andere breite als die widgets aufgaben und wetter; bitte ändern" — News-rich-widget hat (perceived) andere Breite als Wetter/Todos im Slider.
+2. „bottom beim slider widget 2 haben, so 1:1 wie Favoriten mit links unten text zweizeilig und mitte slidebuttons dots" — Slider braucht den gleichen Footer-Style wie der Favoriten-Carousel.
+
+### What changed
+
+**Width-Konsistenz (`BentoStartView.css`):**
+```css
+.bento-rich-weather,
+.bento-rich-todos,
+.bento-rich-news,
+.bento-rich-versions {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+```
+Sicherheits-Override damit alle Rich-Widget-Inhalte exakt gleich breit + hoch rendern, egal welcher domain-Inhalt drin ist.
+
+**Slider-Footer (`BentoStartView.jsx`):**
+- Dots-Display von absolute-positioned (über Content) → in einem regulären Footer-Bereich darunter.
+- Footer reused `.bento-carousel-footer` Klassen — gleiche Optik wie Favoriten-Carousel: Label links absolute zweizeilig + Dots zentriert via parent justify-content.
+- Neue Helper-Funktion `getSliderItemLabel(entity, lang)`:
+  - Zeile 1 (area-styling): Domain-Type („Wetter" / „Aufgaben" / „Nachrichten")
+  - Zeile 2 (name-styling): Entity-Area oder -Name (z.B. „Stein" für weather_device, „Aufgaben" als fallback)
+- Click auf Label → öffnet DetailView des aktuellen Items.
+- Click auf Dot → springt zu dem Item (mit stopPropagation damit nicht DetailView öffnet).
+
+**Layout-Refactor:**
+- Slider hat jetzt 2 vertikale Sektionen: Content (flex:1, AnimatePresence-area) + Footer (flex-shrink:0, ~54px).
+- AnimatePresence „wait" mode mit absolute-positioned motion-divs für sauberen Fade-Wechsel.
+
+### Resultat
+
+Slider hat jetzt visuell die exakt gleiche Footer-Struktur wie Favoriten-Carousel. Beim Cycle durch Wetter/News/Aufgaben:
+- Background-Gradient wechselt smooth (Apple-Farben)
+- Content fade-out + fade-in
+- Footer-Label wechselt mit dem Domain-Type
+- Dots zeigen position 1/3, 2/3, 3/3
+
+---
+
 ## Version 1.1.1516 - 2026-05-10
 
 **Title:** ✨ Bento W2 Auto-Slider: Wetter / News / Aufgaben mit 10s Autoplay
