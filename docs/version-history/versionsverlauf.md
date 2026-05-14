@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1490 - 2026-05-10
+
+**Title:** 📐 Bento-Grid: W1 (Favoriten) +15% breiter, Layout selbstkorrigierend
+**Hero:** none
+**Tags:** Layout, Bento, Grid
+
+### Why
+
+User-Wunsch: Widget 1 (Favoriten) soll 15% breiter werden. Widget 2 (Wetter) soll in der Höhe so angepasst werden, dass W3 und W4 weiterhin quadratisch bleiben.
+
+### What changed
+
+`BentoStartView.css` — `.bento-grid--desktop`:
+- `grid-template-columns: 1fr 1fr` → `grid-template-columns: 1.353fr 1fr`.
+
+Verhältnis 1.353:1 entspricht 57.5% : 42.5% — also +15% auf W1's bisherige 50%-Breite.
+
+### Layout-Mechanik (selbstkorrigierend)
+
+- Rechte Spalte wird schmaler (~42.5% statt 50%).
+- W3+W4 haben `aspect-ratio: 1` → werden automatisch kleinere Quadrate (Breite halbiert minus gap).
+- W34-Row im Grid ist `auto` → nimmt nur so viel Höhe wie die quadratischen Cards brauchen.
+- W2 ist in Row 1 mit `1fr` → nimmt den Rest der Total-Grid-Height (576px) automatisch.
+
+Damit passt sich W2 ohne explizite Anpassung an. Wenn der User später nochmal die Breite ändert, läuft alles weiter durch.
+
+---
+
 ## Version 1.1.1489 - 2026-05-10
 
 **Title:** ↩️ Bento Live-Widget: zurück zu v1.1.1487 (Hover wieder schön)
