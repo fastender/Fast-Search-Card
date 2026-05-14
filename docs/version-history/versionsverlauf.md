@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1488 - 2026-05-10
+
+**Title:** 🎯 Bento Live-Widget: backdrop-filter ohne Doppel-Container
+**Hero:** none
+**Tags:** Polish, Bento, Glass, Backdrop-Filter
+
+### Why
+
+In v1.1.1485 hatte das Live-Widget keine eigene Glass-Layer → durchsichtiger Background, Wohnzimmer-Bild schien klar durch (User: „zu durchsichtig und kein blurred").
+
+In v1.1.1486 hatte ich `glass-panel`-Klasse hinzugefügt → backdrop-filter da, aber mit unerwünschtem `border: 1px solid` + `box-shadow` → Doppel-Container-Look (User: „sieht scheisse aus").
+
+Erkenntnis: User möchte den **backdrop-filter-blur-Layer** (wie im Carousel-Favoriten-Widget und Suchpanel-Cards), aber **OHNE** Border-Decoration auf jedem einzelnen Widget.
+
+### What changed
+
+`BentoStartView.css`:
+- `.bento-widget--live::before` — custom Pseudo-Element mit `backdrop-filter: blur(20px) saturate(180%)` + radial-gradient + `rgba(30,30,30,0.4)` dark overlay.
+- Quasi extrahiert nur den Glass-Effekt aus dem `.glass-panel::before`, lässt aber `border` + `box-shadow` weg.
+- `border-radius: 24px` damit Glass-Layer zur DeviceCard-Form passt.
+- z-index: -1 + position:relative auf parent → Glass-Layer sitzt **hinter** der DeviceCard.
+- `--background-blur` und `--background-saturation` CSS-Variablen werden respektiert (gleich wie die anderen glass-panels im Codebase).
+
+### Schichtung jetzt
+
+```
+.bento-widget--live              (transparent, position:relative)
+  ::before (z-index:-1)          (backdrop-blur + dark overlay)
+  .device-card                   (rgba(0.1) tile + scale 1.05 hover)
+```
+
+Dreigeschichteter Look ohne Border-Doppel-Container.
+
+---
+
 ## Version 1.1.1487 - 2026-05-10
 
 **Title:** 🎯 Bento Widgets: glass-panel-Doppel-Container wieder entfernt
