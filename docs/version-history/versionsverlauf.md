@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1485 - 2026-05-10
+
+**Title:** 🎯 Bento-Hover: native DeviceCard wiederhergestellt (= Suchpanel)
+**Hero:** none
+**Tags:** Fix, Bento, Hover, Revert
+
+### Why
+
+In v1.1.1483 hatte ich einen CSS-Override eingebaut der den hover-bg-change für non-active Cards unterdrückte — basierend auf der Annahme, dass User „scale-only"-Hover für alle Bento-Widgets möchte. Damals wirkte das gut, weil die meisten der „inkonsistenten" Cards (Bambu, Stein, Klima) noch im fallback-Pfad waren und mein Override sie gar nicht erreichte.
+
+v1.1.1484 hat genau das verändert: die Cards finden jetzt ihren Live-Device-Match → rendern als DeviceCard im live-Pfad → mein v1.1.1483 Override begann plötzlich für sie zu greifen. User-Feedback: „hover wieder geändert!!!! warum machst du das?".
+
+Auf Nachfrage: User möchte den **nativen DeviceCard-Hover wie im Suchpanel** (scale 1.05 + `::before`-Gradient-Overlay + bg-Change auf rgba(0.18) für non-active). Nicht meine vereinheitlichte Variante.
+
+### What changed
+
+`BentoStartView.css`:
+- v1.1.1483 CSS-Override (`.bento-widget--live .device-card:not(.active):hover { background-color: rgba(0.1) !important }`) ENTFERNT.
+
+Damit greift im Live-Widget die native DeviceCard-Hover-Logik unverändert. Verhalten ist identisch zum Suchpanel.
+
+### Bilanz der Hover-Iterationen
+
+Sechs Schritte (v1.1.1480–1485) um den richtigen Hover-State zu finden. Lesson: bei UX-Wünschen die sich auf andere Komponenten beziehen („soll wie X aussehen") IMMER zuerst klären welche der vielen Eigenschaften gemeint sind (scale-Amplitude, bg-Wechsel, Gradient-Overlay, transition-timing, …). Davon ableitend zwei-drei Optionen anbieten BEVOR Code geschrieben wird.
+
+---
+
 ## Version 1.1.1484 - 2026-05-10
 
 **Title:** 🐛 Bento: Live-Data für Integration-Devices (Universal/Printer/Weather)
