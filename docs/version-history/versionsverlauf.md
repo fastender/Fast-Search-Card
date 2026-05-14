@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1481 - 2026-05-10
+
+**Title:** 🎯 Bento-Hover für System-Entities (Todos etc.) jetzt sichtbar
+**Hero:** none
+**Tags:** Polish, Bento, Hover, System-Entities
+
+### Why
+
+In v1.1.1480 wurde der Hover-Effekt im Bento auf den DeviceCard-Default zurückgesetzt — das funktionierte sauber für normale HA-Devices (Klima off: background → rgba(255,255,255,0.18) beim Hover, sichtbares Lighten + scale). ABER: für System-Entities (Aufgaben/Todos im active-state, also wenn offene Items vorhanden) blieb der Hover „unsichtbar" — nur scale, kein background change.
+
+Root cause in `src/system-entities/config/appearanceConfig.js`:
+```js
+todos: {
+  color: 'rgb(0, 122, 255)',
+  hoverColor: 'rgb(0, 122, 255)',  // ← gleich wie activeColor
+  activeColor: 'rgb(0, 122, 255)',
+}
+```
+
+`createDynamicVariants` setzt den Hover-State `backgroundColor: appearance.hoverColor` — also auf den gleichen Wert wie active. Beim Hover ändert sich der framer-motion-Background nicht. User-Wahrnehmung: „Hover passiert nichts".
+
+### What changed
+
+`BentoStartView.css`:
+```css
+@media (hover: hover) {
+  .bento-widget--live .device-card {
+    transition: background-color 0.2s ease, scale 0.2s ease !important;
+  }
+  .bento-widget--live .device-card:hover {
+    background-color: rgba(255, 255, 255, 0.18) !important;
+  }
+}
+```
+
+CSS mit `!important` beat'et framer-motion's inline `style="background-color: ..."`. Im Bento-Mode bekommt jede Card beim Hover den gleichen leichten White-Overlay — Todos, Settings, News, Versionsverlauf, Klima, alles konsistent. Im Suchpanel bleibt das original-Verhalten (kein Override greift dort).
+
+### Mechanics — Inline-Style vs CSS
+
+framer-motion's whileHover setzt direkt `element.style.backgroundColor`. CSS-Regeln ohne `!important` verlieren gegen Inline-Styles (Spezifität 1000). Mit `!important` aus dem Stylesheet wird die Reihenfolge umgekehrt — CSS-`!important` beat Inline-Style außer Inline-Style hat auch `!important`. framer setzt KEIN `!important`, also gewinnt unsere Regel.
+
+Transition zusätzlich auf CSS-Ebene damit der Wechsel smooth ist (sonst springt es abrupt, weil framer-motion bei `!important`-Override seine eigene Animation nicht mehr durchführt).
+
+---
+
 ## Version 1.1.1480 - 2026-05-10
 
 **Title:** 🎯 Bento-Widget-Hover identisch zum Suchpanel
