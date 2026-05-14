@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1513 - 2026-05-10
+
+**Title:** 🌤️ Bento Wetter-Widget im Apple-Wetter-Style (Hourly-Strip)
+**Hero:** none
+**Tags:** Feature, Bento, Weather, Apple-Design
+
+### Why
+
+User-Wunsch: Wetter-Widget soll wie das iOS-Wetter-Widget aussehen — Stadt + Pfeil oben, große Temperatur, Condition + H/L rechts, horizontaler Hourly-Forecast-Strip unten. Blauer Gradient als Theme.
+
+### What changed
+
+`BentoStartView.jsx` — `BentoRichWeather` komplett umgebaut:
+- **Top row**: Stadt-Name (z.B. „Stein") + Pfeil-SVG (location indicator) links + Condition-Icon (via `getWeatherIcon`) rechts.
+- **Mid row**: Temperatur in 64px Display links, Condition-Text + High/Low rechts.
+- **Hourly Strip**: 6 Stunden mit Zeit + Wetter-Icon + Temp.
+- **Async Forecast Loading** via `hass.callWS` mit `weather.get_forecasts` Service (HA 2023.9+) — sowohl hourly als auch daily (für H/L). Re-fetch alle 10 Min.
+
+`BentoStartView.jsx` — hass-prop durchgereicht:
+- BentoStartView → BentoWidget → renderRichForDomain → BentoRichWeather.
+
+`BentoStartView.css` — neue `.bento-rich-weather-*` Klassen:
+- Blauer Gradient-Background via `:has(.bento-rich-weather)` Selector — überschreibt das generic rgba(0.1)-Bg von `.bento-widget--rich`.
+- Layout-Spalten: location/icon top, temp+condition mid, hourly strip bottom.
+- Typography Apple-style: 64px temp (weight 300), 17px location (weight 600), 11px hour-time, etc.
+- Hover: lighter blue Gradient.
+
+### Datenquellen
+
+- `entity.attributes.entity_id`: HA-weather-entity-ID für service calls.
+- `useSystemEntityAttributes(domain)`: live current_temperature + current_condition.
+- `weather.get_forecasts` service: hourly + daily Arrays.
+
+### Edge-Cases
+
+- Wenn kein hass oder kein entity_id: Forecast-Strip wird einfach nicht gerendert. Top-Section bleibt funktional.
+- Silent fail bei service call errors (kein User-facing error, einfach kein strip).
+- Re-fetch alle 10 Min mit cancellation via cleanup-function.
+
+### Andere Domains (Todos, News)
+
+Unverändert von v1.1.1512. Andere Domains fallen weiter auf DeviceCard zurück.
+
+---
+
 ## Version 1.1.1512 - 2026-05-10
 
 **Title:** ✨ Bento W2: Rich-Variant für Wetter, Aufgaben, Nachrichten
