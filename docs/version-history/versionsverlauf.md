@@ -1,5 +1,76 @@
 # Versionsverlauf
 
+## Version 1.1.1506 - 2026-05-10
+
+**Title:** ✨ Bento-Carousel: Slide-Animation, No-Remount, Pulse, Aria-Live, Velocity-Swipe
+**Hero:** none
+**Tags:** Feature, Performance, A11y, Bento, Carousel
+
+### Why
+
+User-Liste mit fünf Polish/Perf-Punkten:
+1. Slide-Animation statt Opacity-Fade beim Page-Wechsel
+2. Pulse/Loading-State für leere Widget-Slots
+3. Aria-Live für Page-Wechsel
+4. Touch-Swipe-Sensitivity reduzieren
+5. DeviceCards nicht mehr re-mounten bei Page-Wechsel
+
+(Punkt 6 — Memo-Optimierung — war bereits durch existing `deviceCardPropsAreEqual` Comparator gelöst, Audit confirmed.)
+
+### What changed — Architecture-Refactor des Carousels
+
+`BentoStartView.jsx`:
+- **`allPages` pre-computed**: alle Pages auf einmal berechnet (statt nur die sichtbare).
+- **Track-Architecture**: neue Struktur `.bento-carousel-pages-viewport` > `.bento-carousel-pages-track` > N × `.bento-carousel-page`. Viewport clipt overflow, Track ist `width: totalPages × 100%` und sliding via `animate={{ x: -safePage × (100/totalPages)% }}`.
+- **Kein `key`-Wechsel mehr auf der Page-DIV** → DeviceCards bleiben mounted bei Page-Wechsel (Punkt 5 erledigt).
+- **Slide-Transition**: `transition: { type: 'spring', stiffness: 320, damping: 32 }` für smooth bouncy slide (Punkt 1).
+- **Aria-Live Region**: `<div role="status" aria-live="polite">` mit "Seite N von M" — Screenreader bekommen Page-Wechsel angesagt (Punkt 3).
+- **`aria-hidden` auf non-current pages** → Screenreader navigiert nur die sichtbare Page.
+- **Velocity-aware Swipe**: `handleSwipe` checkt jetzt `info.offset.x` UND `info.velocity.x`. Distance-Threshold 40→60 (weniger sensibel), Velocity-Threshold 400 (schneller flick mit kleiner Distanz triggert trotzdem) — Punkt 4.
+
+`BentoStartView.css`:
+- `.bento-widget--empty`: pulse animation (2.4s ease-in-out infinite, opacity 0.55 → 0.9) + dashed border. Visual cue dass dort eine Action möglich ist (Punkt 2).
+- `.bento-carousel-sr-only`: standard visually-hidden Pattern (1×1 px, clip:rect(0,0,0,0)) für Aria-Live-Ankündigungen.
+- `.bento-carousel-pages-viewport`: flex:1, overflow:hidden — clipt das horizontal-sliding Track.
+- `.bento-carousel-pages-track`: display:flex, height:100% — enthält alle Pages nebeneinander.
+
+### Performance-Impact
+
+Vorher: bei jedem Page-Wechsel
+1. React unmountet die motion.div mit `key={page-X}` → unmountet **N DeviceCards** (z.B. 6 für large)
+2. React mountet neue motion.div → mountet 6 DeviceCards neu
+3. = 12 mount/unmount-Lifecycles pro Swipe
+
+Nachher: bei jedem Page-Wechsel
+1. Track translates X via transform (GPU-accelerated)
+2. = 0 mount/unmount, nur 1 transform-animation
+
+Speziell bei langsamen Devices oder vielen Cards spürbar. Plus: weniger React-Reconciliation-Work.
+
+### A11y-Verbesserungen
+
+- Aria-Live: Screenreader-User wissen jetzt auf welcher Page sie sind
+- aria-hidden auf non-current pages: tab-navigation skipt die unsichtbaren Cards
+- aria-hidden weiterhin für reinen Spacer-Header
+
+### Velocity-Swipe-Math
+
+Vor:
+- threshold 40px Distanz, kein Velocity-Check
+- problem: kurzes touch-and-release auf Mobile triggerte Page-Wechsel ungewollt; schnelle flicks mit kleiner Distanz triggerten NICHT
+
+Nach:
+- threshold 60px ODER velocity 400px/s
+- kurzer Tap (< 60px distance, niedrige velocity): bleibt auf current page
+- kurzer schneller Flick (kleiner distance, hohe velocity): triggert Page-Wechsel
+- langer langsamer Drag (>60px distance, niedrige velocity): triggert Page-Wechsel
+
+### Audit: Memo-Comparator
+
+`deviceCardPropsAreEqual` in `DeviceCard.jsx` vergleicht bereits: viewMode, lang, animationKey, isPanelAnimationComplete, device.entity_id/state/last_updated, attributes (brightness, current_temperature, temperature, hvac_action, icon), icon, name. Kein Reference-Vergleich → re-renders nur bei tatsächlichen Value-Änderungen. Punkt 6 also bereits erledigt — kein Code-Change nötig.
+
+---
+
 ## Version 1.1.1505 - 2026-05-10
 
 **Title:** 📐 Favoriten-Carousel: 3×2, padding L/R -4, Header -4
