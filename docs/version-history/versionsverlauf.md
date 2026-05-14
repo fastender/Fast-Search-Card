@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1491 - 2026-05-10
+
+**Title:** 🔧 Favoriten-Carousel 3x2 (statt 3x3) — kein Card-Overlap mehr
+**Hero:** none
+**Tags:** Fix, Bento, Carousel, Layout
+
+### Why
+
+v1.1.1490 hat W1 (Favoriten) um 15% breiter gemacht — von ~492px auf ~565.6px. Da die Cards `aspect-ratio: 1` haben, wuchsen sie nicht nur in der Breite (149→174px) sondern auch in der Höhe (149→174px). Bei 3 Reihen × 174px + 2 gaps × 8px + header ~50 + footer ~24 + margin ~15 ergibt das ~626px Total-Page-Höhe. W1 hat aber nur 548px Inner-Höhe (576px Widget minus 28px Padding).
+
+Resultat: die unteren Cards der 3. Reihe übersteigen den Widget-Bereich. Sie ragen visuell über die Bento-Begrenzung hinaus → wirkt überlagert.
+
+User-Feedback: „die karten in favoriten sind jetzt überlagert, bitte korrigieren".
+
+### What changed
+
+`BentoStartView.jsx`: `cardsPerPage(large)` von 9 zurück auf 6.
+
+Damit: 3 Spalten × 2 Reihen = 6 Cards pro Page. 11 Favoriten = 2 Seiten (6+5, sichtbar an Page-Dots).
+
+### Geometrie nach Fix
+
+- 2 Reihen × 174px + 1 gap × 8px = 356px
+- Plus Header(50) + Margin(15) + Footer(24) = 89px
+- Total Page Height ≈ 445px
+- W1 verfügbare Höhe = 548px
+- Passt mit ~100px Reserve — kein Overflow mehr.
+
+### Lesson
+
+Bei Layout-Änderungen die `aspect-ratio: 1`-Children betreffen, **immer** die Vertikale neu durchrechnen — die Children skalieren nicht nur in der Breite mit, sondern in beide Dimensionen.
+
+---
+
 ## Version 1.1.1490 - 2026-05-10
 
 **Title:** 📐 Bento-Grid: W1 (Favoriten) +15% breiter, Layout selbstkorrigierend
