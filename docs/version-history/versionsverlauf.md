@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1509 - 2026-05-10
+
+**Title:** 🎛️ Bento-Settings: Per-Slot-Entity-Filter
+**Hero:** none
+**Tags:** Feature, Bento, Settings, UX
+
+### Why
+
+User: Picker-Liste pro Slot soll eingeschränkt sein:
+- W1 (großes Widget links): nur Favoriten + Vorschläge (Carousel-Widgets — die brauchen den Platz)
+- W2/W3/W4: alles außer Favoriten/Vorschläge (kein Platz für Carousel) und außer Universal-Device-Items (User-Wunsch — passen visuell nicht in kleine Slots)
+- „Leer" ist immer eine Option (Empty-Card am Top des Pickers, unverändert)
+
+### What changed
+
+`StartScreenSettingsTab.jsx`:
+- Neues `filteredEntities` useMemo das je nach `activeSlot` die `availableEntities` filtert.
+- Im Picker-JSX: `availableEntities.map(...)` → `filteredEntities.map(...)`.
+
+### Filter-Logik
+
+```js
+if (activeSlot === 'w1') {
+  // nur Carousel-Widgets
+  return availableEntities.filter(e =>
+    e.id === FAVORITES_WIDGET_ID || e.id === SUGGESTIONS_WIDGET_ID
+  );
+}
+// w2, w3, w4
+return availableEntities.filter(e =>
+  e.id !== FAVORITES_WIDGET_ID &&
+  e.id !== SUGGESTIONS_WIDGET_ID &&
+  e.domain !== 'universal_device'
+);
+```
+
+### Legacy-Selections bleiben
+
+Wenn vorher z.B. W2 = Stein (universal_device) konfiguriert war, bleibt diese Selektion technisch erhalten (slot value im Storage). Im Picker wird Stein jetzt nicht mehr angezeigt → User kann nur eine andere (erlaubte) Entity wählen oder „Leer". Kein Auto-Reset.
+
+---
+
 ## Version 1.1.1508 - 2026-05-10
 
 **Title:** 🎯 Carousel Slide: Tween statt Spring (symmetrisch)
