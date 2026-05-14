@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1512 - 2026-05-10
+
+**Title:** ✨ Bento W2: Rich-Variant für Wetter, Aufgaben, Nachrichten
+**Hero:** none
+**Tags:** Feature, Bento, Rich-Widgets
+
+### Why
+
+User: „widget 2 will ich jetzt eine verbesserte sicht haben für wetter, aufgaben, nachrichten, usw.". Standard-DeviceCard rendert in W2 (mittel, ~425×355 px) ein dünnes Icon+Name-Layout mit viel leerem Raum dazwischen. Apple-Widgets in dieser Größe nutzen den Platz viel reicher. User wählt Scope: nur W2, alle drei Top-Domains parallel.
+
+### What changed
+
+`BentoStartView.jsx` — drei neue Sub-Komponenten plus Router:
+
+**BentoRichWeather:**
+- Header: Icon-Bubble (40×40, brandColor) + Area („Haus") + Name („Wetter")
+- Main: prominente Temperatur 44px („12°") + Condition („Regnerisch")
+- Stats-Strip: Luftfeuchte + Wind als 2-Spalten Mini-Cards
+- Datenquellen: `useSystemEntityAttributes(domain)` für `weather`, `entity.attributes` direkt für `weather_device`
+
+**BentoRichTodos:**
+- Header: Icon + „Heute" + Entity-Name
+- Main: prominente Zahl (`incomplete_count`) + „Unerledigt"
+- Warn-Badge bei `overdue_count > 0` (rote Pill, „1 Überfällig")
+- Optional List: bis zu 3 nächste Items (Dot + Title)
+
+**BentoRichNews:**
+- Header: Icon + `feed_count` Feeds + Entity-Name
+- Main: prominente Zahl (`unread_count`) + „Neue Nachrichten"
+- Latest: Title (2-line clamp, fade ellipsis) + Source (klein)
+
+**Router (`renderRichForDomain`)** schaltet je nach `entity.domain` zwischen den Renderern. `RICH_DOMAINS = Set(['weather', 'weather_device', 'todos', 'news'])`.
+
+**Einbau in BentoWidget:** im `isLiveDevice`-Branch wird vor dem DeviceCard-Render geprüft ob `size === 'medium' && RICH_DOMAINS.has(domain)`. Falls ja → rich, sonst DeviceCard-Fallback.
+
+`BentoStartView.css` — neue Klassen:
+- `.bento-widget--rich`: Wrapper-Background `rgba(0.1)` + Hover `rgba(0.18)` + scale 1.015 (analog DeviceCard-Hover für inaktive Geräte)
+- `.bento-rich-header / -icon / -titles / -area / -name`: Typography-Hierarchie für Top-Bereich
+- `.bento-rich-main / -value / -value-sub`: Main-Display mit großer Zahl/Wert
+- `.bento-rich-badge--warn`: rote Pill für Warnungen (Overdue-Todos)
+- `.bento-rich-stats / -stat / -stat-label / -stat-value`: Wetter-Stats-Strip
+- `.bento-rich-list / -list-item / -list-dot`: Todos-Liste
+- `.bento-rich-news-latest / -news-title / -news-source`: News-Latest-Headline
+
+### Erweiterbarkeit
+
+Andere Domains (energy_dashboard, all_schedules, versionsverlauf etc.) fallen weiter auf die DeviceCard zurück. Neue Renderer einfach hinzufügen:
+1. Component `BentoRich<Domain>` mit Hook + Layout
+2. `RICH_DOMAINS.add('<domain>')`
+3. Switch-case in `renderRichForDomain`
+
+### Click-Routing
+
+Wrapper-onClick ruft `onClick(entity)` → `handleSidebarItemClick(entity)` → öffnet DetailView. Identisch zur DeviceCard-Variante. Inner Content ist rein präsentational, kein Click-Handling.
+
+---
+
 ## Version 1.1.1511 - 2026-05-10
 
 **Title:** ↩️ Carousel: Fade-Indikatoren entfernt
