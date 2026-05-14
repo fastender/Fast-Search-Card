@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.1495 - 2026-05-10
+
+**Title:** 🎯 Favoriten-Carousel: Cards vertikal zentriert
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Layout
+
+### Why
+
+User-Wunsch: „bitte die items auch vertikal zentrieren". In v1.1.1492 hatte ich `align-content: start` gesetzt damit die Rows oben gepackt werden (statt mit großem Abstand auseinandergezogen). Aber dadurch entstand viel leerer Raum unten zwischen Cards und Footer.
+
+### What changed
+
+`BentoStartView.css` — `.bento-carousel-page`: `align-content: start` → `align-content: center`. Die Card-Grid-Rows werden jetzt mittig im verfügbaren Page-Bereich platziert. Header bleibt oben (über page), Footer bleibt unten (unter page), Cards mittig dazwischen.
+
+---
+
 ## Version 1.1.1494 - 2026-05-10
 
 **Title:** 🎯 Favoriten-Carousel: L/R-Padding weiter erhöht (24→32)
