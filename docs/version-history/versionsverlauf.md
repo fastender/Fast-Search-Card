@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1486 - 2026-05-10
+
+**Title:** 🎯 Bento Live-Widget: glass-panel-Layer hinter DeviceCard
+**Hero:** none
+**Tags:** Polish, Bento, Glass-Panel, DeviceCard
+
+### Why
+
+User-Feedback nach v1.1.1485: „der background von Waschraum Klima ist nicht wie bei device card". Im Suchpanel sitzt die DeviceCard innerhalb des `search-panel.glass-panel`-Containers — also über einer **extra backdrop-filter-Layer** (blur + saturate). Im Bento fehlte dieser Layer auf dem Live-Widget-Wrapper, weil ich `glass-panel` in v1.1.1480 entfernt hatte um Doppel-Glass-Layers zu vermeiden.
+
+Resultat: rgba(0.1)-Card-Hintergrund im Bento sah „flacher" / leerer aus als im Suchpanel.
+
+### What changed
+
+`BentoStartView.jsx`: `<div className="... bento-widget--live glass-panel">` (glass-panel zurück).
+
+`BentoStartView.css`:
+- `all: unset` ENTFERNT — killte sonst die glass-panel-Styles.
+- `border-radius: 24px !important` statt glass-panel-default 35px (damit's zur Card passt).
+- `overflow: visible !important` damit Scale-Animation der Card nicht geclippt wird.
+- `.bento-widget--live.glass-panel::before { border-radius: 24px !important }` — der backdrop-filter-Layer erbt den korrekten Radius.
+
+### Mechanics — wie's jetzt aussieht
+
+```
+.bento-widget--live          (border-radius 24px, transparent)
+  ::before                   (backdrop-filter blur+saturate via glass-panel)
+  .device-card               (rgba(0.1) bg + scale 1.05 on hover + ::before gradient)
+```
+
+Drei sichtbare Layers übereinander:
+1. Backdrop-filter-Blur am Wrapper-::before (= glass-Effekt)
+2. rgba(0.1) Card-Hintergrund (= dezenter heller Tile)
+3. Hover-Gradient-Overlay via Card-::before (= scale + Lighten)
+
+Identisch zur Schichtung im Suchpanel.
+
+---
+
 ## Version 1.1.1485 - 2026-05-10
 
 **Title:** 🎯 Bento-Hover: native DeviceCard wiederhergestellt (= Suchpanel)
