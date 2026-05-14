@@ -1,5 +1,54 @@
 # Versionsverlauf
 
+## Version 1.1.1520 - 2026-05-10
+
+**Title:** 🎯 Todos: List-Tabs + scrollable + Slider-Dots rechts
+**Hero:** none
+**Tags:** Feature, Bento, Todos, Slider
+
+### Why
+
+User-Wünsche nach v1.1.1519:
+1. Slider-Dots **rechts unten** statt mittig (nur im Slider-Footer, Favoriten bleibt mittig).
+2. Todos-Widget **Tabs pro Liste** — bei mehreren Listen (z.B. „Einkaufsliste", „To-Dos") sollen Tabs sichtbar sein.
+3. **Alle Items + vertikal scrollbar** statt nur 4 anzeigen.
+
+### What changed
+
+**Slider-Dots rechts (`BentoStartView.css`):**
+```css
+.bento-carousel-footer--slider {
+  justify-content: flex-end !important;
+  padding-right: 4px;
+}
+```
+Greift nur im Slider-Kontext via `--slider` Modifier. Favoriten-Carousel-Footer bleibt mit centered Dots.
+
+**Todos List-Tabs (`BentoStartView.jsx`):**
+- `lists` useMemo: dedupliziert via `Map` aus `todos[].listId`/`listName`.
+- `activeListId` state, default = erste Liste, auto-fallback wenn current list verschwindet.
+- `filteredItems` useMemo: gefiltert nach `activeListId` und `status === 'needs_action'`, sortiert nach due-date.
+- Tabs werden nur gerendert wenn `lists.length > 1`.
+- `e.stopPropagation()` auf Tab-Click damit das parent-Slider-onClick nicht triggert.
+
+**Tab-Styling:**
+- Pill-Form, weißer bg (semi-transparent) inactive, voll-weiß bg + orange Text active
+- Active-Tab Text-Color matched den Todos-Gradient (`#C76C00`)
+- Horizontal scrollable wenn viele Tabs (scrollbar versteckt)
+
+**Scrollable List:**
+- `slice(0, 4)` → komplette Liste rendern
+- `.bento-rich-todos-list--scroll { overflow-y: auto }` Modifier
+- Apple-thin scrollbar (4px width, semi-transparent thumb)
+- Custom CSS für Firefox (`scrollbar-width: thin; scrollbar-color: ...`) und Webkit pseudo-elements.
+
+### Behavior bei 1 Liste oder ohne listId-info
+
+- Falls nur 1 Liste vorhanden → keine Tabs, alle items aus dieser Liste werden gezeigt.
+- Falls items kein `listId` haben → fallback auf alle items unfiltered.
+
+---
+
 ## Version 1.1.1519 - 2026-05-10
 
 **Title:** 🎯 Slider: News/Todos Header weg, Counts in den Footer-Label
