@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1503 - 2026-05-10
+
+**Title:** 🔧 Favoriten-Carousel: row-gap 32px (asymmetrisch zu column-gap 20)
+**Hero:** none
+**Tags:** Fix, Bento, Carousel, Gap
+
+### Why
+
+User: „die abstände vertikal sind nicht wie die abstände horizontal; erhöhe vertikalen abstand der karten untereinander". Mit `gap: 20px` symmetrisch hatten die Cards visuell einen viel kleineren vertikalen Abstand — weil Cards die volle Row-Höhe nehmen und der reine 20px Gap zwischen ihnen optisch knapp wirkt.
+
+### What changed
+
+`BentoStartView.css` — `.bento-carousel-page`:
+- `gap: 20px` (shorthand) → `column-gap: 20px; row-gap: 32px` (asymmetrisch).
+- Visuelle Symmetrie statt mathematischer Symmetrie — Cards sind quadratisch-ähnlich aber Rows brauchen mehr Abstand weil die Cards' "Box-Edge zu Edge" über die volle Row-Höhe geht.
+
+### Geometrie
+
+- Page-Höhe: ~465px
+- 3 rows × ((465 - 64) / 3) = ~134px per row (mit row-gap 32)
+- 3 cols × ((501.6 - 40) / 3) = ~154px per col (mit col-gap 20)
+- Cards: ~154×134px (etwas rechteckig — quer)
+
+---
+
 ## Version 1.1.1502 - 2026-05-10
 
 **Title:** 🔧 Favoriten-Carousel: gap 20px + höhere Specificity für aspect-ratio
