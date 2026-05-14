@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1501 - 2026-05-10
+
+**Title:** 🔧 Favoriten-Carousel: gap+14, max-height-Cap gegen Overflow
+**Hero:** none
+**Tags:** Fix, Bento, Carousel, Layout
+
+### Why
+
+User-Feedback nach v1.1.1500: „die items sind wieder überlagert; du müssten sie verkleinern, ausserdem erhöhe bisschen den abstand zwischen items untereinander horizontal und vertikal gleich". Trotz `grid-template-rows: repeat(3, minmax(0, 1fr))` + `height: 100%` auf den Cards übersteigt Reihe 3 den Widget-Bereich und überlappt den Footer.
+
+Root cause: DeviceCard hat intern min-content-Bedarf (Icon 48px + 3 Text-Lines + Padding). Das hebt die `height: 100%` aus → Cards rendern größer als die Grid-Cell.
+
+### What changed
+
+`BentoStartView.css`:
+- `.bento-carousel-page { gap: 8 → 14 }` — größerer Abstand zwischen Cards horizontal **und** vertikal (Grid-`gap` macht beide gleich).
+- `.bento-carousel-page--large .device-card`:
+  - `max-height: 100% !important` (Hard-Cap, zwingt die Card-Höhe auf die Row-Höhe)
+  - `overflow: hidden !important` (Inhalt der nicht reinpasst wird geclippt statt die Card zu strecken)
+  - `padding: 12 → 8` (Inhalt nimmt weniger Platz, weniger Druck auf Card-Höhe)
+
+### Geometrie nach Fix
+
+- W1 width: 565.6px
+- W1 padding: 14 × 32 → inner 501.6 × 548
+- Page-Höhe verfügbar: 548 - 24 (Header) - 15 (margin) - 44 (Footer) = 465px
+- 3 cols × (501.6 - 28 gap) / 3 = 157.87 wide
+- 3 rows × (465 - 28 gap) / 3 = 145.67 high
+- Cards: ~158×146px, leicht rechteckig, kein Overflow.
+
+---
+
 ## Version 1.1.1500 - 2026-05-10
 
 **Title:** 🎯 Favoriten-Carousel: 3×3 Cards, kompakterer Header
