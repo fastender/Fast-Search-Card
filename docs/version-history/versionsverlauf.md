@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1493 - 2026-05-10
+
+**Title:** 🎯 Favoriten-Carousel: asymmetrisches Padding (L/R größer)
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Padding
+
+### Why
+
+User-Wunsch: „kannst du innerhalb des widgets (ähnlich wie top und bottom) abstand auch nach links und rechts machen?". Aktuell war padding rundum 14px. Visuell wirkte aber durch den Header (~50px hoch) und Footer (~24px) der Top/Bottom-Abstand zu den Cards größer als der seitliche. Cards klebten fast am linken/rechten Widget-Rand.
+
+### What changed
+
+`BentoStartView.css` — `.bento-widget--carousel`: `padding: 14px !important` → `padding: 14px 24px !important`.
+
+- Top/Bottom: 14px (unverändert — Header/Footer-Spacing bleibt gleich)
+- Left/Right: 24px (statt 14px)
+
+### Geometrie nach Fix
+
+- W1 width = 565.6px (von v1.1.1490)
+- Inner-Content-Bereich = 565.6 - 48 = 517.6px
+- 3 Cards à (517.6 - 16) / 3 = 167.2px Breite
+- Aspect-ratio:1 → 167.2px Höhe
+- 2 Reihen × 167.2 + 8 = 342.4px Page-Höhe
+- Plus Header/Margin/Footer = ~89px Overhead
+- Total Page ≈ 431px → passt in 548px verfügbare W1-Höhe.
+
+Kein Overflow, kein Layout-Bruch.
+
+---
+
 ## Version 1.1.1492 - 2026-05-10
 
 **Title:** 🔧 Favoriten-Carousel: align-content: start
