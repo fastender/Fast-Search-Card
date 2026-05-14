@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1510 - 2026-05-10
+
+**Title:** ✨ Bento-Carousel: Plus-Empty, Drag-Lock, Loop + Fade-Indikatoren
+**Hero:** none
+**Tags:** Feature, Bento, UX, A11y, Mobile
+
+### Why
+
+Drei User-priorisierte Verbesserungen aus der Ideen-Liste:
+1. Plus-Icon + Hover für empty Slots (besser klickbar)
+2. Drag-Direction-Lock damit horizontal-Swipe vertikales Scroll nicht stört
+3. Carousel-Loop am Edge mit subtilem Fade-Indikator
+
+### What changed
+
+**Plus-Icon empty Slots (`BentoStartView.jsx` + `.css`):**
+- Statt nur Placeholder-Text jetzt Plus-SVG (28×28) in einer Bubble (56×56, rgba(0.08) bg) + Text drunter.
+- Hover-State: Bubble skaliert auf 1.08, Background auf rgba(0.18), Color auf rgba(0.95). Greift trotz `disabled`-Attribut via CSS-`:hover`.
+- `flex-direction: column` damit Plus oben + Text unten gestapelt.
+
+**Drag-Direction-Lock (`BentoStartView.jsx` + `.css`):**
+- `dragDirectionLock={true}` auf der Track-motion.div — framer-motion lockt die Drag-Achse nach der ersten Bewegung. Wenn User vertikal startet → kein horizontal-Drag, der Browser handles scroll.
+- `.bento-carousel-pages-track { touch-action: pan-y }` — routed vertikale Touches direkt an den Browser (page-scroll), horizontale gehen an framer-motion. Auf iOS Safari deutlich smoother.
+
+**Carousel-Loop (`BentoStartView.jsx` + `.css`):**
+- `handleSwipe` wrappt jetzt am Edge: am letzten Page + Swipe-Forward → springt zu Page 0 (instant via `skipNextAnimation`). Am ersten Page + Swipe-Backward → springt zu letzter Page.
+- Instant-Jump statt "long way" Slide (würde visuell rückwärts laufen durch alle Pages).
+- `transition`: bei skipNextAnimation `{ duration: 0 }`, sonst normal Tween.
+- Reset von skipNextAnimation via 50ms `setTimeout`.
+
+**Fade-Indikatoren (`BentoStartView.css`):**
+- Zwei absolute `<div>` an Viewport-Edges (links + rechts, 24px breit) mit linearen Gradients (transparent → rgba(0,0,0,0.12)).
+- Nur sichtbar wenn `totalPages > 1`. `pointer-events: none` damit kein Drag-Interferenz.
+- Visuelle Treatment: "carousel scrollbar at sides" — gibt subtilen Hinweis dass das Element scrollbar ist.
+
+### Mechanics — warum instant-jump beim Loop
+
+Track ist physisch links→rechts angeordnet: Page 0, Page 1, ..., Page N. Beim Swipe von Page N forward soll Page 0 erscheinen. Wenn man einfach `animate={{ x: 0 }}` würde, slidet der Track komplett rückwärts durch alle Pages — visuell falsche Richtung.
+
+Echter Infinite-Loop bräuchte virtuelle Duplikat-Pages an beiden Enden (Pattern: `[pageN-clone, page0, ..., pageN, page0-clone]`) und after-slide silent jump. Komplex.
+
+Instant-Jump ist die pragmatische Variante: User merkt den Wrap, aber der Flow bleibt schnell und page-dots zeigen den neuen Status klar.
+
+---
+
 ## Version 1.1.1509 - 2026-05-10
 
 **Title:** 🎛️ Bento-Settings: Per-Slot-Entity-Filter
