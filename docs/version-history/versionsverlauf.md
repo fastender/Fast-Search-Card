@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1522 - 2026-05-10
+
+**Title:** 🎯 Slider: Dots wirklich rechts + Border-Top + Mouse-Drag-Swipe
+**Hero:** none
+**Tags:** Polish, Bento, Slider, Drag
+
+### Why
+
+User-Feedback nach v1.1.1520:
+1. „sliderdots ist noch immer in der mitte, bitte rechts positionieren" — mein `justify-content: flex-end !important` in v1.1.1520 hat aus unklarem Grund nicht gegriffen (vermutlich Specificity-Konflikt mit Favoriten-Footer-Parent-Rule).
+2. „einen dünnen faded border beim bottom oberhalb machen zur abtrennung" — visuelle Trennung zwischen Content und Footer fehlt.
+3. „wenn slider als widget ausgewählt kann ich nicht mit der mouse swipen so wie bei favoriten" — Slider hatte gar kein `drag="x"`, nur Dots + Autoplay.
+
+### What changed
+
+**Dots wirklich rechts (`BentoStartView.css`):**
+Statt flex-justify-content-Manipulation jetzt absolute Positionierung — robuster gegen Specificity-Konflikte:
+```css
+.bento-carousel-footer--slider .bento-carousel-dots {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+}
+```
+
+**Border-Top (`BentoStartView.css`):**
+```css
+.bento-carousel-footer--slider {
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+```
+
+Dezenter weiß-transparenter Strich oberhalb des Footers — funktioniert auf allen Gradient-Backgrounds gleich gut.
+
+**Mouse-Drag-Swipe (`BentoStartView.jsx`):**
+`motion.div` im Slider bekommt:
+- `drag={items.length > 1 ? 'x' : false}` — nur aktivieren wenn mehr als 1 item.
+- `dragDirectionLock={true}` — verhindert vertikalen Scroll während horizontalem Drag.
+- `dragConstraints={{ left: 0, right: 0 }}` + `dragElastic={0.1}` — visuelles Drag-Feedback ohne tatsächliche Bewegung (analog Favoriten-Carousel).
+- `onDragEnd={handleSliderDragEnd}` — distance+velocity Threshold (60px / 400px/s) bestimmt Page-Wechsel.
+- Loop via modulo: `(safeIdx + 1) % items.length` — wraps am Edge automatisch.
+
+### Resultat
+
+- **Dots**: Right-aligned, sichtbar getrennt vom Label links.
+- **Border**: Subtile horizontal line trennt Content vom Footer.
+- **Drag**: Maus-Drag (oder Touch-Swipe) wechselt Slider-Items wie im Favoriten-Carousel. Plus Click auf Content öffnet weiterhin DetailView.
+
+### Lesson
+
+Wenn `justify-content` Override nicht greift trotz `!important`: nicht weiter mit Specificity kämpfen, sondern auf Absolute-Positioning umsteigen. Macht's deterministisch und unabhängig von Parent-Container-Rules.
+
+---
+
 ## Version 1.1.1521 - 2026-05-10
 
 **Title:** 🐛 Wetter-Widget: kein leerer State mehr nach Slider-Wechseln
