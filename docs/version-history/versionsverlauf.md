@@ -1,5 +1,68 @@
 # Versionsverlauf
 
+## Version 1.1.1484 - 2026-05-10
+
+**Title:** 🐛 Bento: Live-Data für Integration-Devices (Universal/Printer/Weather)
+**Hero:** none
+**Tags:** Fix, Bento, System-Entities, ID-Mapping
+
+### Why
+
+User-Feedback: „warum haben diese widgets nicht live daten (live-device aus dem devices-Array) aus den devices?". Screenshot zeigte 3 Widgets ohne Live-Data:
+- Stein (weather_device-Instanz)
+- Bambu Lab (printer3d_device)
+- Waschraum Klima (universal_device)
+
+Diese 3 Devices sind Instanzen von Integration-System-Entities. Während Versionsverlauf, Aufgaben, Nachrichten (globale System-Entities mit unique domain) korrekt Live-Data zeigten, fanden diese hier ihren Live-Device-Match nicht.
+
+### Root cause: ID-Format-Mismatch
+
+In `StartScreenSettingsTab.jsx` wird die **kurze Registry-ID** in `startScreen.widgets` gespeichert — z.B. `'bambu_lab'`, `'tesla'`, `'stein'`. Aber `SystemEntity.toEntity()` in `base/SystemEntity.js` serialisiert ins `devices`-Array mit Prefix:
+
+```js
+const entityId = this.isPlugin ? `plugin.${this.id}` : `system.${this.id}`;
+return { entity_id: entityId, id: entityId, ... };
+```
+
+So im devices-Array hat Bambu Lab `entity_id: 'system.bambu_lab'`, nicht `'bambu_lab'`.
+
+Mein Lookup `find(d => (d.entity_id || d.id) === 'bambu_lab')` fand also nichts. Fallback war `find(d => d.domain === 'bambu_lab')` — auch fail, weil die domain `'printer3d_device'` ist. Final fallback auf `systemRegistry.entities.get('bambu_lab')` lieferte die Registry-Instance — **ohne** `entity_id`+`state` Felder → `isLiveDevice = false` → statisches Fallback-Layout statt DeviceCard.
+
+### What changed
+
+`BentoStartView.jsx` — `widgetEntities` memo:
+```js
+let liveDevice = devices?.find(d => (d.entity_id || d.id) === id);
+if (!liveDevice) {
+  liveDevice = devices?.find(d =>
+    d.entity_id === `system.${id}` ||
+    d.entity_id === `plugin.${id}` ||
+    d.id === `system.${id}` ||
+    d.id === `plugin.${id}`
+  );
+}
+if (!liveDevice) {
+  liveDevice = devices?.find(d => d.domain === id);
+}
+```
+
+`SearchField.jsx` — `handleSidebarItemClick`: gleicher Multi-Strategy-Lookup für Click-Routing. Vorher matched der domain-Fallback bei Multi-Instance-System-Entities (z.B. mehrere Universal-Devices) das erste Device per domain — also potenziell das falsche Bambu/Tesla.
+
+### Resultat
+
+Bento-Live-Widgets für Integration-Device-Instanzen zeigen jetzt:
+- Stein (weather_device): aktuelles Wetter + Temperatur
+- Bambu Lab (printer3d_device): Druckstatus, Progress
+- Waschraum Klima (universal_device): Hero-Sensor-State
+
+Click-Routing öffnet das KORREKTE Device statt einer beliebigen Instanz der gleichen Domain.
+
+### Lesson learned
+
+Es gibt zwei ID-Räume im Codebase: Registry-IDs (kurz, `'bambu_lab'`) und HA-Shape-Entity-IDs (`'system.bambu_lab'`). UI-Settings speichern Registry-IDs; das `devices`-Array enthält HA-Shape. Lookup-Code muss beide Räume kennen oder eine kanonische Konversion-Funktion nutzen.
+
+---
+
 ## Version 1.1.1483 - 2026-05-10
 
 **Title:** 🎯 Bento-Hover: Universal-Devices verhalten sich wie System-Entities
