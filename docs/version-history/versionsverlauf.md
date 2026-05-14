@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1492 - 2026-05-10
+
+**Title:** 🔧 Favoriten-Carousel: align-content: start
+**Hero:** none
+**Tags:** Fix, Bento, Carousel, Grid
+
+### Why
+
+v1.1.1491 reduzierte cardsPerPage(large) auf 6 (3x2) — kein Overflow mehr. Aber ein neuer Side-Effekt: `flex: 1` auf der `.bento-carousel-page` macht die Page ~459px hoch. Die 2 Rows mit aspect-ratio:1-Cards (je ~174px) brauchen aber nur 356px total. Das Default-Grid-Verhalten (`align-content: normal`) verteilte den Rest als großen Abstand zwischen den Rows.
+
+User-Feedback: „warum hat jetzt 2.reihe so einen großen abstand?".
+
+### What changed
+
+`BentoStartView.css` — `.bento-carousel-page` bekommt `align-content: start`. Das packt die Rows oben zusammen statt die ungenutzte Höhe zwischen ihnen zu verteilen.
+
+### Resultat
+
+- Header oben
+- 2 Reihen direkt darunter (nur 8px gap dazwischen)
+- Übrige Höhe (~100px) leer am Footer-Bereich
+- Footer mit Dots ganz unten
+
+Sauberer Look, kein Auseinanderziehen der Cards.
+
+---
+
 ## Version 1.1.1491 - 2026-05-10
 
 **Title:** 🔧 Favoriten-Carousel 3x2 (statt 3x3) — kein Card-Overlap mehr
