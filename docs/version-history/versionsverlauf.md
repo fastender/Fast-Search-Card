@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1483 - 2026-05-10
+
+**Title:** 🎯 Bento-Hover: Universal-Devices verhalten sich wie System-Entities
+**Hero:** none
+**Tags:** Polish, Bento, Hover, Universal-Device
+
+### Why
+
+In v1.1.1482 wurde der Hover-Override aus v1.1.1481 entfernt → active system-entities (Aufgaben, Nachrichten) verhielten sich beim Hover sauber: nur scale 1.05, Background bleibt color. ABER: ein Universal-Device (`domain: 'universal_device'`, custom Entity via Integration) hat KEINEN Eintrag in `entityAppearanceConfig` → fällt auf die Standard-Variants aus `deviceGridItemVariants` zurück → `hover.backgroundColor: 'rgba(255,255,255,0.18)'` → Background lightens beim Hover, nicht konsistent mit anderen Bento-Widgets.
+
+User-Feedback: „Bei diesem ist der Hover anders, wieso?".
+
+### What changed
+
+`BentoStartView.css`:
+```css
+@media (hover: hover) {
+  .bento-widget--live .device-card:not(.active):hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+}
+```
+
+- Greift NUR im Live-Widget-Kontext (nicht im Carousel).
+- Greift NUR für nicht-aktive Cards (`:not(.active)`) — aktive Cards behalten ihren color-state-Look (Wohnzimmer weiß, etc.).
+- Setzt den Hover-Background auf den gleichen Wert wie den Inactive-Default (`rgba(0.1)`) → effektiv kein Background-Wechsel.
+- Beat'et framer-motion's inline-style via `!important`.
+
+### Mechanics — warum nicht alle Cards behandeln
+
+Active normal entities (z.B. Klima im Heiz-Modus) haben `hover.backgroundColor: '#FFFFFF'` (weiß bleibt weiß). Active system-entities (Aufgaben) haben `hoverColor === activeColor` (Background bleibt color). Beide behalten ihren active-State-Look beim Hover ohnehin schon. Nur INactive Cards (mit fallback variants) hatten den rgba(0.18) bg-change — und der ist es, der visuell als „anders" wahrgenommen wird.
+
+`.active`-Klasse wird im DeviceCardGridView nur gesetzt wenn `isActive` true ist. So filtert das Selektor präzise.
+
+### Resultat
+
+Alle Bento-Live-Widgets verhalten sich beim Hover jetzt einheitlich: scale 1.05, Background bleibt wie im Normal-State (color für active, dark glass für inactive). Carousel-Cards bleiben unverändert.
+
+---
+
 ## Version 1.1.1482 - 2026-05-10
 
 **Title:** 🎯 Bento Live-Widget Hover = identisch zum Carousel
