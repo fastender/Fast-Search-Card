@@ -1,5 +1,57 @@
 # Versionsverlauf
 
+## Version 1.1.1516 - 2026-05-10
+
+**Title:** ✨ Bento W2 Auto-Slider: Wetter / News / Aufgaben mit 10s Autoplay
+**Hero:** none
+**Tags:** Feature, Bento, Slider, Autoplay
+
+### Why
+
+User: „ich bin am überlegen den widget 2 in slider form zu gestalten: Wetter, News, Todos. also in widget 2 sollen die items nur angezeigt werden mit autoplay, alle 10sekunden". Statt eines fest konfigurierten Rich-Widgets in W2 ein Slider der durch die drei wichtigsten Rich-Domain-Items rotiert.
+
+### What changed
+
+**Neues virtuelles Widget-Item (`BentoStartView.jsx`):**
+- `RICH_SLIDER_WIDGET_ID = '__rich_slider__'` Constant
+- `buildRichSliderItem(lang)` — virtual entity mit `isVirtual: true`
+- In `widgetEntities` Memo: erkennt die virtuelle ID
+- Im Picker (`StartScreenSettingsTab.jsx`): als auswählbares Item mit eigenem Slider-Icon (3 horizontale Lines)
+- Filter: nur in **W2** wählbar (W1 ist für Carousel-Items reserviert, W3/W4 zu klein für Slider)
+
+**`BentoRichSlider` Component:**
+- Findet aus dem devices-Array die jeweils erste Entity für Domains `weather` (oder weather_device), `news`, `todos`
+- Reihenfolge: Wetter, News, Aufgaben (in dieser Folge)
+- `useEffect` mit `setInterval(10000)` für autoplay
+- `paused` state: `onMouseEnter` → true, `onMouseLeave` → false (pause-on-hover)
+- Manual navigation via Page-Dots (mit blur-glass Hintergrund)
+- `<AnimatePresence mode="wait">` mit Fade-Transition (0.35s, iOS-Curve)
+- Click auf Content: ruft `onItemClick(currentEntity)` → öffnet DetailView der aktuellen Entity
+- Empty-State falls keine der drei Entities verfügbar
+
+**Bonus durch CSS `:has()`-Selectors:**
+Der Domain-Gradient-Background (blau/rot/orange) wechselt automatisch wenn der innere Content wechselt — `:has(.bento-rich-weather)` matched bei Wetter, `:has(.bento-rich-news)` bei News, etc. Plus `transition: background 0.5s ease` macht den Gradient-Wechsel smooth — Cross-Fade zwischen Apple-Farben.
+
+`BentoStartView.css` neue Klassen:
+- `.bento-widget--rich-slider`: smooth bg-transition
+- `.bento-rich-slider`: position relative für Dots
+- `.bento-rich-slider-content`: cursor:pointer, kein eigenes padding (kommt vom Domain-Gradient)
+- `.bento-rich-slider-dots`: absolute bottom-centered, mit Glass-bg + backdrop-blur (lesbar auf jedem Gradient)
+- `.bento-rich-slider-dot`: 6×6 Dot, active = 18×6 Pill
+
+### Klick-Routing
+
+Click auf den Content-Bereich ruft `onItemClick(currentEntity)` mit der aktuellen sichtbaren Entity → `handleSidebarItemClick` öffnet die DetailView. Klick auf Dot stoppt Propagation, switcht Page, ändert nicht DetailView.
+
+### Filter-Logik Update
+
+`StartScreenSettingsTab.jsx`:
+- W1: nur Favoriten/Vorschläge (unverändert)
+- W2: alles + Slider (neu), kein Favoriten/Vorschläge/Universal
+- W3/W4: alles ohne Slider/Favoriten/Vorschläge/Universal
+
+---
+
 ## Version 1.1.1515 - 2026-05-10
 
 **Title:** 🎨 Rich-Widgets mit Apple-Farben-Gradients (Todos Orange, News Red, Versions Purple)
