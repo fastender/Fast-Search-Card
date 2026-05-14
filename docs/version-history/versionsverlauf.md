@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1496 - 2026-05-10
+
+**Title:** 🎯 Favoriten/Vorschläge Header: nur Icon, kein Text, größere Größe
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Icon
+
+### Why
+
+User: „kannst du bei favoriten nur icon machen ohne text (favoriten 11 geräte) und icon soll gleiche größe haben wie auch bei wetter widget oder den anderen widgets". Konsistente Optik der Bento-Widget-Header — alle Live-Widgets zeigen das Icon prominent, der Favoriten/Vorschläge-Header hatte aber zusätzlich Text + ein kleineres Icon (24px).
+
+### What changed
+
+`BentoStartView.jsx` — Carousel-Header:
+- `<div className="bento-carousel-titles">...</div>` ENTFERNT (kein „Favoriten 11 Geräte" mehr).
+- Icon-Size von 24 → 48 (matched die system-entity-iconSize aus `appearanceConfig.js`).
+- `aria-label={entity.name}` zum Button hinzugefügt — Accessibility-Fallback für den entfernten Visible-Text.
+
+CSS bleibt wie es ist (`.bento-carousel-header` ist Flex-Container; ohne titles wird das Icon einfach allein dargestellt).
+
+---
+
 ## Version 1.1.1495 - 2026-05-10
 
 **Title:** 🎯 Favoriten-Carousel: Cards vertikal zentriert
