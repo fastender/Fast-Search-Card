@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1502 - 2026-05-10
+
+**Title:** 🔧 Favoriten-Carousel: gap 20px + höhere Specificity für aspect-ratio
+**Hero:** none
+**Tags:** Fix, Bento, Carousel, CSS-Specificity
+
+### Why
+
+User-Feedback: „1.reihe 2.reihe 3.reihe abstände fast gar keine!!!!". Im Screenshot waren die Cards 158×158 quadratisch obwohl ich `aspect-ratio: auto` im Override gesetzt hatte. Plus die 3 Reihen passten nicht in die verfügbare Page-Höhe (465px) — Reihe 3 wurde vom Footer überlagert.
+
+Wahrscheinlich war der Selector `.bento-carousel-page--large .device-card` (Specificity 0,2,0) nicht ausreichend gegen das DeviceCardGridView inline `<style>` `.device-card { aspect-ratio: 1 }` (Specificity 0,1,0) — obwohl `!important` gesetzt war. framer-motion's drag-Wrapper hat eventuell den Selector gebrochen.
+
+### What changed
+
+`BentoStartView.css`:
+- `.bento-carousel-page { gap: 14 → 20 }` — sichtbarer Abstand horizontal + vertikal (Grid-`gap` symmetrisch).
+- Selector hochgezogen auf `.bento-widget--carousel .bento-carousel-page--large .device-card` (Specificity 0,3,0 + !important) — garantiert dass `aspect-ratio: auto + height: 100% + max-height: 100% + overflow: hidden` über das DeviceCardGridView-Default wirkt.
+
+### Geometrie nach Fix
+
+- Page-Höhe (W1): ~465px
+- 3 rows × ((465 - 40) / 3) = ~141px per row
+- 3 cols × ((501.6 - 40) / 3) = ~153px per col
+- Cards: ~153×141px (leicht rechteckig, fast quadratisch)
+- Sichtbarer Gap 20px überall
+
+---
+
 ## Version 1.1.1501 - 2026-05-10
 
 **Title:** 🔧 Favoriten-Carousel: gap+14, max-height-Cap gegen Overflow
