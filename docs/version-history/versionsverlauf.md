@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1489 - 2026-05-10
+
+**Title:** ↩️ Bento Live-Widget: zurück zu v1.1.1487 (Hover wieder schön)
+**Hero:** none
+**Tags:** Revert, Bento, Hover
+
+### Why
+
+v1.1.1488 fügte einen `::before`-Layer mit backdrop-filter + `rgba(30,30,30,0.4)` dark overlay hinzu, um den blurred-glass-bg wie im Carousel/Suchpanel zu erzeugen. Nebeneffekt: weil die Card jetzt auf einem dunkleren Untergrund sitzt, war der Hover-Background-Wechsel (rgba(0.1) → rgba(0.18)) visuell weniger spürbar. User-Feedback: „hover ist jetzt nicht mehr so schön wie früher".
+
+Auf Nachfrage „wie soll's jetzt aussehen?" antwortete der User: „wie früher". Also: zurück zum v1.1.1487-Zustand mit dem schönen Hover, auch wenn der bg dabei wieder durchsichtiger ist.
+
+### What changed
+
+`BentoStartView.css`: `.bento-widget--live::before` ENTFERNT. Zurück zu `all: unset + display:block + width/height:100% + cursor:pointer`.
+
+### Trade-off explizit
+
+Der Background ist jetzt wieder durchsichtiger (Wohnzimmer-Bild scheint durch). Der Hover-Lighten ist dafür spürbar wie gewünscht.
+
+Falls später beide Anforderungen kombiniert werden sollen, müsste man einen Mittelweg finden — z.B. backdrop-blur OHNE dark overlay (background-image wäre dann verschwommen aber hell genug für den Hover-Lighten) oder explizite verstärkte Hover-Variante im Bento.
+
+---
+
 ## Version 1.1.1488 - 2026-05-10
 
 **Title:** 🎯 Bento Live-Widget: backdrop-filter ohne Doppel-Container
