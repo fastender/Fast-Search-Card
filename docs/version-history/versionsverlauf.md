@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1498 - 2026-05-10
+
+**Title:** 🎯 Favoriten-Carousel: 2-zeiliges Label im Footer (DeviceCard-Style)
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Typography
+
+### Why
+
+User: „topheader komplett entfernen — Text 'Favoriten 11 Geräte' links im Footer zweizeilig wie bei den anderen widgets, selbe position und textgröße". Carousel-Header war schon weg (v1.1.1497), aber das Footer-Label war einzeilig und 12px klein. Soll jetzt die DeviceCard-Text-Hierarchie matchen (area + name, je ~16px).
+
+### What changed
+
+`BentoStartView.jsx`:
+- Footer-Label aufgespalten in 2 spans:
+  - `<span className="bento-carousel-footer-label-area">` — "Favoriten" (entity.name)
+  - `<span className="bento-carousel-footer-label-name">` — "11 Geräte" (entity.description)
+
+`BentoStartView.css`:
+- Alte Header-CSS-Klassen (`.bento-carousel-header`, `.bento-carousel-icon`, `.bento-carousel-titles`, `.bento-carousel-name`, `.bento-carousel-sub`) ENTFERNT (waren ungenutzt seit v1.1.1497).
+- `.bento-carousel-footer { min-height: 24 → 44 }` für 2-zeiliges Label.
+- `.bento-carousel-footer-label`: jetzt `display: flex; flex-direction: column` für 2-Zeilen-Stack.
+- `.bento-carousel-footer-label-area`: 16px, weight 400, rgba(0.7) opacity 0.7 — analog `.device-area` aus DeviceCardGridView.
+- `.bento-carousel-footer-label-name`: 16px, weight 700, rgba(0.95) — analog `.device-name`.
+- Hover-State: area opacity 0.7 → 0.9 (subtile Reaktion).
+
+### Layout-Resultat
+
+```
+[ Cards 3×2 vertikal mittig ]
+[ Footer 44px hoch:
+    Favoriten      ●○○      ]
+    11 Geräte
+]
+```
+
+Label sitzt links-bottom-aligned absolut, Dots bleiben mittig via parent justify-content:center.
+
+---
+
 ## Version 1.1.1497 - 2026-05-10
 
 **Title:** 🎯 Favoriten-Carousel: Header weg, Label im Footer links
