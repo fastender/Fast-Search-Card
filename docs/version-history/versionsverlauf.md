@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1508 - 2026-05-10
+
+**Title:** 🎯 Carousel Slide: Tween statt Spring (symmetrisch)
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Animation
+
+### Why
+
+User: „slidershow; nach left sliden ist nicht so flüssig wie nach rechts sliden". Mit Spring (stiffness 320, damping 32) entsteht subtiler Overshoot — der je nach Richtung unterschiedlich wahrgenommen wird. Plus die Spring-Physics interagiert mit der dragTransition beim Loslassen.
+
+### What changed
+
+`BentoStartView.jsx`:
+- `transition`: spring → tween `{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }`. Die cubic-bezier-Curve ist die iOS-Standard-Page-Slide-Curve (smooth-start, fast-middle, smooth-end). Deterministisch und symmetrisch — beide Richtungen verhalten sich exakt gleich.
+- `dragElastic`: 0.15 → 0.1 — weniger Rubber-Band-Effekt beim Drag, klareres Verhalten beim Release.
+
+### Why tween > spring here
+
+Spring-Animations sind ideal für "natürliche" Bewegungen mit physikalischem Gefühl (Bouncing, Settling). Bei Page-Sliding wollen wir aber genau das Gegenteil: präzise, abrupt-aber-smooth, ohne Overshoot. Apple's eigene Page-Slider verwenden Tween mit fester Duration — daher die Curve `[0.32, 0.72, 0, 1]` als de-facto-Standard für swipe-Übergänge.
+
+---
+
 ## Version 1.1.1507 - 2026-05-10
 
 **Title:** 🐛 Carousel Hover-Clip-Bug: padding für Scale-Buffer
