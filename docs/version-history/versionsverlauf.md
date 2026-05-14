@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1507 - 2026-05-10
+
+**Title:** 🐛 Carousel Hover-Clip-Bug: padding für Scale-Buffer
+**Hero:** none
+**Tags:** Fix, Bento, Carousel, Hover
+
+### Why
+
+In v1.1.1506 wurde der neue `.bento-carousel-pages-viewport { overflow: hidden }` eingeführt damit der Slide-Track-Overflow geclippt wird. Side-effect: beim Hover über eine Card am Page-Rand wird der Card-Scale (1.05) geclippt → Card wirkt abgeschnitten.
+
+Vorher (vor v1.1.1506) war kein `overflow: hidden` auf diesem Layer — Cards konnten frei scalieren.
+
+### Root cause
+
+- Card-Scale 1.05 → Card-Edge ragt ~3.85px in jede Richtung über die Grid-Cell hinaus
+- Grid-Cell-Edges decken die viewport-edges
+- viewport `overflow: hidden` clippt alles über die viewport-bounds → scaled card visuell abgeschnitten
+
+### What changed
+
+`BentoStartView.jsx`: jede Page in der Track bekommt `padding: 6px` + `box-sizing: border-box` via inline-style. Damit haben die Cards in der Grid 6px Buffer zur viewport-Edge. Scale 1.05 fits innerhalb des Buffers.
+
+### Geometrie nach Fix
+
+- Page-Width: 100% / totalPages (z.B. 50% bei 2 pages)
+- Mit `box-sizing: border-box` + padding 6px: Content-area = page-width - 12
+- Cards weiterhin 3 cols × ((page-width - 12 - 48 gap) / 3) — minimal kleiner
+- Cards beim Hover 1.05x → fit innerhalb des 6px-Buffers zur viewport-Edge
+
+---
+
 ## Version 1.1.1506 - 2026-05-10
 
 **Title:** ✨ Bento-Carousel: Slide-Animation, No-Remount, Pulse, Aria-Live, Velocity-Swipe
