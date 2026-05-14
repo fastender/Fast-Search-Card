@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1504 - 2026-05-10
+
+**Title:** 🎯 Favoriten-Carousel: gap symmetrisch (24px) + Footer 54px
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Layout
+
+### Why
+
+User: „der gap zwischen den karten waagerecht und vertikal muss immer gleich sein!!!! MACH ES DOCH ENDLICH! ausserdem erhöhe den footer auf 54px in der höhe".
+
+Mein v1.1.1503-Versuch mit asymmetrischen Werten (col 20 / row 32) war ein Fehlinterpretation der vorherigen Anweisung. Symmetrie ist mandatory.
+
+### What changed
+
+`BentoStartView.css`:
+- `.bento-carousel-page`: `column-gap: 20 / row-gap: 32` → `gap: 24px` (Shorthand setzt beide gleichzeitig auf 24).
+- `.bento-carousel-footer`: `min-height: 44 → 54`.
+
+### Geometrie
+
+- Page-Höhe verfügbar = 548 - 24 (Header) - 15 (margin) - 54 (Footer) = 455px
+- 3 rows × ((455 - 48) / 3) = ~135.67px high
+- 3 cols × ((501.6 - 48) / 3) = ~151.2px wide
+- Cards: ~151×136px
+
+---
+
 ## Version 1.1.1503 - 2026-05-10
 
 **Title:** 🔧 Favoriten-Carousel: row-gap 32px (asymmetrisch zu column-gap 20)
