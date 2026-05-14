@@ -1,5 +1,73 @@
 # Versionsverlauf
 
+## Version 1.1.1514 - 2026-05-10
+
+**Title:** ✨ Bento Rich-Widgets: Todos (Reminders-Style) + News (Apple-News) + Versionsverlauf
+**Hero:** none
+**Tags:** Feature, Bento, Rich-Widgets, Apple-Design
+
+### Why
+
+Nach v1.1.1513 (Apple-Wetter) sind Todos und News noch im basic v1.1.1512-Layout. Plus Versionsverlauf hatte gar keinen rich-Renderer. User-Wunsch: weitere Rich-Widgets ausbauen.
+
+### What changed
+
+**Helper Functions (`BentoStartView.jsx`):**
+- `formatDueDate(due, lang)`: relativ → Heute/Morgen/Wochentag/Datum. Plus „Überfällig" wenn in der Vergangenheit.
+- `formatRelativeTime(published, lang)`: „vor 12 Min" / „vor 3 Std" / „vor 2 Tg" / Datum-Fallback.
+
+**BentoRichTodos (Apple-Reminders-Style):**
+- Header (links): Liste-Name fett + Counts („3 unerledigt · 1 überfällig")
+- Header (rechts): Icon-Bubble
+- Liste der bis zu 4 anstehenden Tasks, sortiert nach Due-Date asc:
+  - Empty-Circle (Reminders-Style)
+  - Title (ellipsis bei overflow)
+  - Due-Pill rechts (z.B. „Heute", „Morgen", „Mo")
+  - Overdue: roter Pill + Hervorhebung
+- Empty-State: „Keine offenen Aufgaben 🎉"
+
+**BentoRichNews (Apple-News-Style):**
+- Header: Icon-Bubble + Name + Unread-Count
+- Featured Article: Thumbnail (76×76, optional) + Headline (3-line clamp) + Source · relative Zeit
+- 1-2 weitere Headlines kompakt drunter (Dot + Title 1-Zeiler)
+- Empty-State falls keine articles
+
+**BentoRichVersions (neu):**
+- Header: Icon-Bubble + Name
+- Latest: Version-Number 32px („v1.1.1513") + formatted Date
+- Title-Row (2-line clamp)
+- Tags als Pills (purple — Raycast-style brand)
+- Previous: 2 vorige Versionen als kompakte Liste
+
+**Router (`renderRichForDomain`):**
+- `versionsverlauf` zur RICH_DOMAINS Set hinzugefügt.
+
+`BentoStartView.css` — neue Klassen:
+- `.bento-rich-todos-*` (Reminders-style mit Circle-Icons + Due-Pills)
+- `.bento-rich-news-*` (mit Thumbnail-Bg via `background-image`)
+- `.bento-rich-versions-*` (mit grosser Version-Number + Tag-Pills)
+
+### Datenquellen
+
+- **Todos**: `attrs.todos` array `{ uid, summary, status, due, listName, ... }`, plus counts (`incomplete_count`, `overdue_count`). Live via `useSystemEntityAttributes`.
+- **News**: `attrs.articles` array `{ title, source, published (Date), thumbnail, ... }`, plus `unread_count`.
+- **Versionsverlauf**: `attrs.versions` array `{ version, date, dateFormatted, title, tags, content }`. Plus `current_version` falls direkt verfügbar.
+
+### Architecture
+
+RICH_DOMAINS Set jetzt 5 Einträge: weather, weather_device, todos, news, versionsverlauf.
+Andere Domains (settings, all_schedules, energy_dashboard, integration, notifications, statistics, help, tipps) fallen weiter auf DeviceCard zurück — die haben entweder keine reichhaltigen Live-Attrs oder bräuchten domain-spezifische async Loads die wir später bauen können.
+
+### Erweiterbar
+
+Neue Domain hinzufügen:
+1. Component `BentoRich<Domain>` mit hook + layout
+2. CSS-Klassen `.bento-rich-<domain>-*`
+3. `RICH_DOMAINS.add('<domain>')`
+4. switch-case in `renderRichForDomain`
+
+---
+
 ## Version 1.1.1513 - 2026-05-10
 
 **Title:** 🌤️ Bento Wetter-Widget im Apple-Wetter-Style (Hourly-Strip)
