@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1497 - 2026-05-10
+
+**Title:** 🎯 Favoriten-Carousel: Header weg, Label im Footer links
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Layout
+
+### Why
+
+User-Wunsch: „kein icon im header, lieber im bottom links text 'Favoriten 11 Geräte'". Layout-Wechsel — Carousel-Widgets brauchen keinen Top-Icon mehr, stattdessen kompakter Footer mit Label links + Dots zentriert.
+
+### What changed
+
+`BentoStartView.jsx`:
+- Compact-Header (Icon + Titles) komplett ENTFERNT für Carousel-Widgets.
+- Footer hat jetzt 2 Elemente: `<button className="bento-carousel-footer-label">` ("Favoriten 11 Geräte" — klickbar, öffnet Filter wie früher der Header) + die Page-Dots.
+
+`BentoStartView.css`:
+- `.bento-carousel-footer { position: relative }` — damit das Label absolut positioniert werden kann.
+- `.bento-carousel-footer-label`: `position: absolute; left: 0` — sitzt links im Footer ohne die Zentrierung der Dots zu stören. Plus typografische Styles (12px, gewichtet 500, rgba(255,255,255,0.7), Hover-State auf rgba(0.95)).
+
+### Layout jetzt
+
+```
+[ leerer Top-Bereich ]
+[ Cards 3×2 vertikal mittig (align-content: center) ]
+[ Footer: Label links | Dots zentriert ]
+```
+
+Cards bekommen mehr Vertikal-Raum weil kein Header mehr → wirken zentriert im Widget.
+
+---
+
 ## Version 1.1.1496 - 2026-05-10
 
 **Title:** 🎯 Favoriten/Vorschläge Header: nur Icon, kein Text, größere Größe
