@@ -1,5 +1,51 @@
 # Versionsverlauf
 
+## Version 1.1.1523 - 2026-05-10
+
+**Title:** 🐛 Slider-Drag: Hover-Scale Konflikt + visible Drag-Feedback
+**Hero:** none
+**Tags:** Fix, Bento, Slider, Drag
+
+### Why
+
+User: „Mouse-Drag-Swipe klappt noch nicht; kann es daran liegen dass das widget hovert?" — Ja, exakt das. Zwei separate Probleme:
+
+1. **CSS-Hover-Scale conflict mit framer-motion-Drag-Transform**: das parent `.bento-widget--rich:hover { transform: scale(1.015) }` setzt einen CSS-transform während User hovert. Wenn framer-motion-drag dann ein `transform: translateX(...)` setzt, ergeben sich composite transforms die ein visueller Drag-Effekt erschweren oder verhindern. Plus CSS-`transition: transform 0.2s` smoothet das parent-scale was den drag-feel sabotiert.
+
+2. **dragElastic 0.1 zu subtil**: 10% der Drag-Distance als visual feedback ist kaum sichtbar. User merkte nicht dass drag aktiv ist.
+
+### What changed
+
+**`BentoStartView.css` — Hover-Scale für Slider deaktivieren:**
+```css
+@media (hover: hover) {
+  .bento-widget--rich-slider:hover {
+    transform: none !important;
+  }
+}
+```
+Greift speziell für den Slider — die normalen Rich-Widgets (Wetter/Todos/News/Versions als single widget) behalten ihren Hover-Scale-Effekt.
+
+**`BentoStartView.jsx` — dragElastic 0.1 → 0.3:**
+Card folgt der Maus jetzt mit ~30% der Drag-Distance, snappt nach Loslassen zurück oder wechselt Page (je nach Threshold). Sichtbares Feedback dass drag aktiv ist.
+
+### Resultat
+
+Mouse-Drag funktioniert jetzt:
+1. mousedown auf Slider-Inhalt → drag aktiviert
+2. mousemove → Card folgt sichtbar (30% elastisch)
+3. mouseup:
+   - Distanz > 60px ODER velocity > 400 → Page-Wechsel + animate
+   - Sonst → snap zurück zur 0-Position
+
+Plus tap (ohne drag) öffnet weiterhin DetailView via onClick.
+
+### Lesson
+
+CSS-hover-transforms auf parent + framer-motion-drag-transforms auf children: gefährliche Kombination. Beim Implementieren von drag-Interactions immer parent-hover-transforms deaktivieren oder ausweichen (z.B. via box-shadow statt scale).
+
+---
+
 ## Version 1.1.1522 - 2026-05-10
 
 **Title:** 🎯 Slider: Dots wirklich rechts + Border-Top + Mouse-Drag-Swipe
