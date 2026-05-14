@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1515 - 2026-05-10
+
+**Title:** 🎨 Rich-Widgets mit Apple-Farben-Gradients (Todos Orange, News Red, Versions Purple)
+**Hero:** none
+**Tags:** Polish, Bento, Rich-Widgets, Apple-Design
+
+### Why
+
+Wetter hatte schon einen schönen blauen Gradient seit v1.1.1513. Todos/News/Versions waren noch im grauen Default rgba(0.1)-Background. User-Wunsch: durchgängiger Apple-Look mit domain-spezifischen Gradient-Backgrounds.
+
+### What changed
+
+`BentoStartView.css` — vier Gradient-Backgrounds pro Domain via `:has()`-Selector:
+
+- **Wetter**: blau (bereits da, `#4a90e2 → #2a6cb2`)
+- **Todos**: Apple Reminders Orange (`#FF9F0A → #C76C00`)
+- **News**: Apple News Red (`#FE3B30 → #B81E12`)
+- **Versionsverlauf**: Apple System Purple (`#6B69E0 → #3935A1` — Raycast-Brand)
+
+Alle: `linear-gradient(160deg, hell → dunkel)`. Hover: leicht aufhellende Variante.
+
+### Lesbarkeits-Adjustments auf den farbigen Hintergründen
+
+- **Icon-Bubbles** (Todos/News/Versions): brandColor wäre meist die gleiche Farbe wie der Gradient → unsichtbar. Override auf `rgba(255,255,255,0.22)` (heller semi-transparent White).
+- **Versions-Tags**: original purple-tint auf lila bg unsichtbar → `rgba(255,255,255,0.2)`.
+- **Todos Due-Pills**: dezenter weißer bg `rgba(0.2)`. Overdue: weißer bg mit dunklem rotem Text (`#D74A18`) für klaren Kontrast-Akzent.
+- **News-Thumbnail**: subtle white border + lighter fallback bg.
+
+### Resultat
+
+Alle vier Rich-Widgets jetzt visuell distinct + Apple-typische Brand-Identität. Konsistente Gradient-Richtung (160deg) sorgt für visuelle Harmonie im Bento-Grid.
+
+---
+
 ## Version 1.1.1514 - 2026-05-10
 
 **Title:** ✨ Bento Rich-Widgets: Todos (Reminders-Style) + News (Apple-News) + Versionsverlauf
