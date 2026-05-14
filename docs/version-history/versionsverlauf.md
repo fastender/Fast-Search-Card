@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1500 - 2026-05-10
+
+**Title:** 🎯 Favoriten-Carousel: 3×3 Cards, kompakterer Header
+**Hero:** none
+**Tags:** Polish, Bento, Carousel, Layout
+
+### Why
+
+User: „header höhe 24px ist besser; ausserdem kannst du vielleicht 3 reihen machen statt 2 reihen in den favoriten". Zwei Änderungen:
+1. Header-Spacer-Höhe von 44 → 24px (kompakter).
+2. Cards 3×2 (6) → 3×3 (9) im large-Carousel.
+
+In v1.1.1491 hatte ich auf 6 reduziert weil 3 rows × 174px (aspect-ratio:1) + Overhead > Widget-Höhe. Jetzt mache ich's geometrisch passend.
+
+### What changed
+
+`BentoStartView.jsx`:
+- `cardsPerPage(large)`: 6 → 9.
+
+`BentoStartView.css`:
+- `.bento-carousel-header { min-height: 44px → 24px }`.
+- Neue Regel `.bento-carousel-page--large { grid-template-rows: repeat(3, minmax(0, 1fr)) }` — 3 Rows die die Page-Höhe aufteilen.
+- Neue Regel `.bento-carousel-page--large .device-card { aspect-ratio: auto !important; height: 100% !important }` — die Cards verlieren ihre strikte 1:1-Aspect-Ratio (sonst würden sie die Row-Höhe übersteigen) und nehmen 100% der Row-Höhe.
+
+### Geometrie
+
+- Page-Höhe (W1 large): 576 - 28 (Padding) - 24 (Header) - 15 (margin-bottom on page) - 44 (Footer) = ~465px
+- 3 Rows × ~153px + 2×8 gap = ~475 → fits in ~465 (16-gap auf 4-gap reduzierbar falls overflow, aber laut Tests passt's mit minmax(0,1fr)).
+- Cards: ~162px wide × ~153px high — minimal rechteckig, visuell fast quadratisch.
+
+### medium/small unchanged
+
+Diese behalten ihre aspect-ratio:1 (quadratisch). Nur large carousel betroffen.
+
+---
+
 ## Version 1.1.1499 - 2026-05-10
 
 **Title:** 🎯 Favoriten-Carousel: leerer Header-Spacer + Cards top-aligned
