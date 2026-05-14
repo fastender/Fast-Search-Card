@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1528 - 2026-05-15
+
+**Title:** 📰 News-Widget: nur ungelesene, bis zu 6 Items, kompakter Layout
+**Hero:** none
+**Tags:** Polish, Bento, News
+
+### Why
+
+User: „es ist zuviel abstand zwischen erster nachricht und den anderen nachrichten; bitte die unteren nachrichten nach oben verschieben; und bitte nur ungelesene nachrichten anzeigen, und mind. 5 nachrichten".
+
+Drei Wünsche kombiniert:
+1. Riesiger Gap zwischen Featured und More — `flex: 1` auf featured streckte den Block über den ganzen verfügbaren Raum.
+2. Gemischte read/unread — uninteressant für „neue Nachrichten"-Widget.
+3. Nur 2 secondary Items war zu wenig.
+
+### What changed
+
+**`BentoStartView.jsx` — BentoRichNews:**
+```js
+// Filter auf ungelesene (Articles haben `read: false/true` Field)
+const unreadArticles = allArticles.filter((a) => !a.read);
+const featured = unreadArticles[0];
+const secondary = unreadArticles.slice(1, 6); // bis zu 5 weitere
+```
+
+**`BentoStartView.css`:**
+- `.bento-rich-news-featured`: `flex: 1` → `flex: 0 0 auto`. Featured nimmt nur natural content-height statt zu stretchen.
+- `.bento-rich-news-more`: `gap: 6 → 4`, `margin-top: 8px` hinzugefügt. Kompakter zwischen den Items.
+
+### Resultat
+
+- Nur ungelesene Articles werden angezeigt (1 featured + bis zu 5 secondary = max 6)
+- Featured-Block sitzt direkt am Top, More-Section direkt darunter ohne Riesengap
+- Falls kein ungelesener Article → leerer State („Keine Artikel verfügbar")
+- Sichtbar mehr Inhalt pro Widget-Höhe
+
+### Edge-Case: alle gelesen
+
+Wenn `unreadArticles.length === 0` → `featured` ist undefined → Empty-State greift („Keine Artikel verfügbar"). Acceptable da der unread_count im Footer-Label dann auch „0 neue Nachrichten" zeigt.
+
+---
+
 ## Version 1.1.1527 - 2026-05-10
 
 **Title:** 🐛 Slider-Doppel-Container: `bento-widget--rich` Klasse weglassen
