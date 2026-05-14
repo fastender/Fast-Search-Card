@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1518 - 2026-05-10
+
+**Title:** 🐛 Bento-Grid: minmax(0, ...) verhindert Spalten-Expansion durch Content
+**Hero:** none
+**Tags:** Fix, Bento, Grid, CSS
+
+### Why
+
+User-Feedback nach v1.1.1517: „nachrichten ist breiter als die anderen widgets wetter und aufgaben". Screenshot zeigte das W2 mit News-Item füllte die volle Viewport-Breite — viel mehr als bei Wetter oder Aufgaben im gleichen Slot.
+
+Root cause: Classic CSS-Grid-Trap. Mit `grid-template-columns: 1.353fr 1fr` (ohne `minmax`) kann der Spaltencontent die Grid-Cell über ihre `1fr`-Größe **aufblasen**. News-Headlines mit `white-space: nowrap` (in `.bento-rich-news-more-title`) hatten kein korrektes `min-width: 0` → die ganze W2-Spalte expandierte horizontal. Wetter/Todos haben keine solchen langen Texte mit nowrap → ihre Spalte blieb 1fr.
+
+### What changed
+
+`BentoStartView.css` — alle relevanten Grid-Definitionen:
+
+```css
+/* Vorher */
+grid-template-columns: 1.353fr 1fr;
+/* Nachher */
+grid-template-columns: minmax(0, 1.353fr) minmax(0, 1fr);
+```
+
+Plus W34-Cell ebenfalls auf `minmax(0, 1fr) minmax(0, 1fr)`.
+
+Plus zusätzlich `.bento-rich-news-more-title { flex: 1; min-width: 0 }` als zweite Verteidigungslinie — Standard-Combo um text-overflow:ellipsis in Flex-Container zu erlauben.
+
+### Mechanics (CSS-Grid-Lesson)
+
+CSS-Grid berechnet die Spaltengrößen in 2 Phasen:
+1. Track-Sizing-Algorithmus: nimmt `min-content` als Untergrenze
+2. Free-Space-Distribution: verteilt verbleibenden Platz auf `fr`-Spalten
+
+Wenn ein Content-Element `min-content` größer als `1fr` aller Spalten ergibt, expandiert die Spalte. `minmax(0, 1fr)` setzt die Untergrenze auf 0 → keine Content-basierte Expansion mehr. Spalte ist strikt `1fr` der verfügbaren Breite.
+
+Dies ist der "Standard-Fix" für jedes „Mein Grid wächst über den Container hinaus"-Problem.
+
+### Resultat
+
+Alle drei Slider-Items (Wetter, News, Aufgaben) rendern jetzt in identischer Breite — die News-Headlines werden mit ellipsis abgeschnitten statt die Spalte aufzublasen.
+
+---
+
 ## Version 1.1.1517 - 2026-05-10
 
 **Title:** 🎯 Slider-Footer 1:1 wie Favoriten + Rich-Widget Width-Consistency
