@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1533 - 2026-05-16
+
+**Title:** 🎯 Tipps card deep-link · 5 s rotation · widget 1 cards fit the fixed bento grid
+**Hero:** none
+**Tags:** Tipps, Bento, Layout
+
+### Why
+
+Follow-up after v1.1.1532:
+
+1. Clicking the Tipps card on the start screen should open the **specific tip** currently shown on the card, not just the Tipps overview.
+2. The Tipps card should **rotate to a new random tip every 5 seconds** instead of picking one only on mount.
+3. The earlier `gap: 24 px` revert on the favorites carousel was the wrong fix. The user wants `gap: 12 px`, and the **bento grid has a fixed 576 px height** — inner widget content must always fit, no matter the gap. The right fix is to constrain card sizing so cards never push past the available row height.
+
+### What changed
+
+**Tipps card — 5 s rotation**
+
+`DeviceCard.jsx` now keeps a `tippsRotationTick` state. A `setInterval(..., 5000)` ticks it once every five seconds while the card is mounted (and tears the interval down on unmount). The `randomTipp` `useMemo` now also depends on the tick, so each tick re-picks from `systemEntityAttrs.tipps` and the card transitions to the next random tip.
+
+**Tipps card — deep-link click**
+
+`DeviceCard.handleClick` was extended: when `device.domain === 'tipps'` and a `randomTipp.slug` is available, it sets `window.__pendingTippSlug = slug` and dispatches a `tipps-open-specific` `CustomEvent` before invoking the normal `onClick(device)`.
+
+`TippsView` reads the pending slug in a new `useEffect([tipps])` — runs after `loadTipps` resolves and the `tipps` array is populated. The effect:
+
+- Looks up the tip by slug.
+- Sets `selectedTipp` + `view='detail'` + `activeButton='back'` to open the specific tip detail page.
+- Clears `window.__pendingTippSlug`.
+- Also subscribes to `tipps-open-specific` `CustomEvent` so an already-mounted TippsView reacts in real time (the user can navigate back to the start screen, click the Tipps card again with a different tip displayed, and `TippsView` opens that one too).
+
+The window-side handoff is required because the click fires before TippsView mounts (the detail view replaces the bento, the lazy-loaded TippsView module mounts afterwards) — an event-only path would lose the event since the listener doesn't exist yet.
+
+**Widget 1 favorites carousel — fit cards into the fixed bento height**
+
+`gap` is back to **12 px** (the user-requested value). The bento grid is `height: 576 px` fixed and Widget 1 spans both rows of it — inner content must always fit. The earlier overflow at gap 12 happened because each card had an inline `aspect-ratio: 1` from `DeviceCardGridView`'s `<style>` block, so wider columns (from the reduced gap) translated directly into taller rows that exceeded the carousel viewport.
+
+Two CSS changes to make cards fit regardless of gap:
+
+- `.bento-carousel-page` got `grid-template-rows: repeat(2, minmax(0, 1fr))` and `align-content: stretch` — the two rows now split the available viewport height evenly instead of being sized by content / aspect-ratio.
+- `.bento-widget-card-wrapper .device-card` got `aspect-ratio: auto !important; height: 100% !important;` — overrides the inline `aspect-ratio: 1`. Cards now fill their grid cell (width × cell height) instead of forcing height to equal width. Depending on the proportion of the grid cell, cards may render slightly rectangular instead of perfectly square, but they never overflow the bento.
+
+This also recorded as a project memory (`project_bento_grid_fixed_height.md`) so future gap / spacing changes inside bento widgets do the same thing instead of silently reverting the user's spacing.
+
+### Result
+
+Tipps cards rotate to a new tip every 5 s and clicking opens that specific tip directly. The favorites carousel keeps the requested tight 12 px gap, and Widget 1 stays inside the fixed bento height.
+
 ## Version 1.1.1532 - 2026-05-16
 
 **Title:** 🩹 Weather slide robust resolve · widget 1 size restored · News widget focus-refresh
