@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1532 - 2026-05-16
+
+**Title:** 🩹 Weather slide robust resolve · widget 1 size restored · News widget focus-refresh
+**Hero:** none
+**Tags:** Fix, Weather, Bento, News
+
+### Why
+
+Follow-up after v1.1.1531: three regressions / unfinished items from the previous review surfaced once the user tried the build.
+
+1. The weather slide in the auto-slider still showed an empty card on first display. The previous "read from `hass.states[entity_id]`" fix did not cover all entity shapes the slider can receive.
+2. Reducing the favorites carousel grid `gap` from 24 px to 12 px gave each square card more horizontal room, and because cards have `aspect-ratio: 1` they also grew vertically — they no longer fit the viewport and Widget 1 lost its previously fixed look.
+3. The new News widget Unread / Read tabs do not always reflect read-state changes after the user returns from the news detail view, even though the underlying entity does fire `system-entity-updated` events.
+
+### What changed
+
+**Weather slide — multi-source entity_id resolution**
+
+`BentoRichWeather` now tries multiple shapes when resolving the Home Assistant entity id to look up live state:
+
+- `entity.attributes.entity_id` — populated when the slide is a `WeatherDeviceEntity` converted via `toEntity()` (top-level `entity_id` is the plugin prefix like `plugin.weather_home_001`, but the original HA id lives in the inner attributes as e.g. `weather.home`).
+- `entity.entity_id`, but only if it starts with `weather.` — populated when the slide is a HA-native weather entity from `hass.states`, where the top-level `entity_id` IS the HA id.
+
+Data extraction now also runs in three stages:
+
+1. `hass.states[entity_id]` — live, reactive on every HA state push.
+2. `entity.state` + `entity.attributes.temperature` — HA-native shape carried in the device payload itself.
+3. `liveAttrs.current_temperature` + `liveAttrs.current_condition` — SystemEntity-cached shape (populated once on entity mount).
+
+Each value is filled by the first stage that supplies a usable number / non-stub string, so even when the entity comes through the slider as a stub with no `attributes.entity_id`, the HA-native fallbacks can still populate the temperature and condition.
+
+The plugin-prefix entity id (e.g. `plugin.weather_home_001`) is no longer accidentally passed to `hass.states[...]` — that key would never exist there and would short-circuit the resolution.
+
+**Widget 1 — gap reverted to 24 px**
+
+`.bento-carousel-page` `gap` reverted from 12 px back to 24 px (the value from v1.1.1504). At 12 px, the wider column tracks made the `aspect-ratio: 1` cards taller, the row total overflowed the carousel-page viewport, and Widget 1 looked broken / oversized. 24 px restores the previous fixed look.
+
+**News widget — focus / visibility refresh tick**
+
+`BentoRichNews` now keeps a `refreshTick` state that is bumped on:
+
+- `window` `focus` event
+- `document` `visibilitychange` (when `visibilityState === 'visible'`)
+
+Re-render with a non-zero `_tick` causes the component to re-read `liveAttrs` from the registry on a path that does not depend on a possibly-missed `system-entity-updated` event during a transient unmount (the news detail view replaces the bento, then on return the widget re-mounts with whatever's in the registry, but any system-entity-updated event fired in between the unmount and remount can be lost since the listener was torn down). When the user navigates back to the bento, the window receives focus / the document becomes visible, the tick increments, the fresh attrs are read, and the Unread / Read tabs reflect the new state.
+
+### Result
+
+Weather slide displays current temperature + condition even when the slider auto-advances to it on first render, and continues to update as HA pushes new state. Widget 1 looks the same as before v1.1.1530 (the gap change is reverted). The News widget reflects fresh read state after returning from the detail view.
+
 ## Version 1.1.1531 - 2026-05-16
 
 **Title:** 🛠 Tipps title spans rows 1+2 · Todos cards fully solid · Schedules mask only while scrolling
