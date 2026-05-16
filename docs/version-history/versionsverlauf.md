@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1539 - 2026-05-16
+
+**Title:** 🏷 Entity-ID toggle (tag-icon, bottom-left) with marquee for long ids
+**Hero:** none
+**Tags:** DetailView, Polish
+
+### Why
+
+The plain `entity_id` label that sat statically below the cover image in the detail view (e.g. "system.all_schedules") was always-visible and centered. The user wants it to be hidden by default and revealed on demand by tapping a small tag-shaped button anchored at the bottom-left of the left panel — at the same visual height as the back button mirrored to the bottom. When the entity id is too long to fit the available row, it should scroll horizontally as a marquee ticker.
+
+### What changed
+
+**`EntityIconDisplay.jsx`:**
+
+- New `showEntityId` state — default `false`. The previously always-rendered `entity-id-display` motion div is now wrapped in `AnimatePresence` and only mounted when `showEntityId === true`.
+- Added a circular tag-icon toggle button using the user-provided SVG path (open rectangle with a chevron/arrow tip — the standard "label" / "tag" glyph). The button sits in a new `.entity-id-row` flex container placed at the bottom of `.icon-content` (via `margin-top: auto`). Clicking it toggles `showEntityId`.
+- Marquee detection: `useLayoutEffect` compares the inner span's `scrollWidth` against the container's `clientWidth` after the row mounts and on `resize`. When the id text would overflow, `needsMarquee` is `true` and the inner span gets the `is-marquee` class. The id text is then rendered twice inside an inline-flex span, and a CSS animation translates the row by `-50 %` over 14 s in an infinite loop — the doubled content keeps the loop seamless. Hovering the text pauses the animation (`animation-play-state: paused`).
+- When the id fits without scrolling, it simply renders once with `text-overflow: ellipsis` as fallback.
+
+**`DetailView.css`:**
+
+- Replaced the old centered `.entity-id-display` rule with:
+  - `.entity-id-row` — flex container, anchored to the bottom of `.icon-content` (margin-top:auto), stretches across the panel width.
+  - `.entity-id-toggle-button` — circular 40 × 40 button matching the back-button visual language. `is-open` state swaps to a white pill with dark icon for active feedback.
+  - `.entity-id-display-wrap` — `flex:1; min-width:0; overflow:hidden;` so the id span never expands the row.
+  - `.entity-id-display` + `.entity-id-display.is-marquee` + `.entity-id-marquee-text` — the marquee CSS (`overflow:visible` on `.is-marquee`, doubled-content trick, `padding-right:32px` for spacing between the two copies, 14 s linear infinite loop).
+- Mobile breakpoint: shrinks the toggle button to 36 × 36 (analog to back/favorite at the same breakpoint).
+
+### Result
+
+Bottom-left of every detail view has a small tag button. Tapping it reveals the entity id inline to the right. Short ids fit naturally; long ones (`plugin.weather_home_001`, `system.printer3d_device_…`, etc.) scroll horizontally in a smooth marquee until tapped again to hide.
+
 ## Version 1.1.1538 - 2026-05-16
 
 **Title:** 🔨 Bento 576 px lock + W3/W4 square — fixed Row 2 (200 px), no more clever tricks
