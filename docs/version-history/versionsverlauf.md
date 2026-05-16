@@ -1,5 +1,57 @@
 # Versionsverlauf
 
+## Version 1.1.1530 - 2026-05-16
+
+**Title:** 🎨 Bento polish + Tipps card + Weather realtime fix + Todos/Schedules detail polish
+**Hero:** none
+**Tags:** Polish, Bento, Tipps, Weather, Todos, Schedules
+
+### Why
+
+User feedback session — eight separate UX/UI requests collected in one release. Focus on Apple-style polish and a critical realtime-data fix on the weather slide.
+
+### What changed
+
+**Bento carousel polish**
+
+- `bento-carousel-page` gap tightened from 24px to 12px (Favorites carousel in widget 1).
+- `bento-carousel-dots` repositioned to absolute right-bottom of the footer (both widget 1 Favorites carousel and widget 2 Slider) — previously centered horizontally. The slider-specific override that placed dots top-middle right is removed; the base rule now handles both contexts consistently.
+
+**News widget (rich slider variant)**
+
+- New `Unread / Read` tabs at the top, structured like the Todos list tabs. Tabs only render when both states exist; active tab is auto-fallback if the chosen tab becomes empty (e.g., after "mark all as read"). Tab pill styling matches todos: white pill with red text (`#C82318`) for contrast against the red news gradient.
+- Secondary news items (positions 2-4) now render with a 44×44 thumbnail + a 2-line title clamp + a meta line (`source · time`), replacing the previous single-line title with a leading dot. Limited to 3 items to make room for the tabs without overflowing the slide.
+- Secondary thumbnails inherit the same subtle border / lighter fallback bg as the featured thumbnail (red-gradient context).
+
+**Weather slide realtime data**
+
+- `BentoRichWeather` now reads `temperature` + `state` (condition) directly from `hass.states[entity_id]` instead of going through the `WeatherDeviceEntity` system-entity attribute cache. Reason: that cache is populated **once** in `onMount` via `getCurrentWeather`, with no listener on subsequent HA state pushes — so the slider would show empty / stale data if it mounted before the first fetch resolved, and never refresh afterwards. `hass.states` is updated on every state push and propagates through the `hass` prop, so the component now always renders the latest temperature and condition. The existing `liveAttrs / entity.attributes` fallback chain is preserved for the edge case where `hass.states` does not yet have the entry.
+- `useSystemEntityAttributes` hook updated to also dispatch re-renders for multi-instance entities (e.g., a `WeatherDeviceEntity` with id `weather_home_001` and domain `weather_device`): previously the listener only matched `system.{domain}` / `plugin.{domain}` literally, missing event ids that follow the `plugin.{specificId}` pattern. The hook now also resolves the local id via `systemRegistry.entities.get(id)` and matches if the resulting entity's domain equals the requested domain.
+
+**Tipps device card**
+
+- New entry in `entityAppearanceConfig` for `tipps` (Apple-Tipps orange `rgb(255, 159, 10)`) — the card now picks up `createDynamicVariants` and renders with a solid colored background, matching the visual treatment of Versionsverlauf and other system entities. Previously the card had no appearance config and rendered as a faded grey panel.
+- `tipps` added to the `isSystemEntityDomain` allow-list so the variants pipeline activates for it.
+- New `getTippsArea / getTippsName / getTippsState` helpers in `DeviceCard.jsx` plumb a random tip into the 3-line card layout, matching the Bambu Lab printer pattern:
+  - Line 1 (area, dimmed): the tip's category from the `## Tipp <slug> - <category>` markdown heading (e.g., "Audit", "Refactor", "HomeAssistant").
+  - Line 2 (name, bold): the tip's title from the `**Title:**` field.
+  - Line 3 (state): "Tipps" / "Tips".
+- The random pick uses `useMemo([device.domain, tipps.length])` — so a new tip is chosen each mount (= each time the card becomes visible) without flickering on re-renders.
+- Helpers threaded through `DeviceCard.jsx` → `DeviceCardGridView.jsx` and `DeviceCardListView.jsx`.
+
+**Todos detail view (task cards)**
+
+- Replaced the washed-out `linear-gradient(${listColor}33, ${listColor}1a)` task-card background with a solid `${listColor}4D` (~30% alpha) — single uniform tint instead of a faded gradient, clearly readable on dark wallpapers.
+- Added a 4px solid left border in the full list color for an Apple-Reminders-style category accent. Overdue tasks keep their red left border instead (the overdue cue wins over the list color).
+
+**Schedules overview**
+
+- `.schedules-list` (the scrollable list of timer / schedule cards) now uses `mask-image: linear-gradient(...)` to fade the top 28px and bottom 28px of the scroll viewport. Items entering or leaving the visible area blend out softly instead of being clipped mid-row — the standard iOS scroll-list edge treatment.
+
+### Result
+
+The Bento area got more cohesive (consistent dot placement, tighter favorites grid, richer news compact layout). Weather no longer occasionally displays as an empty slide, and now actually updates when Home Assistant pushes new state. Tipps joins the family of colored system-entity cards. Detail views (Todos task list, Schedules list) feel less harsh — solid tinting + soft scroll edges replace the previously washed/clipped looks.
+
 ## Version 1.1.1529 - 2026-05-16
 
 **Title:** 🔆 DeviceCard off-state — readable text in Devices view
