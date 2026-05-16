@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.1534 - 2026-05-16
+
+**Title:** ◻️ Favorites carousel cards back to square (gap 12 still holds, math fits)
+**Hero:** none
+**Tags:** Fix, Bento, Layout
+
+### Why
+
+The v1.1.1533 attempt to "make cards fit the fixed bento height" by stretching them with `grid-template-rows: repeat(2, minmax(0, 1fr))` + `align-content: stretch` + overriding `aspect-ratio: 1 → auto` was wrong: it forced cards into tall portrait rectangles (visible especially on Versionsverlauf and Tipps tiles in the favorites carousel). User explicitly: "die karten in den favoriten sind jetzt nicht mehr quadratisch!!!!".
+
+The cards do fit at `gap: 12` without any aspect-ratio hack — the math works:
+
+- Widget 1 inner width ≈ 324 px → with 3 columns and `gap: 12`, card width ≈ `(324 − 24) / 3 ≈ 100 px`.
+- `aspect-ratio: 1` makes card height = card width = 100 px.
+- 2 rows × 100 px + `gap: 12` = 212 px total card-block height.
+- Widget 1's carousel-page viewport ≈ 443 px (after header 20 + footer 54 + bottom margin 15 + paddings).
+- 212 px ≪ 443 px → cards fit comfortably, no overflow.
+
+### What changed
+
+**`BentoStartView.css`:**
+
+- `.bento-carousel-page`: `grid-template-rows: repeat(2, minmax(0, 1fr))` + `align-content: stretch` reverted to `grid-auto-rows: auto` + `align-content: start` (the v1.1.1505 working baseline). Cards are now sized by content (their own `aspect-ratio: 1`) instead of being stretched to fill row height.
+- `.bento-widget-card-wrapper .device-card`: the `aspect-ratio: auto !important` + `height: 100% !important` overrides removed. The inline `aspect-ratio: 1` from `DeviceCardGridView` now wins again, so cards render square.
+
+**User-requested `gap: 12 px` is preserved.** Cards are square at ~100×100 and fit the bento.
+
+The project memory `project_bento_grid_fixed_height.md` was rewritten: the correct procedure is "do the math first" — compute card_width = (inner_width − 2·gap) / 3, card_height = card_width, total_block_height = 2·card_height + gap, and check against the available widget viewport. If it fits at the requested gap, leave aspect-ratio alone. If it does not fit at the boundary, ask the user which constraint to relax (gap / count / aspect-ratio) rather than silently squashing the cards.
+
+### Result
+
+Cards in the favorites carousel are square again. Gap is 12 px as requested. Bento grid stays at its fixed 576 px and Widget 1 stays inside its cell with comfortable headroom.
+
 ## Version 1.1.1533 - 2026-05-16
 
 **Title:** 🎯 Tipps card deep-link · 5 s rotation · widget 1 cards fit the fixed bento grid
