@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1529 - 2026-05-16
+
+**Title:** 🔆 DeviceCard off-state — readable text in Devices view
+**Hero:** none
+**Tags:** Polish, DeviceCard, Contrast
+
+### Why
+
+User noticed: in the "Custom" view, inactive device cards render area / name / state in clearly readable white, while in the "Devices" view the same off-state cards render the text so dim it is almost invisible on the gray backdrop (see Anziehraum → Klima Climate Off vs. Kinderzimmer → Obergeschoss Sta...).
+
+Root cause: `DeviceCardGridView` already shipped an `.is-custom-view` override that lifts the inactive text to alpha 0.85/1/0.85 at opacity 1. The base defaults that apply outside the Custom view stayed at alpha 0.7/0.95/0.7 with an additional opacity multiplier of 0.5/0.6/0.5 — effective alpha 0.35–0.57. On the dimmed gray Devices backdrop this is the unreadable state the user saw.
+
+### What changed
+
+**`src/components/DeviceCard/DeviceCardGridView.jsx`** — base inactive rules for `.device-area` / `.device-name` / `.device-state` lifted to match the Custom-view override:
+
+- `.device-area`: `rgba(255,255,255,0.7)` × `opacity 0.5` → `rgba(255,255,255,0.85)` × `opacity 1`.
+- `.device-name`: `rgba(255,255,255,0.95)` × `opacity 0.6` → `rgba(255,255,255,1)` × `opacity 1`.
+- `.device-state`: `rgba(255,255,255,0.7)` × `opacity 0.5` → `rgba(255,255,255,0.85)` × `opacity 1`.
+
+The matching `background: linear-gradient(...)` values (used together with `background-clip: text` for the soft right-edge fade) were updated to the same higher alpha so the gradient endpoint matches the new solid color.
+
+### What stayed
+
+- `.device-card.active` rules (black text on saturated backgrounds) untouched — active cards in any view still render dark text on the colored fill.
+- `.device-grid-container.is-custom-view` override left in place — it is now redundant for inactive cards but still wins specificity over `.device-card.active` so active colored cards in the Custom view continue to use white text instead of the default dark.
+
+### Result
+
+Inactive device cards everywhere (Devices tab, room sections, all filter chips) now read with the same contrast as the Custom view. Off-state text is no longer washed out against the gray backdrop.
+
 ## Version 1.1.1528 - 2026-05-15
 
 **Title:** 📰 News-Widget: nur ungelesene, bis zu 6 Items, kompakter Layout
