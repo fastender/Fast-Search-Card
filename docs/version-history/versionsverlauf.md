@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1531 - 2026-05-16
+
+**Title:** 🛠 Tipps title spans rows 1+2 · Todos cards fully solid · Schedules mask only while scrolling
+**Hero:** none
+**Tags:** Polish, Tipps, Todos, Schedules
+
+### Why
+
+Three follow-up adjustments after the v1.1.1530 review:
+
+1. Tipps card should reserve rows 1+2 for the title (no area line), row 3 stays "Tipps".
+2. The 4px left list-color border on Todos task cards "looks shit" (user); use the list color as a fully solid background instead.
+3. The schedules list edge fade was always-on; it should appear only while actively scrolling, with a touch more breathing room.
+
+### What changed
+
+**Tipps device card**
+
+- `DeviceCardGridView` now adds a `tipps-card` modifier class when `device.domain === 'tipps'`.
+- New CSS rules inside that grid view's inline style block:
+  - `.device-card.tipps-card .device-area { display: none; }` — row 1 is freed up.
+  - `.device-card.tipps-card .device-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; line-height: 1.2; }` — title wraps across up to 2 lines.
+  - The standard `background-clip: text` gradient on `.device-name` is disabled in the tipps context (`background: none; -webkit-text-fill-color: rgba(255,255,255,1)`) because text-clip does not render correctly with multi-line `-webkit-box`.
+- `getTippsArea` returns a non-empty spacer string to avoid the "No Room" fallback chain firing on the (now hidden) area div.
+
+**Todos task cards**
+
+- Inline `borderLeft: '4px solid …'` removed.
+- Background changed from `${listColor}4D` (~30% alpha) to `${listColor}` (fully solid, no alpha) per user request.
+- The pre-existing CSS rule `.todo-card.overdue:not(.completed)` still applies a 3px red `border-left` for overdue items — left in place; the overdue visual cue is preserved.
+
+**Schedules list mask-image**
+
+- New `isScrolling` state on `AllSchedulesView` plus an `onScroll` handler with an 800 ms debounce: while the user is actively scrolling, the list gets the `is-scrolling` class; 800 ms after the last scroll event the class is removed.
+- CSS rewritten: the `mask-image` linear-gradient only applies to `.schedules-list.is-scrolling`, not to `.schedules-list` unconditionally. The fade zone was bumped from 28 px to 40 px so there is more breathing room between the last fully visible item and the viewport edge while scrolling.
+
+### Result
+
+Tipps cards now match the user's mock — title wraps over lines 1 + 2, line 3 says "Tipps". Todos task cards are fully solid in their list color (no faded border, no faded alpha). The schedules list looks clean when static (no permanent edge fade) and gains a softer Apple-style fade only while the user is actually scrolling, with extra padding so items don't feel jammed against the mask.
+
 ## Version 1.1.1530 - 2026-05-16
 
 **Title:** 🎨 Bento polish + Tipps card + Weather realtime fix + Todos/Schedules detail polish
