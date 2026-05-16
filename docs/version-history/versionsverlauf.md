@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1535 - 2026-05-16
+
+**Title:** 🔒 Hard-lock the bento grid to 576 px — no more overflow
+**Hero:** none
+**Tags:** Fix, Bento, Layout
+
+### Why
+
+The user's dev-tools screenshot showed the bento grid container measuring `1000 × 576 px` (correct), but the `w34` row's small widgets (Tips card + Energie Dashboard) were rendering BELOW that 576 px boundary, outside the grid. So even though `height: 576px` was set, content was still escaping it: "es wurde eigentliche eine fixe höhe bestimmt; wieso überschreitest du die höhe?"
+
+Root cause: `grid-template-rows: 1fr auto` combined with `.bento-cell--w34 > .bento-widget { aspect-ratio: 1; height: auto; }` created an under-determined sizing chain. Browsers do not always resolve "auto row sized by aspect-ratio child" the same way — under some conditions the auto row's height was being computed as larger than what fit, pushing the w34 row below the grid's fixed total height. The grid container also lacked `overflow: hidden`, so spills were visible instead of clipped.
+
+### What changed
+
+`BentoStartView.css` `.bento-grid--desktop`:
+
+- `grid-template-rows` changed from `1fr auto` → **`2fr 1fr`**. Both rows are now sized by a fraction of the fixed 576 px total — Row 1 ≈ 373 px (W2 slider), Row 2 ≈ 187 px (W34 small widgets). No more "auto" row that can grow with content.
+- Added `max-height: 576px` (belt-and-suspenders alongside the existing `height: 576px`).
+- Added `overflow: hidden` — last-resort visual guard. If any inner widget tries to push past the grid's fixed bounds, it is clipped, not allowed to render outside.
+
+`.bento-cell--w34 > .bento-widget`:
+
+- `aspect-ratio: 1` removed. The small widgets now use `height: 100%` and fill the W34 cell (≈ 201 × 187 px each). Slightly portrait instead of perfectly square, but the bento total stays deterministically 576 px tall, which is the higher-priority constraint per the user.
+
+### Result
+
+The bento grid is now deterministically clipped to 576 px. `w34` always lives inside the grid in Row 2 — Tips and Energie Dashboard render at the bottom-right of the bento, never below it. The small widgets are very-near-square (≈ 201 × 187 = 1.075 aspect) instead of perfect 1:1, which is the trade-off for honoring the fixed bento height.
+
 ## Version 1.1.1534 - 2026-05-16
 
 **Title:** ◻️ Favorites carousel cards back to square (gap 12 still holds, math fits)
