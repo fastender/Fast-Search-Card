@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1536 - 2026-05-16
+
+**Title:** ◻️ W3/W4 square + bento 576 px lock + hover scale no longer clipped
+**Hero:** none
+**Tags:** Fix, Bento, Layout
+
+### Why
+
+v1.1.1535 traded card squareness for a deterministic 576 px lock by switching `grid-template-rows: 1fr auto` to `2fr 1fr` and removing `aspect-ratio: 1` on the W34 widgets. That made W3/W4 slightly portrait (≈ 201 × 187). User wants BOTH: bento stays exactly 576 px AND W3/W4 are square. Also, `overflow: hidden` on the bento grid was clipping the framer-motion `whileHover: scale 1.05` on W3/W4 — a recurring problem the user flagged.
+
+The right fix is mathematical: row 2's height must equal the natural width of a W3/W4 widget. Once row 2 = widget width, widgets render square and the bento total stays exactly 576 px without any aspect-ratio / auto-row chicken-and-egg.
+
+### What changed
+
+**`BentoStartView.css` `.bento-grid--desktop`:**
+
+- Added `container-type: inline-size` so the bento grid becomes its own container-query root.
+- `grid-template-rows` replaced with:
+  - Row 1: `minmax(0, 1fr)` — soaks up whatever remains.
+  - Row 2: `calc((100cqi - 16px) / 2.353 / 2 - 8px)` — the natural width of a single W3/W4 widget, derived from the grid's own inline size.
+    - col 2 width = `(bento_w − col_gap) × 1 / (1.353 + 1)` = `(100cqi − 16) / 2.353`
+    - widget width = `(col2 − w34_inner_gap) / 2` = `((100cqi − 16) / 2.353 − 16) / 2` = `(100cqi − 16) / 2.353 / 2 − 8`
+  - At a 1000 px bento: row 2 ≈ 201 px → W3/W4 ≈ 201 × 201, perfectly square. Row 1 ≈ 359 px for W2.
+- `overflow: hidden` **removed**. The math is deterministic — nothing should overflow naturally — and removing it lets the `whileHover: scale 1.05` on the small widgets render outside their cell without being clipped.
+- `max-height: 576px` retained as a final hint.
+
+**`.bento-cell--w34 > .bento-widget`:**
+
+- `aspect-ratio: 1` already removed in v1.1.1535. Stays removed (it would now conflict with the new explicit row height anyway).
+- `width: 100%; height: 100%;` — the cell is already exactly square-sized by the new row 2 calc, so the widget filling it is automatically square.
+
+### Result
+
+W3 / W4 are square again on desktop. The bento grid stays locked at 576 px total height (verified: `height: 576px` + `max-height: 576px` + deterministic row sizing). Hover scale on the small widgets is no longer clipped.
+
 ## Version 1.1.1535 - 2026-05-16
 
 **Title:** 🔒 Hard-lock the bento grid to 576 px — no more overflow
