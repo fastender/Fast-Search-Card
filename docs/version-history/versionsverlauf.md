@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1540 - 2026-05-16
+
+**Title:** 🌀 System-entity polish — scroll mask everywhere · todos search + overdue red · versionsverlauf/tipps scrollbar fixes
+**Hero:** none
+**Tags:** Polish, News, Todos, Versionsverlauf, Tipps
+
+### Why
+
+User liked the `is-scrolling` linear-gradient `mask-image` fade and the `CustomScrollbar` component on `system.all_schedules`, and wanted the same treatment on the other system entities. Plus a list of concrete fixes:
+
+- `system.news`: add the `is-scrolling` scroll mask.
+- `system.todos`: add the mask, expose a search toggle in the toolbar (like schedules), and style overdue items with a bright red background and white text.
+- `system.versionsverlauf`: add the mask, remove the "Alle / Vor 1W / Vor 2W / Vor 4W" filter row (sinnlos), fix the `CustomScrollbar` so it renders INSIDE the panel container instead of outside, and add a `CustomScrollbar` to the version-detail page.
+- `system.tipps`: fix the same `CustomScrollbar` position bug, and add a `CustomScrollbar` to the tipp-detail page.
+
+### What changed
+
+**`is-scrolling` scroll mask — applied to all four system entities**
+
+Each view now has its own `isScrolling` boolean state plus a `handleScroll` handler with an 800 ms `setTimeout` debounce. The handler toggles a class on the scroll container; the corresponding CSS adds a vertical 40 px linear-gradient `mask-image` (transparent → black → transparent) so items entering / leaving the viewport fade softly during scroll, matching `system.all_schedules`.
+
+- `NewsView.jsx`: `.news-feed` (article list) and `.news-detail-content` (article body).
+- `TodosView.jsx`: `.todos-feed`.
+- `VersionsverlaufView.jsx`: `.versionsverlauf-feed` (list) and `.version-detail-scroll` (detail).
+- `TippsView.jsx`: `.tipps-feed` (list) and `.tipp-detail-scroll` (detail).
+
+All four CSS files got a matching `<feed-class>.is-scrolling { mask-image: linear-gradient(...) }` block.
+
+**Todos search-toggle + overdue red**
+
+- `todos/index.jsx` `actionButtons` now includes a `search` button between `overview` and `settings` (matching the `all_schedules` button order).
+- `TodosView.jsx`: new `searchOpen` state + `handleToggleSearch` registered via `useRegisterViewRef` so the toolbar search button toggles it. The always-visible `.todos-search-bar` is now wrapped in `AnimatePresence` and only mounted when `searchOpen` is true (slide-in / slide-out). Focus jumps to the input when the bar opens. Back-navigation closes the search bar before exiting.
+- `TodosView.css`: new `.todo-card.overdue:not(.completed)` rule — overrides the inline list-color background with a solid `var(--todos-red)` and forces title / due / list-icon text to white. The due-pill on overdue items gets a darker semi-transparent overlay so it stays readable on the red bg.
+
+**Versionsverlauf cleanup + scrollbar fix**
+
+- `VersionsList.jsx`: the `Alle / Vor 1W / Vor 2W / Vor 4W` filter row is removed. The tag-filter row (with the real version tags) stays. The `TIME_FILTER_LABELS_DE` / `TIME_FILTER_LABELS_EN` constants and the `timeFilter` / `setTimeFilter` props are deleted.
+- `VersionsverlaufView.jsx`: the `TIME_FILTERS` constant, the `timeFilter` state, and the date-cutoff logic in the `filteredVersions` `useMemo` are deleted. The filter pipeline now uses tag + search only.
+- `VersionsverlaufView.css`: `.versionsverlauf-view-container` gets `position: relative` — previously the `CustomScrollbar` (`position: absolute; right: 3px`) had no positioned ancestor inside this panel, so it was anchoring to a much-further-up ancestor and rendered outside the panel.
+- `VersionsverlaufView.jsx`: the `CustomScrollbar` is now rendered inside both branches of the `view === 'list' ? … : …` ternary — one for the list (`feedScrollRef`) and one for the detail page (`detailScrollRef`). The detail page also got `onMouseEnter` / `onScroll` props plumbed through to enable hover-show and `is-scrolling` mask.
+
+**Tipps scrollbar fix**
+
+- `TippsView.css`: `.tipps-view-container` gets `position: relative` — same fix as versionsverlauf, the absolute `CustomScrollbar` was rendering outside the panel.
+- `TippsView.jsx`: new `detailScrollRef` + `isDetailHovered` + `isDetailScrolling`. The `CustomScrollbar` is rendered inside both branches (list + detail). Props plumbed through to `TippDetail` so the detail page now has scroll mask + custom scrollbar.
+
+### Result
+
+All four system entities (news, todos, versionsverlauf, tipps) now have:
+- The Apple-style soft edge fade during scroll.
+- The custom indicator scrollbar inside their panel (right edge, vertically centered).
+
+Plus:
+- Todos overdue items are now visually unmissable (red on dark).
+- Todos search is a toolbar toggle, no longer always taking space.
+- Versionsverlauf no longer shows the pointless time-window filter row, and clicking a version entry now also has a custom scrollbar in the detail view.
+
 ## Version 1.1.1539 - 2026-05-16
 
 **Title:** 🏷 Entity-ID toggle (tag-icon, bottom-left) with marquee for long ids
