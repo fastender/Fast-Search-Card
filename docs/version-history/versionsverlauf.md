@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1548 - 2026-05-17
+
+**Title:** 🔒 Bento overflow hard-clipped — widgets can no longer escape the 576 px cell
+**Hero:** none
+**Tags:** Fix, Bento, Layout
+
+### Why
+
+Even though the bento grid had `height: 576px` set, the actual widget content (W1 favorites carousel, W3 tips card, W4 energy dashboard) was visibly rendering past the bottom of the grid. Dev tools confirmed `div.bento-grid.bento-grid--desktop = 1000 × 576` while the widget elements clearly extended below that. Root cause: nothing forced the widgets to stay inside their cells. `.bento-widget` had a `min-height: 100px` and `overflow: hidden` on the widget itself, but the cell containers (`.bento-cell--w1` / `w2` / `w34`) had no `overflow` rule, and neither did the grid container, so children whose intrinsic size exceeded the grid's row track would spill out vertically.
+
+### What changed
+
+`BentoStartView.css`:
+
+- `.bento-grid--desktop` now has `overflow: hidden` (in addition to existing `height: 576px` + `max-height: 576px`). Whatever the JS-driven row 2 height and inner widget sizing produce, nothing renders outside the 576 px box.
+- New rule `.bento-cell--w1, .bento-cell--w2, .bento-cell--w34 { overflow: hidden; min-height: 0; min-width: 0; }`. The three grid cells now strictly contain their own children — internal widget overflow gets clipped at the cell edge rather than spilling into adjacent cells / outside the grid.
+- `.bento-widget` had `min-height: 100px` which could push a cell taller than its grid row. Replaced with `min-height: 0; max-height: 100%;` so the widget always fits its container, never the other way around.
+
+### Result
+
+The bento grid stays at exactly 576 px tall, every widget renders strictly inside its assigned cell. W3 / W4 sizing continues to be driven by the v1.1.1546 `ResizeObserver` → `--w34-row-height` setup; this v1.1.1548 patch adds the hard container guard so any leftover content-size pressure is clipped instead of overflowing.
+
+Trade-off retained: framer-motion `whileHover: scale(1.05)` on inner widgets is now clipped at the cell edge (the small extra 5 % at the corners is cut off). User has prioritised the bento containment, so this is the accepted cost.
+
 ## Version 1.1.1547 - 2026-05-17
 
 **Title:** 🚑 Hotfix — missing `useRef` import broke FastSearchCard mount in v1.1.1546
