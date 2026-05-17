@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1544 - 2026-05-17
+
+**Title:** 📰 News rich-widget polish — uniform article rows, bigger thumb, footer label at dots height
+**Hero:** none
+**Tags:** Polish, Bento, News
+
+### Why
+
+User feedback on the bento news rich-widget:
+
+1. The first article rendered as a "featured" item (large headline, large thumb) and the next three rendered in a smaller compact `bento-rich-news-more` style. User wants every article in the same compact style — no oversized lead.
+2. Inside each compact row, the gap between the title and the source/time meta line is too big; the thumbnail itself feels slightly too small.
+3. The bento-carousel footer label sits vertically centred while the page dots sit at the very bottom. The label should drop down to the dots' height so they share the same baseline.
+4. Tapping the footer label visibly "moves down" — pointerdown was bubbling up to the slider wrapper, which started a `dragControls.start(e)` gesture and shifted the inner content / triggered the browser's default button :active translate.
+
+### What changed
+
+**Uniform article layout** — `BentoRichNews` in `BentoStartView.jsx`:
+- Removed the featured / secondary split. Replaced `const featured = articles[0]; const secondary = articles.slice(1, 4)` with a single `const items = activeArticles.slice(0, 5)`.
+- The render path no longer has a `bento-rich-news-featured` block. Every visible article goes through the same `bento-rich-news-more-row` template (thumb + title + meta).
+
+**Spacing + thumb size** — `BentoStartView.css`:
+- `.bento-rich-news-more-thumb`: `44 × 44` → `56 × 56`, border-radius `8px` → `9px`.
+- `.bento-rich-news-more-text`: `gap: 3px` → `gap: 1px` between title and meta.
+
+**Footer label at dots height + no click-bounce** — `BentoStartView.css`:
+- `.bento-carousel-footer-label`: dropped `top: 50%; transform: translateY(-50%)` in favour of `bottom: 4px` (the same as the dots), so the label's bottom edge baseline-aligns with the dots row.
+- Added a rule that nukes the browser `:active` transform / tap-highlight on the label (`transform: none; -webkit-tap-highlight-color: transparent;`), removing the default "press feedback" that visually shifted the label.
+
+**Stop slider drag from triggering on label / dot click** — `BentoStartView.jsx`:
+- Added `onPointerDown={(e) => e.stopPropagation()}` to both the `.bento-carousel-footer-label` button and each `.bento-carousel-dot` button inside `BentoRichSlider`. Previously their pointerdown bubbled up to the slider's `motion.div` wrapper, which calls `dragControls.start(e)`. The drag then engaged for one frame even on a stationary tap, which contributed to the visual "label moves down" feeling. Stopping the pointer event before it reaches the wrapper keeps clicks clean.
+
+### Result
+
+The bento news slide now shows up to 5 articles, all in the same compact two-line layout with a 56 × 56 thumbnail and tight title/meta spacing. The footer label sits at the bottom of the footer next to the page dots, and tapping it no longer "jumps" — clean press, executes the click handler, no drag side-effect, no native button-press shimmy.
+
 ## Version 1.1.1543 - 2026-05-17
 
 **Title:** 🩹 Todos overdue full red (via motion.animate) · search ↔ filter rows swap
