@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1542 - 2026-05-17
+
+**Title:** 🧹 Instant search-swap on tipps + versionsverlauf · Weather custom scrollbar · Todos 2-row filter
+**Hero:** none
+**Tags:** Fix, Tipps, Versionsverlauf, Weather, Todos
+
+### Why
+
+Three follow-up bug fixes after v1.1.1541:
+
+1. The search bar in `system.tipps` and `system.versionsverlauf` still faded in / out with `AnimatePresence` + `motion.div`. News was already converted to an instant ternary swap in v1.1.1541 and feels smoother — user wants tipps + versionsverlauf to match exactly.
+2. `system.weather` still had no `CustomScrollbar` — the native scrollbar was hidden in v1.1.1541 but no indicator was added.
+3. The todos filter bar piled status filters + profile filters + list filters onto a single horizontal row. User wants two rows: status (All, Incomplete, Today, Overdue, Completed) in row 1; backend lists (Einkaufsliste, To-Dos, …) in row 2.
+
+### What changed
+
+**Tipps + Versionsverlauf — search ternary swap**
+
+`TippsList.jsx` and `VersionsList.jsx` had the search-row wrapped in `AnimatePresence` + `motion.div` with a 220 ms fade. Removed both wrappers; the search-row is now rendered with `{searchOpen && (<div className="…-search-row">…</div>)}`. Identical to the v1.1.1541 news swap. No frame-delay, no fade — instant.
+
+**Weather — CustomScrollbar**
+
+`WeatherDeviceView.jsx`:
+- Imported `useRef` and `CustomScrollbar`.
+- Added `scrollRef`, `isHovered`, `isScrolling` state plus an `onScroll` handler that toggles `isScrolling = scrollTop > 0` (matches the v1.1.1541 behaviour everywhere else).
+- Wrapped the existing render content in a new `.weather-scroll-inner` div (the new scroll container). The outer `.weather-view` no longer scrolls.
+- Rendered `<CustomScrollbar scrollContainerRef={scrollRef} isHovered={isHovered} />` as a sibling of `.weather-scroll-inner`, inside the now-`position: relative` `.weather-view`.
+
+`WeatherDeviceView.css`:
+- `.weather-view`: `overflow-y: auto` → `overflow: hidden`; added `position: relative`.
+- New `.weather-scroll-inner` rule: `flex: 1`, `overflow-y: auto`, native scrollbar hidden, `is-scrolling` top-only mask gradient.
+
+**Todos — two-row filter bar**
+
+`TodosView.jsx` `.todos-filter-bar`:
+- Added modifier class `todos-filter-bar--two-rows` (flex column, gap 8 px).
+- Split the existing single `.filter-tabs` div into two:
+  - Row 1 (`.filter-tabs.filter-tabs--status`): All, Incomplete, Today, Overdue, Completed buttons + Profile filters.
+  - Row 2 (`.filter-tabs.filter-tabs--lists`): only the backend lists, rendered via `getListsFromTodos().map(...)`. Hidden entirely when the user has no lists configured.
+
+`TodosView.css` `.todos-filter-bar--two-rows`:
+- `display: flex; flex-direction: column; gap: 8px; overflow-x: visible;` — outer container stacks the rows vertically and lets each row scroll horizontally.
+- Each `.filter-tabs` row gets its own `overflow-x: auto` + hidden native scrollbar so a long status / list set still scrolls horizontally without dragging the other row.
+
+### Result
+
+- Tipps and Versionsverlauf search toggle is now instant, matching news / schedules.
+- Weather panel finally shows the custom scrollbar indicator and the top-mask while scrolling.
+- Todos filter bar is now visibly grouped: status filters on one line, backend lists on a separate line below.
+
 ## Version 1.1.1541 - 2026-05-17
 
 **Title:** 🧹 System-entity bugs — native scrollbars, mask behaviour, todos search, search-from-detail
