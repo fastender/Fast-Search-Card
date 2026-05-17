@@ -1,5 +1,65 @@
 # Versionsverlauf
 
+## Version 1.1.1541 - 2026-05-17
+
+**Title:** 🧹 System-entity bugs — native scrollbars, mask behaviour, todos search, search-from-detail
+**Hero:** none
+**Tags:** Fix, News, Todos, Versionsverlauf, Tipps, Weather
+
+### Why
+
+Round of bug fixes after v1.1.1540:
+
+1. Native browser scrollbar was still visible in `system.weather`, `system.versionsverlauf` entry-detail, `system.tipps` entry-detail.
+2. The `is-scrolling` mask should activate the moment the user scrolls away from the top, stay on permanently while `scrollTop > 0`, and only disappear when the user returns to the very top. Also: no bottom-edge fade — only the top.
+3. News search toggle animation felt different from `system.all_schedules`. Should be 1:1 with that view (instant swap, no fade).
+4. Todos search did nothing when the toolbar search button was tapped.
+5. Todos overdue items had only a red left border; should be fully red background.
+6. Versionsverlauf: tag-filter row stayed visible when the search bar was opened.
+7. Tipps: had a tag chip row underneath the categories; should be gone. And the categories row should also disappear when the search bar is opened.
+8. While inside a Tipps or Versionsverlauf entry detail, hitting the search button in the top toolbar did nothing — should drop back to the list view with search active.
+
+### What changed
+
+**Native scrollbar hidden** (`scrollbar-width: none` + `::-webkit-scrollbar { display: none }`) on:
+
+- `weather-view` (`WeatherDeviceView.css`)
+- `version-detail-scroll` (`VersionsverlaufView.css`)
+- `tipp-detail-scroll` (`TippsView.css`)
+
+`CustomScrollbar` is the sole indicator on these surfaces.
+
+**Scroll-mask behaviour rewritten** — `handleScroll` now reads `e.currentTarget.scrollTop` and sets `isScrolling = scrollTop > 0`. The 800 ms debounce + `setTimeout` cleanup are gone. The mask comes on the moment the user moves away from `scrollTop === 0` and only goes off once they return to it.
+
+CSS `mask-image` linear-gradient simplified to **top-only**: `transparent 0 → black 40px → black 100%`. The closing `→ transparent 100%` bottom-stop is removed on:
+
+- `schedules-list.is-scrolling`
+- `news-feed.is-scrolling`, `news-detail-content.is-scrolling`
+- `todos-feed.is-scrolling`
+- `versionsverlauf-feed.is-scrolling`, `version-detail-scroll.is-scrolling`
+- `tipps-feed.is-scrolling`, `tipp-detail-scroll.is-scrolling`
+
+**News search swap** in `NewsView.jsx` replaced — the `AnimatePresence` + `motion.div` fade pair around the `news-search-row` was removed and the search bar is now rendered with a simple `searchOpen ? <search-row> : <filter-wrapper>` ternary, exactly like `AllSchedulesView.jsx`. Instant swap, matches the schedules feel.
+
+**Todos search wiring** — `TabNavigation.jsx` `case 'search'` did not list `todos`. Added `else if (todos?.handleToggleSearch) todos.handleToggleSearch()` so the toolbar search button now toggles the todos search input that v1.1.1540 wired up.
+
+**Todos overdue full red** — instead of relying on a `!important` CSS override of the inline `style.background`, `TodosView.jsx` now sets the inline `background` itself conditionally: `overdue && status !== 'completed' ? 'rgb(255, 59, 48)' : listCustomization.color`. No more specificity dance with the list-colour. The CSS rule still forces title / due / list-icon text to white on overdue items.
+
+**Versionsverlauf tag row hides when searching** — `VersionsList.jsx` the `{allTags.length > 0 && …}` block is now `{!searchOpen && allTags.length > 0 && …}`. Opening the search input collapses the tag chip row so the search field stands alone, mirroring the schedules toolbar-swap behaviour.
+
+**Tipps tag chip row removed** — `TippsList.jsx` `Filter Row 2 (tags)` is deleted entirely (user: "keine tags als kategorienleiste"). The remaining categories row is now wrapped in `{!searchOpen && …}` so the search input replaces it when active.
+
+**Search-from-detail** — `handleToggleSearch` in `VersionsverlaufView.jsx` and `TippsView.jsx` now first checks `selectedVersion / selectedTipp`. If the user is in a detail view when they tap the toolbar search button, the detail is closed, the view switches back to `list`, and `searchOpen` is set to `true`. Previously the click did nothing because the detail view does not host the search input.
+
+### Result
+
+- Only the custom indicator scrollbar is visible across the four system entities + weather.
+- Scroll-mask shows whenever there is something hidden above the viewport, hides at the absolute top. No more bottom fade.
+- News search toggle now behaves identically to schedules.
+- Todos toolbar search opens / closes the search bar; overdue rows are fully red.
+- Versionsverlauf and Tipps hide their filter row when search is open and remove the tag chip row (tipps).
+- Tapping search from inside a versionsverlauf / tipps entry detail returns to the list with the search input open and focused.
+
 ## Version 1.1.1540 - 2026-05-16
 
 **Title:** 🌀 System-entity polish — scroll mask everywhere · todos search + overdue red · versionsverlauf/tipps scrollbar fixes
