@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1554 - 2026-05-17
+
+**Title:** 📅 Calendar: bento integration · event detail sheet · create + delete
+**Hero:** none
+**Tags:** Feature, Calendar, Bento, SystemEntity
+
+### Why
+
+Follow-up to the calendar system entity from v1.1.1553. User wants:
+1. The calendar in the W2 bento slider (alongside weather / news / todos).
+2. Event row click → detail sheet (analog to the todos detail).
+3. Edit / Create — full CRUD where the HA calendar source supports it.
+
+### What changed
+
+**Bento integration**
+
+`BentoStartView.jsx`:
+- New `BentoRichCalendar` component (compact view, ~5 upcoming events from a 14-day range). Hero-style row for the next event + 4 follow-ups. Each row is clickable: sets `window.__pendingCalendarEventUid` + `window.__pendingCalendarDate`, then `onItemClick(entity)` opens the calendar detail view. Reload triggers on `window focus` + 400/1200/2400 ms initial polling (same safety net as `BentoRichNews`).
+- `'calendar'` added to `RICH_DOMAINS`, `SLIDER_DOMAIN_ORDER`, `SLIDER_GRADIENTS` (Apple Calendar Red `#E94560 → #8A1538`), `getSliderItemLabel`. `renderRichForDomain` routes the case.
+- `BentoStartView.css`: new `.bento-widget--rich:has(.bento-rich-calendar)` red gradient block + full set of `.bento-rich-calendar*` rules (hero, marker, body, more rows, dots, empty state).
+
+**Entity actions (HA service calls)**
+
+`calendar/index.jsx`:
+- `createEvent({ hass, entity_id, summary, start, end, all_day, description, location })` — calls HA's `calendar.create_event` service. Switches between `start_date / end_date` (all-day) and `start_date_time / end_date_time` (timed) per spec. Reloads the visible range after creation.
+- `deleteEvent({ hass, entity_id, uid })` — calls HA's `calendar.delete_event` service (available HA 2024.6+ for calendars with the DELETE_EVENT feature flag). Reloads the visible range after deletion.
+
+**Detail sheet + form**
+
+New `calendar/components/`:
+- `CalendarEventDetail.jsx` — read-only sheet. Shows source dot + name (uppercase), title, full-day-or-timed date label, location row, description block, plus action footer with `Edit` and a two-step `Delete` confirmation. Slides in via framer-motion.
+- `CalendarEventForm.jsx` — add / edit form. Fields: title, calendar source `<select>`, all-day toggle, start date+time, end date+time, location, description. Native `<input type="date">` / `<input type="time">` for stability across HA calendar sources (no custom wheel pickers yet). Auto-bumps end to start+1h when invalid. Submit calls `onSubmit({ entity_id, summary, start, end, all_day, description, location })` which the view wires to `createEvent` (edit re-uses `delete + create` because HA has no universal `update_event` service).
+
+**CalendarView wiring**
+
+`calendar/CalendarView.jsx`:
+- New states: `selectedEvent`, `showForm`, `formMode`, `formInitial`.
+- New handlers: `handleEventClick` (opens detail), `handleAdd` (opens form in add mode), `handleEditEvent` (closes detail, opens form in edit mode), `handleCloseForm`, `handleSubmitForm` (delete-then-create on edit, otherwise create), `handleDeleteEvent` (closes detail + deletes + reloads).
+- `EventRow` accepts an `onClick` and is now clickable.
+- `useRegisterViewRef('calendar', { …, handleAdd })` — the toolbar `add` action button now opens the form. `handleBackNavigation` cascades through form → detail → search → exit.
+- New plus button rendered inline in the toolbar nav row (so users without the top-toolbar add icon configured can still create events).
+- Pending-uid pickup: a `useEffect([events])` runs after `loadEvents` resolves; if `window.__pendingCalendarEventUid` is set (from the bento click handler), it finds the matching event, focuses its date, and opens the detail sheet. The pending keys are then cleared.
+- Detail + form rendered as `position: absolute` overlay over the grid + list, animated via `AnimatePresence`.
+
+**CSS**
+
+`calendar/styles/CalendarView.css`:
+- `.calendar-event-row` is now clickable (hover bg).
+- New sections for `.calendar-event-detail`, `.calendar-event-form`, headers, body, fields, native input styling (`<select>` gets a custom chevron via inline SVG bg-image), action footer with `Cancel / Edit / Delete / Save` buttons (red for danger, white pill for primary).
+
+### Trade-offs
+
+- Edit is implemented as `delete + create` because HA has no universal `calendar.update_event` service. On sources without delete support, edit will fail at the delete step — user can still create new events; old ones stay until edited from HA's native UI.
+- Form uses native HTML inputs instead of the wheel pickers from `TodoFormDialog` — simpler, less polish, but works everywhere. UX upgrade is a follow-up.
+
 ## Version 1.1.1553 - 2026-05-17
 
 **Title:** 📅 New system entity: Calendar (HA `calendar.*` aggregator, day/week/month/year)
