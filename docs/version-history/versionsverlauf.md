@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1552 - 2026-05-17
+
+**Title:** 💾 Bento slider remembers page across remount
+**Hero:** none
+**Tags:** Fix, Bento, Slider
+
+### Why
+
+Tapping an article in the bento news slide opens the news detail view, which unmounts the bento. When the user navigates back, the bento remounts. The `BentoRichSlider` was using `useState(0)` for its current page index, so on remount it reset to 0 → weather slide. User had to swipe back to news every time after reading an article.
+
+### What changed
+
+`BentoStartView.jsx`, `BentoRichSlider`:
+
+- New module-level variable `let sliderPersistedIdx = 0;`. This survives component unmount / remount for the lifetime of the page (resets only on a full reload).
+- `useState(0)` → `useState(sliderPersistedIdx)`. The slider initialises to whatever page the user was last on.
+- The `setIdx` setter is now a wrapper that also writes the new value into `sliderPersistedIdx`. Auto-play / drag / dot-click / next-slide all flow through `setIdx`, so every change keeps the persisted value in sync.
+
+### Result
+
+User opens news, taps an article, reads, navigates back — the bento slider is still on the news slide. Same for todos. Reloading the page resets to weather.
+
 ## Version 1.1.1551 - 2026-05-17
 
 **Title:** 🎯 W3/W4 hover scale no longer clipped at cell corner
