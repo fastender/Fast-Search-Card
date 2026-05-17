@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1545 - 2026-05-17
+
+**Title:** 📰 News widget — label baseline matches dots, click row opens that article
+**Hero:** none
+**Tags:** Polish, Bento, News, DeepLink
+
+### Why
+
+Two follow-ups on the bento news widget:
+
+1. The "N new articles" line under "News" still sat a couple of pixels above the page dots' baseline. With `line-height: 1.15` and `bottom: 4px`, the line-box descender pushed the text up off the dots' actual bottom edge.
+2. Clicking an article row in the bento widget only opened the news entity overview. User wants the row click to deep-link straight into that article's detail view (analog to the v1.1.1533 tipps deep-link).
+
+### What changed
+
+**Label baseline alignment** — `BentoStartView.css` `.bento-carousel-footer-label`:
+
+- `bottom: 4px` → `bottom: 0`, plus `padding-bottom: 4px` to keep the 4 px breathing room.
+- `line-height: 1.15` → `line-height: 1` — kills the line-box descender that was lifting the text. The visual underside of the "24 new articles" line now sits at exactly the same y as the dots' bottom.
+
+**Deep-link from news row** — `BentoStartView.jsx`:
+
+- `BentoRichNews` now accepts an `onItemClick` prop.
+- Each `bento-rich-news-more-row` got an `onClick` that:
+  - `e.stopPropagation()` so the slider-page outer click doesn't double-fire.
+  - Sets `window.__pendingNewsArticleId = a.id`.
+  - Dispatches a `news-open-specific` `CustomEvent` (for parity with the tipps pattern; not strictly needed since the mount-time check covers the typical flow).
+  - Calls `onItemClick(entity)` so the news detail view opens normally.
+- `renderRichForDomain` passes `onItemClick` through to `BentoRichNews` via `options.onItemClick`.
+- The slider's per-page wrapper now passes a relayed `onItemClick` into `options` so a child click still routes to the slider's parent click handler.
+
+**`NewsView.jsx`** — after `loadArticles` resolves, the new code reads `window.__pendingNewsArticleId`, finds the matching article in `newsArticles`, and calls `setSelectedArticle(hit)` to land the user directly in the article detail. Pending id is then cleared. Honours the `autoMarkRead` setting to flip the read flag if it's set.
+
+### Result
+
+The "N new articles" line is flush with the page dots at the bottom of the footer. Tapping any article row inside the bento news widget opens that exact article rather than the news overview.
+
 ## Version 1.1.1544 - 2026-05-17
 
 **Title:** 📰 News rich-widget polish — uniform article rows, bigger thumb, footer label at dots height
