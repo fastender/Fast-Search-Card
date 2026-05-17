@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1543 - 2026-05-17
+
+**Title:** 🩹 Todos overdue full red (via motion.animate) · search ↔ filter rows swap
+**Hero:** none
+**Tags:** Fix, Todos
+
+### Why
+
+Two follow-ups on todos after v1.1.1542:
+
+1. Overdue items still showed only the red 1 px outline, not a fully red background. The v1.1.1541 `style={{ background }}` inline path did not actually paint the colour during framer-motion's animation loop, and the v1.1.1540 `!important` CSS rule was sitting next to a `box-shadow: 0 0 0 1px rgba(255,50,30,0.5)` that produced the visible red border. End result: an overdue card looked dark inside with a red ring around it.
+2. Toggling search did not hide the two filter rows. They stayed visible underneath the search input. User wants the same swap behaviour as `system.news` — search ⇄ filter rows in one place.
+
+### What changed
+
+**Overdue full red — motion-native colour**
+
+`TodosView.jsx`:
+- Removed `style={{ background: … }}` from `motion.div`.
+- The target colour is computed once per row (`targetBg = overdue && !completed ? rgb(255,59,48) : listCustomization.color`) and passed into framer-motion via both `initial.backgroundColor` and `animate.backgroundColor`. Motion now owns the property, so it is honoured for every render including the mount animation.
+
+`TodosView.css`:
+- The old `.todo-card.overdue:not(.completed)` rule no longer fights `!important` for `background`. It only resets the legacy left-border (`border-left: none !important`) and kills the v1.1.1540 `box-shadow` (`box-shadow: none`). The colour comes entirely from motion.
+
+**Search ⇄ filter rows swap**
+
+`TodosView.jsx`:
+- The `AnimatePresence` + `motion.div` wrapping the `.todos-search-bar` is removed.
+- The search bar and the two-row filter bar are now siblings in a ternary: `{searchOpen ? <search-bar/> : <filter-bar-two-rows/>}`. Same pattern as news / schedules / tipps / versionsverlauf in v1.1.1542.
+- Result: tapping the toolbar search swaps the filter rows out for the input. Tapping again brings the two rows back. No fade-in/fade-out artefacts.
+
+### Result
+
+Overdue cards now render as solid red rectangles with white text. The filter rows hide cleanly when search opens and reappear when it closes — same feel as the other system entities.
+
 ## Version 1.1.1542 - 2026-05-17
 
 **Title:** 🧹 Instant search-swap on tipps + versionsverlauf · Weather custom scrollbar · Todos 2-row filter
