@@ -1,5 +1,64 @@
 # Versionsverlauf
 
+## Version 1.1.1555 - 2026-05-17
+
+**Title:** 🩹 Calendar slider mapping fix · event dialog rebuilt in Todos-style (wheel pickers + sub-views)
+**Hero:** none
+**Tags:** Fix, Calendar, Bento
+
+### Why
+
+After the v1.1.1554 release:
+
+1. The calendar still did not appear in the bento W2 slider. `SLIDER_DOMAIN_ORDER` had `'calendar'` in it, but the `.map(d => …)` inside the slider only routed `'weather'`, `'news'`, `'todos'` — calendar fell into the `return null` branch and was filtered out by `.filter(Boolean)`. `system.settings` and the start-screen settings tab both already iterate over the registry, so they listed the calendar correctly; no changes needed there.
+2. The earlier v1.1.1554 detail sheet + form pair was a "good first draft" but visibly off-pattern from the rest of the system entities. User wants the same iOS-settings-style layout as TodoFormDialog — single dialog, navbar with Back / Done, `.ios-card` rows with chevron, slide-in sub-views for date / time / list / description, and Wheel-Pickers (not native HTML date/time inputs).
+
+### What changed
+
+**Bento slider fix**
+
+`BentoStartView.jsx` `BentoRichSlider` `items` `useMemo`:
+
+- Added `const calendar = findFor(['calendar']);`
+- Added `if (d === 'calendar') return calendar;` inside the `.map()`.
+
+That's it — the rest of the wiring from v1.1.1554 was already complete.
+
+**Unified event dialog (Todos-style)**
+
+New `calendar/components/CalendarEventDialog.jsx` replaces `CalendarEventDetail.jsx` + `CalendarEventForm.jsx` (the v1.1.1554 components are kept but no longer imported). Structure mirrors `todos/components/TodoFormDialog.jsx`:
+
+- `mode: 'add' | 'edit'`. Both modes use the same main view — Apple Calendar style.
+- `.ios-settings-container` outer, `.ios-navbar` with `Cancel` on the left and `Done` on the right.
+- `.ios-card` lists clickable `.ios-item` rows: Calendar source, All-day toggle (inline checkbox), Start · Date, Start · Time, End · Date, End · Time, Location (inline input), Description (chevron → sub-view).
+- Sub-views (`startDate`, `startTime`, `endDate`, `endTime`, `list`, `description`) slide in via `AnimatePresence` with the existing `slideVariants`. Each sub-view has its own `Back`/`Done` navbar. Picker sub-views render `DatePickerWheel` / `TimePickerWheel` (same wheel components that todos uses). Temp state per sub-view lets the user cancel out without committing.
+- Bottom: delete button (edit mode only). First tap opens an inline two-button confirm row (`Cancel` + `Confirm delete`). Second tap on `Confirm delete` calls `onDelete`.
+
+CSS:
+
+- New `.calendar-event-dialog-overlay` (absolute fill, blurred backdrop) hosts the dialog over the calendar grid.
+- New `.calendar-event-inline-input` (location field inside an `.ios-item`) and `.calendar-event-description-textarea` (full-width description sub-view).
+- Reused: `.ios-settings-container`, `.ios-navbar`, `.ios-card`, `.ios-item`, `.ios-chevron`, `.ios-divider`, `.ios-view-wrapper`, `.ios-settings-view` (from news), `.todo-detail-edit-content`, `.todo-detail-title-input`, `.todo-detail-checkbox`, `.checkbox-mark-large`, `.todo-detail-save-btn` (from todos). `CalendarEventDialog.jsx` imports both `iOSSettingsView.css` and `TodoDetailView.css` so the visual language matches todos exactly.
+
+**CalendarView wiring**
+
+`calendar/CalendarView.jsx`:
+
+- Replaced `selectedEvent` + `showForm` + `formMode` + `formInitial` with a single `dialogState` = `null | { mode, initialEvent }`.
+- `handleEventClick(ev)` now opens the dialog in edit mode directly (no separate read-only detail step — Apple Calendar behaviour).
+- `handleAdd` opens the dialog in add mode.
+- `handleSubmitDialog` does the delete-then-create dance for edit mode, single `createEvent` for add.
+- `handleDeleteEvent` is forwarded into the dialog so the user can delete from inside the edit screen.
+- Pending-uid pickup from `window.__pendingCalendarEventUid` (set by the bento click handler) now opens the dialog in edit mode after the events array is populated.
+- `handleBackNavigation` (toolbar back) closes the dialog first, then the search bar, then exits.
+- Removed the now-unused `CalendarEventDetail` / `CalendarEventForm` imports + the `AnimatePresence` wrapper (single dialog, no presence transition needed at this level).
+
+### Result
+
+- Calendar slide is now visible in the bento W2 auto-slider.
+- Tapping an event in the calendar detail view opens an Apple-Calendar-style dialog that visually matches the Todos form — same fonts, same row layout, same chevron sub-views, same wheel pickers, same delete-confirm pattern.
+- Edit (delete + create), add (create), and delete from inside the edit dialog all flow through the same `CalendarEventDialog` component.
+
 ## Version 1.1.1554 - 2026-05-17
 
 **Title:** 📅 Calendar: bento integration · event detail sheet · create + delete
