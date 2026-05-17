@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1547 - 2026-05-17
+
+**Title:** 🚑 Hotfix — missing `useRef` import broke FastSearchCard mount in v1.1.1546
+**Hero:** none
+**Tags:** Hotfix, Bento
+
+### Why
+
+v1.1.1546 added a `useRef`-based `ResizeObserver` setup in `BentoStartView.jsx` to drive the row 2 height of the bento grid. The import line was not updated, so the runtime threw `ReferenceError: useRef is not defined` while mounting the card. The whole `FastSearchCard` component crashed: HA showed "Error mounting Fast Search Card: useRef is not defined" instead of the card.
+
+### What changed
+
+`BentoStartView.jsx` line 26: added `useRef` to the existing `preact/hooks` import.
+
+```diff
+- import { useEffect, useMemo, useState } from 'preact/hooks';
++ import { useEffect, useMemo, useState, useRef } from 'preact/hooks';
+```
+
+No other change. The v1.1.1546 logic (ResizeObserver-driven `--w34-row-height`) is otherwise correct.
+
+### Result
+
+Card mounts again. The v1.1.1546 W3/W4 square + 576 px bento fix is now actually live.
+
 ## Version 1.1.1546 - 2026-05-17
 
 **Title:** 🔁 Bento 576 px lock + W3/W4 square at any width — ResizeObserver-driven Row 2
