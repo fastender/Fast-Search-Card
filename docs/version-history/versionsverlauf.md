@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1550 - 2026-05-17
+
+**Title:** 🐛 Todos combined filters (status + list) · BentoRichNews initial render catch
+**Hero:** none
+**Tags:** Fix, Todos, News, Bento
+
+### Why
+
+Two bugs from user testing:
+
+1. In the todos detail view the two filter rows were mutually exclusive: tapping a list pill in row 2 (e.g. "Einkaufsliste") then tapping a status pill in row 1 (e.g. "Incomplete") deselected the list. They share a single `activeFilter` state. User wants both filters to be applied together — "show me the incomplete items from Einkaufsliste".
+2. In the bento news widget the Unread / Read tabs and the `CustomScrollbar` only appeared after clicking an article. On first mount they were missing, even when articles existed. Root cause: the news entity loads its articles asynchronously in `onMount`; when the bento renders before that resolves, `liveAttrs.articles` is still empty, and the `system-entity-updated` event the entity fires on completion is dispatched while the `useSystemEntityAttributes` listener is briefly not yet attached on every code path — so the bento misses the update and renders the empty initial state until something else triggers a re-mount (e.g., the user clicks an article, the detail view opens then closes).
+
+### What changed
+
+**Todos — independent row-1 / row-2 filters**
+
+`TodosView.jsx`:
+- New state `listFilter` (default `null`). Independent of the existing `activeFilter`.
+- `filterTodos` effect dependency expanded to `[activeFilter, listFilter, todos, settings, searchQuery]`.
+- Inside `filterTodos`, a new step (3a) after the active-filter pass: `if (listFilter) filtered = filtered.filter(t => t.listId === listFilter);`. The list filter is AND-combined with whatever `activeFilter` already produced.
+- Row 2 list pills now read/write `listFilter` instead of `activeFilter`, with a toggle handler: `onClick={() => setListFilter((prev) => prev === list.id ? null : list.id)}`. Re-tap on the active list deselects.
+
+User flow: tap "Einkaufsliste" in row 2 → `listFilter = 'einkaufsliste-id'`. Tap "Incomplete" in row 1 → `activeFilter = 'incomplete'`. List filter stays. The list now shows only incomplete items from Einkaufsliste.
+
+**News — initial render polling safety net**
+
+`BentoStartView.jsx`, inside `BentoRichNews`:
+- New mount-only `useEffect` that schedules four bumps to `refreshTick` at `200`, `600`, `1400`, `2500` ms. Each bump re-renders the component, which re-reads `liveAttrs` from the registry. If the news entity finishes loading its articles within ~2.5 s of the bento mount, one of these polls catches the populated state and the tabs / scrollbar appear without needing the user to click into an article and back.
+- Window `focus` and `document` `visibilitychange` bumps from v1.1.1532 are retained for the "user returned from somewhere else" case.
+
+### Result
+
+- Todos filters compose: list (row 2) and status / profile (row 1) can be combined without clobbering each other.
+- News bento widget shows tabs + custom scrollbar on first display once articles finish loading, no extra user action required.
+
 ## Version 1.1.1549 - 2026-05-17
 
 **Title:** 📜 News bento widget — vertical scroll with CustomScrollbar
