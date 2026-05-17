@@ -1,5 +1,85 @@
 # Versionsverlauf
 
+## Version 1.1.1558 - 2026-05-17
+
+**Title:** 🩹 Calendar delete/update use the WebSocket API — `calendar.delete_event` is not a service
+**Hero:** none
+**Tags:** Fix, Calendar, HA-API
+
+### Why
+
+User reported "Service calendar.delete_event not found." when editing an event. The v1.1.1557 cleanup made that error visible in the dialog (good), but the root cause is that **HA does not expose `calendar.delete_event` as a callable service at all.** Delete and update on calendar events go through the **WebSocket API**, not the service registry:
+
+- `calendar/event/delete` — by entity_id + uid (+ optional recurrence_id / recurrence_range)
+- `calendar/event/update` — by entity_id + uid + event payload
+- `calendar/event/create` — exists as a service AND a WS message; we keep using the service for create (`calendar.create_event`), which works.
+
+So the v1.1.1554 implementation of `deleteEvent` was wrong from day one — it just happened to never be hit before edit-via-delete-then-create was wired up. And the edit pattern itself was suboptimal: delete + create even on success would lose history (uid changes), break recurring events, and risk duplicates on any calendar where delete is slower / less reliable. The right primitive is `update_event`.
+
+### What changed
+
+`src/system-entities/entities/calendar/index.jsx`:
+
+**`deleteEvent`** now sends a WS message instead of calling a non-existent service:
+
+```js
+await hass.connection.sendMessagePromise({
+  type: 'calendar/event/delete',
+  entity_id,
+  uid,
+  ...(recurrence_id && { recurrence_id }),
+  ...(recurrence_range && { recurrence_range }),
+});
+```
+
+**`updateEvent` (new)** mirrors `createEvent` but routes through `calendar/event/update`:
+
+```js
+const event = { summary };
+if (description) event.description = description;
+if (location) event.location = location;
+if (all_day) {
+  event.dtstart = …slice(0, 10);
+  event.dtend   = …slice(0, 10);
+} else {
+  event.dtstart = …toISOString();
+  event.dtend   = …toISOString();
+}
+await hass.connection.sendMessagePromise({
+  type: 'calendar/event/update',
+  entity_id, uid, event,
+  ...(recurrence_id && { recurrence_id }),
+  ...(recurrence_range && { recurrence_range }),
+});
+```
+
+The WS event payload uses `dtstart` / `dtend` (not `start_date_time` / `end_date_time` like the create service) because that's what the WS handler accepts.
+
+`src/system-entities/entities/calendar/CalendarView.jsx`:
+
+`handleSubmitDialog` no longer does delete-then-create on edit. It routes the entire dialog payload through `updateEvent`:
+
+```js
+if (isEdit) {
+  if (!old.uid || !old.calendar_id) throw new Error('…no uid / entity_id.');
+  await entity.executeAction('updateEvent', {
+    hass, entity_id: old.calendar_id, uid: old.uid, ...data,
+  });
+} else {
+  await entity.executeAction('createEvent', { hass, ...data });
+}
+```
+
+Add stays on the create service. Delete (via the delete button in the dialog) now actually goes through, since `deleteEvent` uses the right transport.
+
+### Files
+
+- `src/system-entities/entities/calendar/index.jsx`
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1557 - 2026-05-17
 
 **Title:** 🩹 Calendar edit fails loudly when delete is not supported — no more silent duplicates
