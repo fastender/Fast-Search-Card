@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1546 - 2026-05-17
+
+**Title:** 🔁 Bento 576 px lock + W3/W4 square at any width — ResizeObserver-driven Row 2
+**Hero:** none
+**Tags:** Fix, Bento, Layout
+
+### Why
+
+Several attempts have failed to keep both constraints simultaneously: the bento grid stays exactly 576 px tall AND W3/W4 stay square at any container width. Pure-CSS variants either trade one for the other or rely on browser quirks (`aspect-ratio` on a grid item with `1fr auto`, `100cqi` inside the same `container-type` element, hard-coded `200px` Row 2). At the user's screen the right column was narrower than the assumed 1000 px-bento, so the fixed `200 px` row 2 made the (col2 − 16) / 2 ≈ 137 px-wide widgets render as portrait rectangles. User: "BITTE LÖSE ENDLICH DIESES PROBLEM!"
+
+### What changed
+
+JS-driven Row 2 with `ResizeObserver`.
+
+**`BentoStartView.jsx`** (`BentoStartView` component):
+
+- New `gridRef = useRef(null)` attached to the `.bento-grid--desktop` div.
+- New `useEffect` (skips when `isMobile`) that:
+  - Reads `el.clientWidth`.
+  - Computes `col2 = (w − 16) / 2.353` (the `1fr` side of `minmax(0,1.353fr) minmax(0,1fr)` + 16 px column gap).
+  - Computes `widgetW = (col2 − 16) / 2` — the natural square size for each W3 / W4 widget.
+  - Clamps to `[120, 260]` px so wildly narrow or wildly wide containers do not crush W2 (Row 1) or blow up W34.
+  - Sets `el.style.setProperty('--w34-row-height', '${rowH}px')`.
+  - Re-runs via `ResizeObserver` on every size change, with proper cleanup.
+
+**`BentoStartView.css`** `.bento-grid--desktop`:
+
+- `grid-template-rows: 1fr 200px` → `grid-template-rows: 1fr var(--w34-row-height, 200px)`.
+- `height: 576px` + `max-height: 576px` retained — Row 1 (the `1fr`) absorbs whatever Row 2 doesn't take, so the bento total stays exactly 576 px regardless of how Row 2 varies.
+
+### Math
+
+For any bento width `w`:
+
+- `row2 = clamp(120, (w − 16) / 2.353 / 2 − 8, 260)`
+- `row1 = 576 − 16 − row2`
+- W34 cell = `(w − 16) / 2.353` wide × `row2` tall
+- W3 / W4 widget = `((cell_w − 16) / 2)` wide × `row2` tall
+
+In the unclamped middle of the range, `widget_w == row2` → perfectly square. At the clamp boundaries widgets are slightly off-square but Row 1 stays at least 100 px and bento total still locks at 576 px.
+
+### Result
+
+W3 and W4 are square (or near-square within the 120–260 px sensible range) at every desktop / tablet bento width. The bento grid container stays exactly 576 px tall — no overflow at any width, no lost W2 space at narrow widths, no W2 squashed to zero at wide widths.
+
 ## Version 1.1.1545 - 2026-05-17
 
 **Title:** 📰 News widget — label baseline matches dots, click row opens that article
