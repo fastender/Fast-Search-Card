@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.1553 - 2026-05-17
+
+**Title:** 📅 New system entity: Calendar (HA `calendar.*` aggregator, day/week/month/year)
+**Hero:** none
+**Tags:** Feature, SystemEntity, Calendar
+
+### Why
+
+Brainstormed with the user: build a Calendar system entity that aggregates HA's native `calendar.*` entities and renders an Apple-Calendar-style overview with Day / Week / Month / Year switching plus an event list.
+
+### What changed
+
+New entity directory `src/system-entities/entities/calendar/`:
+
+**`index.jsx`** — `CalendarEntity` extends `SystemEntity`:
+
+- `id: 'calendar'`, `domain: 'calendar'`, brand colour `rgb(255, 59, 48)` (Apple Calendar Red), Apple-mini-calendar SVG icon.
+- `attributes`: `calendars`, `events`, `last_range`, `last_loaded`.
+- `hasCustomView: true`, lazy `viewComponent` import.
+- `actionButtons`: `overview / search / settings / refresh` (same set as `all_schedules` / `news`).
+- Actions:
+  - `listCalendars({ hass })` — scans `hass.states['calendar.*']`, returns and stores list of available HA calendars.
+  - `loadEvents({ hass, start, end, entityIds? })` — `hass.callApi('GET', 'calendars/{eid}?start=…&end=…')` per entity, normalises each HA event (`start.dateTime / start.date`, all-day flag, etc.) into the internal `{ summary, startDate, endDate, calendar_id, calendar_name, all_day }` shape, flattens and sorts ascending by start.
+- `onMount` calls `listCalendars` once via `mountWithRetry` so the registry is populated before any view renders.
+
+**`CalendarView.jsx`** — Apple-Calendar-style UI:
+
+- Top toolbar swaps between mode tabs (`Tag / Woche / Monat / Jahr` / EN equivalents) + nav `‹  Heute  ›` and the search bar (toggled by the existing toolbar search button via `useRegisterViewRef('calendar', { handleToggleSearch })`).
+- Header title — full day name in day mode, `1. – 7. Mai 2026` in week mode, `Mai 2026` in month mode, `2026` in year mode.
+- Grid area:
+  - `MonthGrid` — 6 × 7 cells, weekday header (Mo-So), today gets a red filled circle on the day number, the selected day gets a soft red highlight, event dots (up to 3 per day, colour-coded per calendar source) at the bottom of each cell.
+  - `WeekGrid` — 7 pills with weekday short label + day num + event count badge.
+  - `YearGrid` — 4 × 3 month pills with event count badge per month; tapping jumps to month view of that month.
+  - `DayHeaderStrip` — large weekday + day number, event list below.
+- Event list at the bottom of the right panel:
+  - Coloured dot per source calendar (deterministic colour via hash).
+  - Title + meta line (time range or "Ganztägig" + location + calendar name).
+  - Wraps an internal scroll container with a `CustomScrollbar`, hover triggers the indicator.
+- Search filters the visible event list across `summary / description / location / calendar_name`.
+- View ref registered as `useRegisterViewRef('calendar', { handleRefresh, handleToggleSearch, handleOpenSettings, handleBackNavigation, getActiveButton })` so the existing top toolbar buttons (`search`, `settings`, `refresh`) dispatch into the view via `TabNavigation.handleActionClick`.
+
+**Wiring**:
+
+- `src/system-entities/registry.js` `autoDiscover()` list now imports `./entities/calendar/index.jsx`.
+- `src/system-entities/integration/DeviceCardIntegration.jsx`: `'calendar'` added to `isSystemEntityDomain`, and an `iconMap.calendar` SVG renders the device-card / detail icon in white.
+- `src/system-entities/config/appearanceConfig.js`: new `calendar` block with Apple Calendar Red (`rgb(255, 59, 48)`) and standard hidden / inactive / active / hover animation variants.
+- `src/components/DetailView/DetailHeader.jsx`: `systemDomains` array extended with `'calendar'` so the detail-left hero shows `deviceNames.calendar` instead of falling back to the raw friendly name.
+- `src/components/DetailView/TabNavigation.jsx`: `calendar` added to the toolbar dispatch in `back / overview / settings / refresh / search` so the action buttons route into the view ref.
+- `src/utils/translations/languages/{de,en}.js`: `deviceNames.calendar` `Kalender` / `Calendar`.
+
+### How to use
+
+The entity auto-registers on app boot. To make it appear:
+
+- It shows up automatically in the device list / sidebar wherever other system entities (Todos, News, Versionsverlauf, Tipps) appear.
+- Tap the calendar card → DetailView opens with the Apple-Calendar-style UI. Month view is the default; tabs at the top right switch to Day / Week / Year. The footer-style event list shows events for the selected day (month / week / day modes) or events in the current year (year mode).
+- All HA `calendar.*` entities are aggregated automatically — no setup, no config. Events are fetched on demand for the visible range using HA's REST API.
+
+### Follow-ups (not in this release)
+
+- Move the calendar grid into the left panel (replacing the standard hero) as originally sketched — needs a custom DetailView left-panel routing path; deferred until the right-panel-only MVP is validated.
+- Event detail popover on tap (currently rows are display-only).
+- Event creation / editing — HA supports `calendar.create_event` for some integrations; would slot in via the toolbar `add` action button.
+
 ## Version 1.1.1552 - 2026-05-17
 
 **Title:** 💾 Bento slider remembers page across remount
