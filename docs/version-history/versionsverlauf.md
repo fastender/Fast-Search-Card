@@ -1,5 +1,84 @@
 # Versionsverlauf
 
+## Version 1.1.1559 - 2026-05-17
+
+**Title:** ✨ Calendar event dialog — recurrence presets · location sub-view · title quick-chips · all-day hover-checkmark fix
+**Hero:** none
+**Tags:** Feature, Calendar, Polish
+
+### Why
+
+Native HA calendars expose `rrule` on every event, but the Fast-Search-Card dialog had no UI for it — editing a recurring event silently dropped the recurrence rule. Plus three smaller papercuts:
+
+1. The "Ganztägig" toggle's checkbox circle is `rgba(255,255,255,0.1)` by default. When the row hovers, the row turns white (the standard `.ios-item:hover` rule) — and the circle becomes invisible-on-white. Same problem when the checkbox is checked and the row is hovered: the blue background got overwritten by the row hover and the tick disappeared.
+2. The location field was an inline `<input>` inside the row. Inconsistent with description (sub-view), small target, no autofocus, awkward when the value is longer than the slot.
+3. Add-mode users always type the same five-ish event labels (Termin, Meeting, Geburtstag, …). A row of quick-chips above the title input cuts the typing.
+
+### What changed
+
+**Recurrence sub-view (Apple-Style, 5 presets)**
+
+New row "Wiederholung" / "Repeat" in the main dialog view, chevron to a sub-view with 5 options (Nie / Täglich / Wöchentlich / Monatlich / Jährlich). Selection auto-returns to main after 150 ms (same UX as the Calendar-source picker).
+
+RRULE mapping (`rrulePresetFromString` + `rrulePresetToString` in `CalendarEventDialog.jsx`):
+
+| Preset    | RRULE          |
+|-----------|----------------|
+| `none`    | (empty)        |
+| `daily`   | `FREQ=DAILY`   |
+| `weekly`  | `FREQ=WEEKLY`  |
+| `monthly` | `FREQ=MONTHLY` |
+| `yearly`  | `FREQ=YEARLY`  |
+
+Unknown / complex RRULEs (with `BYDAY`, `INTERVAL`, `UNTIL`, `COUNT`, …) fall through to a 6th read-only "Benutzerdefiniert" / "Custom" entry that shows the original string. Edits to such events preserve the original string verbatim — the dialog refuses to clobber custom rules into a simpler preset.
+
+`calendar/index.jsx`:
+
+- `createEvent` now forwards `rrule` to `calendar.create_event` service.
+- `updateEvent` forwards `rrule` (including empty string — which is how HA WS API deletes a recurrence rule on update) inside `event.rrule`.
+- `normalizeEvent` exposes `rrule` (and `recurrence_id`) on each loaded event so the dialog can reverse-map back to a preset.
+
+**Location sub-view**
+
+The inline `<input>` is gone. The row is now `.ios-item-clickable` with the truncated value on the right and a chevron — opens a `currentView === 'location'` sub-view identical in layout to the description sub-view: navbar with Back, full-width input, autoFocus. Same temp-state / save-on-back behaviour the other sub-views already have isn't needed here because we bind directly to `setLocation` (input has no "Done" — the back button is the commit, matching apple location pickers).
+
+**Title quick-chips**
+
+In add-mode only, five chips render below the title input: Termin / Meeting / Geburtstag / Arzt / Reise (DE) — Event / Meeting / Birthday / Doctor / Trip (EN). Click sets the title. Horizontal scroll if the container is too narrow; no wrap. Edit-mode never shows the chips — a chip click would clobber the user's existing title.
+
+New CSS: `.calendar-event-title-chips`, `.calendar-event-title-chip`.
+
+**All-day checkbox hover fix**
+
+`.calendar-event-dialog` scope only (no global rule, no Todos-regression risk):
+
+```css
+.calendar-event-dialog .ios-item:hover:not(:active) .checkbox-mark-large {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+.calendar-event-dialog .ios-item:hover:not(:active)
+  .todo-detail-checkbox input:checked ~ .checkbox-mark-large {
+  background: var(--todos-blue, rgb(0, 122, 255)) !important;
+}
+.calendar-event-dialog .ios-item:hover:not(:active) .checkbox-mark-large:after {
+  border-color: white !important;
+}
+```
+
+Three states now coherent on hover:
+- Unchecked + hover (white row): dark circle on white, no tick → toggle is visible.
+- Checked + no hover (dark row): blue circle, white tick → standard.
+- Checked + hover (white row): blue circle (overridden back from white), white tick → toggle stays readable.
+
+### Files
+
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx`
+- `src/system-entities/entities/calendar/index.jsx`
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1558 - 2026-05-17
 
 **Title:** 🩹 Calendar delete/update use the WebSocket API — `calendar.delete_event` is not a service
