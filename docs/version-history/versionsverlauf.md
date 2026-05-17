@@ -1,6 +1,37 @@
 # Versionsverlauf
 
-## Version 1.1.1548 - 2026-05-17
+## Version 1.1.1549 - 2026-05-17
+
+**Title:** 📜 News bento widget — vertical scroll with CustomScrollbar
+**Hero:** none
+**Tags:** Polish, Bento, News
+
+### Why
+
+The bento news widget cut off at the 5th article — anything beyond was not visible. User wants the article list to scroll vertically inside the widget, with the project's CustomScrollbar indicator.
+
+### What changed
+
+`BentoStartView.jsx`:
+
+- Imported `CustomScrollbar` from `./CustomScrollbar.jsx`.
+- `BentoRichNews` now keeps a `listScrollRef` plus an `isListHovered` flag that toggles on mouse enter/leave of the article list.
+- Dropped the hard `slice(0, 5)` limit on `items` — now uses the full `activeArticles` array and lets vertical scroll handle the overflow.
+- The article list `<div>` got two new things:
+  - Modifier class `bento-rich-news-more--scroll` (CSS rule below).
+  - `ref={listScrollRef}` + `onMouseEnter` / `onMouseLeave` handlers.
+- `<CustomScrollbar scrollContainerRef={listScrollRef} isHovered={isListHovered} />` rendered as a sibling so it positions absolutely inside the now-`position: relative` `.bento-rich-news` parent.
+
+`BentoStartView.css`:
+
+- `.bento-rich-news` got `position: relative` so the absolute `CustomScrollbar` anchors inside it (not at the bento outer ancestor).
+- New rule `.bento-rich-news-more.bento-rich-news-more--scroll`: `flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none;` (+ `::-webkit-scrollbar { display: none }`). The list claims the remaining vertical space inside the news rich layout (header + tabs above it stay `flex-shrink: 0`) and scrolls vertically with the native scrollbar hidden.
+
+### Result
+
+The news bento widget now shows whatever articles exist, scrolling vertically through them with the small custom indicator on the right edge when hovered or actively scrolling. The other rich slides (weather / todos / versionsverlauf) are untouched; if a future feedback round wants the same treatment there, it is a straight clone of this setup.
+
+
 
 **Title:** 🔒 Bento overflow hard-clipped — widgets can no longer escape the 576 px cell
 **Hero:** none
