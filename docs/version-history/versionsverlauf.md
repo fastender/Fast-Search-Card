@@ -1,5 +1,106 @@
 # Versionsverlauf
 
+## Version 1.1.1556 - 2026-05-17
+
+**Title:** 🩹 Detail-tab slider de-highlight in drill-down · news arrow position · bento scroll-mask · calendar dialog rebuilt as replacement view + system-entity DeviceCard live-data
+**Hero:** none
+**Tags:** Fix, Polish, Bento, Calendar, DeviceCard
+
+### Why
+
+Several visible glitches reported in one round:
+
+1. In News / Versionsverlauf / Tipps / Calendar detail views, the action-button row at the top kept the slider highlighted on whatever button was last active (`overview`, `search`, …) even after the user drilled into an article / version / tipp / event. The white pill on a button that doesn't represent the current screen looks like a stuck UI state.
+2. The `news-detail-nav-arrow` (prev / next on the article-detail screen) sat at `top: 28px`, visually below the `.article-detail-meta` row instead of aligned with it.
+3. The Bento W2 rich-widget slider (News, Todos, Calendar) had scrollable lists with no top-edge mask — the first row of items hit the widget border hard when the list was scrolled. The same `is-scrolling` + `linear-gradient` mask pattern that `NewsView` already uses needed to be applied here too.
+4. The unified calendar event dialog (v1.1.1555) was rendered as a `position: absolute; inset: 0` overlay over the calendar grid. The grid stayed visible behind it because the dialog's `.ios-settings-container` had `background: transparent` overridden, and there was no slide animation when entering the dialog. User wanted the same Todos-style behaviour: the main view slides out, the dialog takes the full detail area. Plus: the `+` button should live in the system detail-tabs header like Tasks, not as an inline toolbar button.
+5. Long version titles like *Round 16 — 3 large component files audit (SubcategoryBar/StatsBar/UniversalControlsTab) — minimal cleanup, files mostly clean* overflowed the version card on the right edge because `(SubcategoryBar/StatsBar/UniversalControlsTab)` is a single un-breakable token to the browser.
+6. The DeviceCards for Calendar, Versionsverlauf, Zeitpläne Übersicht, and Integration showed `No Room` as the area line and only the German name — no live data and no EN translation. The other system entities (News, Todos) had this for ages; these four had been missed.
+
+### What changed
+
+**Drill-down de-highlights the action-button slider**
+
+`getActiveButton` in `NewsView.jsx`, `VersionsverlaufView.jsx`, `TippsView.jsx`, and `CalendarView.jsx` now returns `null` when the user is on a drill-down sub-view (`selectedArticle` / `selectedVersion` / `selectedTipp` / `dialogState`). `TabNavigation`'s `actionButtonSliderPosition` already returns `opacity: 0` for an unknown active id, so the slider just fades out — no special-casing needed downstream. Mode-switches like Settings or Search keep their highlight because they correspond to a real screen.
+
+**News article nav arrows aligned with meta row**
+
+`news-detail-nav-arrow` `top: 28px` → `top: 14px`. The arrows are 32 px tall, the `.article-detail-meta` row sits at 20 px content-padding + ~20 px height (center at 30 px); `14 = 30 − 16` is the centre-on-centre alignment.
+
+**Bento W2 rich-slider scroll mask**
+
+`BentoRichNews`, `BentoRichTodos`, `BentoRichCalendar` each got an `isListScrolling` state + `onScroll` handler that toggles an `is-scrolling` class on the scroll container. `BentoStartView.css` adds one shared rule:
+
+```css
+.bento-rich-todos-list--scroll.is-scrolling,
+.bento-rich-news-more--scroll.is-scrolling,
+.bento-rich-calendar-more.is-scrolling {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 24px, black 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, black 24px, black 100%);
+}
+```
+
+24 px fade — same pattern `NewsView` uses for the article feed.
+
+**Calendar dialog as replacement view**
+
+`CalendarView.jsx` now wraps the entire main render in `AnimatePresence mode="wait"` exactly like `TodosView`:
+
+```jsx
+<AnimatePresence mode="wait" initial={false}>
+  {dialogState ? (
+    <CalendarEventDialog key={…} … />
+  ) : (
+    <motion.div key="main" initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} … >
+      {/* toolbar + grid + list */}
+    </motion.div>
+  )}
+</AnimatePresence>
+```
+
+The main view slides out to the left when the dialog opens; the dialog mounts opaque (no more grid bleeding through). CSS: `.calendar-event-dialog.ios-settings-container` lost `background: transparent` and now inherits the `#00000040` from `.ios-settings-container`; gained `max-height: none` so the dialog fills the full detail area instead of being capped at 555 px.
+
+`+` button moved out of `.calendar-toolbar` (the inline button + its `.calendar-nav-btn--add` class are gone) into `actionButtons` in `calendar/index.jsx` as `{ id: 'add', action: 'add', title: 'Neuer Termin' }`. `TabNavigation.jsx` `case 'add'` now also routes to `calendar?.handleAdd()` after the existing `todos?.handleAdd()` branch.
+
+**Version-card title break**
+
+`.version-title` gained `overflow-wrap: anywhere` + `word-break: break-word`. Long parenthetical lists like `(SubcategoryBar/StatsBar/UniversalControlsTab)` can now break inside the token instead of overflowing.
+
+**System-entity DeviceCard live-data + EN names**
+
+`DeviceCard.jsx` got two new helpers, `getSystemEntityArea()` and `getSystemEntityName()`, covering the four previously-uncovered system entity domains:
+
+| Domain          | Area (DE)             | Area (EN)              | Name (DE)         | Name (EN)         |
+|-----------------|------------------------|-------------------------|--------------------|--------------------|
+| calendar        | `N Termine`            | `N Events`              | Kalender           | Calendar           |
+| versionsverlauf | `vX.Y.Z` (current_version) | `vX.Y.Z`            | Versionsverlauf    | Changelog          |
+| all_schedules   | Übersicht              | Overview                | Zeitpläne          | Schedules          |
+| integration     | `N Geräte` or Übersicht | `N Devices` or Overview | Integration        | Integration        |
+
+`calendar` upcoming count comes from `systemEntityAttrs.events` filtered by `endDate >= now`. `versionsverlauf` reads `current_version`. `integration` reads `device_count`. `all_schedules` has no live attribute right now, so it falls back to a static "Übersicht" / "Overview" — at least no more "No Room".
+
+Both helpers are passed through to `DeviceCardGridView` + `DeviceCardListView` and inserted into the existing area / name fallback chain right after `getTippsArea`/`getTippsName`.
+
+### Files
+
+- `src/system-entities/entities/news/NewsView.jsx`
+- `src/system-entities/entities/news/styles/NewsView.css`
+- `src/system-entities/entities/versionsverlauf/VersionsverlaufView.jsx`
+- `src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css`
+- `src/system-entities/entities/tipps/TippsView.jsx`
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/system-entities/entities/calendar/index.jsx`
+- `src/components/DetailView/TabNavigation.jsx`
+- `src/components/BentoStartView.jsx`
+- `src/components/BentoStartView.css`
+- `src/components/DeviceCard.jsx`
+- `src/components/DeviceCard/DeviceCardGridView.jsx`
+- `src/components/DeviceCard/DeviceCardListView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1555 - 2026-05-17
 
 **Title:** 🩹 Calendar slider mapping fix · event dialog rebuilt in Todos-style (wheel pickers + sub-views)
