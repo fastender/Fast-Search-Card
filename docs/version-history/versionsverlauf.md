@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1557 - 2026-05-17
+
+**Title:** 🩹 Calendar edit fails loudly when delete is not supported — no more silent duplicates
+**Hero:** none
+**Tags:** Fix, Calendar
+
+### Why
+
+HA has no `update_event` service for calendars, so editing an existing event is implemented as `delete_event` + `create_event` in `CalendarView.jsx` `handleSubmitDialog`. Until now the `delete_event` failure was swallowed by a `console.warn` and the `create_event` ran anyway — which produced a **silent duplicate** on calendars where the underlying integration does not implement delete (e.g. iCal subscriptions, read-only Google calendars). The console line read `[CalendarView] delete-during-edit failed (calendar may not support delete): Object`, which didn't tell the user anything actionable: the error body was an unexpanded reference, the dialog closed as if everything went well, and only later did a second copy of the event appear in the grid.
+
+### What changed
+
+`handleSubmitDialog`:
+
+- The try/catch around `deleteEvent` no longer continues on failure. It serialises the underlying service error (`e.message` / `e.error` / `JSON.stringify(e)` as fallback) and re-throws as a real `Error` with a translated, user-readable prefix:
+  - DE: `Bearbeiten fehlgeschlagen — dieser Kalender unterstützt kein Löschen: <detail>`
+  - EN: `Edit failed — this calendar does not support delete: <detail>`
+- `CalendarEventDialog`'s existing submit try/catch already pipes `err.message` into the `setError` state and renders it in the red error pill above the delete button — so the user now sees a concrete reason inside the dialog instead of having to open devtools.
+- The console line is kept but now logs the serialised detail plus the raw error object, so devtools shows the real reason as a string immediately (`detail`) plus the structured object behind it for deeper inspection.
+
+The create path is unchanged for the add case and for the edit case after a successful delete. A successful edit therefore still produces exactly one event; a failing edit produces zero events and a visible error. No silent duplicates.
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1556 - 2026-05-17
 
 **Title:** 🩹 Detail-tab slider de-highlight in drill-down · news arrow position · bento scroll-mask · calendar dialog rebuilt as replacement view + system-entity DeviceCard live-data
