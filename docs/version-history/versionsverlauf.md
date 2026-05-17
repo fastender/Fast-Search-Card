@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1551 - 2026-05-17
+
+**Title:** 🎯 W3/W4 hover scale no longer clipped at cell corner
+**Hero:** none
+**Tags:** Fix, Bento, Hover
+
+### Why
+
+After v1.1.1548's hard `overflow: hidden` on the bento grid + cells, hovering W3 or W4 (the small corner widgets) caused the framer-motion `whileHover: scale(1.05)` transform to render outside the cell — and the cell's `overflow: hidden` immediately clipped the rounded corner against a sharp edge. User: "wenn ich widget 3 oder 4 hovere dann wirds abgeschnitten; das problem hatten wir sehr oft".
+
+### What changed
+
+`BentoStartView.css` `.bento-grid--desktop` + `.bento-cell--w1 / w2 / w34`:
+
+- Removed `overflow: hidden` from the grid container and from each cell. The static-content overflow that v1.1.1548 was guarding against is already prevented at the widget level — `.bento-widget` carries `overflow: hidden; max-height: 100%; min-height: 0;` (also set in v1.1.1548), so any internal content too tall for the widget is clipped INSIDE the widget, before it ever reaches the cell boundary.
+- Kept `.bento-cell--w* { min-height: 0; min-width: 0; }` so that grid cells never inflate from a child's intrinsic min-content size.
+- Kept `.bento-grid--desktop { height: 576px; max-height: 576px; }` — the grid container box itself stays at 576 px tall.
+
+Net effect: the bento container is still 576 px, widget content is still contained, but the hover transform on the small corner widgets renders the extra ~5 px without being clipped against the cell or grid edge.
+
+### Trade-off
+
+A hover-scaled widget can now visually extend up to ~5 px past the bento bounds (notably for W4 at the bottom-right corner). This is intentional — it is the only way to keep the scale transform visible without re-introducing the static content overflow that the v1.1.1548 hard-clip was solving. Static content (W1 favorites carousel etc.) stays contained because `.bento-widget` itself still has `overflow: hidden`.
+
 ## Version 1.1.1550 - 2026-05-17
 
 **Title:** 🐛 Todos combined filters (status + list) · BentoRichNews initial render catch
