@@ -1,5 +1,64 @@
 # Versionsverlauf
 
+## Version 1.1.1566 - 2026-05-21
+
+**Title:** ♻️ BentoStartView refactor — Pass 3: Router + Slider + BentoWidget extracted (1778 → 200 LOC, -89%)
+**Hero:** none
+**Tags:** Refactor, Bento
+
+### Why
+
+Final pass of the BentoStartView refactor trilogy. After Pass 1 (utilities) and Pass 2 (Rich-Widgets), the remaining ~700 LOC in `BentoStartView.jsx` was the rich-router (~30), the auto-slider (~190), and the per-slot widget renderer (~360). Pulling all three out leaves `BentoStartView.jsx` as a pure layout/state coordinator (200 LOC) that wires the system registry to the bento grid.
+
+### What changed
+
+Three new modules:
+
+- **`bento/richRouter.jsx`** (46 LOC) — `renderRichForDomain` (domain → rich widget dispatch). Imports the five Rich-Widget components from `./widgets/`. Used by both `BentoWidget` (W2 medium → rich variant) and `BentoRichSlider` (per-slide rendering).
+- **`bento/widgets/BentoRichSlider.jsx`** (210 LOC) — Auto-Slider with 10 s autoplay, pause-on-hover, drag-swipe via `useDragControls`, track-architecture with all items side-by-side. Module-level `sliderPersistedIdx` survives component remounts.
+- **`bento/BentoWidget.jsx`** (379 LOC) — Per-slot widget renderer. Dispatches between empty-state, rich-slider, carousel (Favoriten/Vorschläge), empty-virtual (text fallback), live-device (DeviceCard or rich variant), and icon-bubble fallback.
+
+`BentoStartView.jsx` shrank from 826 → 200 LOC. Top imports are now 7 lines instead of 28 — only what the coordinator itself needs:
+
+```js
+import { DEFAULT_BENTO_WIDGETS, HOME_ITEM_ID, FAVORITES_WIDGET_ID, … } from './bento/constants.js';
+import { buildHomeItem, buildFavoritesItem, buildSuggestionsItem, buildRichSliderItem } from './bento/virtualItems.js';
+import { BentoWidget } from './bento/BentoWidget.jsx';
+```
+
+The trimmed coordinator is now ~120 LOC of actual code (the rest is comments/whitespace): one `useEffect` that subscribes to settings + registry changes, one `useMemo` that resolves the four slot IDs to entity objects, and one render block that builds the 4-cell grid.
+
+### Final LOC distribution
+
+| File | LOC |
+|---|---|
+| `BentoStartView.jsx` | 200 |
+| `bento/BentoWidget.jsx` | 379 |
+| `bento/widgets/BentoRichSlider.jsx` | 210 |
+| `bento/widgets/BentoRichCalendar.jsx` | 203 |
+| `bento/widgets/BentoRichWeather.jsx` | 184 |
+| `bento/widgets/BentoRichNews.jsx` | 181 |
+| `bento/widgets/BentoRichTodos.jsx` | 134 |
+| `bento/widgets/BentoRichVersions.jsx` | 64 |
+| `bento/constants.js` | 97 |
+| `bento/helpers.js` | 105 |
+| `bento/virtualItems.js` | 63 |
+| `bento/richRouter.jsx` | 46 |
+| `bento/icons.jsx` | 39 |
+| **Total** | **1905** |
+
+Before: 1 file × 1778 LOC. After: 13 files, largest is 379 LOC. Median file size: 134 LOC. No file > 400 LOC.
+
+### Files
+
+- `src/components/BentoStartView.jsx`
+- `src/components/bento/richRouter.jsx` (new)
+- `src/components/bento/BentoWidget.jsx` (new)
+- `src/components/bento/widgets/BentoRichSlider.jsx` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1565 - 2026-05-21
 
 **Title:** ♻️ BentoStartView refactor — Pass 2: 5 Rich-Widgets extracted into bento/widgets/
