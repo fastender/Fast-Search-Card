@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1563 - 2026-05-20
+
+**Title:** 🩹 CustomScrollbar detects async-loaded content on first render (MutationObserver + delay probes)
+**Hero:** none
+**Tags:** Fix, Scrollbar
+
+### Why
+
+After v1.1.1562 the scrollbar appeared only after the user opened an article and went back — never on first render of the BentoRichNews widget. Root cause is the mount-order of async content:
+
+1. `BentoRichNews` mounts with `items = []` (entity attrs not yet loaded).
+2. `CustomScrollbar` mounts, runs `updateScrollbar()`. The container has zero scrollable content → `scrollHeight === clientHeight` → `setShowScrollbar(false)` → component returns `null`.
+3. Articles arrive via the polling effect (`refreshTick` rAF). The container fills with children — but its **box size doesn't change** (the parent cell is fixed at 50 vh). `ResizeObserver` only fires on box-resize, so it never wakes up. `CustomScrollbar` stays at `showScrollbar=false`.
+4. User opens an article. The widget unmounts. They go back. The widget re-mounts with articles already in `entity.attributes` → first `updateScrollbar()` call already sees a scrollable container → scrollbar appears.
+
+`ResizeObserver` is the wrong tool for content-change detection. We need to react to children being added/removed inside an already-sized container.
+
+### What changed
+
+`src/components/CustomScrollbar.jsx`:
+
+- Added `MutationObserver` on the scroll container with `{ childList: true, subtree: true, characterData: true }`. Any DOM mutation inside the container re-runs `updateScrollbar`.
+- Added a `requestAnimationFrame(updateScrollbar)` right after the initial sync run, so the first paint's measurements always go through one more pass.
+- Added a small ladder of fallback probes (100/400/1200/2500 ms) for cases where the content lands later than a single rAF — same pattern `BentoRichNews` already uses for its `refreshTick` polling, so the timing windows line up.
+- All three are torn down in the effect's cleanup.
+
+The `ResizeObserver` stays in place — it's still the right tool for actual box-resize events (parent container changes height, viewport rotates, etc.).
+
+### Files
+
+- `src/components/CustomScrollbar.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1562 - 2026-05-20
 
 **Title:** 🩹 CustomScrollbar regression fix + mobile height-cap on the cell, not the widget
