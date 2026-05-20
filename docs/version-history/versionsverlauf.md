@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1567 - 2026-05-21
+
+**Title:** ♻️ MusicAssistantPanel refactor — constants/icons/sub-components extracted into ma/
+**Hero:** none
+**Tags:** Refactor, MusicAssistant
+
+### Why
+
+After the Bento split (Passes 1–3, v1.1.1564–1566) the next-largest monolith was `MusicAssistantPanel.jsx` at 1468 LOC. The file mixed three concerns: (1) constants + helpers, (2) ten inline SVG icons + a `CoverArt` component, and (3) six self-contained sub-components (`NowPlayingMini`, `BrowseCard`, `BrowseSection`, `BrowseDetail`, `ResultCard`, `QueueCard`). The main `MusicAssistantPanel` underneath is ~900 LOC of search/queue/announce state machinery — separable from everything above it.
+
+### What changed
+
+New folder `src/components/controls/ma/`:
+
+- **`constants.js`** (62 LOC) — `SEARCH_DEBOUNCE_MS`, `QUEUE_DEBOUNCE_MS`, `RECENT_KEY` + `RECENT_MAX`, `ANNOUNCE_RECENT_KEY` + `ANNOUNCE_RECENT_MAX`, `TYPE_ORDER`, `TYPE_LABELS_DE` + `TYPE_LABELS_EN`, plus the letter-fallback helpers `colorForName` + `firstLetter` (with the private `stringHash` they depend on).
+- **`icons.jsx`** (112 LOC) — All ten SVG icons (`PlayIcon`, `PauseIcon`, `NextIcon`, `AddIcon`, `SearchIcon`, `TrashIcon`, `AirPlayIcon`, `SpeakerIcon`, `MegaphoneIcon`, `SendIcon`) plus the `CoverArt` component.
+- **`components.jsx`** (363 LOC) — The six sub-components. Internal imports for `getMusicAssistantPlayers`, `isTransferQueueAvailable`, `transferMusicAssistantQueue` live here directly; the main panel doesn't see them anymore.
+
+`MusicAssistantPanel.jsx` shrank 1468 → 1001 LOC. Imports updated:
+
+```js
+import { SEARCH_DEBOUNCE_MS, QUEUE_DEBOUNCE_MS, … } from './ma/constants.js';
+import { SearchIcon, MegaphoneIcon, SendIcon } from './ma/icons.jsx';
+import { NowPlayingMini, BrowseSection, BrowseDetail, ResultCard, QueueCard } from './ma/components.jsx';
+```
+
+The remaining 1001 LOC is the main panel itself: tab switcher, debounced search, library browse, queue list, announce composer, recent-search/announce histories. Future passes could split `MusicAssistantPanel` into per-tab files (`SearchTab.jsx`, `QueueTab.jsx`, `AnnounceTab.jsx`), but that's a heavier refactor than this one — leaving it as a deliberate stopping point.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx`
+- `src/components/controls/ma/constants.js` (new)
+- `src/components/controls/ma/icons.jsx` (new)
+- `src/components/controls/ma/components.jsx` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1566 - 2026-05-21
 
 **Title:** ♻️ BentoStartView refactor — Pass 3: Router + Slider + BentoWidget extracted (1778 → 200 LOC, -89%)
