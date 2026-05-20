@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1564 - 2026-05-21
+
+**Title:** ♻️ BentoStartView refactor — Pass 1: helpers / icons / constants / virtual-items extracted
+**Hero:** none
+**Tags:** Refactor, Bento
+
+### Why
+
+`BentoStartView.jsx` had grown to **1778 LOC** — five Rich-Widget components, a router, the auto-slider, the per-widget renderer, the main view, plus a long tail of helpers, constants, virtual-builders and inline SVG icons all crammed into one file. Adding a sixth Rich-Widget or another carousel variant means scrolling through three different concerns just to find the dependency you want to reuse. Refactor split agreed: extract over three passes, one release each, no behavioural change.
+
+This is Pass 1 — the low-risk utilities. No JSX moves, no component moves, just the supporting code that everything else depends on.
+
+### What changed
+
+New folder `src/components/bento/`:
+
+- **`constants.js`** (97 LOC) — `WEATHER_TRANSLATIONS`, `weatherForecastCache`, `RICH_DOMAINS`, `SLIDER_INTERVAL_MS`, `SLIDER_DOMAIN_ORDER`, `SLIDER_GRADIENTS` + `getSliderGradient`, `LIQUID_SPRING`, `cardsPerPage`, `gridColsFor`, `SLOT_LABELS` + `SLOT_KEYS` + `getSlotLabel`, `DEFAULT_BENTO_WIDGETS`, and the four virtual-widget IDs (`HOME_ITEM_ID`, `FAVORITES_WIDGET_ID`, `SUGGESTIONS_WIDGET_ID`, `RICH_SLIDER_WIDGET_ID`).
+- **`helpers.js`** (105 LOC) — `formatDueDate`, `formatRelativeTime`, `isTouchDevice`, `getSliderItemLabel`. Pure functions, no JSX.
+- **`icons.jsx`** (39 LOC) — `HOME_ICON_SVG`, `FAVORITES_ICON_SVG`, `SUGGESTIONS_ICON_SVG`. Inline SVG factories.
+- **`virtualItems.js`** (63 LOC) — `buildHomeItem`, `buildFavoritesItem`, `buildSuggestionsItem`, `buildRichSliderItem`. The pseudo-entity factories for items that don't live in the system registry.
+
+`BentoStartView.jsx` shrank from 1778 → 1553 LOC. The top imports the new module symbols; the bottom re-exports the public IDs and helpers (`HOME_ITEM_ID`, `FAVORITES_WIDGET_ID`, `SUGGESTIONS_WIDGET_ID`, `RICH_SLIDER_WIDGET_ID`, `DEFAULT_BENTO_WIDGETS`, `SLOT_KEYS`, `getSlotLabel`) so external consumers (`SearchField`, `StartScreenSettingsTab`) don't need to update their import paths.
+
+No runtime behaviour change. Same widgets, same handlers, same animations.
+
+### Files
+
+- `src/components/BentoStartView.jsx`
+- `src/components/bento/constants.js` (new)
+- `src/components/bento/helpers.js` (new)
+- `src/components/bento/icons.jsx` (new)
+- `src/components/bento/virtualItems.js` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1563 - 2026-05-20
 
 **Title:** 🩹 CustomScrollbar detects async-loaded content on first render (MutationObserver + delay probes)
