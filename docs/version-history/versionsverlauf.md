@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1571 - 2026-05-21
+
+**Title:** ♻️ GeneralSettingsTab refactor — helpers + 5 load/save pairs extracted into general/
+**Hero:** none
+**Tags:** Refactor, Settings
+
+### Why
+
+`GeneralSettingsTab.jsx` was 1373 LOC. The first ~110 lines were two helpers (`persistPredictiveSetting` with private timeout-debounce map, `getLearningRateDisplay`) plus five load/save pairs for sub-domains (StatsBar, GreetingsBar, Splashscreen, Mobile, Sidebar) — each just reading/writing one section of `systemSettingsStorage` with sensible defaults. None of these depend on the parent component's state, so they're a clean code-move.
+
+### What changed
+
+New folder `src/components/tabs/SettingsTab/components/general/`:
+
+- **`helpers.js`** (33 LOC) — `persistPredictiveSetting` (with its private `_predictivePersistTimeouts` map for the per-key debounce) and `getLearningRateDisplay`.
+- **`settingsStorage.js`** (96 LOC) — Ten functions: `loadStatsBarSettings` / `saveStatsBarSettings`, `loadGreetingsBarSettings` / `saveGreetingsBarSettings`, `loadSplashscreenSettings` / `saveSplashscreenSettings`, `loadMobileSettings` / `saveMobileSettings`, `loadSidebarSettings` / `saveSidebarSettings`. All read/write through `readSystemSettingsSection` / `updateSystemSettingsSection`.
+
+`GeneralSettingsTab.jsx` shrank from 1373 → 1281 LOC. The main component itself unchanged.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx`
+- `src/components/tabs/SettingsTab/components/general/helpers.js` (new)
+- `src/components/tabs/SettingsTab/components/general/settingsStorage.js` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1570 - 2026-05-21
 
 **Title:** 🩹 Hotfix — `useRef is not defined` after BentoStartView refactor Pass 3
