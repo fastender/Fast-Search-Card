@@ -1,5 +1,86 @@
 # Versionsverlauf
 
+## Version 1.1.1560 - 2026-05-20
+
+**Title:** 🩹 Mobile Bento: widget height-cap, sidebar centering, empty-state for Favoriten/Vorschläge
+**Hero:** none
+**Tags:** Fix, Bento, Mobile
+
+### Why
+
+Three issues on the mobile Bento layout:
+
+1. **News widget overflowed the viewport.** In `.bento-grid--mobile` (flex column) the cells have no fixed height, so `BentoRichNews` rendered every article inline and the widget became a multi-screen tall red wall — the internal `.bento-rich-news-more--scroll` had no parent height to bound against, so its `overflow-y:auto` never engaged.
+2. **`vision-pro-menu--mobile` sat right-aligned instead of centered.** The mobile class has `left: 50%; transform: translateX(-50%)`, but the JSX always sets `style={{ y: '-50%' }}` on the `motion.div` (originally added for desktop vertical-center). Framer compiles `style.y` into an inline `transform: translateY(-50%)` which clobbers the CSS `translateX(-50%)` → the menu falls back to `left: 50%` with no centering offset, ending up offset by half its width to the right.
+3. **Empty Favoriten widget showed a giant red heart-bubble** as the icon. With `previewItems.length === 0` the carousel branch is skipped and the fallback button layout runs — that layout uses `.bento-widget-icon-bubble` with the entity's `brandColor` (Apple system red for favorites). User wanted a quieter empty-state — a text line saying favorites are empty, not a huge logo.
+
+### What changed
+
+**`BentoStartView.css`**
+
+```css
+@media (max-width: 768px) {
+  .bento-grid--mobile .bento-cell--w1 > .bento-widget,
+  .bento-grid--mobile .bento-cell--w2 > .bento-widget {
+    max-height: 50vh;
+  }
+  .bento-grid--mobile .bento-cell--w34 > .bento-widget {
+    max-height: 30vh;
+  }
+}
+```
+
+50 vh / 30 vh let the internal `overflow-y:auto` scrollers (News, Todos, Calendar) take over — `BentoRichNews` already mounts its `CustomScrollbar` on the `listScrollRef` container, so the scrollbar appears as soon as the parent constrains.
+
+Plus a new `.bento-widget--empty-state` style for the empty Favoriten/Vorschläge layout:
+
+```css
+.bento-widget--empty-state { display: flex !important; flex-direction: column; align-items: flex-start; justify-content: center; }
+.bento-widget-empty-state-label { font-size: 17px; font-weight: 600; }
+.bento-widget-empty-state-text  { font-size: 13px; color: rgba(255,255,255,0.55); max-width: 32ch; }
+```
+
+**`SearchSidebar.jsx`**
+
+`motion.div` for `.vision-pro-menu` now conditionally applies the transform-shifting style/animate props only on desktop:
+
+```jsx
+style={isMobile ? undefined : { y: '-50%' }}
+animate={isMobile ? undefined : { x: expanded ? 144 : 0 }}
+```
+
+Mobile gets no inline transform, so the CSS `translateX(-50%)` is left intact — pill sits centered above the bottom edge.
+
+**`BentoStartView.jsx`**
+
+New early-return branch in the widget render: if `entity.isVirtual` and `entity.id ∈ {FAVORITES_WIDGET_ID, SUGGESTIONS_WIDGET_ID}` and `previewItems.length === 0`, render the empty-state layout instead of the icon-bubble fallback:
+
+```jsx
+const isEmptyVirtual = entity.isVirtual
+  && Array.isArray(entity.previewItems)
+  && entity.previewItems.length === 0
+  && (entity.id === FAVORITES_WIDGET_ID || entity.id === SUGGESTIONS_WIDGET_ID);
+if (isEmptyVirtual) {
+  return (
+    <motion.button className="bento-widget … bento-widget--empty-state" …>
+      <div className="bento-widget-empty-state-label">{entity.name}</div>
+      <div className="bento-widget-empty-state-text">{emptyText}</div>
+    </motion.button>
+  );
+}
+```
+
+`emptyText` differs per widget — DE/EN, Favoriten gets the "tap heart in search" hint.
+
+### Files
+
+- `src/components/BentoStartView.jsx`
+- `src/components/BentoStartView.css`
+- `src/components/SearchSidebar.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1559 - 2026-05-17
 
 **Title:** ✨ Calendar event dialog — recurrence presets · location sub-view · title quick-chips · all-day hover-checkmark fix
