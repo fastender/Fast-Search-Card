@@ -1,5 +1,68 @@
 # Versionsverlauf
 
+## Version 1.1.1561 - 2026-05-20
+
+**Title:** 🩹 Mobile Bento follow-up — CustomScrollbar visible on touch, height-cap with `!important` + overflow:hidden
+**Hero:** none
+**Tags:** Fix, Bento, Mobile, Scrollbar
+
+### Why
+
+Two follow-ups to v1.1.1560 after the mobile Bento screenshot:
+
+1. **Scrollbar never showed on the News widget.** `CustomScrollbar` only renders opacity 1 when `isScrolling || isHovered`. Touch devices don't fire `mouseenter`/`mouseleave`, so `isListHovered` is stuck on `false`, and `isScrolling` is true only for the 1 s window after a scroll event — the rest of the time, opacity is 0. On mobile that means the user has no permanent affordance to indicate "you can scroll".
+2. **The 50 vh height-cap from v1.1.1560 didn't actually clamp the News widget.** The screenshot showed the News list running 7-8 articles tall (~800 px), the footer rendered below — so the widget was much taller than 50 vh. The CSS selectors were specific enough but lacked `!important`, and there was no `overflow: hidden` on the cell — so an inner flex child with `height: 100%` could push the widget past its max-height without overflowing the visible bounds being clipped, and the cap effectively didn't apply.
+
+### What changed
+
+**`CustomScrollbar.jsx`**
+
+```jsx
+const [supportsHover, setSupportsHover] = useState(true);
+useEffect(() => {
+  if (typeof window === 'undefined' || !window.matchMedia) return;
+  const mq = window.matchMedia('(hover: hover)');
+  const update = () => setSupportsHover(mq.matches);
+  update();
+  // …subscribe to change events so the state stays correct if the device
+  // changes input modality (e.g. external mouse plugged into a tablet).
+}, []);
+…
+animate={{ opacity: (isScrolling || isHovered || !supportsHover) ? 1 : 0 }}
+```
+
+On any device that resolves `(hover: hover)` to `false` — touchscreen phones, tablets without a pointer — the scrollbar stays at opacity 1 whenever the container is scrollable. Desktop behaviour is unchanged: still fades in on hover or while scrolling.
+
+**`BentoStartView.css`**
+
+```css
+@media (max-width: 768px) {
+  .bento-grid--mobile .bento-cell--w1 > .bento-widget,
+  .bento-grid--mobile .bento-cell--w2 > .bento-widget,
+  .bento-grid--mobile .bento-cell--w2 > .bento-widget--rich,
+  .bento-grid--mobile .bento-cell--w2 > .bento-widget--rich-slider {
+    max-height: 50vh !important;
+    overflow: hidden !important;
+  }
+  .bento-grid--mobile .bento-cell--w34 > .bento-widget {
+    max-height: 30vh !important;
+    overflow: hidden !important;
+  }
+}
+```
+
+`!important` because `.bento-widget` already has `height: 100%` from the base rule and there's risk of a more-specific later rule winning otherwise. `overflow: hidden` because without it, inner content with `height: 100%` referenced against an unknown parent height can still spill — clipping at the widget edge forces the internal `.bento-rich-news-more--scroll` to engage its own `overflow-y: auto`.
+
+The rule also targets `.bento-widget--rich` / `.bento-widget--rich-slider` explicitly so domain-specific rich widgets (News, Todos, Calendar, Versions, Weather) don't slip through if their class composition changes.
+
+### Files
+
+- `src/components/CustomScrollbar.jsx`
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1560 - 2026-05-20
 
 **Title:** 🩹 Mobile Bento: widget height-cap, sidebar centering, empty-state for Favoriten/Vorschläge
