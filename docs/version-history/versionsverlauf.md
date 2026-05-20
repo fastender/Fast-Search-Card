@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1573 - 2026-05-21
+
+**Title:** ♻️ DataProvider refactor — selector hooks + notification extractor split out
+**Hero:** none
+**Tags:** Refactor, DataProvider
+
+### Why
+
+`DataProvider.jsx` was 1280 LOC. The top ~25 LOC were the `extractPersistentNotifications` utility (pure function on `hass.states`), the bottom ~95 LOC were the seven selector hooks (`useData`, `useSettings`, `useFavorites`, `useEntities`, `useHass`, `useNotifications`, `useSuggestions`). Both groups have nothing to do with the actual `DataProvider` body — they're consumed from elsewhere — and splitting them lets the provider read as just "what happens inside the context".
+
+### What changed
+
+Two new files in `src/providers/`:
+
+- **`dataNotifications.js`** (29 LOC) — `extractPersistentNotifications(states)`. Pure function. No React.
+- **`dataSelectors.js`** (106 LOC) — All seven selector hooks. Imports `DataContext` from `./DataProvider.jsx` (DataProvider now `export`s the context).
+
+`DataProvider.jsx`:
+
+- `DataContext` is now `export`ed so selectors can consume it.
+- Imports `extractPersistentNotifications` from `./dataNotifications.js`.
+- Re-exports all seven selector hooks via `export { useData, useSettings, … } from './dataSelectors.js'` — keeps every existing import path stable (11 consumer files).
+- Top-line `useContext` import dropped (only the selectors used it). `loadSuggestionsSnapshot` / `saveSuggestionsSnapshot` imports also dropped from `uiStateSnapshots` since only `useSuggestions` needed them.
+
+Net: **1280 → 1177 LOC** in `DataProvider.jsx`, plus 135 LOC across the two new modules.
+
+### Files
+
+- `src/providers/DataProvider.jsx`
+- `src/providers/dataSelectors.js` (new)
+- `src/providers/dataNotifications.js` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1572 - 2026-05-21
 
 **Title:** ♻️ StatsBarSettingsTab refactor — widget-toggle storage extracted into statsbar/
