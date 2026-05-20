@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1572 - 2026-05-21
+
+**Title:** ♻️ StatsBarSettingsTab refactor — widget-toggle storage extracted into statsbar/
+**Hero:** none
+**Tags:** Refactor, Settings
+
+### Why
+
+`StatsBarSettingsTab.jsx` was 1299 LOC, but almost all of it is the state-machine for `main / widgets / dataSources` sub-views with per-sensor auto/manual detection logic that closures over local state. The only cleanly extractable surface was the widget-toggle load/save pair at the top — ~25 LOC. Small but consistent with the pattern from passes 5–7.
+
+### What changed
+
+New file `src/components/tabs/SettingsTab/components/statsbar/widgetStorage.js` (32 LOC) with `loadWidgetSettings()` + `saveWidgetSettings(widgets)`. The default-handling for the 9 widgets (`weather`, `gridConsumption`, `gridReturn`, `solar`, `notifications`, `time`, `consumption`, `todayConsumption`, `todayCost`) lives in this single module instead of as a per-key spread inside the parent file.
+
+`StatsBarSettingsTab.jsx` shrank 1299 → 1276 LOC. Anything beyond this would require lifting the sub-view state into context — out of scope for this code-move pass.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx`
+- `src/components/tabs/SettingsTab/components/statsbar/widgetStorage.js` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1571 - 2026-05-21
 
 **Title:** ♻️ GeneralSettingsTab refactor — helpers + 5 load/save pairs extracted into general/
