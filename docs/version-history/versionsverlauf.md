@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1570 - 2026-05-21
+
+**Title:** 🩹 Hotfix — `useRef is not defined` after BentoStartView refactor Pass 3
+**Hero:** none
+**Tags:** Fix, Bento, Hotfix
+
+### Why
+
+v1.1.1566 (BentoStartView Pass 3) trimmed the top-of-file imports to "only what the slim coordinator still needs" — but I missed that the coordinator itself still calls `useRef(null)` for the grid container. Result: `Error mounting Fast Search Card: useRef is not defined` on every card render, blocking the whole component tree from initializing.
+
+### What changed
+
+`src/components/BentoStartView.jsx`:
+
+```diff
+- import { useEffect, useMemo, useState } from 'preact/hooks';
++ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+```
+
+Cross-checked all other refactored files (`BentoWidget`, `BentoRich*`, `MusicAssistantPanel`, `ma/components`) — hook-imports match hook-usage everywhere else. Only `BentoStartView` was affected.
+
+### Files
+
+- `src/components/BentoStartView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1569 - 2026-05-21
 
 **Title:** ♻️ TodosView refactor — settingsStorage + todoHelpers extracted into utils/
