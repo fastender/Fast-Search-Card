@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1575 - 2026-05-21
+
+**Title:** ♻️ SearchField refactor — localStorage settings readers extracted
+**Hero:** none
+**Tags:** Refactor, SearchField
+
+### Why
+
+`SearchField.jsx` was 1211 LOC, but most of the previously-bulky utilities are already extracted into `./SearchField/`-subfolder (categoryConfig, searchFilters, searchEventHandlers, useSearchFieldState, components, …). The remaining low-hanging fruit was the localStorage initialization logic — five blocks of inline `useState(() => { try { JSON.parse(localStorage.getItem('systemSettings')) … } catch {} … })` boilerplate that all read the same `systemSettings` key with slightly different defaults. Five reads, all duplicated try/catch error handling, plus the v1.1.1447 one-time greetings-bar migration.
+
+### What changed
+
+New file `src/components/SearchField/utils/settingsReaders.js` (89 LOC):
+
+- Private `readSystemSettingsRaw()` + `writeSystemSettings()` — single try/catch boundary for the whole module.
+- `getInitialPosition()` — returns `'top'` if Bento mode active or mobile + auto-expand; else `'centered'`.
+- `getInitialStatsBarSettings()` — `{ enabled, username }` with defaults.
+- `getInitialGreetingsBarSettings()` — includes the v1.1.1447 one-time migration that flips the default from `true` to `false` and sets a migration flag.
+- `readSidebarFlags()` — sidebar enabled + alwaysVisible (re-readable on event-bell).
+- `readBentoEnabled()` — single boolean (re-readable on event-bell).
+
+`SearchField.jsx`:
+
+```diff
+- const [position, setPosition] = useState(() => { try { … 13 lines … } catch { … } });
+- const [statsBarSettings, …] = useState(() => { try { … } catch { … } });
+- const [greetingsBarSettings, …] = useState(() => { try { … migration … } catch { … } });
+- const readSidebarFlags = () => { try { … } catch { … } };
+- const readBentoEnabled = () => { try { … } catch { … } };
++ const [position, setPosition] = useState(getInitialPosition);
++ const [statsBarSettings, …] = useState(getInitialStatsBarSettings);
++ const [greetingsBarSettings, …] = useState(getInitialGreetingsBarSettings);
++ // readSidebarFlags + readBentoEnabled now imported
+```
+
+Net: **1211 → 1154 LOC**. Five duplicated try/catch blocks collapsed into one `readSystemSettingsRaw()` helper.
+
+### Files
+
+- `src/components/SearchField.jsx`
+- `src/components/SearchField/utils/settingsReaders.js` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1574 - 2026-05-21
 
 **Title:** ♻️ NewsView refactor — settingsStorage + articleHelpers extracted into utils/
