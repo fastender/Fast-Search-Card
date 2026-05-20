@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1574 - 2026-05-21
+
+**Title:** ♻️ NewsView refactor — settingsStorage + articleHelpers extracted into utils/
+**Hero:** none
+**Tags:** Refactor, News
+
+### Why
+
+Final pass of the second refactor batch. `NewsView.jsx` was 1219 LOC — six pure helper functions sandwiching a 1069-LOC `NewsViewComponent` monolith. The helpers had zero coupling to the component's state, so they're a textbook extraction case. The main component itself is left alone (its 11 sub-views close over local handlers, same situation as `TodosSettingsView`).
+
+### What changed
+
+New folder `src/system-entities/entities/news/utils/`:
+
+- **`settingsStorage.js`** (40 LOC) — `loadSettings()` + `saveSettings()`. Storage key (`'newsSettings'`) and default object (`feeds`, `display` with `maxAge`/`maxArticles`/`showImages`/`autoMarkRead`/`defaultFilter`) now live as module-private constants instead of being re-declared on each `loadSettings()` call.
+- **`articleHelpers.js`** (109 LOC) — Four pure helpers: `groupArticlesByTimeBucket(articles, lang)` (sticky-section bucketing Today/Yesterday/This Week/Older), `stripHtml(html)` (RSS-cleanup with German + English read-more artifact removal), `calculateReadingTime(content)` (200 wpm baseline), `formatTimestamp(timestamp, lang)` (relative-time formatter).
+
+`NewsView.jsx` shrank from 1219 → 1094 LOC. No behaviour change.
+
+### Refactor batch summary (Passes 7–10)
+
+| Pass | Version | File | Before → After | Δ |
+|---|---|---|---|---|
+| 7 | 1571 | GeneralSettingsTab | 1373 → 1281 | -92 |
+| 8 | 1572 | StatsBarSettingsTab | 1299 → 1276 | -23 |
+| 9 | 1573 | DataProvider | 1280 → 1177 | -103 |
+| 10 | 1574 | NewsView | 1219 → 1094 | -125 |
+
+Plus passes 1–6 from earlier in the session (Bento 3-pass + MusicAssistantPanel + TodosSettingsView + TodosView). Top-10 file ranking from this morning had four files over 1300 LOC; now only one (`GeneralSettingsTab` at 1281). Largest source file in the repo is now [`StatsBarSettingsTab`](src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx) at 1276 — and the remaining size is genuine view-state machinery, not extractable.
+
+### Files
+
+- `src/system-entities/entities/news/NewsView.jsx`
+- `src/system-entities/entities/news/utils/settingsStorage.js` (new)
+- `src/system-entities/entities/news/utils/articleHelpers.js` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1573 - 2026-05-21
 
 **Title:** ♻️ DataProvider refactor — selector hooks + notification extractor split out
