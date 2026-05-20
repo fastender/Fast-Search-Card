@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1569 - 2026-05-21
+
+**Title:** ♻️ TodosView refactor — settingsStorage + todoHelpers extracted into utils/
+**Hero:** none
+**Tags:** Refactor, Todos
+
+### Why
+
+Final pass of the six-stage refactor session. `TodosView.jsx` was 1296 LOC, of which the first ~110 were four pure helper functions: `loadSettings` + `saveSettings` (localStorage persistence with default-merge), `formatDueDate` (relative-time formatter Heute / Morgen / Gestern / "Überfällig seit …"), `isOverdue` (boolean check). These have no dependency on the component's state — perfect candidates for extraction into the existing `todos/utils/` folder which already houses `profileColors.js` + `profileParser.js`.
+
+### What changed
+
+Two new files in `src/system-entities/entities/todos/utils/`:
+
+- **`settingsStorage.js`** (59 LOC) — `loadSettings()` and `saveSettings()`. Default-settings object is now a private `DEFAULT_SETTINGS` const inside the module rather than re-declared on every `loadSettings()` call; storage key extracted to `STORAGE_KEY = 'todosSettings'` constant.
+- **`todoHelpers.js`** (60 LOC) — `formatDueDate(dueDate, lang)` and `isOverdue(todo)`. Unchanged behaviour, just lifted out of the view file.
+
+`TodosView.jsx` shrank from 1296 → 1188 LOC. Imports updated to consume both new modules.
+
+### Six-pass refactor session summary
+
+| Pass | Version | File | Before → After |
+|---|---|---|---|
+| 1 | 1564 | BentoStartView | 1778 → 1553 (utilities) |
+| 2 | 1565 | BentoStartView | 1553 → 826 (5 Rich-Widgets) |
+| 3 | 1566 | BentoStartView | 826 → 200 (Router + Slider + BentoWidget) |
+| 4 | 1567 | MusicAssistantPanel | 1468 → 1001 |
+| 5 | 1568 | TodosSettingsView | 1460 → 1343 |
+| 6 | 1569 | TodosView | 1296 → 1188 |
+
+Total monolith reduction: **7300 → 5755 LOC across the six target files**, with the deltas redistributed into 19 new focused modules. Largest remaining file is now `TodosSettingsView` at 1343 LOC; further work on it would need to split the 11-way `currentView` state machine, which requires lifting parent state into context — a structural change rather than a pure code-move and deliberately scoped out of this session.
+
+### Files
+
+- `src/system-entities/entities/todos/TodosView.jsx`
+- `src/system-entities/entities/todos/utils/settingsStorage.js` (new)
+- `src/system-entities/entities/todos/utils/todoHelpers.js` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1568 - 2026-05-21
 
 **Title:** ♻️ TodosSettingsView refactor — icons + form-section helpers extracted into settings/
