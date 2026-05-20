@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1576 - 2026-05-21
+
+**Title:** ♻️ TodoFormDialog refactor — useListFeatures hook + due-date helpers extracted
+**Hero:** none
+**Tags:** Refactor, Todos
+
+### Why
+
+`TodoFormDialog.jsx` was 1155 LOC. The first ~70 lines were a `useListFeatures` custom hook (queries HA `supported_features` bitfield to determine if a todo-list supports date/time/description, plus a name-based heuristic for shopping-lists) and three pure date-string helpers (`parseDueDate`, `parseDueTime`, `formatDateDisplay`). Both groups have no dependency on the dialog's state — clean extraction.
+
+### What changed
+
+- **`src/system-entities/entities/todos/hooks/useListFeatures.js`** (40 LOC, new) — `useListFeatures(hass, listId)` hook. Returns `{ supportsDate, supportsTime, supportsDescription }` based on HA entity's `supported_features` bitmask (bit 1 = date, bit 2 = time, bit 4 = description). Shopping-lists (name contains "einkauf" or "shopping") get all three disabled — those lists are simple name-only entries.
+- **`src/system-entities/entities/todos/utils/dueDateHelpers.js`** (29 LOC, new) — `parseDueDate(iso)`, `parseDueTime(iso)`, `formatDateDisplay(iso, lang)`. Pure string operations on ISO timestamps for the wheel-pickers.
+
+`TodoFormDialog.jsx` shrank from 1155 → 1096 LOC. Main component unchanged.
+
+### Two-pass batch summary
+
+| Pass | Version | File | Before → After | Δ |
+|---|---|---|---|---|
+| 11 | 1575 | SearchField | 1211 → 1154 | -57 |
+| 12 | 1576 | TodoFormDialog | 1155 → 1096 | -59 |
+
+These two were the smallest wins of the refactor session because both files were already at least partially modularized — `SearchField` has a `./SearchField/` subfolder full of extracted utilities, and `TodoFormDialog`'s state machinery is tightly coupled. The remaining size is genuine view logic. Beyond this point, further reduction would require lifting parent state into context or splitting view-machine branches into separate components — structural changes that go beyond pure code-move passes.
+
+### Files
+
+- `src/components/SearchField.jsx`
+- `src/system-entities/entities/todos/components/TodoFormDialog.jsx`
+- `src/system-entities/entities/todos/hooks/useListFeatures.js` (new)
+- `src/system-entities/entities/todos/utils/dueDateHelpers.js` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1575 - 2026-05-21
 
 **Title:** ♻️ SearchField refactor — localStorage settings readers extracted
