@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1565 - 2026-05-21
+
+**Title:** ♻️ BentoStartView refactor — Pass 2: 5 Rich-Widgets extracted into bento/widgets/
+**Hero:** none
+**Tags:** Refactor, Bento
+
+### Why
+
+Continuation of v1.1.1564. After Pass 1 (utilities), the second-largest chunk in `BentoStartView.jsx` was the five Rich-Widget components (Weather/Todos/News/Calendar/Versions), each 60–200 LOC and all colocated in the parent file. Splitting them into their own modules lets each one be read in isolation and prepares the file for Pass 3 (router + slider + widget renderer).
+
+### What changed
+
+Five new files under `src/components/bento/widgets/`:
+
+- **`BentoRichWeather.jsx`** (184 LOC) — Apple-Weather-Style with async forecast via `weather.get_forecasts`. Imports `WEATHER_TRANSLATIONS` + `weatherForecastCache` from `../constants.js`.
+- **`BentoRichTodos.jsx`** (134 LOC) — Apple-Reminders-Style with list tabs and due-date pills. Imports `formatDueDate` from `../helpers.js`.
+- **`BentoRichNews.jsx`** (181 LOC) — Apple-News-Style with unread/read tabs and scrollable list. Imports `formatRelativeTime` + `isTouchDevice` from `../helpers.js`, `CustomScrollbar` from `../../CustomScrollbar.jsx`.
+- **`BentoRichCalendar.jsx`** (203 LOC) — Apple-Calendar-Style with 14-day upcoming list. Calendar-specific helpers (`CALENDAR_EVENT_COLORS`, `bentoColorForCalendar`, `bentoSameDay`) live module-private inside this file — only used by this widget, no need to pollute shared modules.
+- **`BentoRichVersions.jsx`** (64 LOC) — Versionsverlauf with latest version + tags + 2 previous rows.
+
+`BentoStartView.jsx` shrank from 1553 → 826 LOC. The top now imports the five widgets directly; the router (`renderRichForDomain`) and everything below remains. The trimmed top-imports section also dropped six now-unused symbols (`WEATHER_TRANSLATIONS`, `weatherForecastCache`, `formatDueDate`, `formatRelativeTime`, `isTouchDevice`, `CustomScrollbar`, `getWeatherIcon`) — those are now consumed by the widget files directly.
+
+No runtime behaviour change. Identical JSX, identical hooks, identical CSS classes.
+
+### Files
+
+- `src/components/BentoStartView.jsx`
+- `src/components/bento/widgets/BentoRichWeather.jsx` (new)
+- `src/components/bento/widgets/BentoRichTodos.jsx` (new)
+- `src/components/bento/widgets/BentoRichNews.jsx` (new)
+- `src/components/bento/widgets/BentoRichCalendar.jsx` (new)
+- `src/components/bento/widgets/BentoRichVersions.jsx` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1564 - 2026-05-21
 
 **Title:** ♻️ BentoStartView refactor — Pass 1: helpers / icons / constants / virtual-items extracted
