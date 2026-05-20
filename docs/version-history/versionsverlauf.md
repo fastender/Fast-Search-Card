@@ -1,5 +1,71 @@
 # Versionsverlauf
 
+## Version 1.1.1562 - 2026-05-20
+
+**Title:** 🩹 CustomScrollbar regression fix + mobile height-cap on the cell, not the widget
+**Hero:** none
+**Tags:** Fix, Bento, Mobile, Scrollbar
+
+### Why
+
+v1.1.1561 broke two things in trying to fix one:
+
+1. **CustomScrollbar disappeared on desktop/tablet.** The hover-aware opacity (`isScrolling || isHovered || !supportsHover`) was logically equivalent to the old `isScrolling || isHovered` for `supportsHover=true`, but in the actual runtime something around the matchMedia subscribe path made the scrollbar invisible on devices where it used to show. Reverted to the explicit prop pattern — caller decides whether the scrollbar stays on.
+2. **Mobile list still didn't scroll.** The v1.1.1561 cap was `max-height: 50vh !important` on `.bento-widget`, but the **parent `.bento-cell` had no fixed height** in `.bento-grid--mobile` (flex column, content-sized). `height: 100%` on the widget resolved to "unknown", so `max-height` had no anchor to clamp against, and the inner `.bento-rich-news-more--scroll` (`flex:1; min-height:0; overflow-y:auto`) couldn't engage because there was no concrete parent height to flex against.
+
+### What changed
+
+**`CustomScrollbar.jsx`**
+
+- Removed the internal `matchMedia('(hover: hover)')` subscription.
+- Added explicit `alwaysVisible` prop (default `false`).
+- Opacity: `(isScrolling || isHovered || alwaysVisible) ? 1 : 0`. Identical to original behaviour for callers that don't pass the new prop — no regression for SearchPanel, sidebar lists, etc.
+
+**`BentoStartView.jsx`**
+
+Module-level helper:
+
+```js
+const isTouchDevice = () => {
+  if (typeof window === 'undefined') return false;
+  if (window.matchMedia && window.matchMedia('(hover: none)').matches) return true;
+  return 'ontouchstart' in window || (navigator && navigator.maxTouchPoints > 0);
+};
+```
+
+`BentoRichNews` now passes `alwaysVisible={isTouchDevice()}` into its `CustomScrollbar`. Desktop callers see no change (function returns false). Touch callers get the scrollbar permanently visible whenever the container is scrollable — which is the only reliable "you can scroll" affordance on a touchscreen.
+
+**`BentoStartView.css`**
+
+The mobile height-cap moves from the widget down to the cell:
+
+```css
+@media (max-width: 768px) {
+  .bento-grid--mobile .bento-cell--w1,
+  .bento-grid--mobile .bento-cell--w2 {
+    height: 50vh;
+    max-height: 50vh;
+    overflow: hidden;
+  }
+  .bento-grid--mobile .bento-cell--w34 > .bento-widget {
+    height: 25vh;
+    max-height: 25vh;
+    overflow: hidden;
+  }
+}
+```
+
+With `.bento-cell--w2 { height: 50vh }` the cell now has a concrete number for the widget's `height: 100%` to resolve against — `.bento-widget` ends up at 50 vh, `.bento-rich-news` at 50 vh, and the scrollable list child engages its overflow.
+
+### Files
+
+- `src/components/CustomScrollbar.jsx`
+- `src/components/BentoStartView.jsx`
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1561 - 2026-05-20
 
 **Title:** 🩹 Mobile Bento follow-up — CustomScrollbar visible on touch, height-cap with `!important` + overflow:hidden
