@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1568 - 2026-05-21
+
+**Title:** ♻️ TodosSettingsView refactor — icons + form-section helpers extracted into settings/
+**Hero:** none
+**Tags:** Refactor, Todos
+
+### Why
+
+`TodosSettingsView.jsx` is 1460 LOC. Most of that is the main component's state machine (11 sub-views: main, auto-hide-days, default-filter, sort-by, profile-add/edit/color, template-add/edit, list-detail/icon/color). Each sub-view closes over the parent's `setState` calls and editing state, so splitting the sub-views into separate components without rewriting that closure pattern would be invasive. What *can* be extracted cleanly is the top-of-file scaffolding: three SVG icons and three reusable form-section helpers — they have no dependency on the parent's state.
+
+### What changed
+
+New folder `src/system-entities/entities/todos/components/settings/`:
+
+- **`icons.jsx`** (25 LOC) — `PencilIcon`, `TrashIcon`, `PlusIcon`. Plain SVG factories used by edit/delete/add rows across the settings views.
+- **`sections.jsx`** (114 LOC) — `ProfileNameSection`, `ColorPickerSection`, `TemplateTextSection`. The original v1.1.1416 refactor that consolidated three pairs of duplicated JSX (profile add/edit name input + color grid, template add/edit textarea); pulling these out of the parent file makes the consolidation visible at a glance.
+
+`TodosSettingsView.jsx` shrank from 1460 → 1343 LOC. The main component itself is unchanged — same hooks, same `currentView` switch, same handler closures. Only the imports at the top moved to use the new modules.
+
+This is a deliberate "small but clean" pass. The bigger structural refactor (splitting the 11 sub-views into separate files) would require turning the parent state into a context provider so that the children can still call the right setters — that's a larger investment than the bento split was, and the bento case had cleaner boundaries between sub-components.
+
+### Files
+
+- `src/system-entities/entities/todos/components/TodosSettingsView.jsx`
+- `src/system-entities/entities/todos/components/settings/icons.jsx` (new)
+- `src/system-entities/entities/todos/components/settings/sections.jsx` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1567 - 2026-05-21
 
 **Title:** ♻️ MusicAssistantPanel refactor — constants/icons/sub-components extracted into ma/
