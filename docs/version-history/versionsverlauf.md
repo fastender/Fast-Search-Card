@@ -1,5 +1,51 @@
 # Versionsverlauf
 
+## Version 1.1.1581 - 2026-05-21
+
+**Title:** 🧹 Extraction-Debt Cleanup — 32 files, 64 unused imports removed (plus scanner bugfix)
+**Hero:** none
+**Tags:** Cleanup, Imports, Tooling
+
+### Why
+
+The `check-extraction-debt.py` from v1.1.1577 was built specifically to find post-refactor leftovers. With it in hand, the actual cleanup pass was the obvious follow-up: every UNUSED IMPORT was dead code from the 13-pass refactor marathon (v1.1.1564–1576) where helpers/components/hooks got moved into sub-modules and the original files kept the now-pointless import lines. Mechanical, no logic changes, but a measurable strip-down.
+
+### Scanner bugfix prerequisite (`scripts/check-extraction-debt.py`)
+
+The first run from v1.1.1577 reported 35 debt files — but **three of them were false positives** because the comment-stripping pass didn't know about strings or template literals. In `deviceTypeRegistry.js`, the template-literal-based SVG helper contained `xmlns="http://www.w3.org/2000/svg"`, and the `//` inside that URL was treated as a JS line comment. Everything from the `//` to end-of-line got stripped, taking the registry's `EntityClass: EnergyDashboardDeviceEntity` references with it — so the imports looked unused.
+
+The fix: `_scan()` now ALWAYS tracks string + template state (single quotes, double quotes, backticks) even in comment-stripping mode. Comment detection only triggers when we're *not* inside a string. The `drop_strings` flag just controls whether the string contents survive in the output — the state machine runs unconditionally. Template-literal `${...}` expressions still get extracted as raw code so identifiers inside them count as references. Re-running the scanner after the fix dropped the false positives (deviceTypeRegistry, integration/index, EnergyDashboardDeviceEntity) and produced a clean 32-file punch list of real debt.
+
+### What changed in src/
+
+**32 files, 63 unused named imports + 1 unused default import.** Examples of the bigger removals:
+
+- `CircularSlider.jsx` — 8 imports gone (`AnimatePresence`, `circularSliderLabelVariants`, `circularSliderPowerIconVariants`, `circularSliderPowerToggleVariants`, `circularSliderValueVariants`, `durations`, `easings`, `useSpring`). All from `animationVariants.js` after the v1.1.1566 extraction phase.
+- `ScheduleTab.jsx` — 7 imports gone (`WEEKDAY_KEYS`, `deleteScheduleFromHA`, `fetchSchedules`, `generateMockSchedules`, `getHvacModeLabel`, `motion`, `transformToScheduleObject`). Most from `scheduleUtils.js` migrations.
+- `MusicAssistantPanel.jsx` — 5 imports gone (`TYPE_LABELS_DE`, `TYPE_LABELS_EN`, `getMusicAssistantPlayers`, `isTransferQueueAvailable`, `transferMusicAssistantQueue`). All from `musicAssistant.js` after v1.1.1567.
+- `EnergyDashboardDeviceView.jsx` — 4 imports gone (`AnimatePresence`, `CustomScrollbar`, `GeneralSettingsTab`, `LiquidGlassSwitch`). Refactor-debt from the 5-phase split.
+- `HistoryTab.jsx` — 4 imports gone. Refactor-debt.
+
+Plus the long tail: 27 more files with 1–3 imports each (single-line `import { useRef }` → whole line dropped, etc).
+
+### Method
+
+A one-shot Python helper (`/tmp/remove-imports.py`) parsed the debt list and surgically rewrote each `import { ... } from '...'` block — dropping the whole `import` statement when the brace list became empty, or re-emitting `import { X } from '...'` with just the surviving names. Multi-line brace lists collapsed to single-line. One file (`UniversalControlsTab.jsx`) had a default import (`import ClimateSettingsBar from ...`) which the helper doesn't handle; that one was deleted manually.
+
+### Verification
+
+- `python3 scripts/check-extraction-debt.py src` → "330 files clean."
+- `bash scripts/check-hooks.sh src` → "330 files clean."
+- `npm run build` succeeded — confirms every removed name was actually dead (vite would have errored on any wrongly-removed import).
+
+### Files
+
+- `scripts/check-extraction-debt.py` — scanner bugfix
+- 32 source files across `src/components/`, `src/system-entities/`, `src/utils/`, `src/hooks/`, `src/assets/`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
+---
+
 ## Version 1.1.1580 - 2026-05-21
 
 **Title:** 🔁 Custom-RRULE-Editor — INTERVAL + BYDAY + UNTIL/COUNT editable, not read-only anymore

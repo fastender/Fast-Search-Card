@@ -73,10 +73,13 @@ RE_EXPORT_NAMED = re.compile(
 
 
 def _scan(text: str, drop_strings: bool) -> str:
-    """Tokenize-aware pass: strip line/block comments. If drop_strings is True,
-    also replace string + template literal *contents* with empty (preserving the
-    delimiters as `""`). Identifiers inside `${...}` template-expressions are
-    kept so they still count as references."""
+    """Tokenize-aware pass. ALWAYS tracks string/template state so a `//` or
+    `/*` inside a string is not misread as a comment (this bit `strip_comments`
+    on `deviceTypeRegistry.js`, where a template literal contained
+    `xmlns="http://www.w3.org/2000/svg"` — the `//` shredded the rest of the
+    file). If drop_strings is True, replaces string + template literal
+    *contents* with empty (preserving delimiters as `""`), but keeps identifiers
+    inside `${...}` template-expressions so they still count as references."""
     out: list[str] = []
     i, n = 0, len(text)
     while i < n:
@@ -93,57 +96,59 @@ def _scan(text: str, drop_strings: bool) -> str:
             continue
 
         if c in ("'", '"'):
-            if not drop_strings:
-                out.append(c)
-                i += 1
-                continue
-            out.append('"')
-            out.append('"')
+            start = i
             i += 1
             while i < n:
                 ch = text[i]
                 if ch == "\\" and i + 1 < n:
                     i += 2
                     continue
-                if ch == c or ch == "\n":  # unterminated single/double bail at newline
+                if ch == c or ch == "\n":  # unterminated bail at newline
                     i += 1
                     break
                 i += 1
+            out.append('""' if drop_strings else text[start:i])
             continue
 
         if c == "`":
-            if not drop_strings:
-                out.append(c)
-                i += 1
-                continue
-            out.append('"')
-            out.append('"')
             i += 1
+            kept_exprs: list[str] = []
+            raw_parts: list[str] = ["`"]
             while i < n:
                 ch = text[i]
                 if ch == "\\" and i + 1 < n:
+                    raw_parts.append(text[i : i + 2])
                     i += 2
                     continue
                 if ch == "`":
+                    raw_parts.append("`")
                     i += 1
                     break
                 if ch == "$" and i + 1 < n and text[i + 1] == "{":
                     depth = 1
-                    i += 2
-                    expr_start = i
-                    while i < n and depth > 0:
-                        if text[i] == "{":
+                    j = i + 2
+                    while j < n and depth > 0:
+                        if text[j] == "{":
                             depth += 1
-                        elif text[i] == "}":
+                        elif text[j] == "}":
                             depth -= 1
                             if depth == 0:
                                 break
-                        i += 1
-                    out.append(text[expr_start:i])  # keep identifiers in ${...}
-                    if i < n:
-                        i += 1  # skip closing }
+                        j += 1
+                    expr = text[i + 2 : j]
+                    kept_exprs.append(expr)
+                    raw_parts.append("${" + expr + "}")
+                    i = j + 1 if j < n else j
                     continue
+                raw_parts.append(ch)
                 i += 1
+            if drop_strings:
+                out.append('""')
+                # Keep ${...} expression contents so identifiers still count.
+                for ex in kept_exprs:
+                    out.append(" " + ex + " ")
+            else:
+                out.append("".join(raw_parts))
             continue
 
         out.append(c)
