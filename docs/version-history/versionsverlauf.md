@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1583 - 2026-05-21
+
+**Title:** 🪛 Quick-Wins — All-Day animation, About date sync, pre-commit hook, dist cleanup
+**Hero:** none
+**Tags:** Polish, Tooling, DX
+
+### Why
+
+Four small items that came up over the day's work:
+1. The "All-Day" toggle in the calendar dialog flipped *instantly* — both the checkmark and the appearing/disappearing time rows. Apple's iOS calendar has a smooth slide for both.
+2. AboutSettings showed `2026.05.16` as the build date — five releases out of sync with reality.
+3. The `check-extraction-debt.py` from v1.1.1581 was production-tested but not wired into anything — easy to forget to run.
+4. `dist/assets/index-*.js` + `dist/assets/style-*.css` + `dist/index.html` were tracked-but-changing-every-build files, polluting `git status` and producing noisy untracked-new-hash entries forever.
+
+### What changed
+
+- **`TodoDetailView.css`** — `.checkbox-mark-large:after` no longer toggles `display: none → block` on `:checked`. Now uses `transform: rotate(45deg) scale(0) → scale(1)` + `opacity: 0 → 1` with a bouncy 180 ms cubic-bezier(0.34, 1.56, 0.64, 1) — the checkmark *grows* in from center instead of popping. Shared style: this also lights up the todos dialogs' completion checkbox the same way.
+- **`CalendarEventDialog.jsx`** — Start-Time and End-Time rows now wrap in `<AnimatePresence>` + `motion.div` with `height: 0 → auto` + `opacity` transitions (200 ms, ease-in-out). Toggling all-day now collapses the time rows smoothly instead of snapping them away.
+- **`AboutSettingsTab.jsx`** — build date bumped `2026.05.16` → `2026.05.21`.
+- **`scripts/git-hooks/pre-commit`** + **`scripts/install-git-hooks.sh`** — pre-commit hook runs `check-extraction-debt.py -q` against `src/`. Blocks commits that introduce DUPLICATE or UNUSED IMPORT regressions. Opt-in via `bash scripts/install-git-hooks.sh` which sets `git config core.hooksPath scripts/git-hooks`. Disable with `git config --unset core.hooksPath`. Skip per-commit with `git commit --no-verify`. Runtime ~1.8 s on this codebase. `check-hooks.sh` is *not* in the hook — its bash implementation takes ~11 s and would make every commit annoying; kept as a manual sanity script.
+- **`scripts/check-all.sh`** — convenience wrapper that runs both `check-hooks.sh` + `check-extraction-debt.py`. Use before pushing a refactor batch.
+- **`.gitignore` cleanup** — removed `!dist/index.html` + `!dist/assets/` + `!dist/assets/**` exceptions. Those vite-intermediate outputs no longer live in version control; only `dist/fast-search-card.js` (the bundled wrapper that HACS consumes) is tracked. Plus added a blanket `.DS_Store` / `**/.DS_Store` ignore — macOS turd, never useful in git.
+- **`git rm --cached dist/assets/index-CKU7Gx1A.js dist/assets/style-ClIvZ4AG.css dist/index.html`** — untracked the existing intermediates. They stay on disk; just out of git.
+
+### Files
+
+- `src/system-entities/entities/todos/styles/TodoDetailView.css`
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+- `scripts/git-hooks/pre-commit` (new)
+- `scripts/install-git-hooks.sh` (new)
+- `scripts/check-all.sh` (new)
+- `.gitignore`
+
+---
+
 ## Version 1.1.1582 - 2026-05-21
 
 **Title:** 📊 Multi-Day-Spanning-Bars in Week-View — Apple-Calendar-Style horizontal bars
