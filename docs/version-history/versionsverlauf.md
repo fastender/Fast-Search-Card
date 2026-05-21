@@ -1,5 +1,77 @@
 # Versionsverlauf
 
+## Version 1.1.1584 - 2026-05-21
+
+**Title:** 📦 Bundle -21 KB gzip (-5%) — `marked` + `dompurify` replaced by `miniMarkdown.js`
+**Hero:** none
+**Tags:** Bundle, Markdown, DX
+
+### Why
+
+`marked` (12 KB gzip) + `dompurify` (17 KB gzip) were used in exactly two places — `VersionDetail.jsx` and `TippDetail.jsx` — to render version-changelog markdown and tipp content. Two deps, 29 KB combined gzip, for what amounts to headings + paragraphs + lists + bold/italic/code + links + occasional tables. Replaceable with a tightly-scoped ~150-line custom parser that emits only known-safe HTML tags — which makes the sanitizer step redundant by construction.
+
+This is the headline win from the bundle audit (`docs/BUNDLE_AUDIT_2026-05-21.md`) — the single biggest realistic reduction without touching the HACS single-file delivery model.
+
+### What changed
+
+- **`src/utils/miniMarkdown.js`** (new, ~190 LOC including doc-comment) — line-by-line block parser + tokenize-aware inline parser. Supports:
+  - Headings `#` through `######`
+  - Paragraphs (blank-line separated)
+  - Unordered + ordered lists (flat, single-line items)
+  - Blockquotes (consecutive `>` lines collapsed into one)
+  - Horizontal rules (`---`, `***`, `___`)
+  - Fenced code blocks (with optional language class)
+  - **Pipe tables** with header + separator + body rows
+  - Inline: `**bold**`, `*italic*`, `` `code` ``, `[text](url)` — URL safety check (http/https/mailto/anchor only); `javascript:` etc. links left as plain text
+  - HTML-escapes everything that doesn't get wrapped in safe tags → no sanitizer needed
+  - Code-span content extracted before escape so backticks survive verbatim, then escaped on re-insertion
+
+- **`VersionDetail.jsx`** — `marked.parse(content)` + `DOMPurify.sanitize(html)` → `renderMarkdown(content)` (single call). Side benefit: tables now render as actual `<table>` instead of plain pipe-text (the previous `gfm: false` config had marked falling back to paragraphs).
+
+- **`TippDetail.jsx`** — same swap. `gfm: true` table support preserved (and now also live in VersionDetail).
+
+- **`package.json`** — removed `marked@^18.0.2` + `dompurify@^3.4.0` via `npm uninstall`. Lockfile updated.
+
+### Numbers
+
+| Metric | Before (v1.1.1583) | After (v1.1.1584) | Δ |
+|---|---:|---:|---:|
+| `dist/fast-search-card.js` raw | 1,785,264 B | 1,723,141 B | **-62 KB** |
+| Vite JS chunk raw | 1,587 KB | 1,525 KB | **-62 KB** |
+| Vite JS chunk gzip | 417 KB | 396 KB | **-21 KB (-5.1%)** |
+| Top deps before | marked 12.4 + dompurify 17.1 | both gone | -29.5 KB |
+| `miniMarkdown.js` added | — | ~3 KB gzip | +3 KB |
+
+Net is ~21 KB gzip instead of the rough 26 KB projection — terser cross-shake among shared infrastructure (pieces of dompurify that other deps also touched) accounts for the smaller-than-arithmetic savings.
+
+### Safety review
+
+The parser's safety claim is: every input character ends up either (a) HTML-escaped, or (b) inside a structural tag we control (h1-h6, p, strong, em, code, pre, a, ul, ol, li, blockquote, hr, table, thead, tbody, tr, th, td). The only inputs that emit tags are markdown sigils (`#`, `*`, `` ` ``, `[`, `|`, `>`, `-`/`+`/digit-followed-by-dot, ` ``` `). All other characters go through `escapeHTML()`. URL-bearing constructs (`[text](url)`) check the URL against a safe-protocol allowlist (`https?:|mailto:|#`) — `javascript:`, `data:`, `vbscript:`, etc. fall through and emit the literal markdown text instead.
+
+Tested input `<script>alert(1)</script>` → `&lt;script&gt;alert(1)&lt;/script&gt;` (escaped, never interpreted). Tested input `[click](javascript:alert(1))` → `[click](javascript:alert(1))` (left as plain text). Smoke-tested with code blocks, tables, mixed inline formatting, nested code-inside-bullets.
+
+### Limitations (deliberate)
+
+Documented at the top of `miniMarkdown.js`:
+- No nested lists, no multi-line list items
+- No reference-style links
+- No setext headings (`===` / `---` under text)
+- No image embeds (`![alt](url)`)
+- No HTML passthrough (deliberate — that's the security boundary)
+- No footnotes, definition lists, task list checkboxes, strikethrough
+
+If we ever need any of those, extend incrementally — the parser is line-by-line and easy to add to.
+
+### Files
+
+- `src/utils/miniMarkdown.js` (new)
+- `src/system-entities/entities/versionsverlauf/components/VersionDetail.jsx`
+- `src/system-entities/entities/tipps/components/TippDetail.jsx`
+- `package.json` + `package-lock.json` (removed `marked`, `dompurify`)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` (version bump)
+
+---
+
 ## Version 1.1.1583 - 2026-05-21
 
 **Title:** 🪛 Quick-Wins — All-Day animation, About date sync, pre-commit hook, dist cleanup
