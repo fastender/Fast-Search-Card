@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1577 - 2026-05-21
+
+**Title:** 🛠️ Tooling — committed `check-hooks.sh` + `check-extraction-debt.py` for post-refactor sanity passes
+**Hero:** none
+**Tags:** Tooling, DX
+
+### Why
+
+The 13-pass refactor marathon in v1.1.1564–1576 produced one regression (v1.1.1570, `useRef` stripped from imports but still referenced — runtime crash on mount) and surfaced 35 files with dead imports that nobody had caught. Both are mechanical bugs that grep can find in seconds — but only if you remember to grep. Two scripts are now committed under `scripts/` so the next refactor pass has a one-command sanity check.
+
+A new `scripts/` exception in `.gitignore` was needed because the root `*` rule otherwise ignores everything outside `dist/`, `docs/`, and HACS files.
+
+### What changed
+
+- **`scripts/check-hooks.sh`** — verifies every Preact built-in hook (`useState`/`useEffect`/`useRef`/`useMemo`/`useCallback`/`useContext`/`useReducer`/`useLayoutEffect`/`useErrorBoundary`/`useImperativeHandle`/`useDebugValue`/`useId`) referenced in a JSX/JS file is imported from `preact/hooks` *or* `preact/compat`. Awk-based scanner, strips `//` line comments and `/* */` block comments before counting so comment mentions don't false-trigger. Catches the v1.1.1570-class regression in one shell command. Exit-code-driven (`0` = clean, `1` = at least one file is missing an import). Smoke-tested against the current `src/` (330 files clean).
+- **`scripts/check-extraction-debt.py`** — pure-Python (stdlib only) detector for two kinds of post-refactor debt: `DUPLICATE` (a symbol is both imported AND defined locally) and `UNUSED IMPORT` (imported symbol referenced 0 times outside the import line itself). Strips comments and string-literal *contents* via a single-pass state-machine tokenizer (a regex-based first cut was eating ~73% of `LiquidGlassSlider.jsx` because `//` inside `xmlns='http://...'` inside a template literal matched the line-comment regex). Whitelists the JSX-pragma names (`h`, `Fragment` from `preact`) since the JSX transform uses them implicitly. Re-exports (`export { X }`) count as usage. Identifies 35 debt files in current `src/` — those are not fixed here, just made discoverable.
+- **`.gitignore`** — added `!scripts/` + `!scripts/**` exception so the new dev tooling lives in version control.
+- **`src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`** — version bump 1576 → 1577.
+
+### Why bash for one, Python for the other?
+
+`check-hooks.sh` is purely line-oriented grep work — `awk` + `grep -oE` is a natural fit and no Python interpreter dependency makes the script easier to wire into a git pre-commit hook later. `check-extraction-debt.py` needs cross-line state (multi-line braces, template-literal-with-`${...}`-interpolation, string-escape handling) — Python's stdlib regex + a small tokenizer beats the equivalent bash gymnastics by a wide margin.
+
+### Files
+
+- `scripts/check-hooks.sh` (new)
+- `scripts/check-extraction-debt.py` (new)
+- `.gitignore`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1576 - 2026-05-21
 
 **Title:** ♻️ TodoFormDialog refactor — useListFeatures hook + due-date helpers extracted
