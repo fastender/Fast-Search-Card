@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1582 - 2026-05-21
+
+**Title:** 📊 Multi-Day-Spanning-Bars in Week-View — Apple-Calendar-Style horizontal bars
+**Hero:** none
+**Tags:** Calendar, Week-View, Multi-Day
+
+### Why
+
+The week strip showed a numeric "+N" count badge per day to indicate event density. Functional but unspecific: you knew Tuesday had 3 events but not what they were, and a 3-day event looked like three disconnected "+1" badges instead of one continuous span. v1.1.1579 fixed the multi-day filtering logic; this release fixes the *visualization* — multi-day events now render as a single horizontal bar spanning the actual days they cover, like Apple Calendar's week view.
+
+### What changed
+
+- **`WeekGrid` in `CalendarView.jsx`** — `countsByDay`-Map replaced by a lane-packing algorithm. Events that overlap the current 7-day window get sorted by span length (longest first → tighter packing) and then assigned to the lowest available lane via first-fit. Each placed bar carries `{ startCol, endCol, lane }`.
+- **New JSX structure** — `<div class="calendar-week-wrap">` wraps the existing day-strip (`.calendar-week`) and a new bars-grid (`.calendar-week-bars`) underneath. Both use identical `grid-template-columns: repeat(7, minmax(0, 1fr))` + same `column-gap: 6px` so bars align vertically to the day cells. Bars spanning multiple columns absorb the inter-column gap (CSS grid default behavior) and render as one continuous span.
+- **Overflow handling** — `MAX_WEEK_LANES = 3` visible bars per week. Events that would land in lane 4+ collapse into per-column `+N` overflow markers in the bottom row.
+- **Click semantics** — clicking a bar selects the *visible-in-this-week* start day (`days[startCol]`), not the event's actual start date. Important when the event begins in a previous week — selecting that day would jump out of the week strip; clicking the bar's leftmost visible position is the intuitive Apple-Calendar behavior.
+- **New CSS** — `.calendar-week-wrap`, `.calendar-week-bars`, `.calendar-week-bar`, `.calendar-week-bar-label`, `.calendar-week-bar-overflow`. Bars 14 px tall, calendar-color background, white 10 px bold label with ellipsis. Hover brightens 15%.
+- **Old `.calendar-week-cell-count`** rule kept in CSS (no consumer anymore, but cheap to leave for now — would be flagged by `check-extraction-debt.py`-equivalent for CSS, which doesn't exist yet).
+
+### Lane-packing decision: longest-first sort
+
+The naive `sort by startDate` packing produces tall stacks when there's one long event + many short ones — the long event grabs lane 0, then short events that start *before* the long event ends each get pushed to lane 1, lane 2, etc, even though they don't overlap each other. Sorting longest-first gives the long event a guaranteed corridor, and short events fill in around it on lower lanes when they don't conflict.
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1581 - 2026-05-21
 
 **Title:** 🧹 Extraction-Debt Cleanup — 32 files, 64 unused imports removed (plus scanner bugfix)
