@@ -17,5 +17,9 @@
 !docs/
 !docs/**
 
+# Except scripts folder (dev tooling, committed)
+!scripts/
+!scripts/**
+
 # Ignore node_modules even in dist
 dist/node_modules/
