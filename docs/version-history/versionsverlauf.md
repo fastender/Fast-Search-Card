@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1578 - 2026-05-21
+
+**Title:** 📱 Mobile-Bento — iPad-Mini 2-Spalten-Portrait + Swipe-Threshold-Tuning
+**Hero:** none
+**Tags:** Mobile, Bento, Swipe
+
+### Why
+
+Two small Mobile-Bento improvements that came up as open threads after the v1.1.1576 refactor marathon:
+
+1. **iPad-Mini portrait wastes half the screen.** The mobile-grid is a vertical `flex-column` stack — fine on a phone (≤430 px wide), wasteful on an iPad Mini in portrait (768 × 1024). The grid sat in the left half with massive empty padding on the right; widgets stretched to 50 vh making the column scroll just to see four cards. Larger iPads (820+) already land in the desktop layout via the `isMobile@<=768` cutoff, so this only ever affects the Mini.
+2. **Tap-with-drift triggered swipes.** The `handleSwipe` in `BentoWidget` used `xDist < -60 || xVel < -400` (v1.1.1506) — pure OR. A finger lift after a tap can produce a velocity spike >400 px/s without meaningful distance, and a slow drift to 60 px without intent crosses the distance bar. Both classes of false-positive showed up occasionally on touchscreens.
+
+### What changed
+
+- **`src/components/BentoStartView.css`** — new media query `@media (min-width: 600px) and (max-width: 768px) and (orientation: portrait)` switches `.bento-grid--mobile` from `flex-column` to a 2-column CSS grid. W1 + W2 sit side-by-side at 40 vh height (down from 50 vh — two rows of 50 vh + W34 would overflow the viewport); W34 spans both columns with `grid-column: 1 / -1` and keeps its internal 2-col split for W3/W4. The `min-width: 600` floor excludes all phones; `orientation: portrait` prevents iPhone-Plus-Landscape (736 × 414) from triggering.
+- **`src/components/bento/BentoWidget.jsx`** — `handleSwipe` thresholds bumped: `distanceThreshold` 60 → 80 px, `velocityThreshold` 400 → 600 px/s. Logic unchanged (OR between distance and velocity), just less sensitive. Tap-release velocity spikes don't typically exceed 600 px/s without intentional motion, and 80 px is past the typical tap-drift cone.
+
+### Files
+
+- `src/components/BentoStartView.css`
+- `src/components/bento/BentoWidget.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1577 - 2026-05-21
 
 **Title:** 🛠️ Tooling — committed `check-hooks.sh` + `check-extraction-debt.py` for post-refactor sanity passes
