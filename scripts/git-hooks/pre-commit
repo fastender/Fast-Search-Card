@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Pre-commit hook — runs check-extraction-debt.py against src/ before allowing
+# the commit. Catches DUPLICATE + UNUSED IMPORT regressions introduced by
+# refactor passes that miss imports.
+#
+# Install once:   bash scripts/install-git-hooks.sh
+# Disable:        git config --unset core.hooksPath
+# Skip one time:  git commit --no-verify
+#
+# We do NOT run check-hooks.sh here — its current bash implementation takes
+# ~11 s on this codebase (330 files × multi-awk + per-builtin grep). Run it
+# manually after big refactors or before pushing:
+#   bash scripts/check-hooks.sh
+
+set -e
+
+ROOT="$(git rev-parse --show-toplevel)"
+SRC="$ROOT/src"
+
+# src/ is gitignored in this project — it always exists locally but isn't
+# part of the staged set. Skip the check if src/ doesn't exist (e.g. fresh
+# worktree without the source).
+if [ ! -d "$SRC" ]; then
+  exit 0
+fi
+
+if ! python3 "$ROOT/scripts/check-extraction-debt.py" -q "$SRC"; then
+  echo ""
+  echo "❌ Pre-commit: extraction-debt check failed."
+  echo "   Run for details:   python3 scripts/check-extraction-debt.py src"
+  echo "   Skip this commit:  git commit --no-verify"
+  exit 1
+fi
+
+exit 0

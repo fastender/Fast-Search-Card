@@ -1,11 +1,12 @@
 # Ignore everything
 *
 
-# Except dist folder
+# Except dist folder — only the bundled wrapper file is the shipped artifact.
+# dist/index.html and dist/assets/* are vite-intermediate outputs (consumed by
+# build.sh's inject-css step) — those change every build and shouldn't be in
+# version control.
 !dist/
-!dist/index.html
-!dist/assets/
-!dist/assets/**
+!dist/fast-search-card.js
 
 # Except HACS files (required for HACS integration)
 !hacs.json
@@ -23,3 +24,7 @@
 
 # Ignore node_modules even in dist
 dist/node_modules/
+
+# macOS metadata — always ignored, never useful in git
+.DS_Store
+**/.DS_Store
