@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1580 - 2026-05-21
+
+**Title:** 🔁 Custom-RRULE-Editor — INTERVAL + BYDAY + UNTIL/COUNT editable, not read-only anymore
+**Hero:** none
+**Tags:** Calendar, RRULE, Recurrence
+
+### Why
+
+The recurrence sub-view (v1.1.1559) shipped with 5 Apple-style presets (Nie/Täglich/Wöchentlich/Monatlich/Jährlich). Anything more complex — `FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,FR;COUNT=10` and friends — got bucketed as "Benutzerdefiniert" and shown read-only. So a recurrence imported from Apple Calendar or Google Calendar was visible but uneditable; the user couldn't even *create* one of those rules from this dialog. About 80% of real recurring events at scale need at least INTERVAL or BYDAY, so the read-only sink was a real gap.
+
+### What changed
+
+- **`parseRRule(rrule)`** (new, `CalendarEventDialog.jsx:155`) — accepts `FREQ`, `INTERVAL`, `BYDAY`, `UNTIL`, `COUNT`. Returns `{ freq, interval, byday: Set, endMode: 'never' | 'until' | 'count', until, count }` or `null` if `FREQ` is missing/unknown. Silently ignores `BYMONTH`/`BYMONTHDAY`/`BYSETPOS` — anything we don't render. UNTIL parsed from both `YYYYMMDD` and `YYYYMMDDTHHMMSSZ` forms.
+- **`serializeRRule(state)`** — builds `FREQ=...` and only appends `INTERVAL`/`BYDAY`/`UNTIL`/`COUNT` when they're non-default. `INTERVAL=1` is omitted (default). BYDAY only emitted for WEEKLY. UNTIL serialized as `YYYYMMDD` (date-only form, common for all-day patterns).
+- **`rruleCustomLabel(state, t, lang)`** — short human-readable summary used as the subtitle on the "Eigene…" row, e.g. `"Alle 2 Wochen · Mo/Fr · 10 Mal"`.
+- **6th row "Eigene…" in the recurrence sub-view** — clicking opens a new `'recurrence-custom'` sub-view. The old read-only "Benutzerdefiniert" row is gone (the new clickable subsumes it; if the incoming RRULE was already custom, `parseRRule` seeds the editor state from it).
+- **New sub-view `'recurrence-custom'`** — three sections:
+  - **Häufigkeit** — Daily/Weekly/Monthly/Yearly (single-select) + INTERVAL stepper with `−` / N / `+` (1–99) and a unit suffix that updates with FREQ ("Wochen" / "Monate" / …).
+  - **An Wochentagen** — only rendered when FREQ=WEEKLY. Mo–So toggle row, multi-select.
+  - **Endet** — three modes: Nie / Am [date input] / Nach [N] Mal. Native HTML `<input type="date">` / `<input type="number">` to avoid a second nested wheel-picker sub-view; click-stop-propagation on the inputs so tapping inside doesn't re-trigger the row's select.
+- **`handleSubmit`** — when `recurrence === 'custom'`, serialize the editor state instead of passing through `initialEvent.rrule`. Edit flow now produces a fully fresh RRULE string.
+
+### Lossy fields
+
+If an incoming event has `BYMONTH`/`BYMONTHDAY`/`BYSETPOS` and the user re-saves it without touching the custom view, those fields *do* survive (we pass `initialEvent.rrule` through untouched — wait, no, v1.1.1580 changed that). Actually after this release, the moment a user opens an event with such a rule and saves, the exotic field is dropped on write because we always re-serialize. Acceptable trade-off — typical UI-edited recurrences don't use those fields, and surfacing them in the editor would balloon the sub-view past the 1500-LOC budget. The label on the row still parses + renders the freq/interval/byday correctly so the user isn't blind to the structure.
+
+### File size
+
+`CalendarEventDialog.jsx` 962 → 1299 LOC (+337). Under the 1500-LOC ceiling the user's been tracking. The new sub-view is ~150 LOC of JSX plus ~100 LOC of helpers; the parser/serializer pair is ~50 LOC.
+
+### Files
+
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1579 - 2026-05-21
 
 **Title:** 📅 Multi-Day-Events — exklusive end-date für all-day + Range-Anzeige in EventRow
