@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1579 - 2026-05-21
+
+**Title:** 📅 Multi-Day-Events — exklusive end-date für all-day + Range-Anzeige in EventRow
+**Hero:** none
+**Tags:** Calendar, Multi-Day, RFC5545
+
+### Why
+
+Multi-Day events had two related issues:
+
+1. **All-day events were shown one day too long.** HA's REST API returns all-day event end-dates per RFC5545 — *exclusive*. A "May 21 → May 23 all-day" event has `end.date = "2026-05-23"` but actually only spans May 21 + 22. The existing `eventOverlapsDay` compared `evEnd >= dayStart` directly, so May 23 returned true (`May 23 00:00 >= May 23 00:00`), and the event appeared on a day it shouldn't.
+
+2. **EventRow had no multi-day indicator.** A 3-day all-day event showed up identically on all three days as just "Ganztägig" — same title, same row, no hint that it's day 2 of 3. Users had no way to see the event's range from the list.
+
+The second was the more visible complaint ("Multi-Day-Events rendern nur am Start-Tag" in the prior session notes — the filter actually worked, but the lack of any range indicator made middle-day instances feel like duplicates of the start row).
+
+### What changed
+
+- **`effectiveEventEnd(ev)` helper** (new, `CalendarView.jsx:97`) — returns `endDate - 1ms` for all-day events to make the end inclusive of the last visible day, returns `endDate` unchanged for timed events. Used by `eventOverlapsDay`, `dotsByDay` (month dots), `countsByDay` (week counts), and the new `EventRow` range string. Single source of truth for "where does this event actually end on the calendar."
+- **`isMultiDayEvent(ev)` helper** (new) — returns true if `startDate` and `effectiveEventEnd(ev)` fall on different calendar days. Drives the EventRow branching.
+- **`EventRow`** — when `multiDay`, the meta-line now shows the date range: all-day → `"21. – 22. Mai · Ganztägig"`, timed → `"21. Mai 09:00 – 23. Mai 18:00"`. Single-day rows unchanged.
+- **Month-grid dots + Week-strip counts** — now use `effectiveEventEnd` instead of raw `endDate`, so the dot/count for "May 23" disappears when the event actually ends on May 22.
+
+### Why not also fix EventRow for the *current* viewed day
+
+A nice follow-up would be "Day 2 of 3" labels — but that requires passing `selectedDay` into `EventRow`, plus the range string already gives users the full picture in one line. Kept scope tight.
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1578 - 2026-05-21
 
 **Title:** 📱 Mobile-Bento — iPad-Mini 2-Spalten-Portrait + Swipe-Threshold-Tuning
