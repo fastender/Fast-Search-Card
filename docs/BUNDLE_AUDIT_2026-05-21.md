@@ -99,8 +99,9 @@ No prior audit exists in `docs/`. Baseline established here. Compare future audi
 ## Regeneration command
 
 ```bash
-ANALYZE=1 npm run build
-node analyze-bundle.js
+bash scripts/audit-bundle.sh
 ```
 
-`dist/bundle-stats.html` opens automatically with a treemap. The `analyze-bundle.js` script parses that HTML and prints the leaderboard above to stdout.
+Runs vite with `ANALYZE=1`, parses `dist/bundle-stats.html` via `analyze-bundle.js`, and restores `dist/fast-search-card.js` from git (vite's default `emptyOutDir: true` wipes the wrapper file otherwise — we hit this once during this audit run and had to restore manually).
+
+To produce a real fresh production bundle afterwards, run `./build.sh`.
