@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1606 - 2026-05-21
+
+**Title:** 📱 Mobile-Bento — Bottom-Safe-Area damit Dock W3/W4 nicht überlagert
+**Hero:** none
+**Tags:** Bento, Mobile, Dock
+
+### Why
+
+User-Report mit Screenshot: bei Mobile-View (≤768) waren Widgets 3 und 4 (im Single-Column-Stack die letzten beiden) am unteren Rand „abgeschnitten" — der Mobile-Sidebar-Dock (`position: fixed; bottom: 2rem; z-index: 1000`) überlagerte ihre untere Hälfte. Scrolling konnte den Dock nicht wegbewegen (fixed). Beim Hover schob sich der Hover-State unter den Dock und wurde unsichtbar.
+
+### What changed
+
+**`src/components/BentoStartView.css`** — `.bento-grid--mobile` bekommt `padding-bottom: 110px`. Berechnung:
+- Dock sitzt bei `bottom: 2rem` = 32 px vom Viewport-Bottom
+- Dock-Höhe (Glass-Pill mit 44 px Items + Padding) ≈ 60 px
+- + 18 px Buffer für Atmen-Raum
+- = 110 px Padding-Bottom
+
+Dadurch endet der Scroll-Bereich der Bento-Grid 110 px ÜBER dem Viewport-Bottom → das letzte Widget (W4) sitzt voll sichtbar, kein Overlap mit dem Dock.
+
+### Files
+
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1605 - 2026-05-21
 
 **Title:** 📱 Sidebar-Overflow-Popup — verdoppeltes Padding + rundere Apple-Items
