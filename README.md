@@ -4,12 +4,23 @@
 
 ### Find anything. In an instant.
 
+_Faster. Together._
+
 A Lovelace card for Home Assistant.
 
 [![Version](https://img.shields.io/github/v/release/fastender/Fast-Search-Card?style=flat-square&color=007AFF&label=version)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md)
+[![Releases](https://img.shields.io/badge/releases-2%2C000%2B-34C759?style=flat-square)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md)
+[![Downloads](https://img.shields.io/github/downloads/fastender/Fast-Search-Card/total?style=flat-square&color=AF52DE&label=downloads)](https://github.com/fastender/Fast-Search-Card/releases)
+[![Stars](https://img.shields.io/github/stars/fastender/Fast-Search-Card?style=flat-square&color=FF9500&label=stars)](https://github.com/fastender/Fast-Search-Card/stargazers)
 [![HACS](https://img.shields.io/badge/HACS-Custom-FF6B35?style=flat-square)](https://hacs.xyz)
 [![Home Assistant](https://img.shields.io/badge/Home_Assistant-2024.6%2B-41BDF5?style=flat-square)](https://www.home-assistant.io)
+[![Telemetry](https://img.shields.io/badge/telemetry-none-1D1D1F?style=flat-square)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md)
 [![License](https://img.shields.io/badge/license-MIT-1D1D1F?style=flat-square)](https://github.com/fastender/Fast-Search-Card/blob/main/LICENSE)
+
+[![Sponsor](https://img.shields.io/github/sponsors/fastender?style=flat-square&color=EA4AAA&label=sponsor&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/fastender)
+[![Buy Me a Coffee](https://img.shields.io/badge/buy_me_a_coffee-FFDD00?style=flat-square&logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/fastender)
+
+<sub>On GitHub since 2016 · 2,000+ releases shipped · Zero telemetry, audited every release</sub>
 
 <br>
 
@@ -18,7 +29,7 @@ A Lovelace card for Home Assistant.
 <br>
 <br>
 
-[Trailer](https://www.youtube.com/watch?v=GDTA6Qx5IxE) · [Install Guide](https://youtu.be/lqQ3jtwOqH8) · [Features](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) · [Roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md)
+[Trailer](https://www.youtube.com/watch?v=GDTA6Qx5IxE) · [Install Guide](https://youtu.be/lqQ3jtwOqH8) · [Features](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) · [Security](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md) · [Roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md)
 
 </div>
 
@@ -70,7 +81,9 @@ That's it.
 
 No telemetry. No tracking. No external API calls. No authentication material stored.
 
-See [SECURITY.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md) for the full audit.
+Audited on every release. Single-file bundle you can grep yourself.
+
+See [SECURITY.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md) for the complete audit and the full list of what's stored locally.
 
 <br>
 
@@ -242,7 +255,13 @@ Open an issue. Open a PR. Both welcome.
 
 <div align="center">
 
-<sub>Made for the Home Assistant community.</sub>
+### _Faster. Together._
+
+<sub>Made in Germany 🇩🇪 with a Turkish heart 🇹🇷</sub>
+
+<br>
+
+<sub>Built for the Home Assistant community. Since 2016.</sub>
 
 <br>
 
