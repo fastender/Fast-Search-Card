@@ -1,5 +1,49 @@
 # Versionsverlauf
 
+## Version 1.1.1612 - 2026-05-21
+
+**Title:** 🌐 DetailHeader übersetzt Versionsverlauf/Tipps/Integration
+**Hero:** none
+**Tags:** i18n, DetailHeader
+
+### Why
+
+User-Screenshot: VersionsverlaufView's DetailHeader zeigte „Versionsverlauf / General" im EN-Mode. Title wurde nicht übersetzt — sollte „Changelog" sein.
+
+### Root-Cause
+
+`DetailHeader.jsx` hatte eine hardcodierte `systemDomains`-Whitelist die nur die ersten 6 System-Entities enthielt:
+
+```js
+const systemDomains = ['settings', 'weather', 'news', 'todos', 'all_schedules', 'calendar'];
+```
+
+Fehlten: `versionsverlauf`, `tipps`, `integration`. Diese drei Domains fielen durch die Whitelist → durch zur Else-Branch `item.attributes?.friendly_name || item.name` → die hardcoded DE-Namen aus den Entity-Definitionen.
+
+Plus: die deviceNames-Translation-Map (`de.js`/`en.js`) hatte auch nur die ersten 6 Einträge. Selbst wenn die Whitelist gestimmt hätte, gäbe es keine EN-Übersetzung.
+
+### What changed
+
+- **`src/components/DetailView/DetailHeader.jsx`** — `systemDomains`-Array um `'versionsverlauf', 'tipps', 'integration'` erweitert (an beiden Stellen wo die Liste benutzt wird — die Edit war mit `replace_all`).
+- **`src/utils/translations/languages/de.js`** — `deviceNames`: + `versionsverlauf: 'Versionsverlauf'`, `tipps: 'Tipps'`, `integration: 'Integration'`.
+- **`src/utils/translations/languages/en.js`** — `deviceNames`: + `versionsverlauf: 'Changelog'`, `tipps: 'Tips'`, `integration: 'Integration'`.
+
+### Result
+
+Im EN-Mode zeigt der DetailHeader jetzt:
+- Versionsverlauf-Entity → „Changelog / System" (statt „Versionsverlauf / General")
+- Tipps-Entity → „Tips / System"
+- Integration-Entity → „Integration / System"
+
+### Files
+
+- `src/components/DetailView/DetailHeader.jsx`
+- `src/utils/translations/languages/de.js`
+- `src/utils/translations/languages/en.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1611 - 2026-05-21
 
 **Title:** 🪟 Outer CustomScrollbar hard-disabled bei System-Entity-Views
