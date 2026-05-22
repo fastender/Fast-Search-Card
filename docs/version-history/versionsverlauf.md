@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1620 - 2026-05-22
+
+**Title:** 🪶 Hide outer CustomScrollbar in all DetailView tabs (not just system-entity views)
+**Tags:** Polish, DetailView, Scrollbar
+
+### Why
+
+User reported the outer CustomScrollbar still showing in DetailViews — including device-detail pages like the Anziehraum-Rolllade cover (screenshot: thin white indicator next to the gelb Circular-Slider). The v1.1.1611 fix only covered the eight system-entity-view containers (settings, all_schedules, news, todos, versionsverlauf, tipps, calendar, integration). Device-detail tabs (UniversalControls / Schedule / History / Context) were never added to the whitelist, so the outer scrollbar kept appearing — sometimes alone, sometimes doubled with an inner scrollbar.
+
+### Root cause
+
+Two related issues per v1.1.1611's analysis:
+
+1. **`#tab-content-container` had `overflow-y: auto`** as base style, so any layout tick where `scrollHeight > clientHeight` (typically during Framer-Motion tab-switch animation, before content settled) flipped CustomScrollbar's `showScrollbar` to `true` and there was no later signal to flip it back.
+2. **The CustomScrollbar lives as a sibling** of `#tab-content-container` in the DetailView JSX, so once shown it just stays visible until tab-change forces a re-mount.
+
+The v1.1.1611 fix used `:has()` to set `overflow-y: hidden` on the container *and* `display: none` on the sibling scrollbar — but only for the eight system-entity container classes. Device-detail tabs (which mount as direct children of `#tab-content-container` just like system views) were not on the list.
+
+### Fix
+
+Extended both `:has()` whitelists in `DetailView.css` with the four device-tab container classes:
+
+- `.controls-tab` — UniversalControlsTab.jsx
+- `.scheduler-tab` — ScheduleTab.jsx
+- `.history-tab-container` — HistoryTab.jsx
+- `.context-container` — ContextTab.jsx
+
+Now every tab content — system-entity or device-detail — gets the same treatment: `#tab-content-container` becomes `overflow-y: hidden` and the outer sibling CustomScrollbar is `display: none`. Inner scrollbars (e.g., the energy-dashboard scroll inside UniversalControlsTab, or list scrolls inside ScheduleList) are unaffected because they're not siblings of `#tab-content-container`.
+
+### Trade-off
+
+If a device-tab ever has content tall enough to need scrolling and doesn't ship its own inner scroll container, that content becomes inaccessible. None of the four current tabs are in that state — circular slider + 4 buttons (Controls), schedule list with its own overflow (Schedule), chart canvas (History), action list with its own overflow (Context). If a future tab needs outer scrolling, remove it from the whitelist explicitly.
+
+### Files
+
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` (version bump)
+
+---
+
 ## Version 1.1.1619 - 2026-05-22
 
 **Title:** 🐛 Fix stale `current_version` in Changelog tile (bug since v1.1.1607)
