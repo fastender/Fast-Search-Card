@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1619 - 2026-05-22
+
+**Title:** 🐛 Fix stale `current_version` in Changelog tile (bug since v1.1.1607)
+**Tags:** Bugfix, Changelog
+
+### Why
+
+User noticed the Changelog tile still showed "V1.1.1616" while v1.1.1618 was installed. Not a v1.1.1618 issue — a dormant bug since v1.1.1607 that only became visible because three releases shipped in close succession.
+
+### Root cause
+
+When v1.1.1607 introduced deriving `current_version` from the parsed changelog instead of a hardcoded `1.1.1389`, the new logic was added to `loadFromCacheOnly` (boot path) but missed in all three `loadChangelog` code branches:
+
+- Cache-hit branch (`updateAttributes` at line ~129)
+- Fresh-fetch branch (`updateAttributes` at line ~154)
+- Expired-cache fallback branch (`updateAttributes` at line ~178)
+
+Result: after the first cache write following an install, `current_version` would update once on boot via `loadFromCacheOnly`, then never again. As long as new releases shipped slowly enough that users opened the changelog view (which calls `loadChangelog`) before noticing, the stale tile masked the bug. Three releases in an hour made it visible.
+
+### Fix
+
+Added `current_version: versions[0]?.version || this.attributes.current_version` to all three `updateAttributes` calls in `loadChangelog`. Same pattern as `loadFromCacheOnly`, just copied to the missing branches. Cache TTL stays at 5 minutes; the tile now reflects the latest parsed version regardless of which path produced it.
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/index.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` (version bump)
+
+### User action
+
+After upgrading, the tile may still show v1.1.1616 for up to 5 minutes (existing cache). Force-refresh: open the Changelog view (triggers a fresh load) or wait 5 minutes for cache expiry, then reload the dashboard.
+
+---
+
 ## Version 1.1.1618 - 2026-05-22
 
 **Title:** 🚨 Emergency hotfix — v1.1.1617 ReferenceError crashed every card on every state update
