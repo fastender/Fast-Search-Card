@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1627 - 2026-05-22
+
+**Title:** 🩹 Hotfix v1.1.1626 — JSX edit failed silently, ghost-pill rendered with undefined refs
+**Hero:** none
+**Tags:** Hotfix, SearchField
+
+### Why
+
+v1.1.1626 was supposed to replace the suffix-pill JSX with the full-word top-hit pill. The replace-block in my edit tool tripped over an invisible whitespace character (likely a non-breaking space in the original suggestion-suffix code) and silently didn't apply, while the surrounding edits (state/effect removal, CSS) did apply. Result: the v1.1.1626 bundle shipped JSX referencing `mirrorRef`, `ghostPillOffset`, and `suggestionSuffix` — all of which had been removed from the component body. At runtime this would throw `ReferenceError`.
+
+### What v1.1.1627 contains
+
+Same intended change as v1.1.1626, applied through smaller surgical edits that don't trip the whitespace issue:
+
+1. Mirror-span neutralised to `display: none` (couldn't be deleted cleanly; left in DOM as inert).
+2. Pill JSX simplified to render the full `displayedGhost` (entire suggestion word, e.g. "kinderzimmer"), no `suggestionSuffix` slicing.
+3. Pill positioned at `left: 0` instead of dynamic offset; the search-input gets `padding-left: 12px` via `has-ghost-pill` class so its text aligns with the pill text.
+4. Pill font-size raised from 18px to 24px to match the input.
+
+### Top-Hit-Pattern explained
+
+```
+DOM stacking (back to front):
+  .ghost-suffix-pill           z-index: 1   "kinderzimmer 🏠"  (grey on light-grey pill bg)
+  .search-input                z-index: 2   "ki"                (opaque white)
+```
+
+Both texts start at the same x-pixel because the input gets matching `padding-left` when a pill is present. The first `searchValue.length` characters of the pill's text get visually covered by the input's opaque rendering of the typed text. The remaining tail ("nderzimmer") plus the context-icon stay visible from the pill underneath.
+
+### Files
+
+- `src/components/SearchField/components/SearchInputSection.jsx` — JSX cleanup
+- `src/components/SearchField/SearchFieldV4.css` — pill font-size 24px, padding alignment, `has-ghost-pill` rule on the input
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
+### Lesson
+
+When an Edit tool reports "string not found" but `grep` confirms the string is present, the cause is almost always invisible characters (NBSP, zero-width-space, mixed line endings) embedded in the surrounding context. Workaround: use `replace_all` with shorter unique substrings that don't span the problematic region.
+
+---
+
+## Version 1.1.1626 - 2026-05-22
+
+**Title:** ⚠️ Broken build — replaced by v1.1.1627
+**Hero:** none
+**Tags:** Broken, Superseded
+
+Bundle references undefined `mirrorRef` / `ghostPillOffset` due to a partially-applied edit. Skip this release; upgrade directly to v1.1.1627.
+
+---
+
 ## Version 1.1.1625 - 2026-05-22
 
 **Title:** ✨ Ghost-suggestion redesign — Spotlight-style suffix pill with icon-on-the-right
