@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1609 - 2026-05-21
+
+**Title:** ✅ Bento-Todos — kein Sticky-Hover auf Touch, weniger Gap zwischen Rows
+**Hero:** none
+**Tags:** Bento, Todos, Touch-UX
+
+### Why
+
+User-Report mit Screenshot: das Bento-Todos-Widget hatte zwei UX-Issues:
+
+1. **Sticky-Hover auf Touch-Devices.** Nach einem Tap auf einen Todo blieb der helle Hover-Background auf dieser Row für immer sichtbar. iOS/iPadOS hält `:hover`-States nach Touch-Events „klebrig" bis ein anderer Tap außerhalb passiert. v1.1.1604 hatte den Hover-Bg auf 0.18 erhöht — gut für Desktop, aber auf Touch wirkte das als persistente Selection-Highlight.
+2. **Zu großer Gap zwischen Rows.** v1.1.1604 hatte Row-Vertical-Padding 6→10 erhöht (chunkiger Pill). Der `list-gap: 8px` blieb aber, sodass die Hover-Bands zu weit auseinander wirkten.
+
+### What changed (`src/components/BentoStartView.css`)
+
+- **`.bento-rich-todos-row--clickable:hover`** in `@media (hover: hover)` eingewickelt. Touch-Devices (`hover: none`) bekommen den Hover-Bg jetzt nie. Plus `-webkit-tap-highlight-color: transparent` damit auch der native iOS-Tap-Flash weg ist.
+- **`.bento-rich-todos-list { gap: 8px → 2px }`**. Mit den 10 px vertikalen Padding auf den Rows reicht das für sichtbare Trennung ohne große Abstände. Content-Baseline-Distance zwischen Rows: 22 px (10 + 2 + 10) — kompakt aber atmend.
+
+### Files
+
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1608 - 2026-05-21
 
 **Title:** 🌐 Fehlende Action-Button-Translation-Keys (search/history/management)
