@@ -1,5 +1,49 @@
 # Versionsverlauf
 
+## Version 1.1.1598 - 2026-05-21
+
+**Title:** 🪟 Sidebar-Popup Hover-Polish + Bento ≤768 = Mobile-Stack
+**Hero:** none
+**Tags:** Sidebar, Bento, Polish
+
+### Why
+
+Zwei kleine UX-Issues vom User:
+
+1. **Sidebar-Overflow-Popup Hover** sah ungenügend gerundet aus + Hover-Highlight stieß zu nah am Popup-Rand an. Item-Border-Radius (10 px) war kleiner als die effective-inner Popup-Rundung (14 px Popup − 6 px Padding = 8 px), aber durch das knapp-bemessene Padding wirkte das visuell unstimmig.
+
+2. **Bento bei iPad-Mini-Portrait (≤768 / ≥600)** hatte seit v1.1.1577 eine 2-Spalten-Variante. User-Test: visuell nicht überzeugend. Wunsch: bei ALLEN Viewports ≤768 das gleiche Single-Column-Stack-Layout wie auf Phones (≤600).
+
+### What changed
+
+**`src/components/SearchField/SearchField.css`** — `.vpm-more-popup`:
+- `padding: 6px → 10px` (mehr Luft drumrum)
+- `border-radius: 14px → 18px` (saftiger Apple-Look)
+- `min-width: 200px → 220px` (Labels haben mehr Platz)
+
+`.vpm-more-item`:
+- `padding: 10px 14px → 10px 12px` (innere Geometrie angepasst, Hover-Rechteck nicht mehr zu nah am Icon-Rand)
+- `border-radius: 10px → 10px` (bleibt, aber jetzt durch das +4px-popup-padding visuell sauberer eingebettet — Curve-Match: 18 − 10 = 8 px Differenz zur Popup-Außenkante)
+
+**`src/components/BentoStartView.css`** — die v1.1.1577-iPad-Mini-2-Spalten-Media-Query entfernt:
+```css
+/* GELÖSCHT: */
+@media (min-width: 600px) and (max-width: 768px) and (orientation: portrait) {
+  .bento-grid--mobile { display: grid; grid-template-columns: 1fr 1fr; ... }
+  ...
+}
+```
+
+Das base `@media (max-width: 768px)` regelt jetzt einheitlich alle Mobile-Layouts. ≤768 = Single-Column-Stack mit 50 vh / 25 vh Heights. Keine viewport-spezifische Sonderlocke mehr.
+
+### Files
+
+- `src/components/SearchField/SearchField.css`
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1597 - 2026-05-21
 
 **Title:** 📅 BentoRichCalendar — auf attrs.events umgestellt + TZ-sicherer Day-Filter + Past-Fallback
