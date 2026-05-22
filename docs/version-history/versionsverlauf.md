@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1587 - 2026-05-21
+
+**Title:** 📅 Bento-Calendar — heutige Termine bleiben den ganzen Tag sichtbar
+**Hero:** none
+**Tags:** Bento, Calendar, Fix
+
+### Why
+
+User-Bug-Report mit Screenshot: das Calendar-Bento-Widget zeigt „Keine anstehenden Termine" obwohl der Footer „Kalender / 6 Termine" anzeigt. Klare Inkonsistenz.
+
+Root-Cause: der `upcoming`-Filter im Widget war `(endDate || startDate) >= now`. Das stripte:
+
+1. **Heutige Termine die schon endeten.** Ein Termin von 09–10 Uhr verschwand ab 10:01 obwohl der Tag noch lief — Apple Calendar zeigt heutige Events bis Mitternacht.
+2. **All-day-Edge-Cases mit Timezone-Offset.** `new Date('2026-05-23')` parst als UTC-Mitternacht, was in lokaler TZ (CEST UTC+2) am 23. Mai 02:00 ist. Multi-day-Events deren EXKLUSIVE end.date heute fällt, konnten in bestimmten now-zu-TZ-Konstellationen am Filter scheitern.
+
+Der Footer „6 Termine" liest aus `attrs.events.length` (die unfiltered 14-Tage-Ladung). Der Widget-Inhalt aus dem strikten Filter. Daher die Diskrepanz.
+
+### What changed
+
+- **`src/components/bento/widgets/BentoRichCalendar.jsx`** — Filter neu:
+  - Berechne `effectiveEnd` (für all-day Events `endDate − 1 ms` um RFC5545-exklusive-end-date in inklusiv zu wandeln; sonst `endDate || startDate`)
+  - Vergleiche gegen `startOfToday` statt `now` → Termine die heute ODER später enden bleiben sichtbar
+  - Side-Effect: Termine die heute Vormittag endeten bleiben den ganzen Tag in der Liste — entspricht Apple-Calendar-Verhalten
+
+### Files
+
+- `src/components/bento/widgets/BentoRichCalendar.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1586 - 2026-05-21
 
 **Title:** 🖼️ News-Row Thumbnail vertikal zentriert
