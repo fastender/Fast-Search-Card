@@ -6,19 +6,19 @@
 
 A Lovelace card for Home Assistant.
 
-[![Version](https://img.shields.io/badge/version-1.1.1610-007AFF?style=flat-square)](docs/version-history/versionsverlauf.md)
+[![Version](https://img.shields.io/github/v/release/fastender/Fast-Search-Card?style=flat-square&color=007AFF&label=version)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md)
 [![HACS](https://img.shields.io/badge/HACS-Custom-FF6B35?style=flat-square)](https://hacs.xyz)
 [![Home Assistant](https://img.shields.io/badge/Home_Assistant-2024.6%2B-41BDF5?style=flat-square)](https://www.home-assistant.io)
-[![License](https://img.shields.io/badge/license-MIT-1D1D1F?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-1D1D1F?style=flat-square)](https://github.com/fastender/Fast-Search-Card/blob/main/LICENSE)
 
 <br>
 
-<img src="dfes-1.png" width="180"> <img src="dfes-2.png" width="180"> <img src="dfes-3.png" width="180"> <img src="dfes-4.png" width="180">
+<img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-1.png" width="180"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-2.png" width="180"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-3.png" width="180"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-4.png" width="180">
 
 <br>
 <br>
 
-[Trailer](https://www.youtube.com/watch?v=GDTA6Qx5IxE) · [Install Guide](https://youtu.be/lqQ3jtwOqH8) · [Features](docs/FEATURES.md) · [Roadmap](docs/FEATURE_ROADMAP.md)
+[Trailer](https://www.youtube.com/watch?v=GDTA6Qx5IxE) · [Install Guide](https://youtu.be/lqQ3jtwOqH8) · [Features](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) · [Roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md)
 
 </div>
 
@@ -70,7 +70,7 @@ That's it.
 
 No telemetry. No tracking. No external API calls. No authentication material stored.
 
-See [SECURITY.md](docs/SECURITY.md) for the full audit.
+See [SECURITY.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md) for the full audit.
 
 <br>
 
@@ -166,7 +166,7 @@ Background filters. Squircle cards. Splashscreen styles. Excluded patterns with 
 
 Tipps. Versionsverlauf. All-Schedules. Bambu Lab 3D printer support. Liquid-Glass switches. Apple Hello splashscreen. Toast notifications. AI Mode (experimental). Listen virtualization for thousands of entities.
 
-See [FEATURES.md](docs/FEATURES.md) for the full list.
+See [FEATURES.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) for the full list.
 
 </details>
 
@@ -191,8 +191,8 @@ Single file. ~390 KB gzipped. Boots in under a second.
 
 <br>
 
-- [Features](docs/FEATURES.md) — Everything the card does
-- [Version history](docs/version-history/versionsverlauf.md) — Every release, every change
+- [Features](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) — Everything the card does
+- [Version history](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md) — Every release, every change
 
 </details>
 
@@ -201,10 +201,10 @@ Single file. ~390 KB gzipped. Boots in under a second.
 
 <br>
 
-- [Feature roadmap](docs/FEATURE_ROADMAP.md) — Ten ideas, prioritized
-- [Performance roadmap](docs/PERFORMANCE_ROADMAP.md) — Bundle, render, scroll
-- [Custom component roadmap](docs/CUSTOM_COMPONENT_ROADMAP.md) — Companion HACS packages
-- [Bundle audit](docs/BUNDLE_AUDIT_2026-05-21.md) — Latest analysis
+- [Feature roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md) — Ten ideas, prioritized
+- [Performance roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE_ROADMAP.md) — Bundle, render, scroll
+- [Custom component roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/CUSTOM_COMPONENT_ROADMAP.md) — Companion HACS packages
+- [Bundle audit](https://github.com/fastender/Fast-Search-Card/blob/main/docs/BUNDLE_AUDIT_2026-05-21.md) — Latest analysis
 
 </details>
 
@@ -236,7 +236,7 @@ Open an issue. Open a PR. Both welcome.
 
 ## License
 
-[MIT](LICENSE). Free to use. Free to fork.
+[MIT](https://github.com/fastender/Fast-Search-Card/blob/main/LICENSE). Free to use. Free to fork.
 
 <br>
 
