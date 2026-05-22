@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1589 - 2026-05-21
+
+**Title:** ↔️ Versionsverlauf + Tipps — Filter-Pillen mit Scroll-Pfeilen + Edge-Fade
+**Hero:** none
+**Tags:** Versionsverlauf, Tipps, Filter, Polish
+
+### Why
+
+User-Report mit Screenshots: in Versionsverlauf und Tipps wurden die horizontalen Filter-Pillen-Leisten hart an den Containerrändern abgeschnitten ("gs" als sichtbarer Pill-Rest links). NewsView hat schon den schöneren Pattern: weicher Fade an den Rändern + AnimatePresence-Pfeile links/rechts die nur erscheinen wenn dort noch was zum Scrollen ist.
+
+### What changed
+
+Beide Filter-Komponenten bekommen denselben NewsView-Pattern:
+
+**`src/system-entities/entities/versionsverlauf/components/VersionsList.jsx`** + **`.../tipps/components/TippsList.jsx`** —
+- Neuer `filterScrollRef` + `showFilterLeft`/`showFilterRight` State
+- `useEffect` mit Scroll- und Resize-Listener der `scrollLeft > 10` und `scrollLeft < scrollWidth - clientWidth - 10` trackt
+- `scrollFilter(direction)` mit `container.scrollTo({ behavior: 'smooth' })`
+- Zwei `<motion.div>` Pfeile mit `AnimatePresence` — left + right Chevrons, 28 px schwarzes Glass-Bubble, gleiche SVG-Geometrie wie NewsView
+
+**CSS** — `VersionsverlaufView.css` + `TippsView.css`:
+- `.X-filter-bar { position: relative }` damit Pfeile sich absolut darin verorten
+- `.X-filter-row { padding: 2px 20px; margin-left/right: -20px }` — negative Margins kompensieren parent-padding, internes Padding gibt Pills Raum, in die "unsichtbare" Außenrandzone hineinzuscrollen → weicher Edge-Cutoff statt hart
+- Neue `.X-filter-arrow{-left,-right}` Klassen — copy-paste von `.news-scroll-indicator`
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/components/VersionsList.jsx`
+- `src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css`
+- `src/system-entities/entities/tipps/components/TippsList.jsx`
+- `src/system-entities/entities/tipps/styles/TippsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1588 - 2026-05-21
 
 **Title:** 📅 Calendar-Liste — Top-Fade beim Scrollen + Scrollbar nicht mehr auf den Cards
