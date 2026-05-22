@@ -1,8 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.1624 - 2026-05-22
+
+**Title:** 🐛 Changelog parser silently dropped Hero-less entries — v1.1.1619-1623 invisible
+**Hero:** none
+**Tags:** Bugfix, Changelog, Parser
+
+### Why
+
+User opened the Changelog view in v1.1.1623 and the topmost visible entry was v1.1.1618 — five releases missing. Not a stale cache: the GitHub fetch was fresh ("Just Now" in the header), but the parser was rejecting the newer entries.
+
+### Root cause
+
+`parseMarkdown` in `src/system-entities/entities/versionsverlauf/index.js` used this regex:
+
+```
+## Version ([\d.]+) - ([\d-]+)\n\n
+\*\*Title:\*\* (.+?)\n
+\*\*Hero:\*\* (.+?)\n              ← REQUIRED
+(?:\*\*Tags:\*\* (.+?)\n)?\n
+([\s\S]+?)
+```
+
+The `**Hero:**` line was required, not optional. When I wrote the entries for v1.1.1619-1623, I omitted the Hero field because every value would have been `none` — but `String.prototype.matchAll` simply skipped any entry whose Hero line was missing. No error, no warning, just silent omission. The cache-fetch was working, the network was fine; the parser was eating five entries.
+
+### Two-layer fix
+
+**1. Parser made flexible.** Hero is now optional in the regex, parallel to Tags:
+
+```
+\*\*Title:\*\* (.+?)\n
+(?:\*\*Hero:\*\* (.+?)\n)?       ← now optional
+(?:\*\*Tags:\*\* (.+?)\n)?\n
+```
+
+Match-group indices stay the same when Hero is present; when absent, `match[4]` is `undefined` and gets normalised to `hero: null`. All existing entries continue to parse identically.
+
+**2. Existing Hero-less entries backfilled.** Added `**Hero:** none` to v1.1.1619, 1620, 1621, 1622, 1623 in the source markdown so they parse with both the old and new regex — defense in depth in case a deployed client still has the old parser cached for whatever reason.
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/index.js` — Hero optional in regex
+- `docs/version-history/versionsverlauf.md` — Hero field added to v1.1.1619-1623
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
+### Verification path
+
+Hard-reload the dashboard after upgrading to v1.1.1624. The Changelog view should show v1.1.1624 (this entry) at the top, then v1.1.1623, 1622, 1621, 1620, 1619, 1618, … without gaps. The tile should show V1.1.1624 after the ~1.5s background revalidate from v1.1.1623's stale-while-revalidate logic.
+
+---
+
 ## Version 1.1.1623 - 2026-05-22
 
 **Title:** 🔄 Stale-while-revalidate for Changelog tile — current_version updates without view open
+**Hero:** none
 **Tags:** Bugfix, Changelog, Caching
 
 ### Why
@@ -33,6 +84,7 @@ After upgrading and reloading the dashboard, the tile updates within ~2 seconds 
 ## Version 1.1.1622 - 2026-05-22
 
 **Title:** 🪶 Scrollbar persisting in DetailView — SearchField's results bar leaked through opacity:0
+**Hero:** none
 **Tags:** Bugfix, DetailView, Scrollbar
 
 ### Why
@@ -88,6 +140,7 @@ Browser support for `checkVisibility`: Chrome 105+, Firefox 116+, Safari 17.4+. 
 ## Version 1.1.1621 - 2026-05-22
 
 **Title:** 🪶 Remove outer DetailView CustomScrollbar + harden CustomScrollbar against `overflow: hidden`
+**Hero:** none
 **Tags:** Polish, DetailView, Scrollbar, Architecture
 
 ### Why
@@ -158,6 +211,7 @@ Risk: if a tab content overflows and ships no inner CustomScrollbar of its own, 
 ## Version 1.1.1620 - 2026-05-22
 
 **Title:** 🪶 Hide outer CustomScrollbar in all DetailView tabs (not just system-entity views)
+**Hero:** none
 **Tags:** Polish, DetailView, Scrollbar
 
 ### Why
@@ -198,6 +252,7 @@ If a device-tab ever has content tall enough to need scrolling and doesn't ship 
 ## Version 1.1.1619 - 2026-05-22
 
 **Title:** 🐛 Fix stale `current_version` in Changelog tile (bug since v1.1.1607)
+**Hero:** none
 **Tags:** Bugfix, Changelog
 
 ### Why
