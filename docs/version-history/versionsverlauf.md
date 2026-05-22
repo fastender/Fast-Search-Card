@@ -1,5 +1,60 @@
 # Versionsverlauf
 
+## Version 1.1.1622 - 2026-05-22
+
+**Title:** 🪶 Scrollbar persisting in DetailView — SearchField's results bar leaked through opacity:0
+**Tags:** Bugfix, DetailView, Scrollbar
+
+### Why
+
+User reported a vertical scrollbar still appearing at the right edge of the Detail-Panel in v1.1.1621 — even though v1.1.1621 removed the outer DetailView CustomScrollbar. Concrete repro: open Light-Entity "Arbeitszimmer Decke", see a bar at the right card edge next to the Tab-Icons. Nothing in the visible Light-Tab-Content is scrollable.
+
+### Root cause
+
+The bar wasn't from DetailView at all — it was from **SearchField** (`src/components/SearchField.jsx:1074`), persisting in the DOM behind the open DetailView.
+
+Mechanism:
+- SearchField is rendered at top level by `index.jsx` and stays mounted across the entire card lifecycle.
+- When DetailView opens, the `.search-panel` parent gets the `.hidden` class, which is defined as `opacity: 0; pointer-events: none` — **not** `display: none` or `visibility: hidden`.
+- The `.results-container` inside still has `scrollHeight > clientHeight` (long entity list).
+- `CustomScrollbar` saw a scrollable container and showed its bar.
+- The bar element is `position: absolute right: 3px` and its nearest positioned ancestor is *outside* the opacity:0 wrapper, so opacity does not inherit to it. Visual result: visible bar over the DetailView at the card's right edge.
+
+### Fix (two layers)
+
+**1. Targeted — SearchField conditionally renders the bar:**
+
+```jsx
+{!showDetail && <CustomScrollbar scrollContainerRef={resultsRef} ... />}
+```
+
+Deterministic, takes effect on the next render after `showDetail` flips.
+
+**2. Universal — CustomScrollbar now self-detects hidden ancestors:**
+
+The component checks at every update tick:
+- `container.offsetParent === null` (display: none on any ancestor)
+- `container.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })` (browser API that returns false if any ancestor is opacity:0, visibility:hidden, or content-visibility:hidden)
+
+If either says invisible → `setShowScrollbar(false)`. Defense-in-depth for any future situation where a container is mounted but visually hidden by an ancestor's opacity or visibility.
+
+Browser support for `checkVisibility`: Chrome 105+, Firefox 116+, Safari 17.4+. Guarded with `typeof === 'function'` for older browsers (in which case only the `offsetParent` check fires).
+
+### Files
+
+- `src/components/SearchField.jsx` — conditional render on `!showDetail`
+- `src/components/CustomScrollbar.jsx` — `offsetParent` + `checkVisibility` visibility detection
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
+### Verification path
+
+1. Open the card, expand results, scroll → SearchField bar visible. ✓
+2. Click any entity → DetailView opens → SearchField bar disappears. ✓
+3. Close DetailView → SearchField bar reappears if results still scroll. ✓
+4. Open Light/Cover/Climate DetailView → no scrollbar anywhere unless an inner View has its own (Energy-Dashboard, etc.). ✓
+
+---
+
 ## Version 1.1.1621 - 2026-05-22
 
 **Title:** 🪶 Remove outer DetailView CustomScrollbar + harden CustomScrollbar against `overflow: hidden`
