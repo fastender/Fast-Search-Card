@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1605 - 2026-05-21
+
+**Title:** 📱 Sidebar-Overflow-Popup — verdoppeltes Padding + rundere Apple-Items
+**Hero:** none
+**Tags:** Sidebar, Popup, Polish
+
+### Why
+
+User-Feedback nach v1.1.1598: das Mobile-Sidebar-Overflow-Popup hatte zu wenig Padding (10 px) und die Hover-Rundung der Items war zu eckig (10 px). Wunsch: Padding verdoppeln + Items runder wie Apple-Reminders.
+
+### What changed (`src/components/SearchField/SearchField.css`)
+
+**`.vpm-more-popup`** (Container):
+| Property | Vorher | Nachher |
+|---|---|---|
+| `padding` | `10px` | `20px` |
+| `border-radius` | `18px` | `24px` |
+| `gap` | `2px` | `4px` |
+| `min-width` | `220px` | `240px` |
+| `max-width` | `280px` | `300px` |
+
+**`.vpm-more-item`** (Items):
+| Property | Vorher | Nachher |
+|---|---|---|
+| `padding` | `10px 12px` | `12px 16px` |
+| `border-radius` | `10px` | `16px` |
+| `gap` (icon ↔ label) | `12px` | `14px` |
+| `:hover bg` | `hsla(0,0%,90%,0.15)` | `hsla(0,0%,100%,0.18)` |
+
+Außenrundung 24 px + Innenrundung 16 px ergibt sauberen Apple-Vision-Pro-Curve-Match (Differenz 8 px ≈ padding/2). Items haben jetzt 12 × 16 Innen-Padding → fühlt sich solide an, nicht gequetscht. Hover-bg ist leicht heller damit's auf dem Glass-Bg deutlicher sichtbar ist.
+
+### Files
+
+- `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1604 - 2026-05-21
 
 **Title:** ✅ Bento-Todos — Row-Hover chunkiger und runder (Apple Reminders Look)
