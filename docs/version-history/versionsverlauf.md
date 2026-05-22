@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1603 - 2026-05-21
+
+**Title:** ✅ Bento-Todos — knallroter Overdue-Badge wirklich, breiterer Row-Hover
+**Hero:** none
+**Tags:** Bento, Todos, Polish
+
+### Why
+
+User-Bug-Report: zwei Issues am Bento-Todos-Slider-Widget:
+
+1. **Overdue-Pill nicht knallrot.** v1.1.1595 sollte das schon gefixt haben mit `background: #FF3B30; color: #fff`, aber im Screenshot zeigte sich weiter die gedämpfte alte Pille (helles Coral-Text auf semi-transparentem Red).
+2. **Row-Hover zu schmal.** Der Hover-Band war nur leicht über die Text-Breite hinaus (margin: 0 -4px) — sah unhübsch aus, sollte breiter über die Widget-Fläche spannen.
+
+### Root-Cause für (1)
+
+v1.1.1595 hatte den Override mit `.bento-widget--rich:has(.bento-rich-todos)` geschrieben. **Aber der Slider hat die Klasse `bento-widget--rich-slider`** (nicht `--rich` — siehe `BentoWidget.jsx:77` vs `:335`). Der `:has()`-Selector matchte nie auf den Slider-Kontext → Override applied nicht → die alte gedämpfte base-Regel gewann.
+
+Zwei Korrekturen jetzt:
+
+- **Base-Regel selbst auf knallrot umgestellt**. Damit gilt sie auch ohne Wrapper-Klasse korrekt überall.
+- **Wrapper-Override-Selector erweitert** auf beide Klassen (`--rich, --rich-slider`) als Belt-and-Suspenders.
+
+### What changed (`src/components/BentoStartView.css`)
+
+- **Base-Regel `.bento-rich-todos-due.is-overdue`** — color `rgb(255, 159, 152) → #fff`, background `rgba(255, 69, 58, 0.18) → #FF3B30`, font-weight 600 → 700. Knallrot.
+- **Wrapper-Override** — Selector erweitert auf `.bento-widget--rich:has(...)` UND `.bento-widget--rich-slider:has(...)` damit beide Kontexte matchen.
+- **`.bento-rich-todos-row--clickable`** — `margin: 0 -4px → 0 -18px`, `padding: 2px 4px → 6px 18px`, `border-radius: 8px → 10px`, `background-hover: rgba(255,255,255,0.08) → 0.14`. Hover-Band spannt jetzt die volle Slider-Inhalts-Breite (Slider hat 18 px outer padding). Plus etwas mehr Vertikal-Padding (2→6 px) für mehr Atmen-Raum oben/unten.
+
+### Files
+
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1602 - 2026-05-21
 
 **Title:** 🎯 Bento-Slider — echte SystemEntity-Instanzen statt toEntity-Plain-Objects
