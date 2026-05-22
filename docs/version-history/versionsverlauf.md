@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1586 - 2026-05-21
+
+**Title:** 🖼️ News-Row Thumbnail vertikal zentriert
+**Hero:** none
+**Tags:** Bento, News, Alignment
+
+### Why
+
+User-Bug-Report: in den News-Article-Rows (Bento Rich-News Widget, 2-Zeilen-Title + Meta-Zeile darunter) saß das Thumbnail oben angepinnt während der Text rechts daneben mittig im Row-Space stand — optisch sah das Bild „bisschen höher" aus, nicht auf gleicher visueller Achse wie der Text.
+
+### What changed
+
+- **`src/components/BentoStartView.css`** — `.bento-rich-news-more-row` `align-items: flex-start` → `align-items: center`. Bei einzeiligem Title aligned das ohnehin gleich; bei 2-zeiligem Title kommt das Thumbnail jetzt auf die vertikale Mitte des Text-Blocks (Title + Meta).
+
+### Files
+
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1585 - 2026-05-21
 
 **Title:** 🔤 Slider-Widget Footer — line-height fix + mehr Gap zwischen Content und Label
