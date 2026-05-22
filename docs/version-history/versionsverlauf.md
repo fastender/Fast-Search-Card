@@ -1,5 +1,57 @@
 # Versionsverlauf
 
+## Version 1.1.1616 - 2026-05-22
+
+**Title:** 🛡️ Security pass 3 — ReDoS, prototype pollution, setConfig validation
+**Hero:** none
+**Tags:** Security, Hardening
+
+### Why
+
+Third audit pass surfaced three new categories of low-but-real risk after the v1.1.1614 XSS work and v1.1.1615 dependency patch. None are drive-by exploitable, all are 5-line fixes. Bundled together so the security delta is reviewable in one place rather than dripped across three releases.
+
+### What changed
+
+**1. Pattern-matching ReDoS hardening (`src/utils/patternMatching.js`)**
+
+The Excluded-Patterns Settings-UI lets users define wildcard patterns (`update.*`, `sensor.*_battery`) that get compiled with `new RegExp(...)`. The old translation only escaped `.` and converted `*`/`?` to wildcards — every other regex metachar (`(`, `)`, `+`, `{`, `|`, `\\`) flowed through unchanged. A user (or family member with Dashboard-edit rights) could enter `(a+)+b` and freeze the main thread on every filter pass.
+
+Fix: escape *all* regex metachars first, then selectively un-escape the two real wildcards. Plus a 256-char pattern length cap to reject obviously-malicious input upfront.
+
+**2. Prototype-pollution filters in two storage mergers**
+
+Both `src/utils/toastSettings.js` and `src/utils/systemSettingsStorage.js` were spreading objects from `JSON.parse(localStorage)` or external callers directly into runtime state via `{ ...defaults, ...untrusted }`. A localStorage entry crafted as `{ events: { "__proto__": { isAdmin: true } } }` would silently mutate `Object.prototype` for every other script in the page.
+
+Fix: small `safeAssign` helper that drops `__proto__`/`constructor`/`prototype` keys before merging. Also applied to `updateSystemSettingsSection`'s `path` segments (a path like `appearance.__proto__.x` would otherwise walk into the prototype).
+
+**3. `setConfig` + `card_height` validation (`build.sh` custom-element wrapper)**
+
+Lovelace calls `setConfig(config)` with whatever the dashboard YAML contains. The old wrapper did `this._config = config` blindly and later appended `card_height + 'px'` straight onto `style.height`. Garbage like `card_height: "NaN"`, negative numbers, or `null` configs caused layout corruption or runtime crashes.
+
+Fix: `setConfig` rejects non-object configs, coerces `card_height` to a finite number, and clamps to `[50, 4000]` px. Values outside the range silently fall back to "no explicit height" rather than crashing.
+
+**Bonus: error-message rendering switched to `textContent`**
+
+The mount-error fallback in `_tryMountApp` previously did `this._root.innerHTML = '...error.message + '...'`. Any `<` in a thrown error message (think stacktrace with generic types `Foo<Bar>`) would be parsed as HTML. Switched to `textContent` + element creation — same visual result, can't render markup.
+
+**Bonus: `window._hass` made non-enumerable in the custom-element wrapper too**
+
+Same defense-in-depth as the `DataProvider.jsx` fix from v1.1.1614 — `Object.defineProperty(..., { enumerable: false })` on the wrapper-side setter so the property doesn't show up in `Object.keys(window)` scans. Both setter sites are now consistent.
+
+### Files
+
+- `src/utils/patternMatching.js`
+- `src/utils/toastSettings.js`
+- `src/utils/systemSettingsStorage.js`
+- `build.sh` (custom-element wrapper template — setConfig + _tryMountApp + hass setter)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` (version bump)
+
+### Not in scope (deliberately)
+
+The audit also flagged `deviceConfigStorage.js` spread patterns and entity-snapshot Privacy-via-localStorage. The former touches internally-defined defaults only (no untrusted source) — kept the change small. The latter would need a localStorage → IndexedDB migration; the data is already exposed to every card via `hass.states` so no new leak surface, just hardening worth its own release.
+
+---
+
 ## Version 1.1.1615 - 2026-05-22
 
 **Title:** 🛡️ Dependency audit — 11 CVEs patched, preact runtime vuln closed
