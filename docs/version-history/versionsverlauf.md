@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1610 - 2026-05-21
+
+**Title:** 🐛 Tipps + Versionsverlauf Deep-Link-Back-Bug — „No tipp selected"-Fehler
+**Hero:** none
+**Tags:** Tipps, Versionsverlauf, Bug, Deep-Link
+
+### Why
+
+User-Report: nach Deep-Link in einen Tipp (z.B. via Bento-Tipps-Tile) führte ein Druck auf den Back-Action-Button zum Fehler „No tipp selected / Back" statt zurück zur Tipps-Liste.
+
+### Root-Cause
+
+`TippsView.jsx`'s `useRegisterViewRef`-`handleBackNavigation` setzt im `if (selectedTipp)`-Zweig nur `selectedTipp = null`, aber **NICHT `view = 'list'`**:
+
+```js
+handleBackNavigation: () => {
+  if (selectedTipp) {
+    setSelectedTipp(null);   // ✓
+    setActiveButton('back');  // ✓
+    // FEHLT: setView('list');
+  }
+  ...
+}
+```
+
+Folge: `view` bleibt auf 'detail' → JSX rendert `<TippDetail tipp={null} />` → die `if (!tipp)` Branch in TippDetail.jsx zeigt die „No tipp selected / Back"-Fehlerseite.
+
+Die parallel existierende `handleBack`-Funktion (für TippDetail's eigenen Back-Button) macht es richtig (sowohl `setView('list')` als auch `setSelectedTipp(null)`). Nur der externen Action-Button-Pfad via `handleBackNavigation` war kaputt.
+
+### Same bug in Versionsverlauf
+
+`VersionsverlaufView.jsx` hat dieselbe Struktur und denselben Bug. Ein Deep-Link in einen Version-Detail-Eintrag und Druck auf den Back-Action-Button hätte den gleichen Fehler („Keine Version ausgewählt" via VersionDetail.jsx) produziert. Auch dort `setView('list')` ergänzt.
+
+### What changed
+
+- **`src/system-entities/entities/tipps/TippsView.jsx`** — `setView('list')` in `handleBackNavigation`'s `if (selectedTipp)`-Branch ergänzt.
+- **`src/system-entities/entities/versionsverlauf/VersionsverlaufView.jsx`** — analoge `setView('list')` Ergänzung im selectedVersion-Branch.
+
+### NewsView/TodosView checked?
+
+NewsView und TodosView haben ähnliche Patterns aber keinen separaten `view`-State (sondern direkt `selectedArticle`/`selectedTodo` als Sole-Source-of-Truth) — daher kein vergleichbarer Bug dort.
+
+### Files
+
+- `src/system-entities/entities/tipps/TippsView.jsx`
+- `src/system-entities/entities/versionsverlauf/VersionsverlaufView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1609 - 2026-05-21
 
 **Title:** ✅ Bento-Todos — kein Sticky-Hover auf Touch, weniger Gap zwischen Rows
