@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1607 - 2026-05-21
+
+**Title:** 🌐 Versionsverlauf live + Sidebar + Detail-View Übersetzungen
+**Hero:** none
+**Tags:** i18n, Versionsverlauf, Sidebar, DetailView
+
+### Why
+
+User-Report mit 4 Screenshots:
+1. Changelog-Tile zeigt veraltete „V1.1.1389" (statt aktueller Version)
+2. Sidebar-Items im EN-Modus zeigen DE-Namen („Versionsverlauf, Nachrichten, Aufgaben, Zeitpläne Übersicht, Einstellungen, Tipps")
+3. Device-Detail History-Tab zeigt „24 Stunden / 7 Tage / 30 Tage" und „Nutzungsdiagramme / Letzte Ereignisse / ÄNDERUNGEN / Ø DAUER / AKTIV" auf DE im EN-Modus
+4. Context-Tab Filter-Labels „Aktionen / Favoriten / Umgebung" auf DE im EN-Modus
+
+### Root-Causes
+
+**Issue 1:** `versionsverlauf/index.js:26` hatte `current_version: '1.1.1389'` hardcoded UND `loadChangelog` updated zwar `total_versions`/`latest_update` etc., aber NIE `current_version`. Hardcodierter Wert von vor 200+ Releases blieb stehen.
+
+**Issue 2:** Alle System-Entity `name`-Properties sind hardcoded auf Deutsch (`name: 'Versionsverlauf'`, `name: 'Nachrichten'` etc.). Die SearchSidebar lass blind `entity.name` und zeigte das so.
+
+**Issue 3+4:** Im `DetailView.jsx` an zwei Render-Punkten (`<HistoryTab>` Z.579 + `<ContextTab>` Z.580, sowie nochmal Z.606+607) wurde **kein `lang`-Prop** weitergereicht. Default-Wert `lang = 'de'` in den jeweiligen Component-Definitionen griff → alles bleibt DE.
+
+### What changed
+
+**`src/system-entities/entities/versionsverlauf/index.js`** —
+- `current_version: '1.1.1389' → null` (Init: zeigt „Lädt…" bis loadChangelog die echte Version reinschreibt).
+- `loadChangelog`'s 3 updateAttributes-Calls (cache-only, cache-hit-async, fresh-fetch) ergänzen jetzt `current_version: versions[0]?.version`. versions[0] ist die neuste (parseMarkdown reverse-chronologisch). Plus Fallback auf existing value bei null.
+
+**`src/components/SearchSidebar.jsx`** —
+- Neue `SYSTEM_ENTITY_LABELS`-Map mit `{ de, en }` für die 8 bekannten System-Entity-Domains (versionsverlauf, news, todos, all_schedules, settings, tipps, calendar, integration).
+- Neuer `getEntityDisplayLabel(entity, lang)`-Helper: virtuelle Items (Home) behalten ihren Sprach-bewussten Namen, bekannte Domains → Translation-Map, unbekannte (User-Devices wie „Energie Dashboard" oder „Stein") → `entity.name` as-is.
+- Im JSX wird `entity.name || entity.id` durch `getEntityDisplayLabel(entity, lang)` ersetzt (greift sowohl Dock-Items als auch Overflow-Popup-Items via global replace).
+
+**`src/components/DetailView.jsx`** — `lang={lang}` Prop an `<HistoryTab>` und `<ContextTab>` an BEIDEN Render-Stellen (Z.579/580 + Z.606/607) ergänzt. Default-DE-Fallback springt nicht mehr in EN-Mode.
+
+**`src/components/tabs/HistoryTab.jsx`** — TIMEFRAMES-Labels (24h / 7d / 30d Buttons) lesen jetzt `labelEn` bzw. `labelDe` statt hardcoded `label` (= DE). Die Konstanten in `historyConstants.js` hatten die EN-Strings schon, wurden nur nicht benutzt.
+
+### Was NICHT in dieser Session
+
+Tieferer Übersetzungs-Audit der vielen anderen UI-Strings („Nutzungsdiagramme", „Letzte Ereignisse", „ÄNDERUNGEN" etc.) — die liegen verstreut in HistoryTab/Sub-Components und müssten alle einzeln gepatcht werden. Mit der jetzt korrekt durchgereichten `lang`-Prop sind die TODO-Sites identifizierbar — wenn der User sie konkret meldet, gezielt fixbar.
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/index.js`
+- `src/components/SearchSidebar.jsx`
+- `src/components/DetailView.jsx`
+- `src/components/tabs/HistoryTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1606 - 2026-05-21
 
 **Title:** 📱 Mobile-Bento — Bottom-Safe-Area damit Dock W3/W4 nicht überlagert
