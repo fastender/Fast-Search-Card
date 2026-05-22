@@ -1,5 +1,75 @@
 # Versionsverlauf
 
+## Version 1.1.1621 - 2026-05-22
+
+**Title:** 🪶 Remove outer DetailView CustomScrollbar + harden CustomScrollbar against `overflow: hidden`
+**Tags:** Polish, DetailView, Scrollbar, Architecture
+
+### Why
+
+v1.1.1611 and v1.1.1620 both tried to suppress the outer DetailView CustomScrollbar via `:has()` CSS targeting specific child container classes. User reported the doubled-scrollbar symptom *still* appearing after v1.1.1620 — proof that the CSS-only approach is too fragile.
+
+### Root cause (proper analysis)
+
+Two issues, not one:
+
+**Issue A — `:has()` sibling selectors only work for direct DOM siblings, not descendants.**
+
+The DOM in a DetailView is:
+
+```
+.detail-panel
+  .detail-header
+  #tab-content-container          ← outer scroll target
+    <SomeView>                    ← may contain its own CustomScrollbar (inner)
+  .custom-scrollbar-container     ← outer CustomScrollbar (DetailView's)
+```
+
+`#tab-content-container:has(.X) ~ .custom-scrollbar-container { display: none }` correctly hides the **outer** sibling. But many tabs and views render their **own** CustomScrollbar inside `#tab-content-container` (e.g. `UniversalControlsTab` for energy-dashboard layouts at line 585, `AllSchedulesView` at line 707, `NewsView` at lines 739 and 1082). Those are *descendants* of `#tab-content-container`, not siblings, so the `~` combinator does not affect them — they were never the target. The "double scrollbar" the user saw was **outer DetailView + inner View-CustomScrollbar** rendered together in views where my CSS rule did succeed at hiding the outer, but failed at hiding the inner (which it shouldn't have hidden either).
+
+**Issue B — outer DetailView CustomScrollbar is structurally redundant.**
+
+Every meaningful tab content already manages its own overflow:
+
+- `UniversalControlsTab` — energy-dashboard has its own; standard layout (Cover/Light/Climate) has no overflow at typical heights
+- `HistoryTab` — chart canvas, no overflow
+- `ScheduleTab` — `ScheduleList` manages its own scroll
+- `ContextTab` — `context-list` manages its own scroll
+- All 8 system-entity views — each ship their own internal CustomScrollbar
+
+The outer CustomScrollbar tracking `#tab-content-container` was a leftover from an earlier architecture where the tab content was just static HTML. With the current per-tab structure it's pure noise.
+
+### Fix
+
+Two changes:
+
+**1. Removed the outer CustomScrollbar JSX from `DetailView.jsx`** (line 794).
+
+That's the actual cause. No more outer bar means no more doubled-bar in any view, regardless of what the inner view chooses to render. The previous `:has()` CSS rules in `DetailView.css` are left in place as defense-in-depth (they no longer have anything to hide but don't hurt — and the `overflow-y: hidden` halves of those rules still suppress accidental scrolling in tab contexts that don't need it).
+
+**2. Hardened `CustomScrollbar.jsx` to respect `overflow-y: hidden`.**
+
+Even if the outer bar is gone, the same class of bug could happen between two nested inner scrollbars in future views. The updated component checks `getComputedStyle(container).overflowY` on every update — if the tracked container is set to `hidden`, `visible`, or `clip`, it returns no scrollbar regardless of the `scrollHeight > clientHeight` check. This makes the component semantically correct: it only shows a scroll indicator if the container is *actually* scrollable.
+
+### Trade-offs
+
+Risk: if a tab content overflows and ships no inner CustomScrollbar of its own, the user can still scroll via wheel/touch but sees no scroll indicator. None of the four standard device-tabs are in that state today. If any tab in the future has overflowing content without its own indicator, the answer is to give that tab its own `<CustomScrollbar>` — not to bring back the outer one.
+
+### Files
+
+- `src/components/DetailView.jsx` — removed outer `<CustomScrollbar>` render
+- `src/components/CustomScrollbar.jsx` — overflow-y inspection added in `updateScrollbar`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
+### Verification path
+
+1. Open a Cover-detail-view (Anziehraum-Rolllade or similar): no scrollbar at all next to the circular slider. ✓
+2. Open a Schedule view inside a DetailView: only one scrollbar (the inner ScheduleList one). ✓
+3. Open AllSchedulesView, NewsView, TodosView: only one scrollbar (the view's internal one). ✓
+4. Energy-Dashboard device: one scrollbar (the energy-expandable's internal one). ✓
+
+---
+
 ## Version 1.1.1620 - 2026-05-22
 
 **Title:** 🪶 Hide outer CustomScrollbar in all DetailView tabs (not just system-entity views)
