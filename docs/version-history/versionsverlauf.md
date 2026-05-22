@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1592 - 2026-05-21
+
+**Title:** 🏷️ Area-Fallback — „Kein Raum" / „No Room" → „Allgemein" / „General"
+**Hero:** none
+**Tags:** UX, i18n, Labels
+
+### Why
+
+User-Feedback: der Fallback-String „Kein Raum" klang negativ wenn er als Untertitel auf Karten erschien — ein Gerät ohne Raum-Zuordnung wirkt wie ein Fehler. „Allgemein" ist neutral-positiv und signalisiert: „gilt übergreifend, nicht raumgebunden".
+
+### What changed
+
+Drei Strings ersetzt, alle Konsumenten ziehen automatisch nach:
+
+- **`src/utils/actionConstants.js`** — `DEFAULT_AREA_NAME: 'Kein Raum'` → `'Allgemein'`. Wird von `actionUtils.getAreaFromEntity()` als ultimativer Fallback geliefert wenn weder `area_id` noch `area` noch Heuristik einen Treffer haben.
+- **`src/utils/translations/languages/de.js`** — alle 3 `noRoom: 'Kein Raum'` → `'Allgemein'`.
+- **`src/utils/translations/languages/en.js`** — alle 3 `noRoom: 'No Room'` → `'General'`.
+
+Comparison-Logik in `actionUtils.js:76` (`actionArea === DEFAULT_AREA_NAME`) und Sortier-Logik in `searchFilters.js` (`if (a === noRoomLabel) return 1`) bleibt funktionell intakt — sie vergleicht gegen den Variable, nicht gegen den Literal.
+
+Comment in `searchFilters.js` zur Sortier-Heuristik nachgezogen für Klarheit.
+
+### Side-effect
+
+Sortier-Verhalten unverändert: das Pseudo-Room „Allgemein" landet weiter ans Ende der alphabetisch sortierten Raum-Liste (vorher war's „Kein Raum" am Ende; jetzt ist's „Allgemein" am Ende — die Position bleibt gleich, weil die Compare-Funktion den noRoomLabel-Match priorisiert).
+
+### Files
+
+- `src/utils/actionConstants.js`
+- `src/utils/translations/languages/de.js`
+- `src/utils/translations/languages/en.js`
+- `src/components/SearchField/utils/searchFilters.js` (nur Comment)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1591 - 2026-05-21
 
 **Title:** 📱 Mobile-Sidebar — wirklich zentriert + runde Hover-Items
