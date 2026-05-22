@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1611 - 2026-05-21
+
+**Title:** 🪟 Outer CustomScrollbar hard-disabled bei System-Entity-Views
+**Hero:** none
+**Tags:** Scrollbar, System-Entities, Fix
+
+### Why
+
+User-Report: doppelte CustomScrollbars erschienen wieder bei AllSchedules-View. v1.1.1593 dachte ich hätte das mit `#tab-content-container:has(.X) { overflow-y: hidden }` gefixt — aber das hatte nur das Scrolling per User-Geste deaktiviert. Der DetailView-CustomScrollbar wird basierend auf `scrollHeight > clientHeight` rendered:
+
+```js
+const isScrollable = scrollHeight > clientHeight;
+setShowScrollbar(isScrollable);
+```
+
+`overflow-y: hidden` ändert `scrollHeight` nicht — content kann immer noch höher sein als der Container. → `showScrollbar = true` → die äußere CustomScrollbar rendert weiter → doppelte Bar sichtbar.
+
+### What changed
+
+**`src/components/DetailView.css`** — neue CSS-Regel die die SIBLING-CustomScrollbar des `#tab-content-container` per `~`-Combinator hard auf `display: none` setzt wenn der Container eine der 8 System-Entity-Views enthält:
+
+```css
+#tab-content-container:has(.settings-view) ~ .custom-scrollbar-container,
+#tab-content-container:has(.all-schedules-view) ~ .custom-scrollbar-container,
+…
+#tab-content-container:has(.integration-view-container) ~ .custom-scrollbar-container {
+  display: none;
+}
+```
+
+Die `~`-Sibling-Selektion trifft nur die DetailView-Outer-Scrollbar (siehe DetailView.jsx Z.788 `<CustomScrollbar scrollContainerRef={tabContainerRef} />` ist Sibling von `#tab-content-container`). Die internen CustomScrollbars der Views (todos-feed, news-feed, all-schedules-feed, etc.) leben innerhalb der View-Container und sind keine Siblings — bleiben sichtbar.
+
+### Files
+
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1610 - 2026-05-21
 
 **Title:** 🐛 Tipps + Versionsverlauf Deep-Link-Back-Bug — „No tipp selected"-Fehler
