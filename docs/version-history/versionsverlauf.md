@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1596 - 2026-05-21
+
+**Title:** 📱 Mobile-Sidebar — Overflow-Popup für mehr als 5 Items
+**Hero:** none
+**Tags:** Mobile, Sidebar, Overflow
+
+### Why
+
+User-Wunsch: bei mehr als 5 Sidebar-Items wird der Mobile-Dock unübersichtlich (Screenshot zeigte 9 nebeneinander). Apple-Pattern für sowas: ein „⋮"-More-Button als 5. Slot, der ein vertikales Glass-Popup über dem Dock öffnet (analog zu iOS Mail/Notes-Action-Menus, Safari-Share-Sheet).
+
+### Design — Vertical Popup Menu (Option A der drei vorgestellten Optionen)
+
+```
+┌───────────────────┐
+│ ⚡  Energie       │
+│ ☁   Wetter        │  ← Popup, scale+slide-up Animation
+│ ✨  Tipps         │
+│ 📰  News          │
+└───────────────────┘
+[🏠][</>][📋][📅][⋮]  ← Dock: 4 Items + More-Button
+```
+
+Apple-Pattern: kompakt, skalierbar (scrollbar wenn sehr viele Items), tap-outside-to-dismiss. Label-im-Popup-aber-nicht-im-Dock = Icons im Dock bleiben kompakt, im Popup gibt's Platz für klare Beschriftung.
+
+### What changed
+
+- **`src/components/SearchSidebar.jsx`** —
+  - `AnimatePresence` zum Import dazugefügt.
+  - Neuer `moreOpen`-State (toggle für Popup).
+  - `isMobileOverflow = isMobile && items.length > 5` → `visibleItems = items.slice(0, 4)`, `overflowItems = items.slice(4)`. Wenn ≤5 Items: nichts ändert sich.
+  - 5. Slot im Dock wird zum `vpm-item--more`-Button mit drei-vertikale-Punkte-SVG. `aria-expanded` + dynamisches `is-open`-Klasse für Active-Highlight.
+  - Vor der `vpm-menu`-Liste: `<AnimatePresence>` mit Backdrop + `motion.ul.vpm-more-popup` (vertikales Glass-Menü). Spring-Animation `stiffness: 380, damping: 32` (gleiches Liquid-Spring wie der Rest des Sidebars).
+
+- **`src/components/SearchField/SearchField.css`** —
+  - `.vision-pro-menu--mobile .vpm-item--more.is-open`: leichte Aufhellung im offenen Zustand.
+  - `.vpm-more-backdrop`: full-screen click-catcher (`position: fixed; inset: 0`), 5%-dimm Background.
+  - `.vpm-more-popup`: `position: absolute; bottom: 100%; right: 0; margin-bottom: 12px` → sitzt direkt über der `vpm-wrapper`, anchored rechts wo der ⋮-Button sitzt, wächst nach links. `transform-origin: bottom right` damit die Scale-Animation aus dem Button rauswächst.
+  - `.vpm-more-item`: horizontaler Row-Layout (Icon + Label), Hover-Highlight, 14 px font.
+
+### Was passiert bei ≤5 Items
+
+Nichts — `isMobileOverflow` ist false, der More-Button + Popup werden gar nicht gerendert. Dock zeigt alle Items wie vorher.
+
+### Files
+
+- `src/components/SearchSidebar.jsx`
+- `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1595 - 2026-05-21
 
 **Title:** ✅ Bento-Todos — Deep-Link, Inline-Complete, knallroter Überfällig-Badge
