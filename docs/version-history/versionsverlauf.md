@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1623 - 2026-05-22
+
+**Title:** 🔄 Stale-while-revalidate for Changelog tile — current_version updates without view open
+**Tags:** Bugfix, Changelog, Caching
+
+### Why
+
+User noticed the Changelog tile still showed v1.1.1618 while v1.1.1622 was installed. The v1.1.1619 fix correctly added `current_version` to all `loadChangelog` branches — but `loadChangelog` only fires when the user opens the Versionsverlauf-View or when the 5-minute cache TTL expires AND the view is opened. On the boot path, `onMount` only calls `loadFromCacheOnly` (synchronous localStorage read, no network). When several releases ship in quick succession within the TTL window — exactly today's scenario — the tile keeps showing whatever version was in the cache at the previous fetch.
+
+### Fix
+
+After `loadFromCacheOnly` synchronously populates the tile from cache, `onMount` now schedules a background `loadChangelog({ force: true })` 1500 ms later. The `force` flag bypasses the TTL check and always fetches from GitHub. Result:
+
+1. Boot: tile shows cached version instantly (no boot-path latency hit).
+2. ~1.5 s after mount: background fetch lands, parses the latest changelog, updates `current_version` if it changed.
+3. Tile reflects the actually-installed version without the user needing to open the changelog view.
+
+The 1500 ms delay keeps the network request out of the critical boot path. `loadChangelog` now accepts an `opts.force` parameter; the cache-hit short-circuit is skipped only when `force === true`. All other callsites (view open, manual refresh button) keep the original TTL behavior.
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/index.js` — `loadChangelog({ force })` + onMount background revalidate
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
+### User action
+
+After upgrading and reloading the dashboard, the tile updates within ~2 seconds without any user interaction. If you want to force an immediate refresh: open the Changelog view (existing behavior, unchanged).
+
+---
+
 ## Version 1.1.1622 - 2026-05-22
 
 **Title:** 🪶 Scrollbar persisting in DetailView — SearchField's results bar leaked through opacity:0
