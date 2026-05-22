@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1594 - 2026-05-21
+
+**Title:** 🎴 System-Entity Tiles — Versionsnummer, nächster Termin + Bug-Fix Live-Daten in Grid-View
+**Hero:** none
+**Tags:** SystemEntities, Tiles, LiveView
+
+### Why
+
+User-Report mit Screenshot der „Benutzerdefiniert"-Custom-View: die System-Entity-Kacheln (Versionsverlauf, Kalender, Scheduler, Integration) zeigten alle den langweiligen Fallback „Allgemein" als area-line. Versprochene Live-Daten („V1.0.23", „X Termine", „Übersicht", „X Geräte") aus `getSystemEntityArea` kamen nie an.
+
+Plus User-Wunsch:
+- Versionsverlauf-Kachel soll **die aktuelle Versionsnummer** zeigen
+- Kalender / Scheduler sollen **die nächsten anstehenden Termine** zeigen (statt nur Count)
+
+### Root-Cause (Bug)
+
+`DeviceCard.jsx` reicht `getSystemEntityArea`/`getSystemEntityName` an `DeviceCardListView` weiter (Zeilen 589-590), aber **NICHT** an `DeviceCardGridView` (Zeilen 608-624). Die Grid-View bekommt die Props nie → `getSystemEntityArea && getSystemEntityArea()` short-circuit auf falsy → Chain fällt durch auf `device.area || translateUI('general.noRoom', lang)` = „Allgemein" (seit v1.1.1592). Folgte 30+ Tage unbemerkt weil GridView seit der ursprünglichen System-Entity-Erweiterung nie aktualisiert wurde.
+
+### What changed
+
+**`src/components/DeviceCard.jsx`** — vier Änderungen:
+
+1. **Bug-Fix**: `getSystemEntityArea={getSystemEntityArea}` + `getSystemEntityName={getSystemEntityName}` in den `DeviceCardGridView`-Props-Block eingefügt. GridView destrukturiert die Props bereits (Zeilen 34-35), nur das Pass-Through war kaputt.
+
+2. **Calendar Next-Event Preview**: neue `calendarNextEvent` cache-Variable, die einmal pro Render aus `systemEntityAttrs.events` das nächste anstehende Event rauspickt. Sortiert nach Start-Time, filtert vergangene events raus.
+
+3. **Calendar `getSystemEntityArea`**: statt „X Termine" → `${dayLabel} · ${timeStr}` (z.B. „Heute · 14:00", „Morgen · Ganztägig", „Mo · 18:30"). DayLabel wird zu „Heute"/„Morgen"/Wochentag+Datum je nach Distanz.
+
+4. **Calendar `getSystemEntityName`**: statt fester „Kalender"-Label → der **Titel des nächsten Termins** (z.B. „Meeting mit Hans", „Geburtstag Mama"). Wenn keine Events → Fallback auf „Kalender".
+
+5. **Versionsverlauf**: `v${version}` → `V${version}` (großes V wie vom User explizit angefragt: „V1.0.23 zB").
+
+### Result
+
+Beispiele in der „Benutzerdefiniert"-Tile-Grid nach Update:
+
+| Tile vorher | Tile nachher |
+|---|---|
+| Allgemein / Versionsverlauf | **V1.1.1594** / Versionsverlauf |
+| Allgemein / Kalender | **Heute · 14:00** / Meeting mit Hans |
+| Allgemein / Zeitpläne Übersicht | **Übersicht** / Zeitpläne |
+| Allgemein / Integration | **8 Geräte** / Integration |
+
+Wenn der Kalender leer ist: „Keine Termine" / „Kalender".
+
+### Was NICHT geändert wurde (Scope-cuts)
+
+- **3-zeiliges Layout** (vom User als „ggf." erwähnt) wurde nicht eingebaut. Würde structurellen JSX/CSS-Eingriff in DeviceCardGridView erfordern (Hinzufügen einer `.device-state`-Zeile speziell für System-Entities). Wenn der 2-Zeilen-Look nicht reicht, dafür braucht's einen eigenen Pass.
+- **AllSchedules** zeigt weiter generisch „Übersicht" — die Entity speichert keine Schedule-Liste in ihren `attributes`. Ein „nächster anstehender Schedule"-String würde load-on-mount erfordern, das wäre eine Architektur-Änderung an der `all-schedules`-Entity.
+
+### Files
+
+- `src/components/DeviceCard.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1593 - 2026-05-21
 
 **Title:** 🪟 Äußere Scrollbar weg bei allen 8 System-Entity-Views
