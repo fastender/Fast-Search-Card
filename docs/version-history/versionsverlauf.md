@@ -1,5 +1,71 @@
 # Versionsverlauf
 
+## Version 1.1.1617 - 2026-05-22
+
+**Title:** 🩹 Hotfix — v1.1.1616 regression: wildcard patterns broken, icons stripped, perf hit
+**Hero:** none
+**Tags:** Hotfix, Security, Regression
+
+### Why
+
+v1.1.1616 shipped four regressions hidden inside the security-hardening pass. User reported "much slower than v1.1.1615" and "excluded patterns don't work anymore" — and a follow-up review surfaced two more issues they hadn't yet noticed. All five fixed here.
+
+### Root cause (1): `*` missing from regex escape set
+
+In `src/utils/patternMatching.js`, the new ReDoS-hardened regex builder escaped *every* metachar except `*` and `?` — those two were meant to be converted to wildcards in the next step. But the un-escape step looked for `\*` (backslash-asterisk), and since `*` was never escaped in the first place, it was never converted to `.*`. Result: every wildcard pattern silently broke.
+
+```
+pattern: "update.*"
+v1.1.1615 compiled to: ^update\..*$   ← matches "update.battery_level" ✓
+v1.1.1616 compiled to: ^update\.*$    ← matches only "update", "update.", "update.."  ✗
+```
+
+This is also the source of the perceived slowdown: with exclusion patterns silently failing, the card processed every entity in the user's HA instance instead of the filtered ~20-30%. Search index, render tree, IndexedDB writes — all working on a 3–5× larger set.
+
+Fix: add `*` to the escape character class. Wildcard semantics now restored, ReDoS protection preserved.
+
+### Root cause (2): icon sanitiser whitelist too narrow
+
+The v1.1.1614 SVG sanitiser allowed only `<svg>`, `<path>`, basic shapes, and gradients. It silently stripped:
+
+- `<text>` and `<tspan>` — used by the `repeat_one` icon (`1` numeral overlay)
+- `<animate>` and `<animateTransform>` — used by animated sensor icons (DoorSensorOn, PresenceSensorOn, LockOff)
+- `<marker>`, `<foreignObject>`, `<textPath>`, `<animateMotion>`, `<pattern>` — used here and there
+
+Icons rendered through `ControlButton.jsx`, `PresetButtonsGroup.jsx`, and `ManagementView.jsx` came out empty or partially rendered. Whitelist expanded; attribute list extended to match (font-size, text-anchor, dx, dy, dur, repeatCount, attributeName, marker-orient, etc.).
+
+### Root cause (3): `Object.defineProperty` re-run on every hass update
+
+The non-enumerable `window._hass` setter ran a full `Object.defineProperty` call on *every* HA state push (can be many times per second). After the first call the property is already non-enumerable; subsequent assignments only need to update the value.
+
+Both setter sites (build.sh custom-element wrapper and `DataProvider.jsx` useEffect) now check for the existing descriptor and fast-path to a plain `window._hass = hass` after the first registration. Property semantics unchanged, hot-path latency reduced.
+
+### Root cause (4): `card_height` upper bound too restrictive
+
+The v1.1.1616 `setConfig` validation clamped `card_height` to `[50, 4000]` — a sensible range for typical dashboards but breaking for users with very tall layouts. Upper bound removed: now any positive finite number is accepted. The real defense (`Number.isFinite` rejecting strings like `"expression(...)"`) is preserved.
+
+### Root cause (5): `updateSystemSettingsSection` crashed on null path
+
+If any callsite ever invoked `updateSystemSettingsSection(null, ...)` or `updateSystemSettingsSection(undefined, ...)`, the v1.1.1616 prototype-pollution-filter version would throw `TypeError: Cannot read properties of null (reading 'split')`. Now guarded explicitly — non-string paths return the unchanged root.
+
+### Files
+
+- `src/utils/patternMatching.js` — `*` added to escape regex
+- `src/utils/iconSanitizer.js` — whitelist extended (tags + attributes)
+- `src/utils/systemSettingsStorage.js` — null-path guard
+- `src/providers/DataProvider.jsx` — defineProperty fast-path
+- `build.sh` — defineProperty fast-path (via static class flag), card_height upper bound removed
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
+### Verification path for the user
+
+After installing v1.1.1617:
+1. Reload the dashboard. Excluded entities should be filtered again (Settings → Excluded Patterns is the test surface).
+2. Check that icons render across Bento, ControlButton, PresetButtons, Management views — especially repeat_one icon and any animated sensor icons.
+3. Compare cold-boot performance against v1.1.1615. If still slower, that's a separate issue and worth reporting back.
+
+---
+
 ## Version 1.1.1616 - 2026-05-22
 
 **Title:** 🛡️ Security pass 3 — ReDoS, prototype pollution, setConfig validation
