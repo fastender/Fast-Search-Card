@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1604 - 2026-05-21
+
+**Title:** ✅ Bento-Todos — Row-Hover chunkiger und runder (Apple Reminders Look)
+**Hero:** none
+**Tags:** Bento, Todos, Polish
+
+### Why
+
+User-Feedback nach v1.1.1603: Hover-Width war schon voll-bleed, aber das Band fühlte sich noch zu schmal an + die Ecken zu eckig. Apple-Reminders hat einen klassisch chunkigen, deutlich runden Selection-Look — den wollen wir hier auch.
+
+### What changed
+
+**`src/components/BentoStartView.css`** — `.bento-rich-todos-row--clickable`:
+
+| Property | Vorher | Nachher |
+|---|---|---|
+| `padding` | `6px 18px` | `10px 18px` |
+| `border-radius` | `10px` | `16px` |
+| `:hover background` | `rgba(255,255,255,0.14)` | `rgba(255,255,255,0.18)` |
+
+Vertikales Padding 6→10 macht das Band ca. 8 px höher (chunkiger Pill-Look). Border-Radius 10→16 für die Apple-Reminders-Rundung. Hover-bg leicht heller (0.14→0.18) damit der Highlight auch auf den helleren Slider-Gradients (z.B. orange Todos) gut sichtbar bleibt.
+
+Horizontal-extent unverändert: `margin: 0 -18px` mit `padding-horizontal: 18px` = voll-bleed bis zum Slider-Inhaltsbereich, kein Verschieben der Text-Position.
+
+### Files
+
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1603 - 2026-05-21
 
 **Title:** ✅ Bento-Todos — knallroter Overdue-Badge wirklich, breiterer Row-Hover
