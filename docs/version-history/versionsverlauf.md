@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1601 - 2026-05-21
+
+**Title:** 🏷️ Entity-ID-Toggle — Button expandiert zur Pille mit Text drin (Apple-Pill-Look)
+**Hero:** none
+**Tags:** DetailView, EntityId, Polish
+
+### Why
+
+User-Report mit Screenshot: bei aktiviertem Entity-ID-Toggle wurde der Button weiß, der Text „system.tipps" erschien aber DANEBEN — visuell unschön weil der Text-Container kein eigenes Background hatte und der weiße Button nun ganz isoliert wirkte.
+
+User-Wunsch: Button selbst expandiert zur Pille die Icon + Text enthält. Schwarzer Text auf weißem Bg im offenen Zustand.
+
+### What changed
+
+**`src/components/DetailView/EntityIconDisplay.jsx`** — JSX-Refactor:
+- AnimatePresence + Text-Wrap wandern jetzt INS Button rein (vorher Sibling).
+- Icon ist in einem dedizierten `<span class="entity-id-toggle-button-icon">` Wrapper.
+- Animation des Wrap: statt `x: -8 → 0` jetzt `width: 0 → auto` + `marginRight: 0 → 14`. Der Button selbst wächst dadurch mit (flex inline-flex).
+
+**`src/components/DetailView.css`** —
+- `.entity-id-toggle-button`: `border-radius: 50% → 20px` (geschlossen 40×40 ergibt Pille = Circle, offen Pille mit voll-runden Enden). `width: 40px` weg, stattdessen `min-width: 40px; max-width: 100%`. `display: inline-flex; align-items: center; justify-content: flex-start; overflow: hidden`.
+- `.entity-id-toggle-button.is-open`: Hover-State zusätzlich (`background: rgba(255,255,255,1)`).
+- Neue `.entity-id-toggle-button-icon`: 40×40 px Container fürs SVG, flex-shrink-0.
+- `.entity-id-display`: `color: rgba(255,255,255,0.6) → inherit` → erbt vom Button → bei `is-open` automatisch schwarz. `font-weight: 400 → 500` für besseren Kontrast auf Weiß.
+
+### Animation-Detail
+
+`width: 0 → auto` ist mit framer-motion einfach, weil die motion-Component die Endbreite ihres Inhalts misst und dorthin animiert. Plus `marginRight: 0 → 14` damit zwischen Text-Ende und Button-Right-Edge der gleiche 14-px-Abstand wie die Icon-Padding-Logik entsteht.
+
+Die existierende Marquee-Logik (für lange Entity-IDs) funktioniert weiterhin — der Text-Span ist jetzt in einer flexbox-row mit `flex: 1; min-width: 0; overflow: hidden`, die Marquee-Animation läuft innerhalb.
+
+### Files
+
+- `src/components/DetailView/EntityIconDisplay.jsx`
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1600 - 2026-05-21
 
 **Title:** 📅 Bento-Calendar — Polling-Safety-Net gegen initial-mount Race
