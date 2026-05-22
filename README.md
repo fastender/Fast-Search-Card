@@ -6,7 +6,8 @@
 
 _Faster. Together._
 
-A Lovelace card for Home Assistant.
+A Lovelace card for Home Assistant.<br>
+**Setup in under 10 seconds. One line.**
 
 [![Version](https://img.shields.io/github/v/release/fastender/Fast-Search-Card?style=flat-square&color=007AFF&label=version)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md)
 [![Releases](https://img.shields.io/badge/releases-2%2C000%2B-34C759?style=flat-square)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md)
@@ -119,20 +120,20 @@ Five tabs per device. Controls. Context. History. Schedule. Settings. Circular s
 </details>
 
 <details>
-<summary><b>Calendar.</b> Apple Calendar, in Home Assistant.</summary>
+<summary><b>Calendar.</b> A real calendar. Local. In Home Assistant.</summary>
 
 <br>
 
-Day, Week, Month, Year views. Native HA WebSocket integration. Recurring events with five Apple-style presets. Add, edit, delete — without leaving the dashboard.
+Day, Week, Month, Year views. Native HA WebSocket integration. All events stay on your Home Assistant. No cloud, no account. Recurring events with five preset patterns. Add, edit, delete — without leaving the dashboard.
 
 </details>
 
 <details>
-<summary><b>Todos.</b> Reminders, reborn.</summary>
+<summary><b>Todos.</b> Local reminders, reborn.</summary>
 
 <br>
 
-Every HA `todo.*` backend, in one place. Overdue items in red. Apple-style wheel pickers for due dates. Multi-list filters that actually combine.
+Every HA `todo.*` backend, in one place. All lists stay on your Home Assistant. No cloud, no account. Overdue items in red. Smooth wheel pickers for due dates. Multi-list filters that actually combine.
 
 </details>
 
@@ -177,7 +178,7 @@ Background filters. Squircle cards. Splashscreen styles. Excluded patterns with 
 
 <br>
 
-Tipps. Versionsverlauf. All-Schedules. Bambu Lab 3D printer support. Liquid-Glass switches. Apple Hello splashscreen. Toast notifications. AI Mode (experimental). Listen virtualization for thousands of entities.
+Tipps. Versionsverlauf. All-Schedules. Bambu Lab 3D printer support. Liquid-Glass switches. Handwritten splashscreen. Toast notifications. AI Mode (experimental). Listen virtualization for thousands of entities.
 
 See [FEATURES.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) for the full list.
 
@@ -249,7 +250,7 @@ Open an issue. Open a PR. Both welcome.
 
 ## License
 
-[MIT](https://github.com/fastender/Fast-Search-Card/blob/main/LICENSE). Free to use. Free to fork.
+[MIT](https://github.com/fastender/Fast-Search-Card/blob/main/LICENSE). Free to use.
 
 <br>
 

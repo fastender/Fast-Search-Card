@@ -56,7 +56,7 @@ Desktop layout fixed at exactly 576px height. ResizeObserver-driven `--w34-row-h
 <br>
 
 - **Weather.** Real-time temperature. Hourly forecast strip.
-- **News.** Five articles, Apple-style layout. Read/unread tabs. Top-fade mask.
+- **News.** Five articles, uniform layout. Read/unread tabs. Top-fade mask.
 - **Todos.** Overdue in red. Combined status + list filters.
 - **Calendar.** Next event as hero, four follow-ups. Click opens the event detail.
 - **Versions.** Latest release as hero.
@@ -69,7 +69,7 @@ Desktop layout fixed at exactly 576px height. ResizeObserver-driven `--w34-row-h
 
 <br>
 
-All items mounted permanently. No AnimatePresence remount loss. Apple-color gradients per domain. Position survives unmount/remount via module-level state. Drag from anywhere — footer included.
+All items mounted permanently. No AnimatePresence remount loss. Branded gradients per domain. Position survives unmount/remount via module-level state. Drag from anywhere — footer included.
 
 </details>
 
@@ -123,7 +123,7 @@ Type a room name. See a ghost. Hit Tab. Get a chip.
 | `lam` | `Lampe` 💡 | Purple domain chip |
 | `Temp` | `eratur` 🌡 | Green sensor chip |
 
-Combine area and domain. iOS-style delete (tap selects, second tap removes). Dedicated confirm button on mobile.
+Combine area and domain. Two-tap delete pattern (tap selects, second tap removes). Dedicated confirm button on mobile.
 
 </details>
 
@@ -213,7 +213,7 @@ Chart.js graphs. 24-hour, 7-day, 30-day timeframes. Time-of-day analysis. State-
 
 <br>
 
-Built-in scheduler with `nielsfaber/scheduler-component` integration. Apple-style wheel pickers for date and time. Day-of-week chips. Inline editing — no submenu.
+Built-in scheduler with `nielsfaber/scheduler-component` integration. Smooth wheel pickers for date and time. Day-of-week chips. Inline editing — no submenu.
 
 </details>
 
@@ -244,22 +244,22 @@ Drop a video at `video/{domain}/{state}.mp4` and the detail view picks it up aut
 > Apps that live next to your devices.
 
 <details>
-<summary><b>Calendar.</b> Apple Calendar, in Home Assistant.</summary>
+<summary><b>Calendar.</b> A real calendar. Local. In Home Assistant.</summary>
 
 <br>
 
-Day, Week, Month, Year views. Native HA WebSocket integration — `calendar/event/create`, `update`, `delete`. Five recurrence presets in Apple style. Quick chips for common titles. Location and description as sub-views. Two-step delete confirmation.
+Day, Week, Month, Year views. Native HA WebSocket integration — `calendar/event/create`, `update`, `delete`. All events stay in your Home Assistant instance. No cloud sync. Five recurrence presets. Quick chips for common titles. Location and description as sub-views. Two-step delete confirmation.
 
 Bento integration: next event as hero, four follow-ups.
 
 </details>
 
 <details>
-<summary><b>Todos.</b> Reminders, reborn.</summary>
+<summary><b>Todos.</b> Local reminders, reborn.</summary>
 
 <br>
 
-Aggregates every HA `todo.*` backend. Overdue items in red. Apple wheel pickers for due dates. Multi-list filters that actually combine.
+Aggregates every HA `todo.*` backend. All lists stay on your Home Assistant. No cloud, no account. Overdue items in red. Smooth wheel pickers for due dates. Multi-list filters that actually combine.
 
 </details>
 
@@ -367,7 +367,7 @@ Multi-engine fallback. Language picker. Speak in any voice your HA install suppo
 
 <br>
 
-Left side on desktop. Bottom on mobile. Apple-style hover morphing — liquid-glass deblur with framer-motion spring. Label stagger on expand.
+Left side on desktop. Bottom on mobile. Smooth hover morphing — liquid-glass deblur with framer-motion spring. Label stagger on expand.
 
 </details>
 
@@ -400,16 +400,16 @@ Real `backdrop-filter`. Five user-customizable filters: brightness, blur, contra
 </details>
 
 <details>
-<summary><b>Apple Hello splashscreen.</b></summary>
+<summary><b>Handwritten splashscreen.</b></summary>
 
 <br>
 
-The actual macOS Sonoma "hello" handwriting, extracted as SVG paths. Two strokes. A pause between them, like a real pen lift. Three options: None, Progress, Apple Hello.
+A "hello" greeting drawn with SVG paths. Two strokes. A pause between them, like a real pen lift. Three options: None, Progress, Handwritten.
 
 </details>
 
 <details>
-<summary><b>Apple Reveal.</b></summary>
+<summary><b>Smooth reveal.</b></summary>
 
 <br>
 
@@ -422,7 +422,7 @@ After the splash, the UI fades in. Blur to clear. Scale up. Subtle Y-translate. 
 
 <br>
 
-Minimalist iOS-style. Fixed 80px track with proportional thumb. Fades in on scroll. Always visible on touch. Reacts to async-loaded content via MutationObserver.
+Minimalist design. Fixed 80px track with proportional thumb. Fades in on scroll. Always visible on touch. Reacts to async-loaded content via MutationObserver.
 
 </details>
 
@@ -431,7 +431,7 @@ Minimalist iOS-style. Fixed 80px track with proportional thumb. Fades in on scro
 
 <br>
 
-True Apple-squircle shape via CSS clip-path. Four styles: none, soft, standard, strong.
+True squircle shape via CSS clip-path. Four styles: none, soft, standard, strong.
 
 </details>
 
