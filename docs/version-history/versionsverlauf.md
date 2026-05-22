@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1590 - 2026-05-21
+
+**Title:** ✅ Todos — einzeilige Filter-Bar + äußere Scrollbar weg
+**Hero:** none
+**Tags:** Todos, Filter, Scrollbar
+
+### Why
+
+User-Bug-Report mit Screenshot. Drei Issues auf einmal:
+
+1. **Doppelte CustomScrollbar.** Rechts neben der Todo-Liste waren ZWEI vertikale Scrollbars sichtbar: die innere von `.todos-feed` + eine äußere vom `#tab-content-container` (DetailView). `.todos-view-container` hat zwar `max-height: 555px; overflow: hidden`, aber der DetailView-Parent hatte weiter `overflow-y: auto` und triggerte seine eigene CustomScrollbar.
+2. **Filter-Zeilen nicht scrollbar.** Die `--two-rows` Variante hatte `.filter-tabs { overflow-x: auto }` aber durch das State-Indicator-State-Tracking (das den falschen Ref überwachte) gab es keine sichtbaren Pfeile und die Rows fühlten sich „fest" an.
+3. **Trennung in zwei Zeilen war suboptimal.** User-Wunsch: wie NewsView — Listen + Trennstrich + Status, alle in einer Zeile, scrollbar.
+
+### What changed
+
+- **`src/system-entities/entities/todos/TodosView.jsx`** — `.todos-filter-bar.todos-filter-bar--two-rows` mit zwei `.filter-tabs`-Children weggemacht. Stattdessen eine `.todos-filter-bar` mit einer einzigen `.filter-tabs` Row:
+  - **Lists section first** — neue „Alle Listen"-Reset-Pill (deselektiert listFilter), gefolgt von den list-pills (Einkaufsliste, To-do).
+  - **`<div className="todos-toolbar-divider" />`** zwischen Listen und Status, 22-px hohe vertikale Linie.
+  - **Status section** — Alle / Unerledigt / Heute / Überfällig / Erledigt (unverändert).
+  - **Profile filters** — anhängend, wie vorher.
+- **`src/system-entities/entities/todos/styles/TodosView.css`** —
+  - Alte `--two-rows`-Regeln entfernt. Base `.todos-filter-bar { overflow-x: auto }` wirkt jetzt direkt auf die einzige Row.
+  - `.todos-filter-bar .filter-tabs` bekommt `align-items: center` damit der Divider zwischen den Pillen vertikal zentriert sitzt.
+  - Neue `.todos-toolbar-divider` Klasse — 1 px × 22 px halbtransparente Linie, 4 px margin.
+  - **`#tab-content-container:has(.todos-view-container) { overflow-y: hidden }`** — Hauptfix für die doppelte Scrollbar. Sobald die `.todos-view-container` als Kind erkannt wird, hat der DetailView-Parent kein scrollbares Verhalten mehr → die äußere CustomScrollbar (sibling von `#tab-content-container`) checkt `scrollHeight > clientHeight`, liefert false, rendert sich selbst nicht. Browser-Support: Safari 15.4+, Chrome 105+, Firefox 121+ — für HA-Setups OK.
+
+### Files
+
+- `src/system-entities/entities/todos/TodosView.jsx`
+- `src/system-entities/entities/todos/styles/TodosView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1589 - 2026-05-21
 
 **Title:** ↔️ Versionsverlauf + Tipps — Filter-Pillen mit Scroll-Pfeilen + Edge-Fade
