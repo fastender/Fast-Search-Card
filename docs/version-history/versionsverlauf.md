@@ -1,5 +1,64 @@
 # Versionsverlauf
 
+## Version 1.1.1602 - 2026-05-21
+
+**Title:** 🎯 Bento-Slider — echte SystemEntity-Instanzen statt toEntity-Plain-Objects
+**Hero:** none
+**Tags:** Bento, SystemEntity, Bug
+
+### Why — die echte Root-Cause
+
+Vier Fixes (v1.1.1587, v1.1.1597, v1.1.1599, v1.1.1600) brachten Verbesserungen am Calendar-Widget, aber das Hauptproblem („Widget zeigt nichts beim ersten Mount") blieb. Jeder Fix-Versuch behandelte ein anderes Symptom. Heute beim tiefen Code-Tracing endlich die echte Ursache gefunden:
+
+**Die Bento-Widget-Items haben kein `executeAction`-Methodenset.**
+
+- `DataProvider` zieht System-Entities via `systemRegistry.getAsHomeAssistantEntities()`
+- Diese ruft `entity.toEntity()` auf, was ein **Plain-Object** zurückgibt — nur Properties (entity_id, domain, name, attributes...), keine Methoden
+- Dieses Plain-Object landet in der `devices`-Array, die zum Bento-Slider durchgereicht wird
+- BentoRichCalendar/Todos/News rufen `entity.executeAction(...)` auf
+- Plain-Object hat das nicht → `entity?.executeAction` ist undefined → `useEffect`-Early-Return → **kein Load passiert**
+- attrs.events bleibt 0
+
+Warum funktioniert CalendarView (die dieselben Methoden braucht)? Weil `SystemEntityLazyView` vor dem Rendern den Lookup macht:
+
+```js
+const internalId = entity?.id?.replace(/^(system|plugin)\./, '');
+const entityInstance = (internalId && systemRegistry.getEntity(internalId))
+    || systemRegistry.getEntityByDomain(entity.domain);
+...
+<LoadedView entity={entityInstance || entity} ... />
+```
+
+Der Wrapper tauscht das Plain-Object durch die echte SystemEntity-Instanz aus. Bento hatte diesen Wrapper nicht.
+
+### What changed
+
+**`src/components/bento/widgets/BentoRichSlider.jsx`** —
+- Neuer Helper `enrichWithRealEntity(item)` der das Pattern aus `SystemEntityLazyView` 1:1 dupliziert.
+- In der `items`-useMemo wird jedes gefundene Plain-Object durch `enrichWithRealEntity(...)` ersetzt.
+- Resultat: `items[i]` ist jetzt die echte `SystemEntity`-Instance mit `executeAction`, `actions`, `attributes` (live), `updateAttributes`, etc.
+
+Die rich-widgets (BentoRichCalendar, BentoRichTodos, BentoRichNews, BentoRichWeather) ändern sich nicht — sie machen jetzt einfach erfolgreich Action-Calls auf das echte Entity.
+
+### Auswirkungen
+
+- **Calendar-Widget**: Loads erfolgreich, attrs.events populated, sowohl upcoming als auch past-fallback funktionieren.
+- **Todos-Widget inline-complete** (aus v1.1.1595): hatte bisher die gleiche stille Failure (executeAction undefined). Jetzt funktioniert das Toggle.
+- **News-Widget Deep-Link** (aus v1.1.1545): hat zwar das Problem nicht direkt, weil es nur Event-Dispatch macht. Aber `attrs.articles` wird jetzt zuverlässiger geladen.
+
+### Was rückblickend hätte direkt gefunden werden müssen
+
+Bei v1.1.1597 hatte ich gesehen dass das Widget `entity.executeAction(...)` aufruft und das Pattern „identisch zu Todos/News" angenommen. Aber Todos & News nutzen primär `attrs.todos`/`attrs.articles` direkt (vom Entity's onMount-Auto-Load), während Calendar das executeAction zwingend für die Range-Load braucht. **Die wirkliche Frage hätte sein sollen: „funktioniert executeAction für unsere Widget-Entity-Referenz?"** — und ein 2-Minuten-Trace hätte das gezeigt.
+
+Lesson: bei „Daten kommen nicht an"-Bugs erst tracen ob der Daten-Path überhaupt FUNKTIONAL möglich ist (Methoden vorhanden?), BEVOR man am Filter/Polling/Range schraubt.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichSlider.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1601 - 2026-05-21
 
 **Title:** 🏷️ Entity-ID-Toggle — Button expandiert zur Pille mit Text drin (Apple-Pill-Look)
