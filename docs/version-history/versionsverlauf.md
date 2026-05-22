@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1588 - 2026-05-21
+
+**Title:** 📅 Calendar-Liste — Top-Fade beim Scrollen + Scrollbar nicht mehr auf den Cards
+**Hero:** none
+**Tags:** Calendar, Scrollbar, Polish
+
+### Why
+
+User-Report mit Screenshot (Jahres-Ansicht "Termine im Zeitraum"):
+1. Beim Scrollen fehlte der Soft-Edge-Fade am oberen Rand, den NewsView (`.news-feed.is-scrolling`) und VersionsverlaufView schon haben — Event-Cards stießen hart an die Section-Header-Label-Linie an.
+2. Die CustomScrollbar (11 px breit, rechts:3 px vom Container-Rand → linke Scrollbar-Kante 14 px vom Rand) überlappte den rechten Card-Edge — `.calendar-list` hatte nur `padding-right: 6px`, also 8 px Overlap zwischen Scrollbar-Thumb und Card-Background.
+
+### What changed
+
+- **`src/system-entities/entities/calendar/CalendarView.jsx`** — neuer `isListScrolling`-State + `onScroll`-Handler auf `.calendar-list` der `scrollTop > 0` trackt. Klasse `is-scrolling` wird konditional dazugehängt.
+- **`src/system-entities/entities/calendar/styles/CalendarView.css`** —
+  - `.calendar-list { padding-right: 6px → 20px }`. Cards enden jetzt vor der Scrollbar-Gutter, kein Overlap mehr.
+  - Neue `.calendar-list.is-scrolling` Regel mit `mask-image: linear-gradient(to bottom, transparent 0, black 40px, black 100%)` — analog zu `.news-feed.is-scrolling` und `.version-detail-scroll.is-scrolling`. Konsistent über die System-Entities.
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1587 - 2026-05-21
 
 **Title:** 📅 Bento-Calendar — heutige Termine bleiben den ganzen Tag sichtbar
