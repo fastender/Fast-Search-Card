@@ -66,6 +66,16 @@ That's it.
 
 ---
 
+## Security
+
+No telemetry. No tracking. No external API calls. No authentication material stored.
+
+See [SECURITY.md](docs/SECURITY.md) for the full audit.
+
+<br>
+
+---
+
 ## What's inside
 
 <details>
