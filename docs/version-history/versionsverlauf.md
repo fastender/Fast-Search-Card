@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1591 - 2026-05-21
+
+**Title:** 📱 Mobile-Sidebar — wirklich zentriert + runde Hover-Items
+**Hero:** none
+**Tags:** Mobile, Sidebar, Polish
+
+### Why
+
+User-Report mit Screenshot:
+1. Die Mobile-Sidebar-Pille (Home / Settings / Todos / News Icons) saß nicht in der Mitte sondern leicht nach rechts versetzt.
+2. Beim Hover/Active-Tap zeigte der Icon-Background nur abgerundete Ecken, nicht den vollen Kreis — Apple-Vision-Pro-Style wäre ein Kreis.
+
+### Root-Cause
+
+1. **Centering bricht durch framer-motion Transform-Konflikt.** Die Mobile-Sidebar nutzt `motion.div`. CSS hatte `position: fixed; left: 50%; transform: translateX(-50%)`. v1.1.1560 hatte schon dokumentiert dass framer-motions interne Transform-Verwaltung das CSS-`translateX` überschreibt. Zusätzlich: wenn ein Ancestor (im HA-Lovelace-Grid häufig) ein `transform`/`filter`/`perspective` hat, scopt sich `position: fixed` auf diesen Ancestor — was alles noch wackliger macht.
+2. **Hover nicht kreisförmig.** Mobile-Items sind 20 px Icon + 2 × 12 px Padding = 44 × 44 px quadratisch. `border-radius: 1rem` (16 px) ist nicht groß genug für vollen Kreis → 50 % oder größer nötig.
+
+### What changed
+
+- **`src/components/SearchField/SearchField.css`** — `.vision-pro-menu--mobile`:
+  - Centering ohne `transform`: `left: 0; right: 0; margin-left/right: auto; width: max-content`. Auto-Margins zwischen festen 0-Ankern zentrieren das Element ohne `transform`-Konflikt; `width: max-content` damit das Element auf Content-Width schrumpft. Robust auch wenn `position: fixed` zu `position: absolute` degradiert.
+  - `.vision-pro-menu--mobile .vpm-item { border-radius: 50% }` statt `1rem` — Hover-Background ist jetzt ein voller Kreis.
+
+### Files
+
+- `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1590 - 2026-05-21
 
 **Title:** ✅ Todos — einzeilige Filter-Bar + äußere Scrollbar weg
