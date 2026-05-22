@@ -1,1322 +1,674 @@
-# Fast Search Card - Features Documentation
+<div align="center">
 
-This document provides a comprehensive overview of all features in the Fast Search Card for Home Assistant.
+# Features
 
----
+### Everything Fast Search Card does.
 
-## Table of Contents
+<sub>Current as of v1.1.1610 · [Version history](version-history/versionsverlauf.md) · [Roadmap](FEATURE_ROADMAP.md)</sub>
 
-1. [Search & Discovery](#search--discovery)
-2. [Smart UI & Navigation](#smart-ui--navigation)
-3. [Detail View & Tabs](#detail-view--tabs)
-4. [Universal Controls](#universal-controls)
-5. [Circular Slider System](#circular-slider-system)
-6. [Scheduler Integration](#scheduler-integration)
-7. [History & Analytics](#history--analytics)
-8. [System Entities & Plugins](#system-entities--plugins)
-9. [Performance & Optimization](#performance--optimization)
-10. [Internationalization](#internationalization)
+</div>
+
+<br>
 
 ---
 
-## Search & Discovery
+## Overview
 
-### Fuzzy Search Engine
+A Lovelace card. Four UI modes. Eight built-in apps. Designed to be the primary surface for your home.
 
-Powered by **Fuse.js** for intelligent, typo-tolerant searching:
-
-- **Fast matching** across entity names, friendly names, and areas
-- **Typo tolerance** - finds "ligth" when you mean "light"
-- **Partial matching** - "bed lamp" matches "Bedroom Lamp"
-- **Configurable threshold** for search accuracy
-- **Real-time results** as you type
-
-### Smart Categorization
-
-Entities are automatically organized into categories:
-
-- **Devices** - Lights, switches, fans, covers, climate controls
-- **Sensors** - Temperature, humidity, motion, binary sensors
-- **Actions** - Scripts, scenes, automations
-- **System** - Settings, Marketplace, Schedule Viewer (modular entities)
-
-### Sub-Category Filtering
-
-Dynamic filtering bar that adapts to search results:
-
-- **By Area** - Filter by room/location (Bedroom, Kitchen, Living Room, etc.)
-- **By Device Type** - Filter by domain (Light, Switch, Climate, etc.)
-- **Smart Suggestions** - Contextual filters based on current results
-
-### Favorites & Recent Items
-
-- **Favorites System** - Star entities for quick access
-- **Recent History** - Last accessed entities appear first
-- **Persistent Storage** - Saved in IndexedDB across sessions
-- **One-tap Access** - Favorites appear at top of search results
-
-### Advanced Pattern Filtering
-
-Exclude unwanted entities using wildcard patterns:
+<br>
 
 ```
-sensor.*              # Hide all sensors
-*_unavailable         # Hide unavailable entities
-automation.system_*   # Hide system automations
+Bento Start  →  Search  →  Detail View  →  System Entities
 ```
 
-- **Live Preview** - See which entities will be hidden in real-time
-- **Template Library** - Pre-defined filter templates
-- **Import/Export** - Share filter configurations as JSON
-- **Regex Support** - Advanced pattern matching capabilities
+<br>
 
 ---
 
-## Smart UI & Navigation
+## Bento Start
 
-### visionOS-Inspired Design
+> A start screen made of moments.
 
-Modern, clean interface inspired by Apple's visionOS:
+<details>
+<summary><b>Four configurable slots.</b></summary>
 
-- **Glassmorphism Effects** - Translucent backgrounds with blur
-- **Depth & Layering** - Visual hierarchy with shadows and elevation
-- **Smooth Animations** - Framer Motion-powered transitions
-- **Adaptive Theming** - Automatically uses active Home Assistant theme
+<br>
 
-### View Modes
+Hero widget (W1) for favorites or suggestions. Auto-sliding pane (W2) for weather, news, todos, and calendar. Two square slots (W3, W4) for tips and version history.
 
-Two display modes for different preferences:
+Configurable in Settings → Bento. Enable or disable the entire start screen with one toggle.
 
-#### Grid View
-- Card-based layout with entity tiles
-- Shows icon, name, and current state
-- Optimal for touch interfaces
-- Responsive grid (1-4 columns based on screen width)
+</details>
 
-#### List View
-- Compact row-based layout
-- Shows more entities at once
-- Better for large entity lists
-- Faster scanning for specific items
+<details>
+<summary><b>576-pixel hard lock.</b></summary>
 
-### Responsive Design
+<br>
 
-Optimized for all screen sizes:
+Desktop layout fixed at exactly 576px height. ResizeObserver-driven `--w34-row-height` keeps W3/W4 square at any width. Containment lives on the widget, not the grid — hover-scale renders cleanly without clipping.
 
-- **Mobile** (< 600px) - Single column, touch-optimized controls
-- **Tablet** (600-960px) - Dual column layout
-- **Desktop** (> 960px) - Multi-column with expanded controls
-- **Dynamic Sizing** - Controls scale based on available space
+</details>
 
-### Animated Icons
+<details>
+<summary><b>Live rich widgets.</b></summary>
 
-Over 100 custom animated SVG icons:
+<br>
 
-- **State-aware** - Different animations for On/Off states
-- **Domain-specific** - Unique icons for lights, fans, locks, covers, etc.
-- **Smooth Transitions** - Animated state changes
-- **Custom Designs** - Washing machines, dishwashers, HVAC, solar panels, etc.
+- **Weather.** Real-time temperature. Hourly forecast strip.
+- **News.** Five articles, Apple-style layout. Read/unread tabs. Top-fade mask.
+- **Todos.** Overdue in red. Combined status + list filters.
+- **Calendar.** Next event as hero, four follow-ups. Click opens the event detail.
+- **Versions.** Latest release as hero.
+- **Tips.** Rotates every five seconds.
 
-### Gesture Support
+</details>
 
-Intuitive touch and mouse interactions:
+<details>
+<summary><b>Track architecture slider.</b></summary>
 
-- **Tap** - Quick actions
-- **Drag** - Circular slider interaction
-- **Swipe** - Close detail views (mobile)
-- **Hover** - Show additional controls (desktop)
+<br>
 
----
+All items mounted permanently. No AnimatePresence remount loss. Apple-color gradients per domain. Position survives unmount/remount via module-level state. Drag from anywhere — footer included.
 
-## Detail View & Tabs
+</details>
 
-When you select an entity, the card expands to show detailed information and controls in a tabbed interface.
+<details>
+<summary><b>Mobile layout.</b></summary>
 
-### Context Tab
+<br>
 
-Shows related automations, scripts, and scenes:
+Vertical stack. Each widget 50vh. Bottom safe-area (110px) so the dock never overlaps. CustomScrollbar permanently visible on touch — detected via `(hover: hover)` matchMedia.
 
-**Features:**
-- Lists all automations that reference this entity
-- Shows associated scripts
-- Displays related scenes
-- One-tap execution for scripts and scenes
-- Visual state indicators
+</details>
 
-**File:** `src/components/tabs/ContextTab.jsx` (285 lines)
-
-### Universal Controls Tab
-
-Interactive controls tailored to each device type:
-
-**Supported Domains:**
-- **Light** - Brightness, color, color temperature
-- **Climate** - Temperature, HVAC mode, fan mode, preset
-- **Cover** - Position control, open/close/stop
-- **Fan** - Speed control, oscillation, direction
-- **Media Player** - Volume, source selection
-- **Switch** - On/Off toggle
-- **Lock** - Lock/Unlock
-- **Vacuum** - Start, pause, return to dock
-
-**Features:**
-- Circular slider for analog controls (brightness, temperature, position)
-- Toggle switches for binary controls
-- Mode selectors for multi-state entities
-- Real-time state feedback
-- Domain-specific icons and colors
-
-**File:** `src/components/tabs/UniversalControlsTab.jsx` (331 lines)
-
-### Schedule Tab
-
-Built-in scheduler with iOS-style picker interface:
-
-**Features:**
-- Create time-based automations without writing YAML
-- Visual time picker with smooth scrolling
-- Weekday selection for recurring schedules
-- One-time and repeating schedule options
-- Domain-specific action configuration
-- Integration with `nielsfaber/scheduler-component`
-
-**See:** [Scheduler Integration](#scheduler-integration) for detailed information
-
-**File:** `src/components/tabs/ScheduleTab.jsx` (596 lines)
-
-### History Tab
-
-Visual history display with charts and analytics:
-
-**Features:**
-- Interactive timeline charts (Chart.js)
-- Configurable time ranges (1h - 30 days)
-- State change events with timestamps
-- Time-of-day analysis (Morning, Day, Evening, Night)
-- Event statistics and summaries
-- Text event filtering
-
-**See:** [History & Analytics](#history--analytics) for detailed information
-
-**File:** `src/components/tabs/HistoryTab.jsx` (416 lines)
-
-### Settings Tab
-
-In-card configuration interface:
-
-**General Settings:**
-- Language selection (10+ languages)
-- View mode toggle (Grid/List)
-- Card height configuration
-
-**Privacy & Filtering:**
-- Excluded entity patterns
-- Live preview of filtered entities
-- Template library
-- Import/Export configurations
-
-**About:**
-- Version information
-- Build details
-- Links to documentation
+<br>
 
 ---
 
-## Universal Controls
+## Search
 
-### Domain-Specific Controls
+> Fuzzy. Fast. Forgiving.
 
-Each device type has tailored controls optimized for its functionality:
+<details>
+<summary><b>Fuse.js, refined.</b></summary>
 
-#### Light Controls
-- **Brightness** - Circular slider (0-100%)
-- **Color Picker** - RGB color wheel (for RGB lights)
-- **Color Temperature** - Warm to cool (for white lights)
-- **Power Toggle** - On/Off with value restoration
-- **Effects** - Light effect selection (if supported)
+<br>
 
-#### Climate Controls
-- **Temperature** - Circular slider with temperature color coding
-- **HVAC Mode** - Heat, Cool, Auto, Off, Heat/Cool
-- **Fan Mode** - Auto, Low, Medium, High
-- **Preset Mode** - Home, Away, Sleep, Eco
-- **Current State** - Real-time temperature display
+Typo-tolerant. Partial matching. Persistent collection — no re-index per query. LRU cache for repeat queries. Real results in under 30 milliseconds.
 
-#### Cover Controls
-- **Position** - Circular slider (0-100%)
-- **Quick Actions** - Open, Close, Stop buttons
-- **Tilt Position** - For blinds with tilt capability
-- **State Display** - Opening, Closing, Open, Closed
+</details>
 
-#### Fan Controls
-- **Speed** - Percentage-based circular slider
-- **Preset Modes** - Low, Medium, High presets
-- **Oscillation** - Toggle on/off
-- **Direction** - Forward/Reverse
+<details>
+<summary><b>Intent parser.</b></summary>
 
-### Control Components
+<br>
 
-**File Structure:**
+Multi-word queries get parsed. "Living room light" becomes `{ area: living-room, domain: light }`. Pre-filters before Fuse — 90% smaller search space.
+
+Score = Fuse × 0.7 + Relevance × 0.3 + Prefix bonus. Fifteen domain-synonym groups, DE and EN.
+
+</details>
+
+<details>
+<summary><b>V4 Chip Input.</b></summary>
+
+<br>
+
+Type a room name. See a ghost. Hit Tab. Get a chip.
+
+| Type | Ghost | Result |
+|---|---|---|
+| `Kit` | `chen` 🏠 | Blue area chip |
+| `lam` | `Lampe` 💡 | Purple domain chip |
+| `Temp` | `eratur` 🌡 | Green sensor chip |
+
+Combine area and domain. iOS-style delete (tap selects, second tap removes). Dedicated confirm button on mobile.
+
+</details>
+
+<details>
+<summary><b>Predictive suggestions.</b></summary>
+
+<br>
+
+Learns your patterns. Exponential decay (slow/normal/fast, half-life configurable). Cold-start bootstrap from click one. Negative learning — ignored suggestions lose confidence.
+
+Reset anytime from Settings.
+
+</details>
+
+<details>
+<summary><b>Excluded patterns.</b></summary>
+
+<br>
+
+Wildcards. Live preview. Template library. Import and export as JSON.
+
+</details>
+
+<details>
+<summary><b>Area sensors in headers.</b></summary>
+
+<br>
+
+Got a temperature sensor assigned to a room? It appears next to the room name.
+
 ```
-src/components/controls/
-├── CircularSlider.jsx         # Main circular control (525 lines)
-├── CircularSliderDisplay.jsx  # Value display (202 lines)
-├── PowerToggle.jsx            # Power switch (153 lines)
-├── DeviceCardControls.jsx     # Card action buttons
-└── DomainControls.jsx         # Domain-specific controls
+Bedroom                                  🌡 21.5°C   💧 48%
 ```
+
+</details>
+
+<br>
 
 ---
 
-## Circular Slider System
+## Detail View
 
-The circular slider is the centerpiece of the control interface, providing smooth, intuitive interaction with analog controls.
+> Everything about everything.
 
-### Core Features
+<details>
+<summary><b>Five tabs per device.</b></summary>
 
-#### Physics-Based Animations
-- **Spring Animations** - Natural, bouncy motion using Framer Motion
-- **Smooth Drag** - 60 FPS interaction with GPU acceleration
-- **Value Counting** - Animated number transitions on mount
-- **Motion Transforms** - Real-time angle-to-value calculations
+<br>
 
-#### Visual Feedback
-- **Progress Arc** - Animated stroke-dashoffset visualization
-- **Drag Handle** - Visual indicator with hover/drag states
-- **Color Coding** - Temperature-based gradients for climate entities
-- **State Indicators** - Visual feedback for power on/off
+Controls. Context. History. Schedule. Settings.
 
-#### Interaction Modes
-- **Slider Mode** (Default) - Interactive drag control
-- **Progress Mode** - Read-only progress visualization
-- **Power Toggle Mode** - Integrated on/off switch with value restoration
+Action buttons replace tabs for system entities. Layout decided per-domain by `deviceConfigs.js` — over 100 configurations.
 
-### Architecture
+</details>
 
-The circular slider has been refactored into a modular, maintainable architecture:
+<details>
+<summary><b>Controls.</b></summary>
 
-#### Main Component
-**File:** `src/components/controls/CircularSlider.jsx` (525 lines)
+<br>
 
-**Responsibilities:**
-- Component orchestration
-- Prop management
-- Rendering arc, handle, and display
-- Effect coordination
+Circular sliders for lights, climate, covers. Spring-animated. Touch and mouse drag. Temperature gradients from cold to warm. Power toggle restores last value.
 
-**Key Props:**
-```javascript
-{
-  value: 0-100,           // Current value
-  min: 0,                 // Minimum value
-  max: 100,               // Maximum value
-  step: 1,                // Value increment
-  label: "Brightness",    // Display label
-  unit: "%",              // Unit symbol
-  color: "#FFD700",       // Primary color
-  domain: "climate",      // Optional domain for special features
-  showPower: false,       // Show power toggle
-  powerState: false,      // Power on/off state
-  onValueChange: fn,      // Value change callback
-  onPowerToggle: fn       // Power toggle callback
-}
-```
+Domain-specific UIs for media players, fans, locks, vacuums, solar inverters, and ninety more.
 
-#### Display Component
-**File:** `src/components/controls/CircularSliderDisplay.jsx` (202 lines)
+</details>
 
-**Features:**
-- Animated value display with motion values
-- Optional sub-value display
-- Unit display with positioning
-- Label display
-- Horizontal scrolling for long text
-- Responsive font sizing
+<details>
+<summary><b>Context.</b></summary>
 
-#### Power Toggle Component
-**File:** `src/components/controls/PowerToggle.jsx` (153 lines)
+<br>
 
-**Features:**
-- Reusable toggle switch
-- Animated transitions
-- Responsive sizing based on slider size
-- Disabled state support
-- Pointer events management
+Related scenes, scripts, and automations for this device. Smart relevance sorting. One-tap execution with toast feedback.
 
-### Custom Hooks
+</details>
 
-The slider logic is organized into three specialized hooks:
+<details>
+<summary><b>History.</b></summary>
 
-#### useSliderAnimation
-**File:** `src/hooks/useSliderAnimation.js` (73 lines)
+<br>
 
-**Purpose:** Manages spring animations and value transitions
+Chart.js graphs. 24-hour, 7-day, 30-day timeframes. Time-of-day analysis. State-duration bars. Statistics — change count, average duration, active time.
 
-**Returns:**
-```javascript
-{
-  currentValue,        // Current slider value (state)
-  setCurrentValue,     // State setter
-  springValue,         // Framer Motion spring value
-  countingValue,       // Animated counting spring
-  handleAngle,         // Transformed angle for handle position
-  hasAnimated         // Flag for initial animation
-}
-```
+</details>
 
-**Animation Configuration:**
-- **Spring Stiffness:** 280 - Fast, responsive motion
-- **Damping:** 28 - Controlled bounce
-- **Mass:** 0.8 - Light, quick response
-- **Rest Delta:** 0.001 - High precision
-- **Counting Animation:** Separate spring for number counting on mount
+<details>
+<summary><b>Schedule.</b></summary>
 
-#### useCircularDrag
-**File:** `src/hooks/useCircularDrag.js` (139 lines)
+<br>
 
-**Purpose:** Handles mouse and touch drag interactions
+Built-in scheduler with `nielsfaber/scheduler-component` integration. Apple-style wheel pickers for date and time. Day-of-week chips. Inline editing — no submenu.
 
-**Features:**
-- SVG coordinate transformation
-- ViewBox scaling calculations
-- Angle-to-value conversion
-- Value clamping and stepping
-- Auto-power-on when dragging
-- Global event listeners during drag
-- Touch and mouse event support
-- Prevent scroll during touch drag
+</details>
 
-**Returns:**
-```javascript
-{
-  isDragging,          // Current drag state
-  handleMouseDown,     // Mouse event handler
-  handleTouchStart     // Touch event handler
-}
-```
+<details>
+<summary><b>Settings.</b></summary>
 
-**Interaction Flow:**
-1. User clicks/touches slider
-2. Calculate SVG coordinates relative to center
-3. Convert coordinates to angle (Math.atan2)
-4. Convert angle to value
-5. Apply stepping and clamping
-6. Update spring value for smooth animation
-7. Trigger callbacks
+<br>
 
-#### usePowerState
-**File:** `src/hooks/usePowerState.js` (48 lines)
+Per-device configuration. Bambu Lab printer setup. Energy dashboard sensor wizard. Whatever the entity needs.
 
-**Purpose:** Manages power toggle with value restoration
+</details>
 
-**Features:**
-- Local power state management
-- Last value memory
-- Restore previous value on power-on
-- Reset to 0 on power-off
-- Integration with slider animation values
+<details>
+<summary><b>Video backgrounds.</b></summary>
 
-**Returns:**
-```javascript
-{
-  localPowerState,      // Current power state
-  setLocalPowerState,   // State setter
-  lastSliderValue,      // Last non-zero value
-  setLastSliderValue,   // Setter for last value
-  handlePowerToggle     // Toggle handler
-}
-```
+<br>
 
-**Power Toggle Behavior:**
-- **Power Off:** Slider animates to 0, value is saved
-- **Power On:** Slider restores saved value with spring animation
-- **Default Value:** 50% if no previous value exists
-- **Brightness Mode:** Auto-resets to 0 when parent entity turns off
+Drop a video at `video/{domain}/{state}.mp4` and the detail view picks it up automatically.
 
-### Utility Functions
+</details>
 
-Pure functions for slider calculations:
-
-#### circularSliderGeometry.js
-**File:** `src/utils/circularSliderGeometry.js` (41 lines)
-
-**Constants:**
-```javascript
-VIEW_BOX_SIZE = 200    // SVG viewBox dimensions
-RADIUS = 70            // Circle radius
-CENTER_X = 100         // Center X coordinate
-CENTER_Y = 100         // Center Y coordinate
-CIRCUMFERENCE = 439.8  // 2 * PI * RADIUS
-```
-
-**Functions:**
-- `calculateResponsiveSize()` - Returns optimal slider size based on screen width
-
-#### circularSliderTransforms.js
-**File:** `src/utils/circularSliderTransforms.js` (46 lines)
-
-**Functions:**
-```javascript
-valueToAngle(value, min, max)
-// Converts value (0-100) to angle (-90° to 270°)
-// -90° = top of circle (start position)
-
-angleToValue(angle, min, max)
-// Converts angle to value with range normalization
-
-getProgressOffset(currentValue, min, max, circumference)
-// Calculates stroke-dashoffset for progress mode
-```
-
-#### temperatureColors.js
-**File:** `src/utils/temperatureColors.js` (29 lines)
-
-**Purpose:** Temperature-based color mapping for climate domain
-
-**Color Gradient:**
-- **< 16°C:** Blue (#0288D1) - Cold
-- **16-18°C:** Light Blue (#03A9F4)
-- **18-20°C:** Cyan (#00BCD4)
-- **20-22°C:** Green (#4CAF50) - Comfortable
-- **22-24°C:** Light Green (#8BC34A)
-- **24-26°C:** Yellow Green (#CDDC39)
-- **26-28°C:** Orange (#FF9800)
-- **> 28°C:** Red (#F44336) - Hot
-
-**Function:**
-```javascript
-getTemperatureColor(temperature, unit)
-// Supports both Celsius and Fahrenheit
-// Automatic conversion for °F
-// Smooth color transitions
-```
-
-### Special Features
-
-#### Temperature Color Coding
-When `domain="climate"` and `unit="°C"` or `unit="°F"`:
-- Slider color dynamically changes based on temperature
-- Smooth color transitions (0.3s ease)
-- Visual feedback for temperature ranges
-
-#### Responsive Sizing
-Slider automatically adjusts size based on screen width:
-- **< 600px:** 200px diameter (mobile)
-- **600-960px:** 240px diameter (tablet)
-- **> 960px:** 280px diameter (desktop)
-- Manual size override available via `size` prop
-
-#### Accessibility
-- **Reduced Motion Support** - Respects `prefers-reduced-motion` setting
-- **Keyboard Navigation** - Future enhancement planned
-- **Screen Reader Support** - ARIA labels for controls
-- **High Contrast** - Clear visual indicators
+<br>
 
 ---
 
-## Scheduler Integration
+## System Entities
 
-Full-featured scheduling system integrated with Home Assistant's `nielsfaber/scheduler-component`.
+> Apps that live next to your devices.
 
-### Features
+<details>
+<summary><b>Calendar.</b> Apple Calendar, in Home Assistant.</summary>
 
-#### Time-Based Scheduling
-- **Visual Time Picker** - iOS-style scrolling picker
-- **Hour Selection** - 00-23 hours
-- **Minute Selection** - 00-59 minutes (5-minute increments)
-- **One-time Schedules** - Execute once at specified time
-- **Recurring Schedules** - Repeat on selected weekdays
+<br>
 
-#### Weekday Selection
-- **Visual Weekday Picker** - Monday-Sunday buttons
-- **Multi-Select** - Choose multiple days
-- **All Days Toggle** - Quick select/deselect all
-- **Visual Feedback** - Selected days highlighted
+Day, Week, Month, Year views. Native HA WebSocket integration — `calendar/event/create`, `update`, `delete`. Five recurrence presets in Apple style. Quick chips for common titles. Location and description as sub-views. Two-step delete confirmation.
 
-#### Domain-Specific Actions
+Bento integration: next event as hero, four follow-ups.
 
-##### Climate Schedules
-- **HVAC Mode Selection** - Heat, Cool, Auto, Off, Heat/Cool
-- **Temperature Setting** - Desired temperature value
-- **Combined Actions** - Set mode and temperature together
-- **Mode Labels** - Localized HVAC mode names
+</details>
 
-##### Cover Schedules
-- **Position Control** - Set exact position (0-100%)
-- **Quick Actions** - Open, Close, Stop
-- **Action Selection** - Open, Close, or Set Position
+<details>
+<summary><b>Todos.</b> Reminders, reborn.</summary>
 
-##### Standard Entity Schedules
-- **Turn On/Off** - Simple on/off schedules
-- **State Verification** - Shows current entity state
+<br>
 
-#### Timer Naming
+Aggregates every HA `todo.*` backend. Overdue items in red. Apple wheel pickers for due dates. Multi-list filters that actually combine.
 
-Automatic generation of descriptive timer names:
+</details>
 
-**Format Examples:**
-- `Bedroom Light / Turn On`
-- `Living Room Thermostat / Heat / 22°C`
-- `Bedroom Blinds / Position 50%`
+<details>
+<summary><b>News.</b> Reader bundled in.</summary>
 
-**File:** `src/utils/timerNameGenerators.js` (35 lines)
+<br>
 
-#### Edit Mode
+RSS-aware. Renders images other readers miss — `content:encoded` images included. Mark-as-read. Unread badge. Refreshes on focus and visibility change.
 
-Edit existing schedules:
-- Load existing timer configuration
-- Pre-fill all fields (time, weekdays, action)
-- Update existing schedule
-- Delete schedule option
+Companion HACS package: `fast-news-reader`.
 
-#### User Interface Components
+</details>
 
-**AddScheduleButton.jsx** (27 lines)
-- Animated add button with icon
-- Hover effects
-- Disabled state support
+<details>
+<summary><b>Versionsverlauf.</b> Release notes inside the card.</summary>
 
-**ScheduleActionButtons.jsx** (57 lines)
-- Cancel button - Closes picker
-- Confirm button - Saves schedule
-- Validation feedback
-- Disabled states when form incomplete
+<br>
 
-**SchedulePickerTable.jsx** (188 lines)
-- Complete picker interface
-- Time selection rows
-- Weekday selection
-- Action configuration
-- Domain-specific controls
-- Integrated validation
+Parses `versionsverlauf.md`. Live current version. Filter by tag and date. Markdown rendering. Deep-link from the Bento tile.
 
-### Service Actions
+</details>
 
-**File:** `src/utils/serviceActionBuilders.js` (40 lines)
+<details>
+<summary><b>Tipps.</b> Lessons from the codebase.</summary>
 
-**Functions:**
-```javascript
-createServiceAction(item, actionValue, climateSettings, coverPosition, t)
-// Builds Home Assistant service call objects
+<br>
 
-// Climate Example:
-{
-  service: "climate.set_temperature",
-  entity_id: "climate.living_room",
-  service_data: {
-    temperature: 22,
-    hvac_mode: "heat"
-  }
-}
+Reads `lessons/*.md`. Random rotation in Bento every five seconds. Tag-based categorization. Detail view with markdown.
 
-// Cover Example:
-{
-  service: "cover.set_cover_position",
-  entity_id: "cover.bedroom_blinds",
-  service_data: { position: 50 }
-}
+</details>
 
-// Standard Example:
-{
-  service: "light.turn_on",
-  entity_id: "light.bedroom"
-}
-```
+<details>
+<summary><b>All Schedules.</b> Every timer in one place.</summary>
 
-### Edit State Management
+<br>
 
-**File:** `src/utils/editStateLoaders.js` (86 lines)
+Cross-device overview. Filter by timer or schedule. Domain badges. Click navigates to the device.
 
-**Functions:**
-- `loadCoverEditState(timer)` - Parse cover timer configuration
-- `loadClimateEditState(timer)` - Parse climate timer with HVAC mode
-- `loadStandardEditState(timer)` - Parse on/off timer
-- `loadTimerState(timer)` - Load timer details (time, weekdays, enabled)
-- `loadScheduleState(timer)` - Complete schedule state loader
+</details>
 
-### Integration Requirements
+<details>
+<summary><b>Settings.</b> Five tabs of configuration.</summary>
 
-Requires `nielsfaber/scheduler-component` to be installed:
+<br>
 
-```yaml
-# configuration.yaml
-scheduler:
-  # Component configuration
-```
+- **General.** Language, view mode, Bento toggle, suggestion learning rate.
+- **Appearance.** Background filters, squircle cards, grid columns, splashscreen style.
+- **StatsBar.** Nine widget toggles. Greetings customization.
+- **Excluded patterns.** Wildcard editor with live preview.
+- **About.** Version, build info, links.
 
-The card automatically detects the scheduler component and enables the Schedule tab if available.
+</details>
+
+<details>
+<summary><b>Integration.</b> A sub-framework for complex devices.</summary>
+
+<br>
+
+- **Energy Dashboard.** Multi-schema support. Real-time charts. Sensor setup wizard.
+- **3D Printer (Bambu Lab).** Print status. Filament tracking. Diagnostics.
+- **Weather.** Hourly and daily forecasts via `weather.get_forecasts`.
+- **Universal.** Fallback for any unrecognized device.
+
+</details>
+
+<br>
 
 ---
 
-## History & Analytics
+## Music Assistant
 
-Visual history display with interactive charts and time-based analysis.
+> Your queue, your way.
 
-### Time Range Selection
+<details>
+<summary><b>One panel, every source.</b></summary>
 
-Configurable time ranges for history queries:
+<br>
 
-- **1 Hour** - Last hour with minute precision
-- **3 Hours** - Last 3 hours
-- **6 Hours** - Last 6 hours
-- **12 Hours** - Last 12 hours
-- **24 Hours** - Last 24 hours (default)
-- **7 Days** - Last week with day precision
-- **30 Days** - Last month with day precision
+Search libraries. Browse the queue. Switch between MA and direct media-player. Volume on a liquid-glass slider. Now playing as the background.
 
-**Visual Selector:** Segmented control with active state highlighting
+Multi-shape response handling — works across MA versions.
 
-### History Display
+</details>
 
-#### Timeline Chart
-- **Chart.js Integration** - High-performance canvas rendering
-- **State Changes** - Visual representation of entity states over time
-- **Interactive Tooltips** - Hover for detailed information
-- **Zoom & Pan** - Explore history in detail (if enabled)
-- **Color Coding** - Different colors for different states
+<details>
+<summary><b>TTS, multilingual.</b></summary>
 
-#### Event List
-- **Chronological Order** - Most recent first
-- **State Changes** - Old state → New state
-- **Timestamps** - Formatted based on time range
-- **Event Details** - Full state object inspection
+<br>
 
-### Time-of-Day Analysis
+Multi-engine fallback. Language picker. Speak in any voice your HA install supports.
 
-Categorizes events into four time periods:
+</details>
 
-**Categories:**
-- **Morning** (06:00 - 12:00)
-- **Day** (12:00 - 18:00)
-- **Evening** (18:00 - 22:00)
-- **Night** (22:00 - 06:00)
-
-**Display:**
-- Expandable accordion sections
-- Event count per category
-- Detailed event lists within each category
-- Smooth expand/collapse animations
-
-**File:** `src/utils/historyDataProcessors.js` (39 lines)
-
-**Function:**
-```javascript
-generateCategoryData(history)
-// Processes history array into time-of-day categories
-// Returns object with morning, day, evening, night arrays
-```
-
-### Accordion Animations
-
-**File:** `src/utils/animations/accordionAnimations.js` (65 lines)
-
-**Variants:**
-```javascript
-accordionVariants = {
-  collapsed: {
-    height: 0,
-    opacity: 0,
-    transition: { height: 0.4s, opacity: 0.3s }
-  },
-  expanded: {
-    height: "auto",
-    opacity: 1,
-    transition: { height: 0.4s, opacity: 0.3s + 0.1s delay }
-  }
-}
-```
-
-**Animation Features:**
-- Smooth height animation with custom easing
-- Opacity fade-in/out
-- Staggered content reveal
-- GPU acceleration
-
-### Time Formatting
-
-**File:** `src/utils/timeFormatters.js` (44 lines)
-
-**Functions:**
-```javascript
-formatTime(timestamp, timeRange)
-// Returns formatted time string based on range
-// ≤24h: "14:30" (time only)
-// >24h: "28.10 14:30" (date + time)
-
-formatDuration(minutes)
-// Returns human-readable duration
-// Examples: "5 min", "2h 30min", "3d 5h"
-
-getHoursFromTimeframe(timeRange)
-// Converts time range string to hours
-// "24h" → 24, "7d" → 168
-```
-
-### Statistics Display
-
-Optional statistics section showing:
-- Total events in time range
-- Most common states
-- Average duration per state
-- State change frequency
-
-### Text Event Filtering
-
-Filter history to show only text-based events:
-- Excludes numeric state changes
-- Shows meaningful state transitions
-- Reduces noise in history
-
-### Styling
-
-**File:** `src/components/tabs/HistoryTab.css` (255 lines)
-
-**Sections:**
-- Container styles
-- Time range selector
-- Accordion sections
-- Chart container
-- Loading states
-- Event list
-- Stats grid
-- Responsive breakpoints
-
-**Performance Benefits:**
-- Separate CSS file enables browser caching
-- Reduces inline style overhead
-- Easier maintenance and theming
+<br>
 
 ---
 
-## System Entities & Plugins
+## Sidebar
 
-Modular system entities that provide core functionality and extensibility.
+> A dock for your apps.
 
-### System Entities
+<details>
+<summary><b>Liquid-glass pill.</b></summary>
 
-Special entities that appear in search results and provide system-level features:
+<br>
 
-#### Settings Entity
-- **Icon:** Gear/Settings icon
-- **Function:** Opens in-card settings interface
-- **Access:** Search for "Settings" or "Einstellungen"
+Left side on desktop. Bottom on mobile. Apple-style hover morphing — liquid-glass deblur with framer-motion spring. Label stagger on expand.
 
-#### Marketplace Entity
-- **Icon:** Store/Marketplace icon
-- **Function:** Plugin store interface (In Development)
-- **Access:** Search for "Marketplace"
+</details>
 
-#### Schedule Viewer Entity
-- **Icon:** Calendar icon
-- **Function:** View all schedules across all entities
-- **Access:** Search for "Schedule" or "Zeitplan"
+<details>
+<summary><b>Customizable.</b></summary>
 
-### Plugin Framework (In Development)
+<br>
 
-Extensible plugin system for custom functionality:
+Choose which system entities appear. Home as a virtual default item. Overflow popup when there are more items than the dock can show.
 
-#### Plugin Architecture
-- **Modular Design** - Each plugin is a self-contained module
-- **Dynamic Loading** - Plugins loaded at runtime
-- **API Access** - Full access to Home Assistant API
-- **UI Integration** - Plugins can add tabs, controls, and entities
+Language-aware labels — German and English, with more to come.
 
-#### Plugin Sources
-- **Local Files** - Load from `/config/www/plugins/`
-- **GitHub** - Direct installation from GitHub repositories
-- **URLs** - Load from any HTTPS URL
-- **HACS Integration** - Future integration with HACS
+</details>
 
-#### Plugin Store
-- **Browse Plugins** - Discover available plugins
-- **Install/Uninstall** - One-click plugin management
-- **Update Management** - Check for and install updates
-- **Plugin Settings** - Per-plugin configuration
-
-#### Plugin Types
-- **Entity Plugins** - Add new device type support
-- **Tab Plugins** - Add new tabs to detail view
-- **Control Plugins** - Custom control interfaces
-- **Service Plugins** - Background services and automations
-
-### AI Mode (Experimental)
-
-Natural language control interface:
-
-**Features:**
-- Chat-based interaction
-- Entity control via text commands
-- State queries
-- Automation suggestions
-
-**Current Status:** Simulated responses (no real AI integration yet)
-
-**Planned Integration:**
-- OpenAI GPT
-- Local LLM support (Ollama, LM Studio)
-- Home Assistant Conversation integration
+<br>
 
 ---
 
-## Performance & Optimization
+## Design
 
-Multiple optimization strategies ensure fast, smooth operation:
+> visionOS, distilled.
 
-### Caching & Storage
+<details>
+<summary><b>Glassmorphism.</b></summary>
 
-#### IndexedDB Caching
-- **Entity Cache** - All entities stored locally
-- **Favorites** - Persistent favorite entity list
-- **Recent Items** - Recently accessed entities
-- **Settings** - User preferences and configurations
-- **Offline Support** - Basic functionality without network
+<br>
 
-**Benefits:**
-- Initial load: < 1s after first visit
-- Reduced API calls
-- Instant search results
-- Works offline
+Real `backdrop-filter`. Five user-customizable filters: brightness, blur, contrast, saturation, grayscale. All persistent across sessions.
 
-#### Service Layer
-**Files:**
-- `src/services/entityService.js` - Entity management
-- `src/services/storageService.js` - IndexedDB operations
-- `src/services/haService.js` - Home Assistant API
+</details>
 
-### Animation Performance
+<details>
+<summary><b>Apple Hello splashscreen.</b></summary>
 
-#### GPU Acceleration
-All animations use GPU-accelerated properties:
-- `transform` - Never use `left/top`
-- `opacity` - Smooth fading
-- `translateZ(0)` - Force GPU layer
-- `backfaceVisibility: hidden` - Prevent flicker
+<br>
 
-#### Framer Motion Optimization
-- **Spring Physics** - Natural, efficient animations
-- **Motion Values** - Direct DOM manipulation
-- **useTransform** - Derived values without re-renders
-- **AnimatePresence** - Smooth mount/unmount
+The actual macOS Sonoma "hello" handwriting, extracted as SVG paths. Two strokes. A pause between them, like a real pen lift. Three options: None, Progress, Apple Hello.
 
-### Build Optimization
+</details>
 
-#### Vite Configuration
-- **Code Splitting** - Separate vendor bundles
-- **Tree Shaking** - Remove unused code
-- **Minification** - Terser for JS, cssnano for CSS
-- **Asset Optimization** - Image and SVG compression
+<details>
+<summary><b>Apple Reveal.</b></summary>
 
-**Build Output:**
-- Main bundle: ~500KB (minified)
-- Gzip size: ~246KB
-- Build time: ~2s
+<br>
 
-### Render Optimization
+After the splash, the UI fades in. Blur to clear. Scale up. Subtle Y-translate. Spring physics. Cross-fades with the splash for a seamless handoff.
 
-#### Component Structure
-- **Functional Components** - Fast rendering
-- **Hooks** - Efficient state management
-- **Memo/useMemo** - Prevent unnecessary renders
-- **useCallback** - Stable function references
+</details>
 
-#### Virtual Scrolling
-For long entity lists:
-- Only render visible items
-- Recycle DOM elements
-- Smooth scrolling performance
+<details>
+<summary><b>Custom scrollbars.</b></summary>
 
-### CSS Performance
+<br>
 
-#### Extracted Stylesheets
-- **Separate CSS Files** - Better caching
-- **No Inline Styles** - Reduced HTML size
-- **CSS Modules** - Scoped styles without overhead
+Minimalist iOS-style. Fixed 80px track with proportional thumb. Fades in on scroll. Always visible on touch. Reacts to async-loaded content via MutationObserver.
 
-**Example:** HistoryTab.css (255 lines) extracted from inline styles
+</details>
 
-#### CSS Best Practices
-- Avoid expensive properties (box-shadow on scroll elements)
-- Use `transform` instead of position changes
-- Minimize repaints with `will-change`
-- Efficient selectors (no deep nesting)
+<details>
+<summary><b>Squircle cards.</b></summary>
 
-### Network Optimization
+<br>
 
-#### Debouncing
-- Search input debounced (300ms)
-- Slider value updates debounced (100ms)
-- Prevents excessive API calls
+True Apple-squircle shape via CSS clip-path. Four styles: none, soft, standard, strong.
 
-#### Request Batching
-- Group multiple state queries
-- Single WebSocket connection
-- Efficient event subscriptions
+</details>
 
-### Memory Management
+<details>
+<summary><b>Animated device icons.</b></summary>
 
-#### Cleanup
-- Event listeners removed on unmount
-- Animation frames cancelled
-- WebSocket subscriptions closed
-- IndexedDB connections managed
+<br>
 
-#### Efficient Data Structures
-- Map/Set for lookups instead of arrays
-- Normalized state shape
-- Memoized computed values
+Over 100 hand-drawn SVGs with on/off states. Washing machines spin. Locks rotate. Motion sensors pulse once and fade. GPU-disciplined — only eleven icons loop forever.
+
+</details>
+
+<br>
+
+---
+
+## AI Mode
+
+> Experimental.
+
+<details>
+<summary><b>Chat with your home.</b></summary>
+
+<br>
+
+Currently a mock backend. Real LLM integration via HA Conversation API is on the roadmap.
+
+See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md#1-echte-llm-conversation-statt-simulierte-ai) for the plan.
+
+</details>
+
+<br>
+
+---
+
+## Notifications
+
+> visionOS-style toasts.
+
+<details>
+<summary><b>Glass effect. Configurable.</b></summary>
+
+<br>
+
+Bottom-center positioning. Four types — success, error, warning, info. Auto-dismiss after three seconds. Manual close optional. Shadow-DOM compatible.
+
+Event-gated via settings.
+
+</details>
+
+<br>
+
+---
+
+## Performance
+
+> Boots in under a second.
+
+<details>
+<summary><b>Tier 1: Snappiness.</b></summary>
+
+<br>
+
+Animation durations cut by 25%. `touch-action: manipulation` everywhere. `:active { scale(0.97) }` for instant feedback. Search debounce dropped from 150ms to 50ms.
+
+</details>
+
+<details>
+<summary><b>Tier 2: CPU discipline.</b></summary>
+
+<br>
+
+rAF batching caps state updates at 60/sec. IndexedDB writes batched into a single transaction. `contain: paint` where safe. `will-change` only during interaction.
+
+</details>
+
+<details>
+<summary><b>Virtualization.</b></summary>
+
+<br>
+
+Powered by virtua. DOM nodes for large lists: 400+ → ~30. Scroll FPS on mobile: 30-50 → 55-60.
+
+</details>
+
+<details>
+<summary><b>Search cache.</b></summary>
+
+<br>
+
+LRU of 30 queries. Auto-invalidates on collection change. Rapid query switching is instant.
+
+</details>
+
+<details>
+<summary><b>Press feedback.</b></summary>
+
+<br>
+
+Pub/sub pending-action tracker. Only the affected card rerenders during a service call. Subtle blue shimmer pulse. No optimistic UI — no de-sync risk.
+
+</details>
+
+<details>
+<summary><b>Detail view prefetch.</b></summary>
+
+<br>
+
+`pointerEnter` on desktop warms the cache. `pointerDown` on mobile prefetches before the click registers. The detail view opens noticeably faster.
+
+</details>
+
+<details>
+<summary><b>Bundle.</b></summary>
+
+<br>
+
+390 KB gzipped. Dead-code elimination on `console.log`. SVG paths reduced to two decimal precision.
+
+</details>
+
+<br>
+
+---
+
+## Persistence
+
+> Three tiers.
+
+<details>
+<summary><b>localStorage.</b> Synchronous. Small. Fast.</summary>
+
+<br>
+
+User settings. Entity snapshot for instant first paint. Favorites. Slider positions.
+
+</details>
+
+<details>
+<summary><b>IndexedDB.</b> Async. Background. Comprehensive.</summary>
+
+<br>
+
+Full entity state and history. User patterns for predictions. Cached system-entity data. Batched writes.
+
+</details>
+
+<details>
+<summary><b>Memory cache.</b> LRU. Volatile.</summary>
+
+<br>
+
+Thirty search queries. Frequent lookups.
+
+</details>
+
+<br>
 
 ---
 
 ## Internationalization
 
-Multi-language support with 10+ languages:
+> Ten languages.
 
-### Supported Languages
+<details>
+<summary><b>Translations across the card.</b></summary>
 
-- **English (en)** - Default
-- **German (de)** - Deutsch
-- **Spanish (es)** - Español
-- **French (fr)** - Français
-- **Italian (it)** - Italiano
-- **Dutch (nl)** - Nederlands
-- **Polish (pl)** - Polski
-- **Portuguese (pt)** - Português
-- **Russian (ru)** - Русский
-- **Chinese (zh)** - 中文
+<br>
 
-### Translation System
+`translateUI('key.path')` with German fallback. Sidebar labels. System-entity names. History tab timeframes. Action button tooltips. All language-aware.
 
-#### Translation Files
-Structure: `src/i18n/[lang].json`
+Known gaps: Tipps content (DE-only), some HistoryTab sub-strings. See the roadmap.
 
-**Example Structure:**
-```json
-{
-  "search": "Search",
-  "devices": "Devices",
-  "sensors": "Sensors",
-  "turnOn": "Turn On",
-  "turnOff": "Turn Off",
-  "brightness": "Brightness",
-  "temperature": "Temperature",
-  "schedule": "Schedule",
-  "history": "History"
-}
-```
+</details>
 
-#### Translation Function
-```javascript
-const t = (key) => translations[language][key] || key
-```
-
-**Usage:**
-```javascript
-<button>{t('turnOn')}</button>
-// English: "Turn On"
-// German: "Einschalten"
-```
-
-### Language Selection
-
-**Location:** Settings Tab → General → Language
-
-**Features:**
-- Dropdown selector with all languages
-- Instant switching (no reload required)
-- Persistent preference (saved in IndexedDB)
-- Fallback to English for missing translations
-
-### Localized Features
-
-#### Time & Date Formatting
-Uses browser's `Intl` API for locale-aware formatting:
-
-```javascript
-date.toLocaleTimeString(locale, options)
-date.toLocaleDateString(locale, options)
-```
-
-**Examples:**
-- **en:** "2:30 PM", "10/28/2025"
-- **de:** "14:30", "28.10.2025"
-- **zh:** "下午2:30", "2025/10/28"
-
-#### Number Formatting
-- Decimal separators (`.` vs `,`)
-- Thousands separators
-- Currency formatting (if applicable)
-
-#### HVAC Mode Labels
-Climate control modes are fully localized:
-
-**File:** `src/utils/timerNameGenerators.js`
-
-**Example:**
-```javascript
-getHvacModeLabel(mode, lang)
-// mode: "heat", lang: "en" → "Heat"
-// mode: "heat", lang: "de" → "Heizen"
-// mode: "heat", lang: "fr" → "Chauffage"
-```
-
-#### Relative Time
-- "Just now" / "Gerade eben" / "À l'instant"
-- "5 minutes ago" / "vor 5 Minuten" / "il y a 5 minutes"
-- "Yesterday" / "Gestern" / "Hier"
+<br>
 
 ---
 
-## Advanced Features
+## Plugin Framework
 
-### Responsive Circular Slider
+> Build your own.
 
-The circular slider automatically adjusts based on screen size:
+<details>
+<summary><b>SystemEntity base class.</b></summary>
 
-**Breakpoints:**
-```javascript
-calculateResponsiveSize() {
-  const width = window.innerWidth;
-  if (width < 600) return 200;      // Mobile
-  if (width < 960) return 240;      // Tablet
-  return 280;                       // Desktop
-}
-```
+<br>
 
-**Layout Animation:**
-- Smooth size transitions when resizing
-- Spring animation (stiffness: 300, damping: 30)
-- No layout shift or jank
+Abstract base for all built-in apps and plugins. Lifecycle hooks. Singleton-shared hass retry. Custom view component. Action buttons. Brand color. Permissions.
 
-### Temperature Color Gradients
+</details>
 
-For climate entities, the slider color dynamically changes:
+<details>
+<summary><b>SystemEntityRegistry.</b></summary>
 
-**Implementation:**
-```javascript
-useEffect(() => {
-  if (domain === 'climate' && (unit === '°C' || unit === '°F')) {
-    const newColor = getTemperatureColor(currentValue, unit);
-    setDynamicColor(newColor);
-  }
-}, [currentValue, domain, unit]);
-```
+<br>
 
-**Visual Effect:**
-- Smooth color transitions (0.3s)
-- Real-time feedback as you drag
-- Celsius/Fahrenheit support
+Singleton. Auto-discovery. Lookup by ID, domain, or category. Event system. HA-entity-shape adapter so apps appear in search.
 
-### Power State Restoration
+</details>
 
-When turning a device back on, it remembers the last value:
+<details>
+<summary><b>ViewRefContext.</b></summary>
 
-**Example:**
-1. User sets brightness to 75%
-2. User turns light off (brightness → 0%)
-3. User turns light on → brightness restores to 75%
+<br>
 
-**Implementation:** `usePowerState` hook stores last non-zero value
+Toolbar handlers without `window` globals. Views register via `useRegisterViewRef`. Detail view reads via `useViewRefs`.
 
-### Auto Power-On
+</details>
 
-Dragging a slider automatically turns the device on:
+<details>
+<summary><b>Plugin Store.</b></summary>
 
-**Code Location:** `useCircularDrag.js:74-78`
+<br>
 
-```javascript
-if (showPower && !localPowerState && clampedValue > 0) {
-  setLocalPowerState(true);
-  if (onPowerToggle) onPowerToggle(true);
-}
-```
+In development. Browse, install, and manage plugins from inside the card. Manifest format with permissions. Sandboxing.
 
-### Scrolling Text Display
+</details>
 
-Long entity names or states scroll horizontally:
-
-**Implementation:**
-- Detects text overflow
-- Smooth horizontal animation
-- Infinite loop with reset
-- requestAnimationFrame for performance
-
-**Code Location:** `CircularSlider.jsx:238-265`
-
-### Accessibility Features
-
-#### Reduced Motion Support
-Respects user's motion preferences:
-
-```css
-@media (prefers-reduced-motion: reduce) {
-  .circular-slider-container * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-```
-
-#### Cursor States
-- `grab` - Idle slider
-- `grabbing` - Active drag
-- `default` - Read-only mode
-- `pointer` - Clickable elements
-
-#### Keyboard Navigation
-(Planned enhancement)
-- Arrow keys for value adjustment
-- Tab for focus management
-- Enter/Space for toggle actions
+<br>
 
 ---
 
-## Technical Architecture
+## What's next
 
-### Component Hierarchy
+See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) for the next ten ideas — prioritized.
 
-```
-FastSearchCard
-├── SearchBar
-│   └── SearchResultItem[]
-├── DetailView
-│   ├── DeviceCard
-│   │   ├── AnimatedIcon
-│   │   └── DeviceCardControls
-│   └── TabContainer
-│       ├── ContextTab
-│       │   └── RelatedEntities[]
-│       ├── UniversalControlsTab
-│       │   ├── CircularSlider
-│       │   │   ├── PowerToggle
-│       │   │   └── CircularSliderDisplay
-│       │   └── DomainControls
-│       ├── ScheduleTab
-│       │   ├── AddScheduleButton
-│       │   ├── SchedulePickerTable
-│       │   └── ScheduleActionButtons
-│       ├── HistoryTab
-│       │   ├── TimeRangeSelector
-│       │   ├── HistoryChart
-│       │   └── AccordionSections[]
-│       └── SettingsTab
-└── SystemEntities[]
-```
-
-### Data Flow
-
-#### State Management
-- **Local State** - useState for component-specific state
-- **Lifted State** - Parent components manage shared state
-- **Props** - Unidirectional data flow
-- **Callbacks** - Events bubble up
-
-#### Home Assistant Integration
-```
-FastSearchCard
-  ↓ (subscribes)
-Home Assistant WebSocket
-  ↓ (state updates)
-Entity Service
-  ↓ (caches)
-IndexedDB
-  ↓ (reads)
-Component State
-```
-
-#### Action Flow
-```
-User Interaction
-  ↓ (event)
-Component Handler
-  ↓ (state update)
-Home Assistant Service Call
-  ↓ (WebSocket)
-Home Assistant Core
-  ↓ (state change)
-Entity Update
-  ↓ (WebSocket event)
-Component Re-render
-```
-
-### File Organization
-
-```
-src/
-├── components/
-│   ├── cards/              # Card components
-│   ├── controls/           # Interactive controls
-│   ├── search/             # Search interface
-│   └── tabs/               # Tab views
-├── hooks/
-│   ├── useCircularDrag.js  # Drag interactions
-│   ├── useSliderAnimation.js # Animation logic
-│   ├── usePowerState.js    # Power state management
-│   └── useFavoriteManager.js # Favorites handling
-├── utils/
-│   ├── animations/         # Animation variants
-│   ├── entityHelpers.js    # Entity utilities
-│   ├── domainSpecifics.js  # Domain logic
-│   ├── temperatureColors.js # Color mapping
-│   ├── timeFormatters.js   # Time utilities
-│   └── ...                 # Other utilities
-├── services/
-│   ├── haService.js        # HA API
-│   ├── entityService.js    # Entity management
-│   └── storageService.js   # IndexedDB
-├── i18n/
-│   └── [lang].json         # Translations
-└── styles/
-    └── global.css          # Global styles
-```
+<br>
 
 ---
 
-## Future Roadmap
+<div align="center">
 
-### Planned Features
+<sub>Made for the Home Assistant community.</sub>
 
-#### Short Term
-- [ ] Keyboard navigation support
-- [ ] Screen reader improvements
-- [ ] Plugin store beta release
-- [ ] Enhanced search filters
-- [ ] More entity types support
+<br>
 
-#### Medium Term
-- [ ] Real AI integration (OpenAI/Local LLM)
-- [ ] Custom automation builder
-- [ ] Advanced scheduling (conditions, triggers)
-- [ ] Multi-entity control
-- [ ] Dashboard widget mode
+<sub>v1.1.1610 · <a href="version-history/versionsverlauf.md">version history</a> · <a href="../README.md">back to readme</a></sub>
 
-#### Long Term
-- [ ] Mobile app companion
-- [ ] Voice control integration
-- [ ] Energy monitoring features
-- [ ] Scene composer
-- [ ] Backup & sync across devices
-
-### Community Contributions
-
-Areas where contributions are welcome:
-- New translations
-- Plugin development
-- Icon designs
-- Bug reports and fixes
-- Documentation improvements
-- Feature suggestions
-
----
-
-## Conclusion
-
-The Fast Search Card is a comprehensive, performant, and user-friendly interface for Home Assistant. Its modular architecture, smooth animations, and extensive feature set make it a powerful tool for managing smart home entities.
-
-For more information:
-- **GitHub:** [github.com/fastender/Fast-Search-Card](https://github.com/fastender/Fast-Search-Card)
-- **Documentation:** See `/docs` folder
-- **Issues:** Report bugs on GitHub Issues
-- **Discussions:** Join GitHub Discussions
-
-**Version:** 1.1.0+ (October 2025)
-**License:** MIT
+</div>

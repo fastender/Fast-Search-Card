@@ -183,7 +183,6 @@ Single file. ~390 KB gzipped. Boots in under a second.
 
 - [Features](docs/FEATURES.md) — Everything the card does
 - [Version history](docs/version-history/versionsverlauf.md) — Every release, every change
-- [Settings guide](docs/settings-guide.md) — In-card configuration
 
 </details>
 
@@ -192,11 +191,10 @@ Single file. ~390 KB gzipped. Boots in under a second.
 
 <br>
 
-- [Components](docs/COMPONENTS.md) — Architecture and API
-- [Project structure](docs/PROJECT_STRUCTURE.md) — File organization
-- [Plugin development](docs/PLUGIN_DEVELOPMENT.md) — Build system entities
-- [Performance](docs/OPTIMIZATION.md) — Bundle, render, scroll
-- [Roadmap](docs/FEATURE_ROADMAP.md) — Ten ideas, prioritized
+- [Feature roadmap](docs/FEATURE_ROADMAP.md) — Ten ideas, prioritized
+- [Performance roadmap](docs/PERFORMANCE_ROADMAP.md) — Bundle, render, scroll
+- [Custom component roadmap](docs/CUSTOM_COMPONENT_ROADMAP.md) — Companion HACS packages
+- [Bundle audit](docs/BUNDLE_AUDIT_2026-05-21.md) — Latest analysis
 
 </details>
 
