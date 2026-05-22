@@ -1,5 +1,63 @@
 # Versionsverlauf
 
+## Version 1.1.1593 - 2026-05-21
+
+**Title:** 🪟 Äußere Scrollbar weg bei allen 8 System-Entity-Views
+**Hero:** none
+**Tags:** Scrollbar, Polish, System-Entities
+
+### Why
+
+User-Bug-Report mit Screenshot: bei `settings`, `all_schedules`, `news`, `todos`, `versionsverlauf`, `tipps`, `calendar`, `integration` waren ZWEI parallele CustomScrollbars rechts sichtbar:
+- die innere vom jeweiligen Feed/Liste (todos-feed, news-feed, calendar-list, ...)
+- eine äußere vom DetailView-`#tab-content-container`
+
+v1.1.1590 hatte das nur für Todos gefixt (`#tab-content-container:has(.todos-view-container)`). Die anderen 7 System-Entities hatten weiter die Doppel-Scrollbar.
+
+### What changed
+
+- **`src/components/DetailView.css`** — eine konsolidierte CSS-Regel die alle 8 root-Container per `:has()` matcht und `overflow-y: hidden` auf dem outer container setzt:
+
+```css
+#tab-content-container:has(.settings-view),
+#tab-content-container:has(.all-schedules-view),
+#tab-content-container:has(.news-view-container),
+#tab-content-container:has(.todos-view-container),
+#tab-content-container:has(.versionsverlauf-view-container),
+#tab-content-container:has(.tipps-view-container),
+#tab-content-container:has(.calendar-view-container),
+#tab-content-container:has(.integration-view-container) {
+  overflow-y: hidden;
+}
+```
+
+- **`src/system-entities/entities/todos/styles/TodosView.css`** — die v1.1.1590-Regel rausgenommen und durch einen Kommentar mit Verweis ersetzt. Single Source of Truth in `DetailView.css`.
+
+### Verifizierung der Root-Container-Klassen
+
+Jedes JSX-File checken, dass die Klasse exakt so vergeben wird:
+
+| Entity | Root-Container | Source |
+|---|---|---|
+| Settings | `.settings-view` | `SettingsView.jsx:42` |
+| AllSchedules | `.all-schedules-view` | `AllSchedulesView.jsx:525` |
+| News | `.news-view-container` | `NewsView.jsx:786` |
+| Todos | `.todos-view-container` | `TodosView.jsx:800` |
+| Versionsverlauf | `.versionsverlauf-view-container` | `VersionsverlaufView.jsx:226` |
+| Tipps | `.tipps-view-container` | `TippsView.jsx:244` |
+| Calendar | `.calendar-view-container` | `CalendarView.jsx:327` |
+| Integration | `.integration-view-container` | `IntegrationView.jsx:159` |
+
+Alle 8 verifiziert vor dem Schreiben der Regel.
+
+### Files
+
+- `src/components/DetailView.css`
+- `src/system-entities/entities/todos/styles/TodosView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1592 - 2026-05-21
 
 **Title:** 🏷️ Area-Fallback — „Kein Raum" / „No Room" → „Allgemein" / „General"
