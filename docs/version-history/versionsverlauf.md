@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1618 - 2026-05-22
+
+**Title:** 🚨 Emergency hotfix — v1.1.1617 ReferenceError crashed every card on every state update
+**Hero:** none
+**Tags:** Hotfix, Critical
+
+### Why
+
+v1.1.1617 shipped with a typo that broke every single card install on the first HA state update. Reported by the user with a console screenshot showing `Uncaught ReferenceError: FastSearchCard is not defined` originating from `set hass`. Lovelace reacted with the generic "Konfigurationsfehler" banner; sub-cards (news, todos, energy) cascaded into "Hass not available after 20 attempts" because `window._hass` was never set when the setter threw.
+
+### Root cause
+
+In the v1.1.1617 perf optimisation for the `window._hass` setter I introduced a static-class flag to avoid re-running `Object.defineProperty` on every HA state push:
+
+```js
+if (FastSearchCard._hassPropertyDefined) { ... }
+```
+
+But the custom-element class in `build.sh` is actually called `FastSearchCardElement`, not `FastSearchCard`. The identifier `FastSearchCard` didn't exist in scope — `ReferenceError` on first state update, every install, no exceptions.
+
+Why this slipped through: the source code change is in `build.sh`'s inline template string, which is shell heredoc — not type-checked, not linted, not exercised by `vite build`. The build *succeeded* because the wrapper template is valid JavaScript syntactically; the ReferenceError only fires at runtime when `set hass` is first invoked.
+
+### Fix
+
+Replaced the brittle class-name reference with a module-level `var _fscHassPropertyDefined = false` declared at the top of the wrapper file, outside the class. The flag is now scope-safe regardless of what the class identifier happens to be called.
+
+### What this means for you
+
+If you installed v1.1.1617 — every dashboard with this card shipped a runtime error on first load. Upgrading to v1.1.1618 via HACS + hard-reload restores normal operation.
+
+### Lesson
+
+`build.sh` heredoc-generated code is outside the linter/type-checker safety net. Class-identifier references inside it are dangerous because:
+
+1. The class can be renamed without the reference being flagged.
+2. The heredoc-content is shell-string, not JavaScript-source — IDEs don't help.
+3. The build still succeeds and the unit-test surface for the wrapper template is essentially zero.
+
+Rule going forward: anything inside the `build.sh` heredoc that needs cross-class state should be a module-level `var`/`let`, never a static class property. Costs nothing, eliminates the rename-foot-gun.
+
+### Files
+
+- `build.sh` — module-level `_fscHassPropertyDefined` flag instead of `FastSearchCard._hassPropertyDefined`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
+---
+
 ## Version 1.1.1617 - 2026-05-22
 
 **Title:** 🩹 Hotfix — v1.1.1616 regression: wildcard patterns broken, icons stripped, perf hit
