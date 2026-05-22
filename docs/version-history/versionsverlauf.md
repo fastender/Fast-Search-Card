@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1585 - 2026-05-21
+
+**Title:** 🔤 Slider-Widget Footer — line-height fix + mehr Gap zwischen Content und Label
+**Hero:** none
+**Tags:** Bento, Polish, Typography
+
+### Why
+
+User-Report mit Screenshot: im W2-Slider-Widget (rotes News-Panel mit „Nachrichten / 25 neue Nachrichten" als Footer-Label) wirkten die Textzeichen geclippt und das Layout zu eng. Ähnliche DeviceCards atmen mehr.
+
+Root-Cause: das v1.1.1545-Comment-Pattern hatte `line-height: 1` auf dem `.bento-carousel-footer-label` gesetzt, um die Text-Baseline exakt auf Dot-Bottom-Linie zu ziehen. Side-Effect: Line-Box passt nur die Cap-Höhe ohne Descender — Buchstaben-Unterlängen ragten optisch über die Box hinaus und sahen abgeschnitten aus. Plus: `margin/padding-top: 8px` zwischen Slider-Content und Footer-Label war zu wenig im Vergleich zu DeviceCard-Spacing.
+
+### What changed (`src/components/BentoStartView.css`)
+
+- `.bento-carousel-footer-label` — `line-height: 1` → `1.2` (analog DeviceCard 1.15, gibt Unterlängen Platz innerhalb der Line-Box). Plus `gap: 0` → `2px` zwischen Area- und Name-Zeile.
+- `padding-bottom: 4px` → `6px` damit die visuelle Unterkante des Texts nicht direkt auf der Widget-Kante sitzt.
+- `.bento-carousel-dots` — `bottom: 4px` → `6px` zur visuellen Ausrichtung mit dem Label-Visual-Bottom nach der line-height-Anhebung.
+- `.bento-carousel-footer--slider` — `margin-top: 8px` + `padding-top: 8px` → beide `12px` für mehr Breathing-Room zwischen Slider-Content und Footer-Label.
+
+Net-Effekt: Label sitzt 4-5 px höher im Widget, hat 2 px Lane-Gap zwischen Area+Name, und 50 % mehr Trennung zur Content-Zeile darüber. Dots bleiben mit dem Label-Visual-Bottom aligned.
+
+### Files
+
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1584 - 2026-05-21
 
 **Title:** 📦 Bundle -21 KB gzip (-5%) — `marked` + `dompurify` replaced by `miniMarkdown.js`
