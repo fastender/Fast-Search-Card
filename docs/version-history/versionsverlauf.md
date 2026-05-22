@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1599 - 2026-05-21
+
+**Title:** 📅 Bento-Calendar — Fetch-Range erweitert auf past 30 + future 14
+**Hero:** none
+**Tags:** Bento, Calendar, Fix
+
+### Why
+
+v1.1.1597 hat die Datenpipeline gefixt (Widget liest `attrs.events`, nicht eigener local-state), und v1.1.1597 hat einen Past-Events-Fallback eingebaut. ABER: der Past-Fallback funktioniert nur wenn vergangene Events in `attrs.events` drin sind. Der initial-Load fetched aber nur `today → today + 14 days` → wenn der User keine zukünftigen Events hat (sondern nur vergangene), kommt **gar nichts** in attrs an → `events.length === 0` → Footer „0 Termine" + Widget „Keine Termine". Der Fallback hatte nichts zu zeigen.
+
+User bewies das im Screenshot — Footer „0 Termine" jetzt konsistent, aber immer noch nichts sichtbar obwohl der Kalender Events hat (z.B. Mai 17-18 Test-Events).
+
+### Root-Cause der unvollständigen Fix-Welle
+
+Klassische „Symptom oben gefixt, Ursache eine Ebene tiefer" Situation. v1.1.1597 hat die UI-Logik korrekt: „wenn keine upcoming Events, zeige letzte vergangene". Aber DAMIT vergangene Events ÜBERHAUPT sichtbar sind, müssen sie erst mal geladen sein. Der Loader war noch der alte today-forward-only.
+
+### What changed
+
+**`src/components/bento/widgets/BentoRichCalendar.jsx`** — Fetch-Range im useEffect:
+- `start`: heute → **30 Tage in die Vergangenheit**
+- `end`: heute + 14 Tage in die Zukunft
+
+44-Tage-Window total. HA-Calendar-API liefert das problemlos schnell zurück. Damit hat das Widget jetzt Daten zum Anzeigen — entweder upcoming (wenn vorhanden), oder die letzten vergangenen als Fallback.
+
+```js
+const start = new Date();
+start.setDate(start.getDate() - 30);
+start.setHours(0, 0, 0, 0);
+const end = new Date();
+end.setDate(end.getDate() + 14);
+end.setHours(23, 59, 59, 999);
+```
+
+### Side-Effects
+
+- `attrs.events.length` reflektiert jetzt die 44-Tage-Population. Footer-Counter „X Termine" kann je nach User-Calendar mit Events der letzten 30 Tage höher ausfallen — entspricht aber dem was im Widget anzeigbar ist (sinnvoll konsistent).
+- Wenn der User CalendarView mit Year/Month-View geöffnet hat (lädt eine größere Range), wird diese beim BentoRichCalendar-Mount überschrieben durch den 44-Tage-Range. Bei nächstem CalendarView-Open lädt der dort wieder neu. Wechselseitig konsistent.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichCalendar.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1598 - 2026-05-21
 
 **Title:** 🪟 Sidebar-Popup Hover-Polish + Bento ≤768 = Mobile-Stack
