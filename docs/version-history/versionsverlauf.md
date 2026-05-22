@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1608 - 2026-05-21
+
+**Title:** 🌐 Fehlende Action-Button-Translation-Keys (search/history/management)
+**Hero:** none
+**Tags:** i18n, ActionButtons
+
+### Why
+
+v1.1.1607 hat die `lang`-Prop durch DetailView → HistoryTab/ContextTab durchgereicht. Damit funktionieren die meisten lang-bewussten Strings. Übrig blieben aber Action-Button-Titel die in der Top-Toolbar als Tooltips/Labels erscheinen. `TabNavigation.jsx` nutzt schon `translateUI('actionButtons.<id>')` mit Fallback auf `button.title` (= hardcoded DE), aber drei IDs fehlten in der Translation-Map:
+
+- `search` (calendar, all-schedules, news, versionsverlauf, todos, tipps)
+- `history` (universal-device)
+- `management` (integration)
+
+→ Bei EN-Mode fielen diese auf die DE-Hardcoded-`title`-Strings zurück („Suchen", „Verlauf", „Verwalten").
+
+### What changed
+
+- **`src/utils/translations/languages/de.js`** — `actionButtons.search/history/management` ergänzt (sind als Backup falls die Hardcoded-Title aus dem Entity-Code mal weg-refactored werden).
+- **`src/utils/translations/languages/en.js`** — `search: 'Search'`, `history: 'History'`, `management: 'Manage'`.
+
+### Side-effect
+
+Nach dem Update zeigt der TabNavigation-Tooltip-Titel im EN-Mode jetzt die englische Form für alle Action-Button-Standard-IDs. Bei plugin-/custom-entities mit neuen IDs muss die Map weiter erweitert werden — TabNavigation fällt sonst weiterhin auf `button.title` zurück, was OK ist solange das auf EN gesetzt ist.
+
+### Was offen bleibt
+
+Die Tipps-Tile zeigt im DE/EN-Modus immer DE-Tipps weil die `lessons.en.md`-Datei nach v1.1.1592 noch das alte Dev-Pattern-Content hat (wir hatten das damals bewusst nicht angefasst). Eine EN-Übersetzung der 47 User-Tipps wäre der nächste Schritt — separater Pass (~30-45 min mechanische Übersetzung).
+
+### Files
+
+- `src/utils/translations/languages/de.js`
+- `src/utils/translations/languages/en.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1607 - 2026-05-21
 
 **Title:** 🌐 Versionsverlauf live + Sidebar + Detail-View Übersetzungen
