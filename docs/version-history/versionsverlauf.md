@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1600 - 2026-05-21
+
+**Title:** 📅 Bento-Calendar — Polling-Safety-Net gegen initial-mount Race
+**Hero:** none
+**Tags:** Bento, Calendar, Race-Condition
+
+### Why
+
+User-Report (Fortsetzung von v1.1.1599): „Widget zeigt am Anfang nichts, wenn ich aber klicke in den Kalendar und dann wieder zurück dann erscheint Eintrag". Klassische Race-Condition:
+
+1. App-Boot → BentoStartView mounted → BentoRichCalendar mounted
+2. `useSystemEntityAttributes`-Listener-useEffect attached
+3. Widget-load-useEffect feuert `executeAction('loadEvents')`
+4. **Timing-Problem:** `updateAttributes` dispatcht `system-entity-updated` Event SCHNELLER als der Listener attached ist — Event verpasst, kein Re-Render, attrs sehen leer aus.
+5. User klickt Calendar-Widget → CalendarView öffnet → DetailView-Modal überdeckt → **BentoStartView wird komplett unmounted** (siehe `SearchField.jsx:1106`: `{bentoEnabled && !isExpanded && !showDetail && ... && <BentoStartView />}`).
+6. CalendarView lädt seine eigenen Events → attrs.events gefüllt.
+7. User klickt zurück → BentoStartView remounted → BentoRichCalendar remounted FRESH → sieht jetzt befüllte attrs → Anzeige korrekt.
+
+### Root-Cause
+
+BentoRichTodos hatte das Problem nicht, weil die Todos-Entity ihre attrs.todos beim `onMount` automatisch lädt (Pre-Population). Calendar dagegen lädt erst on-demand mit dynamischer Range, was die mount-Reihenfolge fragil macht.
+
+BentoRichNews hatte schon ein Polling-Safety-Net für genau diesen Fall (siehe v1.1.1550 dort). Calendar hatte keins, weil ich's beim Refactor in v1.1.1597 entfernt habe (war auf den lokalen `events`-State gemünzt). Jetzt nachgezogen.
+
+### What changed
+
+**`src/components/bento/widgets/BentoRichCalendar.jsx`** — Polling-Safety-Net hinzugefügt:
+
+```js
+const [refreshTick, setRefreshTick] = useState(0);
+useEffect(() => {
+  const polls = [200, 600, 1400, 2500].map((ms) =>
+    setTimeout(() => setRefreshTick((t) => t + 1), ms)
+  );
+  return () => polls.forEach(clearTimeout);
+}, []);
+const _tick = refreshTick;  // Force-Re-Render dependency
+```
+
+4 setTimeout-getriggerte Re-Renders bei 200/600/1400/2500 ms. Jeder forciert `useSystemEntityAttributes` zum neu-Lesen vom `systemRegistry`. Falls attrs.events ZWISCHEN dem initial-Render und einem dieser Ticks befüllt wurde (z.B. durch verzögertes load-Resultat oder externes update), wird's beim nächsten Tick gepicked.
+
+Pattern identisch zu BentoRichNews. Cost: 4 Re-Renders über 2.5 s — vernachlässigbar.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichCalendar.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1599 - 2026-05-21
 
 **Title:** 📅 Bento-Calendar — Fetch-Range erweitert auf past 30 + future 14
