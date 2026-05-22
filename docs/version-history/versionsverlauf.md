@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1613 - 2026-05-21
+
+**Title:** 🪶 Slider-Footer-Label gap+padding entfernt
+**Hero:** none
+**Tags:** Bento, Polish
+
+### Why
+
+User-DevTools-Test: `gap: 2px` zwischen Area+Name und `padding-bottom: 6px` am Label sahen besser ohne aus. Plus tighter alignment mit dem Slider-Container-Boden.
+
+### What changed (`src/components/BentoStartView.css`)
+
+- **`.bento-carousel-footer-label`** — `gap: 2px → 0`, `padding-bottom: 6px` ENTFERNT. Area- und Name-Zeile sitzen jetzt direkt aufeinander mit nur dem natürlichen line-height-1.2 als Spacing. Label-Visual-Bottom = Container-Bottom (kein Offset).
+- **`.bento-carousel-dots`** — `bottom: 6px → 0` zur Anpassung, damit der Dots-Visual-Bottom weiter mit dem Label-Visual-Bottom aligned.
+
+### Files
+
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1612 - 2026-05-21
 
 **Title:** 🌐 DetailHeader übersetzt Versionsverlauf/Tipps/Integration
