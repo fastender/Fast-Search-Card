@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1595 - 2026-05-21
+
+**Title:** ✅ Bento-Todos — Deep-Link, Inline-Complete, knallroter Überfällig-Badge
+**Hero:** none
+**Tags:** Bento, Todos, Interaction
+
+### Why
+
+User-Wünsche für das Bento-Todos-Rich-Widget (W2-Slider-Page):
+
+1. **Verlinkung zum konkreten Todo** — Klick auf eine Aufgaben-Zeile im Widget soll TodosView mit genau diesem Todo geöffnet öffnen (analog zum News-Widget-Deep-Link aus v1.1.1545).
+2. **Inline-Erledigt** — Klick auf den Kreis links neben der Aufgabe soll diese direkt im Widget abhaken, ohne erst TodosView zu öffnen.
+3. **Knallroter Überfällig-Badge** — der „Überfällig"-Pill war eine helle Pille mit gedämpftem dunklerem Text. Apple Reminders nutzt das volle System-Red `#FF3B30` mit weißem Bold-Text, alarmierender und konsistent mit iOS-Design.
+
+### What changed
+
+- **`src/components/bento/richRouter.jsx`** — `<BentoRichTodos>` bekommt jetzt `hass` und `onItemClick` weitergereicht (vorher nur `lang`/`compact`).
+
+- **`src/components/bento/widgets/BentoRichTodos.jsx`** —
+  - Neuer `pendingUids`-State (Set) damit der Kreis zwischen Klick und Backend-Refresh nicht „klebt" — Apple-Style optimistisches Feedback.
+  - `handleToggle(e, item)`: ruft `entity.executeAction('toggleComplete', { hass, listId, uid, currentStatus })`. Stoppt Event-Propagation damit der Row-Klick nicht zusätzlich auslöst.
+  - `handleRowClick(e, item)`: setzt `window.__pendingTodoUid` + dispatcht `todos-open-specific` CustomEvent, ruft dann `onItemClick(entity)` → DetailView öffnet → TodosView mountet → picked das pending-UID auf.
+  - Kreis ist jetzt ein echter `<button>` statt `<span>` für korrekte A11y + Klick-Affordance.
+
+- **`src/system-entities/entities/todos/TodosView.jsx`** — nach `loadTodosData` checkt jetzt `window.__pendingTodoUid` und macht `setSelectedTodo(matchingTodo)` (1:1 wie NewsView's `__pendingNewsArticleId`-Pattern).
+
+- **`src/components/BentoStartView.css`** —
+  - `.bento-rich-todos-circle`: jetzt `cursor: pointer` + Hover-State + `is-pending`-State (halbtransparente Füllung während Toggle).
+  - `.bento-rich-todos-row--clickable`: Hover-Background-Highlight + abgerundete Ecken auf der ganzen Zeile.
+  - **`.bento-widget--rich:has(.bento-rich-todos) .bento-rich-todos-due.is-overdue`** — `background: #FF3B30; color: #fff; font-weight: 700`. Knallrot statt vorher hellem Pill mit dunkelrotem Text.
+
+### Files
+
+- `src/components/bento/richRouter.jsx`
+- `src/components/bento/widgets/BentoRichTodos.jsx`
+- `src/components/BentoStartView.css`
+- `src/system-entities/entities/todos/TodosView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1594 - 2026-05-21
 
 **Title:** 🎴 System-Entity Tiles — Versionsnummer, nächster Termin + Bug-Fix Live-Daten in Grid-View
