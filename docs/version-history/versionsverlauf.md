@@ -1,5 +1,64 @@
 # Versionsverlauf
 
+## Version 1.1.1597 - 2026-05-21
+
+**Title:** 📅 BentoRichCalendar — auf attrs.events umgestellt + TZ-sicherer Day-Filter + Past-Fallback
+**Hero:** none
+**Tags:** Bento, Calendar, Filter, Bug
+
+### Why
+
+User-Report (Wiederholung von v1.1.1587, das nicht reichte): Calendar-Slider-Widget zeigt „Keine anstehenden Termine" während der Footer „6 Termine" sagt. v1.1.1587 hatte den Filter relaxed auf `effectiveEnd >= startOfToday`, aber das Problem blieb.
+
+### Tiefere Analyse
+
+Diesmal richtig zerlegt:
+
+1. **Zwei verschiedene Datenquellen.** Der Footer-Counter `getSliderItemLabel(entity)` liest `attrs.events.length` (entity-attribute). Das BentoRichCalendar-Widget hatte aber seinen EIGENEN lokalen `events`-State + eigenen Fetch via `entity.executeAction('loadEvents', ...)`. Wenn der lokale Fetch und der CalendarView's Fetch unterschiedliche Ranges gemacht hatten, divergierten die beiden Datenquellen. **Footer und Widget waren strukturell asynchron.**
+
+2. **TZ-Offset im all-day-Filter.** `endDate − 1 ms` für RFC5545-Exclusive-End funktioniert NICHT robust, weil `new Date('YYYY-MM-DD')` als UTC-Mitternacht parst → in CEST landet das 02:00 LOKAL am Folgetag. Ein „gestern-only all-day"-Event hatte `endDate = today 02:00 CEST`, `effectiveEnd = today 01:59:59.999 CEST`, was `>= startOfToday today 00:00 CEST` → fälschlich KEPT. Korrekt wäre: für all-day vergleichen wir Day-only (`lastInclusiveDay = endDate − 1 Tag, setHours(0,0,0,0)`).
+
+3. **„Keine Sofortinfo"-UX.** Selbst wenn der Filter korrekt nichts findet, ist „Keine anstehenden Termine" ein leeres Widget. Todos zeigt offene Aufgaben, News zeigt unread/recent — Calendar sollte analog auch IMMER was zeigen wenn überhaupt Events da sind.
+
+### What changed
+
+**`src/components/bento/widgets/BentoRichCalendar.jsx`** — komplettes Refactor der Datenpipeline:
+
+1. **Lokaler `events`-State weg.** Stattdessen `const events = Array.isArray(attrs?.events) ? attrs.events : []`, wobei `attrs = liveAttrs || entity.attributes` (von `useSystemEntityAttributes`). **Footer-Counter und Widget-Content nutzen jetzt EXAKT die gleiche Datenquelle.** Inkonsistenz beseitigt.
+
+2. **`executeAction('loadEvents')` löst nicht mehr explizites `setEvents` aus**, da das executeAction intern `updateAttributes` ruft → die Hook re-rendert. Der initial-load triggert weiterhin bei Mount + Window-Focus.
+
+3. **TZ-sicherer Filter `isUpcoming(ev)`:**
+   - All-day: `lastDay = endDate − 1 Tag`, dann `setHours(0,0,0,0)`, vergleich gegen `todayDay.getTime()`. Keine Subsekunden-Tricks mehr.
+   - Timed: `end >= todayDay` (heute-Mitternacht). Heutige Events bleiben den ganzen Tag sichtbar.
+   - `toDate()` Helper wandelt sowohl Date-Objekte als auch ISO-Strings korrekt.
+
+4. **Past-Fallback.** Wenn `upcoming.length === 0` aber Events existieren, zeige die letzten 5 vergangenen Events stattdessen mit Label „Letzte Termine" / „Recent events" oben (kleines uppercase 11px). User sieht damit SOFORT etwas Aussagekräftiges („wie bei Todos/News") statt leerer Empty-State-Message.
+
+5. **`fmtRowTime` erweitert** um „Gestern"/„Yesterday" für past-Anzeigen + `toDate()` Robustheit.
+
+6. **Empty-State**: „Keine Termine" / „No events" statt „Keine anstehenden" — weil das Widget jetzt auch vergangene zeigt wenn keine upcoming, ist „Keine Termine" der ehrliche Endzustand.
+
+**`src/components/BentoStartView.css`** — neue Klasse `.bento-rich-calendar-past-label`: 11 px uppercase Label mit Letter-Spacing, dezenter Grau-Ton.
+
+### Was der User jetzt sieht
+
+| Szenario | Vorher | Nachher |
+|---|---|---|
+| 6 Events alle in der Zukunft | Footer 6 / Widget Hero + 4 weitere ✓ | gleich ✓ |
+| 6 Events alle in der Vergangenheit | Footer 6 / Widget „Keine anstehenden" ✗ | Footer 6 / Widget „Letzte Termine" + bis zu 5 vergangene ✓ |
+| Heute Vormittag 09-10 Uhr Termin, jetzt 14 Uhr | Widget zeigt ihn (v1.1.1587) ✓ | gleich ✓ |
+| Gestern-only all-day, jetzt heute | Widget zeigte ihn fälschlich ✗ | Widget zeigt ihn als „Gestern · Ganztägig" wenn keine upcoming, sonst nicht ✓ |
+| Wirklich 0 Events | „Keine anstehenden" | „Keine Termine" |
+
+### Files
+
+- `src/components/bento/widgets/BentoRichCalendar.jsx`
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1596 - 2026-05-21
 
 **Title:** 📱 Mobile-Sidebar — Overflow-Popup für mehr als 5 Items
