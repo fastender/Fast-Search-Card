@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1615 - 2026-05-22
+
+**Title:** 🛡️ Dependency audit — 11 CVEs patched, preact runtime vuln closed
+**Hero:** none
+**Tags:** Security, Dependencies
+
+### Why
+
+Follow-up to the v1.1.1614 audit: `npm audit` flagged 11 vulnerabilities (2 moderate, 9 high). Most were dev-tooling (vite, rollup, postcss, picomatch, svgo, serialize-javascript) — they ship nothing to HACS users, only matter to anyone building from source. But one was real runtime: **preact 10.27.0-10.27.2 JSON VNode Injection** ([GHSA-36hm-qxxp-pg3m](https://github.com/advisories/GHSA-36hm-qxxp-pg3m)), bundled into every card install. That's the one that mattered.
+
+### What changed
+
+**1. `npm audit fix` (non-breaking)**
+
+Updated transitive deps in `package-lock.json`. Bumped:
+
+- **preact**: 10.27.1 → 10.29.2 (closes JSON VNode Injection — high severity, in shipped bundle)
+- vite, rollup, postcss, picomatch, svgo — dev-tooling, removes path-traversal/ReDoS/Billion-Laughs CVEs that only fire during local builds
+
+**2. Removed unused `@rollup/plugin-terser`**
+
+Listed as devDependency but never imported in any `vite.config*.js` or `build.sh`. Vite uses the `terser` package directly (already there). Removing the unused plugin also resolves the last two CVEs (transitive `serialize-javascript` RCE/DoS) without needing `npm audit fix --force`.
+
+**3. Verified clean**
+
+Final `npm audit` reports `found 0 vulnerabilities`. Build still succeeds.
+
+### Files
+
+- `package.json` — removed `@rollup/plugin-terser` entry
+- `package-lock.json` — bumped preact, vite, rollup, postcss, picomatch, svgo
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
+### What this does NOT include
+
+No source code changes in `src/`. Pure dependency hygiene pass. The behavioural surface of the card is identical to v1.1.1614 — same render output, same event handling, same API calls. Only the bundled framework code differs.
+
+---
+
 ## Version 1.1.1614 - 2026-05-22
 
 **Title:** 🛡️ Security hardening pass — XSS, URL injection, defense-in-depth
