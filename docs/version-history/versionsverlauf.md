@@ -1,5 +1,54 @@
 # Versionsverlauf
 
+## Version 1.1.1625 - 2026-05-22
+
+**Title:** ✨ Ghost-suggestion redesign — Spotlight-style suffix pill with icon-on-the-right
+**Hero:** none
+**Tags:** Feature, SearchField, Polish
+
+### Why
+
+User asked for a redesign of the inline-autocomplete ghost-text. Reference was macOS Spotlight's "Top Hit" pill (e.g. `mail — Öffnen`). Wanted version: the unfinished suffix and the context-icon both inside a single rounded-pill background, anchored *directly after* the typed text (not at the right card edge like Spotlight does).
+
+### Before
+
+Two stacked `<input>` elements in `.search-input-overlay` rendered the full suggestion as a translucent ghost behind the opaque typed text. Context-icon (`AreasIcon` / `CategoriesIcon`) sat *left* of both inputs as `.ghost-icon-prefix`, padding-left:26px pushed both inputs to make room.
+
+### After
+
+Replaced the overlay-architecture with three primitives:
+
+1. **`.search-input-mirror`** — a hidden `<span>` with the same font/size as the input, holding the typed text. Its `offsetWidth` is read every time the typed text changes and tells us exactly where the suffix should start in pixels.
+
+2. **`.ghost-suffix-pill`** — a `<span>` positioned `absolute; left: ${mirrorWidth}px`, containing the suggestion suffix text plus the context-icon side-by-side. Background `rgba(255,255,255,0.12)`, `border-radius: 999px` for a full pill, gap:8px between text and icon, padding 4px 12px. Width auto — only as wide as content + padding.
+
+3. **`.search-input`** — keeps rendering only the typed value. No more padding-left hack for the prefix-icon, no more overlay-suggestion-input behind it.
+
+Result visually:
+
+```
+[grid]  ki [ nderzimmer 🏠 ]
+            └─ pill, sits directly after "ki", icon right side
+```
+
+Pill is tappable on touch devices (`pointer-events: auto` via `@media (hover: none) and (pointer: coarse)`) for the "übernehmen" gesture; on desktop the `Tab`-key hint stays unchanged.
+
+The smooth `transition: left 0.08s ease-out` on the pill means it slides as the user types instead of jumping per-keystroke.
+
+### Why this architecture is better
+
+- **No font-rendering misalignment.** The old dual-input design depended on both inputs rendering at *exactly* the same pixel position; subtle CSS differences (`will-change`, sub-pixel rounding) sometimes caused a 1px shift between typed and ghost text. With one `<input>` + one `<span>`, that problem is gone.
+- **The pill can be styled independently.** Background, border-radius, padding-around-icon — all decoupled from the `<input>` element which has strict appearance constraints.
+- **Mirror-width is robust against weird fonts and emoji.** `offsetWidth` is whatever the browser actually rendered. No canvas `measureText` guessing.
+
+### Files
+
+- `src/components/SearchField/components/SearchInputSection.jsx` — mirror-span + pill, replaced overlay-suggestion
+- `src/components/SearchField/SearchFieldV4.css` — new `.search-input-mirror`, `.ghost-suffix-pill`, `.ghost-suffix-text`, `.ghost-suffix-icon`; old `.ghost-icon-prefix` kept as legacy
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
+---
+
 ## Version 1.1.1624 - 2026-05-22
 
 **Title:** 🐛 Changelog parser silently dropped Hero-less entries — v1.1.1619-1623 invisible
