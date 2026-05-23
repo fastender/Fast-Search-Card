@@ -1,5 +1,70 @@
 # Versionsverlauf
 
+## Version 1.1.1637 - 2026-05-22
+
+**Title:** 🍎 First-load boot reveal — dark-blurred wallpaper de-blurs while card zooms in
+**Hero:** none
+**Tags:** Feature, Boot, Animation
+
+### Why
+
+User wanted an Apple-app-launch feel on the first load of the card: the HA dashboard wallpaper behind the card should start dark and heavily blurred, then come into focus while the card itself zooms up from a slightly smaller scale to full size. Currently the card only fades its opacity from 0 to 1; the wallpaper behind never changes.
+
+### What changed
+
+**New component `WallpaperBootOverlay.jsx`:**
+
+- `position: fixed; inset: 0; z-index: 5000` — covers the entire viewport between the existing `WallpaperModeOverlay` (z 0, permanent) and `AppleHelloSplash` (z 9999, transient).
+- Starts at `opacity: 1` with `background: rgba(0, 0, 0, 0.55)` and `backdrop-filter: blur(30px)` — wallpaper behind is dark + heavily blurred.
+- When `revealReady` flips true, animates to `opacity: 0` and `backdrop-filter: blur(0px)` over 1200 ms with `ease: [0.32, 0.72, 0, 1]` (Apple-typical out-curve).
+- `pointer-events: none` as soon as the reveal starts so the card behind becomes interactive before the visual fade finishes.
+- Module-level latch `__bootOverlayShownThisPage` guarantees it fires exactly once per page lifetime, even if the card itself remounts.
+
+**Card wrapper animation (`index.jsx`):**
+
+```diff
+-initial={{ opacity: 0 }}
+-animate={{ opacity: shouldReveal ? 1 : 0 }}
++initial={{ opacity: 0, scale: 0.95 }}
++animate={{
++  opacity: shouldReveal ? 1 : 0,
++  scale: shouldReveal ? 1 : 0.95,
++}}
+ transition={{
+-  duration: 0.55,
+-  ease: [0.16, 1, 0.3, 1],
++  opacity: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
++  scale: { type: 'spring', stiffness: 180, damping: 26, mass: 0.9 },
+ }}
+```
+
+Opacity stays on its existing cubic-bezier; scale gets a spring for the natural Apple-launch feel. Both settle to their resting value (1 / 1) after the boot, so the temporary stacking context the scale creates is short-lived — the wallpaper overlay covers the viewport during that window anyway, hiding any glass-effect-on-`.glass-panel::before` breakage.
+
+### Sequence on first page load
+
+1. Page mounts. `WallpaperBootOverlay` covers viewport (dark + blur 30 px). Card is at opacity 0, scale 0.95.
+2. Either `AppleHelloSplash` plays (if enabled) — finishes drawing → `splashDrawingDone = true`. Or `LoadingScreen` runs to completion. Or no splash, immediately ready.
+3. `shouldReveal` flips true:
+   - Card animates opacity 0 → 1 (550 ms cubic) and scale 0.95 → 1 (spring).
+   - `WallpaperBootOverlay` animates opacity 1 → 0 and backdrop-filter 30 px → 0 (1200 ms cubic).
+4. After ~1300 ms, the overlay unmounts entirely. Latch set — won't show again this page.
+
+### Why this doesn't break the glass-panel backdrop-filter
+
+The card wrapper warning about not animating transform/opacity outside the active animation still holds — but during the active animation the wallpaper overlay covers the viewport with its own backdrop-filter, so any temporary stacking context on the card wrapper is hidden. After the spring settles to `scale: 1` the transform property gets removed (framer-motion clears it), the stacking context dissolves, and the existing `.glass-panel::before` blur works as before.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx` (new)
+- `src/index.jsx` (import + mount + scale animation on card wrapper)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` (version bump)
+
+### Trigger semantics
+
+Once per browser page lifetime. Hard-reload triggers it again. Card remount within the same page (e.g. dashboard tab switch and back) does not re-trigger thanks to `__bootOverlayShownThisPage`.
+
+---
+
 ## Version 1.1.1636 - 2026-05-22
 
 **Title:** 🧹 BentoRichTodos — hover pill removed, tighter row gap
