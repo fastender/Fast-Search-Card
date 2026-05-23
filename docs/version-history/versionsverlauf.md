@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1646 - 2026-05-22
+
+**Title:** 🎬 Boot reveal — all three phases now run through framer-motion
+**Hero:** none
+**Tags:** Polish, Boot, Architecture
+
+### Why
+
+User: "drei Phasen über framer motion realisieren finde ich". Phases 1 (overlay-fade) and 3 (card-reveal) were already on framer-motion via `<motion.div>` + `transition`. Phase 2 (wallpaper-zoom) was the odd one out — it used raw CSS transition assigned via inline style on the shadow-DOM element. Same animation engine across all three phases is cleaner and gives consistent timing behaviour.
+
+### What changed
+
+Imported `animate` from `framer-motion` and replaced the CSS-transition setup in Phase 2 with framer-motion's imperative `animate()` API:
+
+```jsx
+// Before (CSS transition on raw DOM)
+wallpaper.style.transition = `transform 5500ms cubic-bezier(0.16, 1, 0.3, 1)`;
+void wallpaper.offsetWidth;
+wallpaper.style.transform = 'scale(1)';
+
+// After (framer-motion animate())
+const controls = animate(
+  wallpaper,
+  { scale: 1 },
+  { duration: 5.5, ease: [0.16, 1, 0.3, 1] }
+);
+return () => controls.stop();
+```
+
+`ZOOM_EASE` switched from CSS-string `'cubic-bezier(0.16, 1, 0.3, 1)'` to bezier-array `[0.16, 1, 0.3, 1]` since framer-motion expects that form.
+
+### Behavioural differences vs CSS transition
+
+- Cleanup is cleaner: `controls.stop()` halts the animation at the current interpolated value instantly, no half-second tail to wait out. The mount-useEffect's cleanup then restores the original styles.
+- Timing precision is the same — framer-motion delegates to browser raf and uses the same GPU-accelerated transform updates.
+- Consistent with how Phase 1 and Phase 3 already work, so any future spring/curve changes can be made uniformly.
+
+### Initial scale stays on inline-style
+
+The initial `scale(1.20)` is still applied via direct `wallpaper.style.transform` assignment in the mount-useEffect — that's a one-shot value, not an animation, so going through framer-motion just to set it once would be over-engineering. framer-motion's `animate()` reads the current computed value as the start state, so it picks up the inline-style scale correctly.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1645 - 2026-05-22
 
 **Title:** ⏱️ Boot reveal — wallpaper zoom runs from T=0, end stays at T=5500
