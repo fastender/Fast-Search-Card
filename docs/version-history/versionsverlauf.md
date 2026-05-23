@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1633 - 2026-05-22
+
+**Title:** 👆 BentoRichSlider — Click auf Karte = next item (spatial transition)
+**Hero:** none
+**Tags:** Polish, Bento
+
+### Why
+
+User: "touch sollte sein, dass ich mit mouse nächstes item aktiviere, muss aber nicht slide sein, spatial ist schöner". Drag-Swipe wurde in v1.1.1632 entfernt — als Ersatz dient jetzt ein einfacher Click auf die Karte.
+
+### Change
+
+`onClick` der `.bento-rich-slider-page` triggert `setIdx((safeIdx + 1) % items.length)` statt direkt das Detail-View zu öffnen. Spatial Scale+Blur+Fade Transition (v1.1.1632) läuft automatisch zwischen aktueller und nächster Karte.
+
+Auto-Slide alle 10 s bleibt unverändert. Footer-Label öffnet weiterhin das Detail-View. Dots erlauben weiterhin Sprung auf spezifisches Item.
+
+### Why no rotation needed
+
+`% items.length` macht Loop — am Ende der Liste wird Click zurück zu Item 0. Mit 4 Items (Weather/News/Todos/Calendar) hat man so eine flüssige Manuell-Rotation.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichSlider.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1632 - 2026-05-22
 
 **Title:** ✨ BentoRichSlider — Apple-niveau Slideshow mit Scale + Blur Cross-Fade
