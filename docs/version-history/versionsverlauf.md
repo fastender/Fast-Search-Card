@@ -2,15 +2,15 @@
 
 ## Version 1.1.1636 - 2026-05-22
 
-**Title:** 🧹 BentoRichTodos — Hover-Pill entfernt, Gap zwischen Todos kompakter
+**Title:** 🧹 BentoRichTodos — hover pill removed, tighter row gap
 **Hero:** none
 **Tags:** Polish, Bento, Todos
 
 ### Why
 
-User-Screenshot vom Todo-Widget im Slider: störende helle Hover-Pille beim Drüberfahren und zu viel Luft zwischen den Todo-Zeilen.
+User screenshot of the todo widget inside the slider: the light hover pill on mouseover felt distracting and the vertical space between todo rows was wasteful.
 
-### Was geändert
+### What changed
 
 ```diff
 .bento-rich-todos-row--clickable {
@@ -29,12 +29,12 @@ User-Screenshot vom Todo-Widget im Slider: störende helle Hover-Pille beim Drü
 -}
 ```
 
-- `:hover { background: ... }`-Rule komplett raus
-- Padding-y von 10 → 4 px (Click-Area bleibt mit den 17 px Circle + Text ausreichend touch-tauglich)
-- Padding-x auf 0 + negativer Margin entfernt (waren beide nur für die Hover-Pill-Optik)
-- border-radius + transition entfernt (kein Hover-Effekt mehr → unnötig)
+- Dropped the `@media (hover: hover) :hover { background }` rule entirely.
+- Vertical padding 10 → 4 px (the 17 px circle button plus text height keep the tap target large enough on touch).
+- Horizontal padding 18 → 0 px plus removed the `margin: 0 -18px` negative-margin — both existed only to let the hover pill extend wider than the list edges.
+- `border-radius` and `transition` removed (no hover means no animated background to round).
 
-Effektiver Vertical-Gap zwischen Todos jetzt ~10 px (`gap: 2px` aus `.bento-rich-todos-list` + 4+4 px row-padding) statt vorher ~22 px.
+Effective vertical gap between two todos is now ~10 px (`gap: 2px` from `.bento-rich-todos-list` + 4+4 px row padding) instead of the previous ~22 px.
 
 ### Files
 
