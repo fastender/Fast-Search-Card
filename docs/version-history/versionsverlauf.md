@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1639 - 2026-05-22
+
+**Title:** 🪟 Boot zoom now spares the HA sidebar — wallpaper clone-layer + longer curve
+**Hero:** none
+**Tags:** Polish, Boot, Animation
+
+### Why
+
+User feedback on v1.1.1638: "das native sidebar vom home assistant wird auch gezoomt; ausserdem zoom noch flüssiger machen und ein bisschen länger". Body-scale dragged the HA sidebar along with the wallpaper.
+
+### Fix
+
+Stopped applying transform to `<body>`. Instead:
+
+1. **Wallpaper clone-layer.** On mount, the overlay reads `getComputedStyle(document.body).backgroundImage` and creates a dedicated `<div>` with the same `background-image`, `background-size`, `background-position`, `background-repeat`, `background-color`, positioned `position: fixed; inset: 0; z-index: 4999` (just below our boot overlay at 5000). Body itself is untouched, so the HA sidebar — and anything else in the body DOM — stays put.
+
+2. **Scale the clone, not body.** The clone-layer starts at `transform: scale(1.08)` and animates back to `scale(1)`. Cleanup removes the clone-layer from the DOM on unmount.
+
+3. **Longer + smoother.**
+   - Zoom: 1500 ms → 2500 ms.
+   - Overlay fade: 1200 ms → 2200 ms.
+   - Curve: `[0.32, 0.72, 0, 1]` → `[0.16, 1, 0.3, 1]` (ease-out-quart, characteristic Apple deceleration with very smooth final tail).
+
+### Edge cases
+
+If `document.body` has no `background-image` (custom HA setups using a different element as wallpaper root, or solid-color background), the clone-layer is skipped entirely. The dark overlay fade still runs, just no zoom effect — graceful degradation rather than crash.
+
+### Sequence on first page load
+
+```
+T=0      Clone-layer:  scale(1.08)              ← wallpaper zoomed in
+         Boot overlay: opacity 1, blur 30 px    ← dark + heavy blur
+         Card:         opacity 0, scale 0.95
+         Body / sidebar: untouched
+
+T=ready  Clone-layer:  scale 1.08 → 1.0         (2500 ms cubic ease-out-quart)
+         Boot overlay: opacity 1 → 0            (2200 ms cubic ease-out-quart)
+         Boot overlay: blur 30 → 0              (2200 ms cubic ease-out-quart)
+         Card:         opacity 0 → 1            (550 ms cubic)
+         Card:         scale 0.95 → 1           (spring)
+
+T=~2.5s  Settled. Overlay unmounted. Clone-layer removed.
+         Body, sidebar, card all in their natural state.
+```
+
+### Why not framer-motion for the wallpaper scale?
+
+The clone-layer is created outside the React tree (raw `document.body.appendChild`). framer-motion's `<motion.div>` would require mounting it inside the component tree, which would re-create it on every React render. A direct CSS transition on the raw DOM node is simpler, GPU-accelerated, and cleanly cleaned up by the unmount callback. Same visual result.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1638 - 2026-05-22
 
 **Title:** 🖼️ Wallpaper zoom-out — body scale(1.08) → scale(1) sync with boot overlay
