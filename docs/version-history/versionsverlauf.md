@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1629 - 2026-05-22
+
+**Title:** 🪶 Ghost-Pill: padding-left:0 — Suffix klebt nahtlos am User-Text (wie Apple Spotlight)
+**Hero:** none
+**Tags:** Polish, SearchField
+
+### Why
+
+User-Screenshot-Vergleich: bei Apple Spotlight ist "safari" und der "— Öffnen"-Pill direkt aneinander (kein Abstand). Bei uns waren 14px Lücke zwischen "k" und dem Pill-Inhalt "üche" weil der Pill `padding: 0 14px` (links UND rechts) hatte.
+
+### Fix
+
+`padding: 0 14px 0 0` — nur noch rechts-padding. Pill-Background startet exakt am Pixel wo der User-Text endet (via mirror-span-measurement), Pill-Text klebt nahtlos an.
+
+### Files
+
+- `src/components/SearchField/SearchFieldV4.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1628 - 2026-05-22
 
 **Title:** 🔁 Ghost-Pill zurück zu Suffix-only, jetzt mit 24px Schriftgröße
