@@ -1,5 +1,63 @@
 # Versionsverlauf
 
+## Version 1.1.1635 - 2026-05-22
+
+**Title:** 🍎 BentoRichSlider — Apple-style Progress-Dots (App Store Today Tab Pattern)
+**Hero:** none
+**Tags:** Polish, Bento, Indicator
+
+### Why
+
+User-Referenz: ein "Apple-like slide indicator" — aktive Pille hat eine wachsende weiße Progress-Bar drin die mit dem Auto-Slide-Timer synchronisiert. Pattern bekannt aus iOS App Store "Today" Tab und Apple TV+ Hero-Carousels. Visual cue gibt dem User Klarheit über das automatische Tempo ohne dass er warten muss bis was passiert.
+
+### What changed
+
+**JSX (`BentoRichSlider.jsx`):**
+
+- Active Dot bekommt ein inneres `<span class="bento-carousel-dot-progress" key={progress-${safeIdx}}>` — der React-Key forciert Remount bei jedem Index-Wechsel → CSS-Animation startet neu von 0%.
+- `animationPlayState: paused` via inline-style wenn `paused === true` (mouse-over) → bar pausiert, sieht aus wie eingefroren.
+- `useEffect` für setInterval bekommt `safeIdx` als Dependency: bei manuellem Click/Tap/Swipe wird der Timer neu armed → Auto-Wechsel kommt voll 10s später, sync mit der Progress-Bar.
+
+**CSS (`BentoStartView.css`):**
+
+```css
+.bento-carousel-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  position: relative; overflow: hidden;
+  transition: width 0.4s ease, background 0.2s, border-radius 0.2s;
+}
+.bento-carousel-dot.is-active {
+  width: 36px; border-radius: 3px;
+  background: rgba(255,255,255,0.3);  /* halb-transparent, Bar liegt drüber */
+}
+.bento-carousel-dot-progress {
+  position: absolute; inset: 0 auto 0 0;  /* top, right(auto), bottom, left */
+  width: 0%;
+  background: rgba(255,255,255,0.95);
+  border-radius: 3px;
+  animation: bento-dot-progress 10s linear forwards;
+}
+@keyframes bento-dot-progress { from { width: 0%; } to { width: 100%; } }
+```
+
+**Sync-Garantie:** CSS-Animation und setInterval starten beide bei jedem `safeIdx`-Wechsel neu (key-remount für Bar, useEffect-Restart für Timer). Bei pause/resume gibt's einen leichten Drift (CSS-pause behält Position, setInterval startet bei resume voll neu), in 10s-Intervallen praktisch nicht spürbar.
+
+### Visual
+
+```
+Inactive:  •  •  •            (6×6 px Dots, opacity 0.3)
+Active:    ▭▭▭▭▭▭▭▭▭▭▭        (36 px Pille mit halb-trans Background)
+              ▰▰▰▰▱▱▱▱▱        (Progress-Bar wächst opaque white über 10s)
+```
+
+### Files
+
+- `src/components/bento/widgets/BentoRichSlider.jsx`
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1634 - 2026-05-22
 
 **Title:** 👉 BentoRichSlider — Swipe-Geste mit Maus + Touch zusätzlich zum Tap
