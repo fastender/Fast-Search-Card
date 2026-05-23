@@ -1,5 +1,54 @@
 # Versionsverlauf
 
+## Version 1.1.1640 - 2026-05-22
+
+**Title:** 🎯 Boot zoom targets the real HA wallpaper element (deep in shadow-DOM)
+**Hero:** none
+**Tags:** Polish, Boot, Animation
+
+### Why
+
+User opened DevTools and showed the actual DOM: the HA wallpaper isn't a `background-image` on `<body>` at all. It's a custom element `<hui-view-background fixed-background>` buried inside HA's shadow-DOM tree:
+
+```
+home-assistant
+  └─ #shadow-root
+      └─ home-assistant-main
+          └─ #shadow-root
+              └─ ha-panel-lovelace
+                  └─ #shadow-root
+                      └─ hui-root
+                          └─ #shadow-root
+                              └─ hui-view-container
+                                  └─ #shadow-root
+                                      └─ hui-view-background  ← here
+```
+
+The element has `:host([fixed-background]) { position: fixed; z-index: -1; display: block; }` and the wallpaper URL is set via the `--view-background` CSS custom property in inline style.
+
+My v1.1.1639 read `getComputedStyle(document.body).backgroundImage` — which returned `'none'`, so the clone-layer never got created and no zoom happened.
+
+### Fix
+
+New helper `findInShadowDOM(root, tagName)` does a BFS through nested open shadow-roots looking for the element. When mounted, the overlay finds the real `<hui-view-background>` and applies the transform directly to it — `scale(1.08)` initial, animates to `scale(1)` over 2500 ms on revealReady. Cleanup restores the element's original `style.transform`, `style.transformOrigin`, `style.transition`, `style.willChange` properties on unmount.
+
+Because the sidebar lives in a sibling shadow-branch (under `home-assistant-main` directly, not under `hui-view-container`), scaling `hui-view-background` leaves the sidebar untouched. Confirmed by inspecting the DOM tree the user shared.
+
+### Graceful degradation
+
+If `findInShadowDOM` returns null (custom HA setups, or future HA versions where the element name changed), the dark+blur overlay fade still runs — just no zoom. No crash.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+### Risk note
+
+The shadow-DOM traversal walks open shadow-roots only. If HA ever moves to closed shadow-roots for any of these layers, this stops working and zoom silently degrades to no-op. The hello-splash, overlay fade, and card scale-in all keep working — only the wallpaper-zoom would be missing.
+
+---
+
 ## Version 1.1.1639 - 2026-05-22
 
 **Title:** 🪟 Boot zoom now spares the HA sidebar — wallpaper clone-layer + longer curve
