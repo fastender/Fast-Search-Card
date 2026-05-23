@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1628 - 2026-05-22
+
+**Title:** 🔁 Ghost-Pill zurück zu Suffix-only, jetzt mit 24px Schriftgröße
+**Hero:** none
+**Tags:** Polish, SearchField
+
+### Why
+
+User wollte initial die Spotlight-Top-Hit-Variante (Pill umrahmt das volle Wort, v1.1.1626/1627). Nach Live-Test entschieden: doch lieber Suffix-only — Pill enthält nur den fehlenden Anteil rechts neben dem getippten Text, NICHT das ganze Wort. Schriftgröße bleibt aber bei 24px (wie der Input), nicht zurück auf die 18px der v1.1.1625-Version.
+
+### What changed
+
+- **JSX**: Mirror-Span reaktiviert (visibility:hidden) für Pixel-Width-Measurement des getippten Texts. Pill rendert `suggestionSuffix` statt `displayedGhost`. Position via `style={{ left: ${ghostPillOffset}px }}` dynamisch direkt nach dem User-Text.
+- **CSS**: `.search-input.has-ghost-pill` Padding-Rule entfernt (Pill rückt zum Text, nicht andersrum). Pill-padding symmetrisch `0 14px` (vorher asymmetrisch `0 14px 0 12px` für left:0-Variante). Mirror-Span CSS wieder reingenommen — war in v1.1.1626 entfernt worden weil Mirror inert war.
+- **Schriftgröße bleibt 24px**, line-height 30px — matched den `.search-input` damit der Pill optisch zur typed-Text-Größe passt.
+
+### Files
+
+- `src/components/SearchField/components/SearchInputSection.jsx`
+- `src/components/SearchField/SearchFieldV4.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1627 - 2026-05-22
 
 **Title:** 🩹 Hotfix v1.1.1626 — JSX edit failed silently, ghost-pill rendered with undefined refs
