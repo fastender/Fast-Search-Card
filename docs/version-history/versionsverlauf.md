@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1630 - 2026-05-22
+
+**Title:** ⏪ Pill-Design revert — zurück zum v1.1.1624 dual-input overlay
+**Hero:** none
+**Tags:** Revert, SearchField
+
+### Why
+
+User probierte die Pill-Variante (v1.1.1625 Suffix-Pill, v1.1.1626/1627 Top-Hit-Pill, v1.1.1628/1629 Suffix-Pill mit 24px) und entschied: gefällt nicht. Zurück zum bewährten v1.1.1624 dual-input overlay.
+
+### What reverted
+
+- `SearchInputSection.jsx`: dual-input overlay wieder, `ghost-icon-prefix` (Kontext-Icon links), `search-suggestion` Input für den translucent Ghost-Text, `search-input` darüber opak. Mirror-Span + Pill-State (useState/useEffect/useRef) komplett entfernt.
+- `SearchFieldV4.css`: Pill-Selektoren (`.search-input-mirror`, `.ghost-suffix-pill`, `.ghost-suffix-text`, `.ghost-suffix-icon`, `.search-input.has-ghost-pill`) auf `display: none` gesetzt als No-Op-Defense (falls ein Rest-Markup zurückbleibt). `.ghost-icon-prefix` Section bleibt aktiv und ist wieder die einzige sichtbare Icon-Stelle.
+
+### Functional state
+
+Identisch zu v1.1.1624. Wer von v1.1.1624 direkt auf v1.1.1630 wechselt sieht keinen Unterschied. Wer von v1.1.1625-1629 kommt: Pill ist weg, Icon links vor dem Ghost-Text wie früher.
+
+### Files
+
+- `src/components/SearchField/components/SearchInputSection.jsx` (Write-rewrite weil Edit-Tool wiederholt an NBSP-Chars in der v1.1.1625-Commit-Originalstring scheiterte)
+- `src/components/SearchField/SearchFieldV4.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` (version bump)
+
+---
+
 ## Version 1.1.1629 - 2026-05-22
 
 **Title:** 🪶 Ghost-Pill: padding-left:0 — Suffix klebt nahtlos am User-Text (wie Apple Spotlight)
