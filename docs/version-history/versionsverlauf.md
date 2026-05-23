@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1642 - 2026-05-22
+
+**Title:** ⏱️ Three-phase boot reveal — overlay fade → zoom → card
+**Hero:** none
+**Tags:** Polish, Boot, Animation
+
+### Why
+
+User refined the sequencing again: "am anfang dark + blur 30 px overlay / dann fade nicht mehr blur oder overlay / dann zoom / erst danach die karten". v1.1.1641 had zoom first then overlay+card together — wrong order. The new order is overlay-fade first, then zoom, then card.
+
+### Phases
+
+| Phase | Window | Animation |
+|---|---|---|
+| 1 | 0 – 1500 ms | Overlay opacity 1 → 0, backdrop-filter blur(30px) → blur(0px). Wallpaper stays at scale(1.08) underneath. |
+| 2 | 1500 – 4500 ms | Wallpaper scale 1.08 → 1.0 over 3000 ms with ease-out-quart. Overlay already gone. |
+| 3 | 4500 – 5050 ms | Card opacity 0 → 1 (550 ms cubic) and scale 0.95 → 1 (spring). |
+
+Total ~5050 ms.
+
+### How the delays are wired
+
+- **Overlay-fade (Phase 1):** framer-motion `transition.delay: 0`, fires immediately when revealReady flips true.
+- **Wallpaper-zoom (Phase 2):** JS `setTimeout(ZOOM_DELAY_MS)` after revealReady. After the timeout, the CSS transition starts (`transform 3000 ms cubic-bezier(0.16, 1, 0.3, 1)`). Cleanup clears the timeout on early unmount.
+- **Card-reveal (Phase 3):** framer-motion `transition.delay: 4.5` on both opacity and scale, with the delay applied only when `shouldReveal === true` (no delay on exit).
+
+The three timings derive from two constants (`OVERLAY_FADE_DURATION_MS = 1500`, `ZOOM_DURATION_MS = 3000`) so the phases stay synced if any one is tuned later.
+
+### Why not pure framer-motion for the zoom delay
+
+The wallpaper element lives outside the React tree (`hui-view-background` deep in HA's shadow-DOM, mutated via raw DOM style assignment). Wrapping it with framer-motion's `animate()` would need a portal or custom motion-value plumbing — more code than one `setTimeout`. Visual smoothness is identical because the actual transition is the same GPU-accelerated CSS one.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/index.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1641 - 2026-05-22
 
 **Title:** ⏱️ Sequenced boot reveal — longer zoom first, then everything else
