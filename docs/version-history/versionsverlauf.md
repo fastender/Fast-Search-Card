@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1644 - 2026-05-22
+
+**Title:** ⏱️ Boot reveal — tighter phasing (2000ms fade / 3500ms zoom / scale 1.20)
+**Hero:** none
+**Tags:** Polish, Boot, Animation
+
+### Why
+
+User tuned the three-phase timing on v1.1.1643:
+- Phase 1: shorten to 2000 ms (was 2500 ms)
+- Phase 2: stretch to 3500 ms (was 3000 ms), bigger initial scale 1.20 (was 1.10)
+- Phase 3: start earlier at 2500 ms (was 3000 ms)
+
+### New phasing
+
+```
+T=0       Overlay full (0.65 dark, 30 px blur)        Wallpaper scale 1.20    Card hidden
+T=ready   Overlay fades 2000 ms (ease-out-cubic)      Wallpaper waits         Card waits
+T=2000    Overlay gone                                Wallpaper starts 1.20→1.0 zoom (3500 ms)
+T=2500    [card delay ends]                                                   Card opacity 0→1 + scale 0.95→1
+T=3050    Card settled                                Wallpaper continuing
+T=5500    Wallpaper settled                           Overlay unmounted ~5700
+```
+
+### Constants delta
+
+- `OVERLAY_FADE_DURATION_MS`: 2500 → **2000**
+- `ZOOM_DURATION_MS`: 3000 → **3500**
+- `ZOOM_INITIAL_SCALE`: 1.10 → **1.20**
+- `ZOOM_DELAY_MS`: re-synced to OVERLAY_FADE_DURATION_MS → **2000**
+- Card `transition.delay`: 3.0 → **2.5**
+
+Total boot ~5500 ms (unchanged, but card is now visible from T=3050 ms instead of T=3550 ms).
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/index.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1643 - 2026-05-22
 
 **Title:** ✨ Boot reveal tuning — visible fade, stronger zoom, earlier card
