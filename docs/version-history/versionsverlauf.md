@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1632 - 2026-05-22
+
+**Title:** ✨ BentoRichSlider — Apple-niveau Slideshow mit Scale + Blur Cross-Fade
+**Hero:** none
+**Tags:** Polish, Bento, Animation
+
+### Why
+
+User wollte Premium-Carousel mit "realistic spatial transition that makes the content feel immersive and dynamic, smooth transitions and blurred, Apple-Niveau". Aktuelles Setup (Track-Architektur mit linearem translateX) fühlte sich nicht flüssig an — alle Rich-Widgets gleichzeitig im DOM, keine GPU-Hints, kein spatial Effekt.
+
+### What changed
+
+**Architektur:** Track + Drag-Swipe entfernt. Stattdessen `AnimatePresence` mit `mode="sync"` und nur einer Karte sichtbar zur Zeit.
+
+**Transition-Variants:**
+
+```js
+enter:  { opacity: 0, scale: 1.06, filter: 'blur(16px)' }   // klein größer + blurry
+center: { opacity: 1, scale: 1,    filter: 'blur(0px)'  }   // scharf, full
+exit:   { opacity: 0, scale: 0.95, filter: 'blur(16px)' }   // schrumpft + blurry weg
+```
+
+Incoming-Karte taucht aus dem "Hintergrund" auf (leicht größer + unscharf, kommt zur Schärfe). Outgoing-Karte schrumpft und löst sich in Unschärfe auf. Beide gleichzeitig (mode="sync") → echter Cross-Fade ohne dead frame.
+
+**Transition-Curves:**
+- `scale`: Spring (stiffness 180, damping 26, mass 0.9) — natürlicher Apple-feel
+- `opacity` + `filter`: Cubic-bezier `[0.32, 0.72, 0, 1]` (Apple-Standard ease-out)
+- Dauer ~700ms — premium statt schnell
+
+**GPU-Hints:**
+- `will-change: transform, opacity, filter` auf `.bento-rich-slider-page`
+- `transform: translateZ(0)` als zusätzlicher Compositor-Hint
+
+**Entfernt:**
+- `useMotionValue('0%')` + `useDragControls` + Track-Pages-side-by-side
+- `handleSliderDragEnd` Drag-Logic
+- `.bento-rich-slider-track` CSS (auf display:none)
+- onPointerDown-Drag-Trigger auf dem äußeren Wrapper
+
+**Beibehalten:**
+- Auto-Slide 10 s mit Pause-on-Hover
+- Persistenter Slider-Index über Remount (`sliderPersistedIdx` Modul-State)
+- Footer mit Label + zentrierten Click-Dots
+- Background-Gradient pro Domain (smooth `transition: background 0.5s`)
+
+### Files
+
+- `src/components/bento/widgets/BentoRichSlider.jsx` (Write-rewrite)
+- `src/components/BentoStartView.css` (track → display:none, page absolute + will-change)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` (version bump)
+
+### Trade-off
+
+Drag-Swipe ist weg. Wenn das fehlt — sag Bescheid, dann gibt's eine extra-Variante die Drag-Gesten erkennt und in `setIdx` umsetzt (statt dem alten Track-Drag), AnimatePresence bleibt.
+
+---
+
 ## Version 1.1.1631 - 2026-05-22
 
 **Title:** 🟢 Icon-Suffix-Button — rund, iOS-Style, direkt nach dem Ghost-Wort
