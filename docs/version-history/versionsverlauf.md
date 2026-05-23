@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1634 - 2026-05-22
+
+**Title:** 👉 BentoRichSlider — Swipe-Geste mit Maus + Touch zusätzlich zum Tap
+**Hero:** none
+**Tags:** Polish, Bento, Gesture
+
+### Why
+
+Nach v1.1.1633 (Tap = next): User wollte zusätzlich Swipe-Geste mit Maus. Drag-Swipe + Spatial Transition in einer Karte ist tricky — framer-motion's `drag` mit `dragConstraints: {left:0, right:0}` und elasticity lässt die Karte beim Ziehen mit-folgen ohne sie wegzubewegen.
+
+### What changed
+
+```jsx
+drag={items.length > 1 ? 'x' : false}
+dragConstraints={{ left: 0, right: 0 }}
+dragElastic={0.18}
+dragMomentum={false}
+onDragStart={() => setPaused(true)}
+onDragEnd={(e, info) => {
+  if (offset.x < -60 || velocity.x < -400) → next
+  if (offset.x >  60 || velocity.x >  400) → previous
+  // sonst: framer-motion snapped auto zurück zu x:0
+}}
+onTap={() => next}
+```
+
+**Wie Tap und Drag koexistieren:** `onTap` wird von framer-motion nur bei echtem Tap ausgelöst (kurzer Press ohne signifikante Bewegung). Sobald der Pointer sich um mehr als ein paar Pixel bewegt, wird's ein Drag und `onTap` greift NICHT. Saubere Trennung ohne Race-Conditions.
+
+**Auto-Slide pausiert beim Drag-Start** zusätzlich zum bestehenden Pause-on-Hover (Touch löst kein mouseenter aus, deshalb extra Hook).
+
+**Spatial Transition läuft weiterhin** beim setIdx — die enter/exit Animation (v1.1.1632 Scale + Blur + Fade) bleibt unverändert. Drag bewegt die Karte leicht mit, dann übernimmt AnimatePresence den Übergang zur nächsten.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichSlider.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1633 - 2026-05-22
 
 **Title:** 👆 BentoRichSlider — Click auf Karte = next item (spatial transition)
