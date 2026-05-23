@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1641 - 2026-05-22
+
+**Title:** ⏱️ Sequenced boot reveal — longer zoom first, then everything else
+**Hero:** none
+**Tags:** Polish, Boot, Animation
+
+### Why
+
+User feedback on v1.1.1640: "zoom effekt soll länger dauern, und erst bei abschluss sollen die anderen elemente animiert erscheinen". The previous version ran the wallpaper-zoom, overlay-fade and card-reveal in parallel — too busy, too fast.
+
+### Fix
+
+Sequenced timeline:
+
+- **Phase 1 (0 – 4000 ms):** Only the wallpaper zoom plays. Wallpaper scales from 1.08 → 1 over 4000 ms (was 2500 ms). Overlay stays at full strength (dark + blur 30 px). Card stays at opacity 0.
+- **Phase 2 (4000 – 5500 ms):** Overlay-fade + card-reveal kick in together. Overlay opacity 1 → 0 and backdrop-filter blur(30px) → blur(0px) over 1500 ms with `delay: 4000 ms`. Card opacity 0 → 1 (550 ms cubic) and scale 0.95 → 1 (spring), both with `delay: 4000 ms`.
+
+Both the overlay's framer-motion `transition.delay` and the card wrapper's `transition.delay` use `revealReady ? 4.0 : 0` — so the delay only kicks in on the way INTO the reveal, never on the way out.
+
+Overlay unmount-timeout extended to `FADE_DELAY_MS + FADE_DURATION_MS + 200` = 5700 ms so the component stays mounted long enough for the delayed fade to complete.
+
+### Timeline visual
+
+```
+T=0       Wallpaper: scale(1.08)              ← zoomed in
+          Overlay:   opacity 1, blur 30 px
+          Card:      opacity 0, scale 0.95
+
+T=ready   Wallpaper: scale 1.08 → 1.0         (4000 ms cubic ease-out-quart)
+          Overlay:   waits (delay 4000 ms)
+          Card:      waits (delay 4000 ms)
+
+T=4000    Wallpaper: scale 1 (settled)
+          Overlay:   opacity 1 → 0, blur 30 → 0   (1500 ms cubic)
+          Card:      opacity 0 → 1, scale 0.95 → 1 (550 ms cubic / spring)
+
+T=5500    Everything settled. Overlay unmounted ~T=5700.
+```
+
+### Why not split into two state-machine phases
+
+Cross-component coordination (the card lives in `index.jsx`, the wallpaper-overlay in its own component) via callback or shared state would add complexity for no real benefit — both animations know the same fact (revealReady true / false), and framer-motion's `delay` does the sequencing cleanly. Less state, same result.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/index.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1640 - 2026-05-22
 
 **Title:** 🎯 Boot zoom targets the real HA wallpaper element (deep in shadow-DOM)
