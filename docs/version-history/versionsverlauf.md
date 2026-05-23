@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.1638 - 2026-05-22
+
+**Title:** 🖼️ Wallpaper zoom-out — body scale(1.08) → scale(1) sync with boot overlay
+**Hero:** none
+**Tags:** Polish, Boot, Animation
+
+### Why
+
+v1.1.1637's boot reveal scaled the card itself but the HA dashboard wallpaper behind never moved. User reported "Zooming out background image effect sehe ich nicht aber" — they expected the wallpaper to visibly zoom out the way Apple does on app launch.
+
+### Root cause
+
+The HA wallpaper lives as a CSS `background` on `<body>`, completely outside the card's DOM tree. A scale transform on the card wrapper only affects the card. To move the wallpaper, the transform has to be on `<body>` itself.
+
+### Fix
+
+`WallpaperBootOverlay` now applies `transform: scale(1.08)` directly to `document.body` on mount, then animates back to `scale(1)` over 1500 ms with `cubic-bezier(0.32, 0.72, 0, 1)` when the reveal triggers. Cleanup on unmount restores the original `body.style` properties (transform, transformOrigin, transition, willChange) so nothing leaks back to the HA dashboard.
+
+```js
+// On mount: zoom body in
+body.style.transformOrigin = 'center center';
+body.style.transform = 'scale(1.08)';
+
+// On revealReady: zoom body out
+body.style.transition = 'transform 1500ms cubic-bezier(...)';
+body.style.transform = 'scale(1)';
+
+// On unmount: restore
+body.style.transform = '';  // (plus other properties)
+```
+
+### Sequence after this change
+
+1. Mount: body at `scale(1.08)`. Overlay covers viewport (dark + blur 30 px). Card invisible (opacity 0, scale 0.95).
+2. Reveal triggers:
+   - Body: `scale(1.08) → scale(1)` over 1500 ms
+   - Overlay: `opacity 1 → 0`, `backdrop-filter blur(30px) → blur(0px)` over 1200 ms
+   - Card: `opacity 0 → 1`, `scale 0.95 → 1` (spring)
+3. After ~1500 ms everything has settled. Overlay unmounts. Body transform cleared. Card fully visible.
+
+User sees the wallpaper appear from a slight zoom-in state, blurred and darkened, then come into focus while subtly pulling back to its native size. Apple app-launch feel.
+
+### Trade-off
+
+While body is at scale(1.08), the wallpaper edges extend ~4% past the viewport on each side. If HA's `<body>` has `overflow: hidden` (typical) this is invisible — the overscan is just clipped. If your HA setup somehow allows body to scroll, the boot phase may briefly cause a horizontal scroll-bar flicker. Cleanup of `body.style.transform` on unmount resolves it within ~1500 ms.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1637 - 2026-05-22
 
 **Title:** 🍎 First-load boot reveal — dark-blurred wallpaper de-blurs while card zooms in
