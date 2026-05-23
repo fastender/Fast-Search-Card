@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1636 - 2026-05-22
+
+**Title:** 🧹 BentoRichTodos — Hover-Pill entfernt, Gap zwischen Todos kompakter
+**Hero:** none
+**Tags:** Polish, Bento, Todos
+
+### Why
+
+User-Screenshot vom Todo-Widget im Slider: störende helle Hover-Pille beim Drüberfahren und zu viel Luft zwischen den Todo-Zeilen.
+
+### Was geändert
+
+```diff
+.bento-rich-todos-row--clickable {
+  cursor: pointer;
+-  border-radius: 16px;
+-  padding: 10px 18px;
+-  margin: 0 -18px;
+-  transition: background 0.15s ease;
++  padding: 4px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+-@media (hover: hover) {
+-  .bento-rich-todos-row--clickable:hover {
+-    background: rgba(255, 255, 255, 0.18);
+-  }
+-}
+```
+
+- `:hover { background: ... }`-Rule komplett raus
+- Padding-y von 10 → 4 px (Click-Area bleibt mit den 17 px Circle + Text ausreichend touch-tauglich)
+- Padding-x auf 0 + negativer Margin entfernt (waren beide nur für die Hover-Pill-Optik)
+- border-radius + transition entfernt (kein Hover-Effekt mehr → unnötig)
+
+Effektiver Vertical-Gap zwischen Todos jetzt ~10 px (`gap: 2px` aus `.bento-rich-todos-list` + 4+4 px row-padding) statt vorher ~22 px.
+
+### Files
+
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1635 - 2026-05-22
 
 **Title:** 🍎 BentoRichSlider — Apple-style Progress-Dots (App Store Today Tab Pattern)
