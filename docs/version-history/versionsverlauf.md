@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1648 - 2026-05-22
+
+**Title:** 🎬 Boot reveal — pure black hold + cinematic ease-in-out fade-up
+**Hero:** none
+**Tags:** Polish, Boot, Animation
+
+### Why
+
+User: "ganz am anfang soll es richtig dunkel sein, also schwarz und dann langsam fade vielleicht mittig anfangen fade in wie im movie, apple like aber". Previous overlay was `rgba(0,0,0,0.65)` — wallpaper bled through, so the "fade in from black" feeling was missing. User wanted a proper cinematic cut-to-black-then-fade-up open.
+
+### What changed
+
+**Overlay background:** `rgba(0, 0, 0, 0.65)` → `rgb(0, 0, 0)`. Solid opaque black. Wallpaper completely hidden at T=0, no peek-through.
+
+**500 ms black hold before the fade.** Added `OVERLAY_HOLD_MS = 500` constant. The framer-motion `transition.delay` on the overlay-fade is set to that value when `revealReady` is true. So the user sees pure black for 500 ms after the reveal trigger before anything starts dissolving. That's the "cut from black" beat.
+
+**Easing changed from ease-out-cubic to ease-in-out cubic.** `[0.215, 0.61, 0.355, 1]` (mostly out) → `[0.45, 0, 0.55, 1]` (S-curve, soft start + soft end, accelerates in the middle). This is the curve cinema fades typically use — the dim "barely lifts" at first, then the image emerges, then settles in. Matches the user's "vielleicht mittig anfangen" note.
+
+### Phasing now
+
+```
+T=0       Overlay: solid black (rgb 0,0,0)         Wallpaper: scale 1.20    Card: hidden
+T=ready   Overlay: holds black for 500 ms          Wallpaper: zooms (5500 ms)
+T=500     Overlay: fade starts (ease-in-out cubic)
+T=1500    Overlay: ~50% through fade — strongest visible change in this window
+T=2500    Overlay: gone                            Wallpaper: ~45% through    Card: reveal starts
+T=3050    Card: settled
+T=5500    Wallpaper: settled
+```
+
+### Why ease-in-out instead of ease-out
+
+Ease-out (e.g. quart `[0.16, 1, 0.3, 1]`) does most of its work in the first 200 ms and then has a long imperceptible tail. The user can't see the fade happen — it's "already gone" before you noticed it started. Ease-in-out distributes the change more evenly, with the strongest visible transition in the middle 50 % of the duration. That's the "movie fade" perception — you see the world emerge.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1647 - 2026-05-22
 
 **Title:** 🐌 Revert wallpaper-zoom to CSS transition — framer-motion `animate()` jankked at 5500 ms
