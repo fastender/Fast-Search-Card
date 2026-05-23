@@ -90,6 +90,18 @@ See [SECURITY.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/S
 
 ---
 
+## Survives every update
+
+One file in `www/`. No Docker. No add-on. No daemon. Nothing to install, nothing to maintain.
+
+Home Assistant restart? Still there. Core upgrade? Still there. Full system crash? Right where you left it when you boot back.
+
+Nothing to break, because nothing is running.
+
+<br>
+
+---
+
 ## What's inside
 
 <details>
