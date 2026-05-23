@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1645 - 2026-05-22
+
+**Title:** ⏱️ Boot reveal — wallpaper zoom runs from T=0, end stays at T=5500
+**Hero:** none
+**Tags:** Polish, Boot, Animation
+
+### Why
+
+User asked for the zoom to start at T=0 (parallel to the overlay fade) while keeping the same end point at T=5500. That means stretching the zoom duration from 3500 ms to 5500 ms and dropping the 2000 ms pre-zoom delay.
+
+### What changed
+
+- `ZOOM_DELAY_MS`: 2000 → **0** (no more setTimeout)
+- `ZOOM_DURATION_MS`: 3500 → **5500**
+- `TOTAL_BEFORE_UNMOUNT_MS`: `ZOOM_DELAY_MS + ZOOM_DURATION_MS` → just `ZOOM_DURATION_MS` (5500)
+
+The `setTimeout` wrapping around the zoom trigger in the second useEffect was removed — the zoom now starts immediately when `revealReady` flips true.
+
+### Phasing now
+
+```
+T=0       Overlay: opacity 0.65, blur 30 px        Wallpaper: scale 1.20             Card: hidden
+T=ready
+          Overlay: fades over 2000 ms (cubic)      Wallpaper: zooms over 5500 ms     Card: waits
+                                                   (ease-out-quart — long smooth tail)
+T=2000    Overlay: gone                            Wallpaper: ~25% through           Card: waits
+T=2500    [card delay ends]                        Wallpaper: ~38% through           Card: reveals (550ms cubic + spring)
+T=3050    Card: settled                            Wallpaper: ~50% through
+T=5500    Wallpaper: settled at scale 1.0          Overlay: already unmounted        Card: stable
+```
+
+Now the zoom is visible the entire boot — Ken-Burns-style slow pull-back behind everything else.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1644 - 2026-05-22
 
 **Title:** ⏱️ Boot reveal — tighter phasing (2000ms fade / 3500ms zoom / scale 1.20)
