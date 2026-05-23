@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1647 - 2026-05-22
+
+**Title:** 🐌 Revert wallpaper-zoom to CSS transition — framer-motion `animate()` jankked at 5500 ms
+**Hero:** none
+**Tags:** Performance, Revert, Boot
+
+### Why
+
+User on v1.1.1646: "der zoom ruckelt". The framer-motion `animate()` API I introduced for Phase 2 (wallpaper-zoom) is JS-driven — it updates the element's transform style on every animation frame via the main thread. On a 5500 ms animation this means thousands of style writes the browser has to process, while the GPU is also busy with the overlay's `backdrop-filter: blur(30px)` and any card-render work. Result: visible jank during the long zoom.
+
+CSS transition by contrast is set up once and then handed off to the browser's compositor thread for the entire duration — the GPU does the interpolation, no per-frame JS involvement, no main-thread contention. Buttery smooth regardless of how long the animation runs.
+
+### Decision
+
+Phase 2 (wallpaper-zoom) → back to CSS transition.
+Phases 1 (overlay-fade) and 3 (card-reveal) → stay on framer-motion (short durations, no jank visible).
+
+Trade-off: not all three phases use the same animation engine anymore. But "premium feel" beats "architectural consistency" — the user immediately noticed the jank and asked to fix it. Same call any animation engineer would make.
+
+### What changed
+
+```diff
+-import { motion, AnimatePresence, animate } from 'framer-motion';
++import { motion, AnimatePresence } from 'framer-motion';
+
+-const ZOOM_EASE = [0.16, 1, 0.3, 1];                  // framer-motion array
++const ZOOM_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';    // CSS string
+
+ // Phase 2 trigger
+-const controls = animate(wallpaper, { scale: 1 }, { duration: 5.5, ease: ZOOM_EASE });
+-return () => controls.stop();
++wallpaper.style.transition = `transform 5500ms ${ZOOM_EASE}`;
++void wallpaper.offsetWidth;
++wallpaper.style.transform = 'scale(1)';
+```
+
+### When to reach for framer-motion `animate()` on raw DOM
+
+Short animations (< 500 ms), springs that can't be expressed in CSS, or anything that needs JS-controlled mid-flight changes (interrupts, dynamic targets). For a one-shot 5500 ms transform, raw CSS transition wins on both performance and code size.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1646 - 2026-05-22
 
 **Title:** 🎬 Boot reveal — all three phases now run through framer-motion
