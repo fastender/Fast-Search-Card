@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1643 - 2026-05-22
+
+**Title:** ✨ Boot reveal tuning — visible fade, stronger zoom, earlier card
+**Hero:** none
+**Tags:** Polish, Boot, Animation
+
+### Why
+
+Three user notes on v1.1.1642:
+1. "fade-in ist kaum sichtbar; vom schwarz blurred auf normal nicht blurred sehe ich kein fade effekt like apple"
+2. "zoom vielleicht anfangs höher scale vielleicht 1.10?"
+3. "[card] sollte schneller starten, vielleicht bereits bei 3000ms?"
+
+### What changed
+
+**Overlay-fade (Phase 1):**
+- Duration 1500 ms → 2500 ms (longer, easier to watch).
+- Easing `cubic-bezier(0.16, 1, 0.3, 1)` (ease-out-quart) → `cubic-bezier(0.215, 0.61, 0.355, 1)` (ease-out-cubic). The old curve was extremely steep at the start — most of the change happened in the first 200 ms and the rest was visually imperceptible tail. Cubic is gentler at the start so the de-blur is perceivable throughout the full duration.
+- Initial opacity 0.55 → 0.65. The previous value already let too much wallpaper bleed through at "full strength" → fade-to-zero looked subtle. 0.65 gives the dark layer more presence at T=0 so the fade-out has more visual range.
+
+**Wallpaper-zoom (Phase 2):**
+- Initial scale 1.08 → 1.10. ~2.5 % more pull-back over the 3000 ms animation — more noticeable Ken-Burns-style settling.
+- Zoom delay re-synced to the new overlay-fade duration (2500 ms instead of 1500 ms).
+
+**Card-reveal (Phase 3):**
+- Delay 4.5 s → 3.0 s. Card now starts ~500 ms after the overlay-fade ends (T=2.5s), overlapping the first ~2 s of the wallpaper-zoom (T=2.5s → 5.5s). User wanted the card to come in earlier rather than waiting for the zoom to finish.
+
+### New timeline
+
+```
+T=0       Overlay: opacity 0.65, blur 30 px            Wallpaper: scale 1.10        Card: hidden
+T=ready   Overlay: opacity 0.65 → 0, blur 30 → 0       Wallpaper: waits            Card: waits
+          (2500 ms, ease-out-cubic)
+T=2500    Overlay: gone                                Wallpaper: 1.10 → 1.0       Card: waits
+                                                       (3000 ms, ease-out-quart)
+T=3000    [card delay ends, starts revealing]          Wallpaper: continuing       Card: opacity 0→1 + scale 0.95→1
+T=3550    All but the wallpaper-zoom is done           Wallpaper: ~80% through
+T=5500    Wallpaper settled at scale 1.0               Overlay unmounted ~5700
+```
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/index.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1642 - 2026-05-22
 
 **Title:** ⏱️ Three-phase boot reveal — overlay fade → zoom → card
