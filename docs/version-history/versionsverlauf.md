@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1631 - 2026-05-22
+
+**Title:** 🟢 Icon-Suffix-Button — rund, iOS-Style, direkt nach dem Ghost-Wort
+**Hero:** none
+**Tags:** Polish, SearchField
+
+### Why
+
+Nach dem v1.1.1630-Revert: User wollte das Kontext-Icon nicht mehr links vor dem Ghost-Text, sondern als runden iOS-Style-Button direkt nach dem vollen Ghost-Wort.
+
+### What changed
+
+- `SearchInputSection.jsx`: Mirror-Span misst Pixelbreite des kompletten `displayedGhost`. Neuer `<span class="ghost-icon-suffix-button">` mit `style.left: ${mirrorWidth + 8}px` positioniert direkt rechts neben dem Ghost-Text. Icon (Haus / Categories) im Kreis-Container.
+- `SearchFieldV4.css`:
+  - `.ghost-mirror` — versteckter Mirror-Span (24px Schrift identisch zu Input).
+  - `.ghost-icon-suffix-button` — 26×26 px, `border-radius: 50%`, `background: rgba(255,255,255,0.14)`, Icon 14×14 px innen.
+  - Mobile: tappable mit `active`-State-Background.
+  - `.ghost-icon-prefix` jetzt `display: none` (war v1.1.1630 noch aktiv).
+  - `.search-suggestion.has-icon` / `.search-input.has-icon` padding-left auf 0 (war 26px für das alte Left-Icon).
+
+### Visual
+
+```
+ki  nderzimmer (○)
+              ↑
+              Kreis-Button (~26px), 8px hinter dem Wort,
+              transluzentem Background, Icon innen
+```
+
+### Files
+
+- `src/components/SearchField/components/SearchInputSection.jsx` (Write-rewrite, weil NBSP-Trap im File die Edits weiterhin blockt)
+- `src/components/SearchField/SearchFieldV4.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1630 - 2026-05-22
 
 **Title:** ⏪ Pill-Design revert — zurück zum v1.1.1624 dual-input overlay
