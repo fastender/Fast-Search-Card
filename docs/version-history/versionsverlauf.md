@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1662 - 2026-05-22
+
+**Title:** 📐 Calendar header moved to detail-header + Year-view month names shortened
+**Hero:** none
+**Tags:** Polish, Calendar, Layout
+
+### Issue 1 — Inline `.calendar-header-title` duplicating space
+
+The CalendarView rendered its own `<div class="calendar-header-title">` showing "Mai 2026" / "2026" / range — but the top-right detail-header above the tabs was still showing the entity's generic state ("Active" + "Just Now") which felt redundant on a Calendar view.
+
+User asked: move that info into the detail-header (line 1: headerTitle, line 2: event count) and drop the inline header to save vertical room.
+
+### Fix
+
+Same pattern as news/todos/all_schedules already use:
+
+1. `CalendarView` registers `headerTitle` and `visibleEventsCount` via `useRegisterViewRef('calendar', ...)`.
+2. `DetailView` gets a new `getCalendarHeaderInfo()`:
+
+   ```js
+   const getCalendarHeaderInfo = () => {
+     if (item?.domain !== 'calendar' || !viewRefs.calendar) return null;
+     const { headerTitle, visibleEventsCount } = viewRefs.calendar;
+     if (!headerTitle) return null;
+     const count = visibleEventsCount || 0;
+     return {
+       stateText: headerTitle,
+       stateDuration: lang === 'de'
+         ? (count === 1 ? '1 Termin' : `${count} Termine`)
+         : (count === 1 ? '1 event' : `${count} events`),
+     };
+   };
+   ```
+
+3. Wired into the `stateText` / `stateDuration` chain alongside the other custom headers.
+4. The inline `<div class="calendar-header-title">` element inside `CalendarView` is removed — the top-right header carries the same info now.
+
+### Issue 2 — Year-view month names overlapping in the first column
+
+`YearGrid` cells used `toLocaleDateString({ month: 'long' })` ("January", "February", "September", "December"). In the first grid-column the long names wrapped into the event-count badge area, overlapping visually.
+
+Changed to `month: 'short'` ("Jan", "Feb", "Sep", "Dec"). All twelve cells now fit comfortably with the count badge to the right.
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/components/DetailView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1661 - 2026-05-22
 
 **Title:** 🖥️ Calendar two-column layout is tablet/mobile only — desktop stays stacked
