@@ -1,5 +1,60 @@
 # Versionsverlauf
 
+## Version 1.1.1656 - 2026-05-22
+
+**Title:** 🛠️ Calendar tabs actually switch now + hero-row format unified
+**Hero:** none
+**Tags:** Bugfix, Bento, Calendar
+
+### Issue 1 — Tabs didn't switch
+
+User: "Upcoming, Past Tabs funktionieren noch immer nicht!!!!"
+
+Previous diagnoses focused on event-bubbling (v1.1.1651 footer filter, v1.1.1653 button-skip in slider onTap). Real culprit was different: a useEffect inside `BentoRichCalendar` was synchronously yanking the user's selection back if the chosen tab had an empty list.
+
+```js
+// before
+useEffect(() => {
+  if (activeCalTab === 'upcoming' && upcomingEvents.length === 0 && pastEvents.length > 0) {
+    setActiveCalTab('past');  // ← undoes user's click
+  } ...
+}, [...]);
+```
+
+The effect was meant as an initial-load fallback (if the default tab has no content, swap to the one that does). But it fires on every dependency change — including immediately after the user manually picks the empty tab. Result: tap "Upcoming" → re-render → effect sees upcoming is empty → snaps back to "Past". User can never reach Upcoming.
+
+### Fix
+
+```js
+const userPickedTabRef = useRef(false);
+const pickTab = (tab) => {
+  userPickedTabRef.current = true;
+  setActiveCalTab(tab);
+};
+
+useEffect(() => {
+  if (userPickedTabRef.current) return;  // user has chosen, leave it alone
+  // ... auto-swap fallback
+}, [...]);
+```
+
+Both tab buttons now call `pickTab(...)` instead of `setActiveCalTab(...)` directly. First click locks the ref → the auto-fallback stops firing for the rest of the widget's lifetime. The user-empty-tab now shows the empty-state, not an unwanted auto-switch.
+
+Plus `onPointerDown={(e) => e.stopPropagation()}` on each tab button as belt-and-suspenders against future pan-detection interference.
+
+### Issue 2 — Hero row had a different format
+
+The first event was rendered in a `bento-rich-calendar-hero` block with bigger text + a left-side vertical marker bar, while the remaining events used `bento-rich-calendar-more-row` with a small left-side dot. User wanted them all uniform.
+
+Hero block deleted. All events now render as `bento-rich-calendar-more-row` with the same dot + title + meta-time format. `nextEvent` / `rest` split removed. The clickable behaviour (open detail-view focused on this event) carries over to every row.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichCalendar.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1655 - 2026-05-22
 
 **Title:** 🪶 Slider cross-fade without scale + Favorites label fix (item/Eintrag + singular/plural)
