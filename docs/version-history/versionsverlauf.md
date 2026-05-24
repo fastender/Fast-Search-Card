@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1672 - 2026-05-24
+
+**Title:** 🌡️ Universal-Device — climate entities now open an HVAC-mode picker (cool / heat / dry / fan_only / auto / off)
+**Hero:** none
+**Tags:** Feature, Integration, Universal, Climate
+
+### Why
+
+A Universal-Device with a `climate.*` entity (e.g. MELCloud air-to-air heat pump) rendered the entity row read-only — the current HVAC mode was shown as plain text and the row was not clickable. User wanted to switch the mode by tapping the row the same way `select.*` entities open a picker.
+
+### Root cause
+
+`EntityRow` in `UniversalEntityList.jsx` had explicit branches for `select` / `input_select` (open SelectPickerView), `time` / `input_datetime` (open TimePickerView), `button` etc. (run), `number` / `text` (inline control). Climate fell through to the read-only fallback at the bottom of `renderControl()`.
+
+### Fix
+
+Climate now shares the `select`-picker code path:
+
+- `EntityRow` detects `domain === 'climate'` and routes the click to `onOpenPicker('select', entity_id)` — same handler as `select.*` and `input_select.*`.
+- `SelectPickerView` made climate-aware. If the entity's domain is `climate`, it reads `attributes.hvac_modes` instead of `attributes.options`, and the service call becomes `climate.set_hvac_mode({entity_id, hvac_mode})` instead of `select.select_option({entity_id, option})`. The rest of the picker UI (back-button, ios-card with checkmark on the current value, 200 ms close-delay after pick) is unchanged.
+
+### What this gives the user
+
+Tap the climate row → picker slides in → shows whatever modes the integration exposes (typically: off, cool, heat, heat_cool, dry, fan_only, auto) → tap → service fires → picker closes.
+
+What it does NOT cover (could be follow-ups if asked): target_temperature setting, fan_mode / preset_mode / swing_mode pickers, multi-line row showing mode + target temp.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1671 - 2026-05-24
 
 **Title:** 🐛 Universal-Device — Diagnostics tab was always empty (singular/plural bucket-key mismatch)
