@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1652 - 2026-05-22
+
+**Title:** 🛠️ Three fixes — wallpaper scale 3.0, calendar tabs always visible, swipe footer (proper)
+**Hero:** none
+**Tags:** Bugfix, Bento, Boot
+
+### Issues
+
+1. Wallpaper boot zoom even more dramatic: `2.0 → 3.0`.
+2. Calendar tabs were still hidden when only past events existed — user couldn't see why the widget was showing "vergangene" without a tab labelled that.
+3. v1.1.1651's "swipe also works in footer" fix used `target.closest('.bento-carousel-footer')` to filter and avoid double-fire with the hero page-drag. That filter wasn't catching reliably — footer swipes still didn't navigate.
+
+### Fixes
+
+**1 — `ZOOM_INITIAL_SCALE = 3.0`.** Wallpaper starts 3× too big and pulls back to native over 5500 ms. Even more cinematic Ken-Burns.
+
+**2 — Calendar tabs gated on OR instead of AND.**
+
+```diff
+-const showCalTabs = upcomingEvents.length > 0 && pastEvents.length > 0;
++const showCalTabs = upcomingEvents.length > 0 || pastEvents.length > 0;
+```
+
+Tabs appear as soon as ANY events exist. The active tab name then communicates which side of "now" the events are on; the empty side shows the existing empty-state if you click it.
+
+**3 — Swipe-detection refactor.**
+
+Previously both the slider-page (`drag`) and the outer wrapper (`onPanEnd` with footer filter) were trying to handle swipes. The filter was fragile and footer swipes leaked through to nothing.
+
+New split:
+
+- **Slider-page `drag`**: visual feedback only. Card follows finger with elastic snap-back. `onDragEnd` no longer calls `setIdx`.
+- **Outer `<motion.div>` `onPanEnd`**: catches every swipe, hero and footer alike. Threshold-checks (60 px or 400 vel) → `setIdx(next|prev)`. No more closest-filter.
+
+Why this works without double-fire: there's only one setIdx-firing handler now. The page still gives visual feedback during drag because its own `drag` keeps moving the card with the finger; on release the card snaps back to x:0 (framer-motion default with no `onDragEnd` override) while the outer pan-end concurrently triggers setIdx — and the spatial transition (scale + blur cross-fade) plays for the new index, masking the snap-back.
+
+`onTap` on the page stays for the click-to-next behaviour. Pure clicks (no movement) don't fire `onPanEnd` because framer-motion's pan threshold needs a few px of movement.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/components/bento/widgets/BentoRichCalendar.jsx`
+- `src/components/bento/widgets/BentoRichSlider.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1651 - 2026-05-22
 
 **Title:** 👉 Swipe also works in the slider footer (label + dots area)
