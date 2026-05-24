@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.1665 - 2026-05-22
+
+**Title:** 🔄 Calendar — switching Week → Day now syncs anchor to selected day
+**Hero:** none
+**Tags:** Bugfix, Calendar
+
+### Why
+
+User reproed: select 18.05.2026 in Week view → click Day tab → Day-header reads "MONDAY 18" but the event list label says "FRIDAY MAY 15, 2026" and shows "No events" — even though 18.05 actually has events.
+
+### Root cause
+
+`CalendarView` keeps two separate states:
+
+- `anchor` — the "navigation anchor" the View renders around (week-of, month-of, etc.)
+- `selectedDay` — the day the user has explicitly highlighted (clicks on a Week/Month cell update this)
+
+Clicking the Day-tab only changed `viewMode`. `anchor` and `selectedDay` stayed independent. In Day view the header read `anchor`, the event list filtered by `selectedDay` — so if the user had selected a different day in Week view, the two disagreed: header shows the selected day's number (because the rendering for the day-strip actually pulls from anchor=18 in the user's case), the list shows events for the OTHER day.
+
+Wait — actually re-reading: it's the inverse, the screenshot showed `anchor`-derived "Monday 18" in the header AND `selectedDay`-derived "Friday 15" in the list label. The two states diverged in opposite directions and there was no Day-view sync.
+
+### Fix
+
+When the Day tab is clicked, sync `anchor` to `selectedDay`:
+
+```js
+onClick={() => {
+  if (m === 'day' && selectedDay) {
+    setAnchor(new Date(selectedDay));
+  }
+  setViewMode(m);
+}}
+```
+
+Now Day view's header AND event list both reflect the day the user selected in the previous view. Week/Month/Year tabs leave `anchor` alone — those views work fine with anchor as navigation centroid.
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1664 - 2026-05-22
 
 **Title:** 🚨 Hotfix — CalendarView TDZ ReferenceError from v1.1.1662
