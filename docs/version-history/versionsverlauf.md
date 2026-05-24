@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1671 - 2026-05-24
+
+**Title:** 🐛 Universal-Device — Diagnostics tab was always empty (singular/plural bucket-key mismatch)
+**Hero:** none
+**Tags:** Bugfix, Integration, Universal
+
+### Why
+
+User reported that on a MELCloud air-to-air heat pump added as Universal-Device, the runtime "Diagnostics" tab in the device-view was empty even though the WiFi Signal entity was correctly classified as a diagnostic sensor: HA's native dialog showed it under "Diagnose", the Universal-Setup visibility-picker showed it under "DIAGNOSTIC", but the actual device-view tab was empty.
+
+### Root cause
+
+A naming convention mismatch in two places:
+
+- `entityGrouping.js` returned the bucket as `out.diagnostic` (singular)
+- `PresetButtonsGroup.jsx` passes `groupId="diagnostics"` (plural) to `<UniversalEntityList>`
+- `UniversalEntityList.jsx` reads `groups[groupId] || []` — so `groups['diagnostics']` resolved to `undefined`, fell through to `[]`, rendered empty
+
+The three sibling buckets (controls / sensors / misc) were already plural-consistent, so only the diagnostics tab was affected.
+
+### Fix
+
+Normalised the data-layer convention to **plural** everywhere, matching the UI:
+
+- `entityGrouping.js`: `out.diagnostic` → `out.diagnostics` (declaration + push + sort iteration + JSDoc)
+- `UniversalSetup/hooks.js`: `groups.diagnostic` → `groups.diagnostics` in the visibility-picker grouper
+- `UniversalSetup/VisibilityView.jsx`: `key: 'diagnostic'` → `key: 'diagnostics'` plus the matching field read
+
+The HA contract string `entity_category === 'diagnostic'` is left untouched — that's the value HA itself emits.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/views/entityGrouping.js`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/hooks.js`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/VisibilityView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1670 - 2026-05-24
 
 **Title:** ♻️ UniversalSetup wizard split — 996-LOC monolith → 295-LOC orchestrator + 9 focused files
