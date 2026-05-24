@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1664 - 2026-05-22
+
+**Title:** 🚨 Hotfix — CalendarView TDZ ReferenceError from v1.1.1662
+**Hero:** none
+**Tags:** Hotfix, Critical, Calendar
+
+### Why
+
+User screenshot: `ReferenceError: Cannot access 'A' before initialization` thrown by CalendarView on every mount. The minified `'A'` corresponded to `headerTitle` (or `visibleEvents`) in the source.
+
+### Root cause
+
+v1.1.1662 added `headerTitle` and `visibleEvents.length` to the `useRegisterViewRef('calendar', { ... })` call. I missed that the registration was located ~50 lines BEFORE the `const headerTitle = useMemo(...)` and `const visibleEvents = useMemo(...)` declarations in the same function body.
+
+JavaScript `const` and `let` have a temporal dead zone — variables exist in scope from the start of the block but throw `ReferenceError` if accessed before their declaration line. The registration tried to read them too early → TDZ violation → ReferenceError on every component mount → calendar broken entirely.
+
+### Fix
+
+Moved the entire `useRegisterViewRef('calendar', ...)` block from line ~243 down to after `const eventsForSelectedDay = useMemo(...)` (line ~323). All consts (`headerTitle`, `visibleEvents`, `eventsForSelectedDay`) are now declared before the registration reads them. No more TDZ.
+
+### How this slipped through
+
+The pre-build linter caught the unused import sometimes but not the TDZ — `const headerTitle` is "in scope" from the function start, so static analysis can't always tell that the read site is above the declaration site. Vite/Rollup compiled cleanly; the error only fires at component mount.
+
+### Lesson
+
+When using a hook like `useRegisterViewRef` that captures live values from the closure, place the call AFTER all the `const`s it reads — not before.
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1663 - 2026-05-22
 
 **Title:** 📅 Calendar month-cells — day numbers all on the same baseline
