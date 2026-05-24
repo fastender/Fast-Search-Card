@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1658 - 2026-05-22
+
+**Title:** 📅 Calendar Month-view event list invisible — 555px max-height clamp removed
+**Hero:** none
+**Tags:** Bugfix, Calendar, Layout
+
+### Why
+
+User screenshot: in the Calendar's Month view, the "WEDNESDAY, JUNE 17, 2026" label was visible, but the actual event list underneath was missing — the user could see dots on the days that had events but couldn't see the events themselves.
+
+### Root cause
+
+`.calendar-view-container` had a hardcoded `max-height: 555px`. That was a relic from when the detail-view itself was 555 px tall. The detail-view has since grown to 672 px — but the calendar container kept its old clamp.
+
+```css
+.calendar-view-container {
+  width: 100%;
+  height: 100%;
+  max-height: 555px;  ← clamps the calendar even though parent is 672px
+}
+```
+
+In Month view, the calendar grid (6 rows × aspect-ratio:1 cells) + headers (tabs, navigation, month-label, weekday strip) + label "WEDNESDAY, …" consume roughly 540 px on their own. With the container clamped to 555 px, only ~15 px were left for `.calendar-list-wrap { flex: 1 }` — effectively zero. The event list rendered but with 0 px height, invisible.
+
+### Fix
+
+`max-height: 555px` removed. The container now uses the full 672 px provided by the detail-view. Month grid stays at its natural ~340 px, leaving ~250 px for the event list — plenty for a few rows plus the CustomScrollbar.
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1657 - 2026-05-22
 
 **Title:** 🔁 Calendar widget — "No events / Loading" flicker fixed + row text larger and tighter
