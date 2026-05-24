@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1653 - 2026-05-22
+
+**Title:** 🐛 Inner widget buttons (Calendar tabs etc.) no longer swallowed by slider's onTap
+**Hero:** none
+**Tags:** Bugfix, Bento, Gesture
+
+### Why
+
+User: clicked the Calendar widget's "Upcoming / Past" tabs and nothing happened. The slider page (`.bento-rich-slider-page`) has `onTap` that advances to the next item — calendar tabs sit INSIDE that page, so every tab click triggered the slider's "go to next item" instead of switching the calendar tab.
+
+### Why stopPropagation didn't save us
+
+The tab buttons already had `onClick={(e) => { e.stopPropagation(); ... }}`. But framer-motion's `onTap` doesn't listen to DOM click events — it listens to pointer events directly on its motion-component and detects "tap" as "pointer down + pointer up without significant movement." `stopPropagation` on a synthetic React onClick handler doesn't reach into framer-motion's pointer-event registration.
+
+### Fix
+
+Inside the page's `onTap`, check whether the tapped element (or any ancestor up to the page root) is an interactive control. If yes, skip the slider-advance:
+
+```jsx
+onTap={(_e) => {
+  if (items.length <= 1) return;
+  const target = _e?.target;
+  if (target && target.closest && target.closest('button, a, input, [role="button"]')) {
+    return;
+  }
+  setIdx((safeIdx + 1) % items.length);
+}}
+```
+
+Now any future button or link rendered inside a rich widget (Calendar tabs, Todos checkboxes, News article rows, …) doesn't trigger the slider-tap — but a tap on dead space (a content background) still advances to the next item as before.
+
+### Side benefit
+
+Touch-checkmarks on todos and link-rows on news articles in compact mode also get protected — clicking them no longer secretly advances the slider.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichSlider.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1652 - 2026-05-22
 
 **Title:** 🛠️ Three fixes — wallpaper scale 3.0, calendar tabs always visible, swipe footer (proper)
