@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1663 - 2026-05-22
+
+**Title:** 📅 Calendar month-cells — day numbers all on the same baseline
+**Hero:** none
+**Tags:** Bugfix, Calendar, Layout
+
+### Why
+
+User screenshot: in the month grid, day numbers on cells with event-dots sat higher than numbers on cells without dots. The cell layout was `flex-direction: column; justify-content: center;` which centered the *combined* (number + dots) block. So days with dots pushed the number upward to make room — a visually messy stagger.
+
+### Fix
+
+```css
+.calendar-month-cell-dots {
+  /* pulled out of the flex stack */
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+```
+
+Number stays centered in the cell via the existing `justify-content: center`. Dots float at the bottom as an absolutely-positioned overlay. Numbers across all 42 cells now line up on the same baseline regardless of whether the day has events.
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1662 - 2026-05-22
 
 **Title:** 📐 Calendar header moved to detail-header + Year-view month names shortened
