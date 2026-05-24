@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.1670 - 2026-05-24
+
+**Title:** ♻️ UniversalSetup wizard split — 996-LOC monolith → 295-LOC orchestrator + 9 focused files
+**Hero:** none
+**Tags:** Refactor, Integration, Universal
+
+### Why
+
+`UniversalSetup.jsx` had grown into a 996-LOC file mixing six concerns: state, derived data (4 useMemo blocks), handlers, three drill-down sub-views (Hero / Visibility / Icon), a 390-LOC `renderMainView()` packing all three wizard steps, and a duplicated 50-LOC preview block in Step 2 + Step 3. The same pattern that crushed `EnergyDashboardDeviceView` (2138 LOC → 11 files) and `BentoStartView` (1778 LOC → 200 LOC) earlier this year fits here too.
+
+### Split
+
+New folder `setup-flows/UniversalSetup/` alongside the existing flat setup-flow files (kept flat for Weather/Printer3D/EnergyDashboard since they're each one file). The orchestrator now imports 9 named modules:
+
+| File | LOC | Purpose |
+|------|----:|---------|
+| `UniversalSetup.jsx` (orchestrator) | 295 | State, handlers, AnimatePresence wiring |
+| `UniversalSetup/shared.jsx` | 94 | `Chevron`, `NavbarBackIcon`, `slideVariants`, `navStyle`, `btnPrimaryStyle`, `btnSecondaryStyle`, `<StepHeader>` |
+| `UniversalSetup/hooks.js` | 125 | `useDeviceList(hass, q)`, `useDeviceEntities(deviceId, hass, hero)` |
+| `UniversalSetup/PreviewSection.jsx` | 75 | Collapsible preview row reused by Step 2 + Step 3 |
+| `UniversalSetup/HeroPickerView.jsx` | 95 | Pick which entity is the hero (or none) |
+| `UniversalSetup/VisibilityView.jsx` | 94 | Per-entity visibility toggles, 4-bucket grouping |
+| `UniversalSetup/IconPickerView.jsx` | 124 | Category-grouped icon grid |
+| `UniversalSetup/Step1DevicePicker.jsx` | 95 | Search + filtered HA-device list |
+| `UniversalSetup/Step2DisplayCustomization.jsx` | 120 | Hero row + Visibility row + Preview + nav |
+| `UniversalSetup/Step3Naming.jsx` | 133 | Name input + Icon row + Preview + nav |
+
+### Verhalten 1:1
+
+No behavior changes. Every prop, every animation, every state transition matches the original. The two duplicated preview-section blocks (one in Step 2, one in Step 3) collapsed into a single `<PreviewSection>` component — same JSX, just deduplicated.
+
+### Extraction principles
+
+- **Sub-views own no state.** All four (Hero, Visibility, Icon, Preview) take props + callbacks. The orchestrator holds every piece of wizard state.
+- **Hooks own derived data.** `useDeviceList` builds the searchable HA-device list; `useDeviceEntities` builds the filtered entity-list plus the 4-bucket grouping. Both fully memoized as in the original.
+- **Step components own layout but not navigation logic.** Each Step receives `onBack` / `onNext` / `onFinish` callbacks — the orchestrator decides what each does (e.g., Step 2's "Back" calls `onCancel` in edit-mode or `setStep(1)` in add-mode).
+- **`<StepHeader>` is one component.** The progress-bar + title + step-counter that opens every main-view render — extracted to `shared.jsx`, parametrized on `step`, `isEdit`, `lang`.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` (rewritten, 996 → 295 LOC)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/shared.jsx` (new)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/hooks.js` (new)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/PreviewSection.jsx` (new)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/HeroPickerView.jsx` (new)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/VisibilityView.jsx` (new)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/IconPickerView.jsx` (new)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step1DevicePicker.jsx` (new)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step2DisplayCustomization.jsx` (new)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step3Naming.jsx` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1669 - 2026-05-24
 
 **Title:** 🧹 Integration entity — dead code removal (energy-sensors API + IntegrationView fallback) + HMR reset helper
