@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.1669 - 2026-05-24
+
+**Title:** 🧹 Integration entity — dead code removal (energy-sensors API + IntegrationView fallback) + HMR reset helper
+**Hero:** none
+**Tags:** Refactor, Integration, Storage
+
+### Why
+
+While auditing the Integration entity (`src/system-entities/entities/integration/`) we identified three dead/broken code paths that survived the v1.1.1414 unified-storage refactor and the v1.1.1335 plugin-pattern refactor. None are user-visible — but they bloat the module, mislead readers, and (in the IntegrationView case) would silently fail in a broken way if ever hit.
+
+### What was removed
+
+**1. `deviceConfigStorage.js` — legacy energy-sensors public API**
+
+Before the v1.1.1414 unified energy-dashboard storage, there was a separate 3-sensor configuration (`gridImportSensor`, `kwhSensor`, `pvTotalSensor`) with its own getter/setter pair. Since v1.1.1414, all 14 sensors live in the unified store (`HA_ENERGY_DASHBOARD_KEY`) — but the old API was never deleted. Grep across the entire `src/` tree confirms zero imports of `getEnergySensors` / `setEnergySensors`.
+
+Removed:
+- `cachedEnergySensors` module-level cache
+- `emptyEnergySensors()` schema helper
+- `getEnergySensors()` exported function
+- `setEnergySensors()` exported function
+- Bootstrap section that filled `cachedEnergySensors` (HA read + localStorage migration + write-back)
+- `LS_ENERGY_SENSORS_KEY` constant (only used by the deleted code)
+
+Kept:
+- `HA_ENERGY_SENSORS_KEY` constant + comment explaining it's still read by `migrateEnergyDashboardLegacy()` to pull v1 3-sensor configs into the unified store on first boot after upgrading.
+
+Net: −44 LOC in the storage module, and the bootstrap path now has one less HA WebSocket round-trip on every app start.
+
+**2. `IntegrationView.jsx` — broken-by-design localStorage fallback**
+
+Both `handleDeviceAdded` and `handleDeviceRemoved` had `else { /* fallback */ }` branches that ran when `entity?.executeAction` was missing. The fallback wrote the config to storage directly via `saveIntegrationConfig` — but **never registered the device as a SystemEntity in the systemRegistry**. The Integration entity instance is created at module-load time and is always present when this view mounts, so the branch was unreachable in normal operation; if it had ever been reached, the user would have seen the toast "Gerät hinzugefügt" but the new device would not appear anywhere as a Card (no `entity-registered` event → no DataProvider update → no UI).
+
+Replaced both branches with an early-return + `console.error`. Loud failure beats silent broken state. The unused `saveIntegrationConfig` helper and the now-orphan `setDeviceConfig` import were also dropped.
+
+**3. HMR-safe bootstrap reset helper (`__resetBootstrap`)**
+
+The storage module holds `bootstrapDone = true` as module-level mutable state. On a Vite HMR reload, the cache variables (`cachedDeviceConfig`, `cachedEnergyDashboard`) are reset by the new module evaluation, but `bootstrapDone` survives if the bundle isn't fully re-imported — so subsequent reads return `null` while callers believe bootstrap is complete. The new `__resetBootstrap()` export resets all four module-level vars for test setups and HMR workarounds; JSDoc tags it as Tests/HMR-only.
+
+### Files
+
+- `src/system-entities/entities/integration/deviceConfigStorage.js`
+- `src/system-entities/entities/integration/IntegrationView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1668 - 2026-05-24
 
 **Title:** 📐 CalendarView main container — re-clamped to 555px (matches dialog)
