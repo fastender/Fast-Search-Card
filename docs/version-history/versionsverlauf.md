@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1659 - 2026-05-22
+
+**Title:** 📅 Calendar Month-view 40% shorter — compact Apple-style grid
+**Hero:** none
+**Tags:** Polish, Calendar, Layout
+
+### Why
+
+Even with v1.1.1658 making the event list visible again, the month-grid itself was eating most of the calendar's vertical space. User asked for a much more compact grid (at least 40% shorter) while keeping the Apple look.
+
+### What changed
+
+```diff
+ .calendar-month-cell {
+-  aspect-ratio: 1;
++  height: 32px;
++  min-height: 32px;
+ }
+ .calendar-month-cell-num {
+-  font-size: 13px;
++  font-size: 12px;
++  line-height: 1;
+ }
+ .calendar-month-cell.today .calendar-month-cell-num {
+-  width: 22px;
+-  height: 22px;
++  width: 20px;
++  height: 20px;
+ }
+ .calendar-month-cell-dots {
+-  margin-top: 2px;
++  margin-top: 1px;
+ }
+ .calendar-month-dot {
+-  width: 4px;
+-  height: 4px;
++  width: 3px;
++  height: 3px;
+ }
+ .calendar-month-header,
+ .calendar-month-grid {
+-  gap: 4px;
++  gap: 2px;
+ }
+```
+
+Old grid: 6 rows × ~60 px cells (square aspect-ratio) + 4 px gaps ≈ 380 px. New grid: 6 rows × 32 px + 2 px gaps ≈ 200 px. Roughly **48% shorter**. Plus the day-numbers, today-bubble and event-dots shrunk proportionally so the cells don't feel cramped.
+
+The event list below gains ~180 px back — much more room to actually see what's happening on the selected day.
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1658 - 2026-05-22
 
 **Title:** 📅 Calendar Month-view event list invisible — 555px max-height clamp removed
