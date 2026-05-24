@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1650 - 2026-05-22
+
+**Title:** 📅 Calendar widget — "Demnächst / Vergangene" tabs (analog Todos)
+**Hero:** none
+**Tags:** Feature, Bento, Calendar
+
+### Why
+
+User clarified Bug 3 from v1.1.1649: "Nein ich meinte Kalendar sollte das sein" — the tabs analogous to Todos's per-list tabs were meant for the calendar widget, not the news widget. Calendar previously showed a single list (preferring upcoming, falling back to past). Now both lists are accessible via tabs.
+
+### What changed
+
+`BentoRichCalendar.jsx`:
+
+- Compute both `upcomingEvents` (future, sorted ascending) and `pastEvents` (recent past, sorted descending) on every render.
+- New state `activeCalTab` ('upcoming' | 'past'). Defaults to 'upcoming' if there are any upcoming events, otherwise 'past'.
+- `useEffect` swaps active tab if the current selection becomes empty after a data refresh.
+- `displayEvents = activeCalTab === 'upcoming' ? upcomingEvents : pastEvents`.
+- `showCalTabs = upcomingEvents.length > 0 && pastEvents.length > 0` — only render the tab-bar when both lists actually contain something the user can switch to.
+- Removed the v1.1.1597 `isShowingPast` "Letzte Termine" label — the active tab name now communicates this.
+
+JSX-wise: tab-bar rendered between widget root and the displayEvents block, two buttons "Demnächst" / "Vergangene" (DE) or "Upcoming" / "Past" (EN). Each button stops event propagation so the tab-click doesn't bubble up to the slider's onClick.
+
+### CSS
+
+The existing todos-tab styles are extended to also match the new calendar-tab classes via combined selectors:
+
+```css
+.bento-rich-todos-tabs, .bento-rich-calendar-tabs { ... }
+.bento-rich-todos-tab,  .bento-rich-calendar-tab  { ... }
+```
+
+Active-tab color tweaked for calendar: `#B82C20` (matches the red/orange gradient of the calendar widget) instead of `#C76C00` (todos orange).
+
+### Files
+
+- `src/components/bento/widgets/BentoRichCalendar.jsx`
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1649 - 2026-05-22
 
 **Title:** 🐛 Four bento bugs — bigger zoom, news tabs at first install, persistent bottom mask, calendar scrollbar
