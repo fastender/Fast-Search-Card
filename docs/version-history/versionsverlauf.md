@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.1674 - 2026-05-24
+
+**Title:** 💡 Universal-Device — full light sub-view (brightness slider + color-temp slider + 10-swatch color grid + effect picker)
+**Hero:** none
+**Tags:** Feature, Integration, Universal, Light
+
+### Why
+
+After the climate sub-view (v1.1.1673), the next-highest impact gap in Universal-Device interactivity was lights. Every Hue / IKEA / Tradfri / WLED user adjusts brightness multiple times a day; many also want color-temp warmth for evenings and accent colors. Until now a light in Universal-Device was just an on/off toggle.
+
+### Row behavior
+
+The row stays a simple toggle when a light only supports `onoff`. For "deep" lights — anything that exposes brightness, color_temp, rgb / hs / xy color, or an effect_list — the row turns into a clickable chevron and the value displays `{state} · {pct}%` (e.g. `on · 75%`). The detection lives in a new `isDeepLightEntity()` helper:
+
+```js
+function isDeepLightEntity(stateObj) {
+  const attrs = stateObj?.attributes || {};
+  const modes = attrs.supported_color_modes;
+  if (Array.isArray(modes) && modes.length > 0) {
+    return modes.some((m) => m && m !== 'onoff');
+  }
+  // Legacy-Fallback: integration didn't set supported_color_modes
+  return attrs.brightness != null || attrs.color_temp_kelvin != null
+      || attrs.color_temp != null || attrs.rgb_color != null
+      || attrs.hs_color != null
+      || (Array.isArray(attrs.effect_list) && attrs.effect_list.length > 0);
+}
+```
+
+### New `LightControlView` sub-view
+
+Each section is gated on the corresponding capability — a basic dimmable light gets just Power + Brightness, a Hue bulb gets all five.
+
+| Section | Gated on | Control | Service called |
+|---------|----------|---------|----------------|
+| **Power** (always) | — | `LiquidGlassSwitch` | `light.turn_on` / `light.turn_off` |
+| **Brightness** | supported_color_modes ≠ onoff-only, or `brightness` attr present | `LiquidGlassSlider` 0–100% | `light.turn_on({brightness_pct})` |
+| **Color Temperature** | `color_temp` mode or `color_temp_kelvin` present | `LiquidGlassSlider` min_K..max_K, step 50K | `light.turn_on({color_temp_kelvin})` |
+| **Color** | rgb / rgbw / rgbww / hs / xy mode | 10-swatch grid (rot/orange/gelb/grün/cyan/blau/lila/magenta/pink/weiß) | `light.turn_on({rgb_color})` |
+| **Effect** | `effect_list` non-empty | radio-list picker with checkmark on current | `light.turn_on({effect})` |
+
+Brightness + color-temp sliders use the same 150 ms trailing-edge debounce as `ClimateControlView` / `NumberSliderControl` — drag updates fire one service call per pause plus a final call on drag-end. Brightness, color-temp, and color controls are disabled while the light is off (you can't dim what isn't on).
+
+### Color picker — pragmatic first iteration
+
+The 10-swatch grid covers the common-case "I want red light right now" UX without the implementation overhead of a full hue/saturation picker. If a user later wants finer control we can add a hue strip + saturation slider in a follow-up. For typical home use (mood lighting accent colors), swatches are arguably faster than a continuous picker.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx` (now 1212 LOC — split into sub-dir queued as follow-up after all 4 domain views land)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1673 - 2026-05-24
 
 **Title:** 🌡️ Universal-Device — full climate sub-view (target temp slider + mode/fan/preset/swing pickers, row shows "mode · target°")
