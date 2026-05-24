@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1661 - 2026-05-22
+
+**Title:** 🖥️ Calendar two-column layout is tablet/mobile only — desktop stays stacked
+**Hero:** none
+**Tags:** Polish, Calendar, Layout
+
+### Why
+
+User after v1.1.1660: "Two-column layout nicht aber im desktopview". The side-by-side grid+list works well on narrower screens (tablet, mobile) but feels too spread-apart on desktop where there's plenty of vertical room and the stacked layout reads more naturally.
+
+### Fix
+
+Added a `@media (min-width: 1024px)` block to collapse `.calendar-main-row` back to `flex-direction: column` on desktop. The grid-area gets `flex: 0 0 auto` (natural height, no vertical stretch), and the list-wrap gets `flex: 1 1 0` to fill the remaining space — exactly the original v1.1.1659 single-column behaviour.
+
+```css
+@media (min-width: 1024px) {
+  .calendar-main-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .calendar-main-row .calendar-grid-area  { flex: 0 0 auto; }
+  .calendar-main-row .calendar-list-wrap  { flex: 1 1 0;    }
+}
+```
+
+### Breakpoint reasoning
+
+1024 px is the standard "desktop" cut-off in most design systems. Below: tablet (landscape and below) + mobile → two-column. Above: desktop → stacked.
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1660 - 2026-05-22
 
 **Title:** 🗓️ Calendar two-column layout — grid left, events right
