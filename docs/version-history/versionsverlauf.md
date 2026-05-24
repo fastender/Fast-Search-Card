@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1668 - 2026-05-24
+
+**Title:** 📐 CalendarView main container — re-clamped to 555px (matches dialog)
+**Hero:** none
+**Tags:** Polish, Calendar, CSS
+
+### Why
+
+After v1.1.1667 set the event-edit dialog back to 555px, the main CalendarView (the month/week/year overview) still stretched to the full ~672px detail-view height, leaving a large empty area below the event list. User wants the overview clamped at 555px too, matching the dialog and every other iOS-settings sub-view.
+
+### History
+
+`max-height: 555px` was removed from `.calendar-view-container` in **v1.1.1658**. At that point the month-grid used `aspect-ratio: 1` (~60px square cells), so 6 rows + the day-header bar consumed the entire 555px and squeezed the event list to 0px — events became invisible. Removing the clamp let `calendar-list-wrap`'s `flex: 1` actually claim space.
+
+Since then (v1.1.1661) the month-cells are `height: 32px` — 48% shorter. 6 rows × 32px = 192px for the grid, leaving plenty of room inside 555px for header (~60px), toolbar (~80px), event-list label and at least 2-3 events.
+
+### Fix
+
+Put `max-height: 555px` back on `.calendar-view-container`. Updated the heritage comment so the next reader sees both the removal-rationale (v1.1.1658) and the re-add-rationale (v1.1.1668).
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1667 - 2026-05-24
 
 **Title:** 🐛 Calendar event dialog — hover clipped on Start/End time rows + max-height reverted to 555px
