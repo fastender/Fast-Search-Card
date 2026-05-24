@@ -1,5 +1,54 @@
 # Versionsverlauf
 
+## Version 1.1.1660 - 2026-05-22
+
+**Title:** 🗓️ Calendar two-column layout — grid left, events right
+**Hero:** none
+**Tags:** Feature, Calendar, Layout
+
+### Why
+
+User screenshot showed the single-column calendar with the month grid taking up most of the visible space and the event list either invisible or cramped below it. Asked to split it into two columns — calendar grid on the left, event list on the right.
+
+### What changed
+
+**JSX (`CalendarView.jsx`):** New `<div className="calendar-main-row">` wrapper around the grid-area and the list-wrap. Toolbar and header stay full-width above; everything below sits in two side-by-side columns.
+
+**CSS (`CalendarView.css`):**
+
+```css
+.calendar-main-row {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 16px;
+  margin-top: 10px;
+}
+.calendar-grid-area  { flex: 1 1 0; min-width: 0; }
+.calendar-list-wrap  { flex: 1 1 0; min-width: 0; margin-top: 0; }
+```
+
+`flex: 1 1 0` on both columns gives a 50/50 split; `min-width: 0` lets flex shrink the columns instead of overflowing.
+
+### Effect
+
+- **Before:** stacked (grid on top, list below). At typical card widths the grid consumed most of the height and the list was cramped or invisible.
+- **After:** side-by-side. The grid still fits comfortably in its left column; the list gets the full container height in its right column — much more room to actually read events.
+
+### Note on very narrow widths
+
+At the current card width (~670 px), each column is ~325 px wide — comfortable. If you ever shrink the card / use it on a very narrow phone (<500 px), the two-column may feel cramped. Easy fix later: add a `@media (max-width: 500px)` block that switches the row back to `flex-direction: column`. Will do that if you see it cramped somewhere.
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1659 - 2026-05-22
 
 **Title:** 📅 Calendar Month-view 40% shorter — compact Apple-style grid
