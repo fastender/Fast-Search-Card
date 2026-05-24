@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.1657 - 2026-05-22
+
+**Title:** 🔁 Calendar widget — "No events / Loading" flicker fixed + row text larger and tighter
+**Hero:** none
+**Tags:** Bugfix, Bento, Calendar
+
+### Issue 1 — Flickering "No events → Loading → No events" loop
+
+The loading effect in `BentoRichCalendar` was keyed on `[hass, entity]`. Since Home Assistant pushes a new `hass` object on every state change (often multiple per second on busy dashboards), the effect re-ran constantly: setIsLoading(true) → fetch → setIsLoading(false) → repeat. Visible result: the empty-state and the loading-state alternated several times per second.
+
+Fix: dependency array switched to stable references only — `[hass?.connection, entity?.id]`. The WebSocket connection itself rarely changes; the entity ID is immutable. Plus a `initialLoadRef` guards against double-loading inside the same mount even if the effect somehow re-runs.
+
+The window-focus refresh handler stays, so users who close detail-view and come back still see a fresh load.
+
+### Issue 2 — Row text too small + gap between title and meta too big
+
+Calendar row title was 12.5 px, meta was 10.5 px. Hard to read on desktop. Plus the visual gap between "Meeting" (title) and "Yesterday · 12:00 AM" (meta) was bigger than the dot-flex's `gap: 1px` suggested — line-height was double-counted with the gap.
+
+```diff
+ .bento-rich-calendar-more-text {
+-  gap: 1px;
++  gap: 0;
+ }
+ .bento-rich-calendar-more-title {
+-  font-size: 12.5px;
++  font-size: 14px;
++  line-height: 1.2;
+ }
+ .bento-rich-calendar-more-meta {
+-  font-size: 10.5px;
++  font-size: 12px;
++  line-height: 1.2;
+ }
+```
+
+Explicit `line-height: 1.2` on both rows makes the inter-line spacing predictable and tight. `gap: 0` removes the double-counted spacing. Result: title 14px + meta 12px stacked with ~3-4 px between baselines instead of the previous ~10 px.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichCalendar.jsx`
+- `src/components/BentoStartView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1656 - 2026-05-22
 
 **Title:** 🛠️ Calendar tabs actually switch now + hero-row format unified
