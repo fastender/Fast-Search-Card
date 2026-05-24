@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1651 - 2026-05-22
+
+**Title:** 👉 Swipe also works in the slider footer (label + dots area)
+**Hero:** none
+**Tags:** Polish, Bento, Gesture
+
+### Why
+
+User: "swipen mit mouse funktioniert sehr gut bei widget 2; allerdings im footer bereich vom widget 2 ist es nicht möglich". The `drag="x"` set up in v1.1.1634 was only on the slider-page (`.bento-rich-slider-page`), so swipes starting in the footer (label + dots) were never picked up — only the explicit click handlers fired.
+
+### Fix
+
+The outer `<div className="bento-rich-slider">` became a `<motion.div>` so it can receive framer-motion pan events. New `onPanStart` and `onPanEnd` handlers on the wrapper:
+
+- **onPanStart**: if the pan-down landed on `.bento-carousel-footer`, pause the auto-slide (mirrors what hero-drag does via `setPaused(true)`).
+- **onPanEnd**: if the pan-down landed on the footer, run the same threshold check (60 px / 400 vel) used by the hero-drag and `setIdx(next|prev)` accordingly.
+
+Both handlers gate on `target.closest('.bento-carousel-footer')` so they never double-fire when the user is actually dragging the hero — the hero-drag continues to handle that with visual feedback.
+
+### How click + swipe coexist in the footer
+
+The label and dot buttons still have their own `onClick` (open detail / jump to dot). framer-motion's pan-events only fire after the pointer has moved a few pixels — a pure click (no movement) never triggers `onPanEnd`. So tapping a dot still jumps to that index, and the swipe gesture only kicks in on actual drag movement.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichSlider.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1650 - 2026-05-22
 
 **Title:** 📅 Calendar widget — "Demnächst / Vergangene" tabs (analog Todos)
