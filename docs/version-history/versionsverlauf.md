@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1673 - 2026-05-24
+
+**Title:** 🌡️ Universal-Device — full climate sub-view (target temp slider + mode/fan/preset/swing pickers, row shows "mode · target°")
+**Hero:** none
+**Tags:** Feature, Integration, Universal, Climate
+
+### Why
+
+v1.1.1672 made the climate row clickable so the user could change the HVAC mode (cool/heat/dry…). The follow-up scope was always: target-temperature setting, fan/preset/swing mode pickers, and a multi-line row showing both mode and target temp. This release lands all three.
+
+### Row display
+
+Climate rows now show `{mode} · {target}°` (e.g. `cool · 16°`) instead of just the mode — matching the native HA dialog format `Aus 16 °C`. If the entity doesn't expose a target temperature (e.g. `fan_only` without setpoint) the row falls back to the bare mode string.
+
+### New ClimateControlView sub-view
+
+Tapping the climate row no longer opens the generic `SelectPickerView` — it now opens a dedicated `ClimateControlView` that bundles every climate control HA exposes for that entity. Each section is conditional on the corresponding attribute being present, so a simple fan-only thermostat doesn't render empty sections.
+
+Sections (top to bottom):
+
+| Section | Source attribute | Service called |
+|---------|------------------|----------------|
+| **Current** (read-only) | `current_temperature` | — |
+| **Target Temperature** (slider) | `temperature` + `min_temp` / `max_temp` / `target_temp_step` | `climate.set_temperature` |
+| **Mode** (radio list) | `hvac_modes` | `climate.set_hvac_mode` |
+| **Fan Mode** (radio list) | `fan_modes` | `climate.set_fan_mode` |
+| **Preset Mode** (radio list) | `preset_modes` | `climate.set_preset_mode` |
+| **Swing Mode** (radio list) | `swing_modes` | `climate.set_swing_mode` |
+
+The target-temperature slider uses `LiquidGlassSlider` with the same 150 ms trailing-edge debounce pattern as `NumberSliderControl` — drag updates fire one service call per pause, plus one final call on drag-end. Slider is disabled when `state === 'off'` (you can't set a temperature when the unit is off) and when the entity is unavailable.
+
+### Cleanup
+
+`SelectPickerView`'s short-lived v1.1.1672 climate awareness reverted — climate has its own picker now, the select-picker is back to handling only `select.*` / `input_select.*`.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1672 - 2026-05-24
 
 **Title:** 🌡️ Universal-Device — climate entities now open an HVAC-mode picker (cool / heat / dry / fan_only / auto / off)
