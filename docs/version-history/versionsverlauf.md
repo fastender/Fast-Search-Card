@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1654 - 2026-05-22
+
+**Title:** 🌐 Tipps widget on first start ignored userLanguage — loaded German regardless
+**Hero:** none
+**Tags:** Bugfix, Tipps, i18n
+
+### Why
+
+User screenshot showed the Tipps widget displaying German markdown even with English active in system settings. Root cause: `TippsEntity.onMount()` was calling `loadFromCacheOnly('de')` with a hardcoded `'de'`.
+
+```js
+// before
+async onMount(context) {
+  await this.mountWithRetry(context, async (_hass) => {
+    this.actions.loadFromCacheOnly.call(this, 'de');  // ← always German
+  });
+}
+```
+
+All other components (SearchField, Printer3D / Energy device views, SettingsTab) already use `localStorage.getItem('userLanguage') || 'de'`. The Tipps entity was the odd one out.
+
+### Fix
+
+```js
+const lang = (typeof window !== 'undefined' && window.localStorage)
+  ? (localStorage.getItem('userLanguage') || 'de')
+  : 'de';
+this.actions.loadFromCacheOnly.call(this, lang);
+```
+
+Plus background revalidate: 1.2 s after mount, the entity also kicks off `loadTipps(lang)` so the cache for the active language gets populated if it wasn't yet (e.g. first install in English — no cache for `lessons.en.md` yet → first display reads cache from `'de'`-key which doesn't exist → empty → user sees nothing OR sees old German cache). The background fetch happens off the critical path and just updates attributes when done.
+
+### Files
+
+- `src/system-entities/entities/tipps/index.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1653 - 2026-05-22
 
 **Title:** 🐛 Inner widget buttons (Calendar tabs etc.) no longer swallowed by slider's onTap
