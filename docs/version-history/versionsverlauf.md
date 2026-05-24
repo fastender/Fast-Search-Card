@@ -1,5 +1,64 @@
 # Versionsverlauf
 
+## Version 1.1.1666 - 2026-05-22
+
+**Title:** ⚡ Bento calendar event click opens dialog directly (no overview detour)
+**Hero:** none
+**Tags:** Bugfix, Calendar, Bento
+
+### Why
+
+User: clicking an event in the bento calendar widget didn't open it directly — it opened the calendar overview, then *after* the load completed and a useEffect matched the UID, the edit-dialog appeared. Visible flash of overview, then dialog. "Wie bei News damals."
+
+### Root cause
+
+`BentoRichCalendar` set `window.__pendingCalendarEventUid = ev.uid` and called `onItemClick(entity)` → `CalendarView` mounted with the overview. A `useEffect` on `[events]` then matched the UID and called `setDialogState({ mode: 'edit', initialEvent: hit })`. Since the matcher needed `events` to be populated, the overview rendered first, then the dialog opened ~200-500ms later when `loadEvents` finished.
+
+### Fix
+
+Two changes:
+
+**1. Bento passes the full event object, not just the UID.** New global `window.__pendingCalendarEvent = ev` is set alongside the existing UID/date globals.
+
+**2. CalendarView consumes that object synchronously on mount via lazy useState** — no waiting for loadEvents:
+
+```js
+const [pendingFromBento] = useState(() => {
+  const ev = window?.__pendingCalendarEvent;
+  if (ev) {
+    delete window.__pendingCalendarEvent;
+    delete window.__pendingCalendarEventUid;
+    delete window.__pendingCalendarDate;
+    return ev;
+  }
+  return null;
+});
+
+const [anchor, setAnchor] = useState(() =>
+  pendingFromBento?.startDate ? new Date(pendingFromBento.startDate) : new Date()
+);
+const [selectedDay, setSelectedDay] = useState(() =>
+  pendingFromBento?.startDate ? startOfDay(new Date(pendingFromBento.startDate)) : startOfDay(new Date())
+);
+const [dialogState, setDialogState] = useState(() =>
+  pendingFromBento ? { mode: 'edit', initialEvent: pendingFromBento } : null
+);
+```
+
+All three states (anchor, selectedDay, dialogState) are seeded from the bento event on the very first render. The dialog is up immediately; the overview behind it (rendered hidden under AnimatePresence) loads in the background but the user never sees that flash.
+
+### Backward compat
+
+The existing UID-based useEffect (for search results / other deep-link paths that only have the UID) is untouched. The new full-object path is additive.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichCalendar.jsx`
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1665 - 2026-05-22
 
 **Title:** 🔄 Calendar — switching Week → Day now syncs anchor to selected day
