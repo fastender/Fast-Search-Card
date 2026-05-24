@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1667 - 2026-05-24
+
+**Title:** 🐛 Calendar event dialog — hover clipped on Start/End time rows + max-height reverted to 555px
+**Hero:** none
+**Tags:** Bugfix, Calendar, CSS
+
+### Why
+
+User reported two issues on the calendar event-edit dialog:
+
+1. Hovering the **Start · Time** or **End · Time** row visually clipped the hover effect — the scale-up and drop-shadow that fire on `.ios-item:hover` were truncated at the row's top/bottom edges, while the neighbouring Start · Date / End · Date rows showed the hover effect intact.
+2. The dialog container had its `max-height` set to `none`, overriding the standard 555px of `.ios-settings-container`. User wants the default back for consistency with other iOS-settings sub-views.
+
+### Root cause — Bug 1
+
+Start · Time and End · Time rows are wrapped in `<motion.div>` with `style={{ overflow: 'hidden' }}` so that AnimatePresence can animate `height: 0 → auto` cleanly when the all-day toggle flips. That `overflow: hidden` stayed in place even after the expand-animation finished — so the hover-state `transform: scale(1.02)` (extends ~2% past the row) and `box-shadow: 0 8px 24px rgba(0,0,0,0.4)` (24px halo) from `iOSSettingsView.css:158-160` were both being clipped by the wrapper. Start · Date / End · Date rows aren't inside such a wrapper, so they render the hover effect at full size.
+
+### Root cause — Bug 2
+
+`v1.1.1556` added a `max-height: none` override to `.calendar-event-dialog.ios-settings-container` so the dialog could stretch to the full detail-view height. That override removed the 555px clamp from the base `.ios-settings-container` rule.
+
+### Fix
+
+**Bug 1** — Use framer-motion's `transitionEnd` to switch `overflow` from `hidden` to `visible` after the expand animation completes; on exit, set `overflow: hidden` first so the collapse animation still clips properly:
+
+```jsx
+<motion.div
+  key="start-time-row"
+  initial={{ height: 0, opacity: 0 }}
+  animate={{ height: 'auto', opacity: 1, transitionEnd: { overflow: 'visible' } }}
+  exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
+  transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+  style={{ overflow: 'hidden' }}
+>
+```
+
+Applied to both `start-time-row` and `end-time-row` wrappers. Hover scale + shadow now render full-size on every row.
+
+**Bug 2** — Removed the `max-height: none` line from `.calendar-event-dialog.ios-settings-container`. The dialog now inherits the 555px-Default from the base rule, matching every other iOS-settings sub-view.
+
+### Files
+
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx`
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1666 - 2026-05-22
 
 **Title:** ⚡ Bento calendar event click opens dialog directly (no overview detour)
