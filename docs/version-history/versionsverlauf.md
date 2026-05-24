@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1655 - 2026-05-22
+
+**Title:** 🪶 Slider cross-fade without scale + Favorites label fix (item/Eintrag + singular/plural)
+**Hero:** none
+**Tags:** Polish, Bento, i18n
+
+### Bug 2 — slider transition should not scale
+
+User felt the scale component of the slider's spatial transition was distracting. Asked for something more "morphing-like" while keeping the blur cross-fade.
+
+```diff
+ const slideVariants = {
+-  enter:  { opacity: 0, scale: 1.06, filter: 'blur(16px)' },
+-  center: { opacity: 1, scale: 1,    filter: 'blur(0px)'  },
+-  exit:   { opacity: 0, scale: 0.95, filter: 'blur(16px)' },
++  enter:  { opacity: 0, filter: 'blur(20px)' },
++  center: { opacity: 1, filter: 'blur(0px)'  },
++  exit:   { opacity: 0, filter: 'blur(20px)' },
+ };
+```
+
+The blur on both incoming and outgoing makes the cards visually melt into each other — incoming gradually sharpens into focus, outgoing softens into the background. With both running simultaneously in `mode="sync"`, you get a true cross-fade morph instead of a hard cut. Spring on scale is gone; both opacity and filter use the same Apple cubic curve `[0.32, 0.72, 0, 1]` over 700 ms.
+
+### Bug 3 — Favorites label "1 devices"
+
+Two problems on the Favorites virtual-widget description:
+
+1. Word choice: `Geräte / devices`. But favorites can include system entities like Weather, News, Todos — calling them "devices" is misleading.
+2. No singular/plural handling. `${count} Geräte` → "1 Geräte"; `${count} devices` → "1 devices".
+
+New helper:
+
+```js
+const formatCount = (lang, count, singularDe, pluralDe, singularEn, pluralEn) => {
+  const word = lang === 'de'
+    ? (count === 1 ? singularDe : pluralDe)
+    : (count === 1 ? singularEn : pluralEn);
+  return `${count} ${word}`;
+};
+```
+
+Used for both Favorites ("Eintrag/Einträge" / "item/items") and Suggestions ("Empfehlung/Empfehlungen" / "recommendation/recommendations"). Now reads "1 item" / "5 items" instead of "1 devices".
+
+### Files
+
+- `src/components/bento/widgets/BentoRichSlider.jsx`
+- `src/components/bento/virtualItems.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1654 - 2026-05-22
 
 **Title:** 🌐 Tipps widget on first start ignored userLanguage — loaded German regardless
