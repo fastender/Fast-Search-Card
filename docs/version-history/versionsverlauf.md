@@ -1,5 +1,72 @@
 # Versionsverlauf
 
+## Version 1.1.1649 - 2026-05-22
+
+**Title:** 🐛 Four bento bugs — bigger zoom, news tabs at first install, persistent bottom mask, calendar scrollbar
+**Hero:** none
+**Tags:** Bugfix, Bento, Boot
+
+### Why
+
+Four user-reported issues in one release:
+
+1. Boot wallpaper zoom should be more dramatic — scale 2.0 → 1.0 instead of 1.20 → 1.0.
+2. News widget tabs ("Ungelesen / Gelesen") were invisible on first install — only appeared after clicking an article and coming back.
+3. Bottom edge-fade mask on todos/news/calendar lists only appeared after scrolling — user wanted it permanent so the user always sees there is more content below.
+4. Calendar widget in the slider had no `CustomScrollbar` (news and todos did).
+
+### Fix 1 — Wallpaper zoom 2.0 → 1.0
+
+`ZOOM_INITIAL_SCALE: 1.20 → 2.0`. Wallpaper now starts at 200% size (edges 50% off-viewport on each side, clipped by overflow), and pulls back to native size over the 5500ms zoom. Much stronger Ken-Burns-style.
+
+### Fix 2 — News tabs always visible
+
+```js
+- const showTabs = hasUnread && hasRead;
++ const showTabs = allArticles.length > 0;
+```
+
+The old condition required both unread and read articles to exist. On first install every article is fresh-unread → `hasRead = false` → no tabs rendered. Now tabs appear as soon as there is at least one article in the feed. The empty `Gelesen` tab simply shows the existing "Keine Artikel verfügbar" empty-state when active.
+
+### Fix 3 — Bottom mask permanent
+
+The previous CSS rule only activated the mask gradient when the container had the `.is-scrolling` class. New structure:
+
+```css
+/* Always: bottom soft edge */
+.bento-rich-todos-list--scroll,
+.bento-rich-news-more--scroll,
+.bento-rich-calendar-more {
+  mask-image: linear-gradient(to bottom,
+    black 0, black calc(100% - 24px), transparent 100%);
+}
+/* When scrolled: ALSO top soft edge */
+.bento-rich-*.is-scrolling {
+  mask-image: linear-gradient(to bottom,
+    transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
+}
+```
+
+Bottom-fade communicates "more content below" permanently; top-fade only appears when the user has actually scrolled past the top.
+
+### Fix 4 — Calendar CustomScrollbar
+
+`BentoRichCalendar.jsx` now imports `CustomScrollbar` and adds a `moreScrollRef` + `isMoreHovered` state. The scrollbar is rendered inside `.bento-rich-calendar-more` next to the event rows, identical pattern to `BentoRichNews`. `alwaysVisible={isTouchDevice()}` so it's visible on touch devices without requiring hover.
+
+### Deferred (not in this release)
+
+User also asked for "tabs wie todos: demnächst, vergangene" on the news widget — but todos has per-list tabs (Einkaufsliste, To-do) while "demnächst / vergangene" suggests a time-based filter. Will clarify with user before implementing.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx`
+- `src/components/BentoStartView.css`
+- `src/components/bento/widgets/BentoRichNews.jsx`
+- `src/components/bento/widgets/BentoRichCalendar.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1648 - 2026-05-22
 
 **Title:** 🎬 Boot reveal — pure black hold + cinematic ease-in-out fade-up
