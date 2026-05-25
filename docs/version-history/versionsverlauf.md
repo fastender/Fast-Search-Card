@@ -1,5 +1,77 @@
 # Versionsverlauf
 
+## Version 1.1.1704 - 2026-05-25
+
+**Title:** 💡 Universal-Device card — quick-stats as 3rd line + brighter background when active
+**Hero:** none
+**Tags:** Feature, UX, Integration, Universal
+
+### Why
+
+Two card-grid polish requests:
+
+1. When the user configures quick-stats sensors in the wizard, those live values should also appear on the device's card in the grid view (3rd line under area + name).
+2. When the device is in any active state (`active`, `idle`, `on`, `printing`, etc.), the card should look "lit up" — similar to how a light entity's card brightens when on.
+
+### Fix 1 — Quick stats as 3rd line
+
+`DeviceCardGridView` now imports `getQuickStats` and renders a `.device-quick-stats` line below `.device-state` when:
+
+- `device.domain === 'universal_device'`
+- `device.attributes.quick_stats` is a non-empty array
+- `window._hass.states` has values for at least one of those entity_ids
+
+```jsx
+{device.domain === 'universal_device' && (() => {
+  const ids = device.attributes?.quick_stats;
+  if (!Array.isArray(ids) || ids.length === 0) return null;
+  const hass = typeof window !== 'undefined' ? window._hass : null;
+  if (!hass?.states) return null;
+  const values = getQuickStats(device, lang, hass);
+  if (!values || values.length === 0) return null;
+  return <div className="device-quick-stats">{values.join(' · ')}</div>;
+})()}
+```
+
+`getQuickStats` already has the universal_device branch (v1.1.1679) that builds short labels like `"Bett: 21°C"` from each entity's friendly_name (with the device-name-prefix stripped). Multiple stats join with `·` separators. Right-edge fadeout mask handles overflow gracefully.
+
+### Fix 2 — Active-state brightening
+
+`DeviceCard.jsx`'s `isActive` computation didn't trigger for `universal_device` because:
+
+1. State is typically `'active'` / `'idle'` / `'printing'` — none match the explicit `'on'/'ein'` early-return.
+2. The fallback `isEntityActive(device)` was called with the wrong signature — the function expects `(state, domain, attributes)` but received the whole device object. `state.toString().toLowerCase()` then became `"[object object]"` which never matched any active state. Long-standing bug; affected every domain without a special-case above.
+
+Both fixed:
+
+- Added explicit `universal_device` branch in `isActive` — true when state is non-empty AND not in `{off, inactive, unavailable, unknown}`. Covers SystemEntity defaults + Bambu's actual "Active / Idle / Printing" states.
+- Fixed `isEntityActive(device)` → `isEntityActive(device.state, device.domain, device.attributes)`. Side benefit: other domains' active detection becomes accurate too.
+
+CSS for active state — Card background brightens + a warm-glow tint layer:
+
+```css
+.device-card.active {
+  background: rgba(255, 255, 255, 0.20);   /* was default 0.10 */
+}
+.device-card.active::before {
+  opacity: 1;
+  background: linear-gradient(135deg,
+    rgba(255, 215, 130, 0.10) 0%,        /* warm yellow tint */
+    rgba(255, 255, 255, 0.04) 100%);
+}
+.device-card.active .device-quick-stats {
+  color: rgba(255, 255, 255, 0.72);  /* slightly brighter text too */
+}
+```
+
+### Files
+
+- `src/components/DeviceCard.jsx` (isActive universal_device branch + isEntityActive signature fix)
+- `src/components/DeviceCard/DeviceCardGridView.jsx` (getQuickStats import + .device-quick-stats render + .device-card.active CSS)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1703 - 2026-05-25
 
 **Title:** 👆 Hero slideshow swipe — larger detection zone (whole `.controls-tab`) + native pointer events
