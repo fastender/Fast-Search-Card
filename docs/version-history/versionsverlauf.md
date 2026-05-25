@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1686 - 2026-05-25
+
+**Title:** 🎯 NumberSliderControl — thumb-overflow padding so min/max align with the row's text edge
+**Hero:** none
+**Tags:** Bugfix, Polish, UX
+
+### Why
+
+In the wide-row layout of `NumberSliderControl` (used for `number.*` / `input_number.*` entities in the Universal-Device entity-list) the slider thumb at the Min position visually overflowed to the LEFT of the row's text — the thumb's left edge sat ~15 px outside the row's content area, while the label above started at the row's normal 16 px padding.
+
+### Root cause
+
+`LiquidGlassSlider` thumb uses `style={{ x: '-50%' }}` so the thumb is horizontally **centred** on its calculated position. When progress is 0%, the thumb's centre lands at the track's start (x = 0). With a thumb width of 29 px the LEFT EDGE then sits at -14.5 px relative to the track. Same on the right at progress 100%.
+
+Without compensating padding the slider's track ran flush from `padding-left: 0` to `padding-right: 0` of its container, so the thumb at extremes stuck out 14.5 px past either side — visually misaligned with the label above (which respects the `.ios-item` 16 px padding).
+
+### Fix
+
+Wrap the `<LiquidGlassSlider>` in `NumberSliderControl` with `padding: 0 15px; box-sizing: border-box;`. The track is now inset by 15 px on each side; the thumb at min/max lands centred on a position that puts its outer edge **back to the row's normal text-left/right**.
+
+Scoped to `NumberSliderControl` only — other consumers of `LiquidGlassSlider` (Settings cards, Hero gauges, Scheduler) keep their own layout assumptions.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/NumberSliderControl.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1685 - 2026-05-25
 
 **Title:** 💧 LiquidGlassSlider — +10% size bump on the universal compact defaults
