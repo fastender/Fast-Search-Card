@@ -185,6 +185,19 @@ Type a typo. Type a room. Type a feeling. Combine area and domain as chips. Find
 </details>
 
 <details>
+<summary><b>Browse.</b> Two views. Four categories. Your order.</summary>
+
+<br>
+
+Grid or list — switch any time.
+
+Four categories: **Devices. Sensors. Actions. Custom.** Each with its own filters.
+
+Sort by area. Sort by category. Sort by what you use most. The card learns and reorders itself.
+
+</details>
+
+<details>
 <summary><b>Detail View.</b> Everything about everything.</summary>
 
 <br>
