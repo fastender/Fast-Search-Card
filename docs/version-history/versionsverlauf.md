@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.1702 - 2026-05-25
+
+**Title:** 👆 Hero slideshow — touch + mouse swipe to navigate (framer-motion drag)
+**Hero:** none
+**Tags:** Feature, UX, Integration, Universal
+
+### Why
+
+Dots-click works, auto-advance works, but on touch devices the natural gesture is horizontal swipe across the hero area. Now: swipe left = next hero, swipe right = previous. Works for mouse drag too on desktop.
+
+### Implementation
+
+Framer-motion's `drag` API on the `.slider-wrapper` motion.div. Configured per-render-path identical:
+
+```jsx
+drag={heroSwipeEnabled ? 'x' : false}
+dragConstraints={{ left: 0, right: 0 }}
+dragElastic={0.2}
+onDragEnd={heroSwipeEnabled ? handleHeroSwipe : undefined}
+```
+
+Where `heroSwipeEnabled = isUniversalDevice && universalHeroes.length > 1` — drag is disabled on non-universal devices and on single-hero universal-devices (nothing to swipe to).
+
+Swipe detection in `handleHeroSwipe`:
+
+```js
+const SWIPE_OFFSET = 50;        // 50 px drag distance OR
+const SWIPE_VELOCITY = 300;     // 300 px/s "flick" velocity
+if (info.offset.x < -SWIPE_OFFSET || info.velocity.x < -SWIPE_VELOCITY) → next
+else if (info.offset.x > SWIPE_OFFSET || info.velocity.x > SWIPE_VELOCITY) → previous
+```
+
+The velocity-based check makes quick flick gestures snappy without requiring 50 px of drag distance.
+
+### Rubberband + snap-back
+
+`dragConstraints: {left:0, right:0}` + `dragElastic: 0.2` gives the iOS rubberband feel during the drag and snaps back to centre on release. The actual hero-change happens via the existing `setUniversalHeroIdx` which triggers the AnimatePresence transition for the next hero — same as a dot click.
+
+### Bonus interaction with v1.1.1701
+
+A swipe calls `setUniversalHeroIdx`, which changes `safeUniversalIdx`, which is now in the auto-advance useEffect deps (since v1.1.1701) — so the swipe ALSO resets the 10-second auto-advance timer. Same expected behavior as a dot click.
+
+### Both render paths covered
+
+Lesson from v1.1.1700: `UniversalControlsTab` has two `<motion.div className="slider-wrapper">` instances (special-case branch + STANDARD-layout branch). Both got the drag props. Universal-device goes through STANDARD, but adding to both keeps the file consistent for future maintainers.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1701 - 2026-05-25
 
 **Title:** ⏱️ Hero slideshow auto-advance — timer now resets on manual dot click
