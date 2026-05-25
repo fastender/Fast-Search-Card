@@ -1,5 +1,78 @@
 # Versionsverlauf
 
+## Version 1.1.1709 - 2026-05-25
+
+**Title:** 🐛 Marquee state-line: seamless loop via translateX(-50%) pattern (no end-of-cycle jump)
+**Hero:** none
+**Tags:** Bugfix, DeviceCard, Universal, Animation
+
+### Why
+
+After v1.1.1708 the marquee finally activates, but user reported it isn't smooth — there's a visible jump at the end of each cycle when the animation snaps back to the start.
+
+### Root cause
+
+v1.1.1707/1708 measured the text width in JS (`getBoundingClientRect().width`), added a hardcoded gap (40px), passed the sum as `--marquee-distance: ${distance}px`, and animated the track from `translateX(0)` to `translateX(calc(-1 * var(--marquee-distance)))`. The track used `display: inline-flex; gap: 40px` with two copies.
+
+For a perfectly seamless loop the translated distance must equal `copy-width + gap` EXACTLY so that copy #2 lands at the pixel position copy #1 started from. Any sub-pixel mismatch shows as a 1-2px snap at the loop boundary. Sources of mismatch:
+- `Math.ceil` rounding in the measurement (added up to 0.99px to the distance)
+- Browser font metrics returning fractional widths that differ between the hidden measure span and the visible spans (rare but possible)
+- Font-load timing: the measurement could complete before web-fonts finished loading, then visible spans rendered slightly wider
+
+### Fix
+
+Switched to the canonical CSS marquee pattern — `translateX(-50%)` on a track that is exactly 2 copies wide. The percentage refers to the track's OWN width, so `-50%` is automatically and exactly one copy-width, with no JS measurement involved in the animation distance.
+
+```jsx
+<div className="device-state-marquee-track">
+  <span className="device-state-marquee-copy">{text}</span>
+  <span className="device-state-marquee-copy" aria-hidden="true">{text}</span>
+</div>
+```
+
+```css
+.device-state.is-marquee .device-state-marquee-track {
+  display: flex;
+  width: max-content;          /* track sizes to children — exactly 2 copies */
+  animation: device-state-marquee-scroll var(--marquee-duration, 12s) linear infinite;
+}
+.device-state.is-marquee .device-state-marquee-copy {
+  flex: 0 0 auto;
+  padding-right: 40px;          /* trailing gap is PART of the copy box */
+  white-space: nowrap;
+}
+@keyframes device-state-marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+```
+
+Why this is bit-perfect:
+
+- Each copy has its trailing 40px gap baked into its layout box via `padding-right`. So copy-width = text + 40.
+- Track width = 2 × copy-width (no flex-gap to worry about — gap lives inside each copy).
+- `translateX(-50%)` = -50% of track width = -copy-width. After translation, copy #2 sits at pixel 0 where copy #1 started. Browser-side percentage arithmetic, no JS rounding.
+
+JS measurement is now ONLY used to decide whether to enter marquee mode (overflow detection) and to choose the duration (proportional to copy width so longer text scrolls at the same speed). Once active, the animation is purely CSS-driven with percentage-based math.
+
+Bonus: added `document.fonts.ready` listener to re-measure after web-fonts finish loading, in case the initial measurement happened before fonts swapped in.
+
+### Result
+
+State-line marquee for Universal-Device quick_stats now loops infinitely without any visible discontinuity. The transition from "copy 2 at left edge" to "copy 1 at left edge" is invisible because both have identical content AND identical pixel position.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardGridView.jsx`
+  - `ScrollingDeviceState`: removed `--marquee-distance` CSS variable, simplified state to `{ active, duration }`, added font-ready listener
+  - CSS track: `display: flex; width: max-content` (was `inline-flex; gap: 40px`)
+  - CSS copy: new `.device-state-marquee-copy` class with `padding-right: 40px`
+  - Keyframes: `0% → 100%` now `translateX(0) → translateX(-50%)`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1709
+- `docs/version-history/versionsverlauf.md` → this entry
+
+---
+
 ## Version 1.1.1708 - 2026-05-25
 
 **Title:** 🐛 Marquee state-line: fix overflow detection (inline span returned wrong width)
