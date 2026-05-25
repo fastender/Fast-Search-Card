@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1691 - 2026-05-25
+
+**Title:** 🎠 Universal-Device — Multi-Hero (up to 5) with 10-s slideshow + dots indicator
+**Hero:** none
+**Tags:** Feature, Integration, Universal
+
+### Why
+
+User wanted to surface more than one prominent "hero" value per Universal-Device. Single-hero rendering was too constraining for devices where multiple sensors matter equally (e.g., a Bambu printer with progress %, bed temp, nozzle temp). Solution: up to 5 picks, rotating slideshow inside the existing circular gauge, with auto-advance and clickable dots.
+
+### Storage schema
+
+`hero` was a single `string` (entity_id). Now it's a `string[]` with length 0–5. Backwards-compat: legacy single-string values are read as `[hero]` at every consumer site (HeroPickerView, useDeviceEntities, entityGrouping, UniversalControlsTab). Saved as array going forward.
+
+### Setup wizard
+
+- **`HeroPickerView`** — was single-pick with radio-checkmark. Now toggle-based: tap to add/remove, max 5 enforced (rows beyond the limit dim + non-clickable until you free a slot). Section header shows `N / 5` counter. "Keine Hauptanzeige" button clears all. Search field from v1.1.1690 still works.
+- **`Step2Customize`** Hero-row display:
+  - 0 picks → "Keine" / "None"
+  - 1 pick → that entity's friendly name
+  - ≥ 2 picks → "N ausgewählt" / "N picked"
+
+### Slideshow render (`UniversalControlsTab`)
+
+New state + effects scoped to `domain === 'universal_device'`:
+
+- `universalHeroes` (memo) — normalized array from `item.attributes.hero`
+- `universalHeroIdx` (state) — currently shown index, reset to 0 when entity changes or heroes-array length changes
+- Auto-advance `useEffect` — 10-s interval. Pauses when `expandedControl !== null` (user is interacting with a tab) or when fewer than 2 heroes are configured.
+- `sliderConfig` useMemo's universal_device branch now reads `activeUniversalHero` (= `universalHeroes[safeUniversalIdx]`) instead of `item?.attributes?.hero`. Dep on `activeUniversalHero` so the slider re-renders on rotation.
+
+Dots indicator renders between the circular gauge and the tab buttons, only when ≥ 2 heroes:
+
+- 6 × 6 px circles in `rgba(255,255,255,0.30)`; active dot becomes an 18-px pill in `rgba(255,255,255,0.85)`
+- Click any dot to jump to that hero (resets auto-advance via state set)
+- 250-ms ease transition for width + color
+
+### Edge cases
+
+- `useDeviceEntities` (hooks.js) `heroSet` accepts string OR array — used by VisibilityView to exclude hero from visibility-buckets. With multi-hero, ALL picked entities are excluded.
+- `entityGrouping.js` (runtime) `heroSet` same handling — keeps universal device's runtime-tab content consistent with the wizard's preview.
+- `handleSelectDevice` (add-mode) auto-picks first sensor-with-device_class and stores as `[id]` (single-item array). User can extend in HeroPicker.
+- `prefill` in `UniversalDeviceView.handleOpenSettings` was already pass-through; existing devices stored as legacy single string load correctly via the auto-wrap.
+- Auto-advance never starts when there's ≤ 1 hero (no point), saving a setInterval per Universal-Device card.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` (heroEntities state, toggleHero + clearHeroes handlers, handleFinish stores array, prefill from string|array)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/HeroPickerView.jsx` (multi-select toggle with max-hero limit + at-limit dim/disable + counter)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step2Customize.jsx` (heroCount / heroEntityObjs display logic)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/hooks.js` (`useDeviceEntities` heroSet handles array)
+- `src/system-entities/entities/integration/device-entities/views/entityGrouping.js` (runtime heroSet handles array)
+- `src/components/tabs/UniversalControlsTab.jsx` (universalHeroes memo + universalHeroIdx state + 10-s auto-advance useEffect + sliderConfig active-hero branch + dots render)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1690 - 2026-05-25
 
 **Title:** 🔍 Universal-Setup sub-views — search input in HeroPicker / VisibilityView / QuickStatsView
