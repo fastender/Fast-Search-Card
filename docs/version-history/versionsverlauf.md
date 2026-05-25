@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1690 - 2026-05-25
+
+**Title:** 🔍 Universal-Setup sub-views — search input in HeroPicker / VisibilityView / QuickStatsView
+**Hero:** none
+**Tags:** Feature, UX, Integration, Universal
+
+### Why
+
+User reported devices with 50–70 entities — scrolling through a flat list in the picker sub-views was impractical. Each of the three drill-down sub-views needed its own search field, consistent with the Step 1 device-picker pattern.
+
+### What changed
+
+A single text-input at the top of each sub-view, case-insensitive filter on `friendly_name` + `entity_id`. Empty state ("Keine Entitäten gefunden" / "No entities found") shows when the search clears the list.
+
+**`HeroPickerView`** — search filters the entity list. The "No hero" option stays visible at the top regardless of the query (so you can always switch back to no-hero).
+
+**`VisibilityView`** — search filters each of the 4 buckets (Controls / Sensors / Diagnostics / Misc) independently. Empty buckets after filtering disappear; if all 4 are empty an aggregate "Keine Entitäten gefunden" message shows.
+
+**`QuickStatsView`** — search filters the eligible-domains subset (sensor / binary_sensor / weather / person / device_tracker / sun). Input only renders when there's at least one eligible entity (no point showing a search box over an empty list).
+
+Same input styling everywhere — `rgba(255,255,255,0.08)` background, 10-px radius, 14-px font, 10/14 padding. Inputs render outside the scoped `.ios-section` so they're not affected by the section's vertical margin.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/HeroPickerView.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/VisibilityView.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/QuickStatsView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+### Coming next (v1.1.1691)
+
+Multi-hero with slideshow — store up to 5 heroes, render with 10-s auto-advance + clickable dots in `UniversalControlsTab`'s universal_device case.
+
+---
+
 ## Version 1.1.1689 - 2026-05-25
 
 **Title:** ✂️ `.ios-navbar-title` — single-line + right-edge fadeout (no more 2-line wrap on long entity names)
