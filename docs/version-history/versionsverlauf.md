@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1699 - 2026-05-25
+
+**Title:** 🔬 UniversalControlsTab — one-shot console.warn for hero-image diagnostics
+**Hero:** none
+**Tags:** Debug
+
+### Why
+
+User picked correctly-badged `image.bambu_lab_a1_bild_wahlen` entities and still sees the CircularSlider with "2026" — even though the code path SHOULD trigger `<UniversalHeroImage>`. Most likely the browser/HACS cached an older bundle. This release adds a one-shot `console.warn` that fires whenever a Universal-Device is shown, so the user can verify in DevTools whether the new code is actually executing.
+
+### Log line
+
+```
+[UniversalControlsTab] hero diag {
+  activeUniversalHero: 'image.bambu_lab_a1_bild_wahlen',
+  activeHeroDomain: 'image',
+  isHeroImage: true,
+  heroesArray: [...],
+  version: '1.1.1699',
+}
+```
+
+If `version` shows `'1.1.1699'` and `isHeroImage` is `true`, but the slider still renders → real bug. If no log appears or version is older → cached bundle.
+
+To clear HACS cache:
+- Browser hard reload (Cmd/Ctrl + Shift + R)
+- Or: Settings → Devices → Three-dot menu next to Fast-Search-Card → "Reload"
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1698 - 2026-05-25
 
 **Title:** 🏷️ HeroPicker — visible "Image" / "Camera" badge on entities that will render as a picture
