@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1706 - 2026-05-25
+
+**Title:** 🐛 quick_stats persistence + DeviceCard formatting unified with existing state-line
+**Hero:** none
+**Tags:** Bugfix, Integration, Universal
+
+### Bug 1 — quick_stats lost after app reload
+
+User reported: quick_stats picks vanish on reload. Other settings (name/icon/hero/hidden_entities) persist correctly.
+
+Root cause: `UniversalDeviceEntity` constructor's `universalConfig` destructure never extracted `quick_stats`, and the `super({...attributes})` block never included it. Storage layer + updateDevice action both did their job correctly — `deviceConfig.devices[].quick_stats` was being written to HA's frontend/get_user_data backend. But on every app boot, `Integration.loadSavedDevices()` rebuilt each Universal-Device entity via `new UniversalDeviceEntity(config)`, and the constructor dropped the quick_stats field from the config. After mount, `entity.attributes.quick_stats === undefined`. UniversalDeviceView's `existing` prefill then read empty → wizard showed "None" → user re-toggled → save propagated → but next reload same problem.
+
+In-memory after save it worked (updateAttributes set it on the live entity). Only the cold-start path was broken. Hence "not persistent" symptom from the user's perspective.
+
+Fix:
+
+```js
+const {
+  ...,
+  quick_stats = [],  // ← was missing
+} = universalConfig;
+
+super({
+  attributes: {
+    ...,
+    quick_stats: quick_stats,  // ← was missing
+  },
+});
+```
+
+Existing devices saved before this fix have `quick_stats` in their deviceConfig, so on next reload they'll now correctly surface in the entity attributes — no migration needed.
+
+### Bug 2 — quick_stats line formatting didn't match other cards
+
+v1.1.1704 added a separate `.device-quick-stats` line with `font-size: 11px` and a different color. User's reference screenshot (cover entity with "Open" / light entity with "Off") shows the state-line uses the same 18-px font and styling as the `.device-area` / `.device-name` lines above it.
+
+Fix: dropped the standalone `.device-quick-stats` element/class. The quick-stats joined string is now rendered as the content of the existing `.device-state` div for `universal_device` devices, inheriting the standard state-line formatting (`font-size: 18px`, `line-height: 1.15`, `color: rgba(255,255,255,0.85)`).
+
+If no `quick_stats` are configured, the state-line falls back to the default `getDisplayState()` — same as before.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/UniversalDeviceEntity.js` (`quick_stats` destructure + attributes entry)
+- `src/components/DeviceCard/DeviceCardGridView.jsx` (state-line absorbs quick-stats render, removed `.device-quick-stats` class + CSS)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1705 - 2026-05-25
 
 **Title:** ↩️ Revert v1.1.1704 active-card color changes (kept quick-stats 3rd line)
