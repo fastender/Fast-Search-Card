@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1701 - 2026-05-25
+
+**Title:** ⏱️ Hero slideshow auto-advance — timer now resets on manual dot click
+**Hero:** none
+**Tags:** Bugfix, UX, Integration, Universal
+
+### Why
+
+User reported: slide 1 has been running for 6 seconds, click dot for slide 2 → slide 2 only stays visible for 4 seconds (instead of the expected 10). Auto-advance fires too early after a manual jump.
+
+### Root cause
+
+The `useEffect` that runs the auto-advance interval had deps `[isUniversalDevice, universalHeroes.length, expandedControl]` — missing `safeUniversalIdx`. When the user clicked a dot, `setUniversalHeroIdx` updated the state and the progress-bar CSS animation restarted (its `key={`progress-${safeUniversalIdx}`}` change forced a remount). But the auto-advance `setInterval` itself wasn't dependent on the index, so it kept counting from its original start. At t=10s (counting from when the interval was first established), it fired → idx incremented again → user-picked slide had only the remaining 4 seconds.
+
+### Fix
+
+Added `safeUniversalIdx` to the effect deps. Now any index change (manual click OR auto-advance) tears down the old `setInterval` via the cleanup and starts a fresh 10-second cycle. The progress-bar animation and the actual advancement timer are now in sync.
+
+```js
+useEffect(() => {
+  if (!isUniversalDevice || universalHeroes.length <= 1) return;
+  if (expandedControl !== null) return;
+  const id = setInterval(() => {
+    setUniversalHeroIdx(i => (i + 1) % universalHeroes.length);
+  }, 10000);
+  return () => clearInterval(id);
+}, [isUniversalDevice, universalHeroes.length, expandedControl, safeUniversalIdx]);
+//                                                              ↑ new dep
+```
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1700 - 2026-05-25
 
 **Title:** 🎯 Hero image render — fixed second render path that the v1.1.1695 image-replacement missed
