@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1682 - 2026-05-25
+
+**Title:** 🎨 Universal-Device list polish #2 — bottom-edge scroll fade + compact inline slider thumb
+**Hero:** none
+**Tags:** Polish, Integration, Universal, UX
+
+### Why
+
+Two follow-ups to v1.1.1681:
+
+1. **Bottom-edge mask** — user wanted a soft fade at the bottom of the scroll-container too (v1.1.1681 only added a top fade when `is-scrolling`). Bottom fade signals "more content below" without needing to scroll first.
+2. **NumberSliderControl thumb too big** — the inline `LiquidGlassSlider` in number-entity rows used the default 52×34 px thumb + 8px track. Inside a dense list-row that pill is "rieseig" (huge) and dominates the row visually.
+
+### Bottom-fade approach
+
+Default `.printer-sensors-scroll` now carries a **persistent bottom fade**:
+
+```css
+.printer-sensors-scroll {
+  mask-image: linear-gradient(to bottom, black 0, black calc(100% - 40px), transparent 100%);
+}
+```
+
+When the user actually scrolls past the top, the existing `.is-scrolling` class flips on and the mask gains a **top fade as well**:
+
+```css
+.printer-sensors-scroll.is-scrolling {
+  mask-image: linear-gradient(to bottom,
+    transparent 0, black 40px,
+    black calc(100% - 40px), transparent 100%);
+}
+```
+
+Result: bottom always teases more content; top fades in when relevant. No false top-fade while sitting at the start of the list.
+
+### Compact slider thumb
+
+`LiquidGlassSlider`'s thumb size is driven by CSS variables (`--thumb-w`, `--thumb-h`, `--track-h`). A scoped override on a new wrapper class shrinks them to ~60% of default while keeping the pill aesthetic:
+
+```css
+.universal-list-slider .fm-slider {
+  --thumb-w: 32px;   /* was 52 */
+  --thumb-h: 20px;   /* was 34 */
+  --track-h:  6px;   /* was  8 */
+}
+```
+
+`NumberSliderControl.jsx` now wraps its `<LiquidGlassSlider>` in a `<div className="universal-list-slider">` so the override only applies inside the Universal-Device entity-list. Other consumers of `LiquidGlassSlider` (settings cards, control hero gauges, scheduler) keep their full-size thumb.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css` (persistent bottom-mask on `.printer-sensors-scroll` + augmented `.is-scrolling` to include top fade + new `.universal-list-slider` compact override)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/NumberSliderControl.jsx` (wrapper class)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1681 - 2026-05-25
 
 **Title:** 🎨 Universal-Device list polish — subtler hover, MISC sub-headers (Settings/Actions), fixed 420 height, scroll-fade mask
