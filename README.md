@@ -208,6 +208,8 @@ Every HA `todo.*` backend, in one place. All lists stay on your Home Assistant. 
 
 RSS-aware. Renders images other readers miss. Mark-as-read. Unread badge. Deep-links straight from the start screen.
 
+Powered by [fast-news-reader](https://github.com/fastender/fast-news-reader) — a companion HACS custom component that does the heavy lifting (feed parsing, `content:encoded` image extraction, persistence). One install, no extra config.
+
 </details>
 
 <details>
@@ -244,7 +246,7 @@ No YAML. No code. Edit anytime.
 
 <br>
 
-Background filters. Squircle cards. Splashscreen styles. Excluded patterns with live preview. Ten languages. All persistent.
+Background filters. Squircle cards. Splashscreen styles. Excluded patterns with live preview. English and German today, more languages on the way. All persistent.
 
 </details>
 

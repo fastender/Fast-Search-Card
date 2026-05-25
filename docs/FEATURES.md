@@ -270,7 +270,7 @@ Aggregates every HA `todo.*` backend. All lists stay on your Home Assistant. No 
 
 RSS-aware. Renders images other readers miss — `content:encoded` images included. Mark-as-read. Unread badge. Refreshes on focus and visibility change.
 
-Companion HACS package: `fast-news-reader`.
+Powered by the [fast-news-reader](https://github.com/fastender/fast-news-reader) custom component — a companion HACS package that handles feed parsing, image extraction, and persistence on the Home Assistant side. The card reads its state; the component does the work. One install, no extra config.
 
 </details>
 
@@ -594,7 +594,7 @@ Thirty search queries. Frequent lookups.
 
 ## Internationalization
 
-> Ten languages.
+> English and German today. More on the way.
 
 <details>
 <summary><b>Translations across the card.</b></summary>
@@ -602,6 +602,8 @@ Thirty search queries. Frequent lookups.
 <br>
 
 `translateUI('key.path')` with German fallback. Sidebar labels. System-entity names. History tab timeframes. Action button tooltips. All language-aware.
+
+Two languages ship today — **English** and **German**. The translation infrastructure (`src/utils/translations/languages/`) is ready for more; additional languages are planned.
 
 Known gaps: Tipps content (DE-only), some HistoryTab sub-strings. See the roadmap.
 
