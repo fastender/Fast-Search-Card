@@ -2,11 +2,11 @@
 
 # Fast Search Card
 
-### Find anything. In an instant.
+### Find anything. Control everything.
 
 _Faster. Together._
 
-A Lovelace card for Home Assistant.<br>
+A complete dashboard for Home Assistant.<br>
 **Setup in under 10 seconds. One line.**
 
 [![Version](https://img.shields.io/github/v/release/fastender/Fast-Search-Card?style=flat-square&color=007AFF&label=version)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md)
@@ -97,6 +97,16 @@ One file in `www/`. No Docker. No add-on. No daemon. Nothing to install, nothing
 Home Assistant restart? Still there. Core upgrade? Still there. Full system crash? Right where you left it when you boot back.
 
 Nothing to break, because nothing is running.
+
+<br>
+
+---
+
+## More than search
+
+A start screen. A calendar. Reminders. News. Energy monitoring. Music control. A scheduler. A settings hub.
+
+**One card. Eight built-in apps. All local.**
 
 <br>
 
