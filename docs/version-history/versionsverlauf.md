@@ -1,5 +1,51 @@
 # Versionsverlauf
 
+## Version 1.1.1683 - 2026-05-25
+
+**Title:** 💧 Compact LiquidGlassSlider — keep the glass, shrink the bloom
+**Hero:** none
+**Tags:** Polish, Integration, Universal, UX
+
+### Why
+
+v1.1.1682 shrunk the inline `NumberSliderControl` thumb from 52×34 to 32×20 px via CSS-variable overrides. Visually it was still wuchtig because two halo-layers don't scale with the thumb size:
+
+1. **`.fm-thumb-specular`** has an `inset 0 0 22px rgba(255,255,255,.60)` glow. At 52×34 the 22-px inner glow looks like a soft highlight along the edge. At 32×20 it fills the entire inside with a near-solid white blob — the small thumb looks visually larger and chunkier.
+2. **`.fm-slider-thumb` outer box-shadow** is set inline by framer-motion (`SHADOWS.dark = '0 2px 10px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.04)'`). That 10-px ambient blur extends ~12 px around the thumb regardless of its size. On a 32×20 thumb it adds nearly 80 % extra visual footprint.
+
+User wanted the glass-look kept (an earlier draft of mine wholesale disabled the three glass layers — that wasn't the intent).
+
+### Fix — proportional reduction, no removal
+
+Both halos are scoped to `.universal-list-slider` only. Other consumers of `LiquidGlassSlider` (settings, hero gauges, scheduler) keep their full-fat glass-look.
+
+```css
+.universal-list-slider .fm-thumb-specular {
+  /* glow distance 22px → 8px, opacity .60 → .45 */
+  box-shadow:
+    inset 1px 1px 0 rgba(69,168,243,.20),
+    inset 1px 3px 0 rgba(28,63,90,.05),
+    inset 0 0 8px rgba(255,255,255,.45),
+    inset -1px -1px 0 rgba(69,168,243,.12);
+}
+
+.universal-list-slider .fm-slider-thumb {
+  /* framer-motion sets the outer shadow inline; only `!important` overrides */
+  box-shadow:
+    0 1px 4px 0 rgba(0,0,0,.22),
+    0 0 0 1px rgba(255,255,255,.04) !important;
+}
+```
+
+Three layers all stay rendered (`fm-thumb-filter` backdrop blur + `fm-thumb-overlay` white tint + `fm-thumb-specular` inset specular) — the glass-look stays. Only the bloom is dialed down to match the smaller body.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1682 - 2026-05-25
 
 **Title:** 🎨 Universal-Device list polish #2 — bottom-edge scroll fade + compact inline slider thumb
